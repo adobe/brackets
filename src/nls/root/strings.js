@@ -110,6 +110,7 @@ define({
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
+    "FIND_IN_FILES_MORE_THAN"           : "More than ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
     "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",

@@ -58,7 +58,8 @@ define(function (require, exports, module) {
 
     var searchResults = [];
     
-    var FIND_IN_FILES_MAX = 100;
+    var FIND_IN_FILES_MAX = 100,
+        maxHitsFoundInFile = false;
     
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200 };
@@ -173,8 +174,11 @@ define(function (require, exports, module) {
                 line: line
             });
 
-            // We have the max hits in just this 1 file. Stop searching.
+            // We have the max hits in just this 1 file. Stop searching this file.
+            // This fixed issue #1829 where code hangs on too many hits.
             if (matches.length >= FIND_IN_FILES_MAX) {
+                queryExpr.lastIndex = 0;
+                maxHitsFoundInFile = true;
                 break;
             }
         }
@@ -196,9 +200,15 @@ define(function (require, exports, module) {
             });
             
             // Show result summary in header
+            var numMatchesStr = "";
+            if (maxHitsFoundInFile) {
+                numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
+            }
+            numMatchesStr += String(numMatches);
+
             var summary = StringUtils.format(
                 Strings.FIND_IN_FILES_TITLE,
-                numMatches,
+                numMatchesStr,
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 searchResults.length,
                 (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
@@ -312,6 +322,7 @@ define(function (require, exports, module) {
         var initialString = currentEditor && currentEditor.getSelectedText();
         
         searchResults = [];
+        maxHitsFoundInFile = false;
                             
         dialog.showDialog(initialString)
             .done(function (query) {
