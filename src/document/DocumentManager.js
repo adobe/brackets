@@ -300,6 +300,24 @@ define(function (require, exports, module) {
     
     
     /**
+     * Changes the position of the file from oldIndex to NewIndex and at the same time the file
+     * in newIndex to oldIndex. Returns the newIndex
+     * @param {!number} index - old file index
+     * @param {!number} index - new file index
+     */
+    function switchFilesIndex(oldIndex, newIndex) {
+        var length = _workingSet.length - 1;
+        var aux;
+        
+        if (oldIndex >= 0 && oldIndex <= length && newIndex >= 0 && newIndex <= length) {
+            aux = _workingSet[oldIndex];
+            _workingSet[oldIndex] = _workingSet[newIndex];
+            _workingSet[newIndex] = aux;
+        }
+    }
+    
+    
+    /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
      * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)
      * or for incremental-search style document preview like Quick Open will eventually have.
@@ -1125,7 +1143,8 @@ define(function (require, exports, module) {
     exports.addListToWorkingSet = addListToWorkingSet;
     exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
-    exports.beginDocumentNavigation = beginDocumentNavigation;
+    exports.switchFilesIndex = switchFilesIndex;
+	exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;

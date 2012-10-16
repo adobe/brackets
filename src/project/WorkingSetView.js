@@ -163,7 +163,8 @@ define(function (require, exports, module) {
             selected      = $listItem.hasClass("selected"),
             prevSelected  = $prevListItem.hasClass("selected"),
             nextSelected  = $nextListItem.hasClass("selected"),
-            height        = $listItem.height(),
+            index         = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+			height        = $listItem.height(),
             startPageY    = event.pageY,
             moved         = false;
         
@@ -182,11 +183,13 @@ define(function (require, exports, module) {
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
+						DocumentManager.switchFilesIndex(index, --index);
                     } else {
                         // If moving down, place the next item before the moving item
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
+						DocumentManager.switchFilesIndex(index, ++index);
                     }
                     
                     if (!selected) {
