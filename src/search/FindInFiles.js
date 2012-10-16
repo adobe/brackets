@@ -53,19 +53,11 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
-        Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar");
 
     var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100;
-    
-    var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { height: 200 };
-    
-    /** @type {Number} Height of the FIF panel header in pixels. Hardcoded to avoid race 
-                       condition when measuring it on htmlReady*/
-    var HEADER_HEIGHT = 27;
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -354,16 +346,8 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var $searchResults  = $("#search-results"),
-            $searchContent  = $("#search-results .table-container"),
-            prefs           = PreferencesManager.getPreferenceStorage(module.id, defaultPrefs),
-            height          = prefs.getValue("height");
+            $searchContent  = $("#search-results .table-container");
 
-        $searchResults.height(height);
-        $searchContent.height(height - HEADER_HEIGHT);
-        
-        $searchResults.on("panelResizeEnd", function (event, height) {
-            prefs.setValue("height", height);
-        });
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {

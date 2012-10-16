@@ -55,14 +55,24 @@ define(function (require, exports, module) {
     var POSITION_BOTTOM = "bottom";
     var POSITION_LEFT = "left";
     var POSITION_RIGHT = "right";
-    
+	
     // Minimum size (height or width) for autodiscovered resizable panels
     var DEFAULT_MIN_SIZE = 100;
     
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
+		PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
     
+    var PREFERENCES_CLIENT_ID = module.id,
+        defaultPrefs = { };
+	
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = null;
+	
     var $mainView;
     
     /**
@@ -132,19 +142,23 @@ define(function (require, exports, module) {
             $element            = $(element),
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(window.document.body),
+			elementID			= $element.attr("id"),
+			elementPrefs		= _prefs.getValue(elementID) || {},
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
-            contentSizeFunction = null;
-                
+            contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
+		
         minSize = minSize || 0;
         collapsable = collapsable || false;
-            
+        
         $element.prepend($resizer);
         
         $element.data("show", function () {
-            $element.show();
+			
+			$element.show();
+			elementPrefs.visible = true;
             
             if (collapsable) {
                 $element.prepend($resizer);
@@ -153,6 +167,7 @@ define(function (require, exports, module) {
             
             EditorManager.resizeEditor();
             $element.trigger("panelExpanded");
+			_prefs.setValue(elementID, elementPrefs);
         });
                       
         $element.data("hide", function () {
@@ -160,12 +175,14 @@ define(function (require, exports, module) {
                 elementSize     = elementSizeFunction.apply($element);
             
             $element.hide();
+			elementPrefs.visible = false;
             if (collapsable) {
                 $resizer.insertBefore($element).css(resizerCSSPosition, elementOffset[resizerCSSPosition] + elementSize);
             }
             
             EditorManager.resizeEditor();
             $element.trigger("panelCollapsed");
+			_prefs.setValue(elementID, elementPrefs);
         });
     
         $resizer.on("mousedown", function (e) {
@@ -189,8 +206,6 @@ define(function (require, exports, module) {
                         baseSize += $(child).outerHeight();
                     }
                 });
-                
-                contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
             }
                         
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
@@ -244,9 +259,18 @@ define(function (require, exports, module) {
             }
             
             function endResize(e) {
+				var elementSize		= elementSizeFunction.apply($element);
+				
+				elementPrefs.size = elementSize;
+				
+				if (contentSizeFunction) {
+					elementPrefs.contentSize = contentSizeFunction.apply($resizableElement);
+				}
+				
                 if (isMouseDown) {
                     isMouseDown = false;
-                    $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
+                    $element.trigger("panelResizeEnd", [elementSize]);
+					_prefs.setValue(elementID, elementPrefs);
                     
                     // We wait 100ms to remove the resizer container to capture a mousedown
                     // on the container that would account for double click
@@ -263,7 +287,26 @@ define(function (require, exports, module) {
             
             e.preventDefault();
         });
+		
+		// Panel preferences initialization
+		if (elementPrefs) {
+			
+			if (elementPrefs.size !== undefined) {
+				elementSizeFunction.apply($element, [elementPrefs.size]);
+			}
+			
+			if (elementPrefs.contentSize !== undefined) {
+				contentSizeFunction.apply($resizableElement, [elementPrefs.contentSize]);
+			}
+			
+			//if (elementPrefs.visible !== undefined) {
+			//	hide($element);
+			//}
+		}
     }
+	
+    // Init PreferenceStorage
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
     
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
