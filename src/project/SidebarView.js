@@ -90,11 +90,15 @@ define(function (require, exports, module) {
         
         if (isSidebarClosed) {
             $sidebarResizer.css("left", 0);
+            
+            // Adjust content area left/width - see below
+            $(".content", $sidebar.parent()).css("margin-left", 0);
+            
         } else {
             $sidebar.width(width);
             $sidebarResizer.css("left", width - 1);
             
-            // This maintains the editor position to the right of the sidebar. (A simple float is not enough
+            // This maintains the content area's position to the right of the sidebar. (A simple float is not enough
             // because the non-floated content technically underlaps the floated sidebar; this breaks CodeMirror
             // listeners and relative positioning).
             // TODO: Ultimately this should go into EditorManager.js, triggered via an event we dispatch

@@ -65,9 +65,6 @@ define(function (require, exports, module) {
     /** @type {Document} */
     var _currentEditorsDocument = null;
     
-    /** @type {number} Used by {@link #_updateEditorSize()} */
-    var _resizeTimeout = null;
-    
     /**
      * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
      * @type {Array.<function(...)>}
@@ -358,7 +355,7 @@ define(function (require, exports, module) {
      * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
      * height.
      */
-    function _updateEditorSize() {
+    function _updateEditorDuringResize() {
         // skipRefresh=true since CodeMirror will call refresh() itself when it sees the resize event
         resizeEditor(true);
     }
@@ -504,6 +501,8 @@ define(function (require, exports, module) {
         }
         
         _editorHolder = holder;
+        
+        resizeEditor();  // if no files open at startup, we won't get called back later to resize the "no-editor" placeholder
     }
     
     /**
@@ -744,7 +743,7 @@ define(function (require, exports, module) {
 
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
-    window.addEventListener("resize", _updateEditorSize, true);
+    window.addEventListener("resize", _updateEditorDuringResize, true);
     
     // Initialize: status bar focused listener
     $(exports).on("focusedEditorChange", _onFocusedEditorChange);

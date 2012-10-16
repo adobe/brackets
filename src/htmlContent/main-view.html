@@ -62,7 +62,12 @@
             </div>
         </div>
         
-        <!-- Right-hand content: toolbar, editor, bottom panels -->
+        <!--
+            Right-hand content: vertical stack of toolbar, editor, bottom panels, status bar
+                (status bar is injected later - see StatusBar.init()).
+            Note: all children must be a vertical stack with fixed px heights. Otherwise the
+                editor-holder's height will not get set correctly by EditorManager.
+         -->
         <div class="content">
             <!-- Toolbar containing menus, filename, and icons -->
             <div id="main-toolbar" class="toolbar">
