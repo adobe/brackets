@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, setTimeout */
+/*global define, $, window */
 
 /**
  * Resizer is a Module utility to inject resizing capabilities to any element
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
                     
                     // We wait 100ms to remove the resizer container to capture a mousedown
                     // on the container that would account for double click
-                    setTimeout(function () {
+                    window.setTimeout(function () {
                         $resizeCont.off("mousemove");
                         $resizeCont.off("mousedown");
                         $resizeCont.remove();
