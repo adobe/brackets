@@ -36,6 +36,20 @@
          nonstandard WebKit-specific syntax. -->
     <link rel="stylesheet" href="styles/quiet-scrollbars.css">
 
+    <!-- Warn about failed cross origin requests in Chrome -->
+    <script>
+      if (document.location.href.substr(0, 7) === "file://" && navigator.userAgent.search(" Chrome/") !== -1) {
+        window.addEventListener("error", function (e) {
+          if (e.type !== "error" || e.message !== "Script error." || e.lineno === 0) {
+            alert("Howdy!\n\nChrome is preventing Brackets from loading additional local files in order to protect your data.\n\nIf you want, you can disable this behavior by  restarting Chrome with the following parameter:\n\n--allow-file-access-from-files\n\nAlternatively, you can try using a different browser or installing Brackets on a webserver.\n\nAt any rate, we apologize for the inconvenience!");
+            window.removeEventListener('error', arguments.callee);
+          } else {
+            console.log("Error", e, e.type, e.lineno, e.message);
+          }
+        });
+      }
+    </script>
+
     <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
     <link rel="stylesheet/less" href="styles/brackets.less">
     <script src="thirdparty/less-1.3.0.min.js"></script>
