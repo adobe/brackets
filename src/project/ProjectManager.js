@@ -826,11 +826,13 @@ define(function (require, exports, module) {
     }
     
     function showInTree(fileEntry) {
-        _findTreeNode(fileEntry)
+        var promise = _findTreeNode(fileEntry);
+        promise
             .done(function ($node) {
                 // jsTree will automatically expand parent nodes to ensure visible
                 _projectTree.jstree("select_node", $node, false);
             });
+        return promise;
     }
     
     
