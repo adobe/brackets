@@ -150,6 +150,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : require("utils/ExtensionUtils"),
@@ -244,7 +245,9 @@ define(function (require, exports, module) {
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
-            _initExtensions().always(AppInit._dispatchReady(AppInit.APP_READY));
+            _initExtensions().always(function () {
+                AppInit._dispatchReady(AppInit.APP_READY);
+            });
             
             // If this is the first launch, and we have an index.html file in the project folder (which should be
             // the samples folder on first launch), open it automatically. (We explicitly check for the

@@ -475,6 +475,9 @@ define(function (require, exports, module) {
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
         ViewUtils.sidebarList($openFilesContainer);
         
+        // Disable horizontal scrolling until WebKit bug #99379 is fixed
+        $openFilesContainer.css("overflow-x", "hidden");
+        
         _redraw();
     }
     

@@ -326,7 +326,7 @@ define(function (require, exports, module) {
         // skip if the key is already assigned
         if (_isKeyAssigned(normalized)) {
             console.log("Cannot assign " + normalized + " to " + commandID +
-                        ". It is already assigned to " + _keyMap[normalized]);
+                        ". It is already assigned to " + _keyMap[normalized].commandID);
             return null;
         }
         
