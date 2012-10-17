@@ -400,15 +400,25 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this.handleDocumentMouseDown);
     };
     
-    // Multiplier used for matches within the most-specific part of the name (filename, for example)
-    var NAME_BOOST = 3;
+    function _adjustScoreForSegment(segmentCounter, score) {
+        if (segmentCounter === 0) {
+            // Multiplier used for matches within the most-specific part of the name (filename, for example)
+            return score * 3;
+        } else {
+            return score;
+        }
+    }
     
-    // Multiplier for the number of sequential matched characters
-    var MATCH_BOOST = 5;
+    function _boostForMatches(sequentialMatches) {
+        // Multiplier for the number of sequential matched characters
+        return sequentialMatches * sequentialMatches * 5;
+    }
     
-    // Multiplier for sequential matched characters at the beginning
-    // of a delimited section (after a '/' in a path, for example)
-    var PATH_SEGMENT_START_MATCH_BOOST = 5;
+    function _boostForPathSegmentStart(sequentialMatches) {
+        // Multiplier for sequential matched characters at the beginning
+        // of a delimited section (after a '/' in a path, for example)
+        return sequentialMatches * sequentialMatches * 5;
+    }
 
    /**
     * Performs matching of a string based on a query, and scores
@@ -473,13 +483,10 @@ define(function (require, exports, module) {
                 // Beginning of segment, apply boost for a matching
                 // string of characters, if there is one
                 if (sequentialMatches > 0) {
-                    score += sequentialMatches * sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
+                    score += _boostForPathSegmentStart(sequentialMatches);
                 }
                 
-                // if this is the name segment, add the boost
-                if (segmentCounter === 0) {
-                    score = score * NAME_BOOST;
-                }
+                score = _adjustScoreForSegment(segmentCounter, score);
                 segmentCounter++;
             }
             
@@ -499,7 +506,7 @@ define(function (require, exports, module) {
                 // are we ending a string of matched characters?
                 if (sequentialMatches > 0) {
                     addToStringRanges(sequentialMatches, true);
-                    score += sequentialMatches * sequentialMatches * MATCH_BOOST;
+                    score += _boostForMatches(sequentialMatches);
                     sequentialMatches = 0;
                 }
                 // character didn't match, apply sequential matches
@@ -528,19 +535,18 @@ define(function (require, exports, module) {
         
         // now, we need to apply any score we've accumulated
         // before we ran out of query characters
-        score += sequentialMatches * sequentialMatches * MATCH_BOOST;
+        score += _boostForMatches(sequentialMatches);
         
         if (sequentialMatches && strCounter >= 0) {
             if (lowerStr.charAt(strCounter) === '/') {
-                score += sequentialMatches * sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
+                score += _boostForPathSegmentStart(sequentialMatches);
             }
         }
-        if (segmentCounter === 0) {
-            score = score * NAME_BOOST;
-        }
+        score = _adjustScoreForSegment(segmentCounter, score);
         
-        // return score, fullPath tuple for sorting
-        // the extra Array is there because jQuery.map flattens Arrays
+        // Produce a SearchResult that is augmented with matchGoodness
+        // (used for sorting) and stringRanges (used for highlighting
+        // matched areas of the string)
         var result = new SearchResult(str);
         result.matchGoodness = -1 * score;
         result.stringRanges = stringRanges;
@@ -622,7 +628,7 @@ define(function (require, exports, module) {
         // for sorting & display
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
-            // match query against filename only (not the full path)
+            // match query against the full path (with gaps between query characters allowed)
             var searchResult = stringMatch(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             if (searchResult) {
                 searchResult.label = fileInfo.name;
@@ -690,16 +696,21 @@ define(function (require, exports, module) {
         // put the path pieces together, highlighting the matched parts
         // of the string
         var displayPath = "";
+        if (displayName.indexOf("QuickOpen.js") > -1) {
+            console.log("qo", item.stringRanges);
+        }
         item.stringRanges.forEach(function (segment) {
+            if (displayName.indexOf("QuickOpen.js") > -1) {
+                console.log("quickopen:", segment);
+            }
             if (segment.matched) {
                 displayPath += '<span class="quicksearch-match">';
+            } else {
+                displayPath += '<span>';
             }
-            displayPath += StringUtils.htmlEscape(segment.text);
-            if (segment.matched) {
-                displayPath += "</span>";
-            }
+            displayPath += StringUtils.breakableUrl(StringUtils.htmlEscape(segment.text));
+            displayPath += '</span>';
         });
-        displayPath = StringUtils.breakableUrl(displayPath);
         
         return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
     }
