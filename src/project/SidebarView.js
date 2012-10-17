@@ -90,14 +90,22 @@ define(function (require, exports, module) {
         
         if (isSidebarClosed) {
             $sidebarResizer.css("left", 0);
+            
+            // Adjust content area left/width - see below
+            $(".content", $sidebar.parent()).css("margin-left", 0);
+            
         } else {
             $sidebar.width(width);
             $sidebarResizer.css("left", width - 1);
             
-            // the following three lines help resize things when the sidebar shows
-            // but ultimately these should go into ProjectManager.js with a "notify" 
-            // event that we can just call from anywhere instead of hard-coding it.
-            // waiting on a ProjectManager refactor to add that. 
+            // This maintains the content area's position to the right of the sidebar. (A simple float is not enough
+            // because the non-floated content technically underlaps the floated sidebar; this breaks CodeMirror
+            // listeners and relative positioning).
+            // TODO: Ultimately this should go into EditorManager.js, triggered via an event we dispatch
+            $(".content", $sidebar.parent()).css("margin-left", width);
+            
+            // This helps resize things within the sidebar when it's shown.
+            // TODO: Ultimately this should go into ProjectManager.js, triggered via an event we dispatch
             $sidebar.find(".sidebar-selection").width(width);
             
             if (width > 10) {
@@ -146,6 +154,7 @@ define(function (require, exports, module) {
         
         $sidebarResizer.css("left", sidebarWidth - 1);
         
+        // Initially size sidebar at app startup
         if (prefs.getValue("sidebarClosed")) {
             toggleSidebar(sidebarWidth);
         } else {
@@ -169,7 +178,7 @@ define(function (require, exports, module) {
             
             isMouseDown = true;
 
-            // take away the shadows (for performance reasons during sidebarmovement)
+            // take away the shadows (for performance reasons during sidebar movement)
             $sidebar.find(".scroller-shadow").css("display", "none");
             
             $body.toggleClass("resizing");
