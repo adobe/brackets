@@ -47,6 +47,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
+        Dialogs             = require("widgets/Dialogs"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
@@ -299,7 +300,20 @@ define(function (require, exports, module) {
             if (flags.search("g") === -1) {
                 flags += "g";
             }
-            return new RegExp(isRE[1], flags);
+            try {
+                return new RegExp(isRE[1], flags);
+            } catch (e) {
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.INVALID_REGEX_TITLE,
+                    StringUtils.format(
+                        Strings.INVALID_REGEX_MESSAGE,
+                        e.arguments[0],
+                        e.arguments[1]
+                    )
+                );
+                return null;
+            }
         }
 
         // Query is a string. Turn it into a case-insensitive regexp
@@ -327,8 +341,11 @@ define(function (require, exports, module) {
         dialog.showDialog(initialString)
             .done(function (query) {
                 if (query) {
-                    StatusBar.showBusyIndicator(true);
                     var queryExpr = _getQueryRegExp(query);
+                    if (!queryExpr) {
+                        return;
+                    }
+                    StatusBar.showBusyIndicator(true);
                     FileIndexManager.getFileInfoList("all")
                         .done(function (fileListResult) {
                             Async.doInParallel(fileListResult, function (fileInfo) {

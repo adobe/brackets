@@ -92,6 +92,8 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
     // Find, Replace, Find in Files
+    "INVALID_REGEX_TITLE"               : "Invalid Regular Expression",
+    "INVALID_REGEX_MESSAGE"             : "<span class='dialog-filename'>/{0}/</span><br/>{1}",
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
