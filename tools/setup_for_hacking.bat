@@ -15,6 +15,8 @@ REM - Remove existing 'dev' directory (if present)
 rmdir %1\dev
 
 REM - Make symlink
+REM      On Win XP, use the junction tool (http://technet.microsoft.com/en-us/sysinternals/bb896768)
+REM      as follows: junction.exe %1\dev %root_path%
 mklink /d %1\dev %root_path%
 
 GOTO Exit
