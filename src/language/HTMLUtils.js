@@ -197,7 +197,7 @@ define(function (require, exports, module) {
         var offset = TokenUtils.offsetInToken(ctx);
         
         if (!TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) || ctx.token.string !== "=") {
-            // If we're checking for a prior attribute and the next token we get is a tag or an html coment or
+            // If we're checking for a prior attribute and the next token we get is a tag or an html comment or
             // an undefined token class, then we've already scanned past our original cursor location. 
             // So just return an empty tag info.
             if (isPriorAttr &&
