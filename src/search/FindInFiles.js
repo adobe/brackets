@@ -67,6 +67,33 @@ define(function (require, exports, module) {
     /** @type {Number} Height of the FIF panel header in pixels. Hardcoded to avoid race 
                        condition when measuring it on htmlReady*/
     var HEADER_HEIGHT = 27;
+
+    function _getQueryRegExp(query) {
+        // Clear any pending RegEx error message
+        $(".CodeMirror-dialog .alert-message").remove();
+        
+        // If query is a regular expression, use it directly
+        var isRE = query.match(/^\/(.*)\/(g|i)*$/);
+        if (isRE) {
+            // Make sure the 'g' flag is set
+            var flags = isRE[2] || "g";
+            if (flags.search("g") === -1) {
+                flags += "g";
+            }
+            try {
+                return new RegExp(isRE[1], flags);
+            } catch (e) {
+                $(".CodeMirror-dialog span").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                return null;
+            }
+        }
+
+        // Query is a string. Turn it into a case-insensitive regexp
+        
+        // Escape regex special chars
+        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
+        return new RegExp(query, "gi");
+    }
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -136,6 +163,11 @@ define(function (require, exports, module) {
                 that._close(query);
             }
         })
+            .bind("input", function (event) {
+                // Check the query expression on every input event. This way the user is alerted
+                // to any RegEx syntax errors immediately.
+                _getQueryRegExp($searchField.val());
+            })
             .blur(function () {
                 that._close(null);
             })
@@ -290,25 +322,6 @@ define(function (require, exports, module) {
         EditorManager.resizeEditor();
     }
     
-    function _getQueryRegExp(query) {
-        // If query is a regular expression, use it directly
-        var isRE = query.match(/^\/(.*)\/(g|i)*$/);
-        if (isRE) {
-            // Make sure the 'g' flag is set
-            var flags = isRE[2] || "g";
-            if (flags.search("g") === -1) {
-                flags += "g";
-            }
-            return new RegExp(isRE[1], flags);
-        }
-
-        // Query is a string. Turn it into a case-insensitive regexp
-        
-        // Escape regex special chars
-        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
-        return new RegExp(query, "gi");
-    }
-    
     /**
     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
     * a find operation across all files in the project.
@@ -327,8 +340,11 @@ define(function (require, exports, module) {
         dialog.showDialog(initialString)
             .done(function (query) {
                 if (query) {
-                    StatusBar.showBusyIndicator(true);
                     var queryExpr = _getQueryRegExp(query);
+                    if (!queryExpr) {
+                        return;
+                    }
+                    StatusBar.showBusyIndicator(true);
                     FileIndexManager.getFileInfoList("all")
                         .done(function (fileListResult) {
                             Async.doInParallel(fileListResult, function (fileInfo) {
