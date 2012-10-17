@@ -7,7 +7,6 @@
 }
 
 .trash-icon {
-	display: inline;
 	width: 16px;
 	height: 16px;
 	background-image: url("close_btn.svg");
