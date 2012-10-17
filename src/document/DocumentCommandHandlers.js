@@ -743,9 +743,10 @@ define(function (require, exports, module) {
     
     function handleFileRename() {
         var promise = ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
-        if (promise.isResolved()) {
-            ProjectManager.renameSelectedItem();
-        }
+        promise
+            .done(function ($node) {
+                ProjectManager.renameSelectedItem();
+            });
     }
 
     /** Closes the window, then quits the app */
