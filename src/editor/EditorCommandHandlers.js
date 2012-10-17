@@ -159,6 +159,30 @@ define(function (require, exports, module) {
         var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
         doc.replaceRange(selectedText, sel.start);
     }
+
+    /**
+     * Deletes the current line if there is no selection or the lines for the selection
+     * (removing the end of line too)
+     */
+    function deleteCurrentLines(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+
+        var from, to, sel, doc;
+
+        doc = editor._codeMirror;
+        sel = doc.getCursor(true);
+        from = {line: sel.line, ch: 0};
+        sel = doc.getCursor(false);
+        to = {line: sel.line + 1, ch: 0};
+        if (doc.lineCount() === to.line && from.line > 0) {
+            from.line -= 1;
+            from.ch = doc.getLine(from.line).length;
+        }
+        doc.replaceRange("", from, to);
+    }
     
     /**
      * Moves the selected text, or current line if no selection. The cursor/selection 
@@ -278,6 +302,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
     CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
     CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
     CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,  toggleUseTabChars)

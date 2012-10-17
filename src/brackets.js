@@ -90,7 +90,8 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        PreferencesManager      = require("preferences/PreferencesManager");
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        Resizer                 = require("utils/Resizer");
 
     // Local variables
     var params                  = new UrlParams(),
@@ -149,6 +150,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : require("utils/ExtensionUtils"),
@@ -237,13 +239,15 @@ define(function (require, exports, module) {
         
         // finish UI initialization before loading extensions
         var initialProjectPath = ProjectManager.getInitialProjectPath();
-        ProjectManager.openProject(initialProjectPath).done(function () {
+        ProjectManager.openProject(initialProjectPath).always(function () {
             _initTest();
 
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
-            _initExtensions().always(AppInit._dispatchReady(AppInit.APP_READY));
+            _initExtensions().always(function () {
+                AppInit._dispatchReady(AppInit.APP_READY);
+            });
             
             // If this is the first launch, and we have an index.html file in the project folder (which should be
             // the samples folder on first launch), open it automatically. (We explicitly check for the
@@ -267,16 +271,23 @@ define(function (require, exports, module) {
         }
     }
     
+    // Prevent unhandled mousedown events from triggering native behavior
+    // Example: activating AutoScroll when clicking the middle mouse button (see #510)
+    $("html").on("mousedown", function (event) {
+        event.preventDefault();
+    });
+    
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({
-        ABOUT_ICON  : brackets.config.about_icon,
-        VERSION     : brackets.metadata.version
+        ABOUT_ICON          : brackets.config.about_icon,
+        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+        VERSION             : brackets.metadata.version
     }, Strings);
     
     $("body").html(Mustache.render(MainViewHTML, templateVars));
     
     // Update title
-    $("title").text(Strings.APP_NAME);
+    $("title").text(brackets.config.app_title);
 
     // Dispatch htmlReady callbacks
     AppInit._dispatchReady(AppInit.HTML_READY);

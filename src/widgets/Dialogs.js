@@ -34,7 +34,8 @@ define(function (require, exports, module) {
     require("utils/Global");
 
     var KeyBindingManager = require("command/KeyBindingManager"),
-        KeyEvent          = require("utils/KeyEvent");
+        KeyEvent          = require("utils/KeyEvent"),
+        NativeApp         = require("utils/NativeApp");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
@@ -55,6 +56,7 @@ define(function (require, exports, module) {
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
+        $(".clickable-link", dlg).off("click");
         dlg.modal(true).hide();
     }
     
@@ -67,7 +69,11 @@ define(function (require, exports, module) {
             buttonId = null,
             which = String.fromCharCode(e.which);
         
-        if (e.which === KeyEvent.DOM_VK_RETURN) {
+        // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
+        var inFormField = ($(e.target).filter(":input").length > 0),
+            inTextArea = (e.target.tagName === "TEXTAREA");
+        
+        if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
             if (primaryBtn) {
                 buttonId = primaryBtn.attr("data-button-id");
@@ -87,7 +93,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === "N") {
+            if (which === "N" && !inFormField) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -96,8 +102,7 @@ define(function (require, exports, module) {
         
         if (buttonId) {
             _dismissDialog(this, buttonId);
-        } else if (!($.contains(this.get(0), e.target)) ||
-                  ($(e.target).filter(":input").length === 0)) {
+        } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
             // TODO (issue #414): more robust handling of dialog scoped
@@ -150,6 +155,13 @@ define(function (require, exports, module) {
         if (message) {
             $(".dialog-message", $dlg).html(message);
         }
+
+        $(".clickable-link", $dlg).on("click", function _handleLink(e) {
+            // Links use data-href (not href) attribute so Brackets itself doesn't redirect
+            if (e.target.dataset && e.target.dataset.href) {
+                NativeApp.openURLInDefaultBrowser(e.target.dataset.href);
+            }
+        });
 
         var handleKeyDown = _handleKeyDown.bind($dlg);
 

@@ -93,22 +93,6 @@ define(function (require, exports, module) {
         }
     }
 
-    function getLocationFromID(id) {
-        if (!idList) {
-            return null;
-        }
-
-        var i, result;
-        for (i = 0; i < idList.length; i++) {
-            var fileLocation = idList[i];
-            if (fileLocation.id === id) {
-                result = fileLocation;
-                break;
-            }
-        }
-
-        return result;
-    }
 
     /**
      * @param {string} query what the user is searching for
@@ -119,8 +103,12 @@ define(function (require, exports, module) {
         query = query.slice(query.indexOf("@") + 1, query.length);
         
         // Filter and rank how good each match is
-        var filteredList = $.map(idList, function (itemInfo) {
-            return QuickOpen.stringMatch(itemInfo.id, query);
+        var filteredList = $.map(idList, function (fileLocation) {
+            var searchResult = QuickOpen.stringMatch(fileLocation.id, query);
+            if (searchResult) {
+                searchResult.fileLocation = fileLocation;
+            }
+            return searchResult;
         });
         
         // Sort based on ranking & basic alphabetical order
@@ -151,12 +139,11 @@ define(function (require, exports, module) {
         if (!selectedItem) {
             return;
         }
-        var fileLocation = getLocationFromID(selectedItem.label);
-        if (fileLocation) {
-            var from = {line: fileLocation.line, ch: fileLocation.chFrom};
-            var to = {line: fileLocation.line, ch: fileLocation.chTo};
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
-        }
+        var fileLocation = selectedItem.fileLocation;
+        
+        var from = {line: fileLocation.line, ch: fileLocation.chFrom};
+        var to = {line: fileLocation.line, ch: fileLocation.chTo};
+        EditorManager.getCurrentFullEditor().setSelection(from, to);
     }
 
     function itemSelect(selectedItem) {

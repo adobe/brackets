@@ -40,6 +40,8 @@ define(function (require, exports, module) {
         "de": true,
         "fr": true,
         "nb": true,
-        "es": true
+        "es": true,
+        "it": true,
+        "pt-br": true
     };
 });

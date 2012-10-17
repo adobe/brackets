@@ -137,9 +137,9 @@ define({
      * Keyboard modifier names
      */
 
-     "KEYBOARD_CTRL"   : "Strg",
-     "KEYBOARD_SHIFT"  : "Umschalt",
-     "KEYBOARD_SPACE"  : "Leer",
+    "KEYBOARD_CTRL"   : "Strg",
+    "KEYBOARD_SHIFT"  : "Umschalt",
+    "KEYBOARD_SPACE"  : "Leer",
 
     /**
      * Command Name Constants
@@ -207,7 +207,7 @@ define({
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
-    "CMD_ABOUT"                           : "Über",
+    "CMD_ABOUT"                           : "Über {APP_TITLE}",
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
 
     // Special commands invoked by the native shell
@@ -230,9 +230,9 @@ define({
     "ABOUT"                                : "Über",
     "APP_NAME"                             : "xBrackets",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "Sprint 14 experimenteller Build ",
-    "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> und sind hier durch Bezugnahme eingeschlossen.",
-    "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} experimenteller Build {VERSION}",
+    "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
