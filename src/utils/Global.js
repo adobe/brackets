@@ -71,6 +71,9 @@ define(function (require, exports, module) {
     
     global.brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
     
+    // Store the locale that was determined in brackets.js
+    global.brackets.locale = global.require.s.contexts._.config.locale;
+    
     // Loading extensions requires creating new require.js contexts, which
     // requires access to the global 'require' object that always gets hidden
     // by the 'require' in the AMD wrapper. We store this in the brackets
@@ -84,6 +87,16 @@ define(function (require, exports, module) {
     // the same thing as 'require' in AMD-wrapped modules. The extension will
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
-    
+
+    // Add benchmarking support
+    if (! global.brackets.app) {
+        var appStartupTime = new Date().getTime();
+        global.brackets.app = {
+            getElapsedMilliseconds: function () {
+                return new Date().getTime() - appStartupTime;
+            }
+        };
+    }
+
     exports.global = global;
 });

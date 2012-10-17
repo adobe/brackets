@@ -238,6 +238,8 @@ define(function (require, exports, module) {
     }
     
     function _enableRunTestsMenuItem() {
+        if (brackets.inBrowser) { return; }
+
         // Check for the SpecRunner.html file
         var fileEntry = new NativeFileSystem.FileEntry(
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
