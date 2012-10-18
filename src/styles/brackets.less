@@ -60,34 +60,45 @@ html, body {
 }
 
 body {
-    .vbox;
+    height: 100%;
     
     &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
         cursor: col-resize;   
     }
-    
-    &.vert-resizing a, &.vert-resizing #projects a, &.vert-resizing .main-view, &.vert-resizing .CodeMirror-lines {
-        cursor: row-resize;   
-    }
 }
 
+.resizing-container {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: @z-index-brackets-panel-resizer;
+    
+    &.horz-resizing {
+        cursor: col-resize;
+    }
+    
+    &.vert-resizing {
+        cursor: row-resize;
+    }
+}
 
 a, img {
     -webkit-user-drag: none;
 }
 
 .main-view {
-    .hbox;
-    .box-flex(1);
+    height: 100%;
 
     .sidebar {
+        height: 100%;
         .vbox;
         width: @sidebar-width;
+        float: left;
     }
 
     .content {
-        .vbox;
-        .box-flex(1);
+        height: 100%;
     }
 }
 
@@ -101,6 +112,7 @@ a, img {
 }
 
 #status-bar {
+    position: relative;
     background-color: @background-color-3;
     border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
     box-sizing: border-box;
@@ -115,67 +127,112 @@ a, img {
 }
     
 #status-info {
-    float: left;
+    position: absolute;
+    left: 8px;
+    background-color: @background-color-3;
+    white-space: nowrap;
     
     div {
         display: inline;
-        padding-right: 20px;
+        margin-right: 20px;
     }
 }
     
 #status-indicators {
-    float: right;
+    position: absolute;
+    right: 4px;
+    background-color: @background-color-3;
+    white-space: nowrap;
     
     &>div {
         display: inline;
-        padding-left: 20px;
+        margin-left: 20px;
+        
+        &#busy-indicator {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -2px;
+            width: 12px;
+            height: 12px;
+            background: url("images/small_spinner.svg") no-repeat;
+            visibility: hidden;
+        
+            &.spin {
+                -webkit-animation: rotating 1.5s linear infinite;
+                visibility: visible;
+            }
+        }        
     }
 }
 
-#busy-indicator {
-    font-size: 1.4em;
+@-webkit-keyframes rotating {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
 }
 
-#status-indent div {
+#status-indent > * {
     display: inline-block;
 }
 
-#indent-type, #indent-width, #indent-decrement {
+#status-indent > *.hidden {
+    display: none;
+}
+
+#indent-type, #indent-width-label {
     margin-right: 2px;
 }
 
-#indent-type, #indent-decrement, #indent-increment {
+#indent-type, #indent-width-label {
     cursor: pointer;
 }
 
-#indent-type:hover {
+#indent-width-label {
+    width: 14px;
+}
+
+#indent-type:hover, #indent-width-label:hover {
     text-decoration: underline;
 }
 
-#indent-decrement, #indent-increment {
-    width: 4px;
-    height: 8px;
-    cursor: pointer;
-    padding-left: 1px;
-}
-    
-#indent-decrement {
-    background: url("images/stepper-arrow-sprites.svg") no-repeat top left;
+#indent-width-input {
+    font-size: 1em;
+    height: 12px;
+    line-height: 1;
+    vertical-align: -2px;
+    border: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
+    color: @bc-black;
+    margin: 0;
+    padding: 0;
+    width: 14px;
+    position: relative;
+    left: -1px;
+    top: -2px;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
 }
 
-#indent-increment {
-    background: url("images/stepper-arrow-sprites.svg") no-repeat top right;
-    margin-right: 0px;
+#indent-width-input:focus {
+    border: 1px solid rgba(9,64,253,0.84);
+    outline: none;
+}
+
+#indent-width-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 #editor-holder {
-    .vbox;
-    .box-flex(1);
     position: relative;
     
     /* Placeholder shown when there is no editor open */
     #not-editor {
-        .box-flex(1);
+        height: 100%;
         .vbox;
         .box-pack(center);
         .box-align(center);
@@ -427,11 +484,7 @@ a, img {
 }
 
 .scroller-shadow {
-    // TODO (Issue #1615): background-size should really be 100%, but due to a bug in WebKit,
-    // that makes the drop shadows look bad on retina displays. This value
-    // should be changed to 100% once we've upgraded to a newer CEF that includes
-    // the WebKit fix.
-    background-size: 99.99%;
+    background-size: 100%;
     background-repeat: no-repeat;
     height: 5px;
     position: fixed;
@@ -570,20 +623,6 @@ ins.jstree-icon {
         background-color: transparent;
     }
 }
-
-// TODO (Issue #1615): Remove this hack when we get a new CEF
-/*
-@media all and (-webkit-min-device-pixel-ratio:2),(min-device-pixel-ratio:2) {
-.inline-widget {
-    .shadow.top {
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
-    }
-    .shadow.bottom {
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
-    }
-}
-}
-*/
 
 /* CSSInlineEditor rule list */
 .related-container {

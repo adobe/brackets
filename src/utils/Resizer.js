@@ -99,13 +99,16 @@ define(function (require, exports, module) {
         $element.prepend($resizer);
         
         $resizer.on("mousedown", function (e) {
-            var startPosition   = e[directionProperty],
+            var $resizeCont     = $("<div class='resizing-container " + direction + "-resizing' />"),
+                startPosition   = e[directionProperty],
                 startSize       = elementSizeFunction.apply($element),
                 newSize         = startSize,
                 baseSize        = 0,
                 doResize        = true,
                 isMouseDown     = true;
-                        
+            
+            $body.append($resizeCont);
+
             if ($resizableElement !== undefined) {
                 $element.children().not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
@@ -117,9 +120,7 @@ define(function (require, exports, module) {
                 
                 contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
             }
-
-            $body.toggleClass(direction + "-resizing");
-            
+                        
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
                 // only run this if the mouse is down so we don't constantly loop even 
                 // after we're done resizing.
@@ -143,7 +144,7 @@ define(function (require, exports, module) {
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
             });
             
-            $mainView.on("mousemove", function (e) {
+            $resizeCont.on("mousemove", function (e) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + (startPosition - e[directionProperty]), minSize);
@@ -153,14 +154,14 @@ define(function (require, exports, module) {
             function endResize(e) {
                 if (isMouseDown) {
                     isMouseDown = false;
-                    $mainView.off("mousemove");
-                    $body.toggleClass(direction + "-resizing");
+                    $resizeCont.off("mousemove");
+                    $resizeCont.remove();
                     $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
                 }
             }
             
-            $mainView.one("mouseup", endResize);
-            $mainView.mouseleave(endResize);
+            $resizeCont.one("mouseup", endResize);
+            $resizeCont.mouseleave(endResize);
             
             e.preventDefault();
         });

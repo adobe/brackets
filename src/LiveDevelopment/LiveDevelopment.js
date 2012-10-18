@@ -162,15 +162,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Determine whether the given document is an HTML file 
-     *  by checking its extension.
-     * @param {Document} document to check
-     * @return {boolean} true if the given document's extension has "htm", false otherwise.
-     */
-    function _isHTMLDocument(doc) {
-        return (doc && doc.extension.indexOf("htm") !== -1);
-    }
-
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -331,7 +322,7 @@ define(function LiveDevelopment(require, exports, module) {
                 status = STATUS_ACTIVE;
 
             _openDocument(doc, editor);
-            if (doc.isDirty && _isHTMLDocument(doc)) {
+            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                 status = STATUS_OUT_OF_SYNC;
             }
             _setStatus(status);
@@ -501,7 +492,7 @@ define(function LiveDevelopment(require, exports, module) {
                 }
             }
             
-            if (doc.isDirty && _isHTMLDocument(doc)) {
+            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                 status = STATUS_OUT_OF_SYNC;
             }
             _setStatus(status);
@@ -511,8 +502,8 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by a document saved from the DocumentManager */
     function _onDocumentSaved() {
         var doc = _getCurrentDocument();
-
-        if (doc && _classForDocument(doc) !== CSSDocument && Inspector.connected()) {
+        
+        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 // Reload HTML page
                 Inspector.Page.reload();
@@ -528,7 +519,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
-        if (doc && doc.isDirty && _isHTMLDocument(doc) && Inspector.connected()) {
+        if (Inspector.connected() && doc && doc.isDirty && _classForDocument(doc) !== CSSDocument) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 // Set status to out of sync
                 _setStatus(STATUS_OUT_OF_SYNC);

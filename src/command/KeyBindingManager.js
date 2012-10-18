@@ -126,13 +126,13 @@ define(function (require, exports, module) {
             right = right.trim().toLowerCase();
             var matched = (left.length > 0 && left === right);
             if (matched && previouslyFound) {
-                console.log("KeyBindingManager normalizeKeyDescriptorString() - Modifier defined twice: " + origDescriptor);
+                console.log("KeyBindingManager normalizeKeyDescriptorString() - Modifier " + left + " defined twice: " + origDescriptor);
             }
             return matched;
         }
         
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
-            if (_compareModifierString("ctrl", ele, hasCtrl)) {
+            if (_compareModifierString("ctrl", ele, hasCtrl, origDescriptor)) {
                 if (brackets.platform === "mac") {
                     hasMacCtrl = true;
                 } else {
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
         // skip if the key is already assigned
         if (_isKeyAssigned(normalized)) {
             console.log("Cannot assign " + normalized + " to " + commandID +
-                        ". It is already assigned to " + _keyMap[normalized]);
+                        ". It is already assigned to " + _keyMap[normalized].commandID);
             return null;
         }
         

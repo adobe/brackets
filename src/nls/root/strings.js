@@ -118,6 +118,7 @@ define({
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
+    "FIND_IN_FILES_MORE_THAN"           : "More than ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
     "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
@@ -148,12 +149,14 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION"         : "Line {0}, Column {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"   : "Click to switch indentation to spaces",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"     : "Click to switch indentation to tabs",
-    "STATUSBAR_SPACES"                  : "Spaces",
-    "STATUSBAR_TAB_SIZE"                : "Tab Size",
-    "STATUSBAR_LINE_COUNT"              : "{0} Lines",
+    "STATUSBAR_CURSOR_POSITION"             : "Line {0}, Column {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
+    "STATUSBAR_SPACES"                      : "Spaces",
+    "STATUSBAR_TAB_SIZE"                    : "Tab Size",
+    "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -185,6 +188,7 @@ define({
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
+    "CMD_DELETE_LINES"                    : "Delete Selected Line(s)",
     "CMD_COMMENT"                         : "Comment/Uncomment Lines",
     "CMD_LINE_UP"                         : "Move Line(s) Up",
     "CMD_LINE_DOWN"                       : "Move Line(s) Down",
@@ -207,6 +211,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",

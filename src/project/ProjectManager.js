@@ -60,6 +60,7 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
+        CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent");
@@ -764,7 +765,76 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-
+    
+    
+    /**
+     * Returns the tree node corresponding to the given file/folder. Returns null if the path lies
+     * outside the project, or if it doesn't exist.
+     * 
+     * @param {!Entry} entry FileEntry of DirectoryEntry to show
+     * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
+     */
+    function _findTreeNode(entry) {
+        var result = new $.Deferred();
+        
+        // If path not within project, ignore
+        var projRelativePath = makeProjectRelativeIfPossible(entry.fullPath);
+        if (projRelativePath === entry.fullPath) {
+            return result.reject().promise();
+        }
+        
+        var treeAPI = $.jstree._reference(_projectTree);
+        
+        // We're going to traverse from root of tree, one segment at a time
+        var pathSegments = projRelativePath.split("/");
+        
+        function findInSubtree($nodes, segmentI) {
+            var seg = pathSegments[segmentI];
+            var match = CollectionUtils.indexOf($nodes, function (node, i) {
+                var nodeName = $(node).data("entry").name;
+                return nodeName === seg;
+            });
+            
+            if (match === -1) {
+                result.reject();    // path doesn't exist
+            } else {
+                var $node = $nodes.eq(match);
+                if (segmentI === pathSegments.length - 1) {
+                    result.resolve($node);  // done searching!
+                } else {
+                    // Search next level down
+                    var subChildren = treeAPI._get_children($node);
+                    if (subChildren.length > 0) {
+                        findInSubtree(subChildren, segmentI + 1);
+                    } else {
+                        // Subtree not loaded yet: force async load & try again
+                        treeAPI.load_node($node, function (data) {
+                            subChildren = treeAPI._get_children($node);
+                            findInSubtree(subChildren, segmentI + 1);
+                        }, function (err) {
+                            result.reject();  // includes case where folder is empty
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Begin searching from root
+        var topLevelNodes = treeAPI._get_children(-1);  // -1 means top level in jsTree-ese
+        findInSubtree(topLevelNodes, 0);
+        
+        return result.promise();
+    }
+    
+    function showInTree(fileEntry) {
+        _findTreeNode(fileEntry)
+            .done(function ($node) {
+                // jsTree will automatically expand parent nodes to ensure visible
+                _projectTree.jstree("select_node", $node, false);
+            });
+    }
+    
+    
     /**
      * Open a new project. Currently, Brackets must always have a project open, so
      * this method handles both closing the current project and opening a new project.
@@ -1193,4 +1263,5 @@ define(function (require, exports, module) {
     exports.createNewItem            = createNewItem;
     exports.renameSelectedItem       = renameSelectedItem;
     exports.forceFinishRename        = forceFinishRename;
+    exports.showInTree               = showInTree;
 });

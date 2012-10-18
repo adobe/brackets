@@ -21,27 +21,32 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
+/**
+ *  Utilities functions related to data collections (arrays & maps)
+ */
 define(function (require, exports, module) {
-    
     "use strict";
+
+    /**
+     * Returns the first index in 'array' for which isMatch() returns true, or -1 if none
+     * @param {!Array.<*>|jQueryObject} array
+     * @param {!function(*, Number):boolean} isMatch Passed (item, index), same as with forEach()
+     */
+    function indexOf(array, isMatch) {
+        // Old-fashioned loop, instead of Array.some, to support jQuery "arrays"
+        var i;
+        for (i = 0; i < array.length; i++) {
+            if (isMatch(array[i], i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
     
-    // Code that needs to display user strings should call require("strings") to load
-    // src/strings.js. This file will dynamically load strings.js for the specified brackets.locale.
-    //
-    // See the README.md file in this folder for information on how to add a new translation for
-    // another language or locale.
-    //
-    // TODO: dynamically populate the local prefix list below?
-    module.exports = {
-        root: true,
-        "de": true,
-        "fr": true,
-        "nb": true,
-        "es": true,
-        "it": true,
-        "pt-br": true
-    };
+    
+    // Define public API
+    exports.indexOf = indexOf;
 });
