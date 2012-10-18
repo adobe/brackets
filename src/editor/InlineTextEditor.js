@@ -83,7 +83,6 @@ define(function (require, exports, module) {
     }
     InlineTextEditor.prototype = new InlineWidget();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
-    InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     
     InlineTextEditor.prototype.editors = null;
 
@@ -170,6 +169,8 @@ define(function (require, exports, module) {
      *  editor is constructed and added to the DOM
      */
     InlineTextEditor.prototype.onAdded = function () {
+        InlineWidget.prototype.onAdded.call(this); // super.onAdded()
+        
         this.editors.forEach(function (editor) {
             editor.refresh();
         });

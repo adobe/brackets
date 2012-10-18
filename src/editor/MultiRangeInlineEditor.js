@@ -97,7 +97,6 @@ define(function (require, exports, module) {
     }
     MultiRangeInlineEditor.prototype = new InlineTextEditor();
     MultiRangeInlineEditor.prototype.constructor = MultiRangeInlineEditor;
-    MultiRangeInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
     
     MultiRangeInlineEditor.prototype.$editorsDiv = null;
     MultiRangeInlineEditor.prototype.$relatedContainer = null;
@@ -113,7 +112,7 @@ define(function (require, exports, module) {
      * 
      */
     MultiRangeInlineEditor.prototype.load = function (hostEditor) {
-        this.parentClass.load.call(this, hostEditor);
+        InlineTextEditor.prototype.load.call(this, hostEditor);
         
         // Container to hold all editors
         var self = this;
@@ -218,32 +217,50 @@ define(function (require, exports, module) {
         
         this._ranges[this._selectedRangeIndex].$listItem.toggleClass("selected", true);
 
-        // Remove previous editors
-        $(this.editors[0]).off("change", this._updateRelatedContainer);
-
-        this.editors.forEach(function (editor) {
-            editor.destroy(); //release ref on Document
-        });
+        // Save old editors to destroy after new editor gets focus
+        var previousEditor = this.editors[0];
         
-        this.editors = [];
-        this.$editorsDiv.children().remove();
+        // Remove previous editor's event handlers
+        $(previousEditor).off(".MultiRangeInlineEditor");
+        
+        var $preivousEditorDOM = this.$editorsDiv.children();
 
         // Add new editor
         var range = this._getSelectedRange();
         this.createInlineEditorFromText(range.textRange.document, range.textRange.startLine, range.textRange.endLine, this.$editorsDiv.get(0));
-        this.editors[0].focus();
+        
+        // Keep both previous editors[0] and current editors[1] temporarily
+        // until focusedEditorChange is fired. editors[1] won't exist when
+        // the first inline editor is created.
+        var currentInlineEditor = this.editors[1] || this.editors[0],
+            $currentInlineEditor = $(currentInlineEditor);
+        
+        // Do not set focus during initialization. InlineWidget is not added to Editor yet.
+        if (this._added) {
+            // Set focus to new inline editor. Fires focusedEditorChange event
+            currentInlineEditor.focus();
+        }
+        
+        // Destroy the previous editor after focusedEditorChange event is fired
+        if (previousEditor) {
+            previousEditor.destroy();
+        
+            // Remove the previous editor
+            this.editors.shift();
+            $preivousEditorDOM.remove();
+        }
 
         // Changes in size to the inline editor should update the relatedContainer
         // Note: normally it's not kosher to listen to changes on a specific editor,
         // but in this case we're specifically concerned with changes in the given
         // editor, not general document changes.
-        $(this.editors[0]).on("change", this._handleChange);
+        $currentInlineEditor.on("change.MultiRangeInlineEditor", this._handleChange);
         
         // Cursor activity in the inline editor may cause us to horizontally scroll.
-        $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
+        $currentInlineEditor.on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible);
 
+        currentInlineEditor.refresh();
         
-        this.editors[0].refresh();
         // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
         this.sizeInlineWidgetToContents(true, false);
         this._updateRelatedContainer();
@@ -318,12 +335,14 @@ define(function (require, exports, module) {
      * Called any time inline is closed, whether manually (via closeThisInline()) or automatically
      */
     MultiRangeInlineEditor.prototype.onClosed = function () {
-        this.parentClass.onClosed.call(this); // super.onClosed()
+        InlineTextEditor.prototype.onClosed.call(this); // super.onClosed()
         
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
-        $(this.editors[0]).off("change", this._handleChange);
-        $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
+        
+        // remove event handlers
+        $(this.editors[0]).off(".MultiRangeInlineEditor");
+        
         $(this).off("offsetTopChanged", this._updateRelatedContainer);
         $(window).off("resize", this._updateRelatedContainer);
         
@@ -474,7 +493,7 @@ define(function (require, exports, module) {
         // Ignore when the editor's content got lost due to a deleted file
         if (cause && cause.type === "deleted") { return; }
         // Else yield to the parent's implementation
-        return this.parentClass._onLostContent.apply(this, arguments);
+        return InlineTextEditor.prototype._onLostContent.apply(this, arguments);
     };
 
     /**
@@ -513,7 +532,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
         // Size the code mirror editors height to the editor content
-        this.parentClass.sizeInlineWidgetToContents.call(this, force);
+        InlineTextEditor.prototype.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related ranges list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
         this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
