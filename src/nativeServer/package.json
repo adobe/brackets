@@ -1,0 +1,16 @@
+{
+    "name"       : "node-proxy",
+    "description": "Node Proxy for Brackets",
+    "version"    : "0.0.1",
+    "author" : "Jonathan Diehl <diehl@cs.rwth-aachen.de>",
+    "engines":
+    {
+        "node": "*"
+    },
+    "dependencies":
+    {
+        "ws"          : "~ 0.4.15",
+        "node-promise": "~ 0.5.2",
+        "trycatch"    : "~ 0.0.1"
+    }
+}

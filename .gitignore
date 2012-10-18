@@ -9,3 +9,6 @@ src/extensions/user/*
 
 #OSX .DS_Store files
 .DS_Store
+
+# ignore node packages
+node_modules/
