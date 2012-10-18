@@ -61,6 +61,8 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
+    "ERROR_PROXY_SERVER_TITLE"          : "Could not connect to the Node Proxy Server.",
+    "ERROR_PROXY_SERVER"                : "Please ensure that the Node Proxy Server is running on port 9000 on your web server and that your firewall is configured to allow traffic to the server.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
@@ -77,6 +79,8 @@ define({
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS files</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)",
+    "LIVE_DEVELOPMENT_NOT_SUPPORTED_TITLE"   : "Live Preview Not Supported",
+    "LIVE_DEVELOPMENT_NOT_SUPPORTED_MESSAGE" : "Live Preview is not supported when running Brackets in a web browser. Please run the Brackets Shell instead.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
@@ -84,6 +88,10 @@ define({
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
     
+    "OPEN_FOLDER_TITLE"                 : "Open Folder",
+    "OPEN_FOLDER_MESSAGE"               : "Please enter the path of a folder to open:",
+    "OPEN_FILE_TITLE"                   : "Open File",
+    "OPEN_FILE_MESSAGE"                 : "Please enter the path of a file to open:",
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
@@ -236,6 +244,7 @@ define({
     "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
+    "RETRY"                                : "Retry",
     "DONT_SAVE"                            : "Don't Save",
     "SAVE"                                 : "Save",
     "CANCEL"                               : "Cancel",

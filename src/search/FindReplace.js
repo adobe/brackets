@@ -24,6 +24,7 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, doReplace */
 
+
 /*
  * Adds Find and Replace commands
  *
@@ -37,8 +38,6 @@
  * findNext.
  *
  */
-
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -94,8 +93,12 @@ define(function (require, exports, module) {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
             if (!cursor.find(rev)) {
+                // If no result found before hitting edge of file, try wrapping around
                 cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+                
+                // No result found, period: clear selection & bail
                 if (!cursor.find(rev)) {
+                    cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
                     return;
                 }
             }

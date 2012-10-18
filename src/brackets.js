@@ -21,9 +21,11 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
+
+// get a startup timestamp as soon as possible
+window._startupTime = new Date().getTime();
 
 require.config({
     paths: {
@@ -34,7 +36,7 @@ require.config({
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || brackets.app.language
+    locale: window.localStorage.getItem("locale") || navigator.language || brackets.app.language
 });
 
 /**
@@ -61,6 +63,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
+        NativeProxyUI           = require("nativeProxy/NativeProxyUI"),
         AppInit                 = require("utils/AppInit"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
@@ -96,6 +99,11 @@ define(function (require, exports, module) {
     // Local variables
     var params                  = new UrlParams(),
         PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
+
+    // load the proxy if running in browser
+    if (brackets.inBrowser) {
+        NativeProxyUI.init();
+    }
     
     // read URL params
     params.parse();
@@ -204,15 +212,6 @@ define(function (require, exports, module) {
         $("body").addClass("platform-" + brackets.platform);
         
         EditorManager.setEditorHolder($("#editor-holder"));
-
-        // Let the user know Brackets doesn't run in a web browser yet
-        if (brackets.inBrowser) {
-            Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
-                Strings.ERROR_IN_BROWSER_TITLE,
-                Strings.ERROR_IN_BROWSER
-            );
-        }
 
         _initDragAndDropListeners();
         _initCommandHandlers();

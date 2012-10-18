@@ -117,6 +117,15 @@ define(function main(require, exports, module) {
 
     /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
     function _handleGoLiveCommand() {
+        if (brackets.inBrowser) {
+            // not supported in the browser
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.LIVE_DEVELOPMENT_NOT_SUPPORTED_TITLE,
+                Strings.LIVE_DEVELOPMENT_NOT_SUPPORTED_MESSAGE
+            );
+            return;
+        }
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
         } else {
