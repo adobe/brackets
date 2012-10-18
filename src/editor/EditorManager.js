@@ -380,6 +380,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @param {?Editor} current
      */
     function _notifyFocusedEditorChanged(current) {
         // Skip if the Editor that gained focus was already the most recently focused editor.
@@ -387,9 +388,10 @@ define(function (require, exports, module) {
         if (_lastFocusedEditor === current) {
             return;
         }
+        var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
         
-        $(exports).triggerHandler("focusedEditorChange", [current, _lastFocusedEditor]);
+        $(exports).triggerHandler("focusedEditorChange", [current, previous]);
     }
     
     /**

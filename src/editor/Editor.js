@@ -631,6 +631,7 @@ define(function (require, exports, module) {
         
         this._codeMirror.setOption("onBlur", function () {
             self._focused = false;
+            // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
         });
     };
     
