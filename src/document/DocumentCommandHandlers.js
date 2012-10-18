@@ -742,7 +742,7 @@ define(function (require, exports, module) {
     }
     
     function handleFileRename() {
-        var promise = ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
+        var promise = CommandManager.execute(Commands.NAVIGATE_SHOW_IN_FILE_TREE, {fileEntry: DocumentManager.getCurrentDocument().file});
         promise
             .done(function ($node) {
                 ProjectManager.renameSelectedItem();
