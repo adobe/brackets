@@ -81,7 +81,7 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     * @param {Array.<{name:String,document:Document,startLine:number,endLine:number}>} ranges The text ranges to display.
+     * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
      * @extends {InlineTextEditor}
      */
     function MultiRangeInlineEditor(ranges) {
@@ -244,6 +244,7 @@ define(function (require, exports, module) {
 
         
         this.editors[0].refresh();
+        
         // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
         this.sizeInlineWidgetToContents(true, false);
         this._updateRelatedContainer();
@@ -318,7 +319,8 @@ define(function (require, exports, module) {
      * Called any time inline is closed, whether manually (via closeThisInline()) or automatically
      */
     MultiRangeInlineEditor.prototype.onClosed = function () {
-        this.parentClass.onClosed.call(this); // super.onClosed()
+        // Superclass onClosed() destroys editor
+        this.parentClass.onClosed.call(this);
         
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
