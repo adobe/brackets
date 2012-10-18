@@ -1071,12 +1071,8 @@ define(function (require, exports, module) {
     function notifyPathNameChanged(oldName, newName, isFolder) {
         var i, path;
         
-        // Update currentDocument
-        if (_currentDocument) {
-            FileUtils.updateFileEntryPath(_currentDocument.file, oldName, newName);
-        }
-        
-        // Update open documents
+        // Update open documents. This will update _currentDocument too, since 
+        // the current document is always open.
         var keysToDelete = [];
         for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {
