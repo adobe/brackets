@@ -36,7 +36,11 @@
  *
  * This module dispatches the following events:
  *    - focusedEditorChange -- Fires after the focused editor (full or inline)
- *                             changes and size/visibility are complete.
+ *                             changes and size/visibility are complete. The
+ *                             2nd arg is the newly focused editor or null if
+ *                             no editor has focus. The 3rd arg is the editor
+ *                             the previously focused editor or null if no
+ *                             editor had focus.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -361,9 +365,69 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the currently focused inline widget.
+     * @returns {?{widget:!InlineTextEditor, editor:!Editor}}
+     */
+    function getFocusedInlineWidget() {
+        var result = null;
+        
+        if (_currentEditor) {
+            _currentEditor.getInlineWidgets().forEach(function (widget) {
+                if (widget instanceof InlineTextEditor) {
+                    widget.editors.forEach(function (editor) {
+                        if (editor.hasFocus()) {
+                            result = { widget: widget, editor: editor };
+                        }
+                    });
+                }
+            });
+        }
+        
+        return result;
+    }
+
+    function _getFocusedInlineEditor() {
+        var focusedInline = getFocusedInlineWidget();
+        if (focusedInline) {
+            return focusedInline.editor;
+        }
+
+        return null;
+    }
+    
+    /**
+     * Returns the currently focused editor instance (full-sized OR inline editor).
+     * @returns {Editor}
+     */
+    function getFocusedEditor() {
+        if (_currentEditor) {
+            
+            // See if any inlines have focus
+            var focusedInline = _getFocusedInlineEditor();
+            if (focusedInline) {
+                return focusedInline;
+            }
+
+            // otherwise, see if full-sized editor has focus
+            if (_currentEditor.hasFocus()) {
+                return _currentEditor;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
      * @private
      */
     function _doFocusedEditorChanged(current, previous) {
+        if (current && !current.hasFocus()) {
+            current.focus();
+            return;
+        }
+        
+        previous = previous || getFocusedEditor();
+        
         // Skip if the new editor is already the focused editor.
         // This may happen if the window loses then regains focus.
         if (previous === current) {
@@ -405,12 +469,14 @@ define(function (require, exports, module) {
      * @param {!Document} document
      */
     function _showEditor(document) {
+        // Save previous document to destroy after showing the new document
+        var previousDocument = _currentEditorsDocument;
+        
         // Hide whatever was visible before
         if (!_currentEditor) {
             $("#not-editor").css("display", "none");
         } else {
             _currentEditor.setVisible(false);
-            _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
         // Ensure a main editor exists for this document to show in the UI
@@ -419,7 +485,13 @@ define(function (require, exports, module) {
             _createFullEditorForDocument(document);
         }
         
+        // show the new editor first before destroying the previous editor
         _doShow(document);
+        
+        // destroy old editor
+        if (previousDocument) {
+            _destroyEditorIfUnneeded(previousDocument);
+        }
     }
     
 
@@ -504,59 +576,6 @@ define(function (require, exports, module) {
         _editorHolder = holder;
         
         resizeEditor();  // if no files open at startup, we won't get called back later to resize the "no-editor" placeholder
-    }
-    
-    /**
-     * Returns the currently focused inline widget.
-     * @returns {?{widget:!InlineTextEditor, editor:!Editor}}
-     */
-    function getFocusedInlineWidget() {
-        var result = null;
-        
-        if (_currentEditor) {
-            _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    widget.editors.forEach(function (editor) {
-                        if (editor.hasFocus()) {
-                            result = { widget: widget, editor: editor };
-                        }
-                    });
-                }
-            });
-        }
-        
-        return result;
-    }
-
-    function _getFocusedInlineEditor() {
-        var focusedInline = getFocusedInlineWidget();
-        if (focusedInline) {
-            return focusedInline.editor;
-        }
-
-        return null;
-    }
-    
-    /**
-     * Returns the currently focused editor instance (full-sized OR inline editor).
-     * @returns {Editor}
-     */
-    function getFocusedEditor() {
-        if (_currentEditor) {
-            
-            // See if any inlines have focus
-            var focusedInline = _getFocusedInlineEditor();
-            if (focusedInline) {
-                return focusedInline;
-            }
-
-            // otherwise, see if full-sized editor has focus
-            if (_currentEditor.hasFocus()) {
-                return _currentEditor;
-            }
-        }
-        
-        return null;
     }
  
     /**

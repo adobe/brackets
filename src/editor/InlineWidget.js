@@ -51,6 +51,7 @@ define(function (require, exports, module) {
                 e.stopImmediatePropagation();
             }
         });
+        this._added = false;
     }
     InlineWidget.prototype.htmlContent = null;
     InlineWidget.prototype.$htmlContent = null;
@@ -84,7 +85,7 @@ define(function (require, exports, module) {
      * focus or measuring content, which require htmlContent to be in the DOM tree.
      */
     InlineWidget.prototype.onAdded = function () {
-        // do nothing - base implementation
+        this._added = true;
     };
 
     /**
