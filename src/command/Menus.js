@@ -851,15 +851,16 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_NEW,                 "Ctrl-N");
         menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN,                "Ctrl-O");
-        menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
         menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_QUIT,                "Ctrl-Q");
+        if (!brackets.inBrowser) {
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.FILE_QUIT,                "Ctrl-Q");
+        }
 
         /*
          * Edit  menu
@@ -934,10 +935,12 @@ define(function (require, exports, module) {
          */
         if (brackets.config.show_debug_menu) {
             menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
-            menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, [{key: "F12",        platform: "win"},
-                                                                   {key: "Cmd-Opt-I", platform: "mac"}]);
-            menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
-                                                             {key: "Cmd-R", platform:  "mac"}]);
+            if (!brackets.inBrowser) {
+                menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, [{key: "F12",        platform: "win"},
+                                                                       {key: "Cmd-Opt-I", platform: "mac"}]);
+                menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
+                                                                 {key: "Cmd-R", platform:  "mac"}]);
+            }
             menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
             menu.addMenuDivider();
             menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
@@ -950,15 +953,17 @@ define(function (require, exports, module) {
          * Help menu
          */
         menu = addMenu(Strings.HELP_MENU, AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
-        menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
-
-        if (brackets.config.forum_url) {
+        if (!brackets.inBrowser) {
+            menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
+            menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
             menu.addMenuDivider();
-            menu.addMenuItem(Commands.HELP_FORUM);
         }
 
-        menu.addMenuDivider();
+        if (brackets.config.forum_url) {
+            menu.addMenuItem(Commands.HELP_FORUM);
+            menu.addMenuDivider();
+        }
+
         menu.addMenuItem(Commands.HELP_ABOUT);
 
 
