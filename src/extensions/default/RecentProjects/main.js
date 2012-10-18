@@ -95,7 +95,11 @@ define(function (require, exports, module) {
         
         var folderSpan = $("<span></span>").addClass("recent-folder").text(folder),
             restSpan = $("<span></span>").addClass("recent-folder-path").text(" - " + rest);
-        return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan);
+        return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan).data("path", path);
+    }
+  
+    function renderDelete() {
+        return $("<div id='recent-folder-delete'></div>").addClass("trash-icon");
     }
     
     /**
@@ -148,13 +152,45 @@ define(function (require, exports, module) {
                                 }
                             });
                         closeDropdown();
+                    })
+                    .mouseenter(function (e) {
+                        var $target = $(e.currentTarget),
+                            $del =  renderDelete()
+                                .click(function () {
+                                 // remove the project from the preferences.
+                                    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+                                        recentProjects = getRecentProjects(),
+                                        index = recentProjects.indexOf($(this).data("path")),
+                                        newProjects = [],
+                                        i;
+                                    for (i = 0; i < recentProjects.length; i++) {
+                                        if (i !== index) {
+                                            newProjects.push(recentProjects[i]);
+                                        }
+                                    }
+                                    prefs.setValue("recentProjects", newProjects);
+                                    closeDropdown();
+                                });
+                        
+                        $(this).append($del);
+
+                        $del.css("right", 5);
+                        $del.css("top", $target.position().top + 11);
+                        $del.css("display", "inline-block");
+                        $del.data("path", $(this).data("path"));
+                    })
+                    .mouseleave(function () {
+                        $("#recent-folder-delete").remove();
                     });
+                
                 $("<li></li>")
                     .append($link)
                     .appendTo($dropdown);
                 hasProject = true;
             }
         });
+       
+       
         if (hasProject) {
             $("<li class='divider'>").appendTo($dropdown);
         }
