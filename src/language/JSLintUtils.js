@@ -224,13 +224,8 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var height          = Math.max(_prefs.getValue("height"), 100),
-            $jslintResults  = $("#jslint-results"),
+        var $jslintResults  = $("#jslint-results"),
             $jslintContent  = $("#jslint-results .table-container");
-        
-        if (_enabled) {
-            EditorManager.resizeEditor();
-        }
         
         StatusBar.addIndicator(module.id, $("#gold-star"), false);
     });

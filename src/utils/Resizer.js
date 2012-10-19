@@ -292,11 +292,11 @@ define(function (require, exports, module) {
 		if (elementPrefs) {
 			
 			if (elementPrefs.size !== undefined) {
-				elementSizeFunction.apply($element, [elementPrefs.size]);
+				elementSizeFunction.apply($element, [Math.max(elementPrefs.size, minSize)]);
 			}
 			
 			if (elementPrefs.contentSize !== undefined) {
-				contentSizeFunction.apply($resizableElement, [elementPrefs.contentSize]);
+				contentSizeFunction.apply($resizableElement, [Math.max(elementPrefs.contentSize, minSize)]);
 			}
 			
 			//if (elementPrefs.visible !== undefined) {
