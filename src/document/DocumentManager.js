@@ -80,6 +80,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
+        CollectionUtils     = require("utils/CollectionUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands");
     
@@ -171,13 +172,9 @@ define(function (require, exports, module) {
     function findInWorkingSet(fullPath, list) {
         list = list || _workingSet;
         
-        var ret = -1;
-        var found = list.some(function findByPath(file, i) {
-                ret = i;
-                return file.fullPath === fullPath;
-            });
-            
-        return (found ? ret : -1);
+        return CollectionUtils.indexOf(list, function (file, i) {
+            return file.fullPath === fullPath;
+        });
     }
 
     /**
@@ -1074,12 +1071,8 @@ define(function (require, exports, module) {
     function notifyPathNameChanged(oldName, newName, isFolder) {
         var i, path;
         
-        // Update currentDocument
-        if (_currentDocument) {
-            FileUtils.updateFileEntryPath(_currentDocument.file, oldName, newName);
-        }
-        
-        // Update open documents
+        // Update open documents. This will update _currentDocument too, since 
+        // the current document is always open.
         var keysToDelete = [];
         for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {

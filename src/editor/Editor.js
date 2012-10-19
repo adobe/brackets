@@ -626,14 +626,12 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
         this._codeMirror.setOption("onFocus", function () {
             self._focused = true;
-            
-            if (!self._internalFocus) {
-                EditorManager._doFocusedEditorChanged(self);
-            }
+            EditorManager._notifyFocusedEditorChanged(self);
         });
         
         this._codeMirror.setOption("onBlur", function () {
             self._focused = false;
+            // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
         });
     };
     
@@ -665,10 +663,31 @@ define(function (require, exports, module) {
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
      * end of the range the cursor lies at.
+     * @param {boolean} expandTabs If true, return the actual visual column number instead of the character offset in
+     *      the "ch" property.
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function () {
-        return this._codeMirror.getCursor();
+    Editor.prototype.getCursorPos = function (expandTabs) {
+        var cursor = this._codeMirror.getCursor();
+        
+        if (expandTabs) {
+            var line    = this._codeMirror.getRange({line: cursor.line, ch: 0}, cursor),
+                tabSize = Editor.getTabSize(),
+                column  = 0,
+                i;
+
+            for (i = 0; i < line.length; i++) {
+                if (line[i] === '\t') {
+                    column += (tabSize - (column % tabSize));
+                } else {
+                    column++;
+                }
+            }
+            
+            cursor.ch = column;
+        }
+        
+        return cursor;
     };
     
     /**
@@ -960,15 +979,7 @@ define(function (require, exports, module) {
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
-        // Capture the currently focused editor before making CodeMirror changes
-        var previous = EditorManager.getFocusedEditor();
-
-        // Prevent duplicate focusedEditorChanged events with this _internalFocus flag
-        this._internalFocus = true;
         this._codeMirror.focus();
-        this._internalFocus = false;
-
-        EditorManager._doFocusedEditorChanged(this, previous);
     };
     
     /** Returns true if the editor has focus */

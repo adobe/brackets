@@ -110,6 +110,7 @@ define({
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
+    "FIND_IN_FILES_MORE_THAN"           : "More than ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
     "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
@@ -179,7 +180,7 @@ define({
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
-    "CMD_DELETE_LINES"                    : "Delete Selected Line(s)",
+    "CMD_DELETE_LINES"                    : "Delete Line(s)",
     "CMD_COMMENT"                         : "Comment/Uncomment Lines",
     "CMD_LINE_UP"                         : "Move Line(s) Up",
     "CMD_LINE_DOWN"                       : "Move Line(s) Down",
@@ -202,6 +203,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",

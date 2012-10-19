@@ -102,9 +102,11 @@ define(function (require, exports, module) {
      */
     function _extractTagName(ctx) {
         if (ctx.token.state.tagName) {
-            return ctx.token.state.tagName; //XML mode
+            return ctx.token.state.tagName;           //XML mode
         } else if (ctx.token.state.htmlState) {
             return ctx.token.state.htmlState.tagName; //HTML mode
+        } else if (ctx.token.state.html) {
+            return ctx.token.state.html.tagName;      //HTML mode for PHP files
         }
         // Some mixed modes that offer HTML as a nested mode don't actually expose the HTML state
         return null;
@@ -197,6 +199,14 @@ define(function (require, exports, module) {
         var offset = TokenUtils.offsetInToken(ctx);
         
         if (!TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) || ctx.token.string !== "=") {
+            // If we're checking for a prior attribute and the next token we get is a tag or an html comment or
+            // an undefined token class, then we've already scanned past our original cursor location. 
+            // So just return an empty tag info.
+            if (isPriorAttr &&
+                    (!ctx.token.className ||
+                    (ctx.token.className !== "attribute" && ctx.token.string.indexOf("<") !== -1))) {
+                return createTagInfo();
+            }
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         
