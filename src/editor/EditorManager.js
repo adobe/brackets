@@ -35,8 +35,16 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- Fires after the focused editor (full or inline)
- *                             changes and size/visibility are complete.
+ *    - focusedEditorChange -- Fires after the focused editor (full or inline) changes and size/visibility
+ *                             are complete. Doesn't fire when editor temporarily loses focus to a non-editor
+ *                             control (e.g. search toolbar or modal dialog, or window deactivation). Does
+ *                             fire when focus moves between inline editor and its full-size container.
+ *                             Roughly, this event tracks getFocusedEditor() changes, while DocumentManager's
+ *                             currentDocumentChange tracks getCurrentFullEditor() changes.
+ *                             The 2nd arg to the listener is which Editor gained focus; the 3rd arg is
+ *                             which Editor lost focus as a result. Either one may be null.
+ *                             TODO (#1257): getFocusedEditor() sometimes lags behind this event. Listeners
+ *                             should use the arguments to reliably see which Editor just gained focus.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -60,10 +68,19 @@ define(function (require, exports, module) {
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
     
-    /** @type {Editor} */
+    /**
+     * Currently visible full-size Editor, or null if no editors open
+     * @type {?Editor}
+     */
     var _currentEditor = null;
-    /** @type {Document} */
+    /** @type {?Document} */
     var _currentEditorsDocument = null;
+    
+    /**
+     * Currently focused Editor (full-size, inline, or otherwise)
+     * @type {?Editor}
+     */
+    var _lastFocusedEditor = null;
     
     /**
      * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
@@ -360,33 +377,20 @@ define(function (require, exports, module) {
         resizeEditor(true);
     }
     
+    
     /**
      * @private
+     * @param {?Editor} current
      */
-    function _doFocusedEditorChanged(current, previous) {
-        // Skip if the new editor is already the focused editor.
-        // This may happen if the window loses then regains focus.
-        if (previous === current) {
+    function _notifyFocusedEditorChanged(current) {
+        // Skip if the Editor that gained focus was already the most recently focused editor.
+        // This may happen e.g. if the window loses then regains focus.
+        if (_lastFocusedEditor === current) {
             return;
         }
-
-        // if switching to no-editor, hide the last full editor
-        if (_currentEditor && !current) {
-            _currentEditor.setVisible(false);
-        }
-
-        // _currentEditor must be a full editor or null (show no editor).
-        // _currentEditor must not be an inline editor
-        if (!current || (current && !current._visibleRange)) {
-            _currentEditor = current;
-        }
-
-        // Window may have been resized since last time editor was visible, so kick it now
-        if (_currentEditor) {
-            _currentEditor.setVisible(true);
-            resizeEditor();
-        }
-
+        var previous = _lastFocusedEditor;
+        _lastFocusedEditor = current;
+        
         $(exports).triggerHandler("focusedEditorChange", [current, previous]);
     }
     
@@ -396,7 +400,12 @@ define(function (require, exports, module) {
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _doFocusedEditorChanged(document._masterEditor, _currentEditor);
+        _currentEditor = document._masterEditor;
+        
+        _currentEditor.setVisible(true);
+        
+        // Window may have been resized since last time editor was visible, so kick it now
+        resizeEditor();
     }
 
     /**
@@ -426,12 +435,16 @@ define(function (require, exports, module) {
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
-            var origCurrentEditor = _currentEditor;
+            _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
-            _doFocusedEditorChanged(null, origCurrentEditor);
+            
             _currentEditorsDocument = null;
+            _currentEditor = null;
             
             $("#not-editor").css("display", "");
+            
+            // No other Editor is gaining focus, so in this one special case we must trigger event manually
+            _notifyFocusedEditorChanged(null);
         }
     }
 
@@ -674,12 +687,9 @@ define(function (require, exports, module) {
         }
         
         if (!current) {
-            StatusBar.hide();
-            resizeEditor();
+            StatusBar.hide();  // calls resizeEditor() if needed
         } else {
-            // Check if the statusbar is not visible to show it
-            StatusBar.show();
-            resizeEditor();
+            StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("change.statusbar", function () {
@@ -754,7 +764,7 @@ define(function (require, exports, module) {
     // For unit tests and internal use only
     exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
-    exports._doFocusedEditorChanged = _doFocusedEditorChanged;
+    exports._notifyFocusedEditorChanged = _notifyFocusedEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     
