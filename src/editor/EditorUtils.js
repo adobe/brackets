@@ -47,6 +47,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/mysql/mysql");
     require("thirdparty/CodeMirror2/mode/diff/diff");
     require("thirdparty/CodeMirror2/mode/markdown/markdown");
+    require("thirdparty/CodeMirror2/mode/yaml/yaml");
 
     /**
      * @private
@@ -147,7 +148,12 @@ define(function (require, exports, module) {
             return "diff";
 
         case "md":
+        case "markdown":
             return "markdown";
+        
+        case "yaml":
+        case "yml":
+            return "yaml";
 
         default:
             console.log("Called EditorUtils.js _getModeFromFileExtensions with an unhandled file extension: " + ext);
