@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     var DocumentManager       = require("document/DocumentManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
+        Menus                 = require("command/Menus"),
         EditorManager         = require("editor/EditorManager"),
         FileViewController    = require("project/FileViewController"),
         NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
@@ -211,7 +212,10 @@ define(function (require, exports, module) {
                 // Hides the selection to optimize the movement
                 $openFilesContainer.find(".sidebar-selection").css("display", "none");
                 $openFilesContainer.find(".sidebar-selection-triangle").css("display", "none");
+                // Hide the close icon
                 $listItem.find(".file-status-icon").css("display", "none");
+                // Close all menus
+                Menus.closeAll();
                 moved = true;
             }
             
@@ -222,8 +226,7 @@ define(function (require, exports, module) {
         $(window.document).on("mouseup.workingSet", function (e) {
             // Removes the styles, placing the item in the chocen place
             $listItem.removeAttr("style");
-            $(window.document).off("mousemove.workingSet")
-                .off("mouseup.workingSet");
+            $(window.document).off("mousemove.workingSet mouseup.workingSet");
             
             if (!moved) {
                 // If file wasnt moved, open the file
@@ -269,7 +272,12 @@ define(function (require, exports, module) {
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
-            _reorderListItem(e);
+            // Try to reorder only with the right click and just open the file in other cases
+            if (e.which === 1) {
+                _reorderListItem(e);
+            } else {
+                FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
+            }
             e.preventDefault();
         });
 
