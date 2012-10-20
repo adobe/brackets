@@ -43,7 +43,9 @@ define(function (require, exports, module) {
 
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         EditorManager       = require("editor/EditorManager");
 
     function SearchState() {
@@ -83,9 +85,25 @@ define(function (require, exports, module) {
         return $(".CodeMirror-dialog input[type='text']");
     }
 
-    function parseQuery(query) {
+    function parseQuery(cm, query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+        try {
+            return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+        } catch (e) {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.INVALID_REGEX_TITLE,
+                StringUtils.format(
+                    Strings.INVALID_REGEX_MESSAGE,
+                    e.arguments[0],
+                    e.arguments[1]
+                )
+            ).done(function () {
+                // After showing the error, re-open the find dialog
+                doSearch(cm);
+            });
+            return null;
+        }
     }
 
     function findNext(cm, rev) {
@@ -152,7 +170,7 @@ define(function (require, exports, module) {
                 if (state.query) {
                     clearSearch(cm);  // clear highlights from previous query
                 }
-                state.query = parseQuery(query);
+                state.query = parseQuery(cm, query);
                 
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
@@ -191,7 +209,7 @@ define(function (require, exports, module) {
             if (!query) {
                 return;
             }
-            query = parseQuery(query);
+            query = parseQuery(cm, query);
             dialog(cm, replacementQueryDialog, Strings.WITH, function (text) {
                 var match,
                     fnMatch = function (w, i) { return match[i]; };
