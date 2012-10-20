@@ -110,6 +110,28 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Reopen closed file", function () {
+            it("should open file that is just closed", function () {
+                var promise;
+
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
+                    waitsForDone(promise, "FILE_OPEN");
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_CLOSE);
+                    waitsForDone(promise, "FILE_CLOSE");
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_REOPEN);
+                    waitsForDone(promise, "FILE_REOPEN");
+                });
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument().getText()).toBe(TEST_JS_CONTENT);
+                });
+            });
+        });
+
         describe("Save File", function () {
             it("should save changes", function () {
                 var filePath    = testPath + "/test.js",

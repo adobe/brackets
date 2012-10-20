@@ -65,6 +65,9 @@ define(function (require, exports, module) {
     var _$titleContainerToolbar = null;
     /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
+
+    /** @type {<[FileEntry]>} Recent Files Buffer*/
+    var _recentFilesBuffer = [];
     
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
@@ -238,6 +241,18 @@ define(function (require, exports, module) {
         
         return _doOpenWithOptionalPath(fullPath)
             .always(EditorManager.focusEditor);
+    }
+
+    /**
+     * Opens the last file in recent files buffer
+     */
+    function handleFileReopen() {
+        var fullPath = null;
+
+        if (_recentFilesBuffer.length) {
+            fullPath = _recentFilesBuffer[_recentFilesBuffer.length - 1]["fullPath"];
+        }
+        return doOpen(fullPath);
     }
 
     /**
@@ -532,6 +547,13 @@ define(function (require, exports, module) {
                 DocumentManager.closeFullEditor(file);
             
                 EditorManager.focusEditor();
+
+                // Push file to recent files buffer.
+                _recentFilesBuffer.push(file);
+                if (_recentFilesBuffer.length > 100) {
+                    // Do not allow recent buffer gets bigger than 100 files.
+                    _recentFilesBuffer.shift();
+                }
             }
         }
         
@@ -824,6 +846,7 @@ define(function (require, exports, module) {
 
         // Register global commands
         CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
+        CommandManager.register(Strings.CMD_FILE_REOPEN,        Commands.FILE_REOPEN, handleFileReopen);
         CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
         // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
