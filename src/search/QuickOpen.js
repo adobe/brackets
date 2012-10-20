@@ -400,6 +400,14 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this.handleDocumentMouseDown);
     };
     
+    /**
+    * Helper functions for stringMatch score calculation.
+    */
+    
+    /**
+    * The current scoring gives a boost for matches in the "most specific" (generally farthest right) 
+    * segment of the string being tested against the query.
+    */
     function _adjustScoreForSegment(segmentCounter, score) {
         if (segmentCounter === 0) {
             // Multiplier used for matches within the most-specific part of the name (filename, for example)
@@ -409,11 +417,19 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+    * Additional points are added when multiple characters in the string
+    * being tested match against query characters.
+    */
     function _boostForMatches(sequentialMatches) {
         // Multiplier for the number of sequential matched characters
         return sequentialMatches * sequentialMatches * 5;
     }
     
+    /**
+    * The score is boosted for matches that occur at the beginning
+    * of a segment of string that is being tested against the query.
+    */
     function _boostForPathSegmentStart(sequentialMatches) {
         // Multiplier for sequential matched characters at the beginning
         // of a delimited section (after a '/' in a path, for example)
@@ -443,9 +459,17 @@ define(function (require, exports, module) {
     * @return {?SearchResult}
     */
     function stringMatch(str, query) {
+        var result;
+        
+        // No query? Short circuit the normal work done and just
+        // return a simple match.
         if (!query) {
-            return;
+            result = new SearchResult(str);
+            result.matchGoodness = 0;
+            result.stringRanges = [];
+            return result;
         }
+        
         var lowerStr = str.toLowerCase();
         var queryChars = query.toLowerCase().split("");
 
@@ -547,7 +571,7 @@ define(function (require, exports, module) {
         // Produce a SearchResult that is augmented with matchGoodness
         // (used for sorting) and stringRanges (used for highlighting
         // matched areas of the string)
-        var result = new SearchResult(str);
+        result = new SearchResult(str);
         result.matchGoodness = -1 * score;
         result.stringRanges = stringRanges;
         return result;
