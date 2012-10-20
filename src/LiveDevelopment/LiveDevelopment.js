@@ -500,8 +500,8 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /** Triggered by a document saved from the DocumentManager */
-    function _onDocumentSaved() {
-        var doc = _getCurrentDocument();
+    function _onDocumentSaved(event, data) {
+        var doc = data || _getCurrentDocument(); // use Document passed in with jQuery event if available
         
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
