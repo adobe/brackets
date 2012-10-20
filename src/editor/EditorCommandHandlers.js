@@ -287,15 +287,6 @@ define(function (require, exports, module) {
         
         editor._codeMirror.execCommand("indentLess");
     }
-    
-    /**
-     * Toggles tabs/spaces preferences
-     */
-    function toggleUseTabChars() {
-        var useTabs = !Editor.getUseTabChar();
-        Editor.setUseTabChar(useTabs);
-        CommandManager.get(Commands.TOGGLE_USE_TAB_CHARS).setChecked(useTabs);
-    }
         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
@@ -305,6 +296,4 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
-    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,  toggleUseTabChars)
-        .setChecked(Editor.getUseTabChar());
 });
