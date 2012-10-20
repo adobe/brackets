@@ -500,9 +500,7 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /** Triggered by a document saved from the DocumentManager */
-    function _onDocumentSaved() {
-        var doc = _getCurrentDocument();
-        
+    function _onDocumentSaved(event, doc) {
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 // Reload HTML page
