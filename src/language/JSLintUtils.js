@@ -47,15 +47,10 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         AppInit                 = require("utils/AppInit"),
-        Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar");
         
     var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { height: 200, enabled: true };
-    
-    /** @type {Number} Height of the JSLint panel header in pixels. Hardcoded to avoid race 
-                       condition when measuring it on htmlReady*/
-    var HEADER_HEIGHT = 27;
+        defaultPrefs = { enabled: true };
     
     /**
      * @private
@@ -229,20 +224,8 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var height          = Math.max(_prefs.getValue("height"), 100),
-            $jslintResults  = $("#jslint-results"),
+        var $jslintResults  = $("#jslint-results"),
             $jslintContent  = $("#jslint-results .table-container");
-
-        $jslintResults.height(height);
-        $jslintContent.height(height - HEADER_HEIGHT);
-        
-        if (_enabled) {
-            EditorManager.resizeEditor();
-        }
-        
-        $jslintResults.on("panelResizeEnd", function (event, height) {
-            _prefs.setValue("height", height);
-        });
         
         StatusBar.addIndicator(module.id, $("#gold-star"), false);
     });
