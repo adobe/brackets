@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
-		PreferencesManager      = require("preferences/PreferencesManager"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
     
     var PREFERENCES_CLIENT_ID = module.id,
@@ -142,8 +142,8 @@ define(function (require, exports, module) {
             $element            = $(element),
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(window.document.body),
-			elementID			= $element.attr("id"),
-			elementPrefs		= _prefs.getValue(elementID) || {},
+            elementID			= $element.attr("id"),
+            elementPrefs		= _prefs.getValue(elementID) || {},
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
@@ -157,8 +157,8 @@ define(function (require, exports, module) {
         
         $element.data("show", function () {
 			
-			$element.show();
-			elementPrefs.visible = true;
+            $element.show();
+            elementPrefs.visible = true;
             
             if (collapsable) {
                 $element.prepend($resizer);
@@ -167,7 +167,7 @@ define(function (require, exports, module) {
             
             EditorManager.resizeEditor();
             $element.trigger("panelExpanded");
-			_prefs.setValue(elementID, elementPrefs);
+            _prefs.setValue(elementID, elementPrefs);
         });
                       
         $element.data("hide", function () {
@@ -175,14 +175,14 @@ define(function (require, exports, module) {
                 elementSize     = elementSizeFunction.apply($element);
             
             $element.hide();
-			elementPrefs.visible = false;
+            elementPrefs.visible = false;
             if (collapsable) {
                 $resizer.insertBefore($element).css(resizerCSSPosition, elementOffset[resizerCSSPosition] + elementSize);
             }
             
             EditorManager.resizeEditor();
             $element.trigger("panelCollapsed");
-			_prefs.setValue(elementID, elementPrefs);
+            _prefs.setValue(elementID, elementPrefs);
         });
     
         $resizer.on("mousedown", function (e) {
@@ -259,18 +259,18 @@ define(function (require, exports, module) {
             }
             
             function endResize(e) {
-				var elementSize		= elementSizeFunction.apply($element);
-				
-				elementPrefs.size = elementSize;
-				
-				if (contentSizeFunction) {
-					elementPrefs.contentSize = contentSizeFunction.apply($resizableElement);
-				}
-				
+                var elementSize		= elementSizeFunction.apply($element);
+                
+                elementPrefs.size = elementSize;
+                
+                if (contentSizeFunction) {
+                    elementPrefs.contentSize = contentSizeFunction.apply($resizableElement);
+                }
+                
                 if (isMouseDown) {
                     isMouseDown = false;
                     $element.trigger("panelResizeEnd", [elementSize]);
-					_prefs.setValue(elementID, elementPrefs);
+                    _prefs.setValue(elementID, elementPrefs);
                     
                     // We wait 100ms to remove the resizer container to capture a mousedown
                     // on the container that would account for double click
@@ -288,21 +288,21 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
 		
-		// Panel preferences initialization
-		if (elementPrefs) {
-			
-			if (elementPrefs.size !== undefined) {
-				elementSizeFunction.apply($element, [Math.max(elementPrefs.size, minSize)]);
-			}
-			
-			if (elementPrefs.contentSize !== undefined) {
-				contentSizeFunction.apply($resizableElement, [Math.max(elementPrefs.contentSize, minSize)]);
-			}
-			
-			//if (elementPrefs.visible !== undefined) {
-			//	hide($element);
-			//}
-		}
+        // Panel preferences initialization
+        if (elementPrefs) {
+            
+            if (elementPrefs.size !== undefined) {
+                elementSizeFunction.apply($element, [Math.max(elementPrefs.size, minSize)]);
+            }
+            
+            if (elementPrefs.contentSize !== undefined) {
+                contentSizeFunction.apply($resizableElement, [Math.max(elementPrefs.contentSize, minSize)]);
+            }
+            
+            //if (elementPrefs.visible !== undefined) {
+            //	hide($element);
+            //}
+        }
     }
 	
     // Init PreferenceStorage
@@ -312,13 +312,13 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
 		
-		$mainView = $(".main-view");
+        $mainView = $(".main-view");
         
         $(".vert-resizable").each(function (index, element) {
             
-			if ($(element).data().minsize !== undefined) {
-				minSize = $(element).data().minsize;
-			}
+            if ($(element).data().minsize !== undefined) {
+                minSize = $(element).data().minsize;
+            }
 			
             if ($(element).hasClass("top-resizer")) {
                 makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize, $(element).hasClass("collapsable"));
