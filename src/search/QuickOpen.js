@@ -46,7 +46,8 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Commands            = require("command/Commands"),
-        ProjectManager      = require("project/ProjectManager");
+        ProjectManager      = require("project/ProjectManager"),
+        KeyEvent            = require("utils/KeyEvent");
     
 
     /** @type Array.<QuickOpenPlugin> */
@@ -76,6 +77,7 @@ define(function (require, exports, module) {
      */
     var origSelection;
 
+    /** @type {boolean} */
     var dialogOpen = false;
 
     /** Object representing a search result with associated metadata (added as extra ad hoc fields) */
@@ -318,25 +320,18 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Close the dialog when the ENTER (13) or ESC (27) key is pressed
+     * Close the dialog when the Enter or Esc key is pressed
      *
      * Note, when keydown is handled $searchField does not yet have the character added
      * for the current event e. 
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
-
-        // TODO: pass event through KeyMap.translateKeyboardEvent() to get friendly names
-        // instead of using these constants here. Note, translateKeyboardEvent() doesn't yet
-        // make friendly names for the escape and enter key.
-        var ESCKey = 27, EnterKey = 13;
-
         // clear the query on ESC key and restore document and cursor position
-        if (e.keyCode === EnterKey || e.keyCode === ESCKey) {
+        if (e.keyCode === KeyEvent.DOM_VK_RETURN || e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             e.stopPropagation();
             e.preventDefault();
 
-            if (e.keyCode === ESCKey) {
-
+            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 // restore previously viewed doc if user navigated away from it
                 if (origDocPath) {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
@@ -348,9 +343,8 @@ define(function (require, exports, module) {
                 }
 
                 this._close();
-            }
-
-            if (e.keyCode === EnterKey) {
+                
+            } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                 this._handleItemSelect($(".smart_autocomplete_highlight").get(0));
             }
             
@@ -359,9 +353,9 @@ define(function (require, exports, module) {
     
     
     /**
-    * Closes the search dialog and notifies all quick open plugins that
-    * searching is done. 
-    */
+     * Closes the search dialog and notifies all quick open plugins that
+     * searching is done.
+     */
     QuickNavigateDialog.prototype._close = function () {
 
         if (!dialogOpen) {
@@ -569,7 +563,7 @@ define(function (require, exports, module) {
         // Use the filename formatter
         query = StringUtils.htmlEscape(query);
         var displayName = StringUtils.htmlEscape(item.label);
-        var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath));
+        var displayPath = StringUtils.breakableUrl(StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath)));
 
         if (query.length > 0) {
             // make the user's query bold within the item's text
@@ -602,12 +596,15 @@ define(function (require, exports, module) {
         prefix = prefix || "";
         initialString = initialString || "";
         initialString = prefix + initialString;
-
         
         var $field = $("input#quickOpenSearch");
         if ($field) {
             $field.val(initialString);
             $field.get(0).setSelectionRange(prefix.length, initialString.length);
+            
+            // Kick smart-autocomplete to update (it only listens for keyboard events)
+            // (due to #1855, this will only pop up results list; it won't auto-"focus" the first result)
+            $field.trigger("keyIn", [initialString]);
         }
     }
     

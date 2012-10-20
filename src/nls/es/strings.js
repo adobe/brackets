@@ -35,7 +35,8 @@ define({
     "NOT_READABLE_ERR"                  : "No se pudo leer el archivo.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directorio de destino no se puede modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Los permisos no permiten hacer modificaciones.",
-
+    "FILE_EXISTS_ERR"                   : "El archivo ya existe.",
+    
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error abriendo el proyecto",
     "OPEN_DIALOG_ERROR"                 : "Ha ocurrido un error al mostrar el aviso de apertura de archivo. (error {0})",
@@ -49,6 +50,8 @@ define({
     "ERROR_RELOADING_FILE"              : "Ha ocurrido un error al intentar recargar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error guardando archivo",
     "ERROR_SAVING_FILE"                 : "Ha ocurrido un error al intentar guardar el archivo <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Error renombrando archivo",
+    "ERROR_RENAMING_FILE"               : "Ha ocurrido un error al intentar renombrar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nombre de archivo inválido",
     "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "El archivo <span class='dialog-filename'>{0}</span> ya existe.",
@@ -79,6 +82,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Desarrollo en Vivo: Conectando...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Desarrollo en Vivo: Inicializando...",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Desarrollo en Vivo",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Desarrollo en Vivo: Haz click para desconectar (Guarda el archivo para actualizar)",
     
     "SAVE_CLOSE_TITLE"                  : "Guardar cambios",
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
@@ -124,6 +128,26 @@ define({
      */
 
     "UNTITLED" : "Sin título",
+    
+    /**
+     * Keyboard modifier names
+     */
+
+    "KEYBOARD_CTRL"   : "Control",
+    "KEYBOARD_SHIFT"  : "Mayúsculas",
+    "KEYBOARD_SPACE"  : "Espacio",
+    
+    /**
+     * StatusBar strings
+     */
+    "STATUSBAR_CURSOR_POSITION"             : "Línea {0}, Columna {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Haz click para usar espacios en la sangría",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Haz click para usar tabulaciones en la sangría",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Haz click para cambiar el número de espacios usados en la sangría",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Haz click para cambiar el ancho de las tabulaciones",
+    "STATUSBAR_SPACES"                      : "Espacios",
+    "STATUSBAR_TAB_SIZE"                    : "Tamaño de tabulador",
+    "STATUSBAR_LINE_COUNT"                  : "{0} Líneas",
 
     /**
      * Command Name Constants
@@ -132,6 +156,7 @@ define({
     // File menu commands
     "FILE_MENU"                           : "Archivo",
     "CMD_FILE_NEW"                        : "Nuevo",
+    "CMD_FILE_NEW_FOLDER"                 : "Nueva carpeta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Añadir a espacio de trabajo",
     "CMD_OPEN_FOLDER"                     : "Abrir carpeta\u2026",
@@ -140,6 +165,7 @@ define({
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
+    "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_QUIT"                            : "Salir",
 
     // Edit menu commands
@@ -150,9 +176,10 @@ define({
     "CMD_FIND_NEXT"                       : "Buscar siguiente",
     "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
     "CMD_REPLACE"                         : "Reemplazar",
-    "CMD_INDENT"                          : "Aumentar indentación",
-    "CMD_UNINDENT"                        : "Disminuir indentación",
+    "CMD_INDENT"                          : "Aumentar sangría",
+    "CMD_UNINDENT"                        : "Disminuir sangría",
     "CMD_DUPLICATE"                       : "Duplicar",
+    "CMD_DELETE_LINES"                    : "Eliminar líneas seleccionadas",
     "CMD_COMMENT"                         : "Comentar/Descomentar líneas",
     "CMD_LINE_UP"                         : "Subir línea(s)",
     "CMD_LINE_DOWN"                       : "Bajar línea(s)",
@@ -175,6 +202,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",
     "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_PREV_DOC"                        : "Documento anterior",
+    "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Desarrollo",
@@ -201,6 +229,10 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versión Experimental",
     "JSLINT_ERRORS"                        : "Errores de JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
+    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
+    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
     "SEARCH_RESULTS"                       : "Resultados de búsqueda",
     "OK"                                   : "Aceptar",
     "DONT_SAVE"                            : "No guardar",
@@ -213,9 +245,9 @@ define({
     "ABOUT"                                : "Acerca de...",
     "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 versión experimental ",
-    "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> y se incluyen aquí como referencia.",
-    "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versión experimental {VERSION}",
+    "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
+    "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "Oye, hay una nueva versión de {APP_NAME} disponible. Éstas son algunas de las nuevas características:",

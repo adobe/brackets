@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         EDIT_MENU       : "edit-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
-        DEBUG_MENU      : "debug-menu",
+        DEBUG_MENU      : "debug-menu",     // Note: not present in some configurations of Brackets (getMenu() will return null)
         HELP_MENU       : "help-menu"
     };
 
@@ -58,7 +58,8 @@ define(function (require, exports, module) {
     var ContextMenuIds = {
         EDITOR_MENU:        "editor-context-menu",
         INLINE_EDITOR_MENU: "inline-editor-context-menu",
-        PROJECT_MENU:       "project-context-menu"
+        PROJECT_MENU:       "project-context-menu",
+        WORKING_SET_MENU:   "working-set-context-menu"
     };
 
 
@@ -848,6 +849,7 @@ define(function (require, exports, module) {
         var menu;
         menu = addMenu(Strings.FILE_MENU, AppMenuBar.FILE_MENU);
         menu.addMenuItem(Commands.FILE_NEW,                 "Ctrl-N");
+        menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN,                "Ctrl-O");
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
@@ -880,6 +882,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
         menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
         menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_DELETE_LINES,    "Ctrl-Shift-D");
         menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
                                                           platform: "win"},
                                                          {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
@@ -919,6 +922,8 @@ define(function (require, exports, module) {
                                                              {key: "Ctrl-Tab", platform: "mac"}]);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC,        [{key: "Ctrl-Shift-Tab", platform: "win"},
                                                              {key: "Ctrl-Shift-Tab", platform: "mac"}]);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});
@@ -962,6 +967,12 @@ define(function (require, exports, module) {
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
+        project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
+        project_cmenu.addMenuItem(Commands.FILE_RENAME);
+
+        var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
+        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
@@ -1013,12 +1024,14 @@ define(function (require, exports, module) {
         });
 
         /**
-         * Context menu for folder tree & working set list
-         *
-         * TODO (#1069): change selection on right mousedown if not on something already selected
+         * Context menus for folder tree & working set list
          */
-        $("#projects").on("contextmenu", function (e) {
+        $("#project-files-container").on("contextmenu", function (e) {
             project_cmenu.open(e);
+        });
+
+        $("#open-files-container").on("contextmenu", function (e) {
+            working_set_cmenu.open(e);
         });
 
         // Prevent the browser context menu since Brackets creates a custom context menu

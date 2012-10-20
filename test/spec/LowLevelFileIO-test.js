@@ -504,5 +504,176 @@ define(function (require, exports, module) {
             });
 
         }); // describe("unlink")
+        
+        describe("mkdir", function () {
+            it("should make a new directory", function () {
+                // TODO: Write this test once we have a function to delete the directory
+            });
+        });
+        
+        describe("rename", function () {
+            var error, complete;
+            
+            it("should rename a file", function () {
+                var oldName = baseDir + "file_one.txt",
+                    newName = baseDir + "file_one_renamed.txt";
+                
+                complete = false;
+                
+                brackets.fs.rename(oldName, newName, function (err) {
+                    error = err;
+                    complete = true;
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify new file is found and old one is missing
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(oldName, function (err, stat) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newName, function (err, stat) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Rename the file back to the old name
+                runs(function () {
+                    complete = false;
+                    brackets.fs.rename(newName, oldName, function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                    
+            });
+            it("should rename a folder", function () {
+                var oldName = baseDir + "rename_me",
+                    newName = baseDir + "renamed_folder";
+                
+                complete = false;
+                
+                brackets.fs.rename(oldName, newName, function (err) {
+                    error = err;
+                    complete = true;
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Verify new folder is found and old one is missing
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(oldName, function (err, stat) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                });
+
+                runs(function () {
+                    complete = false;
+                    brackets.fs.stat(newName, function (err, stat) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+                
+                // Rename the folder back to the old name
+                runs(function () {
+                    complete = false;
+                    brackets.fs.rename(newName, oldName, function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.NO_ERROR);
+                });
+            });
+            it("should return an error if the new name already exists", function () {
+                var oldName = baseDir + "file_one.txt",
+                    newName = baseDir + "file_two.txt";
+                
+                complete = false;
+                
+                brackets.fs.rename(oldName, newName, function (err) {
+                    error = err;
+                    complete = true;
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(brackets.fs.ERR_FILE_EXISTS);
+                });
+            });
+            it("should return an error if the parent folder is read only (Mac only)", function () {
+                if (brackets.platform === "mac") {
+                    var oldName = baseDir + "cant_write_here/readme.txt",
+                        newName = baseDir + "cant_write_here/readme_renamed.txt";
+                    
+                    complete = false;
+                    
+                    brackets.fs.rename(oldName, newName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                    
+                    waitsFor(function () { return complete; }, 1000);
+                    
+                    runs(function () {
+                        expect(error).toBe(brackets.fs.ERR_CANT_WRITE);
+                    });
+                }
+            });
+            // TODO: More testing of error cases? 
+        });
     });
 });
