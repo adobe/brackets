@@ -281,7 +281,7 @@ define(function (require, exports, module) {
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
-            // Try to reorder only with the right click and just open the file in other cases
+            // Try to reorder only with the left click and just open the file in other cases
             if (e.which === 1) {
                 _reorderListItem(e);
             } else {
