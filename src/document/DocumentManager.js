@@ -300,19 +300,18 @@ define(function (require, exports, module) {
     
     
     /**
-     * Changes the position of the file from oldIndex to NewIndex and at the same time the file
-     * in newIndex to oldIndex. Returns the newIndex
+     * Mutually exchanges the files at the indexes passed by parameters.
      * @param {!number} index - old file index
      * @param {!number} index - new file index
      */
-    function switchFilesIndex(oldIndex, newIndex) {
+    function swapWorkingSetIndexes(index1, index2) {
         var length = _workingSet.length - 1;
-        var aux;
+        var temp;
         
-        if (oldIndex >= 0 && oldIndex <= length && newIndex >= 0 && newIndex <= length) {
-            aux = _workingSet[oldIndex];
-            _workingSet[oldIndex] = _workingSet[newIndex];
-            _workingSet[newIndex] = aux;
+        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
+            temp = _workingSet[index1];
+            _workingSet[index1] = _workingSet[index2];
+            _workingSet[index2] = temp;
         }
     }
     
@@ -1139,7 +1138,7 @@ define(function (require, exports, module) {
     exports.addListToWorkingSet = addListToWorkingSet;
     exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
-    exports.switchFilesIndex = switchFilesIndex;
+    exports.swapWorkingSetIndexes = swapWorkingSetIndexes;
     exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
