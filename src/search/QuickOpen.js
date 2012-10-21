@@ -461,43 +461,58 @@ define(function (require, exports, module) {
     function stringMatch(str, query) {
         var result;
         
+        // start at the end and work backward, because we give preference
+        // to matches in the name (last) segment
+        var strCounter = str.length - 1;
+        
+        // stringRanges are used to keep track of which parts of
+        // the input str matched the query
+        var stringRanges = [];
+        
+        // segmentCounter tracks which "segment" (delimited section) of the
+        // str we are in so that we can treat certain (generally most-specific) segments
+        // specially.
+        var segmentCounter = 0;
+        
+        // Keeps track of the most specific segment that the current stringRange
+        // is associated with.
+        var rangeSegment = 0;
+        
+        // addToStringRanges is used when we transition between matched and unmatched
+        // parts of the string.
+        function addToStringRanges(numberOfCharacters, matched) {
+            var segment = rangeSegment;
+            rangeSegment = segmentCounter;
+            stringRanges.unshift({
+                text: str.substr(strCounter + 1, numberOfCharacters),
+                matched: matched,
+                segment: segment
+            });
+        }
+
         // No query? Short circuit the normal work done and just
         // return a simple match.
         if (!query) {
             result = new SearchResult(str);
             result.matchGoodness = 0;
-            result.stringRanges = [];
+            strCounter = -1;
+            addToStringRanges(str.length, false);
+            result.stringRanges = stringRanges;
             return result;
         }
         
         var lowerStr = str.toLowerCase();
         var queryChars = query.toLowerCase().split("");
+        
+        // start at the end of the query
+        var queryCounter = queryChars.length - 1;
 
         var score = 0;
         
         // sequentialMatches is positive when we are stepping through matched
         // characters and negative when stepping through unmatched characters
         var sequentialMatches = 0;
-        var segmentCounter = 0;
         
-        // start at the end and work backward, because we give preference
-        // to matches in the name (last) segment
-        var strCounter = lowerStr.length - 1;
-        var queryCounter = queryChars.length - 1;
-        
-        // stringRanges are used to keep track of which parts of
-        // the input str matched the query
-        var stringRanges = [];
-        
-        // addToStringRanges is used when we transition between matched and unmatched
-        // parts of the string.
-        function addToStringRanges(numberOfCharacters, matched) {
-            stringRanges.unshift({
-                text: str.substr(strCounter + 1, numberOfCharacters),
-                matched: matched
-            });
-        }
-
         while (strCounter >= 0 && queryCounter >= 0) {
             var curChar = lowerStr.charAt(strCounter);
             
@@ -715,25 +730,32 @@ define(function (require, exports, module) {
     function _filenameResultsFormatter(item, query) {
         // Use the filename formatter
         query = StringUtils.htmlEscape(query);
-        var displayName = StringUtils.htmlEscape(item.label);
-        
+    
         // put the path pieces together, highlighting the matched parts
         // of the string
+        var displayName = "";
         var displayPath = "";
-        if (displayName.indexOf("QuickOpen.js") > -1) {
-            console.log("qo", item.stringRanges);
-        }
-        item.stringRanges.forEach(function (segment) {
-            if (displayName.indexOf("QuickOpen.js") > -1) {
-                console.log("quickopen:", segment);
-            }
-            if (segment.matched) {
+        
+        item.stringRanges.forEach(function (range) {
+            if (range.matched) {
                 displayPath += '<span class="quicksearch-match">';
+                displayName += '<span class="quicksearch-match">';
             } else {
                 displayPath += '<span>';
+                displayName += '<span>';
             }
-            displayPath += StringUtils.breakableUrl(StringUtils.htmlEscape(segment.text));
+            displayPath += StringUtils.breakableUrl(StringUtils.htmlEscape(range.text));
             displayPath += '</span>';
+            
+            if (range.segment === 0) {
+                var rightmostSlash = range.text.lastIndexOf('/');
+                if (rightmostSlash > -1) {
+                    displayName += StringUtils.htmlEscape(range.text.substring(rightmostSlash + 1));
+                } else {
+                    displayName += StringUtils.htmlEscape(range.text);
+                }
+            }
+            displayName += '</span>';
         });
         
         return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
