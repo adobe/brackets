@@ -218,7 +218,6 @@ define({
     "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
-    "CMD_USE_TAB_CHARS"                   : "Mit Tabs einrücken",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
     "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
 
