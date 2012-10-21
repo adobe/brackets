@@ -135,7 +135,7 @@ define(function (require, exports, module) {
      * @param {int} minSize Minimum size (width or height) of the element.
      * @param {boolean} collapsable True indicates the panel is collapsable on double click
      *                              on the resizer.
-     * @param {string} forcemargin
+     * @param {string} forcemargin Classes which margins need to be pushed when the element resizes
      */
     function makeResizable(element, direction, position, minSize, collapsable, forcemargin) {
         
@@ -260,15 +260,13 @@ define(function (require, exports, module) {
                     
                         if (newSize < 10) {
                             toggle($element);
+                        } else {
+                            forceMargins(newSize);
                         }
                     } else if (newSize > 10) {
                         elementSizeFunction.apply($element, [newSize]);
                         toggle($element);
                         $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
-                    }
-                    
-                    if (forcemargin !== undefined) {
-                        $(forcemargin, $element.parent()).css("margin-left", elementSizeFunction.apply($element));
                     }
     
                     EditorManager.resizeEditor();
@@ -279,6 +277,8 @@ define(function (require, exports, module) {
             
             $resizeCont.on("mousemove", function (e) {
                 
+                // Trigger resizeStarted only if we move the mouse to avoid a resizeStarted event
+                // when double clicking for collapse/expand functionality
                 if (!resizeStarted) {
                     resizeStarted = true;
                     $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
