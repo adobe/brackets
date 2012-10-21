@@ -50,22 +50,14 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
-        Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar");
 
     var searchResults = [];
     
-    var FIND_IN_FILES_MAX = 100;
-    
-    var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { height: 200 };
-    
-    /** @type {Number} Height of the FIF panel header in pixels. Hardcoded to avoid race 
-                       condition when measuring it on htmlReady*/
-    var HEADER_HEIGHT = 27;
+    var FIND_IN_FILES_MAX = 100,
+        maxHitsFoundInFile = false;
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -172,6 +164,14 @@ define(function (require, exports, module) {
                 end: {line: lineNum, ch: ch + matchLength},
                 line: line
             });
+
+            // We have the max hits in just this 1 file. Stop searching this file.
+            // This fixed issue #1829 where code hangs on too many hits.
+            if (matches.length >= FIND_IN_FILES_MAX) {
+                queryExpr.lastIndex = 0;
+                maxHitsFoundInFile = true;
+                break;
+            }
         }
 
         return matches;
@@ -191,9 +191,15 @@ define(function (require, exports, module) {
             });
             
             // Show result summary in header
+            var numMatchesStr = "";
+            if (maxHitsFoundInFile) {
+                numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
+            }
+            numMatchesStr += String(numMatches);
+
             var summary = StringUtils.format(
                 Strings.FIND_IN_FILES_TITLE,
-                numMatches,
+                numMatchesStr,
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 searchResults.length,
                 (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
@@ -307,6 +313,7 @@ define(function (require, exports, module) {
         var initialString = currentEditor && currentEditor.getSelectedText();
         
         searchResults = [];
+        maxHitsFoundInFile = false;
                             
         dialog.showDialog(initialString)
             .done(function (query) {
@@ -354,16 +361,8 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var $searchResults  = $("#search-results"),
-            $searchContent  = $("#search-results .table-container"),
-            prefs           = PreferencesManager.getPreferenceStorage(module.id, defaultPrefs),
-            height          = prefs.getValue("height");
+            $searchContent  = $("#search-results .table-container");
 
-        $searchResults.height(height);
-        $searchContent.height(height - HEADER_HEIGHT);
-        
-        $searchResults.on("panelResizeEnd", function (event, height) {
-            prefs.setValue("height", height);
-        });
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
