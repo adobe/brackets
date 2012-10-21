@@ -893,8 +893,6 @@ define(function (require, exports, module) {
                                                           platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_USE_TAB_CHARS);
 
         /*
          * View menu

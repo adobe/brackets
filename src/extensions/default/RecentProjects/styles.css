@@ -6,6 +6,13 @@
     background-image: url("down-arrow.svg");
 }
 
+.trash-icon {
+	width: 16px;
+	height: 16px;
+	background-image: url("close_btn.svg");
+	position: absolute;
+}
+
 #project-dropdown-toggle:hover {
     color: #a0a0a0;
     text-decoration: none;
@@ -21,6 +28,13 @@
 
 .recent-folder-link, .recent-folder, .recent-folder-path {
     white-space: nowrap;
+}
+
+#project-dropdown.dropdown-menu .recent-folder-link
+{
+	display: block;
+	margin: 5px 0;
+	padding: 5px 26px 5px 10px;
 }
 
 .recent-folder, #open-folder-link {

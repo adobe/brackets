@@ -626,14 +626,12 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
         this._codeMirror.setOption("onFocus", function () {
             self._focused = true;
-            
-            if (!self._internalFocus) {
-                EditorManager._doFocusedEditorChanged(self);
-            }
+            EditorManager._notifyFocusedEditorChanged(self);
         });
         
         this._codeMirror.setOption("onBlur", function () {
             self._focused = false;
+            // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
         });
     };
     
@@ -981,15 +979,7 @@ define(function (require, exports, module) {
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
-        // Capture the currently focused editor before making CodeMirror changes
-        var previous = EditorManager.getFocusedEditor();
-
-        // Prevent duplicate focusedEditorChanged events with this _internalFocus flag
-        this._internalFocus = true;
         this._codeMirror.focus();
-        this._internalFocus = false;
-
-        EditorManager._doFocusedEditorChanged(this, previous);
     };
     
     /** Returns true if the editor has focus */

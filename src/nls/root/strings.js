@@ -180,7 +180,7 @@ define({
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
-    "CMD_DELETE_LINES"                    : "Delete Selected Line(s)",
+    "CMD_DELETE_LINES"                    : "Delete Line(s)",
     "CMD_COMMENT"                         : "Comment/Uncomment Lines",
     "CMD_LINE_UP"                         : "Move Line(s) Up",
     "CMD_LINE_DOWN"                       : "Move Line(s) Down",
@@ -214,7 +214,6 @@ define({
     "CMD_SHOW_PERF_DATA"                  : "Show Performance Data",
     "CMD_NEW_BRACKETS_WINDOW"             : "New {APP_NAME} Window",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
-    "CMD_USE_TAB_CHARS"                   : "Use Tab Characters",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
 

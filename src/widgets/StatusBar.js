@@ -9,6 +9,7 @@ define(function (require, exports, module) {
     
     var AppInit         = require("utils/AppInit"),
         StatusBarHTML   = require("text!widgets/StatusBar.html"),
+        EditorManager   = require("editor/EditorManager"),
         Strings         = require("strings");
 
     var _init = false;
@@ -139,8 +140,11 @@ define(function (require, exports, module) {
         if (!_init) {
             return;
         }
-
-        $statusBar.hide();
+        
+        if ($statusBar.is(":visible")) {
+            $statusBar.hide();
+            EditorManager.resizeEditor();  // changes available ht for editor area
+        }
     }
     
     /**
@@ -151,7 +155,10 @@ define(function (require, exports, module) {
             return;
         }
 
-        $statusBar.show();
+        if (!$statusBar.is(":visible")) {
+            $statusBar.show();
+            EditorManager.resizeEditor();  // changes available ht for editor area
+        }
     }
 
     function init($parent) {

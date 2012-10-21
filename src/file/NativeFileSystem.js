@@ -620,8 +620,8 @@ define(function (require, exports, module) {
      *        DirectoryEntry to the file to be looked up or created. It is an error
      *        to attempt to create a file whose immediate parent does not yet
      *        exist.
-     * @param {Object.<string, boolean>} options
-     * @param {function (number)} successCallback
+     * @param {!{create:?boolean, exclusive:?boolean}} options
+     * @param {function (FileEntry)} successCallback
      * @param {function (number)} errorCallback
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
