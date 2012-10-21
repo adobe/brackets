@@ -183,7 +183,7 @@ define(function (require, exports, module) {
             
             forceMargins(elementSize);
             EditorManager.resizeEditor();
-            $element.trigger("panelExpanded");
+            $element.trigger("panelExpanded", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
                       
@@ -205,7 +205,7 @@ define(function (require, exports, module) {
             
             forceMargins(0);
             EditorManager.resizeEditor();
-            $element.trigger("panelCollapsed");
+            $element.trigger("panelCollapsed", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
         

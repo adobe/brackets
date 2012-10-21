@@ -48,7 +48,6 @@ define(function (require, exports, module) {
     // below since they refer to DOM elements
     var $sidebar,
         $sidebarMenuText,
-        $sidebarResizer,
         $openFilesContainer,
         $projectTitle,
         $projectFilesContainer;
@@ -102,11 +101,19 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelExpanded", function (evt, width) {
+            $sidebar.find(".sidebar-selection").width(width);
+            $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");
             $openFilesContainer.triggerHandler("scroll");
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
         });
+        
+        // AppInit.htmlReady in utils/Resizer executes before, so it's possible that the sidebar
+        // is collapsed before we add the event. Check here initially
+        if (!$sidebar.is(":visible")) {
+            $sidebar.trigger("panelCollapsed");
+        }
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
