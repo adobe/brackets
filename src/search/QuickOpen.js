@@ -435,22 +435,30 @@ define(function (require, exports, module) {
         // of a delimited section (after a '/' in a path, for example)
         return sequentialMatches * sequentialMatches * 5;
     }
+    
+    /**
+    * Upper case characters are boosted to help match MixedCase strings better.
+    */
+    function _boostForUpperCase(c) {
+        return c.toUpperCase() === c ? 50 : 0;
+    }
 
    /**
     * Performs matching of a string based on a query, and scores
     * the result based on specificity (assuming that the rightmost
     * side of the input is the most specific) and how clustered the
     * query characters are in the input string. The matching is
-    * case-insensitive
+    * case-insensitive, but case is taken into account in the scoring.
     *
     * If the query characters cannot be found in order (but not necessarily all together), 
     * undefined is returned.
     *
     * The returned SearchResult has a matchGoodness score that can be used
     * for sorting. It also has a stringRanges array, each entry with
-    * "text" and "matched". If you string the "text" properties together, you will
-    * get the original str. Using the matched properties, you can highlight
-    * the string matches.
+    * "text", "matched" and "segment". If you string the "text" properties together, you will
+    * get the original str. Using the matched property, you can highlight
+    * the string matches. The segment property tells you the most specific segment
+    * covered by the range, though there may be more than one segment convered.
     *
     * Use basicMatchSort() to sort the filtered results taking this ranking
     * label of the SearchResult is set to 'str'.
@@ -491,7 +499,7 @@ define(function (require, exports, module) {
         }
 
         // No query? Short circuit the normal work done and just
-        // return a simple match.
+        // return a simple match with a range that covers the whole string.
         if (!query) {
             result = new SearchResult(str);
             result.matchGoodness = 0;
@@ -501,7 +509,6 @@ define(function (require, exports, module) {
             return result;
         }
         
-        var lowerStr = str.toLowerCase();
         var queryChars = query.toLowerCase().split("");
         
         // start at the end of the query
@@ -514,7 +521,7 @@ define(function (require, exports, module) {
         var sequentialMatches = 0;
         
         while (strCounter >= 0 && queryCounter >= 0) {
-            var curChar = lowerStr.charAt(strCounter);
+            var curChar = str.charAt(strCounter);
             
             // Ideally, this function will work with different delimiters used in
             // different contexts. For now, this is used for paths delimited by '/'.
@@ -529,7 +536,10 @@ define(function (require, exports, module) {
                 segmentCounter++;
             }
             
-            if (queryChars[queryCounter] === curChar) {
+            if (queryChars[queryCounter] === curChar.toLowerCase()) {
+                
+                score += _boostForUpperCase(curChar);
+                
                 // are we ending a string of unmatched characters?
                 if (sequentialMatches < 0) {
                     addToStringRanges(-sequentialMatches, false);
@@ -568,7 +578,8 @@ define(function (require, exports, module) {
         if (strCounter > 0) {
             stringRanges.unshift({
                 text: str.substring(0, strCounter + 1),
-                matched: false
+                matched: false,
+                segment: rangeSegment
             });
         }
         
@@ -577,7 +588,7 @@ define(function (require, exports, module) {
         score += _boostForMatches(sequentialMatches);
         
         if (sequentialMatches && strCounter >= 0) {
-            if (lowerStr.charAt(strCounter) === '/') {
+            if (str.charAt(strCounter) === '/') {
                 score += _boostForPathSegmentStart(sequentialMatches);
             }
         }
