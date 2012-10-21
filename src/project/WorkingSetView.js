@@ -91,75 +91,24 @@ define(function (require, exports, module) {
         _fireSelectionChanged();
     }
     
-    /** 
-     * Updates the appearance of the list element based on the parameters provided
-     * @private
-     * @param {!HTMLLIElement} listElement
-     * @param {bool} isDirty 
-     * @param {bool} canClose
-     */
-    function _updateFileStatusIcon(listElement, isDirty, canClose) {
-        var $fileStatusIcon = listElement.find(".file-status-icon");
-        var showIcon = isDirty || canClose;
-
-        // remove icon if its not needed
-        if (!showIcon && $fileStatusIcon.length !== 0) {
-            $fileStatusIcon.remove();
-            $fileStatusIcon = null;
-            
-        // create icon if its needed and doesn't exist
-        } else if (showIcon && $fileStatusIcon.length === 0) {
-            
-            $fileStatusIcon = $("<div class='file-status-icon'></div>")
-                .prependTo(listElement)
-                .mousedown(function (e) {
-                    // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
-                    // selects documents on mousedown, doesn't select the document in the case 
-                    // when the click is on fileStatusIcon
-                    e.stopPropagation();
-                })
-                .click(function () {
-                    // Clicking the "X" button is equivalent to File > Close; it doesn't merely
-                    // remove a file from the working set
-                    var file = listElement.data(_FILE_KEY);
-                    CommandManager.execute(Commands.FILE_CLOSE, {file: file});
-                });
-        }
-
-        // Set icon's class
-        if ($fileStatusIcon) {
-            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
-        }
-    }
-    
-    /** 
-     * Updates the appearance of the list element based on the parameters provided.
-     * @private
-     * @param {!HTMLLIElement} listElement
-     * @param {?Document} selectedDoc
-     */
-    function _updateListItemSelection(listItem, selectedDoc) {
-        var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
-        
-        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
-    }
-
-    function isOpenAndDirty(file) {
-        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        return (docIfOpen && docIfOpen.isDirty);
-    }
-    
-    /** 
+    /**
      * Starts the drag and drop working set view reorder.
      * @private
      * @param {!Event} event - jQuery event
+     * @paran {!HTMLLIElement} $listItem - jQuery element
+     * @param {?bool} fromClose - true if reorder was called from the close icon
      */
-    function _reorderListItem(event) {
-        var $listItem     = $(event.currentTarget),
-            $prevListItem = $listItem.prev(),
+    function _reorderListItem(event, $listItem, fromClose) {
+        // Only drag with the left mouse button
+        if (event.which !== 1) {
+            // Open the file if it wasnt called from the close button
+            if (!fromClose) {
+                FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+            }
+            return;
+        }
+        
+        var $prevListItem = $listItem.prev(),
             $nextListItem = $listItem.next(),
             selected      = $listItem.hasClass("selected"),
             prevSelected  = $prevListItem.hasClass("selected"),
@@ -236,10 +185,10 @@ define(function (require, exports, module) {
             $listItem.removeAttr("style");
             $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
             
-            if (!moved) {
-                // If file wasnt moved, open the file
+            if (!moved && !fromClose) {
+                // If file wasnt moved and wasnt called from the close icon, open the file
                 FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-            } else {
+            } else if (moved) {
                 // Display the status icon again
                 $listItem.find(".file-status-icon").css("display", "block");
                 
@@ -257,6 +206,70 @@ define(function (require, exports, module) {
         });
     }
     
+    /** 
+     * Updates the appearance of the list element based on the parameters provided
+     * @private
+     * @param {!HTMLLIElement} listElement
+     * @param {bool} isDirty 
+     * @param {bool} canClose
+     */
+    function _updateFileStatusIcon(listElement, isDirty, canClose) {
+        var $fileStatusIcon = listElement.find(".file-status-icon");
+        var showIcon = isDirty || canClose;
+
+        // remove icon if its not needed
+        if (!showIcon && $fileStatusIcon.length !== 0) {
+            $fileStatusIcon.remove();
+            $fileStatusIcon = null;
+            
+        // create icon if its needed and doesn't exist
+        } else if (showIcon && $fileStatusIcon.length === 0) {
+            
+            $fileStatusIcon = $("<div class='file-status-icon'></div>")
+                .prependTo(listElement)
+                .mousedown(function (e) {
+                    // Try to drag if that is what is wanted
+                    _reorderListItem(e, $(this).parent(), true);
+                    
+                    // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
+                    // selects documents on mousedown, doesn't select the document in the case 
+                    // when the click is on fileStatusIcon
+                    e.stopPropagation();
+                })
+                .click(function () {
+                    // Clicking the "X" button is equivalent to File > Close; it doesn't merely
+                    // remove a file from the working set
+                    var file = listElement.data(_FILE_KEY);
+                    CommandManager.execute(Commands.FILE_CLOSE, {file: file});
+                });
+        }
+
+        // Set icon's class
+        if ($fileStatusIcon) {
+            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
+            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
+            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
+        }
+    }
+    
+    /** 
+     * Updates the appearance of the list element based on the parameters provided.
+     * @private
+     * @param {!HTMLLIElement} listElement
+     * @param {?Document} selectedDoc
+     */
+    function _updateListItemSelection(listItem, selectedDoc) {
+        var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
+        
+        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
+        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
+    }
+
+    function isOpenAndDirty(file) {
+        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        return (docIfOpen && docIfOpen.isDirty);
+    }
+        
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
@@ -281,12 +294,7 @@ define(function (require, exports, module) {
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
-            // Try to reorder only with the left click and just open the file in other cases
-            if (e.which === 1) {
-                _reorderListItem(e);
-            } else {
-                FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
-            }
+            _reorderListItem(e, $(this));
             e.preventDefault();
         });
 
