@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         EditorManager       = require("editor/EditorManager"),
         Global              = require("utils/Global"),
-        Resizer				= require("utils/Resizer");
+        Resizer             = require("utils/Resizer");
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
