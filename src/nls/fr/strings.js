@@ -214,7 +214,6 @@ define({
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_USE_TAB_CHARS": "Utiliser les caractères de tabulation",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 
