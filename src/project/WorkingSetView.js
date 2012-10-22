@@ -108,15 +108,18 @@ define(function (require, exports, module) {
             return;
         }
         
-        var $prevListItem = $listItem.prev(),
-            $nextListItem = $listItem.next(),
-            selected      = $listItem.hasClass("selected"),
-            prevSelected  = $prevListItem.hasClass("selected"),
-            nextSelected  = $nextListItem.hasClass("selected"),
-            index         = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
-            height        = $listItem.height(),
-            startPageY    = event.pageY,
-            moved         = false;
+        var $prevListItem   = $listItem.prev(),
+            $nextListItem   = $listItem.next(),
+            selected        = $listItem.hasClass("selected"),
+            prevSelected    = $prevListItem.hasClass("selected"),
+            nextSelected    = $nextListItem.hasClass("selected"),
+            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+            height          = $listItem.height(),
+            startPageY      = event.pageY,
+            moved           = false,
+            scrollElement   = $openFilesContainer.get(0),
+			hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + scrollElement.clientHeight,
+            addBottomShadow = false;
         
         $listItem.css("position", "relative").css("z-index", 1);
         
@@ -142,13 +145,9 @@ define(function (require, exports, module) {
                         DocumentManager.swapWorkingSetIndexes(index, ++index);
                     }
                     
-                    if (!selected) {
-                        // Update the selection when the previows or next element were selected
-                        if ((top > 0 && prevSelected) || (top < 0 && nextSelected)) {
-                            _fireSelectionChanged();
-                        }
-                        // Remove the shadows as it will appear and they should not
-                        ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
+                    // Update the selection when the previows or next element were selected
+                    if (!selected && ((top > 0 && prevSelected) || (top < 0 && nextSelected))) {
+                        _fireSelectionChanged();
                     }
                     
                     // Update the previows and next items
@@ -156,6 +155,15 @@ define(function (require, exports, module) {
                     $nextListItem = $listItem.next();
                     prevSelected  = $prevListItem.hasClass("selected");
                     nextSelected  = $nextListItem.hasClass("selected");
+					
+                    // If the last item of the list was selected and the previows was moved to its location, then
+                    // the it will show a bottom shadow even if it shouldnt because of the way the scrollHeight is 
+                    // handle with relative position. This will remove that shadow and add it on drop. 
+					if (!addBottomShadow && !hasBottomShadow && !$nextListItem.length && prevSelected) {
+						ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
+						ViewUtils.addScrollerShadow($openFilesContainer[0], null, false);
+						addBottomShadow = true;
+					}
                 }
             } else {
                 // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
@@ -166,7 +174,6 @@ define(function (require, exports, module) {
             if (!moved && Math.abs(top) > 2) {
                 // Hide the close icon
                 $listItem.find(".file-status-icon").css("display", "none");
-                // Close all menus
                 Menus.closeAll();
                 moved = true;
             }
@@ -192,12 +199,14 @@ define(function (require, exports, module) {
                 // Display the status icon again
                 $listItem.find(".file-status-icon").css("display", "block");
                 
-                if (!selected) {
-                    // Add the scroller shadow in the case they were removed
-                    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
-                } else {
-                    // Restore the file selection
+				if (selected) {
+                    // Update the file selection
                     _fireSelectionChanged();
+					ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
+                }
+                if (addBottomShadow) {
+                    // Restore the shadows
+                    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
             }
             
@@ -269,7 +278,7 @@ define(function (require, exports, module) {
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
     }
-        
+    
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
