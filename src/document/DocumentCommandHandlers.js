@@ -236,8 +236,7 @@ define(function (require, exports, module) {
             fullPath = commandData.fullPath;
         }
         
-        return _doOpenWithOptionalPath(fullPath)
-            .always(EditorManager.focusEditor);
+        return _doOpenWithOptionalPath(fullPath);
     }
 
     /**
@@ -816,7 +815,7 @@ define(function (require, exports, module) {
     }
     
     function handleShowInTree() {
-        ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
+        return ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
 

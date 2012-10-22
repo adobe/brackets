@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         EditorManager       = require("editor/EditorManager"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
         Global              = require("utils/Global");
 
     var isSidebarClosed         = false;
@@ -249,7 +250,18 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
     }
-
+    
+    function _initSidebarKeyBinding() {
+        $sidebar.focus(function () {
+            KeyBindingManager.addBinding(Commands.FILE_RENAME, [{key: "F2", platform: "win"},
+                                                                {key: "Enter", platform: "mac"}]);
+        });
+        $sidebar.blur(function (event) {
+            KeyBindingManager.removeBinding("F2", "win");
+            KeyBindingManager.removeBinding("Enter", "mac");
+        });
+    }
+        
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
@@ -259,9 +271,13 @@ define(function (require, exports, module) {
         $projectTitle           = $("#project-title");
         $projectFilesContainer  = $("#project-files-container");
 
+        // make sidebar focusable
+        $sidebar.attr("tabindex", "0");
+        
         // init
         WorkingSetView.create($openFilesContainer);
         _initSidebarResizer();
+        _initSidebarKeyBinding();
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);

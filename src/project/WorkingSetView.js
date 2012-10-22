@@ -176,7 +176,6 @@ define(function (require, exports, module) {
 
         $newItem.mousedown(function (e) {
             FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
-            e.preventDefault();
         });
 
         $newItem.hover(
