@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             startPageY      = event.pageY,
             moved           = false,
             scrollElement   = $openFilesContainer.get(0),
-			hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + scrollElement.clientHeight,
+            hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + scrollElement.clientHeight,
             addBottomShadow = false;
         
         $listItem.css("position", "relative").css("z-index", 1);
@@ -159,11 +159,11 @@ define(function (require, exports, module) {
                     // If the last item of the list was selected and the previows was moved to its location, then
                     // the it will show a bottom shadow even if it shouldnt because of the way the scrollHeight is 
                     // handle with relative position. This will remove that shadow and add it on drop. 
-					if (!addBottomShadow && !hasBottomShadow && !$nextListItem.length && prevSelected) {
-						ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
-						ViewUtils.addScrollerShadow($openFilesContainer[0], null, false);
-						addBottomShadow = true;
-					}
+                    if (!addBottomShadow && !hasBottomShadow && !$nextListItem.length && prevSelected) {
+                        ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
+                        ViewUtils.addScrollerShadow($openFilesContainer[0], null, false);
+                        addBottomShadow = true;
+                    }
                 }
             } else {
                 // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
@@ -199,10 +199,10 @@ define(function (require, exports, module) {
                 // Display the status icon again
                 $listItem.find(".file-status-icon").css("display", "block");
                 
-				if (selected) {
+                if (selected) {
                     // Update the file selection
                     _fireSelectionChanged();
-					ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
+                    ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
                 }
                 if (addBottomShadow) {
                     // Restore the shadows
