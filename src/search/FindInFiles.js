@@ -50,10 +50,8 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
-        Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar");
 
     var searchResults = [];
@@ -386,16 +384,8 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var $searchResults  = $("#search-results"),
-            $searchContent  = $("#search-results .table-container"),
-            prefs           = PreferencesManager.getPreferenceStorage(module.id, defaultPrefs),
-            height          = prefs.getValue("height");
+            $searchContent  = $("#search-results .table-container");
 
-        $searchResults.height(height);
-        $searchContent.height(height - HEADER_HEIGHT);
-        
-        $searchResults.on("panelResizeEnd", function (event, height) {
-            prefs.setValue("height", height);
-        });
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
