@@ -236,8 +236,7 @@ define(function (require, exports, module) {
             fullPath = commandData.fullPath;
         }
         
-        return _doOpenWithOptionalPath(fullPath)
-            .always(EditorManager.focusEditor);
+        return _doOpenWithOptionalPath(fullPath);
     }
 
     /**
@@ -742,7 +741,11 @@ define(function (require, exports, module) {
     }
     
     function handleFileRename() {
-        ProjectManager.renameSelectedItem();
+        var promise = CommandManager.execute(Commands.NAVIGATE_SHOW_IN_FILE_TREE, {fileEntry: DocumentManager.getCurrentDocument().file});
+        promise
+            .done(function ($node) {
+                ProjectManager.renameSelectedItem();
+            });
     }
 
     /** Closes the window, then quits the app */
@@ -812,7 +815,7 @@ define(function (require, exports, module) {
     }
     
     function handleShowInTree() {
-        ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
+        return ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
 
