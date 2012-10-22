@@ -59,13 +59,6 @@ define(function (require, exports, module) {
     var FIND_IN_FILES_MAX = 100,
         maxHitsFoundInFile = false;
     
-    var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { height: 200 };
-    
-    /** @type {Number} Height of the FIF panel header in pixels. Hardcoded to avoid race 
-                       condition when measuring it on htmlReady*/
-    var HEADER_HEIGHT = 27;
-
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
         $(".CodeMirror-dialog .alert-message").remove();
