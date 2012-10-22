@@ -83,7 +83,7 @@ define(function (require, exports, module) {
             try {
                 return new RegExp(isRE[1], flags);
             } catch (e) {
-                $(".CodeMirror-dialog span").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
@@ -91,7 +91,7 @@ define(function (require, exports, module) {
         // Query is a string. Turn it into a case-insensitive regexp
         
         // Escape regex special chars
-        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
+        query = StringUtils.regexEscape(query);
         return new RegExp(query, "gi");
     }
     

@@ -85,11 +85,11 @@ define(function (require, exports, module) {
 
     function parseQuery(query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
+        $(".CodeMirror-dialog .alert-message").remove();
         try {
-            $(".CodeMirror-dialog .alert-message").remove();
             return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
         } catch (e) {
-            $(".CodeMirror-dialog span").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+            $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
             return "";
         }
     }
