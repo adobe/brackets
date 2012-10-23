@@ -95,6 +95,7 @@ define(function (require, exports, module) {
     }
 
     function findNext(cm, rev) {
+        var found = true;
         cm.operation(function () {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
@@ -105,6 +106,7 @@ define(function (require, exports, module) {
                 // No result found, period: clear selection & bail
                 if (!cursor.find(rev)) {
                     cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
+                    found = false;
                     return;
                 }
             }
@@ -112,6 +114,7 @@ define(function (require, exports, module) {
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
         });
+        return found;
     }
 
     function clearSearch(cm) {
@@ -170,7 +173,9 @@ define(function (require, exports, module) {
                 }
                 
                 state.posFrom = state.posTo = searchStartPos;
-                findNext(cm, rev);
+                var foundAny = findNext(cm, rev);
+                
+                getDialogTextField().toggleClass("no-results", !foundAny);
             });
         }
         
