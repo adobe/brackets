@@ -133,11 +133,11 @@ define(function (require, exports, module) {
      * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
      *                          for vertical resizing and "left" or "right" for horizontal resizing.
      * @param {int} minSize Minimum size (width or height) of the element.
-     * @param {boolean} collapsable True indicates the panel is collapsable on double click
+     * @param {boolean} collapsible True indicates the panel is collapsible on double click
      *                              on the resizer.
      * @param {string} forcemargin Classes which margins need to be pushed when the element resizes
      */
-    function makeResizable(element, direction, position, minSize, collapsable, forcemargin) {
+    function makeResizable(element, direction, position, minSize, collapsible, forcemargin) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 		
         minSize = minSize || 0;
-        collapsable = collapsable || false;
+        collapsible = collapsible || false;
         
         $element.prepend($resizer);
         
@@ -171,13 +171,13 @@ define(function (require, exports, module) {
             $element.show();
             elementPrefs.visible = true;
             
-            if (collapsable) {
+            if (collapsible) {
                 $element.prepend($resizer);
                 
                 if (position === POSITION_TOP) {
                     $resizer.css(resizerCSSPosition, "");
                 } else if (position === POSITION_RIGHT) {
-                    $resizer.css(resizerCSSPosition, elementOffset[resizerCSSPosition] + elementSize - resizerSize);
+                    $resizer.css(resizerCSSPosition, elementOffset[resizerCSSPosition] + elementSize);
                 }
             }
             
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
             
             $element.hide();
             elementPrefs.visible = false;
-            if (collapsable) {
+            if (collapsible) {
                 $resizer.insertBefore($element);
                 if (position === POSITION_RIGHT) {
                     $resizer.css(resizerCSSPosition, "");
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
         // If the resizer is positioned right or bottom of the panel, we need to listen to 
         // reposition it if the element size changes externally		
         function repositionResizer(elementSize) {
-            var resizerPosition = elementSize ? elementSize - elementSizeFunction.apply($resizer) : 1;
+            var resizerPosition = elementSize || 1;
             if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
                 $resizer.css(resizerCSSPosition, resizerPosition);
             }
@@ -292,9 +292,9 @@ define(function (require, exports, module) {
                 e.preventDefault();
             });
             
-            // If the element is marked as collapsable, check for double click
+            // If the element is marked as collapsible, check for double click
             // to toggle the element visibility
-            if (collapsable) {
+            if (collapsible) {
                 $resizeCont.on("mousedown", function (e) {
                     toggle($element);
                 });
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
             }
 			
             if ($(element).hasClass("top-resizer")) {
-                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize, $(element).hasClass("collapsable"));
+                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize, $(element).hasClass("collapsible"));
             }
             
             //if ($(element).hasClass("bottom-resizer")) {
@@ -386,7 +386,7 @@ define(function (require, exports, module) {
             //}
 
             if ($(element).hasClass("right-resizer")) {
-                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsable"), $(element).data().forcemargin);
+                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forcemargin);
             }
         });
     });
