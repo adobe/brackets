@@ -768,7 +768,7 @@ define(function (require, exports, module) {
     
     /**
      * Finds the tree node corresponding to the given file/folder (rejected if the path lies
-     * outside the project, or if it doesn't exist.
+     * outside the project, or if it doesn't exist).
      * 
      * @param {!Entry} entry FileEntry or DirectoryEntry to find
      * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
