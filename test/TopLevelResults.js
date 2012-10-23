@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         
         // recursively count child suites
         suite.suites().forEach(function (child) {
-            count += self._countSpecs(child);
+            count += self._countSpecs(child, filter);
         });
         
         return count;
