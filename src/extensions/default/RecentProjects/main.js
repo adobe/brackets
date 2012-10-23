@@ -86,15 +86,15 @@ define(function (require, exports, module) {
             lastSlash = path.slice(0, path.length - 1).lastIndexOf("/");
         }
         if (lastSlash >= 0) {
-            rest = path.slice(0, lastSlash);
+            rest = " - " + path.slice(0, lastSlash);
             folder = path.slice(lastSlash + 1);
         } else {
-            rest = "";
+            rest = "/";
             folder = path;
         }
         
         var folderSpan = $("<span></span>").addClass("recent-folder").text(folder),
-            restSpan = $("<span></span>").addClass("recent-folder-path").text(" - " + rest);
+            restSpan = $("<span></span>").addClass("recent-folder-path").text(rest);
         return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan).data("path", path);
     }
   

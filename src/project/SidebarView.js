@@ -63,8 +63,15 @@ define(function (require, exports, module) {
      * Update project title when the project root changes
      */
     function _updateProjectTitle() {
-        $projectTitle.html(ProjectManager.getProjectRoot().name);
-        $projectTitle.attr("title", ProjectManager.getProjectRoot().fullPath);
+        var displayName = ProjectManager.getProjectRoot().name;
+        var fullPath = ProjectManager.getProjectRoot().fullPath;
+        
+        if (displayName === "" && fullPath === "/") {
+            displayName = "/";
+        }
+        
+        $projectTitle.html(displayName);
+        $projectTitle.attr("title", fullPath);
     }
     
     /**
