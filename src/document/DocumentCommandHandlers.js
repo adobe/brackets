@@ -741,8 +741,15 @@ define(function (require, exports, module) {
         );
     }
     
+    /** Show a textfield to rename whatever is currently selected in the sidebar (working set OR tree) */
     function handleFileRename() {
-        ProjectManager.renameSelectedItem();
+        // Prefer selected tree item (which could be a folder); else use current file
+        var entry = ProjectManager.getSelectedItem();
+        if (!entry) {
+            var doc = DocumentManager.getCurrentDocument();
+            entry = doc && doc.file;
+        }
+        ProjectManager.renameItemInline(entry);
     }
 
     /** Closes the window, then quits the app */
