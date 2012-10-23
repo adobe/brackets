@@ -180,12 +180,44 @@ define(function (require, exports, module) {
         // hide on init
         hide();
     }
+
+    function getModeDisplayString(mode) {
+        // mode is either a string or an object with a name property string
+        var s = (typeof mode === "string") ? mode : mode.name,
+            slash,
+            result;
+
+        s = s.toLowerCase();
+
+        // Handle special cases
+        if (s === "javascript") {
+            return "JavaScript";
+        } else if (s === "html") {
+            return "HTML";
+        } else if (s === "css") {
+            return "CSS";
+        }
+
+        // Generic case. First strip / and everything after
+        slash = s.indexOf("/");
+
+        if (slash !== -1) {
+            s = s.substr(0, slash);
+        }
+
+        // Uppercase first char and rest is (already) lowercase
+        result = s[0].toUpperCase();
+        result += s.substr(1);
+
+        return result;
+    }
     
     exports.init = init;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.addIndicator = addIndicator;
     exports.updateIndicator = updateIndicator;
+    exports.getModeDisplayString = getModeDisplayString;
     exports.hide = hide;
     exports.show = show;
 });
