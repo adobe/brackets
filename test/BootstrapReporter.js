@@ -3,7 +3,8 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var UrlParams = require("utils/UrlParams").UrlParams;
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        TopLevelResults = require("test/TopLevelResults").TopLevelResults;
 
     jasmine.BootstrapReporter = function (doc, filter) {
         this.document = doc || document;
@@ -87,9 +88,8 @@ define(function (require, exports, module) {
         };
     };
         
-    jasmine.BootstrapReporter.prototype._createSuiteListItem = function (suite, specCount) {
-        var suiteName = (suite === null) ? "All" : suite.getFullName(),
-            $badgeAll = $('<span class="badge">' + specCount + "</span>"),
+    jasmine.BootstrapReporter.prototype._createSuiteListItem = function (suiteName, specCount) {
+        var $badgeAll = $('<span class="badge">' + specCount + "</span>"),
             $badgePassed = $('<span class="badge badge-success" style="display:none"/>'),
             $badgeFailed = $('<span class="badge badge-important" style="display:none"/>'),
             $anchor = $('<a href="?spec=' + encodeURIComponent(suiteName) + '">' + suiteName + '</a>').append($badgeAll).append($badgePassed).append($badgeFailed),
@@ -102,68 +102,26 @@ define(function (require, exports, module) {
             $badgePassed: $badgePassed,
             $badgeFailed: $badgeFailed,
             $anchor: $anchor,
-            $listItem: $listItem,
-            specCount: specCount,
-            passedCount: 0,
-            failedCount: 0
+            $listItem: $listItem
         };
         
         return $listItem;
     };
         
-    jasmine.BootstrapReporter.prototype._countSpecs = function (suite) {
-        var count = 0,
-            self = this;
-        
-        // count specs attached directly to this suite
-        suite.specs().forEach(function (spec, index) {
-            if (self._topLevelFilter(spec)) {
-                count++;
-            }
-        });
-        
-        // recursively count child suites
-        suite.suites().forEach(function (child, index) {
-            count += self._countSpecs(child);
-        });
-        
-        return count;
-    };
-    
     jasmine.BootstrapReporter.prototype._createSuiteList = function () {
-        var topLevel = [].concat(this._runner.topLevelSuites()),
-            childSuites,
+        var suites = this._topLevelResults.suites,
+            sortedNames = this._topLevelResults.sortedNames,
             self = this;
-        
-        topLevel.sort(function compareFullName(a, b) {
-            var aName = a.getFullName().toLowerCase(),
-                bName = b.getFullName().toLowerCase();
-            
-            if (aName < bName) {
-                return -1;
-            } else if (aName > bName) {
-                return 1;
-            }
-            
-            return 0;
-        });
-        
-        topLevel.forEach(function (suite, index) {
-            var count = self._countSpecs(suite);
-            
+       
+        sortedNames.forEach(function (name, index) {
+            var count = suites[name].specCount;
             if (count > 0) {
-                self.$suiteList.append(self._createSuiteListItem(suite, count));
+                self.$suiteList.append(self._createSuiteListItem(name, count));
             }
-        });
-        
-        // count all speces
-        var allSpecsCount = 0;
-        $.each(this._topLevelSuiteMap, function (index, value) {
-            allSpecsCount += value.specCount;
         });
         
         // add an "all" top-level suite
-        this.$suiteList.prepend(this._createSuiteListItem(null, allSpecsCount));
+        this.$suiteList.prepend(this._createSuiteListItem("All", suites.All.specCount));
     };
     
     jasmine.BootstrapReporter.prototype._showProgressBar = function (spec) {
@@ -179,7 +137,11 @@ define(function (require, exports, module) {
         var specs = runner.specs(),
             topLevelData,
             self = this;
-    
+
+        // Create holder for top-level suite summary results. This also calculates the
+        // number of specs in each suite.
+        this._topLevelResults = new TopLevelResults(this._runner, this._topLevelFilter);
+        
         // create top level suite list navigation
         this._createSuiteList();
         
@@ -237,38 +199,28 @@ define(function (require, exports, module) {
         this.$info.text("Running " + spec.getFullName());
     };
     
-    jasmine.BootstrapReporter.prototype._getTopLevelSuiteData = function (spec) {
-        var topLevelSuite = spec.suite;
+    jasmine.BootstrapReporter.prototype._updateSuiteStatus = function (suiteName) {
+        var suiteResults = this._topLevelResults.suites[suiteName],
+            data = this._topLevelSuiteMap[suiteName];
         
-        while (topLevelSuite.parentSuite) {
-            topLevelSuite = topLevelSuite.parentSuite;
-        }
-        
-        return this._topLevelSuiteMap[topLevelSuite.getFullName()];
-    };
-    
-    jasmine.BootstrapReporter.prototype._updateSuiteStatus = function (data, results) {
-        // update pass/fail totals
-        if (results.passed()) {
-            data.passedCount++;
-        } else {
-            data.failedCount++;
+        if (!data) {
+            return;
         }
         
         // update status badges
-        if (data.passedCount) {
-            data.$badgePassed.show().text(data.passedCount);
+        if (suiteResults.passedCount) {
+            data.$badgePassed.show().text(suiteResults.passedCount);
         } else {
             data.$badgePassed.hide();
         }
         
-        if (data.failedCount) {
-            data.$badgeFailed.show().text(data.failedCount);
+        if (suiteResults.failedCount) {
+            data.$badgeFailed.show().text(suiteResults.failedCount);
         } else {
             data.$badgeFailed.hide();
         }
         
-        var specsRemaining = data.specCount - data.passedCount - data.failedCount;
+        var specsRemaining = suiteResults.specCount - suiteResults.passedCount - suiteResults.failedCount;
         
         if (specsRemaining === 0) {
             data.$badgeAll.hide();
@@ -277,31 +229,17 @@ define(function (require, exports, module) {
         }
     };
     
-    jasmine.BootstrapReporter.prototype._updateStatus = function (spec) {
-        var data = this._getTopLevelSuiteData(spec),
-            allData,
-            results;
-        
-        // Top-level suite data will not exist if filtered
-        if (!data) {
-            return;
-        }
-        
-        allData = this._topLevelSuiteMap.All;
-        results = spec.results();
-        
-        this._updateSuiteStatus(data, results);
-        this._updateSuiteStatus(allData, results);
-    };
-    
     // Jasmine calls this function for all specs, not just filtered specs.
     jasmine.BootstrapReporter.prototype.reportSpecResults = function (spec) {
         var results = spec.results(),
             $specLink,
-            $resultDisplay;
+            $resultDisplay,
+            suiteName;
         
         if (!results.skipped) {
-            this._updateStatus(spec);
+            this._topLevelResults.addSpecResults(spec);
+            this._updateSuiteStatus(this._topLevelResults.getTopLevelSuiteName(spec));
+            this._updateSuiteStatus("All");
             
             // update progress
             this._specCompleteCount++;
