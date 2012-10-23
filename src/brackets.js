@@ -271,6 +271,14 @@ define(function (require, exports, module) {
         }
     }
     
+    // Prevent unhandled middle button clicks from triggering native behavior
+    // Example: activating AutoScroll (see #510)
+    $("html").on("mousedown", ".inline-widget", function (e) {
+        if (e.button === 1) {
+            e.preventDefault();
+        }
+    });
+    
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({
         ABOUT_ICON          : brackets.config.about_icon,
