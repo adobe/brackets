@@ -129,23 +129,9 @@ define(function (require, exports, module) {
             runs(function () {
                 LiveDevelopment.close();
             });
-            waitsFor(function () { return !Inspector.connected(); }, "Waiting for to close inspector", 10000);
-            waits(20);
-            NativeApp._setLiveBrowserUserDataDir("");
             
-            if (window.appshell) {
-                runs(function () {
-                    waitsForDone(NativeApp.closeAllLiveBrowsers(), "NativeApp.closeAllLiveBrowsers", 10000);
-                });
-            } else {
-                // Remove this 'else' after migrating to brackets-shell.
-                // brackets-app never resolves the promise for brackets.app.closeLiveBrowser.
-                runs(function () {
-                    NativeApp.closeAllLiveBrowsers();
-                });
-                waits(100);
-            }
-
+            waitsFor(function () { return !Inspector.connected(); }, "Waiting for to close inspector", 10000);
+            
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -263,7 +249,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should reapply in-memory css changes after saving changes in html document", function () {
+            it("should reapply in-memory css changes after saving changes in html document", function () {
                 var localCssText,
                     browserCssText,
                     origHtmlText,
