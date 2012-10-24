@@ -198,21 +198,17 @@ define(function (require, exports, module) {
             return "CSS";
         } else if (s === "text/plain") {
             return "Text";
+        } else if (s === "xml") {
+            return "XML";
         }
 
         // Generic case
 
         // Strip "text/" or "application/" from beginning
-        if (s.indexOf("text/") === 0) {
-            s = s.substr(5);
-        } else if (s.indexOf("application/") === 0) {
-            s = s.substr(12);
-        }
+        s = s.replace(/^(text\/|application\/)/, "");
 
         // Strip "x-" from beginning
-        if (s.indexOf("x-") === 0) {
-            s = s.substr(2);
-        }
+        s = s.replace(/^x-/, "");
 
         // Strip any remaining "/" sections from end
         slash = s.indexOf("/");
