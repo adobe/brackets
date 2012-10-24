@@ -99,15 +99,6 @@ define(function (require, exports, module) {
      * @param {?bool} fromClose - true if reorder was called from the close icon
      */
     function _reorderListItem(event, $listItem, fromClose) {
-        // Only drag with the left mouse button
-        if (event.which !== 1) {
-            // Open the file if it wasnt called from the close button
-            if (!fromClose) {
-                FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-            }
-            return;
-        }
-        
         var $prevListItem   = $listItem.prev(),
             $nextListItem   = $listItem.next(),
             selected        = $listItem.hasClass("selected"),
@@ -116,14 +107,20 @@ define(function (require, exports, module) {
             index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
             height          = $listItem.height(),
             startPageY      = event.pageY,
-            moved           = false,
+            listItemTop     = startPageY - $listItem.offset().top,
+            listItemBottom  = $listItem.offset().top + height - startPageY,
+            offsetTop       = $openFilesContainer.offset().top,
             scrollElement   = $openFilesContainer.get(0),
-            hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + scrollElement.clientHeight,
-            addBottomShadow = false;
+            containerHeight = scrollElement.clientHeight,
+            maxScroll       = scrollElement.scrollHeight - containerHeight,
+            hasScroll       = scrollElement.scrollHeight > containerHeight,
+            hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
+            addBottomShadow = false,
+            interval        = false,
+            moved           = false;
         
-        $listItem.css("position", "relative").css("z-index", 1);
-        
-        $openFilesContainer.on("mousemove.workingSet", function (e) {
+        // Drag the List Item
+        function drag(e) {
             var top = e.pageY - startPageY;
             
             // Drag if the item is not the first and moving it up or
@@ -131,14 +128,14 @@ define(function (require, exports, module) {
             if (($prevListItem.length && top < 0) || ($nextListItem.length && top > 0)) {
                 // Reorder the list once the item is halfway to the new position
                 if (Math.abs(top) > height / 2) {
+                    // If moving up, place the previows item after the moving item
                     if (top < 0) {
-                        // If moving up, place the previows item after the moving item
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
                         DocumentManager.swapWorkingSetIndexes(index, --index);
+                    // If moving down, place the next item before the moving item
                     } else {
-                        // If moving down, place the next item before the moving item
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
@@ -165,17 +162,9 @@ define(function (require, exports, module) {
                         addBottomShadow = true;
                     }
                 }
+            // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
             } else {
-                // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
                 top = 0;
-            }
-            
-            // Once the movement is greater than 2 pixels, it is assumed that the user wantes to reorder files and not open
-            if (!moved && Math.abs(top) > 2) {
-                // Hide the close icon
-                $listItem.find(".file-status-icon").css("display", "none");
-                Menus.closeAll();
-                moved = true;
             }
             
             // Move the item
@@ -185,20 +174,69 @@ define(function (require, exports, module) {
             if (selected) {
                 _fireSelectionChanged();
             }
-        });
-        
-        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
-            // Removes the styles, placing the item in the chocen place
-            $listItem.removeAttr("style");
-            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
             
-            if (!moved && !fromClose) {
-                // If file wasnt moved and wasnt called from the close icon, open the file
-                FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+            // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
+            if (!moved && Math.abs(top) > 3) {
+                Menus.closeAll();
+                moved = true;
+            }
+        }
+        
+        function endScroll() {
+            window.clearInterval(interval);
+            interval = false;
+        }
+        
+        // Scroll view if the mouse is over the first or last pixels of the container
+        function scroll(e) {
+            var dir = 0;
+            // Mouse over the first visible pixels and moving up
+            if (e.pageY - listItemTop < offsetTop + 7) {
+                dir = -1;
+            // Mouse over the last visible pixels and moving down
+            } else if (e.pageY + listItemBottom > offsetTop + containerHeight - 7) {
+                dir = 1;
+            }
+            
+            if (dir && !interval) {
+                // Scroll and drag as long as needed
+                interval = window.setInterval(function () {
+                    var scrollTop = $openFilesContainer.scrollTop();
+                    // End scroll if there isn't more to scroll
+                    if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
+                        endScroll();
+                    } else {
+                        $openFilesContainer.scrollTop(scrollTop + 7 * dir);
+                        startPageY -= 7 * dir;
+                        drag(e);
+                    }
+                }, 100);
+            } else if (!dir && interval) {
+                endScroll();
+            }
+        }
+        
+        // Drop List Item
+        function drop() {
+            // Enable Mousewheel
+            window.onmousewheel = window.document.onmousewheel = null;
+            
+            // Removes the styles, placing the item in the chosen place
+            $listItem.removeAttr("style");
+            
+            // End the scrolling if needed
+            if (interval) {
+                window.clearInterval(interval);
+            }
+            
+            // If file wasnt moved open or close it
+            if (!moved) {
+                if (!fromClose) {
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                } else {
+                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                }
             } else if (moved) {
-                // Display the status icon again
-                $listItem.find(".file-status-icon").css("display", "block");
-                
                 if (selected) {
                     // Update the file selection
                     _fireSelectionChanged();
@@ -212,6 +250,32 @@ define(function (require, exports, module) {
             
             // Dispatch event
             $(DocumentManager).triggerHandler("workingSetReorder");
+        }
+        
+        
+        // Only drag with the left mouse button, end the drop in other cases
+        if (event.which !== 1) {
+            drop();
+            return;
+        }
+        
+        // Disable Mousewheel while dragging
+        window.onmousewheel = window.document.onmousewheel = function (e) { e.preventDefault(); };
+        
+        // Style the element
+        $listItem.css("position", "relative").css("z-index", 1);
+                
+        // Envent Handlers
+        $openFilesContainer.on("mousemove.workingSet", function (e) {
+            if (hasScroll) {
+                scroll(e);
+            }
+            drag(e);
+        });
+        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
+            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+            drop();
+            
         });
     }
     
@@ -237,19 +301,14 @@ define(function (require, exports, module) {
             $fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
                 .mousedown(function (e) {
-                    // Try to drag if that is what is wanted
+                    // Try to drag if that is what is wanted if not it will be the equivalent to File > Close;
+                    // it doesn't merely remove a file from the working set
                     _reorderListItem(e, $(this).parent(), true);
                     
                     // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
                     // selects documents on mousedown, doesn't select the document in the case 
                     // when the click is on fileStatusIcon
                     e.stopPropagation();
-                })
-                .click(function () {
-                    // Clicking the "X" button is equivalent to File > Close; it doesn't merely
-                    // remove a file from the working set
-                    var file = listElement.data(_FILE_KEY);
-                    CommandManager.execute(Commands.FILE_CLOSE, {file: file});
                 });
         }
 
