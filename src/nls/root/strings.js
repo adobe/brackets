@@ -251,5 +251,6 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
-    "GET_IT_NOW"                           : "Get it now!"
+    "GET_IT_NOW"                           : "Get it now!",
+    "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings"
 });

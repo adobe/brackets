@@ -1246,6 +1246,10 @@ define(function (require, exports, module) {
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });
+
+        $("#project-files-header .settings").on("click", function () {
+            alert("settings buttom clicked...");
+        });
     });
 
     // Init PreferenceStorage

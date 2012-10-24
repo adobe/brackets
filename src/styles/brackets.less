@@ -374,9 +374,18 @@ a, img {
     position: relative;
     
     .project-file-header-area {
-        padding: 6px 6px 2px 10px;
+        padding: 6px 26px 2px 10px;
         font-size: 13px;
         color: #929292;
+
+        // extra right padding is for this icon
+        .settings {
+            position: absolute;
+            right: 8px;
+            width: 14px;
+            height: 14px;
+            background-image: url("images/settings_small.svg");
+        }
     }
 
     .file-list-divider {
