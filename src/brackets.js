@@ -112,9 +112,9 @@ define(function (require, exports, module) {
     
     /**
      * Returns the full path of the default user extensions directory. This is in the users
-     * application support directory, which is typically:
-     *  /Users/<user>/Application Support/Brackets/extensions/user on the mac
-     *  C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
+     * application support directory, which is typically
+     * /Users/<user>/Application Support/Brackets/extensions/user on the mac, and
+     * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
      */
     function _getUserExtensionPath() {
         return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
