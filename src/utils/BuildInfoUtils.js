@@ -47,8 +47,7 @@ define(function (require, exports, module) {
         
         if (brackets.inBrowser) {
             result.reject();
-        }
-        else {
+        } else {
             var fileEntry = new NativeFileSystem.FileEntry(path);
 
             // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
@@ -70,7 +69,7 @@ define(function (require, exports, module) {
                 }
             }).fail(function () {
                 result.reject();
-            });            
+            });
         }
 
         return result.promise();

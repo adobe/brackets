@@ -71,8 +71,18 @@ define(function (require, exports, module) {
     
     global.brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
     
-    // Store the locale that was determined in brackets.js
-    global.brackets.locale = global.require.s.contexts._.config.locale;
+    global.brackets.getLocale = function () {
+        // By default use the locale that was determined in brackets.js
+        return global.localStorage.getItem("locale") || global.require.s.contexts._.config.locale;
+    };
+
+    global.brackets.setLocale = function (locale) {
+        if (locale) {
+            global.localStorage.setItem("locale", locale);
+        } else {
+            global.localStorage.removeItem("locale");
+        }
+    };
     
     // Loading extensions requires creating new require.js contexts, which
     // requires access to the global 'require' object that always gets hidden
@@ -89,7 +99,7 @@ define(function (require, exports, module) {
     global.brackets.getModule = require;
 
     // Add benchmarking support
-    if (! global.brackets.app) {
+    if (!global.brackets.app) {
         var appStartupTime = new Date().getTime();
         global.brackets.app = {
             getElapsedMilliseconds: function () {
