@@ -128,7 +128,7 @@ define(function (require, exports, module) {
      * currentDocument or added to the working set.
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
-    function createMockEditor(initialContent, mode) {
+    function createMockEditor(initialContent, mode, visibleRange) {
         mode = mode || "";
         
         // Initialize EditorManager
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         var doc = createMockDocument(initialContent);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {});
+        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {}, visibleRange);
         
         return { doc: doc, editor: editor };
     }

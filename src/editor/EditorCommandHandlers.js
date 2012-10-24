@@ -177,10 +177,18 @@ define(function (require, exports, module) {
         from = {line: sel.line, ch: 0};
         sel = doc.getCursor(false);
         to = {line: sel.line + 1, ch: 0};
-        if (doc.lineCount() === to.line && from.line > 0) {
-            from.line -= 1;
-            from.ch = doc.getLine(from.line).length;
+        if (to.line === editor.getLastVisibleLine() + 1) {
+            // Instead of deleting the newline after the last line, delete the newline
+            // before the first line--unless this is the entire visible content of the editor,
+            // in which case just delete the line content.
+            if (from.line > editor.getFirstVisibleLine()) {
+                from.line -= 1;
+                from.ch = doc.getLine(from.line).length;
+            }
+            to.line -= 1;
+            to.ch = doc.getLine(to.line).length;
         }
+        
         doc.replaceRange("", from, to);
     }
     
