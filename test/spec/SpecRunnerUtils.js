@@ -581,6 +581,12 @@ define(function (require, exports, module) {
         _doLoadExtensions = doLoadExtensions;
     }
     
+    /**
+     * Extracts the jasmine.log() and/or jasmine.expect() messages from the given result,
+     * including stack traces if available.
+     * @param {Object} result A jasmine result item (from results.getItems()).
+     * @return {string} the error message from that item.
+     */
     function getResultMessage(result) {
         var message;
         if (result.type === 'log') {

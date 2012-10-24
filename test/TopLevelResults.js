@@ -123,7 +123,7 @@ define(function (require, exports, module) {
             allData.passedCount++;
         } else {
             suiteData.failedCount++;
-            allData.passedCount++;
+            allData.failedCount++;
         }
         
         results.getItems().forEach(function (item) {
