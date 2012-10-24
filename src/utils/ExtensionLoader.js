@@ -39,8 +39,8 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         contexts            = {},
         globalConfig        = {
-            "text" : "../../../thirdparty/text",
-            "i18n" : "../../../thirdparty/i18n"
+            "text" : FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/text",
+            "i18n" : FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/i18n"
         };
     
     /**
