@@ -196,11 +196,26 @@ define(function (require, exports, module) {
             return "HTML";
         } else if (s === "css") {
             return "CSS";
+        } else if (s === "text/plain") {
+            return "Text";
         }
 
-        // Generic case. First strip / and everything after
-        slash = s.indexOf("/");
+        // Generic case
 
+        // Strip "text/" or "application/" from beginning
+        if (s.indexOf("text/") === 0) {
+            s = s.substr(5);
+        } else if (s.indexOf("application/") === 0) {
+            s = s.substr(12);
+        }
+
+        // Strip "x-" from beginning
+        if (s.indexOf("x-") === 0) {
+            s = s.substr(2);
+        }
+
+        // Strip any remaining "/" sections from end
+        slash = s.indexOf("/");
         if (slash !== -1) {
             s = s.substr(0, slash);
         }
