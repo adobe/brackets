@@ -180,10 +180,10 @@ define({
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
-    "CMD_DELETE_LINES"                    : "Delete Line(s)",
+    "CMD_DELETE_LINES"                    : "Delete Lines",
     "CMD_COMMENT"                         : "Comment/Uncomment Lines",
-    "CMD_LINE_UP"                         : "Move Line(s) Up",
-    "CMD_LINE_DOWN"                       : "Move Line(s) Down",
+    "CMD_LINE_UP"                         : "Move Lines Up",
+    "CMD_LINE_DOWN"                       : "Move Lines Down",
      
     // View menu commands
     "VIEW_MENU"                           : "View",
