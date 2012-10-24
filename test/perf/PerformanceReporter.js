@@ -106,7 +106,8 @@ define(function (require, exports, module) {
     }
     
     // a minimal reporter implementation to listen for completion
-    function PerformanceReporter() {
+    function PerformanceReporter(topLevelResults) {
+        this._topLevelResults = topLevelResults;
     }
     
     PerformanceReporter.prototype.reportSpecStarting = function (spec) {
@@ -173,6 +174,8 @@ define(function (require, exports, module) {
                 $tbody.append(row);
             });
         });
+        
+        this._topLevelResults.addSpecPerf(spec, records[spec]);
         
         delete records[spec];
     };

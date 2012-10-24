@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         FileUtils           = require("file/FileUtils"),
         Menus               = require("command/Menus"),
-        UrlParams           = require("utils/UrlParams").UrlParams;
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        TopLevelResults     = require("test/TopLevelResults").TopLevelResults;
 
     // Jasmine reporter UI
     require("test/BootstrapReporter");
@@ -60,7 +61,8 @@ define(function (require, exports, module) {
     require("test/PerformanceTestSuite");
     
     var suite,
-        params = new UrlParams();
+        params = new UrlParams(),
+        topLevelResults;
     
     params.parse();
     
@@ -166,6 +168,8 @@ define(function (require, exports, module) {
         
         _loadExtensionTests(suite).done(function () {
             var jasmineEnv = jasmine.getEnv();
+            
+            topLevelResults = new TopLevelResults(jasmineEnv.currentRunner(), topLevelFilter);
     
             // Initiailize unit test preferences for each spec
             beforeEach(function () {
@@ -180,11 +184,11 @@ define(function (require, exports, module) {
             
             jasmineEnv.updateInterval = 1000;
             
-            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document, topLevelFilter));
+            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document, topLevelFilter, topLevelResults));
             
             // add performance reporting
             if (isPerfSuite) {
-                jasmineEnv.addReporter(new PerformanceReporter());
+                jasmineEnv.addReporter(new PerformanceReporter(topLevelResults));
             }
             
             // remember the suite for the next unit test window launch

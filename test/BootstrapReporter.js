@@ -4,9 +4,9 @@ define(function (require, exports, module) {
     'use strict';
     
     var UrlParams = require("utils/UrlParams").UrlParams,
-        TopLevelResults = require("test/TopLevelResults").TopLevelResults;
+        SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
-    jasmine.BootstrapReporter = function (doc, filter) {
+    jasmine.BootstrapReporter = function (doc, filter, topLevelResults) {
         this.document = doc || document;
         this._env = jasmine.getEnv();
         this.params = new UrlParams();
@@ -26,6 +26,7 @@ define(function (require, exports, module) {
         // If you selected an option other than "All" this will be a subset of all tests loaded.
         this._env.specFilter = this.createSpecFilter(this.params.get("spec"));
         this._runner = this._env.currentRunner();
+        this._topLevelResults = topLevelResults;
         
         // build DOM immediately
         var container = $(
@@ -138,10 +139,6 @@ define(function (require, exports, module) {
             topLevelData,
             self = this;
 
-        // Create holder for top-level suite summary results. This also calculates the
-        // number of specs in each suite.
-        this._topLevelResults = new TopLevelResults(this._runner, this._topLevelFilter);
-        
         // create top level suite list navigation
         this._createSuiteList();
         
@@ -237,7 +234,7 @@ define(function (require, exports, module) {
             suiteName;
         
         if (!results.skipped) {
-            this._topLevelResults.addSpecResults(spec);
+            this._topLevelResults.addSpecResults(spec, spec.results());
             this._updateSuiteStatus(this._topLevelResults.getTopLevelSuiteName(spec));
             this._updateSuiteStatus("All");
             
@@ -264,19 +261,7 @@ define(function (require, exports, module) {
             
                 for (i = 0; i < resultItems.length; i++) {
                     var result = resultItems[i];
-                    
-                    $message = null;
-                    
-                    if (result.type === 'log') {
-                        $message = $('<pre/>').text(result.toString());
-                    } else if (result.type === 'expect' && result.passed && !result.passed()) {
-                        $message = $('<pre/>').text(result.message);
-                        
-                        if (result.trace.stack) {
-                            $message = $('<pre/>').text(result.trace.stack);
-                        }
-                    }
-                    
+                    $message = $('<pre/>').text(SpecRunnerUtils.getResultMessage(result));
                     if ($message) {
                         $resultDisplay.append($message);
                     }
