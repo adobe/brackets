@@ -501,27 +501,22 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a document saved from the DocumentManager */
     function _onDocumentSaved(event, doc) {
-        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument) {
-            if (agents.network && agents.network.wasURLRequested(doc.url)) {
-                // Reload HTML page
-                Inspector.Page.reload();
+        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
+                agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Reload HTML page
+            Inspector.Page.reload();
 
-                // Reload unsaved changes
-                _onReconnect();
-                
-                // Set status back to active
-                _setStatus(STATUS_ACTIVE);
-            }
+            // Reload unsaved changes
+            _onReconnect();
         }
     }
 
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
-        if (Inspector.connected() && doc && doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-            if (agents.network && agents.network.wasURLRequested(doc.url)) {
-                // Set status to out of sync
-                _setStatus(STATUS_OUT_OF_SYNC);
-            }
+        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
+                agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Set status to out of sync if dirty. Otherwise, set it to active status.
+            _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }
     }
 
