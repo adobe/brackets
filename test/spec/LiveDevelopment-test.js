@@ -37,7 +37,6 @@ define(function (require, exports, module) {
         DocumentManager;
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
-        userDataPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-chrome-user-data"),
         testWindow,
         allSpacesRE = /\s+/gi;
     
@@ -117,7 +116,6 @@ define(function (require, exports, module) {
                     CommandManager      = testWindow.brackets.test.CommandManager;
                     Commands            = testWindow.brackets.test.Commands;
                     NativeApp           = testWindow.brackets.test.NativeApp;
-                    NativeApp._setLiveBrowserUserDataDir(userDataPath);
                 });
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -278,7 +276,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]), "SpecRunnerUtils.openProjectFiles");
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
                 // Modify some text in test file before starting live connection
@@ -289,23 +287,22 @@ define(function (require, exports, module) {
                     htmlDoc.setText(updatedHtmlText);
                 });
                                 
-                //start the connection
+                // start the connection
                 var liveDoc, liveHtmlDoc;
                 runs(function () {
-                    LiveDevelopment.open();
+                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
                 });
-
-                waits(2000);
+                
+                waitsFor(function () {
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE)
+                        && (DOMAgent.root);
+                }, "LiveDevelopment STATUS_ACTIVE", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
-                var originalNode;
-                waitsFor(function () {
-                    originalNode = DOMAgent.nodeAtLocation(230);
-                    return !!originalNode;
-                }, "getting original html content", 10000);
-                
                 // Verify that we get the original text and not modified text.
+                var originalNode;
                 runs(function () {
+                    originalNode = DOMAgent.nodeAtLocation(230);
                     expect(originalNode.value).toBe("Brackets is awesome!");
                 });
 
@@ -314,8 +311,6 @@ define(function (require, exports, module) {
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Saving modified html document");
                 });
-
-                waits(1000);
                 
                 // Grab the node that we've modified in Brackets. 
                 // This time we should have modified text since the file has been saved in Brackets.
@@ -344,13 +339,12 @@ define(function (require, exports, module) {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
                 });
 
-                // Verify that we have modified text and then restore the original text for saving.
                 runs(function () {
+                    // Verify that we have modified text and then restore the original text for saving.
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
+                    
+                    // Save original content back to the file
                     htmlDoc.setText(origHtmlText);
-                });
-
-                runs(function () {
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Restoring the original html content");
                 });
