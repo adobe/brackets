@@ -196,8 +196,12 @@ define(function (require, exports, module) {
             return "HTML";
         } else if (s === "css") {
             return "CSS";
+        } else if (s === "less") {
+            return "LESS";
         } else if (s === "text/plain") {
             return "Text";
+        } else if (s === "php") {
+            return "PHP";
         } else if (s === "xml") {
             return "XML";
         }
