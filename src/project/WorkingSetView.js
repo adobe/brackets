@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $  */
+/*global define, $, window  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     var DocumentManager       = require("document/DocumentManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
+        Menus                 = require("command/Menus"),
         EditorManager         = require("editor/EditorManager"),
         FileViewController    = require("project/FileViewController"),
         NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
@@ -90,6 +91,194 @@ define(function (require, exports, module) {
         _fireSelectionChanged();
     }
     
+    /**
+     * Starts the drag and drop working set view reorder.
+     * @private
+     * @param {!Event} event - jQuery event
+     * @paran {!HTMLLIElement} $listItem - jQuery element
+     * @param {?bool} fromClose - true if reorder was called from the close icon
+     */
+    function _reorderListItem(event, $listItem, fromClose) {
+        var $prevListItem   = $listItem.prev(),
+            $nextListItem   = $listItem.next(),
+            selected        = $listItem.hasClass("selected"),
+            prevSelected    = $prevListItem.hasClass("selected"),
+            nextSelected    = $nextListItem.hasClass("selected"),
+            index           = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
+            height          = $listItem.height(),
+            startPageY      = event.pageY,
+            listItemTop     = startPageY - $listItem.offset().top,
+            listItemBottom  = $listItem.offset().top + height - startPageY,
+            offsetTop       = $openFilesContainer.offset().top,
+            scrollElement   = $openFilesContainer.get(0),
+            containerHeight = scrollElement.clientHeight,
+            maxScroll       = scrollElement.scrollHeight - containerHeight,
+            hasScroll       = scrollElement.scrollHeight > containerHeight,
+            hasBottomShadow = scrollElement.scrollHeight > scrollElement.scrollTop + containerHeight,
+            addBottomShadow = false,
+            interval        = false,
+            moved           = false;
+        
+        function drag(e) {
+            var top = e.pageY - startPageY;
+            
+            // Drag if the item is not the first and moving it up or
+            // if the item is not the last and moving down
+            if (($prevListItem.length && top < 0) || ($nextListItem.length && top > 0)) {
+                // Reorder the list once the item is halfway to the new position
+                if (Math.abs(top) > height / 2) {
+                    // If moving up, place the previows item after the moving item
+                    if (top < 0) {
+                        $prevListItem.insertAfter($listItem);
+                        startPageY -= height;
+                        top = top + height;
+                        DocumentManager.swapWorkingSetIndexes(index, --index);
+                    // If moving down, place the next item before the moving item
+                    } else {
+                        $nextListItem.insertBefore($listItem);
+                        startPageY += height;
+                        top = top - height;
+                        DocumentManager.swapWorkingSetIndexes(index, ++index);
+                    }
+                    
+                    // Update the selection when the previows or next element were selected
+                    if (!selected && ((top > 0 && prevSelected) || (top < 0 && nextSelected))) {
+                        _fireSelectionChanged();
+                    }
+                    
+                    // Update the previows and next items
+                    $prevListItem = $listItem.prev();
+                    $nextListItem = $listItem.next();
+                    prevSelected  = $prevListItem.hasClass("selected");
+                    nextSelected  = $nextListItem.hasClass("selected");
+
+                    // If the last item of the list was selected and the previows was moved to its location, then
+                    // the it will show a bottom shadow even if it shouldnt because of the way the scrollHeight is 
+                    // handle with relative position. This will remove that shadow and add it on drop. 
+                    if (!addBottomShadow && !hasBottomShadow && !$nextListItem.length && prevSelected) {
+                        ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
+                        ViewUtils.addScrollerShadow($openFilesContainer[0], null, false);
+                        addBottomShadow = true;
+                    }
+                }
+            // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
+            } else {
+                top = 0;
+            }
+            
+            // Move the item
+            $listItem.css("top", top + "px");
+            
+            // Update the selection position
+            if (selected) {
+                _fireSelectionChanged();
+            }
+            
+            // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
+            if (!moved && Math.abs(top) > 3) {
+                Menus.closeAll();
+                moved = true;
+            }
+        }
+        
+        function endScroll() {
+            window.clearInterval(interval);
+            interval = false;
+        }
+        
+        function scroll(e) {
+            var dir = 0;
+            // Mouse over the first visible pixels and moving up
+            if (e.pageY - listItemTop < offsetTop + 7) {
+                dir = -1;
+            // Mouse over the last visible pixels and moving down
+            } else if (e.pageY + listItemBottom > offsetTop + containerHeight - 7) {
+                dir = 1;
+            }
+            
+            if (dir && !interval) {
+                // Scroll view if the mouse is over the first or last pixels of the container
+                interval = window.setInterval(function () {
+                    var scrollTop = $openFilesContainer.scrollTop();
+                    // End scroll if there isn't more to scroll
+                    if ((dir === -1 && scrollTop <= 0) || (dir === 1 && scrollTop >= maxScroll)) {
+                        endScroll();
+                    // Scroll and drag list item
+                    } else {
+                        $openFilesContainer.scrollTop(scrollTop + 7 * dir);
+                        startPageY -= 7 * dir;
+                        drag(e);
+                    }
+                }, 100);
+            } else if (!dir && interval) {
+                endScroll();
+            }
+        }
+        
+        function drop() {
+            // Enable Mousewheel
+            window.onmousewheel = window.document.onmousewheel = null;
+            
+            // Removes the styles, placing the item in the chosen place
+            $listItem.removeAttr("style");
+            
+            // End the scrolling if needed
+            if (interval) {
+                window.clearInterval(interval);
+            }
+            
+            // If file wasnt moved open or close it
+            if (!moved) {
+                if (!fromClose) {
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                } else {
+                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                }
+            } else if (moved) {
+                if (selected) {
+                    // Update the file selection
+                    _fireSelectionChanged();
+                    ViewUtils.scrollElementIntoView($openFilesContainer, $listItem, false);
+                }
+                if (addBottomShadow) {
+                    // Restore the shadows
+                    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
+                }
+            }
+            
+            // Dispatch event
+            $(DocumentManager).triggerHandler("workingSetReorder");
+        }
+        
+        
+        // Only drag with the left mouse button, end the drop in other cases
+        if (event.which !== 1) {
+            drop();
+            return;
+        }
+        
+        // Disable Mousewheel while dragging
+        window.onmousewheel = window.document.onmousewheel = function (e) {
+            e.preventDefault();
+        };
+        
+        // Style the element
+        $listItem.css("position", "relative").css("z-index", 1);
+                
+        // Envent Handlers
+        $openFilesContainer.on("mousemove.workingSet", function (e) {
+            if (hasScroll) {
+                scroll(e);
+            }
+            drag(e);
+        });
+        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
+            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+            drop();
+            
+        });
+    }
+    
     /** 
      * Updates the appearance of the list element based on the parameters provided
      * @private
@@ -112,16 +301,14 @@ define(function (require, exports, module) {
             $fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
                 .mousedown(function (e) {
+                    // Try to drag if that is what is wanted if not it will be the equivalent to File > Close;
+                    // it doesn't merely remove a file from the working set
+                    _reorderListItem(e, $(this).parent(), true);
+                    
                     // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
                     // selects documents on mousedown, doesn't select the document in the case 
                     // when the click is on fileStatusIcon
                     e.stopPropagation();
-                })
-                .click(function () {
-                    // Clicking the "X" button is equivalent to File > Close; it doesn't merely
-                    // remove a file from the working set
-                    var file = listElement.data(_FILE_KEY);
-                    CommandManager.execute(Commands.FILE_CLOSE, {file: file});
                 });
         }
 
@@ -175,7 +362,7 @@ define(function (require, exports, module) {
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
-            FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
+            _reorderListItem(e, $(this));
             e.preventDefault();
         });
 
