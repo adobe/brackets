@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams;
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
@@ -168,7 +169,9 @@ define(function (require, exports, module) {
             var params = new UrlParams();
             
             // setup extension loading in the test window
-            params.put("extensions", _doLoadExtensions ? "default,dev" : "default");
+            params.put("extensions", _doLoadExtensions ?
+                        "default,dev," + ExtensionLoader.getUserExtensionPath() :
+                        "default");
             
             // disable update check in test windows
             params.put("skipUpdateCheck", true);

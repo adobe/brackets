@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, $, beforeEach, afterEach, jasmine, brackets */
+/*global require, define, $, beforeEach, afterEach, jasmine, brackets, PathUtils */
 
 // Set the baseUrl to brackets/src
 require.config({
@@ -75,18 +75,33 @@ define(function (require, exports, module) {
         var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
             paths = ["default"];
         
-        // load dev extensions only when running the extension test suite
+        // load dev and user extensions only when running the extension test suite
         if (suite === "ExtensionTestSuite") {
             paths.push("dev");
+            paths.push(ExtensionLoader.getUserExtensionPath());
         }
         
         // This returns path to test folder, so convert to src
         bracketsPath = bracketsPath.replace(/\/test$/, "/src");
 
         return Async.doInParallel(paths, function (dir) {
+            var extensionPath,
+                relativePath;
+            
+            // If the item has "/" in it, assume it is a full path. Otherwise, load
+            // from our source path + "/extensions/".
+            if (dir.indexOf("/") === -1) {
+                extensionPath = bracketsPath + "/extensions/" + dir;
+                relativePath = "extensions/" + dir;
+            } else {
+                extensionPath = dir;
+                relativePath = PathUtils.makePathRelative(extensionPath,
+                                                          FileUtils.getNativeBracketsDirectoryPath() + "/");
+            }
+            
             return ExtensionLoader.testAllExtensionsInNativeDirectory(
-                bracketsPath + "/extensions/" + dir,
-                "extensions/" + dir
+                extensionPath,
+                relativePath
             );
         });
     }
