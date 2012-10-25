@@ -50,6 +50,16 @@ define(function (require, exports, module) {
         };
     
     /**
+     * Returns the full path of the default user extensions directory. This is in the users
+     * application support directory, which is typically
+     * /Users/<user>/Application Support/Brackets/extensions/user on the mac, and
+     * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
+     */
+    function getUserExtensionPath() {
+        return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
+    }
+    
+    /**
      * Returns the require.js require context used to load an extension
      *
      * @param {!string} name, used to identify the extension
@@ -221,6 +231,7 @@ define(function (require, exports, module) {
         return _loadAll(directory, config, "unittests", testExtension);
     }
     
+    exports.getUserExtensionPath = getUserExtensionPath;
     exports.getRequireContextForExtension = getRequireContextForExtension;
     exports.loadExtension = loadExtension;
     exports.testExtension = testExtension;
