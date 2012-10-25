@@ -38,7 +38,7 @@ define({
     "FILE_EXISTS_ERR"                   : "ファイルは既に存在しています。",
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "プロジェクトのロードに失敗しました。",
+    "ERROR_LOADING_PROJECT"             : "プロジェクトの読み込みに失敗しました。",
     "OPEN_DIALOG_ERROR"                 : "「ファイルを開く」ダイアログを表示する際にエラーが発生しました。 (エラー {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "ディレクトリを読み込む際にエラーが発生しました。<span class='dialog-filename'>{0}</span>. (エラー {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "ディレクトリの内容を読み込む際にエラーが発生しました。<span class='dialog-filename'>{0}</span>. (エラー {1})",
@@ -60,7 +60,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "{APP_NAME} は、まだブラウザ上で実行されていません！",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME}はHTMLで構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME}を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリを使用してください。",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} はHTMLで構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME} を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリを使用してください。",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "ファイルのインデックス時にエラーが発生しました。",
@@ -88,8 +88,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "文書に加えた変更を保存しますか？<span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "以下のファイルに対する変更を保存しますか？",
     "EXT_MODIFIED_TITLE"                : "外部で変更されました",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span>はディスク上で変更されていますが、{APP_NAME}内に保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span>はディスク上で削除されていますが、{APP_NAME}内に保存されていない変更があります。<br /><br />変更を保持しますか？",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span>はディスク上で変更されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span>はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "正規表現による検索には /re/ シンタックスを使用してください",
@@ -103,7 +103,7 @@ define({
 
     "RELEASE_NOTES"                     : "リリースノート",
     "NO_UPDATE_TITLE"                   : "最新バージョンです！",
-    "NO_UPDATE_MESSAGE"                 : "あなたは{APP_NAME}の最新バージョンを実行しています。",
+    "NO_UPDATE_MESSAGE"                 : "あなたは {APP_NAME} の最新バージョンを実行中です。",
     
     "FIND_IN_FILES_TITLE"               : "for \"{4}\" - {0} {1} in {2} {3}",
     "FIND_IN_FILES_FILE"                : "ファイル",
@@ -121,7 +121,7 @@ define({
     // Switch language
     "LANGUAGE_TITLE"                    : "言語を切り替える",
     "LANGUAGE_MESSAGE"                  : "以下のリストから言語を選択してください:",
-    "LANGUAGE_SUBMIT"                   : "{APP_NAME}をリロードする",
+    "LANGUAGE_SUBMIT"                   : "{APP_NAME} をリロードする",
     "LANGUAGE_CANCEL"                   : "キャンセル",
 
     /**
@@ -207,7 +207,7 @@ define({
     
     // Debug menu commands
     "DEBUG_MENU"                          : "デバッグ",
-    "CMD_REFRESH_WINDOW"                  : "{APP_NAME}をリロード",
+    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} をリロード",
     "CMD_SHOW_DEV_TOOLS"                  : "開発者ツールを表示",
     "CMD_RUN_UNIT_TESTS"                  : "テストを実行",
     "CMD_JSLINT"                          : "JSLintを有効にする",
@@ -220,7 +220,7 @@ define({
 
     // Help menu commands
     "HELP_MENU"                           : "ヘルプ",
-    "CMD_ABOUT"                           : "{APP_TITLE}について",
+    "CMD_ABOUT"                           : "{APP_TITLE} について",
     "CMD_FORUM"                           : "{APP_NAME} フォーラム",
 
     // Special commands invoked by the native shell
@@ -240,7 +240,7 @@ define({
     "SAVE"                                 : "保存",
     "CANCEL"                               : "キャンセル",
     "RELOAD_FROM_DISK"                     : "ディスクから再読込",
-    "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
+    "KEEP_CHANGES_IN_EDITOR"               : "エディタ内の変更を保持する",
     "CLOSE_DONT_SAVE"                      : "保存せずに閉じる",
     "RELAUNCH_CHROME"                      : "Chromeを再起動",
     "ABOUT"                                : "About",
@@ -249,8 +249,8 @@ define({
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}の新しいビルドが利用できます！詳細はここをクリックしてください。",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} の新しいビルドが利用できます！詳細はここをクリックしてください。",
     "UPDATE_AVAILABLE_TITLE"               : "更新が利用できます",
-    "UPDATE_MESSAGE"                       : "{APP_NAME}の新しいビルドが利用できます。いくつかの新機能を含みます:",
+    "UPDATE_MESSAGE"                       : "{APP_NAME} の新しいビルドが利用できます。いくつかの新機能を含みます:",
     "GET_IT_NOW"                           : "すぐに入手する！"
 });
