@@ -76,7 +76,7 @@ define(function (require, exports, module) {
                 baseUrl: config.baseUrl,
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
                 paths: globalConfig,
-                locale: window.localStorage.getItem("locale") || brackets.app.language
+                locale: brackets.getLocale()
             });
         contexts[name] = extensionRequire;
 

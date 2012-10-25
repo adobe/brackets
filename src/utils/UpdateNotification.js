@@ -354,7 +354,7 @@ define(function (require, exports, module) {
     }
     
     // Append locale to version info URL
-    _versionInfoURL = brackets.config.update_info_url + (window.localStorage.getItem("locale") || brackets.app.language) + ".json";
+    _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
     
     // Define public API
     exports.checkForUpdate = checkForUpdate;
