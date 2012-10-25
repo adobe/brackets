@@ -58,7 +58,6 @@ define(function (require, exports, module) {
      *        messages - if defined, an array of message objects for the failed spec
      *        perf - if defined, the performance record for the spec
      *
-     * activeSuite - the suite that was run, or All for all suites
      * passed - true if all specs passed, false otherwise
      * sortedNames - a sorted list of suite names (including all the keys in the suites object except All).
      * activeSuite - the suite currently selected in the URL params, or null if all are being run
@@ -307,7 +306,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @param {!Object} spec the Jasmine spec to find the category for
-     * @return {string} the category for the given spec
+     * @return {string} the category for the given spec, or null if it has no category
      */
     UnitTestReporter.prototype._getCategory = function (spec) {
         if (spec.category) {
@@ -321,6 +320,7 @@ define(function (require, exports, module) {
                 suite = suite.parentSuite;
             }
         }
+        return null;
     };
     
     UnitTestReporter.prototype.reportSpecStarting = function (spec) {

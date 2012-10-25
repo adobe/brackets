@@ -180,8 +180,15 @@ define(function (require, exports, module) {
             
             jasmineEnv.updateInterval = 1000;
             
+            // Create the reporter, which is really a model class that just gathers
+            // spec and performance data.
             reporter = new UnitTestReporter(jasmineEnv, topLevelFilter);
             jasmineEnv.addReporter(reporter);
+            
+            // Create the view that displays the data from the reporter. (Usually in
+            // Jasmine this is part of the reporter, but we separate them out so that
+            // we can more easily grab just the model data for output during automatic
+            // testing.)
             reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
