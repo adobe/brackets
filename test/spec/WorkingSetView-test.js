@@ -235,7 +235,7 @@ define(function (require, exports, module) {
                 var fileName = secondItem.text();
                 secondItem.trigger('click');
                 
-                var a = CommandManager.execute(Commands.FILE_RENAME);
+                CommandManager.execute(Commands.FILE_RENAME);
                 
                 var $projectFileItems = $("#project-files-container > ul").children();
     
