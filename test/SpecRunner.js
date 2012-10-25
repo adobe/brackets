@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         FileUtils               = require("file/FileUtils"),
         Menus                   = require("command/Menus"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
@@ -107,6 +108,38 @@ define(function (require, exports, module) {
         $("#" + suite).closest("li").toggleClass("active", true);
         
         jasmine.getEnv().execute();
+    }
+    
+    /**
+     * Listener for UnitTestReporter "runnerEnd" event. Attached only if
+     * "resultsPath" URL parameter exists. Does not overwrite existing file.
+     * Writes UnitTestReporter spec results as formatted JSON.
+     * @param {!$.Event} event
+     * @param {!UnitTestReporter} reporter
+     */
+    function _runnerEndHandler(event, reporter) {
+        var resultsPath = params.get("resultsPath"),
+            json = reporter.toJSON(),
+            deferred = new $.Deferred();
+        
+        // check if the file already exists
+        brackets.fs.stat(resultsPath, function (err, stat) {
+            if (err === brackets.fs.ERR_NOT_FOUND) {
+                // file not found, write the new file with JSON content
+                brackets.fs.writeFile(resultsPath, json, NativeFileSystem._FSEncodings.UTF8, function (err) {
+                    if (err) {
+                        deferred.reject();
+                    } else {
+                        deferred.resolve();
+                    }
+                });
+            } else {
+                // file exists, do not overwrite
+                deferred.reject();
+            }
+        });
+        
+        deferred.always(function () { window.close(); });
     }
     
     function init() {
@@ -182,7 +215,13 @@ define(function (require, exports, module) {
             
             // Create the reporter, which is really a model class that just gathers
             // spec and performance data.
-            reporter = new UnitTestReporter(jasmineEnv, topLevelFilter);
+            reporter = new UnitTestReporter(jasmineEnv, topLevelFilter, params.get("spec"));
+            
+            // Optionally emit JSON for automated runs
+            if (params.get("resultsPath")) {
+                $(reporter).on("runnerEnd", _runnerEndHandler);
+            }
+            
             jasmineEnv.addReporter(reporter);
             
             // Create the view that displays the data from the reporter. (Usually in
