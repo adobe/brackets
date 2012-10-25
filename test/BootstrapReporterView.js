@@ -216,7 +216,6 @@ define(function (require, exports, module) {
     BootstrapReporterView.prototype._handleSpecEnd = function (event, reporter, specData, suiteData) {
         var $specLink,
             $resultDisplay,
-            suiteName,
             self = this;
         
         this._updateSuiteStatus(suiteData.name, suiteData.specCount, suiteData.passedCount, suiteData.failedCount);
