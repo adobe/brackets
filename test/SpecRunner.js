@@ -75,11 +75,11 @@ define(function (require, exports, module) {
         var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
             paths = ["default"];
         
-        // load user extensions only when running the extension test suite
+        // load dev extensions only when running the extension test suite
         if (suite === "ExtensionTestSuite") {
-            paths.push("user");
+            paths.push("dev");
         }
-
+        
         // This returns path to test folder, so convert to src
         bracketsPath = bracketsPath.replace(/\/test$/, "/src");
 
