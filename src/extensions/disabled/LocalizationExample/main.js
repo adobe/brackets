@@ -31,7 +31,7 @@ require.config({
         "text" : "lib/text",
         "i18n" : "lib/i18n"
     },
-    locale: navigator.language
+    locale: brackets.getLocale()
 });
 
 define(function (require, exports, module) {
