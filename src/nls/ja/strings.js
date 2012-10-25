@@ -76,13 +76,13 @@ define({
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "ライブプレビューに接続するには、リモートデバッグを有効にしてChromeを再起動する必要があります。<br /><br />Chromeを再起動してリモートデバッグを有効にしますか？",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "ライブプレビューを起動するには、HTMLファイルを開いてください。",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "ライブプレビューへようこそ！",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "ライブプレビューは {APP_NAME} をブラウザに接続します。ブラウザ内でHTMLファイルのプレビューを起動し、コードを編集するとすぐにプレビューが更新されます。<br /><br />{APP_NAME} の初期バージョンでは、ライブプレビューは<strong>Google Chrome</strong>との組み合わせで、CSSファイルの編集にしか機能しません。HTMLとJavaScriptについても、すぐに実装します！<br /><br />(このメッセージは最初の一度しか表示されません)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "ライブプレビューは {APP_NAME} をブラウザに接続します。ブラウザ内でHTMLファイルのプレビューを起動し、コードを編集するとすぐにプレビューが更新されます。<br /><br />{APP_NAME} の初期バージョンでは、ライブプレビューは<strong>Google Chrome</strong>との組み合わせで、CSSファイルの編集にしか機能しません。HTMLとJavaScriptのライブプレビューについても大急ぎで実装中です！<br /><br />(このメッセージは最初の一度しか表示されません)",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "ライブプレビュー",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "ライブプレビュー: 接続中...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "ライブプレビュー: 初期化中...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "ライブプレビュー : 接続中...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "ライブプレビュー : 初期化中...",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "ライブプレビューの接続を切断します",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "ライブプレビュー: クリックして切断 (ファイルを保存して更新)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "ライブプレビュー : クリックして切断 (ファイルを保存して更新)",
     
     "SAVE_CLOSE_TITLE"                  : "変更を保存",
     "SAVE_CLOSE_MESSAGE"                : "文書に加えた変更を保存しますか？<span class='dialog-filename'>{0}</span>?",
@@ -112,8 +112,8 @@ define({
     "FIND_IN_FILES_MATCHES"             : "一致",
     "FIND_IN_FILES_MORE_THAN"           : "少なくとも ",
     "FIND_IN_FILES_MAX"                 : " (先頭 {0} 件を表示しています)",
-    "FIND_IN_FILES_FILE_PATH"           : "ファイル: <b>{0}</b>",
-    "FIND_IN_FILES_LINE"                : "行:&nbsp;{0}",
+    "FIND_IN_FILES_FILE_PATH"           : "ファイル : <b>{0}</b>",
+    "FIND_IN_FILES_LINE"                : "行 :&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "更新情報を取得する際にエラーが発生しました。",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
@@ -251,6 +251,6 @@ define({
     "ABOUT_TEXT_LINE4"                     : "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} の新しいビルドが利用できます！詳細はここをクリックしてください。",
     "UPDATE_AVAILABLE_TITLE"               : "更新が利用できます",
-    "UPDATE_MESSAGE"                       : "{APP_NAME} の新しいビルドが利用できます。いくつかの新機能を含みます:",
+    "UPDATE_MESSAGE"                       : "{APP_NAME} の新しいビルドが利用できます。いくつかの新機能を含みます :",
     "GET_IT_NOW"                           : "すぐに入手する！"
 });
