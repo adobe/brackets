@@ -257,7 +257,7 @@ header nav li a:hover {
 #hero #extensible h3 {
   left: 130px;
   top: 88px;
-  width: 180px;
+  width: 190px;
 }
 #hero #extensible p {
   left: 130px;
@@ -416,10 +416,104 @@ a.scroll-point {
   top: -170px;
 }
 footer {
-  text-align: center;
-  font-size: 12px;
+  width: 820px;
+  margin: 0 auto 2em;
   padding: 30px 0 10px;
   clear: both;
+}
+footer .language-switcher {
+  position: relative;
+  top: 1.3em;
+  display: none;
+}
+.language-switcher button {
+  font-family: 'SourceSans';
+  line-height: 2;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0 .5em 0 1.7em;
+  width: 200px;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  position: relative;
+  -moz-border-radius: .3em;
+  -webkit-border-radius: .3em;
+  border-radius: .3em;
+  border: 1px solid #aaa;
+  border-color: rgba(0,0,0,0.3);
+  border-bottom-color: #777;
+  border-bottom-color: rgba(0,0,0,0.5);
+  -moz-box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.7), inset 0 0 0.08em rgba(255,255,255,0.5);
+  -webkit-box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.7), inset 0 0 0.08em rgba(255,255,255,0.5);
+  box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.7), inset 0 0 0.08em rgba(255,255,255,0.5);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+}
+.language-switcher button:before {
+  content: "▲";
+  border-left: 0.075em solid rgba(0,0,0,0.1);
+  float: right;
+  font-size: .7em;
+  line-height: 2.7;
+  font-style: normal;
+  font-weight: normal;
+  margin-left: .5em;
+  padding-left: .9em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  -moz-box-shadow: 0.075em 0 0 rgba(255,255,255,0.25);
+  -webkit-box-shadow: 0.075em 0 0 rgba(255,255,255,0.25);
+  box-shadow: 0.075em 0 0 rgba(255,255,255,0.25);
+}
+
+.language-switcher button:hover,
+.language-switcher button:focus,
+.language-switcher li:hover {
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0.5)), color-stop(49%, rgba(255,255,255,0.2)), color-stop(51%, rgba(0,0,0,0.05)), to(rgba(0,0,0,0.15)));
+  background-image: -moz-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: -o-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: -ms-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+  background-image: linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
+}
+.language-switcher button:active {
+  background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0)), color-stop(30%, rgba(255,255,255,0)), color-stop(50%, rgba(0,0,0,0)), to(rgba(0,0,0,0.1)));
+  background-image: -moz-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: -webkit-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: -o-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: -ms-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+  background-image: linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
+}
+.language-switcher ul {
+  position: absolute;
+  min-width: 198px;
+  z-index: 100;
+  display: none;
+  border: 1px solid #aaa;
+  border-color: rgba(0,0,0,0.3);
+  background: #f0f0f0;
+  list-style-type: none;
+  font-size: .8em;
+  -moz-border-radius: .3em;
+  -webkit-border-radius: .3em;
+  border-radius: .3em;
+}
+.language-switcher li {
+  cursor: pointer;
+  padding: .8em 1em .8em 2em;
+}
+.language-switcher li.active:before {
+  content: "✓";
+  position: absolute;
+  left: .8em;
+}
+footer .license {
+  font-size: 12px;
+  float: right;
 }
 .list-container.quick-links {
   width: 40%;
