@@ -767,10 +767,10 @@ define(function (require, exports, module) {
     
     
     /**
-     * Returns the tree node corresponding to the given file/folder. Returns null if the path lies
-     * outside the project, or if it doesn't exist.
+     * Finds the tree node corresponding to the given file/folder (rejected if the path lies
+     * outside the project, or if it doesn't exist).
      * 
-     * @param {!Entry} entry FileEntry of DirectoryEntry to show
+     * @param {!Entry} entry FileEntry or DirectoryEntry to find
      * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
      */
     function _findTreeNode(entry) {
@@ -786,6 +786,9 @@ define(function (require, exports, module) {
         
         // We're going to traverse from root of tree, one segment at a time
         var pathSegments = projRelativePath.split("/");
+        if (entry.isDirectory) {
+            pathSegments.pop();  // DirectoryEntry always has a trailing "/"
+        }
         
         function findInSubtree($nodes, segmentI) {
             var seg = pathSegments[segmentI];
@@ -825,8 +828,15 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function showInTree(fileEntry) {
-        _findTreeNode(fileEntry)
+    /**
+     * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
+     * path lies outside the project, or if it doesn't exist.
+     * 
+     * @param {!Entry} entry FileEntry or DirectoryEntry to show
+     * @return {$.Promise} Resolved when done; or rejected if not found
+     */
+    function showInTree(entry) {
+        return _findTreeNode(entry)
             .done(function ($node) {
                 // jsTree will automatically expand parent nodes to ensure visible
                 _projectTree.jstree("select_node", $node, false);
@@ -1166,56 +1176,58 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Rename the selected item in the project tree
+     * Initiates a rename of the selected item in the project tree, showing an inline editor
+     * for input. Silently no-ops if the entry lies outside the tree or doesn't exist.
+     * @param {!Entry} entry FileEntry or DirectoryEntry to rename
      */
-    function renameSelectedItem() {
-        var selected = _projectTree.jstree("get_selected"),
-            isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
+    function renameItemInline(entry) {
+        // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
+        showInTree(entry)
+            .done(function (selected) {
+                var isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
         
-        if (selected) {
-            _projectTree.on("rename.jstree", function (event, data) {
-                $(event.target).off("rename.jstree");
-                
-                // Make sure the file was actually renamed
-                if (data.rslt.old_name === data.rslt.new_name) {
-                    return;
-                }
-                
-                var _resetOldFilename = function () {
-                    _projectTree.jstree("set_text", selected, data.rslt.old_name);
-                    _projectTree.jstree("sort", selected.parent());
-                };
-                
-                if (!_checkForValidFilename(data.rslt.new_name)) {
-                    // Invalid filename. Reset the old name and bail.
-                    _resetOldFilename();
-                    return;
-                }
-                
-                var oldName = selected.data("entry").fullPath;
-                var newName = oldName.replace(data.rslt.old_name, data.rslt.new_name);
-                
-                renameItem(oldName, newName, isFolder)
-                    .done(function () {
-                        
-                        // If a folder was renamed, re-select it here, since openAndSelectDocument()
-                        // changed the selection.
-                        if (isFolder) {
-                            var oldSuppressToggleOpen = suppressToggleOpen;
-                            
-                            // Supress the open/close toggle
-                            suppressToggleOpen = true;
-                            _projectTree.jstree("select_node", selected, true);
-                            suppressToggleOpen = oldSuppressToggleOpen;
-                        }
-                    })
-                    .fail(function (err) {
-                        // Error during rename. Reset to the old name and alert the user.
+                _projectTree.one("rename.jstree", function (event, data) {
+                    // Make sure the file was actually renamed
+                    if (data.rslt.old_name === data.rslt.new_name) {
+                        return;
+                    }
+                    
+                    var _resetOldFilename = function () {
+                        _projectTree.jstree("set_text", selected, data.rslt.old_name);
+                        _projectTree.jstree("sort", selected.parent());
+                    };
+                    
+                    if (!_checkForValidFilename(data.rslt.new_name)) {
+                        // Invalid filename. Reset the old name and bail.
                         _resetOldFilename();
-                    });
+                        return;
+                    }
+                    
+                    var oldName = selected.data("entry").fullPath;
+                    var newName = oldName.replace(data.rslt.old_name, data.rslt.new_name);
+                    
+                    renameItem(oldName, newName, isFolder)
+                        .done(function () {
+                            
+                            // If a folder was renamed, re-select it here, since openAndSelectDocument()
+                            // changed the selection.
+                            if (isFolder) {
+                                var oldSuppressToggleOpen = suppressToggleOpen;
+                                
+                                // Supress the open/close toggle
+                                suppressToggleOpen = true;
+                                _projectTree.jstree("select_node", selected, true);
+                                suppressToggleOpen = oldSuppressToggleOpen;
+                            }
+                        })
+                        .fail(function (err) {
+                            // Error during rename. Reset to the old name and alert the user.
+                            _resetOldFilename();
+                        });
+                });
+                _projectTree.jstree("rename");
             });
-            _projectTree.jstree("rename");
-        }
+        // No fail handler: silently no-op if file doesn't exist in tree
     }
     
     /**
@@ -1260,7 +1272,7 @@ define(function (require, exports, module) {
     exports.isWelcomeProjectPath     = isWelcomeProjectPath;
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
     exports.createNewItem            = createNewItem;
-    exports.renameSelectedItem       = renameSelectedItem;
+    exports.renameItemInline         = renameItemInline;
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
 });

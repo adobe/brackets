@@ -966,11 +966,13 @@ define(function (require, exports, module) {
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
-        project_cmenu.addMenuItem(Commands.FILE_RENAME);
+        project_cmenu.addMenuItem(Commands.FILE_RENAME, "F2");
 
         var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
+        working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
+        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);

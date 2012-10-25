@@ -61,10 +61,6 @@ html, body {
 
 body {
     height: 100%;
-    
-    &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
-        cursor: col-resize;   
-    }
 }
 
 .resizing-container {
@@ -711,39 +707,46 @@ ins.jstree-icon {
     .code-font();
 }
 
-/* Styles for the search dialog--this is temporary, only for debugging */
+
+/* Find & Replace search bars - temporary UI, to be replaced with a richer search feature later */
 
 .CodeMirror-dialog {
-  position: relative;
-  z-index: @z-index-cm-dialog-override;
+    position: relative;
+    z-index: @z-index-cm-dialog-override;
 }
 
 .CodeMirror-dialog > div {
-  font-family: @fontstack-sans-serif;
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  background: @background-color-2;
-  color: @content-color;
-  border-bottom: 1px solid @bc-gray;
-  .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
-  z-index: 1;
-  padding: .5em .8em;
-  overflow: hidden;
+    font-family: @fontstack-sans-serif;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: @background-color-2;
+    color: @content-color;
+    border-bottom: 1px solid @bc-gray;
+    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
+    z-index: 1;
+    padding: .5em .8em;
+    overflow: hidden;
 }
 
 .CodeMirror-dialog input {
-  font-family: @fontstack-sans-serif;
-  border: 1px solid @content-color-weaker;
-  outline: none;
-  background: @background-color-3;
-  width: 20em;
-  margin: .3em .3em;
-  color: inherit;
+    font-family: @fontstack-sans-serif;
+    border: 1px solid @content-color-weaker;
+    outline: none;
+    background: @background-color-3;
+    width: 20em;
+    margin: .3em .3em;
+    color: inherit;
+    &.no-results {
+        background-color: mix(@background-color-3, #FF0000, 70%);
+    }
 }
 
 .CodeMirror-searching {
-  background-color: inherit;
+    background-color: inherit;
 }
+
+
+/* Quick Open search bar & dropdown */
 
 .smart_autocomplete_container {
     
@@ -772,8 +775,4 @@ ins.jstree-icon {
 
 li.smart_autocomplete_highlight {
     background-color: #e0f0fa;
-}
-
-.clickable-link {
-    cursor: pointer;
 }
