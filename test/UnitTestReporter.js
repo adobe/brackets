@@ -36,8 +36,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var UrlParams = require("utils/UrlParams").UrlParams,
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Global = require("utils/Global"),
         BuildInfoUtils = require("utils/BuildInfoUtils");
 
@@ -60,7 +59,7 @@ define(function (require, exports, module) {
      *
      * passed - true if all specs passed, false otherwise
      * sortedNames - a sorted list of suite names (including all the keys in the suites object except All).
-     * activeSuite - the suite currently selected in the URL params, or null if all are being run
+     * activeSuite - the suite currently selected in the URL params, "all" if all are being run, and null if no tests are being run.
      * activeSpecCount - the number of specs that will actually be run given the current filter
      * activeSpecCompleteCount - the number of specs that have been run so far
      * totalSpecCount - the total number of specs (ignoring filter)
