@@ -227,6 +227,21 @@ define(function (require, exports, module) {
                 expect(listItems.find(".file-status-icon dirty").length).toBe(0);
             });
         });
+        
+        it("should show the file in project tree when a file is being renamed", function () {
+            runs(function () {
+                var $ = testWindow.$;
+                var secondItem =  $($("#open-files-container > ul").children()[1]);
+                var fileName = secondItem.text();
+                secondItem.trigger('click');
+                
+                var a = CommandManager.execute(Commands.FILE_RENAME);
+                
+                var $projectFileItems = $("#project-files-container > ul").children();
+    
+                expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val() === fileName).toBeTruthy();
+            });
+        });
             
     });
 });
