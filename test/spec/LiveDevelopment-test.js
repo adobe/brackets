@@ -346,7 +346,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
                     
-                    // Verify that we have modified text and then restore the original text for saving.
+                    // Verify that we have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                     
