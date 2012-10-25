@@ -49,6 +49,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
@@ -1248,7 +1249,7 @@ define(function (require, exports, module) {
         });
 
         $("#project-files-header .settings").on("click", function () {
-            alert("settings buttom clicked...");
+            PreferencesDialogs.showProjectPreferencesDialog();
         });
     });
 
