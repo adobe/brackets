@@ -98,15 +98,5 @@ define(function (require, exports, module) {
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
 
-    // Add benchmarking support
-    if (!global.brackets.app) {
-        var appStartupTime = new Date().getTime();
-        global.brackets.app = {
-            getElapsedMilliseconds: function () {
-                return new Date().getTime() - appStartupTime;
-            }
-        };
-    }
-
     exports.global = global;
 });
