@@ -40,18 +40,16 @@ define(function (require, exports, module) {
     'use strict';
     
     // Utility dependency
-    var Global              = require("utils/Global"),
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        PerformanceReporter = require("perf/PerformanceReporter").PerformanceReporter,
-        ExtensionLoader     = require("utils/ExtensionLoader"),
-        Async               = require("utils/Async"),
-        FileUtils           = require("file/FileUtils"),
-        Menus               = require("command/Menus"),
-        UrlParams           = require("utils/UrlParams").UrlParams;
+    var Global                  = require("utils/Global"),
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        Async                   = require("utils/Async"),
+        FileUtils               = require("file/FileUtils"),
+        Menus                   = require("command/Menus"),
+        UrlParams               = require("utils/UrlParams").UrlParams,
+        UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
+        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
 
-    // Jasmine reporter UI
-    require("test/BootstrapReporter");
-    
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     
@@ -60,7 +58,9 @@ define(function (require, exports, module) {
     require("test/PerformanceTestSuite");
     
     var suite,
-        params = new UrlParams();
+        params = new UrlParams(),
+        reporter,
+        reporterView;
     
     params.parse();
     
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
         
         _loadExtensionTests(suite).done(function () {
             var jasmineEnv = jasmine.getEnv();
-    
+            
             // Initiailize unit test preferences for each spec
             beforeEach(function () {
                 // Unique key for unit testing
@@ -180,12 +180,16 @@ define(function (require, exports, module) {
             
             jasmineEnv.updateInterval = 1000;
             
-            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document, topLevelFilter));
+            // Create the reporter, which is really a model class that just gathers
+            // spec and performance data.
+            reporter = new UnitTestReporter(jasmineEnv, topLevelFilter);
+            jasmineEnv.addReporter(reporter);
             
-            // add performance reporting
-            if (isPerfSuite) {
-                jasmineEnv.addReporter(new PerformanceReporter());
-            }
+            // Create the view that displays the data from the reporter. (Usually in
+            // Jasmine this is part of the reporter, but we separate them out so that
+            // we can more easily grab just the model data for output during automatic
+            // testing.)
+            reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
             localStorage.setItem("SpecRunner.suite", suite);

@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                     didClose = true;
                 });
 
-                closeIcon.trigger('click');
+                closeIcon.trigger('mousedown');
             });
             
             waitsFor(function () { return didClose; }, "click on working set close icon timeout", 1000);

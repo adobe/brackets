@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
-        PerformanceReporter = brackets.getModule("perf/PerformanceReporter");
+        UnitTestReporter    = brackets.getModule("test/UnitTestReporter");
 
     var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
         testPath = extensionPath + "/unittest-files/syntax",
@@ -355,8 +355,9 @@ define(function (require, exports, module) {
                 };
                 
                 function logPerf() {
-                    PerformanceReporter.logTestWindow(perfMeasurements);
-                    PerformanceReporter.clearTestWindow();
+                    var reporter = UnitTestReporter.getActiveReporter();
+                    reporter.logTestWindow(perfMeasurements);
+                    reporter.clearTestWindow();
                 }
                 
                 // repeat 5 times

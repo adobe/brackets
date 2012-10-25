@@ -580,6 +580,26 @@ define(function (require, exports, module) {
     function setLoadExtensionsInTestWindow(doLoadExtensions) {
         _doLoadExtensions = doLoadExtensions;
     }
+    
+    /**
+     * Extracts the jasmine.log() and/or jasmine.expect() messages from the given result,
+     * including stack traces if available.
+     * @param {Object} result A jasmine result item (from results.getItems()).
+     * @return {string} the error message from that item.
+     */
+    function getResultMessage(result) {
+        var message;
+        if (result.type === 'log') {
+            message = result.toString();
+        } else if (result.type === 'expect' && result.passed && !result.passed()) {
+            message = result.message;
+            
+            if (result.trace.stack) {
+                message = result.trace.stack;
+            }
+        }
+        return message;
+    }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
@@ -603,4 +623,5 @@ define(function (require, exports, module) {
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
+    exports.getResultMessage                = getResultMessage;
 });
