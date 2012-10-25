@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
         DIALOG_ID_ABOUT = "about-dialog",
         DIALOG_ID_UPDATE = "update-dialog",
-        DIALOG_ID_PROJECT_SETTINGS = "project-settings";
+        DIALOG_ID_PROJECT_SETTINGS = "project-settings-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);

@@ -38,15 +38,27 @@ define(function (require, exports, module) {
     /**
      * Show a dialog that shows the project preferences
      */
-    function showProjectPreferencesDialog() {
+    function showProjectPreferencesDialog(prefs, projectPath) {
+
+        var keyUrlMapping = "projectUrlMapping_" + projectPath,
+            $dlg,
+            $urlMappingControl,
+            urlMappingValue;
+
         Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
             .done(function (id) {
-
+                urlMappingValue = $urlMappingControl.val();
+                prefs.setValue(keyUrlMapping, urlMappingValue);
             });
 
         // Populate the update data
-//        var $dlg = $(".project-settings.instance");
+        $dlg = $(".project-settings-dialog.instance");
 
+        $urlMappingControl = $dlg.find(".url-mapping");
+        urlMappingValue = prefs.getValue(keyUrlMapping);
+        if (urlMappingValue && (urlMappingValue !== "")) {
+            $urlMappingControl.val(urlMappingValue);
+        }
     }
 
     exports.showProjectPreferencesDialog    = showProjectPreferencesDialog;
