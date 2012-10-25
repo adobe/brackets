@@ -40,8 +40,8 @@ define({
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "プロジェクトのロードに失敗しました。",
     "OPEN_DIALOG_ERROR"                 : "「ファイルを開く」ダイアログを表示する際にエラーが発生しました。 (エラー {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "ディレクトリを読み込む際にエラーが発生しました。<span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "ディレクトリの内容を読み込む際にエラーが発生しました。<span class='dialog-filename'>{0}</span>. (error {1})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "ディレクトリを読み込む際にエラーが発生しました。<span class='dialog-filename'>{0}</span>. (エラー {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "ディレクトリの内容を読み込む際にエラーが発生しました。<span class='dialog-filename'>{0}</span>. (エラー {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "ファイルを開く際にエラーが発生しました",
@@ -108,10 +108,10 @@ define({
     "FIND_IN_FILES_TITLE"               : "for \"{4}\" - {0} {1} in {2} {3}",
     "FIND_IN_FILES_FILE"                : "ファイル",
     "FIND_IN_FILES_FILES"               : "ファイル",
-    "FIND_IN_FILES_MATCH"               : "match",
-    "FIND_IN_FILES_MATCHES"             : "matches",
+    "FIND_IN_FILES_MATCH"               : "一致",
+    "FIND_IN_FILES_MATCHES"             : "一致",
     "FIND_IN_FILES_MORE_THAN"           : "以上",
-    "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
+    "FIND_IN_FILES_MAX"                 : " (最初の{0}件の一致を表示しています)",
     "FIND_IN_FILES_FILE_PATH"           : "ファイル: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "行:&nbsp;{0}",
 
@@ -142,12 +142,12 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "行 {0}, 列 {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "インデントを空白に変換する",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "インデントをスペースに変換する",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "インデントをタブに変換する",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "クリックしてインデント時の空白の数を変更",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "クリックしてタブ文字の幅を変更",
-    "STATUSBAR_SPACES"                      : "空白",
-    "STATUSBAR_TAB_SIZE"                    : "タブのサイズ",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "インデントに用いるスペースの数を変更",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "タブ幅を変更",
+    "STATUSBAR_SPACES"                      : "スペース",
+    "STATUSBAR_TAB_SIZE"                    : "タブ幅",
     "STATUSBAR_LINE_COUNT"                  : "{0} 行",
 
     /**
