@@ -4,14 +4,17 @@ body {
   -webkit-font-smoothing: subpixel-antialiased;
   color: #4d4d4d;
 }
+
 a {
   color: #1c6eb0;
   text-decoration: none;
 }
+
 a:hover {
   color: #3689cc;
   text-decoration: underline;
 }
+
 header {
   height: 170px;
   width: 100%;
@@ -20,6 +23,7 @@ header {
   z-index: 100;
   background: #f8f8f8;
 }
+
 header .shadow {
   bottom: -9px;
   height: 9px;
@@ -33,11 +37,13 @@ header .shadow {
   background-image: -ms-linear-gradient(top, rgba(0,0,0,0.2), rgba(0,0,0,0));
   background-image: linear-gradient(top, rgba(0,0,0,0.2), rgba(0,0,0,0));
 }
+
 header .site {
   width: 960px;
   margin: 0 auto;
   position: relative;
 }
+
 header hgroup {
   position: absolute;
   left: 170px;
@@ -48,6 +54,7 @@ header hgroup {
   color: #3c4042;
   text-shadow: 0 1px 0 #fff;
 }
+
 header hgroup:before {
   content: '';
   background: url("../images/brackets_logo.svg") no-repeat 0 0;
@@ -63,6 +70,7 @@ header hgroup:before {
   -webkit-box-shadow: 0 1px 5px rgba(0,0,0,0.5);
   box-shadow: 0 1px 5px rgba(0,0,0,0.5);
 }
+
 header hgroup h1 {
   font-size: 60px;
   font-weight: 700;
@@ -70,16 +78,19 @@ header hgroup h1 {
   letter-spacing: 0;
   line-height: 60px;
 }
+
 header hgroup h1 a,
 header hgroup h1 a:hover {
   color: #3c4042;
   text-decoration: none;
 }
+
 header hgroup a,
 header hgroup a:hover {
   text-decoration: none;
   color: #808080;
 }
+
 header h2 {
   font-size: 18px;
   font-weight: 200;
@@ -88,15 +99,18 @@ header h2 {
   padding: 0;
   letter-spacing: 0;
 }
+
 header nav {
   position: absolute;
   top: 76px;
   right: 50px;
 }
+
 header nav li {
   display: inline-block;
   margin: 0 0 0 38px;
 }
+
 header nav li a {
   cursor: pointer;
   color: #666;
@@ -106,9 +120,11 @@ header nav li a {
   width: 100%;
   height: 100%;
 }
+
 header nav li a:hover {
   color: #1a1a1a;
 }
+
 #hero {
   height: 360px;
   width: 100%;
@@ -116,6 +132,7 @@ header nav li a:hover {
   position: relative;
   margin: 170px 0 0 0;
 }
+
 #hero:before {
   position: absolute;
   width: 50%;
@@ -124,6 +141,7 @@ header nav li a:hover {
   content: '';
   right: 0;
 }
+
 #hero .shadow {
   width: 100%;
   height: 9px;
@@ -138,12 +156,14 @@ header nav li a:hover {
   background-image: -ms-linear-gradient(top, rgba(0,0,0,0), rgba(0,0,0,0.2));
   background-image: linear-gradient(top, rgba(0,0,0,0), rgba(0,0,0,0.2));
 }
+
 #hero .site {
   width: 960px;
   height: 100%;
   position: relative;
   margin: 0 auto;
 }
+
 #hero .indicator {
   height: 38px;
   width: 50%;
@@ -155,6 +175,7 @@ header nav li a:hover {
   right: 0;
   box-shadow: 0 -1px 0 #bdc2c2, 0 1px 0 #eef0f0;
 }
+
 #hero .slides {
   height: 100%;
   width: 710px;
@@ -162,6 +183,7 @@ header nav li a:hover {
   position: relative;
   overflow: hidden;
 }
+
 #hero .slides .slide {
   position: absolute;
   width: 100%;
@@ -170,21 +192,25 @@ header nav li a:hover {
   -webkit-transition: top 0.25s ease-in-out;
   background-color: #eaeaea;
 }
+
 #hero .slides .slide.before {
   top: -100%;
   left: 0;
   z-index: 1;
 }
+
 #hero .slides .slide.selected {
   top: 0;
   left: 0;
   z-index: 3;
 }
+
 #hero .slides .slide.after {
   top: 100%;
   left: 0;
   z-index: 2;
 }
+
 #hero .slides img,
 #hero .slides h3,
 #hero .slides p {
@@ -192,78 +218,93 @@ header nav li a:hover {
   letter-spacing: 0;
   line-height: normal;
 }
+
 #hero .slides h3 {
   font-size: 24px;
   font-weight: normal;
 }
+
 #hero .slides p {
   font-size: 18px;
   font-weight: 200;
 }
+
 #hero #web-focused img {
   left: 124px;
   top: 36px;
   width: 280px;
   height: 288px;
 }
+
 #hero #web-focused h3 {
   left: 430px;
   top: 97px;
   width: 185px;
 }
+
 #hero #web-focused p {
   left: 430px;
   top: 160px;
   width: 220px;
 }
+
 #hero #innovative img {
   left: 300px;
   top: 2px;
   height: 354px;
   width: 408px;
 }
+
 #hero #innovative h3 {
   left: 70px;
   top: 88px;
   width: 158px;
 }
+
 #hero #innovative p {
   left: 70px;
   top: 150px;
   width: 200px;
 }
+
 #hero #standards-based img {
   left: 75px;
   top: 80px;
   width: 301px;
   height: 205px;
 }
+
 #hero #standards-based h3 {
   left: 430px;
   top: 88px;
   width: 240px;
 }
+
 #hero #standards-based p {
   left: 430px;
   top: 150px;
   width: 220px;
 }
+
 #hero #extensible img {
   left: 377px;
   top: 79px;
   width: 278px;
   height: 202px;
 }
+
 #hero #extensible h3 {
   left: 130px;
   top: 88px;
   width: 190px;
 }
+
 #hero #extensible p {
   left: 130px;
   top: 127px;
   width: 190px;
 }
+
 #hero nav {
   background: #dfe2e2;
   position: absolute;
@@ -272,10 +313,12 @@ header nav li a:hover {
   right: 0;
   top: 0;
 }
+
 #hero nav ul {
   margin-top: 100px;
   list-style: none;
 }
+
 #hero nav ul li {
   height: 38px;
   font-weight: 200;
@@ -285,6 +328,7 @@ header nav li a:hover {
   background-position: 18px 0;
   position: relative;
 }
+
 #hero nav ul li a {
   display: block;
   text-shadow: 0 1px 0 #fff;
@@ -297,35 +341,45 @@ header nav li a:hover {
   padding: 10px 0 10px 60px;
   height: 18px;
 }
+
 #hero nav ul li:nth-child(1) {
   background-position: 18px -40px;
 }
+
 #hero nav ul li:nth-child(2) {
   background-position: 18px -120px;
 }
+
 #hero nav ul li:nth-child(3) {
   background-position: 18px -200px;
 }
+
 #hero nav ul li:nth-child(4) {
   background-position: 18px -280px;
 }
+
 #hero nav ul li.selected {
   position: relative;
   box-shadow: 0 -1px 0 #bdc2c2, 0 1px 0 #eef0f0;
   background-color: #d0d5d5;
 }
+
 #hero nav ul li.selected:nth-child(1) {
   background-position: 18px 0px;
 }
+
 #hero nav ul li.selected:nth-child(2) {
   background-position: 18px -80px;
 }
+
 #hero nav ul li.selected:nth-child(3) {
   background-position: 18px -160px;
 }
+
 #hero nav ul li.selected:nth-child(4) {
   background-position: 18px -240px;
 }
+
 #hero nav ul li.selected:before {
   content: '';
   position: absolute;
@@ -335,97 +389,119 @@ header nav li a:hover {
   left: 0;
   top: 9px;
 }
+
 #hero nav ul li.selected a {
   text-shadow: 0 1px 1px rgba(0,0,0,0.3);
   color: #000;
   cursor: default;
 }
+
 .wrap {
   width: 820px;
   margin: 0 auto;
   padding: 10px 0;
 }
+
 .wrap ol,
 .wrap ul {
   margin: 10px 0 0 30px;
 }
+
 .wrap li {
   margin: 5px 0;
 }
+
 .wrap h2 {
   font-size: 36px;
   font-weight: normal;
   margin: 10px 0px 10px 0px;
 }
+
 .wrap.icon {
   padding: 8px 0 0 55px;
   background-image: url("../images/icons_sprite.svg");
   background-repeat: no-repeat;
   height: 40px;
 }
+
 .wrap.icon-about {
   background-position: 0 0;
 }
+
 .wrap.icon-contribute {
   background-position: 0 -48px;
 }
+
 .wrap.icon-mailing-list {
   background-position: 0 -96px;
 }
+
 .wrap.icon-download {
   background-position: 0 -144px;
 }
+
 .wrap.icon-quick-links {
   background-position: 0 -192px;
 }
+
 .wrap h3 {
   font-size: 21px;
   margin: 26px 0px 8px 0px;
   font-weight: normal;
 }
+
 .wrap p,
 .wrap li {
   line-height: 30px;
   color: #666;
   font-weight: 200;
 }
+
 .wrap p {
   margin: 5px 0;
 }
+
 .wrap .list.mailing-list {
   margin: 10px 0 10px 30px;
 }
+
 .wrap .list.mailing-list li {
   list-style: none;
   background: #eaeaea;
   padding-left: 10px;
   width: 600px;
 }
+
 .wrap .list.mailing-list li strong {
   display: inline-block;
   width: 180px;
 }
+
 .wrap .list.mailing-list li a {
   display: inline-block;
   background: #fff;
   padding-left: 10px;
   width: 407px;
 }
+
 a.scroll-point {
   position: relative;
   top: -170px;
 }
+
 footer {
   width: 820px;
   margin: 0 auto 2em;
   padding: 30px 0 10px;
   clear: both;
 }
+
 footer .language-switcher {
   position: relative;
   top: 1.3em;
   display: none;
 }
+
 .language-switcher button {
   font-family: 'SourceSans';
   line-height: 2;
@@ -452,6 +528,7 @@ footer .language-switcher {
   box-shadow: inset 0 0.08em 0 rgba(255,255,255,0.7), inset 0 0 0.08em rgba(255,255,255,0.5);
   text-shadow: 0 1px 0 rgba(255,255,255,0.8);
 }
+
 .language-switcher button:before {
   content: "▲";
   border-left: 0.075em solid rgba(0,0,0,0.1);
@@ -480,6 +557,7 @@ footer .language-switcher {
   background-image: -ms-linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
   background-image: linear-gradient(top, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.05) 51%, rgba(0,0,0,0.15));
 }
+
 .language-switcher button:active {
   background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0)), color-stop(30%, rgba(255,255,255,0)), color-stop(50%, rgba(0,0,0,0)), to(rgba(0,0,0,0.1)));
   background-image: -moz-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
@@ -488,6 +566,7 @@ footer .language-switcher {
   background-image: -ms-linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
   background-image: linear-gradient(bottom, rgba(255,255,255,0), rgba(255,255,255,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.1));
 }
+
 .language-switcher ul {
   position: absolute;
   min-width: 198px;
@@ -502,30 +581,37 @@ footer .language-switcher {
   -webkit-border-radius: .3em;
   border-radius: .3em;
 }
+
 .language-switcher li {
   cursor: pointer;
   padding: .8em 1em .8em 2em;
 }
+
 .language-switcher li.active:before {
   content: "✓";
   position: absolute;
   left: .8em;
 }
+
 footer .license {
   font-size: 12px;
   float: right;
 }
+
 .list-container.quick-links {
   width: 40%;
   float: left;
   margin: 10px 0 0 20px;
 }
+
 .list-container.quick-links ul {
   list-style: none;
 }
+
 #about ul {
   list-style: none;
 }
+
 #about strong {
   text-transform: uppercase;
 }
