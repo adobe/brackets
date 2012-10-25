@@ -36,8 +36,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var UrlParams = require("utils/UrlParams").UrlParams,
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Global = require("utils/Global"),
         BuildInfoUtils = require("utils/BuildInfoUtils");
 
@@ -60,7 +59,7 @@ define(function (require, exports, module) {
      *
      * passed - true if all specs passed, false otherwise
      * sortedNames - a sorted list of suite names (including all the keys in the suites object except All).
-     * activeSuite - the suite currently selected in the URL params, or null if all are being run
+     * activeSuite - the suite currently selected in the URL params, "all" if all are being run, and null if no tests are being run.
      * activeSpecCount - the number of specs that will actually be run given the current filter
      * activeSpecCompleteCount - the number of specs that have been run so far
      * totalSpecCount - the total number of specs (ignoring filter)
@@ -78,13 +77,12 @@ define(function (require, exports, module) {
      *
      * @param {!Object} env The Jasmine environment we're running in.
      * @param {Function} filter The filter being used to determine whether a given spec is run or not.
+     * @param {string} activeSuite The suite currently selected in the URL params, or null if all are being run.
      */
-    function UnitTestReporter(env, filter) {
-        var self = this,
-            params = new UrlParams();
+    function UnitTestReporter(env, filter, activeSuite) {
+        var self = this;
         
-        params.parse();
-        this.activeSuite = params.get("spec");
+        this.activeSuite = activeSuite;
         
         this.runInfo = {
             app: brackets.metadata.name,
@@ -149,13 +147,14 @@ define(function (require, exports, module) {
      * for a matching starting substring.
      */
     UnitTestReporter.prototype._createSpecFilter = function (filterString) {
-        var self = this;
+        var self = this,
+            filter = filterString ? filterString.toLowerCase() : undefined;
         
         return function (spec) {
             // filterString is undefined when no top-level suite is active (e.g. "All", "HTMLUtils", etc.)
             // When undefined, all specs fail this filter and no tests are ran. This is by design.
             // This setup allows the SpecRunner to load initially without automatically running all tests.
-            if (filterString === undefined) {
+            if (filter === undefined) {
                 return false;
             }
             
@@ -163,11 +162,11 @@ define(function (require, exports, module) {
                 return false;
             }
             
-            if (filterString === "All") {
+            if (filter === "all") {
                 return true;
             }
 
-            if (spec.getFullName() === filterString) {
+            if (filter === spec.getFullName().toLowerCase()) {
                 return true;
             }
             
@@ -179,7 +178,7 @@ define(function (require, exports, module) {
                 topLevelSuite = topLevelSuite.parentSuite;
             }
             
-            return topLevelSuite.description === filterString;
+            return filter === topLevelSuite.description.toLowerCase();
         };
     };
     
