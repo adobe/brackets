@@ -34,7 +34,7 @@ require.config({
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || (typeof(brackets) !== "undefined" ? brackets.app.language : navigator.language)
+    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });
 
 /**
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
         });
         
         // Check for updates
-        if (!params.get("skipUpdateCheck") && ! brackets.inBrowser) {
+        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             UpdateNotification.checkForUpdate();
         }
     }
