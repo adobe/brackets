@@ -508,9 +508,6 @@ define(function LiveDevelopment(require, exports, module) {
 
                 // Reload unsaved changes
                 _onReconnect();
-                
-                // Set status back to active
-                _setStatus(STATUS_ACTIVE);
             }
         }
     }

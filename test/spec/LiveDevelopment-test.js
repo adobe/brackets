@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, $*/
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs*/
 
 define(function (require, exports, module) {
     'use strict';
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
                     browserHtmlText,
                     htmlDoc;
                 
-                //verify we aren't currently connected
+                // verify we aren't currently connected
                 expect(Inspector.connected()).toBeFalsy();
                 
                 var cssOpened = false;
@@ -294,9 +294,9 @@ define(function (require, exports, module) {
                 });
                 
                 waitsFor(function () {
-                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE)
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC)
                         && (DOMAgent.root);
-                }, "LiveDevelopment STATUS_ACTIVE", 10000);
+                }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
                 // Verify that we get the original text and not modified text.
@@ -305,31 +305,39 @@ define(function (require, exports, module) {
                     originalNode = DOMAgent.nodeAtLocation(230);
                     expect(originalNode.value).toBe("Brackets is awesome!");
                 });
-
-                // Save changes to the test file
+                
+                // wait for LiveDevelopment to unload and reload agents after saving
+                var loadingStatus = false,
+                    activeStatus = false,
+                    statusChangeHandler = function (event, status) {
+                        // waits for loading agents status followed by active status
+                        loadingStatus = loadingStatus || status === LiveDevelopment.STATUS_LOADING_AGENTS;
+                        activeStatus = activeStatus || (loadingStatus && status === LiveDevelopment.STATUS_ACTIVE);
+                    };
+                
                 runs(function () {
+                    testWindow.$(LiveDevelopment).on("statusChange", statusChangeHandler);
+
+                    // Save changes to the test file
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Saving modified html document");
                 });
                 
+                waitsFor(function () {
+                    return loadingStatus && activeStatus;
+                }, "LiveDevelopment re-load and re-activate", 10000);
+                
                 // Grab the node that we've modified in Brackets. 
                 // This time we should have modified text since the file has been saved in Brackets.
-                var updatedNode;
-                waitsFor(function () {
-                    updatedNode = DOMAgent.nodeAtLocation(230);
-                    return !!updatedNode;
-                }, "getting modified html content", 10000);
-                
-                waitsFor(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
-                    return !!liveDoc;
-                }, "Waiting for LiveDevelopment document", 10000);
-                                                
-                var doneSyncing = false;
+                var updatedNode, doneSyncing = false;
                 runs(function () {
+                    testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
+                    
+                    updatedNode = DOMAgent.nodeAtLocation(230);
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
-                    }).always(function () {
                         doneSyncing = true;
                     });
                 });
@@ -337,13 +345,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
-                });
-
-                runs(function () {
+                    
                     // Verify that we have modified text and then restore the original text for saving.
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
+                });
                     
-                    // Save original content back to the file
+                // Save original content back to the file after this test passes/fails
+                runs(function () {
                     htmlDoc.setText(origHtmlText);
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Restoring the original html content");
