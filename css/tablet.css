@@ -25,7 +25,7 @@ body > header nav {
 #hero {
 	margin-bottom: 40px;
 }
-#hero:before{ 
+#hero:before {
 	display: none;
 }
 #hero .site {
@@ -92,4 +92,8 @@ body > header nav {
 }
 #hero nav li.selected:nth-child(4) {
   background-position: 4px -240px !important;
+}
+footer {
+  width: auto;
+  padding: 30px 20px 10px;
 }

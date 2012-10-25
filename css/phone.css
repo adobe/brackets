@@ -71,17 +71,13 @@ header hgroup:before {
 	margin: 10px 0 10px 0;
 }
 .wrap .list.mailing-list li strong {
-  width: 160px;
+  width: 120px;
 }
 h2.icon {
 	font-size: 24px;
 	padding: 10px 0 0 0;
 }
-
-.list.mailing-list li {
-    background-color: white;
-}
-.list.mailing-list li, .list.mailing-list li strong, .list.mailing-list li a {
+.list.mailing-list li, .list.mailing-list li strong, .wrap .list.mailing-list li a {
     width: 195px;
 }
 .list.mailing-list li strong { display: none; }
@@ -89,12 +85,22 @@ h2.icon {
 /* zocial button */
 button.zocial
 {
-    width: 175px;
     font-size: 10px;
 }
 
 /* fork us on github */
 #fork-us
 {
-    display: none;   
+    display: none;
+}
+
+footer .language-switcher {
+  float: none;
+  width: 200px;
+  margin: 0 auto;
+}
+footer .license {
+  float: none;
+  text-align: center;
+  margin: 4em 0 0;
 }
