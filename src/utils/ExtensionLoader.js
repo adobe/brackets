@@ -38,9 +38,15 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
         contexts            = {},
-        globalConfig        = {
-            "text" : FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/text",
-            "i18n" : FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/i18n"
+        srcPath             = FileUtils.getNativeBracketsDirectoryPath();
+    
+    // The native directory path ends with either "test" or "src". We need "src" to
+    // load the text and i18n modules.
+    srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
+
+    var globalConfig        = {
+            "text" : srcPath + "/thirdparty/text",
+            "i18n" : srcPath + "/thirdparty/i18n"
         };
     
     /**
