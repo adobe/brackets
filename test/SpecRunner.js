@@ -40,19 +40,16 @@ define(function (require, exports, module) {
     'use strict';
     
     // Utility dependency
-    var Global              = require("utils/Global"),
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        PerformanceReporter = require("perf/PerformanceReporter").PerformanceReporter,
-        ExtensionLoader     = require("utils/ExtensionLoader"),
-        Async               = require("utils/Async"),
-        FileUtils           = require("file/FileUtils"),
-        Menus               = require("command/Menus"),
-        UrlParams           = require("utils/UrlParams").UrlParams,
-        TopLevelResults     = require("test/TopLevelResults").TopLevelResults;
+    var Global                  = require("utils/Global"),
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        Async                   = require("utils/Async"),
+        FileUtils               = require("file/FileUtils"),
+        Menus                   = require("command/Menus"),
+        UrlParams               = require("utils/UrlParams").UrlParams,
+        UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
+        BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
 
-    // Jasmine reporter UI
-    require("test/BootstrapReporter");
-    
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     
@@ -62,7 +59,8 @@ define(function (require, exports, module) {
     
     var suite,
         params = new UrlParams(),
-        topLevelResults;
+        reporter,
+        reporterView;
     
     params.parse();
     
@@ -169,8 +167,6 @@ define(function (require, exports, module) {
         _loadExtensionTests(suite).done(function () {
             var jasmineEnv = jasmine.getEnv();
             
-            topLevelResults = new TopLevelResults(jasmineEnv.currentRunner(), topLevelFilter);
-    
             // Initiailize unit test preferences for each spec
             beforeEach(function () {
                 // Unique key for unit testing
@@ -184,12 +180,9 @@ define(function (require, exports, module) {
             
             jasmineEnv.updateInterval = 1000;
             
-            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document, topLevelFilter, topLevelResults));
-            
-            // add performance reporting
-            if (isPerfSuite) {
-                jasmineEnv.addReporter(new PerformanceReporter(topLevelResults));
-            }
+            reporter = new UnitTestReporter(jasmineEnv, topLevelFilter);
+            jasmineEnv.addReporter(reporter);
+            reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
             localStorage.setItem("SpecRunner.suite", suite);
