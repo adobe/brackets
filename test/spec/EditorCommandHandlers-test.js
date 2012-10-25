@@ -904,6 +904,8 @@ define(function (require, exports, module) {
                 var lines = defaultContent.split("\n");
                 lines.splice(1, 1);
                 expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
             });
 
             it("should delete the bottom line of the visible range", function () {
@@ -914,6 +916,8 @@ define(function (require, exports, module) {
                 var lines = defaultContent.split("\n");
                 lines.splice(5, 1);
                 expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
             });
             
             it("should leave a single newline when all visible lines are selected", function () {
@@ -924,6 +928,8 @@ define(function (require, exports, module) {
                 var lines = defaultContent.split("\n");
                 lines.splice(1, 5, "");
                 expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
             });
             
             it("should leave a single newline when only one line is visible", function () {
@@ -934,6 +940,8 @@ define(function (require, exports, module) {
                 var lines = defaultContent.split("\n");
                 lines.splice(3, 1, "");
                 expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
             });
         });
         

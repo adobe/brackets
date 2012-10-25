@@ -170,13 +170,13 @@ define(function (require, exports, module) {
             return;
         }
 
-        var from, to, sel, doc;
+        var from,
+            to,
+            sel = editor.getSelection(),
+            doc = editor.document;
 
-        doc = editor._codeMirror;
-        sel = doc.getCursor(true);
-        from = {line: sel.line, ch: 0};
-        sel = doc.getCursor(false);
-        to = {line: sel.line + 1, ch: 0};
+        from = {line: sel.start.line, ch: 0};
+        to = {line: sel.end.line + 1, ch: 0};
         if (to.line === editor.getLastVisibleLine() + 1) {
             // Instead of deleting the newline after the last line, delete the newline
             // before the first line--unless this is the entire visible content of the editor,
