@@ -12,6 +12,7 @@ if [[ ${1} == "" ]]; then
   exit;
 fi
 
+# Check for Brackets.exe file on windows, Brackets.app directory on mac
 if [[ "$OSTYPE" == "msys"* && ! -f "${1}" ]]; then
   echo "$1 not found."
   exit;
@@ -21,15 +22,15 @@ elif [[ "$OSTYPE" == "darwin"* && ! -d "${1}" ]]; then
 fi
 
 # JSON results file path
-# TODO check file exists
 results_path="${PWD}/results.json"
 if [[ ${2} != "" ]]; then
-  if [[ -f "${2}" ]]; then
-    echo "File $2 already exists. Choose another results JSON file destination."
-    exit;
-  else
-    results_path="${2}"
-  fi
+  results_path="${2}"
+fi
+
+# Check if results.json file already exists
+if [[ -f "${results_path}" ]]; then
+  echo "File $results_path already exists. Choose another results JSON file destination."
+  exit;
 fi
 
 # Spec name filter
