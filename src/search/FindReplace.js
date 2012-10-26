@@ -248,7 +248,7 @@ define(function (require, exports, module) {
             });
         });
         
-        // Prepopulate de replace field with the current selection, if any
+        // Prepopulate the replace field with the current selection, if any
         getDialogTextField()
             .attr("value", cm.getSelection())
             .get(0).select();
