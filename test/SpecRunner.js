@@ -86,24 +86,15 @@ define(function (require, exports, module) {
         bracketsPath = bracketsPath.replace(/\/test$/, "/src");
 
         return Async.doInParallel(paths, function (dir) {
-            var extensionPath,
-                relativePath;
+            var extensionPath = dir;
             
             // If the item has "/" in it, assume it is a full path. Otherwise, load
             // from our source path + "/extensions/".
             if (dir.indexOf("/") === -1) {
                 extensionPath = bracketsPath + "/extensions/" + dir;
-                relativePath = "extensions/" + dir;
-            } else {
-                extensionPath = dir;
-                relativePath = PathUtils.makePathRelative(extensionPath,
-                                                          FileUtils.getNativeBracketsDirectoryPath() + "/");
             }
             
-            return ExtensionLoader.testAllExtensionsInNativeDirectory(
-                extensionPath,
-                relativePath
-            );
+            return ExtensionLoader.testAllExtensionsInNativeDirectory(extensionPath);
         });
     }
     
