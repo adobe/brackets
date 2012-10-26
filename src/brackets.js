@@ -271,6 +271,12 @@ define(function (require, exports, module) {
             new NativeFileSystem.DirectoryEntry().getDirectory(ExtensionLoader.getUserExtensionPath(),
                                                                {create: true});
             
+            // Create the extensions/disabled directory, too.
+            var disabledExtensionsPath = ExtensionLoader.getUserExtensionPath();
+            disabledExtensionsPath = disabledExtensionsPath.replace(/\/user$/, "/disabled");
+            new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionsPath,
+                                                               {create: true});
+            
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
