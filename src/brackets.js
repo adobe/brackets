@@ -121,24 +121,15 @@ define(function (require, exports, module) {
         }
         
         return Async.doInParallel(paths.split(","), function (item) {
-            var extensionPath,
-                relativePath;
+            var extensionPath = item;
             
             // If the item has "/" in it, assume it is a full path. Otherwise, load
             // from our source path + "/extensions/".
             if (item.indexOf("/") === -1) {
                 extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
-                relativePath = "extensions/" + item;
-            } else {
-                extensionPath = item;
-                relativePath = PathUtils.makePathRelative(extensionPath,
-                                                          FileUtils.getNativeBracketsDirectoryPath() + "/");
             }
             
-            return ExtensionLoader.loadAllExtensionsInNativeDirectory(
-                extensionPath,
-                relativePath
-            );
+            return ExtensionLoader.loadAllExtensionsInNativeDirectory(extensionPath);
         });
     }
     
