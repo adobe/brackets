@@ -118,6 +118,12 @@ define(function (require, exports, module) {
     var _projectRoot = null;
 
     /**
+     * @private
+     * @ see getUrlMapping(), setUrlMapping()
+     */
+    var _projectUrlMapping = "";
+
+    /**
      * Unique PreferencesManager clientID
      */
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
@@ -217,6 +223,32 @@ define(function (require, exports, module) {
      */
     function getProjectRoot() {
         return _projectRoot;
+    }
+
+    /**
+     * @private
+     */
+    function _getUrlMappingKey() {
+        return "projectUrlMapping_" + _projectRoot;
+    }
+
+    /**
+     * Returns the URL Mapping of the currently loaded project, or empty string if no project is open
+     * (during startup, or running outside of app shell).
+     * @return {String}
+     */
+    function getUrlMapping() {
+        return _projectUrlMapping;
+    }
+
+    /**
+     * Sets the URL Mapping of the currently loaded project.
+     * @param {String}
+     */
+    function setUrlMapping(projectUrlMapping) {
+        _projectUrlMapping = projectUrlMapping;
+
+        _prefs.setValue(_getUrlMappingKey(), _projectUrlMapping);
     }
     
     /**
@@ -706,7 +738,8 @@ define(function (require, exports, module) {
                         canonPath = FileUtils.canonicalizeFolderPath(rootPath);
 
                     _projectRoot = rootEntry;
-                    
+                    _projectUrlMapping = _prefs.getValue(_getUrlMappingKey());
+
                     // If this is the current welcome project, record it. In future launches, we always 
                     // want to substitute the welcome project for the current build instead of using an
                     // outdated one (when loading recent projects or the last opened project).
@@ -1268,6 +1301,8 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
+    exports.getUrlMapping            = getUrlMapping;
+    exports.setUrlMapping            = setUrlMapping;
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;

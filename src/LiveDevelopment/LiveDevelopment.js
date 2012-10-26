@@ -70,6 +70,7 @@ define(function LiveDevelopment(require, exports, module) {
     var Dialogs = require("widgets/Dialogs");
     var Strings = require("strings");
     var StringUtils = require("utils/StringUtils");
+    var ProjectManager = require("project/ProjectManager");
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
@@ -160,6 +161,35 @@ define(function LiveDevelopment(require, exports, module) {
         default:
             return null;
         }
+    }
+
+    /** Determine url for document and project
+     * @param {Document} document
+     * @param {String} projectPath
+     */
+    function _getUrl(doc) {
+
+        // Verify doc is in current project
+        if (ProjectManager.isWithinProject(doc.file.fullPath)) {
+
+            // See if url mapping has been specified
+            var urlMapping = ProjectManager.getUrlMapping();
+            if (urlMapping !== "") {
+
+                // Map to server url
+                var url =  urlMapping;
+                if (urlMapping[urlMapping-1] !== "/") {
+                    url += "/";
+                }
+
+                // Add relative path to file
+                url += doc.file.fullPath.slice(ProjectManager.getProjectRoot().fullPath.length);
+                return url;
+            }
+        }
+
+        // Otherwise use file url
+        return doc.root.url;
     }
 
     /**
@@ -381,7 +411,8 @@ define(function LiveDevelopment(require, exports, module) {
             }
 
             _setStatus(STATUS_CONNECTING);
-            Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
+            var docUrl = _getUrl(doc);
+            Inspector.connectToURL(docUrl).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -425,7 +456,7 @@ define(function LiveDevelopment(require, exports, module) {
                     // on Windows where Chrome can't be opened more than once with the
                     // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url,
+                        docUrl,
                         err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
@@ -453,7 +484,7 @@ define(function LiveDevelopment(require, exports, module) {
 
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
+                        Inspector.connectToURL(docUrl).then(result.resolve, onConnectFail);
                     }, 500);
                 }
             });

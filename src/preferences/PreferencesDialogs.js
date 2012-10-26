@@ -33,7 +33,8 @@ define(function (require, exports, module) {
     "use strict";
     
     var Dialogs             = require("widgets/Dialogs"),
-        PreferencesManager  = require("preferences/PreferencesManager");
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        ProjectManager      = require("project/ProjectManager");
 
     /**
      * Show a dialog that shows the project preferences
@@ -47,18 +48,23 @@ define(function (require, exports, module) {
 
         Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
             .done(function (id) {
-                urlMappingValue = $urlMappingControl.val();
-                prefs.setValue(keyUrlMapping, urlMappingValue);
+                if (id === Dialogs.DIALOG_BTN_OK) {
+                    urlMappingValue = $urlMappingControl.val();
+                    ProjectManager.setUrlMapping(urlMappingValue);
+                }
             });
 
-        // Populate the update data
+        // Populate project settings
         $dlg = $(".project-settings-dialog.instance");
 
         $urlMappingControl = $dlg.find(".url-mapping");
-        urlMappingValue = prefs.getValue(keyUrlMapping);
+        urlMappingValue = ProjectManager.getUrlMapping();
         if (urlMappingValue && (urlMappingValue !== "")) {
             $urlMappingControl.val(urlMappingValue);
         }
+
+        // Give focus to first control
+        $urlMappingControl.focus();
     }
 
     exports.showProjectPreferencesDialog    = showProjectPreferencesDialog;
