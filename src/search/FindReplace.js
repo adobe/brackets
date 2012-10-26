@@ -184,9 +184,14 @@ define(function (require, exports, module) {
             findFirst(getDialogTextField().attr("value"));
         });
     }
+    
+    function getCurrentEditorSelectedText() {
+        var currentEditor = EditorManager.getFocusedEditor();
+        return (currentEditor && currentEditor.getSelectedText()) || "";
+    }
 
     var replaceQueryDialog = Strings.CMD_REPLACE +
-            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
+            ': <input type="text" style="width: 10em" value="{{SELECTION}}"/> <span style="color: #888">(' +
             Strings.SEARCH_REGEXP_INFO  + ')</span>';
     var replacementQueryDialog = Strings.WITH +
             ': <input type="text" style="width: 10em"/>';
@@ -198,7 +203,7 @@ define(function (require, exports, module) {
             '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
     function replace(cm, all) {
-        dialog(cm, replaceQueryDialog, Strings.CMD_REPLACE, function (query) {
+        dialog(cm, replaceQueryDialog.replace("{{SELECTION}}", getCurrentEditorSelectedText()), Strings.CMD_REPLACE, function (query) {
             if (!query) {
                 return;
             }
