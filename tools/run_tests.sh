@@ -8,19 +8,28 @@ if [[ ${1} == "" ]]; then
   echo "Parameters: application  - full path to the Brackets application"
   echo "            results_path - URL encoded full path to output JSON results (defaults to results.json in current dir)"
   echo "            spec_name    - name of the suite or spec to run (default: all)"
-  echo "Example: ./run_tests.sh /Applications/Brackets Sprint 16.app \"~/Desktop/Brackets%20Results/results.json\" \"all\""
+  echo "Example: ./run_tests.sh /Applications/Brackets Sprint 16.app ~/Desktop/Brackets%20Results/results.json all"
   exit;
 fi
 
-if [ ! -d "${1}" ]; then
+if [[ "$OSTYPE" == "msys"* && ! -f "${1}" ]]; then
+  echo "$1 not found."
+  exit;
+elif [[ "$OSTYPE" == "darwin"* && ! -d "${1}" ]]; then
   echo "$1 not found."
   exit;
 fi
 
 # JSON results file path
+# TODO check file exists
 results_path="${PWD}/results.json"
 if [[ ${2} != "" ]]; then
-  results_path="${2}"
+  if [[ -f "${2}" ]]; then
+    echo "File $2 already exists. Choose another results JSON file destination."
+    exit;
+  else
+    results_path="${2}"
+  fi
 fi
 
 # Spec name filter
@@ -36,8 +45,21 @@ else
   full_path="${PWD}/${0#./}"
 fi;
 
-# Remove /tools/setup_for_hacking.sh to get the root directory
+# Remove /tools/run_tests.sh to get the root directory
 root_dir=${full_path%/*/*}
 
-#echo "$root_dir/test/SpecRunner.html?spec=$spec_name&resultsPath=$results_path"
-open "${1}" --args --startup-path="$root_dir/test/SpecRunner.html?spec=$spec_name&resultsPath=$results_path"
+# Fix drive letter
+# TODO regex match drive letter
+if [[ "$OSTYPE" == "msys"* ]]; then
+  root_dir=${root_dir/\/c\//c:\\}
+fi
+
+args="--startup-path=$root_dir/test/SpecRunner.html?spec=$spec_name&resultsPath=$results_path"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  open "${1}" --args $args
+else
+  # convert slashes
+  args=${args//\//\\}
+  "${1}" $args
+fi;
