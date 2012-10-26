@@ -34,7 +34,7 @@ require.config({
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || brackets.app.language
+    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });
 
 /**
@@ -114,12 +114,30 @@ define(function (require, exports, module) {
     // Making this fix will fix a warning (search for issue 1029) related to the global brackets 'ready' event.
     function _initExtensions() {
         // allow unit tests to override which plugin folder(s) to load
-        var paths = params.get("extensions") || "default,user";
+        var paths = params.get("extensions");
+        
+        if (!paths) {
+            paths = "default,dev," + ExtensionLoader.getUserExtensionPath();
+        }
         
         return Async.doInParallel(paths.split(","), function (item) {
+            var extensionPath,
+                relativePath;
+            
+            // If the item has "/" in it, assume it is a full path. Otherwise, load
+            // from our source path + "/extensions/".
+            if (item.indexOf("/") === -1) {
+                extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
+                relativePath = "extensions/" + item;
+            } else {
+                extensionPath = item;
+                relativePath = PathUtils.makePathRelative(extensionPath,
+                                                          FileUtils.getNativeBracketsDirectoryPath() + "/");
+            }
+            
             return ExtensionLoader.loadAllExtensionsInNativeDirectory(
-                FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item,
-                "extensions/" + item
+                extensionPath,
+                relativePath
             );
         });
     }
@@ -242,6 +260,17 @@ define(function (require, exports, module) {
         ProjectManager.openProject(initialProjectPath).always(function () {
             _initTest();
 
+            // Create a new DirectoryEntry and call getDirectory() on the user extension
+            // directory. If the directory doesn't exist, it will be created.
+            // Note that this is an async call and there are no success or failure functions passed
+            // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
+            // before the directory is finished being created, but that is okay, since the extension
+            // loading will work correctly without this directory.
+            // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
+            // during extension loading.
+            new NativeFileSystem.DirectoryEntry().getDirectory(ExtensionLoader.getUserExtensionPath(),
+                                                               {create: true});
+            
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
@@ -266,10 +295,18 @@ define(function (require, exports, module) {
         });
         
         // Check for updates
-        if (!params.get("skipUpdateCheck")) {
+        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             UpdateNotification.checkForUpdate();
         }
     }
+    
+    // Prevent unhandled middle button clicks from triggering native behavior
+    // Example: activating AutoScroll (see #510)
+    $("html").on("mousedown", ".inline-widget", function (e) {
+        if (e.button === 1) {
+            e.preventDefault();
+        }
+    });
     
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({

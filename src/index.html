@@ -36,6 +36,35 @@
          nonstandard WebKit-specific syntax. -->
     <link rel="stylesheet" href="styles/quiet-scrollbars.css">
 
+    <!-- Warn about failed cross origin requests in Chrome -->
+    <script>
+        /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+        /*global brackets: true */
+        (function () {
+            "use strict";
+            // Abort if running in the shell, running on a server or not running in Chrome
+            if (typeof (brackets) !== "undefined"
+                    || document.location.href.substr(0, 7) !== "file://"
+                    || navigator.userAgent.search(" Chrome/") === -1) {
+                return;
+            }
+            
+            function handleError(e) {
+                // Ignore this error if it does not look like the rather vague cross origin error in Chrome
+                // Chrome will print it to the console anyway
+                if (e.type !== "error" || e.message !== "Script error." || e.lineno !== 0) {
+                    return;
+                }
+                // Show an error message
+                alert("Oops! This application doesn't run in browsers yet.\n\nIt is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the following repo to run this application:\n\ngithub.com/adobe/brackets-shell");
+                // But only for the first cross site scripting error
+                window.removeEventListener('error', handleError);
+            }
+
+            window.addEventListener("error", handleError);
+        }());
+    </script>
+
     <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
     <link rel="stylesheet/less" href="styles/brackets.less">
     <script src="thirdparty/less-1.3.0.min.js"></script>

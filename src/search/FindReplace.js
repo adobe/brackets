@@ -85,10 +85,17 @@ define(function (require, exports, module) {
 
     function parseQuery(query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+        $(".CodeMirror-dialog .alert-message").remove();
+        try {
+            return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+        } catch (e) {
+            $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+            return "";
+        }
     }
 
     function findNext(cm, rev) {
+        var found = true;
         cm.operation(function () {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
@@ -99,6 +106,7 @@ define(function (require, exports, module) {
                 // No result found, period: clear selection & bail
                 if (!cursor.find(rev)) {
                     cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
+                    found = false;
                     return;
                 }
             }
@@ -106,6 +114,7 @@ define(function (require, exports, module) {
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
         });
+        return found;
     }
 
     function clearSearch(cm) {
@@ -164,7 +173,9 @@ define(function (require, exports, module) {
                 }
                 
                 state.posFrom = state.posTo = searchStartPos;
-                findNext(cm, rev);
+                var foundAny = findNext(cm, rev);
+                
+                getDialogTextField().toggleClass("no-results", !foundAny);
             });
         }
         

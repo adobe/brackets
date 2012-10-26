@@ -300,6 +300,23 @@ define(function (require, exports, module) {
     
     
     /**
+     * Mutually exchanges the files at the indexes passed by parameters.
+     * @param {!number} index - old file index
+     * @param {!number} index - new file index
+     */
+    function swapWorkingSetIndexes(index1, index2) {
+        var length = _workingSet.length - 1;
+        var temp;
+        
+        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
+            temp = _workingSet[index1];
+            _workingSet[index1] = _workingSet[index2];
+            _workingSet[index2] = temp;
+        }
+    }
+    
+    
+    /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
      * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)
      * or for incremental-search style document preview like Quick Open will eventually have.
@@ -1121,6 +1138,7 @@ define(function (require, exports, module) {
     exports.addListToWorkingSet = addListToWorkingSet;
     exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
+    exports.swapWorkingSetIndexes = swapWorkingSetIndexes;
     exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
@@ -1130,7 +1148,7 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange", _savePreferences);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");

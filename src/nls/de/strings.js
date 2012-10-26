@@ -35,6 +35,7 @@ define({
     "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
+    "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
@@ -49,6 +50,8 @@ define({
     "ERROR_RELOADING_FILE"              : "Beim Laden der Änderungen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen der Datei",
+    "ERROR_RENAMING_FILE"               : "Beim Umbenennen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger Dateiname",
     "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "Die Datei <span class='dialog-filename'>{0}</span> existiert bereits.",
@@ -63,9 +66,6 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
     "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl indizierbarer Dateien wurde überschritten. Funktionen, die auf dem Index beruhen, werden möglicherweise nicht korrekt ausgeführt.",
     
-    // CSSManager error strings
-    "ERROR_PARSE_TITLE"                 : "Fehler beim Interpretieren der CSS Datei(en):",
-
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Browsers",
     "ERROR_CANT_FIND_CHROME"            : "Der Browser Google Chrome konnte nicht gefunden werden. Bitte stellen Sie sicher, dass er installiert ist.",
@@ -82,6 +82,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren...",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau: Klicken, um Verbindung zu trennen (Zum Aktualisieren Datei speichern)",
     
     "SAVE_CLOSE_TITLE"                  : "Änderungen speichern",
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
@@ -113,6 +114,7 @@ define({
     "FIND_IN_FILES_FILES"               : "Dateien",
     "FIND_IN_FILES_MATCH"               : "Treffer",
     "FIND_IN_FILES_MATCHES"             : "Treffer",
+    "FIND_IN_FILES_MORE_THAN"           : "Mehr als ",
     "FIND_IN_FILES_MAX"                 : " (die ersten {0} Treffer werden angezeigt)",
     "FIND_IN_FILES_FILE_PATH"           : "Datei: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "Zeile:&nbsp;{0}",
@@ -125,7 +127,6 @@ define({
     "LANGUAGE_MESSAGE"                  : "Bitte wählen Sie die gewünschte Sprache aus der folgenden Liste aus:",
     "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
-
 
     /**
      * ProjectManager
@@ -142,12 +143,25 @@ define({
     "KEYBOARD_SPACE"  : "Leer",
 
     /**
+     * StatusBar strings
+     */
+    "STATUSBAR_CURSOR_POSITION"             : "Zeile {0}, Spalte {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicken, um Einrückung auf Leerzeichen umzuschalten",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicken, um Einrückung auf Tabs umzuschalten",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicken, um die Anzahl Leerzeichen beim Einrücken zu ändern",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klicken, um die Schrittweite von Tabs zu ändern",
+    "STATUSBAR_SPACES"                      : "Leerzeichen",
+    "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite",
+    "STATUSBAR_LINE_COUNT"                  : "{0} Zeilen",
+
+    /**
      * Command Name Constants
      */
 
     // File menu commands
     "FILE_MENU"                           : "Datei",
     "CMD_FILE_NEW"                        : "Neu",
+    "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
@@ -156,6 +170,7 @@ define({
     "CMD_FILE_SAVE"                       : "Speichern",
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
+    "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_QUIT"                            : "Beenden",
 
     // Edit menu commands
@@ -169,6 +184,7 @@ define({
     "CMD_INDENT"                          : "Einrücken",
     "CMD_UNINDENT"                        : "Ausrücken",
     "CMD_DUPLICATE"                       : "Duplizieren",
+    "CMD_DELETE_LINES"                    : "Zeile(n) löschen",
     "CMD_COMMENT"                         : "Zeilen (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeilen nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeilen nach unten verschieben",
@@ -191,6 +207,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
+    "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
@@ -201,7 +218,6 @@ define({
     "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
-    "CMD_USE_TAB_CHARS"                   : "Mit Tabs einrücken",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
     "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
 
@@ -212,12 +228,15 @@ define({
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
-    "CMD_ABORT_QUIT"                      : "Abort Quit",
+    "CMD_ABORT_QUIT"                      : "Beenden abbrechen",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "JSLINT_ERRORS"                        : "JSLint-Fehler",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
     "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
+    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
     "SEARCH_RESULTS"                       : "Suchergebnisse",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nicht speichern",
@@ -228,7 +247,7 @@ define({
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
     "ABOUT"                                : "Über",
-    "APP_NAME"                             : "xBrackets",
+    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} experimenteller Build {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",

@@ -38,10 +38,26 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
         contexts            = {},
-        globalConfig        = {
-            "text" : "../../../thirdparty/text",
-            "i18n" : "../../../thirdparty/i18n"
+        srcPath             = FileUtils.getNativeBracketsDirectoryPath();
+    
+    // The native directory path ends with either "test" or "src". We need "src" to
+    // load the text and i18n modules.
+    srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
+
+    var globalConfig        = {
+            "text" : srcPath + "/thirdparty/text",
+            "i18n" : srcPath + "/thirdparty/i18n"
         };
+    
+    /**
+     * Returns the full path of the default user extensions directory. This is in the users
+     * application support directory, which is typically
+     * /Users/<user>/Application Support/Brackets/extensions/user on the mac, and
+     * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
+     */
+    function getUserExtensionPath() {
+        return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
+    }
     
     /**
      * Returns the require.js require context used to load an extension
@@ -70,7 +86,7 @@ define(function (require, exports, module) {
                 baseUrl: config.baseUrl,
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
                 paths: globalConfig,
-                locale: window.localStorage.getItem("locale") || brackets.app.language
+                locale: brackets.getLocale()
             });
         contexts[name] = extensionRequire;
 
@@ -215,6 +231,7 @@ define(function (require, exports, module) {
         return _loadAll(directory, config, "unittests", testExtension);
     }
     
+    exports.getUserExtensionPath = getUserExtensionPath;
     exports.getRequireContextForExtension = getRequireContextForExtension;
     exports.loadExtension = loadExtension;
     exports.testExtension = testExtension;
