@@ -254,6 +254,6 @@ define({
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings",
-    "PROJECT_SETTING_URL_MAPPING"          : "Live Preview URL Mapping",
-    "PROJECT_SETTING_URL_MAPPING_HINT"     : "(leave blank for file url)"
+    "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)"
 });

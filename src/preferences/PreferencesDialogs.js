@@ -41,30 +41,29 @@ define(function (require, exports, module) {
      */
     function showProjectPreferencesDialog(prefs, projectPath) {
 
-        var keyUrlMapping = "projectUrlMapping_" + projectPath,
-            $dlg,
-            $urlMappingControl,
-            urlMappingValue;
+        var $dlg,
+            $baseUrlControl,
+            baseUrlValue;
 
         Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
-                    urlMappingValue = $urlMappingControl.val();
-                    ProjectManager.setUrlMapping(urlMappingValue);
+                    baseUrlValue = $baseUrlControl.val();
+                    ProjectManager.setBaseUrl(baseUrlValue);
                 }
             });
 
         // Populate project settings
         $dlg = $(".project-settings-dialog.instance");
 
-        $urlMappingControl = $dlg.find(".url-mapping");
-        urlMappingValue = ProjectManager.getUrlMapping();
-        if (urlMappingValue && (urlMappingValue !== "")) {
-            $urlMappingControl.val(urlMappingValue);
+        $baseUrlControl = $dlg.find(".base-url");
+        baseUrlValue = ProjectManager.getBaseUrl();
+        if (baseUrlValue && (baseUrlValue !== "")) {
+            $baseUrlControl.val(baseUrlValue);
         }
 
         // Give focus to first control
-        $urlMappingControl.focus();
+        $baseUrlControl.focus();
     }
 
     exports.showProjectPreferencesDialog    = showProjectPreferencesDialog;

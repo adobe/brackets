@@ -119,9 +119,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @ see getUrlMapping(), setUrlMapping()
+     * @ see getBaseUrl(), setBaseUrl()
      */
-    var _projectUrlMapping = "";
+    var _projectBaseUrl = "";
 
     /**
      * Unique PreferencesManager clientID
@@ -228,27 +228,27 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function _getUrlMappingKey() {
-        return "projectUrlMapping_" + _projectRoot;
+    function _getBaseUrlKey() {
+        return "projectBaseUrl_" + _projectRoot;
     }
 
     /**
-     * Returns the URL Mapping of the currently loaded project, or empty string if no project is open
+     * Returns the Base URL of the currently loaded project, or empty string if no project is open
      * (during startup, or running outside of app shell).
      * @return {String}
      */
-    function getUrlMapping() {
-        return _projectUrlMapping;
+    function getBaseUrl() {
+        return _projectBaseUrl;
     }
 
     /**
-     * Sets the URL Mapping of the currently loaded project.
+     * Sets the Base URL of the currently loaded project.
      * @param {String}
      */
-    function setUrlMapping(projectUrlMapping) {
-        _projectUrlMapping = projectUrlMapping;
+    function setBaseUrl(projectBaseUrl) {
+        _projectBaseUrl = projectBaseUrl;
 
-        _prefs.setValue(_getUrlMappingKey(), _projectUrlMapping);
+        _prefs.setValue(_getBaseUrlKey(), _projectBaseUrl);
     }
     
     /**
@@ -738,7 +738,7 @@ define(function (require, exports, module) {
                         canonPath = FileUtils.canonicalizeFolderPath(rootPath);
 
                     _projectRoot = rootEntry;
-                    _projectUrlMapping = _prefs.getValue(_getUrlMappingKey());
+                    _projectBaseUrl = _prefs.getValue(_getBaseUrlKey());
 
                     // If this is the current welcome project, record it. In future launches, we always 
                     // want to substitute the welcome project for the current build instead of using an
@@ -1301,8 +1301,8 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
-    exports.getUrlMapping            = getUrlMapping;
-    exports.setUrlMapping            = setUrlMapping;
+    exports.getBaseUrl               = getBaseUrl;
+    exports.setBaseUrl               = setBaseUrl;
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;

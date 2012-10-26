@@ -172,13 +172,13 @@ define(function LiveDevelopment(require, exports, module) {
         // Verify doc is in current project
         if (ProjectManager.isWithinProject(doc.file.fullPath)) {
 
-            // See if url mapping has been specified
-            var urlMapping = ProjectManager.getUrlMapping();
-            if (urlMapping !== "") {
+            // See if base url has been specified
+            var baseUrl = ProjectManager.getBaseUrl();
+            if (baseUrl !== "") {
 
                 // Map to server url
-                var url =  urlMapping;
-                if (urlMapping[urlMapping-1] !== "/") {
+                var url =  baseUrl;
+                if (baseUrl[baseUrl-1] !== "/") {
                     url += "/";
                 }
 
