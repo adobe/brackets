@@ -337,6 +337,7 @@ define(function (require, exports, module) {
             .jstree(
                 {
                     plugins : ["ui", "themes", "json_data", "crrm", "sort"],
+                    ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
                     json_data : { data: treeDataProvider, correct_state: false },
                     core : { animation: 0 },
                     themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
