@@ -6,9 +6,14 @@ if [[ ${1} == "" ]]; then
   echo "Runs unit tests for Brackets"
   echo ""
   echo "Parameters: application  - full path to the Brackets application"
-  echo "            results_path - URL encoded full path to output JSON results (defaults to results.json in current dir)"
+  echo "            results_path - path to output JSON results (defaults to results.json in current dir)"
+  echo "                           ~ tilde will expand, use URL encoding otherwise. Slashes are ok."
   echo "            spec_name    - name of the suite or spec to run (default: all)"
-  echo "Example: ./run_tests.sh /Applications/Brackets Sprint 16.app ~/Desktop/Brackets%20Results/results.json all"
+  if [[ "$OSTYPE" == "msys"* ]]; then
+    echo "Example: ./run_tests.sh /c/Program\ Files\ \(x86\)/Brackets\ Sprint\ 16/Brackets.exe /c/Brackets%20Results/results.json all"
+  else
+    echo "Example: ./run_tests.sh /Applications/Brackets\ Sprint\ 16.app ~/Desktop/Brackets%20Results/results.json all"
+  fi
   exit;
 fi
 
@@ -53,6 +58,7 @@ root_dir=${full_path%/*/*}
 # TODO regex match drive letter
 if [[ "$OSTYPE" == "msys"* ]]; then
   root_dir=${root_dir/\/c\//c:\\}
+  results_path=${results_path/\/c\//c:\\}
 fi
 
 args="--startup-path=$root_dir/test/SpecRunner.html?spec=$spec_name&resultsPath=$results_path"
@@ -62,5 +68,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 else
   # convert slashes
   args=${args//\//\\}
+  echo $args
   "${1}" $args
 fi;
