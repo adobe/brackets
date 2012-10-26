@@ -93,10 +93,10 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "正規表現による検索には /re/ シンタックスを使用してください",
-    "WITH"                              : "With",
+    "WITH"                              : "置換後の文字列",
     "BUTTON_YES"                        : "はい",
     "BUTTON_NO"                         : "いいえ",
-    "BUTTON_STOP"                       : "停止",
+    "BUTTON_STOP"                       : "終了",
 
     "OPEN_FILE"                         : "ファイルを開く",
     "CHOOSE_FOLDER"                     : "フォルダを選択",
