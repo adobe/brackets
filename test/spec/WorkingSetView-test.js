@@ -231,15 +231,18 @@ define(function (require, exports, module) {
         it("should show the file in project tree when a file is being renamed", function () {
             runs(function () {
                 var $ = testWindow.$;
-                var secondItem =  $($("#open-files-container > ul").children()[1]);
+                var secondItem =  $("#open-files-container > ul").children().eq(1);
                 var fileName = secondItem.text();
                 secondItem.trigger('click');
                 
+                // Calling FILE_RENAME synchronously works fine here since the item is already visible in project file tree.
+                // However, if the selected item is not already visible in the tree, this command will complete asynchronously.
+                // In that case, waitsFor will be needed before continuing with the rest of the test.
                 CommandManager.execute(Commands.FILE_RENAME);
                 
                 var $projectFileItems = $("#project-files-container > ul").children();
     
-                expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val() === fileName).toBeTruthy();
+                expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
             });
         });
             
