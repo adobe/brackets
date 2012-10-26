@@ -178,7 +178,7 @@ define(function LiveDevelopment(require, exports, module) {
 
                 // Map to server url
                 var url =  baseUrl;
-                if (baseUrl[baseUrl-1] !== "/") {
+                if (baseUrl[baseUrl.length - 1] !== "/") {
                     url += "/";
                 }
 

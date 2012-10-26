@@ -738,7 +738,7 @@ define(function (require, exports, module) {
                         canonPath = FileUtils.canonicalizeFolderPath(rootPath);
 
                     _projectRoot = rootEntry;
-                    _projectBaseUrl = _prefs.getValue(_getBaseUrlKey());
+                    _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
 
                     // If this is the current welcome project, record it. In future launches, we always 
                     // want to substitute the welcome project for the current build instead of using an
