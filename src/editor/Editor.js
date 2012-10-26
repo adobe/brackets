@@ -537,15 +537,6 @@ define(function (require, exports, module) {
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
         
-        if (this._visibleRange) {
-            // _visibleRange has already updated via its own Document listener, when we pushed our
-            // change into the Document above (_masterEditor._applyChanges()). But changes due to our
-            // own edits should never cause the range to lose sync - verify that.
-            if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");
-            }
-        }
-        
         CodeHintManager.handleChange(this);
     };
     
