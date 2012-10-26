@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      * Loads the extension that lives at baseUrl into its own Require.js context
      *
      * @param {!string} name, used to identify the extension
-     * TODO: FIXME @param {!string} baseUrl, URL path relative to index.html, where the main JS file can be found
+     * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
      * @return {!$.Promise} A promise object that is resolved when the extension is loaded.
      */
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
      * Runs unit tests for the extension that lives at baseUrl into its own Require.js context
      *
      * @param {!string} name, used to identify the extension
-     * TODO: FIXME @param {!string} baseUrl, URL path relative to index.html, where the main JS file can be found
+     * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} directory, an absolute native path that contains a directory of extensions.
      *                  each subdirectory is interpreted as an independent extension
-     * @param {!string} baseUrl, URL path relative to index.html that maps to the same place as directory
+     * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension folder
      * @param {!string} entryPoint Module name to load (without .js suffix)
      * @param {function} processExtension 
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
