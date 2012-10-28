@@ -382,9 +382,14 @@ a, img {
         .settings {
             position: absolute;
             right: 8px;
-            width: 14px;
-            height: 14px;
-            background-image: url("images/settings_small.svg");
+            .sprite-icon(0, 0, 14px, 14px, "images/settings_small.svg");
+
+            &:hover {
+                .sprite-swap(0, 14px);
+            }
+            &:active {
+                .sprite-swap(0, 28px);
+            }
         }
     }
 
