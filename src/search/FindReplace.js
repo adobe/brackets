@@ -222,7 +222,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     clearSearch(cm);
-                    var cursor = getSearchCursor(cm, query, cm.getCursor());
+                    var cursor = getSearchCursor(cm, query, cm.getCursor(true));
                     var advance = function () {
                         var start = cursor.from(),
                             match = cursor.findNext();
