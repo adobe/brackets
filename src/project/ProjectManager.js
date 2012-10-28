@@ -248,6 +248,12 @@ define(function (require, exports, module) {
     function setBaseUrl(projectBaseUrl) {
         _projectBaseUrl = projectBaseUrl;
 
+        // Ensure trailing slash to be consistent with _projectRoot.fullPath
+        // so they're interchangable (i.e. easy to convert back and forth)
+        if (_projectBaseUrl.length > 0 && _projectBaseUrl[_projectBaseUrl.length - 1] !== "/") {
+            _projectBaseUrl += "/";
+        }
+
         _prefs.setValue(_getBaseUrlKey(), _projectBaseUrl);
     }
     

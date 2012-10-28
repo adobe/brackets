@@ -115,24 +115,46 @@ define(function LiveDevelopment(require, exports, module) {
         // FUTURE: some of these things should just be moved into core Document; others should
         // be in a LiveDevelopment-specific object attached to the doc.
         var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
-        if (matches) {
-            var prefix = "file://";
-
-            // The file.fullPath on Windows starts with a drive letter ("C:").
-            // In order to make it a valid file: URL we need to add an 
-            // additional slash to the prefix.
-            if (brackets.platform === "win") {
-                prefix += "/";
-            }
-
-            doc.extension = matches[3];
-            doc.url = encodeURI(prefix + doc.file.fullPath);
-
-            // the root represents the document that should be displayed in the browser
-            // for live development (the file for HTML files, index.html for others)
-            var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-            doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
+        if (!matches) {
+            return;
         }
+
+        var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+        doc.extension = matches[3];
+
+        // Check if doc is in current project
+        if (ProjectManager.isWithinProject(doc.file.fullPath)) {
+
+            // See if base url has been specified
+            var baseUrl = ProjectManager.getBaseUrl();
+            if (baseUrl !== "") {
+
+                // Map to server url
+                var serverUrl = doc.file.fullPath.replace(ProjectManager.getProjectRoot().fullPath, baseUrl);
+                doc.url = encodeURI(serverUrl);
+
+                if (!/^html?$/.test(matches[3])) {
+                    serverUrl = serverUrl.replace(fileName, "index.html");
+                }
+                doc.root = {url: encodeURI(serverUrl)};
+                return;
+            }
+        }
+
+        var prefix = "file://";
+
+        // The file.fullPath on Windows starts with a drive letter ("C:").
+        // In order to make it a valid file: URL we need to add an
+        // additional slash to the prefix.
+        if (brackets.platform === "win") {
+            prefix += "/";
+        }
+
+        doc.url = encodeURI(prefix + doc.file.fullPath);
+
+        // the root represents the document that should be displayed in the browser
+        // for live development (the file for HTML files, index.html for others)
+        doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
     }
 
     /** Get the current document from the document manager
@@ -161,35 +183,6 @@ define(function LiveDevelopment(require, exports, module) {
         default:
             return null;
         }
-    }
-
-    /** Determine url for document and project
-     * @param {Document} document
-     * @param {String} projectPath
-     */
-    function _getUrl(doc) {
-
-        // Verify doc is in current project
-        if (ProjectManager.isWithinProject(doc.file.fullPath)) {
-
-            // See if base url has been specified
-            var baseUrl = ProjectManager.getBaseUrl();
-            if (baseUrl !== "") {
-
-                // Map to server url
-                var url =  baseUrl;
-                if (baseUrl[baseUrl.length - 1] !== "/") {
-                    url += "/";
-                }
-
-                // Add relative path to file
-                url += doc.file.fullPath.slice(ProjectManager.getProjectRoot().fullPath.length);
-                return url;
-            }
-        }
-
-        // Otherwise use file url
-        return doc.root.url;
     }
 
     /**
@@ -232,8 +225,15 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Convert a file: URL to a local full file path */
     function _urlToPath(url) {
-        var path;
-        if (url.indexOf("file://") === 0) {
+        var path,
+            baseUrl = ProjectManager.getBaseUrl();
+
+        if (baseUrl != "" && url.indexOf(baseUrl) === 0) {
+            // Use base url to translte to local file path
+            path = url.replace(baseUrl, ProjectManager.getProjectRoot().fullPath);
+
+        } else if (url.indexOf("file://") === 0) {
+            // Convert a file URL to local file path
             path = url.slice(7);
             if (path && brackets.platform === "win" && path.charAt(0) === "/") {
                 path = path.slice(1);
@@ -411,8 +411,7 @@ define(function LiveDevelopment(require, exports, module) {
             }
 
             _setStatus(STATUS_CONNECTING);
-            var docUrl = _getUrl(doc);
-            Inspector.connectToURL(docUrl).then(result.resolve, function onConnectFail(err) {
+            Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -456,7 +455,7 @@ define(function LiveDevelopment(require, exports, module) {
                     // on Windows where Chrome can't be opened more than once with the
                     // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        docUrl,
+                        doc.root.url,
                         err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
@@ -484,7 +483,7 @@ define(function LiveDevelopment(require, exports, module) {
 
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(docUrl).then(result.resolve, onConnectFail);
+                        Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
                     }, 500);
                 }
             });
