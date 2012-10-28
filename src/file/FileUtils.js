@@ -254,7 +254,7 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if the file entry was updated
      */
     function updateFileEntryPath(entry, oldName, newName) {
-        if (entry.fullPath.indexOf(oldName) === 0) {
+        if (entry.fullPath === oldName) {
             var fullPath = entry.fullPath.replace(oldName, newName);
             
             entry.fullPath = fullPath;
