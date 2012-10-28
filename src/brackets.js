@@ -34,7 +34,7 @@ require.config({
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || brackets.app.language
+    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });
 
 /**
@@ -110,16 +110,6 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("utils/ExtensionUtils");
     
-    /**
-     * Returns the full path of the default user extensions directory. This is in the users
-     * application support directory, which is typically
-     * /Users/<user>/Application Support/Brackets/extensions/user on the mac, and
-     * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
-     */
-    function _getUserExtensionPath() {
-        return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
-    }
-    
     // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
     // Making this fix will fix a warning (search for issue 1029) related to the global brackets 'ready' event.
     function _initExtensions() {
@@ -127,28 +117,19 @@ define(function (require, exports, module) {
         var paths = params.get("extensions");
         
         if (!paths) {
-            paths = "default,dev," + _getUserExtensionPath();
+            paths = "default,dev," + ExtensionLoader.getUserExtensionPath();
         }
         
         return Async.doInParallel(paths.split(","), function (item) {
-            var extensionPath,
-                relativePath;
+            var extensionPath = item;
             
             // If the item has "/" in it, assume it is a full path. Otherwise, load
             // from our source path + "/extensions/".
             if (item.indexOf("/") === -1) {
                 extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
-                relativePath = "extensions/" + item;
-            } else {
-                extensionPath = item;
-                relativePath = PathUtils.makePathRelative(extensionPath,
-                                                          FileUtils.getNativeBracketsDirectoryPath() + "/");
             }
             
-            return ExtensionLoader.loadAllExtensionsInNativeDirectory(
-                extensionPath,
-                relativePath
-            );
+            return ExtensionLoader.loadAllExtensionsInNativeDirectory(extensionPath);
         });
     }
     
@@ -278,7 +259,8 @@ define(function (require, exports, module) {
             // loading will work correctly without this directory.
             // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
             // during extension loading.
-            new NativeFileSystem.DirectoryEntry().getDirectory(_getUserExtensionPath(), {create: true});
+            new NativeFileSystem.DirectoryEntry().getDirectory(ExtensionLoader.getUserExtensionPath(),
+                                                               {create: true});
             
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
@@ -304,7 +286,7 @@ define(function (require, exports, module) {
         });
         
         // Check for updates
-        if (!params.get("skipUpdateCheck")) {
+        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             UpdateNotification.checkForUpdate();
         }
     }
