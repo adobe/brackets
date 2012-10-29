@@ -59,7 +59,7 @@ define(function (require, exports, module) {
             handler();
         } catch (e) {
             console.error("Exception when calling a 'brackets done loading' handler:");
-            console.error(e.stack);
+            console.log(e.stack);
         }
     }
 

@@ -103,7 +103,7 @@ define(function (require, exports, module) {
                 console.error("[Extension] failed to load " + config.baseUrl, err);
                 if (err.requireType === "define") {
                     // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
-                    console.error(err.stack);
+                    console.log(err.stack);
                 }
                 result.reject();
             });
