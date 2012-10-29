@@ -443,7 +443,7 @@ define(function LiveDevelopment(require, exports, module) {
                             
                             // Append a message to direct users to the troubleshooting page.
                             if (message) {
-                                message += "\n\n\n" + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+                                message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
                             }
 
                             Dialogs.showModalDialog(
