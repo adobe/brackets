@@ -77,7 +77,9 @@ define(function (require, exports, module) {
      * @param {!string} name, used to identify the extension
      * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
-     * @return {!$.Promise} A promise object that is resolved when the extension is loaded.
+     * @return {!$.Promise} A promise object that is resolved when the extension is loaded, or rejected
+     *              if the extension fails to load or throws an exception immediately when loaded.
+     *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
     function loadExtension(name, config, entryPoint) {
         var result = new $.Deferred(),
@@ -92,10 +94,19 @@ define(function (require, exports, module) {
 
         console.log("[Extension] starting to load " + config.baseUrl);
         
-        extensionRequire([entryPoint], function () {
-            console.log("[Extension] finished loading " + config.baseUrl);
-            result.resolve();
-        });
+        extensionRequire([entryPoint],
+            function () {
+                console.log("[Extension] finished loading " + config.baseUrl);
+                result.resolve();
+            },
+            function errback(err) {
+                console.error("[Extension] failed to load " + config.baseUrl, err);
+                if (err.requireType === "define") {
+                    // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
+                    console.log(err.stack);
+                }
+                result.reject();
+            });
         
         return result.promise();
     }
@@ -177,17 +188,19 @@ define(function (require, exports, module) {
                             };
                             return processExtension(item, extConfig, entryPoint);
                         }).always(function () {
-                            // Always resolve the promise even when the extension entry point is missing
+                            // Always resolve the promise even if some extensions had errors
                             result.resolve();
                         });
                     },
                     function (error) {
-                        console.log("[Extension] Error -- could not read native directory: " + directory);
+                        console.error("[Extension] Error -- could not read native directory: " + directory);
+                        result.reject();
                     }
                 );
             },
             function (error) {
-                console.log("[Extension] Error -- could not open native directory: " + directory);
+                console.error("[Extension] Error -- could not open native directory: " + directory);
+                result.reject();
             });
         
         return result.promise();
