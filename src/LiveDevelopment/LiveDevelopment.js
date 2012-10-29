@@ -119,7 +119,6 @@ define(function LiveDevelopment(require, exports, module) {
             return;
         }
 
-        var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
         doc.extension = matches[3];
 
         // Check if doc is in current project
@@ -134,7 +133,7 @@ define(function LiveDevelopment(require, exports, module) {
                 doc.url = encodeURI(serverUrl);
 
                 if (!/^html?$/.test(matches[3])) {
-                    serverUrl = serverUrl.replace(fileName, "index.html");
+                    serverUrl = serverUrl.replace(matches[2], "index.html");
                 }
                 doc.root = {url: encodeURI(serverUrl)};
                 return;
@@ -154,6 +153,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // the root represents the document that should be displayed in the browser
         // for live development (the file for HTML files, index.html for others)
+        var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
         doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
     }
 
@@ -228,7 +228,7 @@ define(function LiveDevelopment(require, exports, module) {
         var path,
             baseUrl = ProjectManager.getBaseUrl();
 
-        if (baseUrl != "" && url.indexOf(baseUrl) === 0) {
+        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
             // Use base url to translte to local file path
             path = url.replace(baseUrl, ProjectManager.getProjectRoot().fullPath);
 
