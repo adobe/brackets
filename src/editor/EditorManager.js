@@ -614,7 +614,7 @@ define(function (require, exports, module) {
     }
     
     function _updateModeInfo(editor) {
-        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForSelection()));
+        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForDocument()));
     }
     
     function _updateFileInfo(editor) {
