@@ -181,7 +181,7 @@ define({
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
     "CMD_DELETE_LINES"                    : "Delete Line",
-    "CMD_COMMENT"                         : "Comment/Uncomment Line",
+    "CMD_COMMENT"                         : "Toggle Line Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
      
