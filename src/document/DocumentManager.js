@@ -773,7 +773,10 @@ define(function (require, exports, module) {
      */
     Document.prototype.batchOperation = function (doOperation) {
         this._ensureMasterEditor();
-        this._masterEditor._codeMirror.operation(doOperation);
+        var codeMirror = this._masterEditor._codeMirror;
+        codeMirror.compoundChange(function () {
+            codeMirror.operation(doOperation);
+        });
     };
     
     /**
