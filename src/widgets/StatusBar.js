@@ -192,7 +192,7 @@ define(function (require, exports, module) {
         // Handle special cases
         if (s === "javascript") {
             return "JavaScript";
-        } else if (s === "html") {
+        } else if (s === "html" || s === "htmlmixed") {
             return "HTML";
         } else if (s === "css") {
             return "CSS";
