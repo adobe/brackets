@@ -440,6 +440,11 @@ define(function LiveDevelopment(require, exports, module) {
                             } else {
                                 message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                             }
+                            
+                            // Append a message to direct users to the troubleshooting page.
+                            if (message) {
+                                message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+                            }
 
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
