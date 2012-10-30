@@ -256,7 +256,7 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Project Settings",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Invalid Base URL protocol: {0}",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Invalid Base URL protocol ({0}). Use http: or https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Search parameters disallowed in Base URL: {0}",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash disallowed in Base URL: {0}",
     "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in Base URL: {0}",
