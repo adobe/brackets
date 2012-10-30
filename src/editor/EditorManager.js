@@ -712,8 +712,7 @@ define(function (require, exports, module) {
         var editor = getCurrentFullEditor();
         
         if (editor && editor.document.file.fullPath === newName) {
-            editor._codeMirror.setOption(
-                "mode",
+            editor.setModeForDocument(
                 EditorUtils.getModeFromFileExtension(editor.document.file.fullPath)
             );
         }
