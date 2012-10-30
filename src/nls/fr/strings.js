@@ -77,6 +77,7 @@ define({
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version de {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec les modifications apportées aux <strong>fichiers CSS</strong> et uniquement dans <strong>Google Chrome</strong>. Nous prévoyons de le rendre bientôt compatible avec les fichiers HTML et JavaScript.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion...",
@@ -180,10 +181,10 @@ define({
 	"CMD_INDENT": "Retrait",
 	"CMD_UNINDENT": "Annuler le retrait",
 	"CMD_DUPLICATE": "Dupliquer",
-	"CMD_DELETE_LINES": "Delete Line(s)",
-	"CMD_COMMENT": "Commenter les lignes/Annuler les commentaires",
-	"CMD_LINE_UP": "Déplacer les lignes vers le haut",
-	"CMD_LINE_DOWN": "Déplacer les lignes vers le bas",
+	"CMD_DELETE_LINES": "Delete Line",
+	"CMD_COMMENT": "Toggle Line Comment",
+	"CMD_LINE_UP": "Move Line Up",
+	"CMD_LINE_DOWN": "Move Line Down",
      
     // View menu commands
 	"VIEW_MENU": "Affichage",
