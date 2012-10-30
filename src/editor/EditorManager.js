@@ -190,7 +190,7 @@ define(function (require, exports, module) {
         if (moveFocus) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
             // If cursor's already on that line, leave it be to preserve column position
-            var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineWidget.id).line;
+            var widgetLine = hostEditor._codeMirror.getLineNumber(inlineWidget.info.line);
             var cursorLine = hostEditor.getCursorPos().line;
             if (cursorLine !== widgetLine) {
                 hostEditor.setCursorPos({ line: widgetLine, pos: 0 });

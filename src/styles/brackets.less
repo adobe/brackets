@@ -632,6 +632,9 @@ ins.jstree-icon {
     /*-webkit-transition: width 0.15s ease-out;*/
     background: @inline-background-color-2;
     
+    /* CodeMirror sets widgets that overlap the gutter to have a z-index of 5. We need to be in front of this. */
+    z-index: 6;
+    
     .selection {
         width: 100%;
         background: #d0d5d5;

@@ -373,14 +373,8 @@ define(function (require, exports, module) {
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
             this._codeMirror.operation(function () {
-                var i;
-                for (i = 0; i < range.startLine; i++) {
-                    self._hideLine(i);
-                }
-                var lineCount = self.lineCount();
-                for (i = range.endLine + 1; i < lineCount; i++) {
-                    self._hideLine(i);
-                }
+                self._hideLines(0, range.startLine);
+                self._hideLines(range.endLine + 1, self.lineCount());
             });
             this.setCursorPos(range.startLine, 0);
         }
@@ -454,15 +448,8 @@ define(function (require, exports, module) {
             cm.operation(function () {
                 // TODO: could make this more efficient by only iterating across the min-max line
                 // range of the union of all changes
-                var i;
-                for (i = 0; i < cm.lineCount(); i++) {
-                    if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
-                        self._hideLine(i);
-                    } else {
-                        // Double-check that the set of NON-hidden lines matches our range too
-                        console.assert(!cm.getLineHandle(i).hidden);
-                    }
-                }
+                self._hideLines(0, self._visibleRange.startLine);
+                self._hideLines(self._visibleRange.endLine + 1, self.lineCount());
             });
         }
     };
@@ -787,15 +774,19 @@ define(function (require, exports, module) {
         return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
     };
 
-    // FUTURE change to "hideLines()" API that hides a range of lines at once in a single operation, then fires offsetTopChanged afterwards.
     /* Hides the specified line number in the editor
-     * @param {!number}
+     * @param {!from} line to start hiding from (inclusive)
+     * @param {!to} line to end hiding at (exclusive)
      */
-    Editor.prototype._hideLine = function (lineNumber) {
-        var value = this._codeMirror.hideLine(lineNumber);
+    Editor.prototype._hideLines = function (from, to) {
+        var value = this._codeMirror.markText(
+            {line: from, ch: 0}, 
+            {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
+            {collapsed: true}
+        );
         
         // when this line is hidden, notify all following inline widgets of a position change
-        this._fireWidgetOffsetTopChanged(lineNumber);
+        this._fireWidgetOffsetTopChanged(from);
         
         return value;
     };
@@ -806,7 +797,9 @@ define(function (require, exports, module) {
      * @returns {!number} height in pixels
      */
     Editor.prototype.totalHeight = function (includePadding) {
-        return this._codeMirror.totalHeight(includePadding);
+        // TODO: need to port totalHeight()
+        // return this._codeMirror.totalHeight(includePadding);        
+        return 400;
     };
 
     /**
@@ -860,12 +853,14 @@ define(function (require, exports, module) {
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget) {
         var self = this;
-        inlineWidget.id = this._codeMirror.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height, function (id) {
-            self._removeInlineWidgetInternal(id);
+        inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent, { coverGutter: true });
+        CodeMirror.on(inlineWidget.info.line, "delete", function () {
+            self._removeInlineWidgetInternal(inlineWidget);
             inlineWidget.onClosed();
         });
         this._inlineWidgets.push(inlineWidget);
         inlineWidget.onAdded();
+        this._codeMirror.refresh();
         
         // once this widget is added, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(pos.line);
@@ -891,7 +886,7 @@ define(function (require, exports, module) {
         var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
         
         // _removeInlineWidgetInternal will get called from the destroy callback in CodeMirror.
-        this._codeMirror.removeInlineWidget(inlineWidget.id);
+        this._codeMirror.removeLineWidget(inlineWidget.info);
         
         // once this widget is removed, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(lineNum);
@@ -901,11 +896,11 @@ define(function (require, exports, module) {
      * Cleans up the given inline widget from our internal list of widgets.
      * @param {number} inlineId  id returned by addInlineWidget().
      */
-    Editor.prototype._removeInlineWidgetInternal = function (inlineId) {
+    Editor.prototype._removeInlineWidgetInternal = function (inlineWidget) {
         var i;
         var l = this._inlineWidgets.length;
         for (i = 0; i < l; i++) {
-            if (this._inlineWidgets[i].id === inlineId) {
+            if (this._inlineWidgets[i] === inlineWidget) {
                 this._inlineWidgets.splice(i, 1);
                 break;
             }
@@ -928,10 +923,11 @@ define(function (require, exports, module) {
      * @param {boolean} ensureVisible Whether to scroll the entire widget into view.
      */
     Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
-        var info = this._codeMirror.getInlineWidgetInfo(inlineWidget.id),
-            oldHeight = (info && info.height) || 0;
+        var node = inlineWidget.htmlContent,
+            oldHeight = (node && $(node).height()) || 0;
         
-        this._codeMirror.setInlineWidgetHeight(inlineWidget.id, height, ensureVisible);
+        // TODO: handle ensureVisible
+        $(node).height(height);
         
         // update position for all following inline editors
         if (oldHeight !== height) {
@@ -947,8 +943,7 @@ define(function (require, exports, module) {
      * @return {number} The line number of the widget or -1 if not found.
      */
     Editor.prototype._getInlineWidgetLineNumber = function (inlineWidget) {
-        var info = this._codeMirror.getInlineWidgetInfo(inlineWidget.id);
-        return (info && info.line) || -1;
+        return this._codeMirror.getLineNumber(inlineWidget.info.line);
     };
     
     /**
