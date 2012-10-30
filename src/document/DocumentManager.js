@@ -206,7 +206,9 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Add
+        // Add to _workingSet making sure we store a different instance from the
+        // one in the Document. See issue #1971 for more details.        
+        file = new NativeFileSystem.FileEntry(file.fullPath);
         _workingSet.push(file);
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
