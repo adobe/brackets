@@ -187,8 +187,7 @@ define(function (require, exports, module) {
             charCount = tagInfo.attr.value.length;
             
             // Special handling for URL hinting -- if the completion is a file name
-            // and not a folder, then close the code hint list even if this is invoked
-            // from a Tab key down.
+            // and not a folder, then close the code hint list.
             if (this.closeOnSelect === false && completion.match(/\/$/) === null) {
                 this.closeOnSelect = true;
             }
