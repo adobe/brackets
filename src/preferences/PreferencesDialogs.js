@@ -101,12 +101,12 @@ define(function (require, exports, module) {
 
         // Base URL
         $baseUrlControl = $dlg.find(".base-url");
-        if (baseUrl && (baseUrl !== "")) {
+        if (baseUrl) {
             $baseUrlControl.val(baseUrl);
         }
 
         // Error message
-        if (errorMessage && errorMessage !== "") {
+        if (errorMessage) {
             $dlg.find(".settings-list").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
         }
 
