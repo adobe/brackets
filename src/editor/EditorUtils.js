@@ -92,6 +92,7 @@ define(function (require, exports, module) {
         case "cfc":
             return "htmlmixed";
 
+        case "svg":
         case "xml":
         case "wxs":  // Wix XML extensions - used in Brackets installer
         case "wxl":
