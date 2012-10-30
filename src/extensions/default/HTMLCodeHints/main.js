@@ -93,10 +93,9 @@ define(function (require, exports, module) {
      * @param {string} completion - text to insert into current code editor
      * @param {Editor} editor
      * @param {Cursor} current cursor location
-     * @param {boolean} tabSelect - true if invoked from Tab key down, false if invoked by mouse clicks or Enter key down
      * @return {boolean} true to close the hint list, false to keep the hint list open.
      */
-    TagHints.prototype.handleSelect = function (completion, editor, cursor, tabSelect) {
+    TagHints.prototype.handleSelect = function (completion, editor, cursor) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
@@ -160,10 +159,9 @@ define(function (require, exports, module) {
      * @param {string} completion - text to insert into current code editor
      * @param {Editor} editor
      * @param {Cursor} current cursor location
-     * @param {boolean} tabSelect - true if invoked from Tab key down, false if invoked by mouse clicks or Enter key down
      * @return {boolean} true to close the hint list, false to keep the hint list open.
      */
-    AttrHints.prototype.handleSelect = function (completion, editor, cursor, tabSelect) {
+    AttrHints.prototype.handleSelect = function (completion, editor, cursor) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
@@ -219,7 +217,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if (tabSelect && this.closeOnSelect === false) {
+        if (this.closeOnSelect === false) {
             return false;
         }
         
