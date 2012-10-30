@@ -22,8 +22,6 @@
         "enable_jslint"     : true,
         "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",
         "update_info_url"   : "http://dev.brackets.io/updates/stable/",
-        "troubleshoot_url"  : "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
-        "html_file_exts"    : "htm,html",
-        "server_file_exts"  : "php,php3,php4,php5,phtm,phtml,cfm,cfml,shtm,shtml"
+        "troubleshoot_url"  : "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev"
     }
 }

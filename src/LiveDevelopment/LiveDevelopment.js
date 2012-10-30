@@ -66,6 +66,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
+    var FileUtils = require("file/FileUtils");
     var NativeApp = require("utils/NativeApp");
     var Dialogs = require("widgets/Dialogs");
     var Strings = require("strings");
@@ -110,6 +111,10 @@ define(function LiveDevelopment(require, exports, module) {
     var _liveDocument; // the document open for live editing.
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
 
+    function _isHtmlFileExt(ext) {
+        return (FileUtils.isStaticHtmlFileExt(ext) || FileUtils.isServerHtmlFileExt(ext));
+    }
+
     /** Augments the given Brackets document with information that's useful for live development. */
     function _setDocInfo(doc) {
         // FUTURE: some of these things should just be moved into core Document; others should
@@ -132,7 +137,9 @@ define(function LiveDevelopment(require, exports, module) {
                 var serverUrl = doc.file.fullPath.replace(ProjectManager.getProjectRoot().fullPath, baseUrl);
                 doc.url = encodeURI(serverUrl);
 
-                if (!/^html?$/.test(matches[3])) {
+                // the root represents the document that should be displayed in the browser
+                // for live development (the file for HTML files, index.html for others)
+                if (!_isHtmlFileExt(matches[3])) {
                     serverUrl = serverUrl.replace(matches[2], "index.html");
                 }
                 doc.root = {url: encodeURI(serverUrl)};
@@ -153,7 +160,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // the root represents the document that should be displayed in the browser
         // for live development (the file for HTML files, index.html for others)
-        var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+        var fileName = _isHtmlFileExt(matches[3]) ? matches[2] : "index.html";
         doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
     }
 
@@ -177,12 +184,13 @@ define(function LiveDevelopment(require, exports, module) {
             return CSSDocument;
         case "js":
             return exports.config.experimental ? JSDocument : null;
-        case "html":
-        case "htm":
-            return exports.config.experimental ? HTMLDocument : null;
-        default:
-            return null;
         }
+
+        if (_isHtmlFileExt(doc.extension)) {
+            return HTMLDocument;
+        }
+
+        return null;
     }
 
     /**
@@ -401,11 +409,7 @@ define(function LiveDevelopment(require, exports, module) {
             showWrongDocError();
 
         } else {
-            // For Sprint 6, we only open live development connections for HTML files
-            // FUTURE: Remove this test when we support opening connections for different
-            // file types.
-
-            if (!exports.config.experimental && (!doc.extension || doc.extension.indexOf('htm') !== 0)) {
+            if (!exports.config.experimental && !_isHtmlFileExt(doc.extension)) {
                 showWrongDocError();
                 return promise;
             }
@@ -520,8 +524,7 @@ define(function LiveDevelopment(require, exports, module) {
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
             } else {
-                /* FUTURE: support live connections for docments other than html */
-                if (exports.config.experimental || (doc.extension && doc.extension.indexOf('htm') === 0)) {
+                if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
                     close();
                     window.setTimeout(open);
                 }
