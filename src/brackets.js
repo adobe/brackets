@@ -268,13 +268,13 @@ define(function (require, exports, module) {
             // loading will work correctly without this directory.
             // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
             // during extension loading.
+            var extensionPath = ExtensionLoader.getUserExtensionPath();
             new NativeFileSystem.DirectoryEntry().getDirectory(ExtensionLoader.getUserExtensionPath(),
                                                                {create: true});
             
             // Create the extensions/disabled directory, too.
-            var disabledExtensionsPath = ExtensionLoader.getUserExtensionPath();
-            disabledExtensionsPath = disabledExtensionsPath.replace(/\/user$/, "/disabled");
-            new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionsPath,
+            var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
+            new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
                                                                {create: true});
             
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
