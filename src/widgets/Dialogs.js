@@ -52,7 +52,8 @@ define(function (require, exports, module) {
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
         DIALOG_ID_ABOUT = "about-dialog",
-        DIALOG_ID_UPDATE = "update-dialog";
+        DIALOG_ID_UPDATE = "update-dialog",
+        DIALOG_ID_PROJECT_SETTINGS = "project-settings-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -225,21 +226,22 @@ define(function (require, exports, module) {
         });
     }
     
-    exports.DIALOG_BTN_CANCEL = DIALOG_BTN_CANCEL;
-    exports.DIALOG_BTN_OK = DIALOG_BTN_OK;
+    exports.DIALOG_BTN_CANCEL   = DIALOG_BTN_CANCEL;
+    exports.DIALOG_BTN_OK       = DIALOG_BTN_OK;
     exports.DIALOG_BTN_DONTSAVE = DIALOG_BTN_DONTSAVE;
-    exports.DIALOG_CANCELED = DIALOG_CANCELED;
+    exports.DIALOG_CANCELED     = DIALOG_CANCELED;
     exports.DIALOG_BTN_DOWNLOAD = DIALOG_BTN_DOWNLOAD;
     
-    exports.DIALOG_ID_ERROR = DIALOG_ID_ERROR;
-    exports.DIALOG_ID_INFO = DIALOG_ID_INFO;
-    exports.DIALOG_ID_SAVE_CLOSE = DIALOG_ID_SAVE_CLOSE;
-    exports.DIALOG_ID_EXT_CHANGED = DIALOG_ID_EXT_CHANGED;
-    exports.DIALOG_ID_EXT_DELETED = DIALOG_ID_EXT_DELETED;
-    exports.DIALOG_ID_LIVE_DEVELOPMENT = DIALOG_ID_LIVE_DEVELOPMENT;
-    exports.DIALOG_ID_ABOUT = DIALOG_ID_ABOUT;
-    exports.DIALOG_ID_UPDATE = DIALOG_ID_UPDATE;
+    exports.DIALOG_ID_ERROR             = DIALOG_ID_ERROR;
+    exports.DIALOG_ID_INFO              = DIALOG_ID_INFO;
+    exports.DIALOG_ID_SAVE_CLOSE        = DIALOG_ID_SAVE_CLOSE;
+    exports.DIALOG_ID_EXT_CHANGED       = DIALOG_ID_EXT_CHANGED;
+    exports.DIALOG_ID_EXT_DELETED       = DIALOG_ID_EXT_DELETED;
+    exports.DIALOG_ID_LIVE_DEVELOPMENT  = DIALOG_ID_LIVE_DEVELOPMENT;
+    exports.DIALOG_ID_ABOUT             = DIALOG_ID_ABOUT;
+    exports.DIALOG_ID_UPDATE            = DIALOG_ID_UPDATE;
+    exports.DIALOG_ID_PROJECT_SETTINGS  = DIALOG_ID_PROJECT_SETTINGS;
     
-    exports.showModalDialog = showModalDialog;
-    exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;
+    exports.showModalDialog             = showModalDialog;
+    exports.cancelModalDialogIfOpen     = cancelModalDialogIfOpen;
 });
