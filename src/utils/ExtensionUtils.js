@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
@@ -45,7 +45,10 @@ define(function (require, exports, module) {
 
         // Make a request for the same file in order to record success or failure.
         // The link element's onload and onerror events are not consistently supported.
-        $.get(url).done(function () {
+        // On Windows, $.get() fails if the url is a full pathname. To work around this,
+        // prepend "file:///". On the Mac, $.get() works fine if the url is a full pathname,
+        // but *doesn't* work if it is prepended with "file://". Go figure.
+        $.get((brackets.platform === "win" ? "file:///" : "") + url).done(function () {
             var $link = $("<link/>");
             
             $link.attr({

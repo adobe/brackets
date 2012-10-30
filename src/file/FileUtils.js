@@ -230,33 +230,18 @@ define(function (require, exports, module) {
     
     /**
      * Given the module object passed to JS module define function,
-     * convert the path (which is relative to the current window)
-     * to a native absolute path.
+     * convert the path to a native absolute path.
      * Returns a native absolute path to the module folder.
      * @return {string}
      */
     function getNativeModuleDirectoryPath(module) {
-        var path, relPath, index, pathname;
-
+        var path;
+        
         if (module && module.uri) {
-
-            // Remove window name from base path. Maintain trailing slash.
-            path = getNativeBracketsDirectoryPath() + "/";
-
-            // Remove module name from relative path. Remove trailing slash.
-            pathname = decodeURI(module.uri);
-            relPath = pathname.substr(0, pathname.lastIndexOf("/"));
-
-            // handle leading "../" in relative directory
-            while (relPath.substr(0, 3) === "../") {
-                path = path.substr(0, path.length - 1); // strip trailing slash from base path
-                index = path.lastIndexOf("/");          // find next slash from end
-                if (index !== -1) {
-                    path = path.substr(0, index + 1);   // remove last dir while maintaining slash
-                }
-                relPath = relPath.substr(3);            // remove leading "../" from relative path
-            }
-            path += relPath;
+            path = decodeURI(module.uri);
+            
+            // Remove module name and trailing slash from path.
+            path = path.substr(0, path.lastIndexOf("/"));
         }
         return path;
     }

@@ -110,8 +110,7 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("utils/ExtensionUtils");
     
-    // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
-    // Making this fix will fix a warning (search for issue 1029) related to the global brackets 'ready' event.
+    
     function _initExtensions() {
         // allow unit tests to override which plugin folder(s) to load
         var paths = params.get("extensions");
@@ -121,24 +120,15 @@ define(function (require, exports, module) {
         }
         
         return Async.doInParallel(paths.split(","), function (item) {
-            var extensionPath,
-                relativePath;
+            var extensionPath = item;
             
             // If the item has "/" in it, assume it is a full path. Otherwise, load
             // from our source path + "/extensions/".
             if (item.indexOf("/") === -1) {
                 extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
-                relativePath = "extensions/" + item;
-            } else {
-                extensionPath = item;
-                relativePath = PathUtils.makePathRelative(extensionPath,
-                                                          FileUtils.getNativeBracketsDirectoryPath() + "/");
             }
             
-            return ExtensionLoader.loadAllExtensionsInNativeDirectory(
-                extensionPath,
-                relativePath
-            );
+            return ExtensionLoader.loadAllExtensionsInNativeDirectory(extensionPath);
         });
     }
     
@@ -277,9 +267,8 @@ define(function (require, exports, module) {
             new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
                                                                {create: true});
             
-            // WARNING: AppInit.appReady won't fire if ANY extension fails to
-            // load or throws an error during init. To fix this, we need to
-            // make a change to _initExtensions (filed as issue 1029)
+            // Load all extensions, and when done fire APP_READY (even if some extensions failed
+            // to load or initialize)
             _initExtensions().always(function () {
                 AppInit._dispatchReady(AppInit.APP_READY);
             });

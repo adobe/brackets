@@ -1030,7 +1030,7 @@ define(function (require, exports, module) {
      * an *approximation* of whether the mode is consistent across the whole range (a pattern like
      * A-B-A would return A as the mode, not null).
      *
-     * @return {?string} Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     * @return {?(Object|String)} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
      */
     Editor.prototype.getModeForSelection = function () {
         var sel = this.getSelection();
@@ -1057,6 +1057,15 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Gets the syntax-highlighting mode for the document.
+     *
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     */
+    Editor.prototype.getModeForDocument = function () {
+        return this._codeMirror.getOption("mode");
+    };
+
     /**
      * The Document we're bound to
      * @type {!Document}

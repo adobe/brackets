@@ -75,9 +75,11 @@ define(function (require, exports, module) {
      * Loads the extension that lives at baseUrl into its own Require.js context
      *
      * @param {!string} name, used to identify the extension
-     * @param {!string} baseUrl, URL path relative to index.html, where the main JS file can be found
+     * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
-     * @return {!$.Promise} A promise object that is resolved when the extension is loaded.
+     * @return {!$.Promise} A promise object that is resolved when the extension is loaded, or rejected
+     *              if the extension fails to load or throws an exception immediately when loaded.
+     *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
     function loadExtension(name, config, entryPoint) {
         var result = new $.Deferred(),
@@ -92,10 +94,19 @@ define(function (require, exports, module) {
 
         console.log("[Extension] starting to load " + config.baseUrl);
         
-        extensionRequire([entryPoint], function () {
-            console.log("[Extension] finished loading " + config.baseUrl);
-            result.resolve();
-        });
+        extensionRequire([entryPoint],
+            function () {
+                console.log("[Extension] finished loading " + config.baseUrl);
+                result.resolve();
+            },
+            function errback(err) {
+                console.error("[Extension] failed to load " + config.baseUrl, err);
+                if (err.requireType === "define") {
+                    // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
+                    console.log(err.stack);
+                }
+                result.reject();
+            });
         
         return result.promise();
     }
@@ -104,17 +115,13 @@ define(function (require, exports, module) {
      * Runs unit tests for the extension that lives at baseUrl into its own Require.js context
      *
      * @param {!string} name, used to identify the extension
-     * @param {!string} baseUrl, URL path relative to index.html, where the main JS file can be found
+     * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
     function testExtension(name, config, entryPoint) {
         var result = new $.Deferred(),
-            extensionPath = FileUtils.getNativeBracketsDirectoryPath();
-        
-        // Assumes the caller's window.location context is /test/SpecRunner.html
-        extensionPath = extensionPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
-        extensionPath += "/" + config.baseUrl + "/" + entryPoint + ".js";
+            extensionPath = config.baseUrl + "/" + entryPoint + ".js";
 
         var fileExists = false, statComplete = false;
         brackets.fs.stat(extensionPath, function (err, stat) {
@@ -123,7 +130,7 @@ define(function (require, exports, module) {
                 // unit test file exists
                 var extensionRequire = brackets.libRequire.config({
                     context: name,
-                    baseUrl: "../src/" + config.baseUrl,
+                    baseUrl: config.baseUrl,
                     paths: $.extend({}, config.paths, globalConfig)
                 });
     
@@ -146,7 +153,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} directory, an absolute native path that contains a directory of extensions.
      *                  each subdirectory is interpreted as an independent extension
-     * @param {!string} baseUrl, URL path relative to index.html that maps to the same place as directory
+     * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension folder
      * @param {!string} entryPoint Module name to load (without .js suffix)
      * @param {function} processExtension 
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
@@ -181,17 +188,19 @@ define(function (require, exports, module) {
                             };
                             return processExtension(item, extConfig, entryPoint);
                         }).always(function () {
-                            // Always resolve the promise even when the extension entry point is missing
+                            // Always resolve the promise even if some extensions had errors
                             result.resolve();
                         });
                     },
                     function (error) {
-                        console.log("[Extension] Error -- could not read native directory: " + directory);
+                        console.error("[Extension] Error -- could not read native directory: " + directory);
+                        result.reject();
                     }
                 );
             },
             function (error) {
-                console.log("[Extension] Error -- could not open native directory: " + directory);
+                console.error("[Extension] Error -- could not open native directory: " + directory);
+                result.reject();
             });
         
         return result.promise();
@@ -202,11 +211,10 @@ define(function (require, exports, module) {
      *
      * @param {!string} directory, an absolute native path that contains a directory of extensions.
      *                  each subdirectory is interpreted as an independent extension
-     * @param {!string} baseUrl, URL path relative to index.html that maps to the same place as directory
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
-    function loadAllExtensionsInNativeDirectory(directory, baseUrl) {
-        return _loadAll(directory, {baseUrl: baseUrl}, "main", loadExtension);
+    function loadAllExtensionsInNativeDirectory(directory) {
+        return _loadAll(directory, {baseUrl: directory}, "main", loadExtension);
     }
     
     /**
@@ -214,13 +222,12 @@ define(function (require, exports, module) {
      *
      * @param {!string} directory, an absolute native path that contains a directory of extensions.
      *                  each subdirectory is interpreted as an independent extension
-     * @param {!string} baseUrl, URL path relative to index.html that maps to the same place as directory
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
-    function testAllExtensionsInNativeDirectory(directory, baseUrl) {
+    function testAllExtensionsInNativeDirectory(directory) {
         var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
             config = {
-                baseUrl: baseUrl
+                baseUrl: directory
             };
         
         config.paths = {
