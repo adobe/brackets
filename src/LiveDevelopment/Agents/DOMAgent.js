@@ -174,7 +174,6 @@ define(function DOMAgent(require, exports, module) {
 
     /** Load the source document and match it with the DOM tree*/
     function _onFinishedLoadingDOM() {
-        console.assert(exports.url.substr(0, 7) === "file://", "Can only load file urls");
         var request = new XMLHttpRequest();
         request.open("GET", exports.url);
         request.onload = function onLoad() {
