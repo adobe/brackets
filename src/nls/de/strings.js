@@ -77,6 +77,7 @@ define({
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei, um die Live-Vorschau zu starten.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a class=\"clickable-link\" data-href=\"{0}\">Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden...",
