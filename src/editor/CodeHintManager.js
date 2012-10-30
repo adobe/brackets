@@ -77,7 +77,7 @@ define(function (require, exports, module) {
      * @string {string} completion - text to insert into current code editor
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
-        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), true);
+        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), false);
         this.close();
     };
 
@@ -87,7 +87,9 @@ define(function (require, exports, module) {
      * @string {string} completion - text to insert into current code editor
      */
     CodeHintList.prototype._handleItemSelect = function (completion) {
-        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), false);
+        if (this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), true)) {
+            this.close();
+        }
     };
 
     /**
@@ -224,7 +226,9 @@ define(function (require, exports, module) {
 
             } else if (keyCode === KeyEvent.DOM_VK_TAB) {
                 // Tab key is used for "select and continue hinting"
-                $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("select");
+                if (event.type === "keydown") {
+                    $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("select");
+                }
                 event.preventDefault();
             }
         }
@@ -442,7 +446,7 @@ define(function (require, exports, module) {
      *
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
-     *                  handleSelect: function(string, Editor, cursor, closeHints),
+     *                  handleSelect: function(string, Editor, cursor, tabSelect),
      *                  shouldShowHintsOnKey: function(string)>}
      *
      * Parameter Details:
@@ -452,7 +456,9 @@ define(function (require, exports, module) {
      * - search - takes a query object and returns an array of hint strings based on the queryStr property
      *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
-     *      position
+     *      position. It should return true by default to close the hint list, but the code hint provider can 
+     *      check tabSelect parameter and then return false if it wants to keep the hint list open on selection 
+     *      with Tab key.
      * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {

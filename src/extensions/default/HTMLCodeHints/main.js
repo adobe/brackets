@@ -93,9 +93,10 @@ define(function (require, exports, module) {
      * @param {string} completion - text to insert into current code editor
      * @param {Editor} editor
      * @param {Cursor} current cursor location
-     * @param {boolean} closeHints - true to close hints, or false to continue hinting
+     * @param {boolean} tabSelect - true if invoked from Tab key down, false if invoked by mouse clicks or Enter key down
+     * @return {boolean} true to close the hint list, false to keep the hint list open.
      */
-    TagHints.prototype.handleSelect = function (completion, editor, cursor, closeHints) {
+    TagHints.prototype.handleSelect = function (completion, editor, cursor, tabSelect) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
@@ -116,6 +117,8 @@ define(function (require, exports, module) {
                 editor.document.replaceRange(completion, start);
             }
         }
+        
+        return true;
     };
 
     /**
@@ -133,6 +136,10 @@ define(function (require, exports, module) {
     function AttrHints() {
         this.globalAttributes = this.readGlobalAttrHints();
         this.cachedHints = null;
+        
+        // Used in URL hinting to keep the popup list open
+        // by setting this to false.
+        this.closeOnSelect = true;
     }
 
     /**
@@ -153,9 +160,10 @@ define(function (require, exports, module) {
      * @param {string} completion - text to insert into current code editor
      * @param {Editor} editor
      * @param {Cursor} current cursor location
-     * @param {boolean} closeHints - true to close hints, or false to continue hinting
+     * @param {boolean} tabSelect - true if invoked from Tab key down, false if invoked by mouse clicks or Enter key down
+     * @return {boolean} true to close the hint list, false to keep the hint list open.
      */
-    AttrHints.prototype.handleSelect = function (completion, editor, cursor, closeHints) {
+    AttrHints.prototype.handleSelect = function (completion, editor, cursor, tabSelect) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
@@ -179,6 +187,14 @@ define(function (require, exports, module) {
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
+            
+            // Special handling for URL hinting -- if the completion is a file name
+            // and not a folder, then close the code hint list even if this is invoked
+            // from a Tab key down.
+            if (this.closeOnSelect === false && completion.match(/\/$/) === null) {
+                this.closeOnSelect = true;
+            }
+            
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
                 if (endQuote) {
@@ -203,18 +219,22 @@ define(function (require, exports, module) {
             }
         }
 
-        if (closeHints) {
-            if (insertedName) {
-                editor.setCursorPos(start.line, start.ch + completion.length - 1);
-
-                // Since we're now inside the double-quotes we just inserted,
-                // immediately pop up the attribute value hint.
-                CodeHintManager.showHint(editor);
-            } else if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
-                // Move the cursor to the right of the existing end quote after value insertion.
-                editor.setCursorPos(start.line, start.ch + completion.length + 1);
-            }
+        if (tabSelect && this.closeOnSelect === false) {
+            return false;
         }
+        
+        if (insertedName) {
+            editor.setCursorPos(start.line, start.ch + completion.length - 1);
+
+            // Since we're now inside the double-quotes we just inserted,
+            // immediately pop up the attribute value hint.
+            CodeHintManager.showHint(editor);
+        } else if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
+            // Move the cursor to the right of the existing end quote after value insertion.
+            editor.setCursorPos(start.line, start.ch + completion.length + 1);
+        }
+        
+        return true;
     };
 
     /**
@@ -408,6 +428,8 @@ define(function (require, exports, module) {
                 unfiltered = [],
                 sortFunc = null;
 
+            this.closeOnSelect = true;
+            
             if (attrName) {
                 // We look up attribute values with tagName plus a slash and attrName first.  
                 // If the lookup fails, then we fall back to look up with attrName only. Most 
@@ -421,6 +443,7 @@ define(function (require, exports, module) {
                     if (attrInfo.type === "boolean") {
                         unfiltered = ["false", "true"];
                     } else if (attrInfo.type === "url") {
+                        this.closeOnSelect = false;
                         unfiltered = this._getUrlList(query);
                         sortFunc = StringUtils.urlSort;
                     } else if (attrInfo.attribOption) {
