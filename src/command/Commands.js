@@ -73,6 +73,10 @@ define(function (require, exports, module) {
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
     exports.TOGGLE_JSLINT               = "debug.jslint";
+    exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";
+    exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";
+    exports.SORT_WORKINGSET_BY_MRU      = "view.sortWorkingSetByMRU";
+    exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";
     
     // Navigate
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";

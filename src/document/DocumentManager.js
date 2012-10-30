@@ -176,6 +176,10 @@ define(function (require, exports, module) {
             return file.fullPath === fullPath;
         });
     }
+    
+    function findInWorkingSetMRUOrder(fullPath) {
+        return findInWorkingSet(fullPath, _workingSetMRUOrder);
+    }
 
     /**
      * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
@@ -315,7 +319,18 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Sorts _workingSet using the compare function
+     * @param {function(a, b)} compareFn - the function that will be used inside the JavaScript sort function. This function receives 2 <FileEntryes>
+     *      as parameters and should return a value >0 (sort a to a lower index than b), =0 (leaves a and b unchanged with respect to each other) or <0 
+     *      (sort b to a lower index than a) and must always returns the same value when given a specific pair of elements a and b as its two arguments.
+     *      More information at: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
+     */
+    function sortWorkingSet(compareFn) {
+        _workingSet.sort(compareFn);
+    }
     
+	
     /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
      * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)
@@ -1132,6 +1147,7 @@ define(function (require, exports, module) {
     exports.getOpenDocumentForPath = getOpenDocumentForPath;
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
+    exports.findInWorkingSetMRUOrder = findInWorkingSetMRUOrder;
     exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
@@ -1139,6 +1155,7 @@ define(function (require, exports, module) {
     exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
     exports.swapWorkingSetIndexes = swapWorkingSetIndexes;
+    exports.sortWorkingSet = sortWorkingSet;
     exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
@@ -1148,7 +1165,7 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder", _savePreferences);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder workingSetSort", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");

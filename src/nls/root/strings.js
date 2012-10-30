@@ -192,6 +192,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
+    "CMD_SORT_WORKINGSET_BY_MRU"          : "Sort by Recently View",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
