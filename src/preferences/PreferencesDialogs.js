@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, PathUtils */
 
 /**
  * PreferencesDialogs
@@ -32,34 +32,83 @@
 define(function (require, exports, module) {
     "use strict";
     
+    require("thirdparty/path-utils/path-utils.min");
+
     var Dialogs             = require("widgets/Dialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        ProjectManager      = require("project/ProjectManager");
+        ProjectManager      = require("project/ProjectManager"),
+        StringUtils         = require("utils/StringUtils"),
+        Strings             = require("strings");
+
+    /**
+     * Validate that text string is a valid base url which should map to a server folder
+     * @param {String} url
+     * @return {String} empty string if valid, otherwise error string
+     */
+    function validateBaseUrl(url) {
+        var result = "";
+        // empty url means "no server mapping; use file directly"
+        if (url === "") {
+            return result;
+        }
+
+        var obj = PathUtils.parseUrl(url);
+        if (!obj) {
+            result = Strings.BASEURL_ERROR_UNKOWN_ERROR;
+        } else if (obj.protocol !== "http:"  && obj.protocol !== "https:" &&
+                   obj.protocol !== "shttp:" && obj.protocol !== "") {
+            result = StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, obj.protocol);
+        } else if (obj.search !== "") {
+            result = StringUtils.format(Strings.BASEURL_ERROR_SEARCH_DISALLOWED, obj.search);
+        } else if (obj.hash !== "") {
+            result = StringUtils.format(Strings.BASEURL_ERROR_HASH_DISALLOWED, obj.hash);
+        } else {
+            var index = obj.href.search(/[\^\[\]\{\}<>\\"]+/);
+            if (index !== -1) {
+                result = StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, obj.href[index]);
+            }
+        }
+
+        return result;
+    }
 
     /**
      * Show a dialog that shows the project preferences
+     * @param {PreferenceStorage} prefs
+     * @param {String} baseUrl - initial value
+     * @param {String} errorMessage - error to display
      */
-    function showProjectPreferencesDialog(prefs, projectPath) {
+    function showProjectPreferencesDialog(prefs, baseUrl, errorMessage) {
 
         var $dlg,
-            $baseUrlControl,
-            baseUrlValue;
+            $baseUrlControl;
 
         Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
-                    baseUrlValue = $baseUrlControl.val();
-                    ProjectManager.setBaseUrl(baseUrlValue);
+                    var baseUrlValue = $baseUrlControl.val();
+                    var result = validateBaseUrl(baseUrlValue);
+                    if (result === "") {
+                        ProjectManager.setBaseUrl(baseUrlValue);
+                    } else {
+                        // Re-invoke dialog with result (error message)
+                        showProjectPreferencesDialog(prefs, baseUrlValue, result);
+                    }
                 }
             });
 
         // Populate project settings
         $dlg = $(".project-settings-dialog.instance");
 
+        // Base URL
         $baseUrlControl = $dlg.find(".base-url");
-        baseUrlValue = ProjectManager.getBaseUrl();
-        if (baseUrlValue && (baseUrlValue !== "")) {
-            $baseUrlControl.val(baseUrlValue);
+        if (baseUrl && (baseUrl !== "")) {
+            $baseUrlControl.val(baseUrl);
+        }
+
+        // Error message
+        if (errorMessage && errorMessage !== "") {
+            $dlg.find(".settings-list").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
         }
 
         // Give focus to first control

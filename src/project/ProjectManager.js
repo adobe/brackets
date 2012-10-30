@@ -1289,7 +1289,7 @@ define(function (require, exports, module) {
         });
 
         $("#project-files-header .settings").on("click", function () {
-            PreferencesDialogs.showProjectPreferencesDialog(_prefs, _projectRoot.fullPath);
+            PreferencesDialogs.showProjectPreferencesDialog(_prefs, _projectBaseUrl);
         });
     });
 
