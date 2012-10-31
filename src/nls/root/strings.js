@@ -252,5 +252,14 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
-    "GET_IT_NOW"                           : "Get it now!"
+    "GET_IT_NOW"                           : "Get it now!",
+    "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings",
+    "PROJECT_SETTINGS_TITLE"               : "Project Settings",
+    "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Invalid Base URL protocol ({0}). Use http: or https: .",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Search parameters disallowed in Base URL: {0}",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash disallowed in Base URL: {0}",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in Base URL: {0}",
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL"
 });
