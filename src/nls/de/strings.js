@@ -185,10 +185,10 @@ define({
     "CMD_INDENT"                          : "Einrücken",
     "CMD_UNINDENT"                        : "Ausrücken",
     "CMD_DUPLICATE"                       : "Duplizieren",
-    "CMD_DELETE_LINES"                    : "Zeile(n) löschen",
-    "CMD_COMMENT"                         : "Zeilen (aus-)kommentieren",
-    "CMD_LINE_UP"                         : "Zeilen nach oben verschieben",
-    "CMD_LINE_DOWN"                       : "Zeilen nach unten verschieben",
+    "CMD_DELETE_LINES"                    : "Zeile löschen",
+    "CMD_COMMENT"                         : "Zeile (aus-)kommentieren",
+    "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
+    "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
      
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -256,5 +256,14 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
-    "GET_IT_NOW"                           : "Jetzt updaten!"
+    "GET_IT_NOW"                           : "Jetzt updaten!",
+    "PROJECT_SETTINGS_TOOLTIP"             : "Einstellungen für dieses Projekt",
+    "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
+    "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(leer lassen für Datei-URL)",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Ungültiges Protokoll für Basis-URL ({0}). http: oder https: verwenden.",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Such-Parameter in Basis-URL nicht erlaubt: {0}",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash in Basis-URL nicht erlaubt: {0}",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Ungültiges Zeichen in Basis-URL: {0}",
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL"
 });
