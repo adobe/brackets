@@ -262,7 +262,15 @@ define(function (require, exports, module) {
         
         editor._codeMirror.execCommand("indentLess");
     }
-    
+    function selectLine() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+                from = {line: editor.getSelection().start.line, ch: 0},
+                to   = {line: editor.getSelection().end.line + 1, ch: 0};
+            editor.setSelection(from, to);
+        }
+    }
+
     /**
      * Toggles tabs/spaces preferences
      */
@@ -270,18 +278,8 @@ define(function (require, exports, module) {
         var useTabs = !Editor.getUseTabChar();
         Editor.setUseTabChar(useTabs);
         CommandManager.get(Commands.TOGGLE_USE_TAB_CHARS).setChecked(useTabs);
-
-    function selectLine() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            var cursor = editor.getCursorPos(),
-                from = editor.getSelectedText === "" ? {line: cursor.line, ch: 0} : {line: editor.getSelection().start.line, ch: 0},
-                to   = {line: cursor.line + 1, ch: 0};
-            editor.setSelection(from, to);
-        }
     }
         
-         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
     CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
@@ -291,5 +289,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
     CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,  toggleUseTabChars)
         .setChecked(Editor.getUseTabChar());
-    CommandManager.register("Select Line",              Commands.EDIT_SELECT_LINE,      selectLine);
+    CommandManager.register(Strings.CMD_SELECT_LINE),   Commands.EDIT_SELECT_LINE,      selectLine);
 });
