@@ -1065,6 +1065,15 @@ define(function (require, exports, module) {
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
     };
+    
+    /**
+     * Sets the syntax-highlighting mode for the document.
+     *
+     * @param {string} mode Name of syntax highlighting mode.
+     */
+    Editor.prototype.setModeForDocument = function (mode) {
+        this._codeMirror.setOption("mode", mode);
+    };
 
     /**
      * The Document we're bound to

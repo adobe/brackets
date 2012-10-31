@@ -69,7 +69,13 @@ define(function (require, exports, module) {
     
     global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
     
-    global.brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
+    if (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") {
+        global.brackets.platform = "mac";
+    } else if (global.navigator.platform.indexOf("Linux") >= 0) {
+        global.brackets.platform = "linux";
+    } else {
+        global.brackets.platform = "win";
+    }
     
     global.brackets.getLocale = function () {
         // By default use the locale that was determined in brackets.js
