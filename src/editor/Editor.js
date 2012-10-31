@@ -574,7 +574,11 @@ define(function (require, exports, module) {
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
-        // onKeyEvent is still an option in CodeMirror v3 rather than an event.
+        // onKeyEvent is an option in CodeMirror rather than an event--it's a
+        // low-level hook for all keyboard events rather than a specific event. For
+        // our purposes, though, it's convenient to treat it as an event internally,
+        // so we bridge it to jQuery events the same way we do ordinary CodeMirror 
+        // events.
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
             return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
@@ -780,7 +784,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype._hideLines = function (from, to) {
         var value = this._codeMirror.markText(
-            {line: from, ch: 0}, 
+            {line: from, ch: 0},
             {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
             {collapsed: true}
         );
