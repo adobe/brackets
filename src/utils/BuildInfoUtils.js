@@ -60,7 +60,7 @@ define(function (require, exports, module) {
                         branch      = text.substr(16).trim();
                     
                     _loadSHA(basePath + "/" + refRelPath, callback).done(function (data) {
-                        result.resolve({ branch: branch, sha: data.sha });
+                        result.resolve({ branch: branch, sha: data.sha.trim() });
                     }).fail(function () {
                         result.resolve({ branch: branch });
                     });

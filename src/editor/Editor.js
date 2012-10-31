@@ -537,15 +537,6 @@ define(function (require, exports, module) {
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
         
-        if (this._visibleRange) {
-            // _visibleRange has already updated via its own Document listener, when we pushed our
-            // change into the Document above (_masterEditor._applyChanges()). But changes due to our
-            // own edits should never cause the range to lose sync - verify that.
-            if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");
-            }
-        }
-        
         CodeHintManager.handleChange(this);
     };
     
@@ -1039,7 +1030,7 @@ define(function (require, exports, module) {
      * an *approximation* of whether the mode is consistent across the whole range (a pattern like
      * A-B-A would return A as the mode, not null).
      *
-     * @return {?string} Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     * @return {?(Object|String)} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
      */
     Editor.prototype.getModeForSelection = function () {
         var sel = this.getSelection();
@@ -1066,6 +1057,24 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Gets the syntax-highlighting mode for the document.
+     *
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     */
+    Editor.prototype.getModeForDocument = function () {
+        return this._codeMirror.getOption("mode");
+    };
+    
+    /**
+     * Sets the syntax-highlighting mode for the document.
+     *
+     * @param {string} mode Name of syntax highlighting mode.
+     */
+    Editor.prototype.setModeForDocument = function (mode) {
+        this._codeMirror.setOption("mode", mode);
+    };
+
     /**
      * The Document we're bound to
      * @type {!Document}

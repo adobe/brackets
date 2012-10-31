@@ -614,7 +614,7 @@ define(function (require, exports, module) {
     }
     
     function _updateModeInfo(editor) {
-        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForSelection()));
+        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForDocument()));
     }
     
     function _updateFileInfo(editor) {
@@ -704,6 +704,19 @@ define(function (require, exports, module) {
             _updateIndentSize();
         }
     }
+    
+    function _onFileNameChange(event, oldName, newName) {
+        
+        // The current document file entry has already been updated.
+        // We only need to update the editor mode to match the new file extension 
+        var editor = getCurrentFullEditor();
+        
+        if (editor && editor.document.file.fullPath === newName) {
+            editor.setModeForDocument(
+                EditorUtils.getModeFromFileExtension(editor.document.file.fullPath)
+            );
+        }
+    }
 
     function _init() {
         StatusBar.init($(".main-view .content"));
@@ -751,6 +764,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
+    $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.

@@ -222,7 +222,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     clearSearch(cm);
-                    var cursor = getSearchCursor(cm, query, cm.getCursor());
+                    var cursor = getSearchCursor(cm, query, cm.getCursor(true));
                     var advance = function () {
                         var start = cursor.from(),
                             match = cursor.findNext();
@@ -247,6 +247,11 @@ define(function (require, exports, module) {
                 }
             });
         });
+        
+        // Prepopulate the replace field with the current selection, if any
+        getDialogTextField()
+            .attr("value", cm.getSelection())
+            .get(0).select();
     }
 
     function _launchFind() {
