@@ -32,6 +32,9 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
+        Editor              = require("editor/Editor").Editor,
+        EditorManager       = require("editor/EditorManager"),
+        ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams;
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
@@ -90,12 +93,11 @@ define(function (require, exports, module) {
         }, "failure " + operationName, 1000);
     };
     
-    
     /**
      * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
      * never be set as the currentDocument or added to the working set.
      */
-    function createMockDocument(initialContent) {
+    function createMockDocument(initialContent, createEditor) {
         // Use unique filename to avoid collissions in open documents list
         var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
         
@@ -120,6 +122,39 @@ define(function (require, exports, module) {
         };
         return docToShim;
     }
+    
+    /**
+     * Returns a Document and Editor suitable for use with an Editor in
+     * isolation: i.e., a Document that will never be set as the
+     * currentDocument or added to the working set.
+     * @return {!{doc:{Document}, editor:{Editor}}}
+     */
+    function createMockEditor(initialContent, mode, visibleRange) {
+        mode = mode || "";
+        
+        // Initialize EditorManager
+        var $editorHolder = $("<div id='mock-editor-holder'/>");
+        EditorManager.setEditorHolder($editorHolder);
+        EditorManager._init();
+        $("body").append($editorHolder);
+        
+        // create dummy Document for the Editor
+        var doc = createMockDocument(initialContent);
+        
+        // create Editor instance
+        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {}, visibleRange);
+        
+        return { doc: doc, editor: editor };
+    }
+    
+    /**
+     * Destroy the Editor instance for a given mock Document.
+     * @param {!Document} doc
+     */
+    function destroyMockEditor(doc) {
+        EditorManager._destroyEditorIfUnneeded(doc);
+        $("#mock-editor-holder").remove();
+    }
 
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
@@ -134,7 +169,9 @@ define(function (require, exports, module) {
             var params = new UrlParams();
             
             // setup extension loading in the test window
-            params.put("extensions", _doLoadExtensions ? "default,user" : "default");
+            params.put("extensions", _doLoadExtensions ?
+                        "default,dev," + ExtensionLoader.getUserExtensionPath() :
+                        "default");
             
             // disable update check in test windows
             params.put("skipUpdateCheck", true);
@@ -546,6 +583,26 @@ define(function (require, exports, module) {
     function setLoadExtensionsInTestWindow(doLoadExtensions) {
         _doLoadExtensions = doLoadExtensions;
     }
+    
+    /**
+     * Extracts the jasmine.log() and/or jasmine.expect() messages from the given result,
+     * including stack traces if available.
+     * @param {Object} result A jasmine result item (from results.getItems()).
+     * @return {string} the error message from that item.
+     */
+    function getResultMessage(result) {
+        var message;
+        if (result.type === 'log') {
+            message = result.toString();
+        } else if (result.type === 'expect' && result.passed && !result.passed()) {
+            message = result.message;
+            
+            if (result.trace.stack) {
+                message = result.trace.stack;
+            }
+        }
+        return message;
+    }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
@@ -554,9 +611,11 @@ define(function (require, exports, module) {
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.createMockDocument              = createMockDocument;
+    exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
     exports.clickDialogButton               = clickDialogButton;
+    exports.destroyMockEditor               = destroyMockEditor;
     exports.loadProjectInTestWindow         = loadProjectInTestWindow;
     exports.openProjectFiles                = openProjectFiles;
     exports.toggleQuickEditAtOffset         = toggleQuickEditAtOffset;
@@ -567,4 +626,5 @@ define(function (require, exports, module) {
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
+    exports.getResultMessage                = getResultMessage;
 });

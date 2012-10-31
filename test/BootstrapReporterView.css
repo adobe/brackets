@@ -1,0 +1,33 @@
+@media (min-width: 728px) {
+    body {
+        /* make the container go all the way to the bottom of the topbar */
+        padding-top: 60px;
+    }
+}
+
+pre {
+    overflow-x: scroll;
+    white-space: pre;
+    word-wrap: normal;
+}
+.nav .badge {
+    float: right;
+}
+
+/* Make fail (red) color bolder so easier to see */
+.label-important, .badge-important {
+    background-color: #F00;
+}
+
+/* Reduce padding between lines to show more tests */
+.nav-pills > li > a {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+@media (max-width: 767px) {
+    /* Reduce font size for smaller viewport */
+    .nav-pills > li > a {
+        font-size: 11px;
+    }
+}

@@ -24,7 +24,7 @@ incomplete or not as useful as you'd want. But if you like the direction
 it's going, please contribute!
 
 The text editor inside Brackets is based on 
-[CodeMirror](http://github.com/marijnh/CodeMirror2)&mdash;thanks to Marijn for
+[CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
 taking our pull requests :) See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on upcoming things we're planning to contribute to CodeMirror.
@@ -47,10 +47,10 @@ The Brackets native shell currently runs on Mac and Windows. Since it's based on
 CEF/Chromium, it could be ported to Linux relatively easily, but that work hasn't 
 been done yet. Stay tuned.
 
-You can download "stable" builds of Brackets from the Download Packages section of the 
-[downloads page](http://github.com/adobe/brackets/downloads).    
-If you want to pull the repo directly via git, see 
-[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
+You can download "stable" builds of Brackets from the **Download Packages** section of the 
+[downloads page](http://github.com/adobe/brackets/downloads)--make sure you download one
+of the .dmg/.msi installers in that section (the "Download as zip/tar.gz" buttons at the 
+top will **not** work). If you want to pull the repo directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
 for instructions on how to get everything. 
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
@@ -68,7 +68,7 @@ for a list of new features and known issues in each build.
 I found a bug/missing feature!
 ------------------------------
      
-Issues starting Brackets the first time? Please review [Troubleshooting] (https://github.com/adobe/brackets/wiki/Troubleshooting).         
+Issues starting Brackets the first time? Please review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting).         
        
 Brackets bugs are tracked in [the Brackets github issue tracker](https://github.com/adobe/brackets/issues). 
 When filing a new bug, please remember to include:

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -1064,6 +1064,52 @@ define(function (require, exports, module) {
                     fullEditor._codeMirror.redo();
                     expectTextToBeEqual(inlineEditor, fullEditor);
                     expectText(fullEditor).toBe(editedText);
+                });
+                
+            });
+            
+            describe("Multiple inline editor interaction", function () {
+                var hostEditor, inlineEditor;
+                beforeEach(function () {
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        hostEditor = EditorManager.getCurrentFullEditor();
+                        inlineEditor = hostEditor.getInlineWidgets()[0].editors[0];
+                    });
+                });
+            
+
+                it("should keep range consistent after undo/redo (bug #1031)", function () {
+                    var secondInlineOpen = false, secondInlineEditor;
+                    
+                    // open inline editor at specified offset index
+                    runs(function () {
+                        hostEditor.focus();
+                        SpecRunnerUtils.toggleQuickEditAtOffset(
+                            hostEditor,
+                            this.infos["test1.html"].offsets[8]
+                        ).done(function (isOpen) {
+                            secondInlineOpen = isOpen;
+                        });
+                    });
+                    
+                    waitsFor(function () { return secondInlineOpen; }, "second inline open timeout", 1000);
+                    
+                    // Not sure why we have to wait in between these for the bug to occur, but we do.
+                    runs(function () {
+                        secondInlineEditor = hostEditor.getInlineWidgets()[1].editors[0];
+                        secondInlineEditor._codeMirror.replaceRange("\n\n\n\n\n", { line: 0, ch: 0 });
+                    });
+                    waits(500);
+                    runs(function () {
+                        secondInlineEditor._codeMirror.undo();
+                    });
+                    waits(500);
+                    runs(function () {
+                        inlineEditor._codeMirror.undo();
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(10, 12));
+                    });
                 });
             });
             

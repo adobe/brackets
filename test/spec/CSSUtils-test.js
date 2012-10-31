@@ -914,9 +914,8 @@ define(function (require, exports, module) {
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                // TODO (issue #389): false positive match from @keyframes animation identifier
-                // result = matchAgain({ tag: "slide" });
-                // expect(result.length).toBe(0);
+                result = matchAgain({ tag: "slide" });
+                expect(result.length).toBe(0);
                 
                 result = matchAgain({ tag: "from" });
                 expect(result.length).toBe(0);
@@ -1013,6 +1012,22 @@ define(function (require, exports, module) {
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
+            });
+            
+            // Issue #1699
+            it("should find the target of combinators with no whitespace", function () {
+                // Child combinator
+                var result = match("foo>section { color: red }", { tag: "section" });
+                expect(result.length).toBe(1);
+                // Adjacent sibling combinator
+                result = match("foo+section { color: red }", { tag: "section" });
+                expect(result.length).toBe(1);
+                // General sibling combinator
+                result = match("foo~section { color: red }", { tag: "section" });
+                expect(result.length).toBe(1);
+                // Invalid combinator
+                result = match("foo!section { color: red }", { tag: "section" });
+                expect(result.length).toBe(0);
             });
         }); // describe("Combinators")        
         

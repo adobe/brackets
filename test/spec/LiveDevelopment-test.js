@@ -22,19 +22,21 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, $*/
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs*/
 
 define(function (require, exports, module) {
     'use strict';
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        CommandManager,
+        Commands,
         NativeApp,      //The following are all loaded from the test window
         LiveDevelopment,
+        DOMAgent,
         Inspector,
         DocumentManager;
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
-        userDataPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-chrome-user-data"),
         testWindow,
         allSpacesRE = /\s+/gi;
     
@@ -108,10 +110,12 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow          = w;
                     LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
+                    DOMAgent            = testWindow.brackets.test.DOMAgent;
                     Inspector           = testWindow.brackets.test.Inspector;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    CommandManager      = testWindow.brackets.test.CommandManager;
+                    Commands            = testWindow.brackets.test.Commands;
                     NativeApp           = testWindow.brackets.test.NativeApp;
-                    NativeApp._setLiveBrowserUserDataDir(userDataPath);
                 });
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -123,23 +127,9 @@ define(function (require, exports, module) {
             runs(function () {
                 LiveDevelopment.close();
             });
-            waitsFor(function () { return !Inspector.connected(); }, "Waiting for to close inspector", 10000);
-            waits(20);
-            NativeApp._setLiveBrowserUserDataDir("");
             
-            if (window.appshell) {
-                runs(function () {
-                    waitsForDone(NativeApp.closeAllLiveBrowsers(), "NativeApp.closeAllLiveBrowsers", 10000);
-                });
-            } else {
-                // Remove this 'else' after migrating to brackets-shell.
-                // brackets-app never resolves the promise for brackets.app.closeLiveBrowser.
-                runs(function () {
-                    NativeApp.closeAllLiveBrowsers();
-                });
-                waits(100);
-            }
-
+            waitsFor(function () { return !Inspector.connected(); }, "Waiting for to close inspector", 10000);
+            
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -254,6 +244,117 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
+                });
+            });
+
+            it("should reapply in-memory css changes after saving changes in html document", function () {
+                var localCssText,
+                    browserCssText,
+                    origHtmlText,
+                    updatedHtmlText,
+                    browserHtmlText,
+                    htmlDoc;
+                
+                // verify we aren't currently connected
+                expect(Inspector.connected()).toBeFalsy();
+                
+                var cssOpened = false;
+                runs(function () {
+                    SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
+                        expect("Failed To Open").toBe("simple1.css");
+                    }).always(function () {
+                        cssOpened = true;
+                    });
+                });
+                waitsFor(function () { return cssOpened; }, "cssOpened FILE_OPEN timeout", 1000);
+                
+                runs(function () {
+                    var curDoc =  DocumentManager.getCurrentDocument();
+                    localCssText = curDoc.getText();
+                    localCssText += "\n .testClass { color:#090; }\n";
+                    curDoc.setText(localCssText);
+                });
+                
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
+                });
+                
+                // Modify some text in test file before starting live connection
+                runs(function () {
+                    htmlDoc =  DocumentManager.getCurrentDocument();
+                    origHtmlText = htmlDoc.getText();
+                    updatedHtmlText = origHtmlText.replace("Brackets is", "Live Preview in Brackets is");
+                    htmlDoc.setText(updatedHtmlText);
+                });
+                                
+                // start the connection
+                var liveDoc, liveHtmlDoc;
+                runs(function () {
+                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
+                });
+                
+                waitsFor(function () {
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC)
+                        && (DOMAgent.root);
+                }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
+                
+                // Grab the node that we've just modified in Brackets.
+                // Verify that we get the original text and not modified text.
+                var originalNode;
+                runs(function () {
+                    originalNode = DOMAgent.nodeAtLocation(230);
+                    expect(originalNode.value).toBe("Brackets is awesome!");
+                });
+                
+                // wait for LiveDevelopment to unload and reload agents after saving
+                var loadingStatus = false,
+                    activeStatus = false,
+                    statusChangeHandler = function (event, status) {
+                        // waits for loading agents status followed by active status
+                        loadingStatus = loadingStatus || status === LiveDevelopment.STATUS_LOADING_AGENTS;
+                        activeStatus = activeStatus || (loadingStatus && status === LiveDevelopment.STATUS_ACTIVE);
+                    };
+                
+                runs(function () {
+                    testWindow.$(LiveDevelopment).on("statusChange", statusChangeHandler);
+
+                    // Save changes to the test file
+                    var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
+                    waitsForDone(promise, "Saving modified html document");
+                });
+                
+                waitsFor(function () {
+                    return loadingStatus && activeStatus;
+                }, "LiveDevelopment re-load and re-activate", 10000);
+                
+                // Grab the node that we've modified in Brackets. 
+                // This time we should have modified text since the file has been saved in Brackets.
+                var updatedNode, doneSyncing = false;
+                runs(function () {
+                    testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
+                    
+                    updatedNode = DOMAgent.nodeAtLocation(230);
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    
+                    liveDoc.getSourceFromBrowser().done(function (text) {
+                        browserCssText = text;
+                        doneSyncing = true;
+                    });
+                });
+                waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
+
+                runs(function () {
+                    expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
+                    
+                    // Verify that we have modified text
+                    expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
+                });
+                    
+                // Save original content back to the file after this test passes/fails
+                runs(function () {
+                    htmlDoc.setText(origHtmlText);
+                    var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
+                    waitsForDone(promise, "Restoring the original html content");
                 });
             });
         });

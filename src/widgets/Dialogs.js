@@ -33,7 +33,9 @@ define(function (require, exports, module) {
     
     require("utils/Global");
 
-    var KeyBindingManager = require("command/KeyBindingManager");
+    var KeyBindingManager = require("command/KeyBindingManager"),
+        KeyEvent          = require("utils/KeyEvent"),
+        NativeApp         = require("utils/NativeApp");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
@@ -50,10 +52,12 @@ define(function (require, exports, module) {
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
         DIALOG_ID_ABOUT = "about-dialog",
-        DIALOG_ID_UPDATE = "update-dialog";
+        DIALOG_ID_UPDATE = "update-dialog",
+        DIALOG_ID_PROJECT_SETTINGS = "project-settings-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
+        $(".clickable-link", dlg).off("click");
         dlg.modal(true).hide();
     }
     
@@ -66,12 +70,16 @@ define(function (require, exports, module) {
             buttonId = null,
             which = String.fromCharCode(e.which);
         
-        if (e.which === 13) {
+        // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
+        var inFormField = ($(e.target).filter(":input").length > 0),
+            inTextArea = (e.target.tagName === "TEXTAREA");
+        
+        if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
             if (primaryBtn) {
                 buttonId = primaryBtn.attr("data-button-id");
             }
-        } else if (e.which === 32) {
+        } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button
             this.find(".dialog-button:focus").click();
         } else if (brackets.platform === "mac") {
@@ -81,12 +89,12 @@ define(function (require, exports, module) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
             // FIXME (issue #418) CMD+. Cancel swallowed by native shell
-            } else if (e.metaKey && (e.which === 190)) {
+            } else if (e.metaKey && (e.which === KeyEvent.DOM_VK_PERIOD)) {
                 buttonId = DIALOG_BTN_CANCEL;
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === "N") {
+            if (which === "N" && !inFormField) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -95,8 +103,7 @@ define(function (require, exports, module) {
         
         if (buttonId) {
             _dismissDialog(this, buttonId);
-        } else if (!($.contains(this.get(0), e.target)) ||
-                  ($(e.target).filter(":input").length === 0)) {
+        } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
             // TODO (issue #414): more robust handling of dialog scoped
@@ -149,6 +156,13 @@ define(function (require, exports, module) {
         if (message) {
             $(".dialog-message", $dlg).html(message);
         }
+
+        $(".clickable-link", $dlg).on("click", function _handleLink(e) {
+            // Links use data-href (not href) attribute so Brackets itself doesn't redirect
+            if (e.target.dataset && e.target.dataset.href) {
+                NativeApp.openURLInDefaultBrowser(e.target.dataset.href);
+            }
+        });
 
         var handleKeyDown = _handleKeyDown.bind($dlg);
 
@@ -212,21 +226,22 @@ define(function (require, exports, module) {
         });
     }
     
-    exports.DIALOG_BTN_CANCEL = DIALOG_BTN_CANCEL;
-    exports.DIALOG_BTN_OK = DIALOG_BTN_OK;
+    exports.DIALOG_BTN_CANCEL   = DIALOG_BTN_CANCEL;
+    exports.DIALOG_BTN_OK       = DIALOG_BTN_OK;
     exports.DIALOG_BTN_DONTSAVE = DIALOG_BTN_DONTSAVE;
-    exports.DIALOG_CANCELED = DIALOG_CANCELED;
+    exports.DIALOG_CANCELED     = DIALOG_CANCELED;
     exports.DIALOG_BTN_DOWNLOAD = DIALOG_BTN_DOWNLOAD;
     
-    exports.DIALOG_ID_ERROR = DIALOG_ID_ERROR;
-    exports.DIALOG_ID_INFO = DIALOG_ID_INFO;
-    exports.DIALOG_ID_SAVE_CLOSE = DIALOG_ID_SAVE_CLOSE;
-    exports.DIALOG_ID_EXT_CHANGED = DIALOG_ID_EXT_CHANGED;
-    exports.DIALOG_ID_EXT_DELETED = DIALOG_ID_EXT_DELETED;
-    exports.DIALOG_ID_LIVE_DEVELOPMENT = DIALOG_ID_LIVE_DEVELOPMENT;
-    exports.DIALOG_ID_ABOUT = DIALOG_ID_ABOUT;
-    exports.DIALOG_ID_UPDATE = DIALOG_ID_UPDATE;
+    exports.DIALOG_ID_ERROR             = DIALOG_ID_ERROR;
+    exports.DIALOG_ID_INFO              = DIALOG_ID_INFO;
+    exports.DIALOG_ID_SAVE_CLOSE        = DIALOG_ID_SAVE_CLOSE;
+    exports.DIALOG_ID_EXT_CHANGED       = DIALOG_ID_EXT_CHANGED;
+    exports.DIALOG_ID_EXT_DELETED       = DIALOG_ID_EXT_DELETED;
+    exports.DIALOG_ID_LIVE_DEVELOPMENT  = DIALOG_ID_LIVE_DEVELOPMENT;
+    exports.DIALOG_ID_ABOUT             = DIALOG_ID_ABOUT;
+    exports.DIALOG_ID_UPDATE            = DIALOG_ID_UPDATE;
+    exports.DIALOG_ID_PROJECT_SETTINGS  = DIALOG_ID_PROJECT_SETTINGS;
     
-    exports.showModalDialog = showModalDialog;
-    exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;
+    exports.showModalDialog             = showModalDialog;
+    exports.cancelModalDialogIfOpen     = cancelModalDialogIfOpen;
 });

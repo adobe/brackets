@@ -67,9 +67,10 @@ define(function main(require, exports, module) {
     };
     var _checkMark = "✓"; // Check mark character
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
-    var _statusTooltip = [Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
-                          Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, Strings.LIVE_DEV_STATUS_TIP_CONNECTED];  // Status indicator tooltip
-    var _statusStyle = ["warning", "", "info", "info", "success"];  // Status indicator's CSS class
+    var _statusTooltip = [Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
+                          Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, Strings.LIVE_DEV_STATUS_TIP_PROGRESS2,
+                          Strings.LIVE_DEV_STATUS_TIP_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC];  // Status indicator tooltip
+    var _statusStyle = ["warning", "", "info", "info", "success", "out-of-sync"];  // Status indicator's CSS class
     var _allStatusStyles = _statusStyle.join(" ");
 
     var _$btnGoLive; // reference to the GoLive button
@@ -118,7 +119,6 @@ define(function main(require, exports, module) {
     function _handleGoLiveCommand() {
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
-            // TODO Ty: when checkmark support lands, remove checkmark
         } else {
             if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
@@ -132,7 +132,6 @@ define(function main(require, exports, module) {
             } else {
                 LiveDevelopment.open();
             }
-            // TODO Ty: when checkmark support lands, add checkmark
         }
     }
 
@@ -154,6 +153,15 @@ define(function main(require, exports, module) {
 
         // Initialize tooltip for 'not connected' state
         _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
+    }
+    
+    /** Maintains state of the Live Preview menu item */
+    function _setupGoLiveMenu() {
+        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+            // Update the checkmark next to 'Live Preview' menu item
+            // Add checkmark when status is STATUS_ACTIVE; otherwise remove it 
+            CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);
+        });
     }
 
     /** Create the menu item "Highlight" */
@@ -191,6 +199,8 @@ define(function main(require, exports, module) {
         LiveDevelopment.init(config);
         _loadStyles();
         _setupGoLiveButton();
+        _setupGoLiveMenu();
+
         /* _setupHighlightButton(); FUTURE - Highlight button */
         if (config.debug) {
             _setupDebugHelpers();
@@ -201,17 +211,12 @@ define(function main(require, exports, module) {
             AppInit.appReady(function () {
                 if (DocumentManager.getCurrentDocument()) {
                     _handleGoLiveCommand();
-                } else {
-                    $(DocumentManager).on("currentDocumentChange", _handleGoLiveCommand);
-                    window.setTimeout(function () {
-                        $(DocumentManager).off("currentDocumentChange", _handleGoLiveCommand);
-                    }, 200);
                 }
             });
         }
     }
     window.setTimeout(init);
-
+   
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     // Export public functions

@@ -75,8 +75,7 @@ define(function (require, exports, module) {
             var docText = doc.getText();
             var lines = docText.split("\n");
 
-
-            var regex = new RegExp(/\s*id\s*?=\s*?["'](.*?)["']/gi);
+            var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
             var id, chFrom, chTo, i, line;
             for (i = 0; i < lines.length; i++) {
                 line = lines[i];
@@ -94,36 +93,26 @@ define(function (require, exports, module) {
         }
     }
 
-    function getLocationFromID(id) {
-        if (!idList) {
-            return null;
-        }
-
-        var i, result;
-        for (i = 0; i < idList.length; i++) {
-            var fileLocation = idList[i];
-            if (fileLocation.id === id) {
-                result = fileLocation;
-                break;
-            }
-        }
-
-        return result;
-    }
 
     /**
      * @param {string} query what the user is searching for
-     * @returns {Array.<string>} sorted and filtered results that match the query
+     * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query) {
         createIDList();
-
         query = query.slice(query.indexOf("@") + 1, query.length);
-        var filteredList = $.map(idList, function (itemInfo) {
-            if (itemInfo.id.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                return itemInfo.id;
+        
+        // Filter and rank how good each match is
+        var filteredList = $.map(idList, function (fileLocation) {
+            var searchResult = QuickOpen.stringMatch(fileLocation.id, query);
+            if (searchResult) {
+                searchResult.fileLocation = fileLocation;
             }
-        }).sort();
+            return searchResult;
+        });
+        
+        // Sort based on ranking & basic alphabetical order
+        QuickOpen.basicMatchSort(filteredList);
 
         return filteredList;
     }
@@ -144,20 +133,19 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {HTMLLIElement} selectedItem
+     * @param {?SearchResult} selectedItem
      */
     function itemFocus(selectedItem) {
-        var fileLocation = getLocationFromID($(selectedItem).text());
-        if (fileLocation) {
-            var from = {line: fileLocation.line, ch: fileLocation.chFrom};
-            var to = {line: fileLocation.line, ch: fileLocation.chTo};
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
+        if (!selectedItem) {
+            return;
         }
+        var fileLocation = selectedItem.fileLocation;
+        
+        var from = {line: fileLocation.line, ch: fileLocation.chFrom};
+        var to = {line: fileLocation.line, ch: fileLocation.chTo};
+        EditorManager.getCurrentFullEditor().setSelection(from, to);
     }
 
-    /**
-     * TODO: selectedItem is currently a <LI> item from smart auto complete container. It should just be data
-     */
     function itemSelect(selectedItem) {
         itemFocus(selectedItem);
     }

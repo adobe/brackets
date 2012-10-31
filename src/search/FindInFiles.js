@@ -49,10 +49,43 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileIndexManager    = require("project/FileIndexManager");
-    
-    var FIND_IN_FILES_MAX = 100;
+        FileIndexManager    = require("project/FileIndexManager"),
+        KeyEvent            = require("utils/KeyEvent"),
+        AppInit             = require("utils/AppInit"),
+        StatusBar           = require("widgets/StatusBar");
 
+    var searchResults = [];
+    
+    var FIND_IN_FILES_MAX = 100,
+        maxHitsFoundInFile = false;
+    
+    function _getQueryRegExp(query) {
+        // Clear any pending RegEx error message
+        $(".CodeMirror-dialog .alert-message").remove();
+        
+        // If query is a regular expression, use it directly
+        var isRE = query.match(/^\/(.*)\/(g|i)*$/);
+        if (isRE) {
+            // Make sure the 'g' flag is set
+            var flags = isRE[2] || "g";
+            if (flags.search("g") === -1) {
+                flags += "g";
+            }
+            try {
+                return new RegExp(isRE[1], flags);
+            } catch (e) {
+                $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                return null;
+            }
+        }
+
+        // Query is a string. Turn it into a case-insensitive regexp
+        
+        // Escape regex special chars
+        query = StringUtils.regexEscape(query);
+        return new RegExp(query, "gi");
+    }
+    
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
     
@@ -108,19 +141,24 @@ define(function (require, exports, module) {
         $searchField.get(0).select();
         
         $searchField.bind("keydown", function (event) {
-            if (event.keyCode === 13 || event.keyCode === 27) {  // Enter/Return key or Esc key
+            if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
                 event.stopPropagation();
                 event.preventDefault();
                 
                 var query = $searchField.val();
                 
-                if (event.keyCode === 27) {
+                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     query = null;
                 }
                 
                 that._close(query);
             }
         })
+            .bind("input", function (event) {
+                // Check the query expression on every input event. This way the user is alerted
+                // to any RegEx syntax errors immediately.
+                _getQueryRegExp($searchField.val());
+            })
             .blur(function () {
                 that._close(null);
             })
@@ -158,12 +196,20 @@ define(function (require, exports, module) {
                 end: {line: lineNum, ch: ch + matchLength},
                 line: line
             });
+
+            // We have the max hits in just this 1 file. Stop searching this file.
+            // This fixed issue #1829 where code hangs on too many hits.
+            if (matches.length >= FIND_IN_FILES_MAX) {
+                queryExpr.lastIndex = 0;
+                maxHitsFoundInFile = true;
+                break;
+            }
         }
 
         return matches;
     }
         
-    function _showSearchResults(searchResults) {
+    function _showSearchResults(searchResults, query) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
@@ -177,18 +223,25 @@ define(function (require, exports, module) {
             });
             
             // Show result summary in header
+            var numMatchesStr = "";
+            if (maxHitsFoundInFile) {
+                numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
+            }
+            numMatchesStr += String(numMatches);
+
             var summary = StringUtils.format(
                 Strings.FIND_IN_FILES_TITLE,
-                numMatches,
+                numMatchesStr,
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 searchResults.length,
-                (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
+                (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
+                query
             );
             
             $("#search-result-summary")
                 .text(summary +
                      (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
-                .prepend("&nbsp;");  // putting a normal space before the "-" is not enough
+                .prepend("&nbsp;"); // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
@@ -210,7 +263,7 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, item.fullPath) + "</td>")
+                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(item.fullPath)) + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
@@ -243,7 +296,8 @@ define(function (require, exports, module) {
             
             $("#search-results .table-container")
                 .empty()
-                .append($resultTable);
+                .append($resultTable)
+                .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
             $("#search-results .close")
                 .one("click", function () {
@@ -259,25 +313,6 @@ define(function (require, exports, module) {
         EditorManager.resizeEditor();
     }
     
-    function _getQueryRegExp(query) {
-        // If query is a regular expression, use it directly
-        var isRE = query.match(/^\/(.*)\/(g|i)*$/);
-        if (isRE) {
-            // Make sure the 'g' flag is set
-            var flags = isRE[2] || "g";
-            if (flags.search("g") === -1) {
-                flags += "g";
-            }
-            return new RegExp(isRE[1], flags);
-        }
-
-        // Query is a string. Turn it into a case-insensitive regexp
-        
-        // Escape regex special chars
-        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
-        return new RegExp(query, "gi");
-    }
-    
     /**
     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
     * a find operation across all files in the project.
@@ -285,16 +320,22 @@ define(function (require, exports, module) {
     function doFindInFiles() {
 
         var dialog = new FindInFilesDialog();
-        var searchResults = [];
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getFocusedEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
+        
+        searchResults = [];
+        maxHitsFoundInFile = false;
                             
         dialog.showDialog(initialString)
             .done(function (query) {
                 if (query) {
                     var queryExpr = _getQueryRegExp(query);
+                    if (!queryExpr) {
+                        return;
+                    }
+                    StatusBar.showBusyIndicator(true);
                     FileIndexManager.getFileInfoList("all")
                         .done(function (fileListResult) {
                             Async.doInParallel(fileListResult, function (fileInfo) {
@@ -321,15 +362,35 @@ define(function (require, exports, module) {
                                 return result.promise();
                             })
                                 .done(function () {
-                                    _showSearchResults(searchResults);
+                                    _showSearchResults(searchResults, query);
+                                    StatusBar.hideBusyIndicator();
                                 })
                                 .fail(function () {
                                     console.log("find in files failed.");
+                                    StatusBar.hideBusyIndicator();
                                 });
                         });
                 }
             });
     }
+    
+    // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
+        var $searchResults  = $("#search-results"),
+            $searchContent  = $("#search-results .table-container");
 
+    });
+
+    function _fileNameChangeHandler(event, oldName, newName) {
+        if ($("#search-results").is(":visible")) {
+            // Update the search results
+            searchResults.forEach(function (item) {
+                item.fullPath = item.fullPath.replace(oldName, newName);
+            });
+            _showSearchResults(searchResults);
+        }
+    }
+    
+    $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });

@@ -24,22 +24,20 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, doReplace */
 
+
 /*
  * Adds Find and Replace commands
+ *
+ * Originally based on the code in CodeMirror2/lib/util/search.js.
  * 
  * Define search commands. Depends on dialog.js or another
  * implementation of the openDialog method.
- *
- * This code was copied from CodeMirror2/lib/util/search.js so that the UI strings 
- * could be localized.
  *
  * Replace works a little oddly -- it will do the replace on the next findNext press.
  * You prevent a replace by making sure the match is no longer selected when hitting
  * findNext.
  *
  */
-
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -80,19 +78,35 @@ define(function (require, exports, module) {
             fs[0]();
         }
     }
+    
+    function getDialogTextField() {
+        return $(".CodeMirror-dialog input[type='text']");
+    }
 
     function parseQuery(query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+        $(".CodeMirror-dialog .alert-message").remove();
+        try {
+            return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+        } catch (e) {
+            $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+            return "";
+        }
     }
 
     function findNext(cm, rev) {
+        var found = true;
         cm.operation(function () {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
             if (!cursor.find(rev)) {
+                // If no result found before hitting edge of file, try wrapping around
                 cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+                
+                // No result found, period: clear selection & bail
                 if (!cursor.find(rev)) {
+                    cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
+                    found = false;
                     return;
                 }
             }
@@ -100,33 +114,7 @@ define(function (require, exports, module) {
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
         });
-    }
-
-    var queryDialog = Strings.CMD_FIND +
-            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span>';
-
-    function doSearch(cm, rev) {
-        var state = getSearchState(cm);
-        if (state.query) {
-            return findNext(cm, rev);
-        }
-        dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
-            cm.operation(function () {
-                if (!query || state.query) {
-                    return;
-                }
-                state.query = parseQuery(query);
-                if (cm.lineCount() < 2000) { // This is too expensive on big documents.
-                    var cursor = getSearchCursor(cm, query);
-                    while (cursor.findNext()) {
-                        state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
-                    }
-                }
-                state.posFrom = state.posTo = cm.getCursor();
-                findNext(cm, rev);
-            });
-        });
+        return found;
     }
 
     function clearSearch(cm) {
@@ -137,10 +125,63 @@ define(function (require, exports, module) {
                 return;
             }
             state.query = null;
+            
+            // Clear highlights
             for (i = 0; i < state.marked.length; ++i) {
                 state.marked[i].clear();
             }
             state.marked.length = 0;
+        });
+    }
+    
+    var queryDialog = Strings.CMD_FIND +
+            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
+            Strings.SEARCH_REGEXP_INFO  + ')</span>';
+
+    /**
+     * If no search pending, opens the search dialog. If search is already open, moves to
+     * next/prev result (depending on 'rev')
+     */
+    function doSearch(cm, rev) {
+        var state = getSearchState(cm);
+        if (state.query) {
+            return findNext(cm, rev);
+        }
+        
+        var searchStartPos = cm.getCursor();
+        
+        // Called each time the search query changes while being typed. Jumps to the first matching
+        // result, starting from the original cursor position
+        function findFirst(query) {
+            cm.operation(function () {
+                if (!query) {
+                    return;
+                }
+                
+                if (state.query) {
+                    clearSearch(cm);  // clear highlights from previous query
+                }
+                state.query = parseQuery(query);
+                
+                // Highlight all matches
+                // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
+                if (cm.lineCount() < 2000) { // This is too expensive on big documents.
+                    var cursor = getSearchCursor(cm, query);
+                    while (cursor.findNext()) {
+                        state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
+                    }
+                }
+                
+                state.posFrom = state.posTo = searchStartPos;
+                var foundAny = findNext(cm, rev);
+                
+                getDialogTextField().toggleClass("no-results", !foundAny);
+            });
+        }
+        
+        dialog(cm, queryDialog, Strings.CMD_FIND, findFirst);
+        getDialogTextField().on("input", function () {
+            findFirst(getDialogTextField().attr("value"));
         });
     }
 
@@ -181,7 +222,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     clearSearch(cm);
-                    var cursor = getSearchCursor(cm, query, cm.getCursor());
+                    var cursor = getSearchCursor(cm, query, cm.getCursor(true));
                     var advance = function () {
                         var start = cursor.from(),
                             match = cursor.findNext();
@@ -206,6 +247,11 @@ define(function (require, exports, module) {
                 }
             });
         });
+        
+        // Prepopulate the replace field with the current selection, if any
+        getDialogTextField()
+            .attr("value", cm.getSelection())
+            .get(0).select();
     }
 
     function _launchFind() {
@@ -218,7 +264,7 @@ define(function (require, exports, module) {
             doSearch(codeMirror);
 
             // Prepopulate the search field with the current selection, if any
-            $(".CodeMirror-dialog input[type='text']")
+            getDialogTextField()
                 .attr("value", codeMirror.getSelection())
                 .get(0).select();
         }

@@ -39,18 +39,32 @@ define(function (require, exports, module) {
         Strings                 = brackets.getModule("strings"),
         SidebarView             = brackets.getModule("project/SidebarView"),
         Menus                   = brackets.getModule("command/Menus"),
-        PopUpManager            = brackets.getModule("widgets/PopUpManager");
+        PopUpManager            = brackets.getModule("widgets/PopUpManager"),
+        FileUtils               = brackets.getModule("file/FileUtils");
     
     var $dropdownToggle;
     var MAX_PROJECTS = 20;
+
+    /**
+     * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
+     */
+    function getRecentProjects() {
+        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+            recentProjects = prefs.getValue("recentProjects") || [],
+            i;
+        for (i = 0; i < recentProjects.length; i++) {
+            recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
+        }
+        return recentProjects;
+    }
     
     /**
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
     function add() {
-        var root = ProjectManager.getProjectRoot().fullPath,
+        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
             prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
-            recentProjects = prefs.getValue("recentProjects") || [],
+            recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         if (index !== -1) {
             recentProjects.splice(index, 1);
@@ -67,25 +81,25 @@ define(function (require, exports, module) {
      * @param {string} path The full path to the folder.
      */
     function renderPath(path) {
-        if (path.length && path[path.length - 1] === "/") {
-            path = path.slice(0, path.length - 1);
-        }
-        
         var lastSlash = path.lastIndexOf("/"), folder, rest;
         if (lastSlash === path.length - 1) {
             lastSlash = path.slice(0, path.length - 1).lastIndexOf("/");
         }
         if (lastSlash >= 0) {
-            rest = path.slice(0, lastSlash);
+            rest = rest = " - " + (lastSlash ? path.slice(0, lastSlash) : "/");
             folder = path.slice(lastSlash + 1);
         } else {
-            rest = "";
+            rest = "/";
             folder = path;
         }
         
         var folderSpan = $("<span></span>").addClass("recent-folder").text(folder),
-            restSpan = $("<span></span>").addClass("recent-folder-path").text(" - " + rest);
-        return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan);
+            restSpan = $("<span></span>").addClass("recent-folder-path").text(rest);
+        return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan).data("path", path);
+    }
+  
+    function renderDelete() {
+        return $("<div id='recent-folder-delete'></div>").addClass("trash-icon");
     }
     
     /**
@@ -106,8 +120,7 @@ define(function (require, exports, module) {
         // Have to do this stopProp to avoid the html click handler from firing when this returns.
         e.stopPropagation();
         
-        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
-            recentProjects = prefs.getValue("recentProjects") || [],
+        var recentProjects = getRecentProjects(),
             $dropdown = $("<ul id='project-dropdown' class='dropdown-menu'></ul>"),
             toggleOffset = $dropdownToggle.offset();
 
@@ -124,7 +137,7 @@ define(function (require, exports, module) {
             $("#main-toolbar .nav").off("click", closeDropdown);
         }
         
-        var currentProject = ProjectManager.getProjectRoot().fullPath,
+        var currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
             hasProject = false;
         recentProjects.forEach(function (root) {
             if (root !== currentProject) {
@@ -139,13 +152,45 @@ define(function (require, exports, module) {
                                 }
                             });
                         closeDropdown();
+                    })
+                    .mouseenter(function (e) {
+                        var $target = $(e.currentTarget),
+                            $del =  renderDelete()
+                                .click(function () {
+                                 // remove the project from the preferences.
+                                    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+                                        recentProjects = getRecentProjects(),
+                                        index = recentProjects.indexOf($(this).data("path")),
+                                        newProjects = [],
+                                        i;
+                                    for (i = 0; i < recentProjects.length; i++) {
+                                        if (i !== index) {
+                                            newProjects.push(recentProjects[i]);
+                                        }
+                                    }
+                                    prefs.setValue("recentProjects", newProjects);
+                                    closeDropdown();
+                                });
+                        
+                        $(this).append($del);
+
+                        $del.css("right", 5);
+                        $del.css("top", $target.position().top + 11);
+                        $del.css("display", "inline-block");
+                        $del.data("path", $(this).data("path"));
+                    })
+                    .mouseleave(function () {
+                        $("#recent-folder-delete").remove();
                     });
+                
                 $("<li></li>")
                     .append($link)
                     .appendTo($dropdown);
                 hasProject = true;
             }
         });
+       
+       
         if (hasProject) {
             $("<li class='divider'>").appendTo($dropdown);
         }

@@ -34,12 +34,14 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         EditorManager   = require("editor/EditorManager"),
         PopUpManager    = require("widgets/PopUpManager"),
-        ViewUtils       = require("utils/ViewUtils");
+        ViewUtils       = require("utils/ViewUtils"),
+        KeyEvent        = require("utils/KeyEvent");
 
 
     var hintProviders = [],
         hintList,
-        shouldShowHintsOnKeyUp = false;
+        shouldShowHintsOnChange = false,
+        keyDownEditor;
 
 
     /**
@@ -71,12 +73,21 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Enters the code completion text into the editor
+     * Enters the code completion text into the editor and closes list
      * @string {string} completion - text to insert into current code editor
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
-        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos());
+        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), true);
         this.close();
+    };
+
+    /**
+     * @private
+     * Enters the code completion text into the editor without closing list
+     * @string {string} completion - text to insert into current code editor
+     */
+    CodeHintList.prototype._handleItemSelect = function (completion) {
+        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), false);
     };
 
     /**
@@ -96,6 +107,12 @@ define(function (require, exports, module) {
                 // bootstrap-dropdown).
                 e.stopPropagation();
                 self._handleItemClick(name);
+            })
+            .on("select", function (e) {
+                // Don't let the "select" propagate upward (otherwise it will hit the close handler in
+                // bootstrap-dropdown).
+                e.stopPropagation();
+                self._handleItemSelect(name);
             });
 
         this.$hintMenu.find("ul.dropdown-menu")
@@ -177,32 +194,39 @@ define(function (require, exports, module) {
         var keyCode = event.keyCode;
         
         // Up arrow, down arrow and enter key are always handled here
-        if (event.type !== "keypress" &&
-                (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
-                keyCode === 33 || keyCode === 34)) {
+        if (event.type !== "keypress") {
 
-            if (event.type === "keydown") {
-                if (keyCode === 38) {
-                    // Up arrow
-                    this.setSelectedIndex(this.selectedIndex - 1);
-                } else if (keyCode === 40) {
-                    // Down arrow
-                    this.setSelectedIndex(this.selectedIndex + 1);
-                } else if (keyCode === 33) {
-                    // Page Up
-                    this.setSelectedIndex(this.selectedIndex - this.getItemsPerPage());
-                } else if (keyCode === 34) {
-                    // Page Down
-                    this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
-                } else {
-                    // Enter/return key
-                    // Trigger a click handler to commmit the selected item
-                    $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
+            if (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN || keyCode === KeyEvent.DOM_VK_RETURN ||
+                    keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
+
+                if (event.type === "keydown") {
+                    if (keyCode === KeyEvent.DOM_VK_UP) {
+                        // Up arrow
+                        this.setSelectedIndex(this.selectedIndex - 1);
+                    } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
+                        // Down arrow
+                        this.setSelectedIndex(this.selectedIndex + 1);
+                    } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
+                        // Page Up
+                        this.setSelectedIndex(this.selectedIndex - this.getItemsPerPage());
+                    } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
+                        // Page Down
+                        this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
+                    } else {
+                        // Enter/return key
+                        // Trigger a click handler to commmit the selected item
+                        $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
+                    }
                 }
+
+                event.preventDefault();
+                return;
+
+            } else if (keyCode === KeyEvent.DOM_VK_TAB) {
+                // Tab key is used for "select and continue hinting"
+                $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("select");
+                event.preventDefault();
             }
-            
-            event.preventDefault();
-            return;
         }
         
         // All other key events trigger a rebuild of the list, but only
@@ -295,7 +319,8 @@ define(function (require, exports, module) {
         this.$hintMenu.remove();
         if (hintList === this) {
             hintList = null;
-            shouldShowHintsOnKeyUp = false;
+            shouldShowHintsOnChange = false;
+            keyDownEditor = null;
         }
     };
         
@@ -384,17 +409,26 @@ define(function (require, exports, module) {
                 }
             });
             
-            shouldShowHintsOnKeyUp = !!provider;
-        } else if (event.type === "keyup") {
-            if (shouldShowHintsOnKeyUp) {
-                shouldShowHintsOnKeyUp = false;
-                showHint(editor);
+            shouldShowHintsOnChange = !!provider;
+            if (shouldShowHintsOnChange) {
+                keyDownEditor = editor;
             }
         }
 
         // Pass to the hint list, if it's open
         if (hintList && hintList.isOpen()) {
             hintList.handleKeyEvent(editor, event);
+        }
+    }
+    
+    /**
+     *
+     */
+    function handleChange(editor) {
+        if (shouldShowHintsOnChange && keyDownEditor === editor) {
+            shouldShowHintsOnChange = false;
+            keyDownEditor = null;
+            showHint(editor);
         }
     }
 
@@ -408,7 +442,7 @@ define(function (require, exports, module) {
      *
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
-     *                  handleSelect: function(string, Editor, cursor),
+     *                  handleSelect: function(string, Editor, cursor, closeHints),
      *                  shouldShowHintsOnKey: function(string)>}
      *
      * Parameter Details:
@@ -434,6 +468,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.handleKeyEvent          = handleKeyEvent;
+    exports.handleChange            = handleChange;
     exports.showHint                = showHint;
     exports._getCodeHintList        = _getCodeHintList;
     exports.registerHintProvider    = registerHintProvider;

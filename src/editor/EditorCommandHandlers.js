@@ -158,6 +158,38 @@ define(function (require, exports, module) {
         var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
         doc.replaceRange(selectedText, sel.start);
     }
+
+    /**
+     * Deletes the current line if there is no selection or the lines for the selection
+     * (removing the end of line too)
+     */
+    function deleteCurrentLines(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+
+        var from,
+            to,
+            sel = editor.getSelection(),
+            doc = editor.document;
+
+        from = {line: sel.start.line, ch: 0};
+        to = {line: sel.end.line + 1, ch: 0};
+        if (to.line === editor.getLastVisibleLine() + 1) {
+            // Instead of deleting the newline after the last line, delete the newline
+            // before the first line--unless this is the entire visible content of the editor,
+            // in which case just delete the line content.
+            if (from.line > editor.getFirstVisibleLine()) {
+                from.line -= 1;
+                from.ch = doc.getLine(from.line).length;
+            }
+            to.line -= 1;
+            to.ch = doc.getLine(to.line).length;
+        }
+        
+        doc.replaceRange("", from, to);
+    }
     
     /**
      * Moves the selected text, or current line if no selection. The cursor/selection 
@@ -262,22 +294,14 @@ define(function (require, exports, module) {
         
         editor._codeMirror.execCommand("indentLess");
     }
+
     function selectLine() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
-                from = {line: editor.getSelection().start.line, ch: 0},
-                to   = {line: editor.getSelection().end.line + 1, ch: 0};
+            var from = {line: editor.getSelection().start.line, ch: 0},
+            var to   = {line: editor.getSelection().end.line + 1, ch: 0};
             editor.setSelection(from, to);
         }
-    }
-
-    /**
-     * Toggles tabs/spaces preferences
-     */
-    function toggleUseTabChars() {
-        var useTabs = !Editor.getUseTabChar();
-        Editor.setUseTabChar(useTabs);
-        CommandManager.get(Commands.TOGGLE_USE_TAB_CHARS).setChecked(useTabs);
     }
         
     // Register commands
@@ -285,9 +309,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
     CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
     CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
-    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,  toggleUseTabChars)
-        .setChecked(Editor.getUseTabChar());
     CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
 });

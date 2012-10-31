@@ -49,6 +49,7 @@
  * 1: Connecting to the remote debugger
  * 2: Loading agents
  * 3: Active
+ * 4: Out of sync
  */
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
@@ -56,11 +57,12 @@ define(function LiveDevelopment(require, exports, module) {
     require("utils/Global");
 
     // Status Codes
-    var STATUS_ERROR          = exports.STATUS_ERROR = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE = 0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING = 1;
+    var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
+    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       = 0;
+    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     = 1;
     var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS = 2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE = 3;
+    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         = 3;
+    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    = 4;
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
@@ -68,6 +70,7 @@ define(function LiveDevelopment(require, exports, module) {
     var Dialogs = require("widgets/Dialogs");
     var Strings = require("strings");
     var StringUtils = require("utils/StringUtils");
+    var ProjectManager = require("project/ProjectManager");
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
@@ -112,24 +115,46 @@ define(function LiveDevelopment(require, exports, module) {
         // FUTURE: some of these things should just be moved into core Document; others should
         // be in a LiveDevelopment-specific object attached to the doc.
         var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
-        if (matches) {
-            var prefix = "file://";
-
-            // The file.fullPath on Windows starts with a drive letter ("C:").
-            // In order to make it a valid file: URL we need to add an 
-            // additional slash to the prefix.
-            if (brackets.platform === "win") {
-                prefix += "/";
-            }
-
-            doc.extension = matches[3];
-            doc.url = encodeURI(prefix + doc.file.fullPath);
-
-            // the root represents the document that should be displayed in the browser
-            // for live development (the file for HTML files, index.html for others)
-            var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-            doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
+        if (!matches) {
+            return;
         }
+
+        doc.extension = matches[3];
+
+        // Check if doc is in current project
+        if (ProjectManager.isWithinProject(doc.file.fullPath)) {
+
+            // See if base url has been specified
+            var baseUrl = ProjectManager.getBaseUrl();
+            if (baseUrl !== "") {
+
+                // Map to server url
+                var serverUrl = doc.file.fullPath.replace(ProjectManager.getProjectRoot().fullPath, baseUrl);
+                doc.url = encodeURI(serverUrl);
+
+                if (!/^html?$/.test(matches[3])) {
+                    serverUrl = serverUrl.replace(matches[2], "index.html");
+                }
+                doc.root = {url: encodeURI(serverUrl)};
+                return;
+            }
+        }
+
+        var prefix = "file://";
+
+        // The file.fullPath on Windows starts with a drive letter ("C:").
+        // In order to make it a valid file: URL we need to add an
+        // additional slash to the prefix.
+        if (brackets.platform === "win") {
+            prefix += "/";
+        }
+
+        doc.url = encodeURI(prefix + doc.file.fullPath);
+
+        // the root represents the document that should be displayed in the browser
+        // for live development (the file for HTML files, index.html for others)
+        var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+        doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
     }
 
     /** Get the current document from the document manager
@@ -200,8 +225,15 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Convert a file: URL to a local full file path */
     function _urlToPath(url) {
-        var path;
-        if (url.indexOf("file://") === 0) {
+        var path,
+            baseUrl = ProjectManager.getBaseUrl();
+
+        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
+            // Use base url to translte to local file path
+            path = url.replace(baseUrl, ProjectManager.getProjectRoot().fullPath);
+
+        } else if (url.indexOf("file://") === 0) {
+            // Convert a file URL to local file path
             path = url.slice(7);
             if (path && brackets.platform === "win" && path.charAt(0) === "/") {
                 path = path.slice(1);
@@ -316,10 +348,15 @@ define(function LiveDevelopment(require, exports, module) {
     function _onLoad() {
         var doc = _getCurrentDocument();
         if (doc) {
-            var editor = EditorManager.getCurrentFullEditor();
+            var editor = EditorManager.getCurrentFullEditor(),
+                status = STATUS_ACTIVE;
+
             _openDocument(doc, editor);
+            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                status = STATUS_OUT_OF_SYNC;
+            }
+            _setStatus(status);
         }
-        _setStatus(STATUS_ACTIVE);
     }
 
     /** Triggered by Inspector.connect */
@@ -334,6 +371,13 @@ define(function LiveDevelopment(require, exports, module) {
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
+    }
+
+    function _onReconnect() {
+        unloadAgents();
+        var promises = loadAgents();
+        _setStatus(STATUS_LOADING_AGENTS);
+        $.when.apply(undefined, promises).then(_onLoad, _onError);
     }
 
     /** Open the Connection and go live */
@@ -426,6 +470,11 @@ define(function LiveDevelopment(require, exports, module) {
                             } else {
                                 message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                             }
+                            
+                            // Append a message to direct users to the troubleshooting page.
+                            if (message) {
+                                message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+                            }
 
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
@@ -459,7 +508,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
-        var doc = _getCurrentDocument();
+        var doc = _getCurrentDocument(),
+            status = STATUS_ACTIVE;
         if (!doc) {
             return;
         }
@@ -476,6 +526,32 @@ define(function LiveDevelopment(require, exports, module) {
                     window.setTimeout(open);
                 }
             }
+            
+            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                status = STATUS_OUT_OF_SYNC;
+            }
+            _setStatus(status);
+        }
+    }
+
+    /** Triggered by a document saved from the DocumentManager */
+    function _onDocumentSaved(event, doc) {
+        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
+                agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Reload HTML page
+            Inspector.Page.reload();
+
+            // Reload unsaved changes
+            _onReconnect();
+        }
+    }
+
+    /** Triggered by a change in dirty flag from the DocumentManager */
+    function _onDirtyFlagChange(event, doc) {
+        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
+                agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Set status to out of sync if dirty. Otherwise, set it to active status.
+            _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }
     }
 
@@ -512,7 +588,9 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector).on("connect", _onConnect)
             .on("disconnect", _onDisconnect)
             .on("error", _onError);
-        $(DocumentManager).on("currentDocumentChange", _onDocumentChange);
+        $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
+            .on("documentSaved", _onDocumentSaved)
+            .on("dirtyFlagChange", _onDirtyFlagChange);
     }
 
     // Export public functions

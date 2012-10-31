@@ -64,6 +64,8 @@
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When a list of files is to be removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
+ *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
+ *      The 3rd arg is the new name.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -78,6 +80,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
+        CollectionUtils     = require("utils/CollectionUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands");
     
@@ -169,13 +172,9 @@ define(function (require, exports, module) {
     function findInWorkingSet(fullPath, list) {
         list = list || _workingSet;
         
-        var ret = -1;
-        var found = list.some(function findByPath(file, i) {
-                ret = i;
-                return file.fullPath === fullPath;
-            });
-            
-        return (found ? ret : -1);
+        return CollectionUtils.indexOf(list, function (file, i) {
+            return file.fullPath === fullPath;
+        });
     }
 
     /**
@@ -207,7 +206,9 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Add
+        // Add to _workingSet making sure we store a different instance from the
+        // one in the Document. See issue #1971 for more details.        
+        file = new NativeFileSystem.FileEntry(file.fullPath);
         _workingSet.push(file);
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
@@ -296,6 +297,23 @@ define(function (require, exports, module) {
         if (mruI !== -1) {
             _workingSetMRUOrder.splice(mruI, 1);
             _workingSetMRUOrder.unshift(doc.file);
+        }
+    }
+    
+    
+    /**
+     * Mutually exchanges the files at the indexes passed by parameters.
+     * @param {!number} index - old file index
+     * @param {!number} index - new file index
+     */
+    function swapWorkingSetIndexes(index1, index2) {
+        var length = _workingSet.length - 1;
+        var temp;
+        
+        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
+            temp = _workingSet[index1];
+            _workingSet[index1] = _workingSet[index2];
+            _workingSet[index2] = temp;
         }
     }
     
@@ -409,14 +427,21 @@ define(function (require, exports, module) {
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath });
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
+                    .done(function () {
+                        // (Now we're guaranteed that the current document is not the one we're closing)
+                        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
+                    })
+                    .fail(function () {
+                        // File chosen to be switched to could not be opened, and the original file
+                        // is still in editor. Close it again so code will try to open the next file,
+                        // or empty the editor if there are no other files. 
+                        closeFullEditor(file);
+                    });
             } else {
                 _clearCurrentDocument();
             }
         }
-        
-        // (Now we're guaranteed that the current document is not the one we're closing)
-        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
         
         // Remove closed doc from working set, if it was in there
         // This happens regardless of whether the document being closed was the current one or not
@@ -1054,7 +1079,54 @@ define(function (require, exports, module) {
         }
     }
 
-
+    /**
+     * Called after a file or folder name has changed. This function is responsible
+     * for updating underlying model data and notifying all views of the change.
+     *
+     * @param {string} oldName The old name of the file/folder
+     * @param {string} newName The new name of the file/folder
+     * @param {boolean} isFolder True if path is a folder; False if it is a file.
+     */
+    function notifyPathNameChanged(oldName, newName, isFolder) {
+        var i, path;
+        
+        // Update open documents. This will update _currentDocument too, since 
+        // the current document is always open.
+        var keysToDelete = [];
+        for (path in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(path)) {
+                if (path.indexOf(oldName) === 0) {
+                    // Copy value to new key
+                    var newKey = path.replace(oldName, newName);
+                    
+                    _openDocuments[newKey] = _openDocuments[path];
+                    keysToDelete.push(path);
+                    
+                    // Update document file
+                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName);
+                        
+                    if (!isFolder) {
+                        // If the path name is a file, there can only be one matched entry in the open document
+                        // list, which we just updated. Break out of the for .. in loop. 
+                        break;
+                    }
+                }
+            }
+        }
+        // Delete the old keys
+        for (i = 0; i < keysToDelete.length; i++) {
+            delete _openDocuments[keysToDelete[i]];
+        }
+        
+        // Update working set
+        for (i = 0; i < _workingSet.length; i++) {
+            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName);
+        }
+        
+        // Send a "fileNameChanged" event. This will trigger the views to update.
+        $(exports).triggerHandler("fileNameChange", [oldName, newName]);
+    }
+    
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
@@ -1068,15 +1140,17 @@ define(function (require, exports, module) {
     exports.addListToWorkingSet = addListToWorkingSet;
     exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
+    exports.swapWorkingSetIndexes = swapWorkingSetIndexes;
     exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;
+    exports.notifyPathNameChanged = notifyPathNameChanged;
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList", _savePreferences);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");

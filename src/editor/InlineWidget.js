@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var EditorManager       = require("editor/EditorManager");
+    var EditorManager       = require("editor/EditorManager"),
+        KeyEvent            = require("utils/KeyEvent");
     
     /**
      * @constructor
@@ -45,7 +46,7 @@ define(function (require, exports, module) {
             .append("<div class='shadow bottom' />");
         
         this.$htmlContent.on("keydown", function (e) {
-            if (e.keyCode === 27) {
+            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 self.close();
                 e.stopImmediatePropagation();
             }
