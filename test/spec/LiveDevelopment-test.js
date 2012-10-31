@@ -27,7 +27,8 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         CommandManager,
         Commands,
         NativeApp,      //The following are all loaded from the test window
@@ -128,7 +129,7 @@ define(function (require, exports, module) {
                 LiveDevelopment.close();
             });
             
-            waitsFor(function () { return !Inspector.connected(); }, "Waiting for to close inspector", 10000);
+            waitsFor(function () { return !Inspector.connected(); }, "Waiting to close inspector", 10000);
             
             SpecRunnerUtils.closeTestWindow();
         });
@@ -356,6 +357,33 @@ define(function (require, exports, module) {
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Restoring the original html content");
                 });
+            });
+
+            it("should validate base urls", function () {
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
+                    .toBe("");
+
+                expect(PreferencesDialogs._validateBaseUrl("https://localhost:8080/subfolder"))
+                    .toBe("");
+
+                expect(PreferencesDialogs._validateBaseUrl("ftp://localhost"))
+                    .toBe("Invalid Base URL protocol (ftp:). Use http: or https: .");
+
+                // This code not yet in master
+                //expect(PreferencesDialogs._validateBaseUrl("localhost"))
+                //    .toBe("Invalid Base URL protocol (). Use http: or https: .");
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/?id=123"))
+                    .toBe("Search parameters disallowed in Base URL: ?id=123");
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/#anchor1"))
+                    .toBe("Hash disallowed in Base URL: #anchor1");
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/abc<123"))
+                    .toBe("Invalid character in Base URL: <");
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/?"))
+                    .toBe("Invalid character in Base URL: ?");
             });
         });
     });
