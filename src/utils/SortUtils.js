@@ -153,6 +153,8 @@ define(function (require, exports, module) {
             if (command) {
                 command.setChecked(true);
             }
+            
+            CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setEnabled(!!newSort.getEvents());
             _currentSort = newSort;
             _prefs.setValue("currentSort", _currentSort.getCommandID());
         }
@@ -218,16 +220,17 @@ define(function (require, exports, module) {
     
     /**
      * Registers a working set sort method.
-     * @param {string} commandID - valid command identifier used for the sort method.
+     * @param {!string} commandID - valid command identifier used for the sort method.
      *      Core commands in Brackets use a simple command title as an id, for example "open.file".
      *      Extensions should use the following format: "author.myextension.mycommandname". 
      *      For example, "lschmitt.csswizard.format.css".
-     * @param {function(a, b)} compareFn - the function that will be used inside the JavaScript sort function. This function receives 2 <FileEntryes>
+     * @param {!function(a, b)} compareFn - the function that will be used inside the JavaScript sort function. This function receives 2 <FileEntryes>
      *      as parameters and should return a value >0 (sort a to a lower index than b), =0 (leaves a and b unchanged with respect to each other) or <0 
      *      (sort b to a lower index than a) and must always returns the same value when given a specific pair of elements a and b as its two arguments.
      *      More information at: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
-     * @param {string} events - one or more space-separated event types that DocumentManger uses. Each event passed will trigger the automatic sort.
-     * @param {function (event)} automaticFn - the function that will be called when an automatic sort event is triggered.
+     * @param {?string} events - one or more space-separated event types that DocumentManger uses. Each event passed will trigger the automatic sort.
+     *      If noe events are passed, the automatic sort will be disabled for that sort method.
+     * @param {?function (event)} automaticFn - the function that will be called when an automatic sort event is triggered.
      *      If no function is passed the automatic sort will just call the sort function.
      * @return {?Sort}
      */
