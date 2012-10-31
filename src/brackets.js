@@ -259,7 +259,7 @@ define(function (require, exports, module) {
             // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
             // during extension loading.
             var extensionPath = ExtensionLoader.getUserExtensionPath();
-            new NativeFileSystem.DirectoryEntry().getDirectory(ExtensionLoader.getUserExtensionPath(),
+            new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
                                                                {create: true});
             
             // Create the extensions/disabled directory, too.
