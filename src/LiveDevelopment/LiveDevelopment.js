@@ -72,6 +72,7 @@ define(function LiveDevelopment(require, exports, module) {
     var Strings = require("strings");
     var StringUtils = require("utils/StringUtils");
     var ProjectManager = require("project/ProjectManager");
+    var PreferencesDialogs  = require("preferences/PreferencesDialogs");
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
@@ -112,7 +113,8 @@ define(function LiveDevelopment(require, exports, module) {
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
 
     function _isHtmlFileExt(ext) {
-        return (FileUtils.isStaticHtmlFileExt(ext) || FileUtils.isServerHtmlFileExt(ext));
+        return (FileUtils.isStaticHtmlFileExt(ext) ||
+                (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
     }
 
     /** Augments the given Brackets document with information that's useful for live development. */
@@ -405,13 +407,36 @@ define(function LiveDevelopment(require, exports, module) {
             result.reject("WRONG_DOC");
         }
 
+        function showNeedBaseUrlError() {
+            PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
+                        // If base url is specifed, then re-invoke open() to continue
+                        open();
+                        result.resolve();
+                    } else {
+                        result.reject("NEED_BASEURL");
+                    }
+                })
+                .fail(function () {
+                    result.reject("NEED_BASEURL");
+                });
+        }
+
         if (!doc || !doc.root) {
             showWrongDocError();
 
         } else {
-            if (!exports.config.experimental && !_isHtmlFileExt(doc.extension)) {
-                showWrongDocError();
-                return promise;
+            if (!exports.config.experimental) {
+                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
+                    if (!ProjectManager.getBaseUrl()) {
+                        showNeedBaseUrlError();
+                        return promise;
+                    }
+                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
+                    showWrongDocError();
+                    return promise;
+                }
             }
 
             _setStatus(STATUS_CONNECTING);
