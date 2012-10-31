@@ -126,7 +126,32 @@ define(function (require, exports, module) {
         _removeDynamicFontSize(true);
     }
     
+    /**
+     * @private
+     * Scroll the viewport one line up or down.
+     * @param {number} -1 to scroll one line up; 1 to scroll one line down.
+     */
+    function _scrollLine(direction) {
+        var editor = EditorManager.getCurrentFullEditor();
+        var scrollPos = editor.getScrollPos();
+        var lineCount = editor.lineCount();
+        var totalHeight = editor.totalHeight();
+        var scrollDeltaY = totalHeight / lineCount;
+        
+        editor.setScrollPos(scrollPos.x, scrollPos.y + (scrollDeltaY * direction));
+    }
+    
+    function _handleScrollLineUp() {
+        _scrollLine(-1);
+    }
+    
+    function _handleScrollLineDown() {
+        _scrollLine(1);
+    }
+    
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 });
