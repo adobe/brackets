@@ -1143,27 +1143,27 @@ define(function (require, exports, module) {
     }
     
     // Define public API
-    exports.Document = Document;
-    exports.getCurrentDocument = getCurrentDocument;
-    exports.getDocumentForPath = getDocumentForPath;
-    exports.getOpenDocumentForPath = getOpenDocumentForPath;
-    exports.getWorkingSet = getWorkingSet;
-    exports.findInWorkingSet = findInWorkingSet;
-    exports.findInWorkingSetMRUOrder = findInWorkingSetMRUOrder;
-    exports.getAllOpenDocuments = getAllOpenDocuments;
-    exports.setCurrentDocument = setCurrentDocument;
-    exports.addToWorkingSet = addToWorkingSet;
-    exports.addListToWorkingSet = addListToWorkingSet;
-    exports.removeFromWorkingSet = removeFromWorkingSet;
-    exports.getNextPrevFile = getNextPrevFile;
-    exports.swapWorkingSetIndexes = swapWorkingSetIndexes;
-    exports.sortWorkingSet = sortWorkingSet;
-    exports.beginDocumentNavigation = beginDocumentNavigation;
-    exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
-    exports.closeFullEditor = closeFullEditor;
-    exports.closeAll = closeAll;
-    exports.notifyFileDeleted = notifyFileDeleted;
-    exports.notifyPathNameChanged = notifyPathNameChanged;
+    exports.Document                    = Document;
+    exports.getCurrentDocument          = getCurrentDocument;
+    exports.getDocumentForPath          = getDocumentForPath;
+    exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.getWorkingSet               = getWorkingSet;
+    exports.findInWorkingSet            = findInWorkingSet;
+    exports.findInWorkingSetMRUOrder    = findInWorkingSetMRUOrder;
+    exports.getAllOpenDocuments         = getAllOpenDocuments;
+    exports.setCurrentDocument          = setCurrentDocument;
+    exports.addToWorkingSet             = addToWorkingSet;
+    exports.addListToWorkingSet         = addListToWorkingSet;
+    exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.getNextPrevFile             = getNextPrevFile;
+    exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
+    exports.sortWorkingSet              = sortWorkingSet;
+    exports.beginDocumentNavigation     = beginDocumentNavigation;
+    exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
+    exports.closeFullEditor             = closeFullEditor;
+    exports.closeAll                    = closeAll;
+    exports.notifyFileDeleted           = notifyFileDeleted;
+    exports.notifyPathNameChanged       = notifyPathNameChanged;
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, window */
 
 /**
  * Manages the workingSet sort methods.
@@ -65,6 +65,12 @@ define(function (require, exports, module) {
      */
     var _automaticSort = false;
     
+    /**
+     * @private
+     * @type {boolean}
+     * Used to know when to do the automatic sort for MRU order.
+     */
+    var _openedDocument = false;
     
     /**
      * Retrieves a Sort object by id
@@ -110,8 +116,8 @@ define(function (require, exports, module) {
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
             $(DocumentManager)
-                .on(_currentSort.getEvents(), function () {
-                    _currentSort.sort();
+                .on(_currentSort.getEvents(), function (event) {
+                    _currentSort.callAutomaticFn(event);
                 })
                 .on("workingSetReorder.sort", function () {
                     disableAutomatic();
@@ -160,11 +166,13 @@ define(function (require, exports, module) {
      * @param {string} commandID - valid command identifier.
      * @param {function (a, b)} compareFn - a valid sort function (see register for a longer explanation).
      * @param {string} events - space-separated DocumentManager possible events ending on ".sort".
+     * @param {function (event)} automaticFn - the function that will be called when an automatic sort event is triggered.
      */
-    function Sort(commandID, compareFn, events) {
-        this._commandID = commandID;
-        this._compareFn = compareFn;
-        this._events = events;
+    function Sort(commandID, compareFn, events, automaticFn) {
+        this._commandID   = commandID;
+        this._compareFn   = compareFn;
+        this._events      = events;
+        this._automaticFn = automaticFn;
     }
     
     /** @return {CommandID} */
@@ -180,6 +188,11 @@ define(function (require, exports, module) {
     /** @return {Events} */
     Sort.prototype.getEvents = function () {
         return this._events;
+    };
+    
+    /** Calls automaticFn */
+    Sort.prototype.callAutomaticFn = function (event) {
+        return this._automaticFn(event);
     };
     
     /**
@@ -214,9 +227,11 @@ define(function (require, exports, module) {
      *      (sort b to a lower index than a) and must always returns the same value when given a specific pair of elements a and b as its two arguments.
      *      More information at: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      * @param {string} events - one or more space-separated event types that DocumentManger uses. Each event passed will trigger the automatic sort.
+     * @param {function (event)} automaticFn - the function that will be called when an automatic sort event is triggered.
+     *      If no function is passed the automatic sort will just call the sort function.
      * @return {?Sort}
      */
-    function register(commandID, compareFn, events) {
+    function register(commandID, compareFn, events, automaticFn) {
         if (_sorts[commandID]) {
             console.log("Attempting to register an already-registered sort: " + commandID);
             return;
@@ -230,12 +245,16 @@ define(function (require, exports, module) {
         if (events) {
             events = events.split(" ");
             events.forEach(function (event, index) {
-                events[index] = $.trim(events[index]) + ".sort";
+                events[index] = events[index].trim() + ".sort";
             });
             events = events.join(" ");
         }
         
-        var sort = new Sort(commandID, compareFn, events);
+        automaticFn = automaticFn || function (event) {
+            _currentSort.sort();
+        };
+        
+        var sort = new Sort(commandID, compareFn, events, automaticFn);
         _sorts[commandID] = sort;
         return sort;
     }
@@ -261,6 +280,7 @@ define(function (require, exports, module) {
             enableAutomatic();
         }
     }
+    
     
     
     // Register sorts
@@ -293,7 +313,22 @@ define(function (require, exports, module) {
                 index2 = DocumentManager.findInWorkingSetMRUOrder(file2.fullPath);
             return index1 - index2;
         },
-        "workingSetAdd workingSetAddList"
+        "workingSetAdd workingSetAddList currentDocumentChange",
+        function (event) {
+            switch (event.type) {
+            case "workingSetAddList":
+                _openedDocument = true;
+                break;
+            case "currentDocumentChange":
+                if (_openedDocument) {
+                    _currentSort.sort();
+                    _openedDocument = false;
+                }
+                break;
+            default:
+                _currentSort.sort();
+            }
+        }
     );
     
     
