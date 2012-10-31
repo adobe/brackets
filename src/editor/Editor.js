@@ -754,13 +754,27 @@ define(function (require, exports, module) {
     /**
      * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
+     * Adapted from selectWordAt() in CodeMirror v2.
      * @param {!{line:number, ch:number}}
      */
     Editor.prototype.selectWordAt = function (pos) {
-        this._codeMirror.selectWordAt(pos);
+        var line = this.document.getLine(pos.line),
+            start = pos.ch,
+            end = pos.ch;
+        
+        function isWordChar(ch) {
+            return (/\w/).test(ch) || ch.toUpperCase() !== ch.toLowerCase();
+        }
+        
+        while (start > 0 && isWordChar(line.charAt(start - 1))) {
+            --start;
+        }
+        while (end < line.length && isWordChar(line.charAt(end))) {
+            ++end;
+        }
+        this.setSelection({line: pos.line, ch: start}, {line: pos.line, ch: end});
     };
     
-
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
      * @returns {!number}
