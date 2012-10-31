@@ -90,6 +90,20 @@ define(function (require, exports, module) {
         }
     };
     
+    // Shims for brackets.app when running in-browser
+    if (!global.brackets.app) {
+        var app = {},
+            startTime = new Date().getMilliseconds();
+        
+        app.showDeveloperTools = false;
+        
+        app.getElapsedMilliseconds = function () {
+            return new Date().getMilliseconds() - startTime;
+        };
+        
+        global.brackets.app = app;
+    }
+    
     // Loading extensions requires creating new require.js contexts, which
     // requires access to the global 'require' object that always gets hidden
     // by the 'require' in the AMD wrapper. We store this in the brackets
