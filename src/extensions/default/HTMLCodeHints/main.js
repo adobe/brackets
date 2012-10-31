@@ -188,7 +188,7 @@ define(function (require, exports, module) {
             
             // Special handling for URL hinting -- if the completion is a file name
             // and not a folder, then close the code hint list.
-            if (this.closeOnSelect === false && completion.match(/\/$/) === null) {
+            if (!this.closeOnSelect && completion.match(/\/$/) === null) {
                 this.closeOnSelect = true;
             }
             
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if (this.closeOnSelect === false) {
+        if (!this.closeOnSelect) {
             return false;
         }
         
@@ -440,6 +440,7 @@ define(function (require, exports, module) {
                     if (attrInfo.type === "boolean") {
                         unfiltered = ["false", "true"];
                     } else if (attrInfo.type === "url") {
+                        // Default behavior for url hints is do not close on select.
                         this.closeOnSelect = false;
                         unfiltered = this._getUrlList(query);
                         sortFunc = StringUtils.urlSort;
