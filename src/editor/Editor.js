@@ -61,17 +61,20 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager   = require("editor/EditorManager"),
-        CodeHintManager = require("editor/CodeHintManager"),
-        Commands        = require("command/Commands"),
-        CommandManager  = require("command/CommandManager"),
-        Menus           = require("command/Menus"),
-        PerfUtils       = require("utils/PerfUtils"),
-        Strings         = require("strings"),
-        TextRange       = require("document/TextRange").TextRange,
-        ViewUtils       = require("utils/ViewUtils");
+    var EditorManager      = require("editor/EditorManager"),
+        CodeHintManager    = require("editor/CodeHintManager"),
+        Commands           = require("command/Commands"),
+        CommandManager     = require("command/CommandManager"),
+        Menus              = require("command/Menus"),
+        PerfUtils          = require("utils/PerfUtils"),
+        PreferencesManager = require("preferences/PreferencesManager"),
+        Strings            = require("strings"),
+        TextRange          = require("document/TextRange").TextRange,
+        ViewUtils          = require("utils/ViewUtils");
     
-
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
+        defaultPrefs = { useTabChar: false };
+    
     /**
      * @private
      * Handle Tab key press.
@@ -224,7 +227,10 @@ define(function (require, exports, module) {
             editor._selectAllVisible();
         }
     }
-
+    
+    /** Editor preferences */
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    
     /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
      * that affect all editors, e.g. tabbing or color scheme settings.
@@ -233,7 +239,7 @@ define(function (require, exports, module) {
     var _instances = [];
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = false;
+    var _useTabChar = _prefs.getValue("useTabChar");
     
     
     
@@ -1045,6 +1051,9 @@ define(function (require, exports, module) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption("indentWithTabs", _useTabChar);
         });
+        
+        // Remember the setting across launches
+        _prefs.setValue("useTabChar", Boolean(_useTabChar));
     };
     
     /** @type {boolean}  Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
@@ -1055,6 +1064,7 @@ define(function (require, exports, module) {
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
+
     // Define public API
     exports.Editor = Editor;
 });

@@ -271,9 +271,11 @@ define(function (require, exports, module) {
                        .css({"left": hintPos.left, "top": hintPos.top});
             this.opened = true;
             
-            PopUpManager.addPopUp(this.$hintMenu, function () {
-                self.close();
-            });
+            PopUpManager.addPopUp(this.$hintMenu,
+                function () {
+                    self.close();
+                },
+                true);
         }
     };
 

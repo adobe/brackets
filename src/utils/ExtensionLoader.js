@@ -37,7 +37,12 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
-        contexts            = {};
+        contexts            = {},
+        globalConfig        = {
+            "text" : "../../../thirdparty/text",
+            "i18n" : "../../../thirdparty/i18n"
+        };
+    
     /**
      * Returns the require.js require context used to load an extension
      *
@@ -63,11 +68,10 @@ define(function (require, exports, module) {
             extensionRequire = brackets.libRequire.config({
                 context: name,
                 baseUrl: config.baseUrl,
+                // Force extensions to not be cached by passing a unique value (time) as a URL argument
+                urlArgs: "nocache=" + (new Date()).getTime(),
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
-                paths: {
-                    "text" : "../../../thirdparty/text",
-                    "i18n" : "../../../thirdparty/i18n"
-                },
+                paths: globalConfig,
                 locale: window.localStorage.getItem("locale") || brackets.app.language
             });
         contexts[name] = extensionRequire;
@@ -106,7 +110,7 @@ define(function (require, exports, module) {
                 var extensionRequire = brackets.libRequire.config({
                     context: name,
                     baseUrl: "../src/" + config.baseUrl,
-                    paths: config.paths
+                    paths: $.extend({}, config.paths, globalConfig)
                 });
     
                 console.log("[Extension] loading unit test " + config.baseUrl);

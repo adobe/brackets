@@ -104,7 +104,6 @@ define(function LiveDevelopment(require, exports, module) {
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
-    var _htmlDocumentPath; // the path of the html file open for live development
     var _liveDocument; // the document open for live editing.
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
 
@@ -151,18 +150,14 @@ define(function LiveDevelopment(require, exports, module) {
         switch (doc.extension) {
         case "css":
             return CSSDocument;
-        /* FUTURE:
         case "js":
-            return JSDocument;
+            return exports.config.experimental ? JSDocument : null;
         case "html":
         case "htm":
-            return HTMLDocument;
+            return exports.config.experimental ? HTMLDocument : null;
         default:
-            throw "Invalid document type: " + doc.extension;
-        */
+            return null;
         }
-
-        return null;
     }
 
     /**
@@ -251,8 +246,16 @@ define(function LiveDevelopment(require, exports, module) {
     /** Load the agents */
     function loadAgents() {
         var name, promises = [];
-        for (name in _enabledAgentNames) {
-            if (_enabledAgentNames.hasOwnProperty(name) && agents[name].load) {
+        var agentsToLoad;
+        if (exports.config.experimental) {
+            // load all agents
+            agentsToLoad = agents;
+        } else {
+            // load only enabled agents
+            agentsToLoad = _enabledAgentNames;
+        }
+        for (name in agentsToLoad) {
+            if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
                 promises.push(agents[name].load());
                 _loadedAgentNames.push(name);
             }
@@ -293,6 +296,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.error */
     function _onError(event, error) {
         var message = error.message;
+
+        // Remove "Uncaught" from the beginning to avoid the inspector popping up
+        if (message.substr(0, 8) === "Uncaught") {
+            message = message.substr(9);
+        }
 
         // Additional information, like exactly which parameter could not be processed.
         var data = error.data;
@@ -352,7 +360,8 @@ define(function LiveDevelopment(require, exports, module) {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
-            if (!doc.extension || doc.extension.indexOf("htm") !== 0) {
+
+            if (!exports.config.experimental && (!doc.extension || doc.extension.indexOf('htm') !== 0)) {
                 showWrongDocError();
                 return promise;
             }
@@ -367,7 +376,7 @@ define(function LiveDevelopment(require, exports, module) {
                     _setStatus(STATUS_ERROR);
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
-                        Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                        Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
                         Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE
                     ).done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
@@ -462,14 +471,11 @@ define(function LiveDevelopment(require, exports, module) {
                 _openDocument(doc, editor);
             } else {
                 /* FUTURE: support live connections for docments other than html */
-                if (doc.extension && doc.extension.indexOf("htm") === 0 && doc.file.fullPath !== _htmlDocumentPath) {
+                if (exports.config.experimental || (doc.extension && doc.extension.indexOf('htm') === 0)) {
                     close();
                     window.setTimeout(open);
-                    _htmlDocumentPath = doc.file.fullPath;
                 }
             }
-        } else if (exports.config.autoconnect) {
-            window.setTimeout(open);
         }
     }
 

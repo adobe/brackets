@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
-        LoadEvents              = require("utils/LoadEvents"),
+        AppInit                 = require("utils/AppInit"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -89,10 +89,13 @@ define(function (require, exports, module) {
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
         UpdateNotification      = require("utils/UpdateNotification"),
-        UrlParams               = require("utils/UrlParams").UrlParams;
+        UrlParams               = require("utils/UrlParams").UrlParams,
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        PreferencesManager      = require("preferences/PreferencesManager");
 
     // Local variables
-    var params                  = new UrlParams();
+    var params                  = new UrlParams(),
+        PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
     
     // read URL params
     params.parse();
@@ -100,8 +103,9 @@ define(function (require, exports, module) {
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
-    require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
+    require("debug/DebugCommandHandlers");
+    require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
     require("utils/ExtensionUtils");
@@ -153,7 +157,7 @@ define(function (require, exports, module) {
             doneLoading             : false
         };
 
-        LoadEvents.ready(function () {
+        AppInit.appReady(function () {
             brackets.test.doneLoading = true;
         });
     }
@@ -183,23 +187,6 @@ define(function (require, exports, module) {
         // that self-register" above for some). A few commands need an extra kick here though:
         
         DocumentCommandHandlers.init($("#main-toolbar"));
-        
-        // About dialog
-        CommandManager.register(Strings.CMD_ABOUT,  Commands.HELP_ABOUT, function () {
-            // If we've successfully determined a "build number" via .git metadata, add it to dialog
-            var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
-                bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
-                versionLabel = "";
-            if (bracketsSHA) {
-                versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
-            }
-            if (bracketsAppSHA) {
-                versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
-            }
-            $("#about-build-number").text(versionLabel);
-            
-            Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
-        });
     }
     
     function _initWindowListeners() {
@@ -221,8 +208,8 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_ERROR,
-                Strings.ERROR_BRACKETS_IN_BROWSER_TITLE,
-                Strings.ERROR_BRACKETS_IN_BROWSER
+                Strings.ERROR_IN_BROWSER_TITLE,
+                Strings.ERROR_IN_BROWSER
             );
         }
 
@@ -258,10 +245,25 @@ define(function (require, exports, module) {
         ProjectManager.openProject(initialProjectPath).done(function () {
             _initTest();
 
-            // WARNING: LoadEvents.ready won't fire if ANY extension fails to
+            // WARNING: AppInit.appReady won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
-            _initExtensions().always(LoadEvents._dispatchEvent(LoadEvents.READY));
+            _initExtensions().always(AppInit._dispatchReady(AppInit.APP_READY));
+            
+            // If this is the first launch, and we have an index.html file in the project folder (which should be
+            // the samples folder on first launch), open it automatically. (We explicitly check for the
+            // samples folder in case this is the first time we're launching Brackets after upgrading from
+            // an old version that might not have set the "afterFirstLaunch" pref.)
+            var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+            if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
+                prefs.setValue("afterFirstLaunch", "true");
+                if (ProjectManager.isDefaultProjectPath(initialProjectPath)) {
+                    var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
+                    dirEntry.getFile("index.html", {}, function (fileEntry) {
+                        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
+                    });
+                }
+            }
         });
         
         // Check for updates
@@ -271,8 +273,14 @@ define(function (require, exports, module) {
     }
 
     // Localize MainViewHTML and inject into <BODY> tag
-    $('body').html(Mustache.render(MainViewHTML, Strings));
-    LoadEvents._dispatchEvent(LoadEvents.HTML_CONTENT_LOAD_COMPLETE);
+    var templateVars = $.extend({ ABOUT_ICON: brackets.config.about_icon }, Strings);
+    $("body").html(Mustache.render(MainViewHTML, templateVars));
+    
+    // Update title
+    $("title").text(Strings.APP_NAME);
+
+    // Dispatch htmlReady callbacks
+    AppInit._dispatchReady(AppInit.HTML_READY);
 
     $(window.document).ready(_onReady);
     

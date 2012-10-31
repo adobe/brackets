@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
         groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
         offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
-        bootstrapCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css");
+        bootstrapCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
+        escapesCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css");
     
     
     /**
@@ -248,6 +249,80 @@ define(function (require, exports, module) {
             it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
                 var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "NO-SUCH-SELECTOR");
                 expect(selectors.length).toBe(0);
+            });
+        });
+        
+        
+        describe("escapes", function() {
+            
+            beforeEach(function () {
+                init(this, escapesCssFileEntry);
+            });
+            
+            it("should remove simple backslashes for simple characters", function() { 
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[0].selector).toEqual(".simple");
+            });
+            
+            it("should remove simple backslashes with escaped characters", function() { 
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[1].selector).toEqual(".not\\so|simple?");
+            });
+            
+            it("should parse '\\XX ' as a single character", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[2].selector).toEqual(".twodigits");
+            });
+            
+            it("should parse '\\XXXX ' as a single character", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[3].selector).toEqual(".fourdigits");
+            });
+            
+            it("should parse '\\XXXXXX' as a single character", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[4].selector).toEqual(".sixdigits");
+            });
+            
+            it("should not trim end spaces", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[5].selector).toEqual(".two-digit-endspace");
+                
+                selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[6].selector).toEqual(".four-digit-endspace");
+                
+                selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[7].selector).toEqual(".six-digit-endspace");                
+            });
+            
+            it("should detect all combinations", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[8].selector).toEqual(".mixin-it-all");
+            });
+            
+            it("should parse '\\AX' as AX", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[9].selector).toEqual(".two-wi74out-space");
+            });
+            
+            it("should parse '\\AXXX' as AXXX", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[10].selector).toEqual(".four-n0085-space");
+            });
+            
+            it("should replace out of range characters with �", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[11].selector).toEqual(".�ut�frange");
+            });
+            
+            it("should parse everything less does", function() {
+                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                expect(selectors[12].selector).toEqual(".escape|random|char");
+                expect(selectors[13].selector).toEqual(".mixin!tUp");
+                expect(selectors[14].selector).toEqual(".404");
+                expect(selectors[15].selector).toEqual(".404 strong");
+                expect(selectors[16].selector).toEqual(".trailingTest+");
+                expect(selectors[17].selector).toEqual("blockquote");
             });
         });
         

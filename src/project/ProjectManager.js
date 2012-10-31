@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
     // Load dependent modules
-    var LoadEvents          = require("utils/LoadEvents"),
+    var AppInit             = require("utils/AppInit"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -58,12 +58,13 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        FileUtils           = require("file/FileUtils");
+        FileUtils           = require("file/FileUtils"),
+        Urls                = require("i18n!nls/urls");
     
     /**
      * @private
      * Reference to the tree control container div. Initialized by
-     * htmlContentLoadComplete handler
+     * htmlReady handler
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
@@ -223,7 +224,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Initial project path is stored in prefs, which defaults to brackets/src
+     * Initial project path is stored in prefs, which defaults to the getting started project
      */
     function getInitialProjectPath() {
         return _prefs.getValue("projectPath");
@@ -318,6 +319,11 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             suppressToggleOpen = false;
 
+        // For #1542, make sure the tree is scrolled to the top before refreshing.
+        // If we try to do this later (e.g. after the tree has been refreshed), it 
+        // doesn't seem to work properly. 
+        $projectTreeContainer.scrollTop(0);
+        
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
         $projectTreeContainer.hide();
@@ -608,18 +614,28 @@ define(function (require, exports, module) {
     }
     
     /** Returns the full path to the default project folder. The path is currently the brackets src folder.
-     * TODO: (issue #267): Brackets does not yet support operating when there is no project folder. This code will likely
-     * not be needed when this support is added.
      * @private
      * @return {!string} fullPath reference
      */
     function _getDefaultProjectPath() {
-        var loadedPath = decodeURI(window.location.pathname);
-        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-        
-        bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
+        var srcPath = decodeURI(window.location.pathname),
+            initialPath = srcPath.substr(0, srcPath.lastIndexOf("/")),
+            sampleUrl = Urls.GETTING_STARTED;
+        if (sampleUrl) {
+            // Back up one more folder. The samples folder is assumed to be at the same level as
+            // the src folder, and the sampleUrl is relative to the samples folder.
+            initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
+        }
 
-        return bracketsSrc;
+        initialPath = FileUtils.convertToNativePath(initialPath);
+        return initialPath;
+    }
+    
+    /**
+     * Returns true if the given path is the same as the one for the initial startup project.
+     */
+    function isDefaultProjectPath(path) {
+        return path === _getDefaultProjectPath();
     }
     
     /**
@@ -690,16 +706,14 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.htmlEscape(rootPath),
-                            error.code,
-                            function () {
-                                result.reject();
-                            }
+                            error.code
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default 
                         // project directory.
                         // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
+                        result.reject();
                         return _loadProject(_getDefaultProjectPath());
                     });
                 }
@@ -734,7 +748,7 @@ define(function (require, exports, module) {
                     _loadProject(path).pipe(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    NativeFileSystem.showOpenDialog(false, true, "Choose a folder", _projectRoot.fullPath, null,
+                    NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
                         function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
@@ -933,7 +947,7 @@ define(function (require, exports, module) {
 
 
     // Initialize variables and listeners that depend on the HTML DOM
-    LoadEvents.htmlContentLoadComplete(function () {
+    AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
 
         $("#open-files-container").on("contentChanged", function () {
@@ -962,6 +976,7 @@ define(function (require, exports, module) {
     exports.openProject             = openProject;
     exports.getSelectedItem         = getSelectedItem;
     exports.getInitialProjectPath   = getInitialProjectPath;
+    exports.isDefaultProjectPath    = isDefaultProjectPath;
     exports.createNewItem           = createNewItem;
     exports.forceFinishRename       = forceFinishRename;
 });

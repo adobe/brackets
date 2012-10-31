@@ -1,0 +1,21 @@
+{
+    "name"                  : "Brackets",
+    "version"               : "0.14.0-0",
+    "homepage"              : "http://brackets.io",
+    "issues"                :
+    {
+        "url"               : "http://github.com/adobe/brackets/issues"
+    },
+    "repository"            :
+    {
+        "type"              : "git",
+        "url"               : "https://github.com/adobe/brackets.git"
+    },
+    "config"                :
+    {
+        "about_icon"        : "styles/images/brackets_icon.svg",
+        "show_debug_menu"   : true,
+        "enable_jslint"     : true,
+        "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev"
+    }
+}

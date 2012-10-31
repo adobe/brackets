@@ -139,6 +139,12 @@ define(function (require, exports, module) {
             // disable update check in test windows
             params.put("skipUpdateCheck", true);
             
+            // disable loading of sample project
+            params.put("skipSampleProjectLoad", true);
+            
+            // disable initial dialog for live development
+            params.put("skipLiveDevelopmentInfo", true);
+            
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
