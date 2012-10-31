@@ -289,5 +289,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
     CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,  toggleUseTabChars)
         .setChecked(Editor.getUseTabChar());
-    CommandManager.register(Strings.CMD_SELECT_LINE),   Commands.EDIT_SELECT_LINE,      selectLine);
+    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
 });
