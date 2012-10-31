@@ -261,7 +261,7 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leer lassen für Datei-URL)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Ungültiges Protokoll für Basis-URL ({0}). http: oder https: verwenden.",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Ungültiges Protokoll für Basis-URL ({0}). Bitte http: oder https: verwenden.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Such-Parameter in Basis-URL nicht erlaubt: {0}",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash in Basis-URL nicht erlaubt: {0}",
     "BASEURL_ERROR_INVALID_CHAR"           : "Ungültiges Zeichen in Basis-URL: {0}",
