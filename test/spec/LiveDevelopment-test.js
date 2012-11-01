@@ -247,7 +247,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should reapply in-memory css changes after saving changes in html document", function () {
+            it("should reapply in-memory css changes after saving changes in html document", function () {
                 var localCssText,
                     browserCssText,
                     origHtmlText,
