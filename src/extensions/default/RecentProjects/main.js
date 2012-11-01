@@ -146,7 +146,7 @@ define(function (require, exports, module) {
                     .click(function () {
                         ProjectManager.openProject(root)
                             .fail(function () {
-                                // Remove the project from the list.
+                                // Remove the project from the list only if it does not exist on disk
                                 var index = recentProjects.indexOf(root);
                                 if (index !== -1) {
                                     NativeFileSystem.requestNativeFileSystem(root,
