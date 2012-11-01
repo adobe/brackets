@@ -85,14 +85,14 @@ define(function LiveDevelopment(require, exports, module) {
     // Agents
     var agents = {
         "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
-        "css"       : require("LiveDevelopment/Agents/CSSAgent"),
-        "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
-        "edit"      : require("LiveDevelopment/Agents/EditAgent"),
-        "goto"      : require("LiveDevelopment/Agents/GotoAgent"),
-        "highlight" : require("LiveDevelopment/Agents/HighlightAgent"),
-        "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
         "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
-        "script"    : require("LiveDevelopment/Agents/ScriptAgent")
+        "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
+        "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
+        "css"       : require("LiveDevelopment/Agents/CSSAgent"),
+        "script"    : require("LiveDevelopment/Agents/ScriptAgent"),
+        "highlight" : require("LiveDevelopment/Agents/HighlightAgent"),
+        "goto"      : require("LiveDevelopment/Agents/GotoAgent"),
+        "edit"      : require("LiveDevelopment/Agents/EditAgent")
     };
 
     // Some agents are still experimental, so we don't enable them all by default
@@ -101,10 +101,10 @@ define(function LiveDevelopment(require, exports, module) {
     // Property names should match property names in the 'agents' object.
     var _enabledAgentNames = {
         "console"   : true,
-        "css"       : true,
-        "dom"       : true,
+        "remote"    : true,
         "network"   : true,
-        "remote"    : true
+        "dom"       : true,
+        "css"       : true
     };
 
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
