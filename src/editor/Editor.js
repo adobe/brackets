@@ -387,7 +387,7 @@ define(function (require, exports, module) {
         // Add scrollTop property to this object for the scroll shadow code to use
         Object.defineProperty(this, "scrollTop", {
             get: function () {
-                return this._codeMirror.getScrollInfo().y;
+                return this._codeMirror.getScrollInfo().top;
             }
         });
     }
@@ -837,7 +837,8 @@ define(function (require, exports, module) {
      * @returns {{x:number, y:number}} The x,y scroll position in pixels
      */
     Editor.prototype.getScrollPos = function () {
-        return this._codeMirror.getScrollInfo();
+        var scrollInfo = this._codeMirror.getScrollInfo();
+        return { x: scrollInfo.left, y: scrollInfo.top };
     };
     
     /**
