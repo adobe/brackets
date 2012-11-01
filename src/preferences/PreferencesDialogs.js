@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         var obj = PathUtils.parseUrl(url);
         if (!obj) {
             result = Strings.BASEURL_ERROR_UNKOWN_ERROR;
-        } else if (obj.protocol !== "http:"  && obj.protocol !== "https:" && obj.protocol !== "") {
+        } else if (obj.protocol !== "http:"  && obj.protocol !== "https:") {
             result = StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, obj.protocol);
         } else if (obj.search !== "") {
             result = StringUtils.format(Strings.BASEURL_ERROR_SEARCH_DISALLOWED, obj.search);
@@ -73,16 +73,16 @@ define(function (require, exports, module) {
 
     /**
      * Show a dialog that shows the project preferences
-     * @param {PreferenceStorage} prefs
      * @param {String} baseUrl - initial value
      * @param {String} errorMessage - error to display
      */
-    function showProjectPreferencesDialog(prefs, baseUrl, errorMessage) {
+    function showProjectPreferencesDialog(baseUrl, errorMessage) {
 
         var $dlg,
-            $baseUrlControl;
+            $baseUrlControl,
+            promise;
 
-        Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
+        promise = Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     var baseUrlValue = $baseUrlControl.val();
@@ -91,7 +91,7 @@ define(function (require, exports, module) {
                         ProjectManager.setBaseUrl(baseUrlValue);
                     } else {
                         // Re-invoke dialog with result (error message)
-                        showProjectPreferencesDialog(prefs, baseUrlValue, result);
+                        showProjectPreferencesDialog(baseUrlValue, result);
                     }
                 }
             });
@@ -112,6 +112,8 @@ define(function (require, exports, module) {
 
         // Give focus to first control
         $baseUrlControl.focus();
+
+        return promise;
     }
 
     // For unit testing
