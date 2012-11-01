@@ -575,7 +575,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Close the Connection */
     function close() {
         if (Inspector.connected()) {
-            Inspector.Runtime.evaluate("window.close()");
+            Inspector.Runtime.evaluate("window.open('', '_self').close();");
         }
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
