@@ -95,6 +95,8 @@ define(function LiveDevelopment(require, exports, module) {
         "edit"      : require("LiveDevelopment/Agents/EditAgent")
     };
 
+    var launcherUrl = window.location.href.replace(/\/index.html.*/, "") + "/LiveDevelopment/launch.html";
+
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().
     // This object is used as a set (thus all properties have the value 'true').
@@ -378,6 +380,10 @@ define(function LiveDevelopment(require, exports, module) {
             var editor = EditorManager.getCurrentFullEditor(),
                 status = STATUS_ACTIVE;
 
+            if (agents.dom.url === launcherUrl) {
+                Inspector.Page.navigate(doc.root.url);
+            }
+
             _openDocument(doc, editor);
             if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                 status = STATUS_OUT_OF_SYNC;
@@ -465,8 +471,10 @@ define(function LiveDevelopment(require, exports, module) {
                 }
             }
 
+            var url = doc.root.url;
+
             _setStatus(STATUS_CONNECTING);
-            Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
+            Inspector.connectToURL(url).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -503,6 +511,8 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
 
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
+                    url = launcherUrl;
+
                     // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
                     // is available, but the requested URL is not loaded in the browser. In that
                     // case we want to launch the live browser (to open the url in a new tab)
@@ -510,7 +520,7 @@ define(function LiveDevelopment(require, exports, module) {
                     // on Windows where Chrome can't be opened more than once with the
                     // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url,
+                        url,
                         err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
@@ -540,10 +550,10 @@ define(function LiveDevelopment(require, exports, module) {
                             result.reject("OPEN_LIVE_BROWSER");
                         });
                 }
-
+                    
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
+                        Inspector.connectToURL(url).then(result.resolve, onConnectFail);
                     }, 500);
                 }
             });
