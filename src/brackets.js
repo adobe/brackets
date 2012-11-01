@@ -92,7 +92,7 @@ define(function (require, exports, module) {
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
-        SortUtils               = require("utils/SortUtils");
+        SortUtils               = require("project/SortUtils");
 
     // Local variables
     var params                  = new UrlParams(),

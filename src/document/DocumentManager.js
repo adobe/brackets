@@ -177,6 +177,12 @@ define(function (require, exports, module) {
         });
     }
     
+    /** 
+     * Returns the index of the file matching fullPath in _workingSetMRUOrder.
+     * Returns -1 if not found.
+     * @param {!string} fullPath
+     * @returns {number} index
+     */
     function findInWorkingSetMRUOrder(fullPath) {
         return findInWorkingSet(fullPath, _workingSetMRUOrder);
     }
@@ -323,13 +329,15 @@ define(function (require, exports, module) {
     
     /**
      * Sorts _workingSet using the compare function
-     * @param {function(a, b)} compareFn - the function that will be used inside the JavaScript sort function. This function receives 2 <FileEntryes>
-     *      as parameters and should return a value >0 (sort a to a lower index than b), =0 (leaves a and b unchanged with respect to each other) or <0 
-     *      (sort b to a lower index than a) and must always returns the same value when given a specific pair of elements a and b as its two arguments.
-     *      More information at: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
+     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
+     *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
+     *      the same value when given a specific pair of elements a and b as its two arguments.
+     *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortWorkingSet(compareFn) {
         _workingSet.sort(compareFn);
+        $(exports).triggerHandler("workingSetSort");
     }
     
 	
