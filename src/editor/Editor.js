@@ -373,8 +373,14 @@ define(function (require, exports, module) {
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
             this._codeMirror.operation(function () {
-                self._hideLines(0, range.startLine);
-                self._hideLines(range.endLine + 1, self.lineCount());
+                if (range.startLine > 0) {
+                    self._hideLines(0, range.startLine);
+                }
+                
+                var end = range.endLine + 1;
+                if (end < self.lineCount()) {
+                    self._hideLines(end, self.lineCount());
+                }
             });
             this.setCursorPos(range.startLine, 0);
         }
