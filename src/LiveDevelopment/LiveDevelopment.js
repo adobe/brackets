@@ -45,11 +45,11 @@
  * codes are:
  *
  * -1: Error
- * 0: Inactive
- * 1: Connecting to the remote debugger
- * 2: Loading agents
- * 3: Active
- * 4: Out of sync
+ *  0: Inactive
+ *  1: Connecting to the remote debugger
+ *  2: Loading agents
+ *  3: Active
+ *  4: Out of sync
  */
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
@@ -58,39 +58,41 @@ define(function LiveDevelopment(require, exports, module) {
 
     // Status Codes
     var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       = 0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     = 1;
-    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS = 2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         = 3;
-    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    = 4;
+    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
+    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     =  1;
+    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
+    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
+    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
 
-    var DocumentManager = require("document/DocumentManager");
-    var EditorManager = require("editor/EditorManager");
-    var NativeApp = require("utils/NativeApp");
-    var Dialogs = require("widgets/Dialogs");
-    var Strings = require("strings");
-    var StringUtils = require("utils/StringUtils");
-    var ProjectManager = require("project/ProjectManager");
+    var Dialogs             = require("widgets/Dialogs"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
+        NativeApp           = require("utils/NativeApp"),
+        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
+        ProjectManager      = require("project/ProjectManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils");
 
     // Inspector
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
     // Documents
-    var HTMLDocument = require("LiveDevelopment/Documents/HTMLDocument");
-    var CSSDocument = require("LiveDevelopment/Documents/CSSDocument");
-    var JSDocument = require("LiveDevelopment/Documents/JSDocument");
+    var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
+        HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
+        JSDocument      = require("LiveDevelopment/Documents/JSDocument");
 
     // Agents
     var agents = {
-        "console": require("LiveDevelopment/Agents/ConsoleAgent"),
-        "remote": require("LiveDevelopment/Agents/RemoteAgent"),
-        "network": require("LiveDevelopment/Agents/NetworkAgent"),
-        "dom": require("LiveDevelopment/Agents/DOMAgent"),
-        "css": require("LiveDevelopment/Agents/CSSAgent"),
-        "script": require("LiveDevelopment/Agents/ScriptAgent"),
-        "highlight": require("LiveDevelopment/Agents/HighlightAgent"),
-        "goto": require("LiveDevelopment/Agents/GotoAgent"),
-        "edit": require("LiveDevelopment/Agents/EditAgent")
+        "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
+        "css"       : require("LiveDevelopment/Agents/CSSAgent"),
+        "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
+        "edit"      : require("LiveDevelopment/Agents/EditAgent"),
+        "goto"      : require("LiveDevelopment/Agents/GotoAgent"),
+        "highlight" : require("LiveDevelopment/Agents/HighlightAgent"),
+        "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
+        "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
+        "script"    : require("LiveDevelopment/Agents/ScriptAgent")
     };
 
     // Some agents are still experimental, so we don't enable them all by default
@@ -98,17 +100,23 @@ define(function LiveDevelopment(require, exports, module) {
     // This object is used as a set (thus all properties have the value 'true').
     // Property names should match property names in the 'agents' object.
     var _enabledAgentNames = {
-        "console": true,
-        "remote": true,
-        "network": true,
-        "dom": true,
-        "css": true
+        "console"   : true,
+        "css"       : true,
+        "dom"       : true,
+        "network"   : true,
+        "remote"    : true
     };
+
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
     var _liveDocument; // the document open for live editing.
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
+
+    function _isHtmlFileExt(ext) {
+        return (FileUtils.isStaticHtmlFileExt(ext) ||
+                (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
+    }
 
     /** Augments the given Brackets document with information that's useful for live development. */
     function _setDocInfo(doc) {
@@ -132,7 +140,9 @@ define(function LiveDevelopment(require, exports, module) {
                 var serverUrl = doc.file.fullPath.replace(ProjectManager.getProjectRoot().fullPath, baseUrl);
                 doc.url = encodeURI(serverUrl);
 
-                if (!/^html?$/.test(matches[3])) {
+                // the root represents the document that should be displayed in the browser
+                // for live development (the file for HTML files, index.html for others)
+                if (!_isHtmlFileExt(matches[3])) {
                     serverUrl = serverUrl.replace(matches[2], "index.html");
                 }
                 doc.root = {url: encodeURI(serverUrl)};
@@ -153,7 +163,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // the root represents the document that should be displayed in the browser
         // for live development (the file for HTML files, index.html for others)
-        var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+        var fileName = _isHtmlFileExt(matches[3]) ? matches[2] : "index.html";
         doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
     }
 
@@ -177,12 +187,13 @@ define(function LiveDevelopment(require, exports, module) {
             return CSSDocument;
         case "js":
             return exports.config.experimental ? JSDocument : null;
-        case "html":
-        case "htm":
-            return exports.config.experimental ? HTMLDocument : null;
-        default:
-            return null;
         }
+
+        if (_isHtmlFileExt(doc.extension)) {
+            return HTMLDocument;
+        }
+
+        return null;
     }
 
     /**
@@ -394,20 +405,39 @@ define(function LiveDevelopment(require, exports, module) {
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_NEED_HTML_MESSAGE
             );
-            result.reject("WRONG_DOC");
+            result.reject();
+        }
+
+        function showNeedBaseUrlError() {
+            PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
+                        // If base url is specifed, then re-invoke open() to continue
+                        open();
+                        result.resolve();
+                    } else {
+                        result.reject();
+                    }
+                })
+                .fail(function () {
+                    result.reject();
+                });
         }
 
         if (!doc || !doc.root) {
             showWrongDocError();
 
         } else {
-            // For Sprint 6, we only open live development connections for HTML files
-            // FUTURE: Remove this test when we support opening connections for different
-            // file types.
-
-            if (!exports.config.experimental && (!doc.extension || doc.extension.indexOf('htm') !== 0)) {
-                showWrongDocError();
-                return promise;
+            if (!exports.config.experimental) {
+                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
+                    if (!ProjectManager.getBaseUrl()) {
+                        showNeedBaseUrlError();
+                        return promise;
+                    }
+                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
+                    showWrongDocError();
+                    return promise;
+                }
             }
 
             _setStatus(STATUS_CONNECTING);
@@ -520,8 +550,7 @@ define(function LiveDevelopment(require, exports, module) {
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
             } else {
-                /* FUTURE: support live connections for docments other than html */
-                if (exports.config.experimental || (doc.extension && doc.extension.indexOf('htm') === 0)) {
+                if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
                     close();
                     window.setTimeout(open);
                 }
