@@ -90,18 +90,9 @@ define(function (require, exports, module) {
         }
     };
     
-    // Shims for brackets.app when running in-browser
+				// Create empty app namespace if running in-browser
     if (!global.brackets.app) {
-        var app = {},
-            startTime = new Date().getMilliseconds();
-        
-        app.showDeveloperTools = false;
-        
-        app.getElapsedMilliseconds = function () {
-            return new Date().getMilliseconds() - startTime;
-        };
-        
-        global.brackets.app = app;
+        global.brackets.app = {};
     }
     
     // Loading extensions requires creating new require.js contexts, which
