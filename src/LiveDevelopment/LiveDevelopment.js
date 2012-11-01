@@ -376,20 +376,18 @@ define(function LiveDevelopment(require, exports, module) {
     /** Run when all agents are loaded */
     function _onLoad() {
         var doc = _getCurrentDocument();
-        if (doc) {
-            var editor = EditorManager.getCurrentFullEditor(),
-                status = STATUS_ACTIVE;
-
-            if (agents.dom.url === launcherUrl) {
-                Inspector.Page.navigate(doc.root.url);
-            }
-
-            _openDocument(doc, editor);
-            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-                status = STATUS_OUT_OF_SYNC;
-            }
-            _setStatus(status);
+        if (!doc) {
+            return;
         }
+
+        var editor = EditorManager.getCurrentFullEditor(),
+            status = STATUS_ACTIVE;
+
+        _openDocument(doc, editor);
+        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+            status = STATUS_OUT_OF_SYNC;
+        }
+        _setStatus(status);   
     }
 
     /** Triggered by Inspector.detached */
@@ -402,9 +400,21 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         $(Inspector.Inspector).on("detached", _onDetached);
-        var promises = loadAgents();
+        
+        // Load agents
         _setStatus(STATUS_LOADING_AGENTS);
+        var promises = loadAgents();
         $.when.apply(undefined, promises).then(_onLoad, _onError);
+        
+        // Load the right document (some agents are waiting for the page's load event)
+        Inspector.DOM.getDocument(function onGetDocument(res) {
+            var doc = _getCurrentDocument();
+            if (doc && res.root.documentURL === launcherUrl) {
+                Inspector.Page.navigate(doc.root.url);
+            } else {
+                Inspector.Page.reload();
+            }
+        });
     }
 
     /** Triggered by Inspector.disconnect */
