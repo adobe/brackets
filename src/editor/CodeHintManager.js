@@ -73,21 +73,16 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Enters the code completion text into the editor and closes list
+     * Enters the code completion text into the editor and closes list if the provider 
+     * returns true. Otherwise, get a new query and update the list based on the new query.
      * @string {string} completion - text to insert into current code editor
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
-        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), true);
-        this.close();
-    };
-
-    /**
-     * @private
-     * Enters the code completion text into the editor without closing list
-     * @string {string} completion - text to insert into current code editor
-     */
-    CodeHintList.prototype._handleItemSelect = function (completion) {
-        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos(), false);
+        if (this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos())) {
+            this.close();
+        } else {
+            this.updateQueryAndList();
+        }
     };
 
     /**
@@ -107,12 +102,6 @@ define(function (require, exports, module) {
                 // bootstrap-dropdown).
                 e.stopPropagation();
                 self._handleItemClick(name);
-            })
-            .on("select", function (e) {
-                // Don't let the "select" propagate upward (otherwise it will hit the close handler in
-                // bootstrap-dropdown).
-                e.stopPropagation();
-                self._handleItemSelect(name);
             });
 
         this.$hintMenu.find("ul.dropdown-menu")
@@ -185,6 +174,21 @@ define(function (require, exports, module) {
         }
     };
     
+    
+    /**
+     * Gets the new query from the current provider and rebuilds the hint list based on the new one.
+     */
+    CodeHintList.prototype.updateQueryAndList = function () {
+        this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
+        this.updateList();
+
+        // Update the CodeHintList location
+        if (this.displayList.length) {
+            var hintPos = this.calcHintListLocation();
+            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
+        }
+    };
+
     /**
      * Handles key presses when the hint list is being displayed
      * @param {Editor} editor
@@ -196,9 +200,11 @@ define(function (require, exports, module) {
         // Up arrow, down arrow and enter key are always handled here
         if (event.type !== "keypress") {
 
-            if (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN || keyCode === KeyEvent.DOM_VK_RETURN ||
+            if (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB ||
+                    keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                     keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
 
+                var isNavigationKey = (keyCode !== KeyEvent.DOM_VK_RETURN && keyCode !== KeyEvent.DOM_VK_TAB);
                 if (event.type === "keydown") {
                     if (keyCode === KeyEvent.DOM_VK_UP) {
                         // Up arrow
@@ -213,7 +219,7 @@ define(function (require, exports, module) {
                         // Page Down
                         this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
                     } else {
-                        // Enter/return key
+                        // Enter/return key or Tab key
                         // Trigger a click handler to commmit the selected item
                         $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
                     }
@@ -221,27 +227,13 @@ define(function (require, exports, module) {
 
                 event.preventDefault();
                 return;
-
-            } else if (keyCode === KeyEvent.DOM_VK_TAB) {
-                // Tab key is used for "select and continue hinting"
-                $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("select");
-                event.preventDefault();
             }
         }
         
         // All other key events trigger a rebuild of the list, but only
         // on keyup events
-        if (event.type !== "keyup") {
-            return;
-        }
-
-        this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
-        this.updateList();
-
-        // Update the CodeHintList location
-        if (this.displayList.length) {
-            var hintPos = this.calcHintListLocation();
-            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
+        if (event.type === "keyup") {
+            this.updateQueryAndList();
         }
     };
 
@@ -442,7 +434,7 @@ define(function (require, exports, module) {
      *
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
-     *                  handleSelect: function(string, Editor, cursor, closeHints),
+     *                  handleSelect: function(string, Editor, cursor),
      *                  shouldShowHintsOnKey: function(string)>}
      *
      * Parameter Details:
@@ -452,7 +444,8 @@ define(function (require, exports, module) {
      * - search - takes a query object and returns an array of hint strings based on the queryStr property
      *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
-     *      position
+     *      position. It should return true by default to close the hint list, but if the code hint provider
+     *      can return false if it wants to keep the hint list open and continue with a updated list. 
      * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {
