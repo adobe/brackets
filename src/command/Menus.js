@@ -974,6 +974,12 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        working_set_cmenu.addMenuDivider();
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
+        working_set_cmenu.addMenuDivider();
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);

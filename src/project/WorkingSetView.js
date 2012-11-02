@@ -245,9 +245,6 @@ define(function (require, exports, module) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
             }
-            
-            // Dispatch event
-            $(DocumentManager).triggerHandler("workingSetReorder");
         }
         
         
@@ -275,7 +272,6 @@ define(function (require, exports, module) {
         $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
             $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
             drop();
-            
         });
     }
     
@@ -506,6 +502,14 @@ define(function (require, exports, module) {
 
         _redraw();
     }
+    
+    /** 
+     * @private
+     */
+    function _handleWorkingSetSort() {
+        _rebuildWorkingSet();
+        _scrollSelectedDocIntoView();
+    }
 
     /** 
      * @private
@@ -552,6 +556,10 @@ define(function (require, exports, module) {
 
         $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
             _handleRemoveList(removedFiles);
+        });
+        
+        $(DocumentManager).on("workingSetSort", function (event) {
+            _handleWorkingSetSort();
         });
 
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
