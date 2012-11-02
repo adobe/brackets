@@ -688,7 +688,7 @@ define(function (require, exports, module) {
     };
 
     function getCurrentEditorSelectedText() {
-        var currentEditor = EditorManager.getFocusedEditor();
+        var currentEditor = EditorManager.getActiveEditor();
         return (currentEditor && currentEditor.getSelectedText()) || "";
     }
 

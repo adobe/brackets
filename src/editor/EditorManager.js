@@ -319,10 +319,14 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Focus the currently visible full-size editor. If no editor visible, does nothing. */
+    /** 
+     * Returns focus to the last visible editor that had focus. 
+     * This function should be called to restore editor focus after it has been temporarily
+     * removed. For example, after a dialog with editable text is closed.
+     */
     function focusEditor() {
-        if (_currentEditor) {
-            _currentEditor.focus();
+        if (_lastFocusedEditor) {
+            _lastFocusedEditor.focus();
         }
     }
     
@@ -403,6 +407,7 @@ define(function (require, exports, module) {
         _currentEditor = document._masterEditor;
         
         _currentEditor.setVisible(true);
+        _currentEditor.focus();
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
@@ -552,6 +557,11 @@ define(function (require, exports, module) {
     
     /**
      * Returns the currently focused editor instance (full-sized OR inline editor).
+     * This function is similar to getActiveEditor(), with one main difference: this
+     * function will only return editors that currently have focus, whereas 
+     * getActiveEditor() will return the last visible editor that was given focus (but
+     * may not currently have focus because, for example, a dialog with editable text
+     * is open).
      * @returns {Editor}
      */
     function getFocusedEditor() {
@@ -572,6 +582,17 @@ define(function (require, exports, module) {
         return null;
     }
  
+    /**
+     * Returns the current active editor (full-sized OR inline editor). This editor may not 
+     * have focus at the moment, but it is visible and was the last editor that was given 
+     * focus. Returns null if no editors are active.
+     * @see getFocusedEditor()
+     * @returns {Editor}
+     */
+    function getActiveEditor() {
+        return _lastFocusedEditor;
+    }
+     
     /**
      * Toggle Quick Edit command handler
      * @return {!Promise} A promise resolved with true if an inline editor
@@ -788,6 +809,7 @@ define(function (require, exports, module) {
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
+    exports.getActiveEditor = getActiveEditor;
     exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;

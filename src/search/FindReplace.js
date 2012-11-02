@@ -255,7 +255,7 @@ define(function (require, exports, module) {
     }
 
     function _launchFind() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             var codeMirror = editor._codeMirror;
 
@@ -271,21 +271,21 @@ define(function (require, exports, module) {
     }
 
     function _findNext() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             doSearch(editor._codeMirror);
         }
     }
 
     function _findPrevious() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             doSearch(editor._codeMirror, true);
         }
     }
 
     function _replace() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             replace(editor._codeMirror);
         }
