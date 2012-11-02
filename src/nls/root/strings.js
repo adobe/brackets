@@ -173,7 +173,7 @@ define({
     // Edit menu commands
     "EDIT_MENU"                           : "Edit",
     "CMD_SELECT_ALL"                      : "Select All",
-    "CMD_SELECT_LINE"                      : "Select Line",
+    "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
     "CMD_FIND_NEXT"                       : "Find Next",

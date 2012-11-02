@@ -298,8 +298,9 @@ define(function (require, exports, module) {
     function selectLine() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
-            var from = {line: editor.getSelection().start.line, ch: 0},
-            var to   = {line: editor.getSelection().end.line + 1, ch: 0};
+            var sel  = editor.getSelection();
+            var from = {line: sel.start.line, ch: 0};
+            var to   = {line: sel.end.line + 1, ch: 0};
             editor.setSelection(from, to);
         }
     }
