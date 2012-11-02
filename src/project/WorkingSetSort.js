@@ -38,8 +38,11 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings");
         
-    var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { currentSort: null, automaticSort: false };
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.WorkingSetSort",
+        defaultPrefs = {
+            currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
+            automaticSort: false
+        };
     
     /**
      * @private
@@ -55,7 +58,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {<Sort>}
+     * @type {Sort}
      */
     var _currentSort = null;
     
@@ -91,6 +94,17 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Sets the value to _automaticSort and updates the menu item.
+     * @param {boolean} value
+     */
+    function _setAutomatic(value) {
+        _automaticSort = value;
+        _prefs.setValue("automaticSort", _automaticSort);
+        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
+    }
+    
+    /**
+     * @private
      * Removes current sort DocumentManager listeners.
      */
     function _removeListeners() {
@@ -100,13 +114,12 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
      * Disables Automatic Sort.
      */
-    function disableAutomatic() {
-        _automaticSort = false;
+    function _disableAutomatic() {
+        _setAutomatic(false);
         _removeListeners();
-        _prefs.setValue("automaticSort", _automaticSort);
-        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
     }
     
     /**
@@ -120,25 +133,37 @@ define(function (require, exports, module) {
                     _currentSort.callAutomaticFn(event);
                 })
                 .on("workingSetReorder.sort", function () {
-                    disableAutomatic();
+                    _disableAutomatic();
                 });
         }
     }
     
     /**
+     * @private
      * Enables Automatic Sort.
      */
-    function enableAutomatic() {
-        _automaticSort = true;
+    function _enableAutomatic() {
+        _setAutomatic(true);
         _addListeners();
-        _prefs.setValue("automaticSort", _automaticSort);
-        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
+    }
+    
+    /**
+     * Enables/Disables Automatic Sort depending on the value.
+     * @param {boolean} value
+     */
+    function setAutomatic(value) {
+        if (value) {
+            _enableAutomatic();
+        } else {
+            _disableAutomatic();
+        }
     }
     
     
     /**
      * @private
      * Sets the current sort method and checks it on the context menu.
+     * @param {Sort} newSort
      */
     function _setCurrentSort(newSort) {
         var command;
@@ -265,6 +290,10 @@ define(function (require, exports, module) {
     
     
     /** Command Handlers */
+    function _handleSortWorkingSetByAdded() {
+        get(Commands.SORT_WORKINGSET_BY_ADDED).execute();
+    }
+    
     function _handleSortWorkingSetByName() {
         get(Commands.SORT_WORKINGSET_BY_NAME).execute();
     }
@@ -273,21 +302,22 @@ define(function (require, exports, module) {
         get(Commands.SORT_WORKINGSET_BY_TYPE).execute();
     }
     
-    function _handleSortWorkingSetByMRU() {
-        get(Commands.SORT_WORKINGSET_BY_MRU).execute();
-    }
-    
     function _handleAutomaticSort() {
-        if (getAutomatic()) {
-            disableAutomatic();
-        } else {
-            enableAutomatic();
-        }
+        setAutomatic(!getAutomatic());
     }
     
     
     
     // Register sorts
+    register(
+        Commands.SORT_WORKINGSET_BY_ADDED,
+        function (file1, file2) {
+            var index1 = DocumentManager.findInWorkingSetAddedOrder(file1.fullPath),
+                index2 = DocumentManager.findInWorkingSetAddedOrder(file2.fullPath);
+            return index1 - index2;
+        },
+        "workingSetAdd workingSetAddList"
+    );
     register(
         Commands.SORT_WORKINGSET_BY_NAME,
         function (file1, file2) {
@@ -310,37 +340,13 @@ define(function (require, exports, module) {
         },
         "workingSetAdd workingSetAddList"
     );
-    register(
-        Commands.SORT_WORKINGSET_BY_MRU,
-        function (file1, file2) {
-            var index1 = DocumentManager.findInWorkingSetMRUOrder(file1.fullPath),
-                index2 = DocumentManager.findInWorkingSetMRUOrder(file2.fullPath);
-            return index1 - index2;
-        },
-        "workingSetAdd workingSetAddList currentDocumentChange",
-        function (event) {
-            switch (event.type) {
-            case "workingSetAddList":
-                _openedDocument = true;
-                break;
-            case "currentDocumentChange":
-                if (_openedDocument) {
-                    _currentSort.sort();
-                    _openedDocument = false;
-                }
-                break;
-            default:
-                _currentSort.sort();
-            }
-        }
-    );
     
     
     // Register command handlers
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_NAME, Commands.SORT_WORKINGSET_BY_NAME, _handleSortWorkingSetByName);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_TYPE, Commands.SORT_WORKINGSET_BY_TYPE, _handleSortWorkingSetByType);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_MRU,  Commands.SORT_WORKINGSET_BY_MRU,  _handleSortWorkingSetByMRU);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_AUTO,    Commands.SORT_WORKINGSET_AUTO,    _handleAutomaticSort);
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_ADDED, Commands.SORT_WORKINGSET_BY_ADDED, _handleSortWorkingSetByAdded);
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_NAME,  Commands.SORT_WORKINGSET_BY_NAME,  _handleSortWorkingSetByName);
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_TYPE,  Commands.SORT_WORKINGSET_BY_TYPE,  _handleSortWorkingSetByType);
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_AUTO,     Commands.SORT_WORKINGSET_AUTO,     _handleAutomaticSort);
     
     
     // Init PreferenceStorage
@@ -356,7 +362,7 @@ define(function (require, exports, module) {
             _setCurrentSort(curSort);
         }
         if (autoSort) {
-            enableAutomatic();
+            _enableAutomatic();
         }
         if (curSort && autoSort) {
             curSort.sort();
@@ -365,9 +371,8 @@ define(function (require, exports, module) {
     
     
     // Define public API
-    exports.register         = register;
-    exports.get              = get;
-    exports.getAutomatic     = getAutomatic;
-    exports.enableAutomatic  = enableAutomatic;
-    exports.disableAutomatic = disableAutomatic;
+    exports.register        = register;
+    exports.get             = get;
+    exports.getAutomatic    = getAutomatic;
+    exports.setAutomatic    = setAutomatic;
 });

@@ -66,6 +66,8 @@
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
+ *    - workingSetReorder -- When the indexes of 2 files are swapped during a drag and drop order.
+ *    - workingSetSort -- When the workingSet array is sorted.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -126,6 +128,13 @@ define(function (require, exports, module) {
     var _workingSetMRUOrder = [];
     
     /**
+     * @private
+     * Contains the same set of items as _workinSet, but ordered in the way they where added to _workingSet (0 = last added).
+     * @type {Array.<FileEntry>}
+     */
+    var _workingSetAddedOrder = [];
+    
+    /**
      * While true, the MRU order is frozen
      * @type {boolean}
      */
@@ -178,13 +187,13 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * Returns the index of the file matching fullPath in _workingSetMRUOrder.
+     * Returns the index of the file matching fullPath in _workingSetAddedOrder.
      * Returns -1 if not found.
      * @param {!string} fullPath
      * @returns {number} index
      */
-    function findInWorkingSetMRUOrder(fullPath) {
-        return findInWorkingSet(fullPath, _workingSetMRUOrder);
+    function findInWorkingSetAddedOrder(fullPath) {
+        return findInWorkingSet(fullPath, _workingSetAddedOrder);
     }
 
     /**
@@ -228,6 +237,9 @@ define(function (require, exports, module) {
             _workingSetMRUOrder.push(file);
         }
         
+        // Add first to Added order
+        _workingSetAddedOrder.unshift(file);
+        
         // Dispatch event
         $(exports).triggerHandler("workingSetAdd", file);
     }
@@ -243,7 +255,7 @@ define(function (require, exports, module) {
         var uniqueFileList = [];
 
         // Process only files not already in working set
-        fileList.forEach(function (file) {
+        fileList.forEach(function (file, index) {
             // If doc is already in working set, don't add it again
             if (findInWorkingSet(file.fullPath) === -1) {
                 uniqueFileList.push(file);
@@ -257,8 +269,12 @@ define(function (require, exports, module) {
                 } else {
                     _workingSetMRUOrder.push(file);
                 }
+                
+                // Add first to Added order
+                _workingSetAddedOrder.splice(index, 1, file);
             }
         });
+        
 
         // Dispatch event
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList]);
@@ -279,6 +295,7 @@ define(function (require, exports, module) {
         // Remove
         _workingSet.splice(index, 1);
         _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
@@ -293,6 +310,7 @@ define(function (require, exports, module) {
         // Remove all
         _workingSet = [];
         _workingSetMRUOrder = [];
+        _workingSetAddedOrder = [];
 
         // Dispatch event
         $(exports).triggerHandler("workingSetRemoveList", [fileList]);
@@ -324,6 +342,9 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
+            
+            // Dispatch event
+            $(exports).triggerHandler("workingSetReorder");
         }
     }
     
@@ -1157,7 +1178,7 @@ define(function (require, exports, module) {
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.getWorkingSet               = getWorkingSet;
     exports.findInWorkingSet            = findInWorkingSet;
-    exports.findInWorkingSetMRUOrder    = findInWorkingSetMRUOrder;
+    exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
     exports.setCurrentDocument          = setCurrentDocument;
     exports.addToWorkingSet             = addToWorkingSet;

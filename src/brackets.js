@@ -68,6 +68,7 @@ define(function (require, exports, module) {
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
         WorkingSetView          = require("project/WorkingSetView"),
+        WorkingSetSort          = require("project/WorkingSetSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
@@ -91,8 +92,7 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        Resizer                 = require("utils/Resizer"),
-        SortUtils               = require("project/SortUtils");
+        Resizer                 = require("utils/Resizer");
 
     // Local variables
     var params                  = new UrlParams(),

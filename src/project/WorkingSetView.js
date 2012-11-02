@@ -244,9 +244,6 @@ define(function (require, exports, module) {
                     // Restore the shadows
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
-                
-                // Dispatch event
-                $(DocumentManager).triggerHandler("workingSetReorder");
             }
         }
         
