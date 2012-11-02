@@ -387,7 +387,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
             status = STATUS_OUT_OF_SYNC;
         }
-        _setStatus(status);   
+        _setStatus(status);
     }
 
     /** Triggered by Inspector.detached */
