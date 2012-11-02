@@ -122,14 +122,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Contains the same set of items as _workinSet, but ordered by how recently they were _currentDocument (0 = most recent).
+     * Contains the same set of items as _workingSet, but ordered by how recently they were _currentDocument (0 = most recent).
      * @type {Array.<FileEntry>}
      */
     var _workingSetMRUOrder = [];
     
     /**
      * @private
-     * Contains the same set of items as _workinSet, but ordered in the way they where added to _workingSet (0 = last added).
+     * Contains the same set of items as _workingSet, but ordered in the way they where added to _workingSet (0 = last added).
      * @type {Array.<FileEntry>}
      */
     var _workingSetAddedOrder = [];
@@ -361,7 +361,6 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("workingSetSort");
     }
     
-	
     /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
      * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)

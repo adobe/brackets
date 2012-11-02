@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves a Sort object by id
-     * @param {string} CommandID
+     * @param {string} commandID
      * @return {Sort}
      */
     function get(commandID) {
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets the value to _automaticSort and updates the menu item.
+     * Sets the value of Automatic Sort and updates the menu item.
      * @param {boolean} value
      */
     function _setAutomatic(value) {
@@ -307,8 +307,7 @@ define(function (require, exports, module) {
     }
     
     
-    
-    // Register sorts
+    // Register Sort Methods
     register(
         Commands.SORT_WORKINGSET_BY_ADDED,
         function (file1, file2) {
@@ -342,14 +341,14 @@ define(function (require, exports, module) {
     );
     
     
-    // Register command handlers
+    // Register Command Handlers
     CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_ADDED, Commands.SORT_WORKINGSET_BY_ADDED, _handleSortWorkingSetByAdded);
     CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_NAME,  Commands.SORT_WORKINGSET_BY_NAME,  _handleSortWorkingSetByName);
     CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_TYPE,  Commands.SORT_WORKINGSET_BY_TYPE,  _handleSortWorkingSetByType);
     CommandManager.register(Strings.CMD_SORT_WORKINGSET_AUTO,     Commands.SORT_WORKINGSET_AUTO,     _handleAutomaticSort);
     
     
-    // Init PreferenceStorage
+    // Initialize PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
     
     
