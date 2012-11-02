@@ -79,6 +79,7 @@ define(function (require, exports, module) {
     function showProjectPreferencesDialog(baseUrl, errorMessage) {
 
         var $dlg,
+            $title,
             $baseUrlControl,
             promise;
 
@@ -98,6 +99,19 @@ define(function (require, exports, module) {
 
         // Populate project settings
         $dlg = $(".project-settings-dialog.instance");
+
+        // Title
+        $title = $dlg.find(".dialog-title");
+        if ($title) {
+            var projectName = "",
+                projectRoot = ProjectManager.getProjectRoot(),
+                title;
+            if (projectRoot) {
+                projectName = projectRoot.name;
+            }
+            title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
+            $title.text(title);
+        }
 
         // Base URL
         $baseUrlControl = $dlg.find(".base-url");

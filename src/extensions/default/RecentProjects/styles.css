@@ -37,7 +37,7 @@
 	padding: 5px 26px 5px 10px;
 }
 
-.recent-folder, #open-folder-link {
+.recent-folder, #open-folder-link, #project-settings-link {
     color: #333;
 }
 

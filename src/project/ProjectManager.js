@@ -1288,9 +1288,9 @@ define(function (require, exports, module) {
             _redraw(false); // redraw jstree when working set size changes
         });
 
-        $("#project-files-header .settings").on("click", function () {
-            PreferencesDialogs.showProjectPreferencesDialog(_projectBaseUrl);
-        });
+//        $("#project-files-header .settings").on("click", function () {
+//            PreferencesDialogs.showProjectPreferencesDialog(_projectBaseUrl);
+//        });
     });
 
     // Init PreferenceStorage
