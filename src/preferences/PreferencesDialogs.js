@@ -62,7 +62,7 @@ define(function (require, exports, module) {
         } else if (obj.hash !== "") {
             result = StringUtils.format(Strings.BASEURL_ERROR_HASH_DISALLOWED, obj.hash);
         } else {
-            var index = url.search(/[\^\[\]\{\}<>\\"\?]+/);
+            var index = url.search(/[ \^\[\]\{\}<>\\"\?]+/);
             if (index !== -1) {
                 result = StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, url[index]);
             }

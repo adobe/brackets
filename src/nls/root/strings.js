@@ -265,6 +265,6 @@ define({
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Invalid Base URL protocol ({0}). Use http: or https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Search parameters disallowed in Base URL: {0}",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash disallowed in Base URL: {0}",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in Base URL: {0}",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in encoded Base URL: '{0}'",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL"
 });
