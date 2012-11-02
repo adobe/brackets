@@ -388,7 +388,7 @@ define(function (require, exports, module) {
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
                     .toBe("");
 
-                expect(PreferencesDialogs._validateBaseUrl("https://localhost:8080/subfolder"))
+                expect(PreferencesDialogs._validateBaseUrl("https://localhost:8080/sub%20folder"))
                     .toBe("");
 
                 expect(PreferencesDialogs._validateBaseUrl("ftp://localhost"))
@@ -404,10 +404,13 @@ define(function (require, exports, module) {
                     .toBe("Hash disallowed in Base URL: #anchor1");
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/abc<123"))
-                    .toBe("Invalid character in Base URL: <");
+                    .toBe("Invalid character in encoded Base URL: '<'");
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/?"))
-                    .toBe("Invalid character in Base URL: ?");
+                    .toBe("Invalid character in encoded Base URL: '?'");
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/sub dir"))
+                    .toBe("Invalid character in encoded Base URL: ' '");
             });
         });
     });
