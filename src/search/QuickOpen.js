@@ -25,15 +25,15 @@
 /*global define, $, window, setTimeout */
 
 /*
-* Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
-* within a file.
-* Uses FileIndexManger to supply the file list.
-* 
-* TODO (issue 333) - currently jquery smart auto complete is used for the pop-up list. While it mostly works
-* it has several issues, so it should be replace with an alternative. Issues:
-* - the pop-up position logic has flaws that require CSS workarounds
-* - the pop-up properties cannot be modified once the object is constructed
-*/
+ * Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
+ * within a file.
+ * Uses FileIndexManger to supply the file list.
+ * 
+ * TODO (issue 333) - currently jquery smart auto complete is used for the pop-up list. While it mostly works
+ * it has several issues, so it should be replace with an alternative. Issues:
+ * - the pop-up position logic has flaws that require CSS workarounds
+ * - the pop-up properties cannot be modified once the object is constructed
+ */
 
 
 define(function (require, exports, module) {
@@ -146,9 +146,9 @@ define(function (require, exports, module) {
     }
 
     /**
-    * QuickNavigateDialog class
-    * @constructor
-    */
+     * QuickNavigateDialog class
+     * @constructor
+     */
     function QuickNavigateDialog() {
         this.$searchField = undefined; // defined when showDialog() is called
     }
@@ -395,13 +395,13 @@ define(function (require, exports, module) {
     };
     
     /**
-    * Helper functions for stringMatch score calculation.
-    */
+     * Helper functions for stringMatch score calculation.
+     */
     
     /**
-    * The current scoring gives a boost for matches in the "most specific" (generally farthest right) 
-    * segment of the string being tested against the query.
-    */
+     * The current scoring gives a boost for matches in the "most specific" (generally farthest right) 
+     * segment of the string being tested against the query.
+     */
     function _adjustScoreForSegment(segmentCounter, score) {
         if (segmentCounter === 0) {
             // Multiplier used for matches within the most-specific part of the name (filename, for example)
@@ -412,18 +412,18 @@ define(function (require, exports, module) {
     }
     
     /**
-    * Additional points are added when multiple characters in the string
-    * being tested match against query characters.
-    */
+     * Additional points are added when multiple characters in the string
+     * being tested match against query characters.
+     */
     function _boostForMatches(sequentialMatches) {
         // Multiplier for the number of sequential matched characters
         return sequentialMatches * sequentialMatches * 5;
     }
     
     /**
-    * The score is boosted for matches that occur at the beginning
-    * of a segment of string that is being tested against the query.
-    */
+     * The score is boosted for matches that occur at the beginning
+     * of a segment of string that is being tested against the query.
+     */
     function _boostForPathSegmentStart(sequentialMatches) {
         // Multiplier for sequential matched characters at the beginning
         // of a delimited section (after a '/' in a path, for example)
@@ -810,8 +810,8 @@ define(function (require, exports, module) {
     };
 
     /**
-    * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
-    */
+     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
+     */
     QuickNavigateDialog.prototype.showDialog = function (prefix, initialString) {
         var that = this;
 
