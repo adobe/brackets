@@ -486,9 +486,17 @@ define(function (require, exports, module) {
     function _handleFileRemoved(file) {
         var $listItem = _findListItemFromFile(file);
         if ($listItem) {
+            // Make the next file in the list show the close icon, 
+            // without having to move the mouse, if there is a next file.
+            var $nextListItem = $listItem.next();
+            if ($nextListItem && $nextListItem.length > 0) {
+                var canClose = ($listItem.find(".can-close").length === 1);
+                var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                _updateFileStatusIcon($nextListItem, isDirty, canClose);
+            }
             $listItem.remove();
         }
-
+        
         _redraw();
     }
 
