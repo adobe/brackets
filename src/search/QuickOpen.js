@@ -743,8 +743,8 @@ define(function (require, exports, module) {
         
         item.stringRanges.forEach(function (range) {
             if (range.matched) {
-                displayPath += '<span class="quicksearch-match">';
-                displayName += '<span class="quicksearch-match">';
+                displayPath += '<span class="quicksearch-pathmatch">';
+                displayName += '<span class="quicksearch-namematch">';
             } else {
                 displayPath += '<span>';
                 displayName += '<span>';
