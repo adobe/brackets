@@ -853,6 +853,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_OPEN,                "Ctrl-O");
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
+        menu.addMenuItem(Commands.FILE_CLOSE_ALL,           "Ctrl-Shift-W");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
         menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
