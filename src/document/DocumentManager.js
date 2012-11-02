@@ -66,6 +66,8 @@
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
+ *    - workingSetReorder -- When the indexes of 2 files are swapped during a drag and drop order.
+ *    - workingSetSort -- When the workingSet array is sorted.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -120,10 +122,17 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Contains the same set of items as _workinSet, but ordered by how recently they were _currentDocument (0 = most recent).
+     * Contains the same set of items as _workingSet, but ordered by how recently they were _currentDocument (0 = most recent).
      * @type {Array.<FileEntry>}
      */
     var _workingSetMRUOrder = [];
+    
+    /**
+     * @private
+     * Contains the same set of items as _workingSet, but ordered in the way they where added to _workingSet (0 = last added).
+     * @type {Array.<FileEntry>}
+     */
+    var _workingSetAddedOrder = [];
     
     /**
      * While true, the MRU order is frozen
@@ -176,6 +185,16 @@ define(function (require, exports, module) {
             return file.fullPath === fullPath;
         });
     }
+    
+    /** 
+     * Returns the index of the file matching fullPath in _workingSetAddedOrder.
+     * Returns -1 if not found.
+     * @param {!string} fullPath
+     * @returns {number} index
+     */
+    function findInWorkingSetAddedOrder(fullPath) {
+        return findInWorkingSet(fullPath, _workingSetAddedOrder);
+    }
 
     /**
      * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
@@ -218,6 +237,9 @@ define(function (require, exports, module) {
             _workingSetMRUOrder.push(file);
         }
         
+        // Add first to Added order
+        _workingSetAddedOrder.unshift(file);
+        
         // Dispatch event
         $(exports).triggerHandler("workingSetAdd", file);
     }
@@ -233,7 +255,7 @@ define(function (require, exports, module) {
         var uniqueFileList = [];
 
         // Process only files not already in working set
-        fileList.forEach(function (file) {
+        fileList.forEach(function (file, index) {
             // If doc is already in working set, don't add it again
             if (findInWorkingSet(file.fullPath) === -1) {
                 uniqueFileList.push(file);
@@ -247,8 +269,12 @@ define(function (require, exports, module) {
                 } else {
                     _workingSetMRUOrder.push(file);
                 }
+                
+                // Add first to Added order
+                _workingSetAddedOrder.splice(index, 1, file);
             }
         });
+        
 
         // Dispatch event
         $(exports).triggerHandler("workingSetAddList", [uniqueFileList]);
@@ -269,6 +295,7 @@ define(function (require, exports, module) {
         // Remove
         _workingSet.splice(index, 1);
         _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
@@ -283,6 +310,7 @@ define(function (require, exports, module) {
         // Remove all
         _workingSet = [];
         _workingSetMRUOrder = [];
+        _workingSetAddedOrder = [];
 
         // Dispatch event
         $(exports).triggerHandler("workingSetRemoveList", [fileList]);
@@ -314,9 +342,24 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
+            
+            // Dispatch event
+            $(exports).triggerHandler("workingSetReorder");
         }
     }
     
+    /**
+     * Sorts _workingSet using the compare function
+     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
+     *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
+     *      the same value when given a specific pair of elements a and b as its two arguments.
+     *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
+     */
+    function sortWorkingSet(compareFn) {
+        _workingSet.sort(compareFn);
+        $(exports).triggerHandler("workingSetSort");
+    }
     
     /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
@@ -1128,29 +1171,31 @@ define(function (require, exports, module) {
     }
     
     // Define public API
-    exports.Document = Document;
-    exports.getCurrentDocument = getCurrentDocument;
-    exports.getDocumentForPath = getDocumentForPath;
-    exports.getOpenDocumentForPath = getOpenDocumentForPath;
-    exports.getWorkingSet = getWorkingSet;
-    exports.findInWorkingSet = findInWorkingSet;
-    exports.getAllOpenDocuments = getAllOpenDocuments;
-    exports.setCurrentDocument = setCurrentDocument;
-    exports.addToWorkingSet = addToWorkingSet;
-    exports.addListToWorkingSet = addListToWorkingSet;
-    exports.removeFromWorkingSet = removeFromWorkingSet;
-    exports.getNextPrevFile = getNextPrevFile;
-    exports.swapWorkingSetIndexes = swapWorkingSetIndexes;
-    exports.beginDocumentNavigation = beginDocumentNavigation;
-    exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
-    exports.closeFullEditor = closeFullEditor;
-    exports.closeAll = closeAll;
-    exports.notifyFileDeleted = notifyFileDeleted;
-    exports.notifyPathNameChanged = notifyPathNameChanged;
+    exports.Document                    = Document;
+    exports.getCurrentDocument          = getCurrentDocument;
+    exports.getDocumentForPath          = getDocumentForPath;
+    exports.getOpenDocumentForPath      = getOpenDocumentForPath;
+    exports.getWorkingSet               = getWorkingSet;
+    exports.findInWorkingSet            = findInWorkingSet;
+    exports.findInWorkingSetAddedOrder  = findInWorkingSetAddedOrder;
+    exports.getAllOpenDocuments         = getAllOpenDocuments;
+    exports.setCurrentDocument          = setCurrentDocument;
+    exports.addToWorkingSet             = addToWorkingSet;
+    exports.addListToWorkingSet         = addListToWorkingSet;
+    exports.removeFromWorkingSet        = removeFromWorkingSet;
+    exports.getNextPrevFile             = getNextPrevFile;
+    exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
+    exports.sortWorkingSet              = sortWorkingSet;
+    exports.beginDocumentNavigation     = beginDocumentNavigation;
+    exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
+    exports.closeFullEditor             = closeFullEditor;
+    exports.closeAll                    = closeAll;
+    exports.notifyFileDeleted           = notifyFileDeleted;
+    exports.notifyPathNameChanged       = notifyPathNameChanged;
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder", _savePreferences);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder workingSetSort", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
