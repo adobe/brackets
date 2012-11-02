@@ -119,6 +119,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Encoded URL
      * @ see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
@@ -233,8 +234,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns the Base URL of the currently loaded project, or empty string if no project is open
-     * (during startup, or running outside of app shell).
+     * Returns the encoded Base URL of the currently loaded project, or empty string if no project
+     * is open (during startup, or running outside of app shell).
      * @return {String}
      */
     function getBaseUrl() {
@@ -242,7 +243,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Sets the Base URL of the currently loaded project.
+     * Sets the encoded Base URL of the currently loaded project.
      * @param {String}
      */
     function setBaseUrl(projectBaseUrl) {
