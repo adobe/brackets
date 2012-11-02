@@ -622,13 +622,16 @@ define(function LiveDevelopment(require, exports, module) {
             .on("dirtyFlagChange", _onDirtyFlagChange);
     }
 
+    // For unit testing
+    exports._urlToPath          = _urlToPath;
+
     // Export public functions
-    exports.agents = agents;
-    exports.open = open;
-    exports.close = close;
-    exports.enableAgent = enableAgent;
-    exports.disableAgent = disableAgent;
-    exports.getLiveDocForPath = getLiveDocForPath;
-    exports.hideHighlight = hideHighlight;
-    exports.init = init;
+    exports.agents              = agents;
+    exports.open                = open;
+    exports.close               = close;
+    exports.enableAgent         = enableAgent;
+    exports.disableAgent        = disableAgent;
+    exports.getLiveDocForPath   = getLiveDocForPath;
+    exports.hideHighlight       = hideHighlight;
+    exports.init                = init;
 });

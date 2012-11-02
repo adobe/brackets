@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         LiveDevelopment,
         DOMAgent,
         Inspector,
-        DocumentManager;
+        DocumentManager,
+        ProjectManager;
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -106,36 +107,36 @@ define(function (require, exports, module) {
 
     describe("Live Development", function () {
         
-        beforeEach(function () {
-            runs(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow          = w;
-                    LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
-                    DOMAgent            = testWindow.brackets.test.DOMAgent;
-                    Inspector           = testWindow.brackets.test.Inspector;
-                    DocumentManager     = testWindow.brackets.test.DocumentManager;
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    NativeApp           = testWindow.brackets.test.NativeApp;
-                });
-                
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-        });
-    
-    
-        afterEach(function () {
-            runs(function () {
-                LiveDevelopment.close();
-            });
-            
-            waitsFor(function () { return !Inspector.connected(); }, "Waiting to close inspector", 10000);
-            
-            SpecRunnerUtils.closeTestWindow();
-        });
-        
         describe("CSS Editing", function () {
 
+            beforeEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                        testWindow          = w;
+                        LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
+                        DOMAgent            = testWindow.brackets.test.DOMAgent;
+                        Inspector           = testWindow.brackets.test.Inspector;
+                        DocumentManager     = testWindow.brackets.test.DocumentManager;
+                        CommandManager      = testWindow.brackets.test.CommandManager;
+                        Commands            = testWindow.brackets.test.Commands;
+                        NativeApp           = testWindow.brackets.test.NativeApp;
+                        ProjectManager      = testWindow.brackets.test.ProjectManager;
+                    });
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            afterEach(function () {
+                runs(function () {
+                    LiveDevelopment.close();
+                });
+
+                waitsFor(function () { return !Inspector.connected(); }, "Waiting to close inspector", 10000);
+
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
             it("should establish a browser connection for an opened html file", function () {
                 //verify we aren't currently connected
                 expect(Inspector.connected()).toBeFalsy();
@@ -359,6 +360,30 @@ define(function (require, exports, module) {
                 });
             });
 
+            // This test url mapping -- files do not need to exist on disk
+            it("should translate server urls to local files", function () {
+
+                // Should return local path when no base url
+                expect(LiveDevelopment._urlToPath("file://" + testPath + "/index.html"))
+                    .toBe(testPath + "/index.html");
+                expect(LiveDevelopment._urlToPath("file://" + testPath + "/subdir/main.css"))
+                    .toBe(testPath + "/subdir/main.css");
+
+                // Set base url
+                ProjectManager.setBaseUrl("http://localhost/");
+
+                expect(LiveDevelopment._urlToPath("http://localhost/about.php"))
+                    .toBe(testPath + "/about.php");
+                expect(LiveDevelopment._urlToPath("http://localhost/subdir/nav.js"))
+                    .toBe(testPath + "/subdir/nav.js");
+
+                // Clear base url
+                ProjectManager.setBaseUrl("");
+            });
+        });
+
+        describe("URL Mapping", function () {
+
             it("should validate base urls", function () {
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
                     .toBe("");
@@ -369,9 +394,8 @@ define(function (require, exports, module) {
                 expect(PreferencesDialogs._validateBaseUrl("ftp://localhost"))
                     .toBe("Invalid Base URL protocol (ftp:). Use http: or https: .");
 
-                // This code not yet in master
-                //expect(PreferencesDialogs._validateBaseUrl("localhost"))
-                //    .toBe("Invalid Base URL protocol (). Use http: or https: .");
+                expect(PreferencesDialogs._validateBaseUrl("localhost"))
+                    .toBe("Invalid Base URL protocol (). Use http: or https: .");
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/?id=123"))
                     .toBe("Search parameters disallowed in Base URL: ?id=123");
