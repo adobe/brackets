@@ -75,8 +75,10 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS files</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
@@ -180,10 +182,10 @@ define({
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
-    "CMD_DELETE_LINES"                    : "Delete Line(s)",
-    "CMD_COMMENT"                         : "Comment/Uncomment Lines",
-    "CMD_LINE_UP"                         : "Move Line(s) Up",
-    "CMD_LINE_DOWN"                       : "Move Line(s) Down",
+    "CMD_DELETE_LINES"                    : "Delete Line",
+    "CMD_COMMENT"                         : "Toggle Line Comment",
+    "CMD_LINE_UP"                         : "Move Line Up",
+    "CMD_LINE_DOWN"                       : "Move Line Down",
      
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -251,5 +253,14 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
-    "GET_IT_NOW"                           : "Get it now!"
+    "GET_IT_NOW"                           : "Get it now!",
+    "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings",
+    "PROJECT_SETTINGS_TITLE"               : "Project Settings",
+    "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Invalid Base URL protocol ({0}). Use http: or https: .",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Search parameters disallowed in Base URL: {0}",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash disallowed in Base URL: {0}",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in Base URL: {0}",
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL"
 });

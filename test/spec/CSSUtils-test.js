@@ -914,9 +914,8 @@ define(function (require, exports, module) {
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                // TODO (issue #389): false positive match from @keyframes animation identifier
-                // result = matchAgain({ tag: "slide" });
-                // expect(result.length).toBe(0);
+                result = matchAgain({ tag: "slide" });
+                expect(result.length).toBe(0);
                 
                 result = matchAgain({ tag: "from" });
                 expect(result.length).toBe(0);

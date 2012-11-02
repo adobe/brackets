@@ -133,10 +133,11 @@ define(function (require, exports, module) {
      * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
      *                          for vertical resizing and "left" or "right" for horizontal resizing.
      * @param {int} minSize Minimum size (width or height) of the element.
-     * @param {boolean} collapsable True indicates the panel is collapsable on double click
+     * @param {boolean} collapsible True indicates the panel is collapsible on double click
      *                              on the resizer.
+     * @param {string} forcemargin Classes which margins need to be pushed when the element resizes
      */
-    function makeResizable(element, direction, position, minSize, collapsable) {
+    function makeResizable(element, direction, position, minSize, collapsible, forcemargin) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
@@ -146,44 +147,76 @@ define(function (require, exports, module) {
             elementPrefs        = _prefs.getValue(elementID) || {},
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
+            directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 		
         minSize = minSize || 0;
-        collapsable = collapsable || false;
+        collapsible = collapsible || false;
         
         $element.prepend($resizer);
         
+        function forceMargins(size) {
+            if (forcemargin !== undefined) {
+                $(forcemargin, $element.parent()).css("margin-left", size);
+            }
+        }
+        
         $element.data("show", function () {
+            var elementOffset   = $element.offset(),
+                elementSize     = elementSizeFunction.apply($element),
+                resizerSize     = elementSizeFunction.apply($resizer);
 			
             $element.show();
             elementPrefs.visible = true;
             
-            if (collapsable) {
+            if (collapsible) {
                 $element.prepend($resizer);
-                $resizer.css(resizerCSSPosition, "");
+                
+                if (position === POSITION_TOP) {
+                    $resizer.css(resizerCSSPosition, "");
+                } else if (position === POSITION_RIGHT) {
+                    $resizer.css(resizerCSSPosition, elementOffset[resizerCSSPosition] + elementSize);
+                }
             }
             
+            forceMargins(elementSize);
             EditorManager.resizeEditor();
-            $element.trigger("panelExpanded");
+            $element.trigger("panelExpanded", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
                       
         $element.data("hide", function () {
             var elementOffset   = $element.offset(),
-                elementSize     = elementSizeFunction.apply($element);
+                elementSize     = elementSizeFunction.apply($element),
+                resizerSize     = elementSizeFunction.apply($resizer);
             
             $element.hide();
             elementPrefs.visible = false;
-            if (collapsable) {
-                $resizer.insertBefore($element).css(resizerCSSPosition, elementOffset[resizerCSSPosition] + elementSize);
+            if (collapsible) {
+                $resizer.insertBefore($element);
+                if (position === POSITION_RIGHT) {
+                    $resizer.css(resizerCSSPosition, "");
+                } else if (position === POSITION_TOP) {
+                    $resizer.css(resizerCSSPosition, elementOffset[resizerCSSPosition] + elementSize - resizerSize);
+                }
             }
             
+            forceMargins(0);
             EditorManager.resizeEditor();
-            $element.trigger("panelCollapsed");
+            $element.trigger("panelCollapsed", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
+        
+        // If the resizer is positioned right or bottom of the panel, we need to listen to 
+        // reposition it if the element size changes externally		
+        function repositionResizer(elementSize) {
+            var resizerPosition = elementSize || 1;
+            if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
+                $resizer.css(resizerCSSPosition, resizerPosition);
+            }
+        }
     
         $resizer.on("mousedown", function (e) {
             var $resizeCont     = $("<div class='resizing-container " + direction + "-resizing' />"),
@@ -192,12 +225,11 @@ define(function (require, exports, module) {
                 newSize         = startSize,
                 baseSize        = 0,
                 doResize        = false,
-                isMouseDown     = true;
+                isMouseDown     = true,
+                resizeStarted   = false;
             
             $body.append($resizeCont);
-            
-            $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
-            
+                        
             if ($resizableElement !== undefined) {
                 $element.children().not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
@@ -228,6 +260,8 @@ define(function (require, exports, module) {
                     
                         if (newSize < 10) {
                             toggle($element);
+                        } else {
+                            forceMargins(newSize);
                         }
                     } else if (newSize > 10) {
                         elementSizeFunction.apply($element, [newSize]);
@@ -242,17 +276,25 @@ define(function (require, exports, module) {
             });
             
             $resizeCont.on("mousemove", function (e) {
+                
+                // Trigger resizeStarted only if we move the mouse to avoid a resizeStarted event
+                // when double clicking for collapse/expand functionality
+                if (!resizeStarted) {
+                    resizeStarted = true;
+                    $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
+                }
+                
                 doResize = true;
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
-                newSize = Math.max(startSize + (startPosition - e[directionProperty]), minSize);
+                newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
                 $element.trigger("panelResizeUpdate", [newSize]);
                 e.preventDefault();
             });
             
-            // If the element is marked as collapsable, check for double click
+            // If the element is marked as collapsible, check for double click
             // to toggle the element visibility
-            if (collapsable) {
+            if (collapsible) {
                 $resizeCont.on("mousedown", function (e) {
                     toggle($element);
                 });
@@ -269,6 +311,7 @@ define(function (require, exports, module) {
                 
                 if (isMouseDown) {
                     isMouseDown = false;
+                    repositionResizer(elementSize);
                     $element.trigger("panelResizeEnd", [elementSize]);
                     _prefs.setValue(elementID, elementPrefs);
                     
@@ -299,9 +342,12 @@ define(function (require, exports, module) {
                 contentSizeFunction.apply($resizableElement, [Math.max(elementPrefs.contentSize, minSize)]);
             }
             
-            //if (elementPrefs.visible !== undefined) {
-            //	hide($element);
-            //}
+            if (elementPrefs.visible !== undefined && !elementPrefs.visible) {
+                hide($element);
+            } else {
+                forceMargins(elementSizeFunction.apply($element));
+                repositionResizer(elementSizeFunction.apply($element));
+            }
         }
     }
 	
@@ -321,7 +367,7 @@ define(function (require, exports, module) {
             }
 			
             if ($(element).hasClass("top-resizer")) {
-                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize, $(element).hasClass("collapsable"));
+                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize, $(element).hasClass("collapsible"));
             }
             
             //if ($(element).hasClass("bottom-resizer")) {
@@ -331,13 +377,17 @@ define(function (require, exports, module) {
         
         $(".horz-resizable").each(function (index, element) {
             
+            if ($(element).data().minsize !== undefined) {
+                minSize = $(element).data().minsize;
+            }
+            
             //if ($(element).hasClass("left-resizer")) {
             //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_LEFT, DEFAULT_MIN_SIZE);
             //}
 
-            //if ($(element).hasClass("right-resizer")) {
-            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_SIZE);
-            //}
+            if ($(element).hasClass("right-resizer")) {
+                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forcemargin);
+            }
         });
     });
     

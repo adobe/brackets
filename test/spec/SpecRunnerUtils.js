@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams;
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
@@ -128,7 +129,7 @@ define(function (require, exports, module) {
      * currentDocument or added to the working set.
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
-    function createMockEditor(initialContent, mode) {
+    function createMockEditor(initialContent, mode, visibleRange) {
         mode = mode || "";
         
         // Initialize EditorManager
@@ -141,7 +142,7 @@ define(function (require, exports, module) {
         var doc = createMockDocument(initialContent);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {});
+        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {}, visibleRange);
         
         return { doc: doc, editor: editor };
     }
@@ -168,7 +169,9 @@ define(function (require, exports, module) {
             var params = new UrlParams();
             
             // setup extension loading in the test window
-            params.put("extensions", _doLoadExtensions ? "default,user" : "default");
+            params.put("extensions", _doLoadExtensions ?
+                        "default,dev," + ExtensionLoader.getUserExtensionPath() :
+                        "default");
             
             // disable update check in test windows
             params.put("skipUpdateCheck", true);
@@ -580,6 +583,26 @@ define(function (require, exports, module) {
     function setLoadExtensionsInTestWindow(doLoadExtensions) {
         _doLoadExtensions = doLoadExtensions;
     }
+    
+    /**
+     * Extracts the jasmine.log() and/or jasmine.expect() messages from the given result,
+     * including stack traces if available.
+     * @param {Object} result A jasmine result item (from results.getItems()).
+     * @return {string} the error message from that item.
+     */
+    function getResultMessage(result) {
+        var message;
+        if (result.type === 'log') {
+            message = result.toString();
+        } else if (result.type === 'expect' && result.passed && !result.passed()) {
+            message = result.message;
+            
+            if (result.trace.stack) {
+                message = result.trace.stack;
+            }
+        }
+        return message;
+    }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
@@ -603,4 +626,5 @@ define(function (require, exports, module) {
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
+    exports.getResultMessage                = getResultMessage;
 });

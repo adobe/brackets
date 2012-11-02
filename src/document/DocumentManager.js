@@ -206,7 +206,9 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Add
+        // Add to _workingSet making sure we store a different instance from the
+        // one in the Document. See issue #1971 for more details.        
+        file = new NativeFileSystem.FileEntry(file.fullPath);
         _workingSet.push(file);
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
@@ -295,6 +297,23 @@ define(function (require, exports, module) {
         if (mruI !== -1) {
             _workingSetMRUOrder.splice(mruI, 1);
             _workingSetMRUOrder.unshift(doc.file);
+        }
+    }
+    
+    
+    /**
+     * Mutually exchanges the files at the indexes passed by parameters.
+     * @param {!number} index - old file index
+     * @param {!number} index - new file index
+     */
+    function swapWorkingSetIndexes(index1, index2) {
+        var length = _workingSet.length - 1;
+        var temp;
+        
+        if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
+            temp = _workingSet[index1];
+            _workingSet[index1] = _workingSet[index2];
+            _workingSet[index2] = temp;
         }
     }
     
@@ -1121,6 +1140,7 @@ define(function (require, exports, module) {
     exports.addListToWorkingSet = addListToWorkingSet;
     exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
+    exports.swapWorkingSetIndexes = swapWorkingSetIndexes;
     exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
@@ -1130,7 +1150,7 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange", _savePreferences);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");

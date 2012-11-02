@@ -84,11 +84,15 @@ define(function (require, exports, module) {
 
         case "html":
         case "htm":
+        case "shtm":
+        case "shtml":
         case "xhtml":
         case "cfm":
+        case "cfml":
         case "cfc":
             return "htmlmixed";
 
+        case "svg":
         case "xml":
         case "wxs":  // Wix XML extensions - used in Brackets installer
         case "wxl":

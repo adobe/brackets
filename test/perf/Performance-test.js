@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         JSLintUtils,                // loaded from brackets.test
         DocumentManager,            // loaded from brackets.test
         SpecRunnerUtils             = require("spec/SpecRunnerUtils"),
-        PerformanceReporter         = require("perf/PerformanceReporter");
+        UnitTestReporter            = require("test/UnitTestReporter");
 
     var jsLintPrevSetting;
 
@@ -61,8 +61,9 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
-                PerformanceReporter.logTestWindow(/Open File:\t,*/, path);
-                PerformanceReporter.clearTestWindow();
+                var reporter = UnitTestReporter.getActiveReporter();
+                reporter.logTestWindow(/Open File:\t,*/, path);
+                reporter.clearTestWindow();
             });
         }
         
