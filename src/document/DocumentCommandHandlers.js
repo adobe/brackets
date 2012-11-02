@@ -611,7 +611,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            promptOnly = commandData && commandData.promptOnly;
         
         var unsavedDocs = [];
         DocumentManager.getWorkingSet().forEach(function (file) {
@@ -627,7 +628,7 @@ define(function (require, exports, module) {
             
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: commandData.promptOnly };
+            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
 
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents
@@ -673,7 +674,7 @@ define(function (require, exports, module) {
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
         result.done(function () {
-            if (!commandData || !commandData.promptOnly) {
+            if (!promptOnly) {
                 DocumentManager.closeAll();
             }
         });
