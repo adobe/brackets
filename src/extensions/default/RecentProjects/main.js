@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         SidebarView             = brackets.getModule("project/SidebarView"),
         Menus                   = brackets.getModule("command/Menus"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
-        FileUtils               = brackets.getModule("file/FileUtils");
+        FileUtils               = brackets.getModule("file/FileUtils"),
+        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
     
     var $dropdownToggle;
     var MAX_PROJECTS = 20;
@@ -145,10 +146,14 @@ define(function (require, exports, module) {
                     .click(function () {
                         ProjectManager.openProject(root)
                             .fail(function () {
-                                // Remove the project from the list.
+                                // Remove the project from the list only if it does not exist on disk
                                 var index = recentProjects.indexOf(root);
                                 if (index !== -1) {
-                                    recentProjects.splice(index, 1);
+                                    NativeFileSystem.requestNativeFileSystem(root,
+                                        function () {},
+                                        function () {
+                                            recentProjects.splice(index, 1);
+                                        });
                                 }
                             });
                         closeDropdown();

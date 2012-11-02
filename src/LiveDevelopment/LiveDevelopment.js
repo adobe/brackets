@@ -136,16 +136,18 @@ define(function LiveDevelopment(require, exports, module) {
             var baseUrl = ProjectManager.getBaseUrl();
             if (baseUrl !== "") {
 
-                // Map to server url
-                var serverUrl = doc.file.fullPath.replace(ProjectManager.getProjectRoot().fullPath, baseUrl);
-                doc.url = encodeURI(serverUrl);
+                // Map to server url. Base url is already encoded, so don't encode again.
+                var encodedDocPath = encodeURI(doc.file.fullPath);
+                var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().fullPath);
+                var serverUrl = encodedDocPath.replace(encodedProjectPath, baseUrl);
+                doc.url = serverUrl;
 
                 // the root represents the document that should be displayed in the browser
                 // for live development (the file for HTML files, index.html for others)
                 if (!_isHtmlFileExt(matches[3])) {
-                    serverUrl = serverUrl.replace(matches[2], "index.html");
+                    serverUrl = serverUrl.replace(encodeURI(matches[2]), "index.html");
                 }
-                doc.root = {url: encodeURI(serverUrl)};
+                doc.root = {url: serverUrl};
                 return;
             }
         }
@@ -240,8 +242,9 @@ define(function LiveDevelopment(require, exports, module) {
             baseUrl = ProjectManager.getBaseUrl();
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
-            // Use base url to translte to local file path
-            path = url.replace(baseUrl, ProjectManager.getProjectRoot().fullPath);
+            // Use base url to translate to local file path.
+            // Need to use encoded project path because it's decoded below.
+            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
 
         } else if (url.indexOf("file://") === 0) {
             // Convert a file URL to local file path
