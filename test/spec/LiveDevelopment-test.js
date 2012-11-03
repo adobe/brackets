@@ -360,22 +360,40 @@ define(function (require, exports, module) {
                 });
             });
 
-            // This test url mapping -- files do not need to exist on disk
-            it("should translate server urls to local files", function () {
+            // This tests url mapping -- files do not need to exist on disk
+            it("should translate urls to/from local paths", function () {
+                // Define testing parameters
+                var projectPath     = testPath + "/",
+                    outsidePath     = testPath.substr(0, testPath.lastIndexOf("/") + 1),
+                    fileProtocol    = (testWindow.brackets.platform === "win") ? "file:///" : "file://",
+                    baseUrl         = "http://localhost/",
+                    fileRelPath     = "subdir/index.html";
 
-                // Should return local path when no base url
-                expect(LiveDevelopment._urlToPath("file://" + testPath + "/index.html"))
-                    .toBe(testPath + "/index.html");
-                expect(LiveDevelopment._urlToPath("file://" + testPath + "/subdir/main.css"))
-                    .toBe(testPath + "/subdir/main.css");
+                // File paths used in tests:
+                //  * file1 - file inside  project
+                //  * file2 - file outside project
+                var file1Path       =                projectPath + fileRelPath,
+                    file1FileUrl    = fileProtocol + projectPath + fileRelPath,
+                    file1ServerUrl  = baseUrl                    + fileRelPath,
+                    file2Path       =                outsidePath + fileRelPath,
+                    file2FileUrl    = fileProtocol + outsidePath + fileRelPath;
+
+                // Should use file url when no base url
+                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1FileUrl);
+                expect(LiveDevelopment._urlToPath(file1FileUrl)).toBe(file1Path);
+                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
 
                 // Set base url
-                ProjectManager.setBaseUrl("http://localhost/");
+                ProjectManager.setBaseUrl(baseUrl);
 
-                expect(LiveDevelopment._urlToPath("http://localhost/about.php"))
-                    .toBe(testPath + "/about.php");
-                expect(LiveDevelopment._urlToPath("http://localhost/subdir/nav.js"))
-                    .toBe(testPath + "/subdir/nav.js");
+                // Should use server url with base url
+                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
+                expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
+
+                // File outside project should still url file url
+                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
 
                 // Clear base url
                 ProjectManager.setBaseUrl("");
