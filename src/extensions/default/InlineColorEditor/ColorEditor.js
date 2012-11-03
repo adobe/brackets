@@ -83,9 +83,9 @@ define(function (require, exports, module) {
         // Commenting it out and temporarily making it read only input field.
         //this.$colorValue.change(this.colorSetter);
         this.bindOriginalColorButton();
-        this.registerDragHandler(".color_selection_field", this.handleSelectionFieldDrag);
-        this.registerDragHandler(".hue_slider", this.handleHueDrag);
-        this.registerDragHandler(".opacity_slider", this.handleOpacityDrag);
+        this.registerDragHandler(this.$selection, this.handleSelectionFieldDrag);
+        this.registerDragHandler(this.$hueSlider, this.handleHueDrag);
+        this.registerDragHandler(this.$opacitySlider, this.handleOpacityDrag);
         this.registerFocusHandler(this.$selectionBase, this.handleSelectionFocus);
         this.registerFocusHandler(this.$hueBase, this.handleHueFocus);
         this.registerFocusHandler(this.$opacitySelector, this.handleOpacityFocus);
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
         hsv.h = (1 - offset / height) * 360;
         this.setColorAsHsv(hsv, false);
         if (!this.$hueSlider.find(".selector_base").is(":focus")) {
-            return this.$hueSlider.find(".selector_base").focus();
+            this.$hueSlider.find(".selector_base").focus();
         }
     };
 
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
         hsv.a = 1 - offset / height;
         this.setColorAsHsv(hsv, false);
         if (!this.$opacitySlider.find(".selector_base").is(":focus")) {
-            return this.$opacitySlider.find(".selector_base").focus();
+            this.$opacitySlider.find(".selector_base").focus();
         }
     };
 
@@ -295,11 +295,11 @@ define(function (require, exports, module) {
         element.mousedown(handler);
         mouseupHandler = function (event) {
             $(window).unbind("mousemove", handler);
-            return $(window).unbind("mouseup", mouseupHandler);
+            $(window).unbind("mouseup", mouseupHandler);
         };
-        return element.mousedown(function (event) {
+        element.mousedown(function (event) {
             $(window).bind("mousemove", handler);
-            return $(window).bind("mouseup", mouseupHandler);
+            $(window).bind("mouseup", mouseupHandler);
         });
     };
 
@@ -380,10 +380,10 @@ define(function (require, exports, module) {
 
     ColorEditor.prototype.registerFocusHandler = function (element, handler) {
         element.focus(function (event) {
-            return element.bind("keydown", handler);
+            element.bind("keydown", handler);
         });
-        return element.blur(function (event) {
-            return element.unbind("keydown", handler);
+        element.blur(function (event) {
+            element.unbind("keydown", handler);
         });
     };
 
