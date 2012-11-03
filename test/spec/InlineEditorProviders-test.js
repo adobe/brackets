@@ -444,6 +444,9 @@ define(function (require, exports, module) {
                     expect(inlineEditor.document.isDirty).toBeTruthy();
                     expect(hostEditor.document.isDirty).toBeFalsy();
                     
+                    // verify focus is in inline editor
+                    expect(inlineEditor.hasFocus()).toBeTruthy();
+                    
                     // execute file save command
                     testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
                         saved = true;
@@ -455,6 +458,9 @@ define(function (require, exports, module) {
                 waitsFor(function () { return saved && !err; }, "save timeout", 1000);
                 
                 runs(function () {
+                    // verify focus is still in inline editor
+                    expect(inlineEditor.hasFocus()).toBeTruthy();
+                    
                     // read saved file contents
                     FileUtils.readAsText(inlineEditor.document.file).done(function (text) {
                         savedText = text;
