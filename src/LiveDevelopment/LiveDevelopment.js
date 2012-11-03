@@ -217,7 +217,7 @@ define(function LiveDevelopment(require, exports, module) {
             return exports.config.experimental ? JSDocument : null;
         }
 
-        if (_isHtmlFileExt(doc.extension)) {
+        if (exports.config.experimental && _isHtmlFileExt(doc.extension)) {
             return HTMLDocument;
         }
 
