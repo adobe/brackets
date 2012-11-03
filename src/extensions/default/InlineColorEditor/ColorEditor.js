@@ -1,14 +1,40 @@
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
 /*global define, brackets, $, window, tinycolor */
 
 define(function (require, exports, module) {
     "use strict";
-    var TinyColorMin = require("helper/tinycolor-min");
+    require("helper/tinycolor-min");
+    
+    var KeyEvent        = brackets.getModule("utils/KeyEvent"),
+        STEP_MULTIPLIER = 5;
     
     function ColorEditor(element, color, callback, swatches) {
         this.element = element;
-        this.callback = callback !== null ? callback : null;
-        this.swatches = swatches !== null ? swatches : null;
+        this.callback = callback;
+        this.swatches = swatches;
         this.registerFocusHandler = this.registerFocusHandler.bind(this);
 
         this.handleOpacityFocus = this.handleOpacityFocus.bind(this);
@@ -53,15 +79,16 @@ define(function (require, exports, module) {
         this.bindColorFormatToRadioButton("rgba");
         this.bindColorFormatToRadioButton("hex");
         this.bindColorFormatToRadioButton("hsla");
-        this.$colorValue.change(this.colorSetter);
+        // TODO: This is not really updating other UI and the color value. 
+        // Commenting it out and temporarily making it read only input field.
+        //this.$colorValue.change(this.colorSetter);
         this.bindOriginalColorButton();
-        this.bindColorSwatches();
         this.registerDragHandler(".color_selection_field", this.handleSelectionFieldDrag);
         this.registerDragHandler(".hue_slider", this.handleHueDrag);
         this.registerDragHandler(".opacity_slider", this.handleOpacityDrag);
-        this.registerFocusHandler(this.$selection.find(".selector_base"), this.handleSelectionFocus);
-        this.registerFocusHandler(this.$hueSlider.find(".selector_base"), this.handleHueFocus);
-        return this.registerFocusHandler(this.$opacitySlider.find(".selector_base"), this.handleOpacityFocus);
+        this.registerFocusHandler(this.$selectionBase, this.handleSelectionFocus);
+        this.registerFocusHandler(this.$hueBase, this.handleHueFocus);
+        this.registerFocusHandler(this.$opacitySelector, this.handleOpacityFocus);
     };
 
     ColorEditor.prototype.synchronize = function () {
@@ -84,7 +111,7 @@ define(function (require, exports, module) {
         if (!isNaN(this.hsv.v)) {
             this.hsv.v = (this.hsv.v * 100) + "%";
         }
-        return this.$selectionBase.css({
+        this.$selectionBase.css({
             left: this.hsv.s,
             bottom: this.hsv.v
         });
@@ -108,7 +135,7 @@ define(function (require, exports, module) {
         }
         this.commitColor(newValue, true);
         this.hsv = newColor.toHsv();
-        return this.synchronize();
+        this.synchronize();
     };
 
     ColorEditor.prototype.getColor = function () {
@@ -117,7 +144,6 @@ define(function (require, exports, module) {
 
     ColorEditor.prototype.updateColorTypeRadioButtons = function (format) {
         this.$buttonList.find("li").removeClass("selected");
-        this.$buttonList.find("." + format).parent().addClass("selected");
         switch (format) {
         case "rgb":
             return this.$buttonList.find(".rgba").parent().addClass("selected");
@@ -152,7 +178,7 @@ define(function (require, exports, module) {
             }
             return _this.commitColor(newColor, false);
         };
-        return this.$element.find("." + buttonClass).click(handler);
+        this.$element.find("." + buttonClass).click(handler);
     };
 
     ColorEditor.prototype.bindOriginalColorButton = function () {
@@ -162,31 +188,14 @@ define(function (require, exports, module) {
         });
     };
 
-    ColorEditor.prototype.bindColorSwatches = function () {
-        var handler;
-        handler = function (event) {
-            var $swatch, color, hsvColor;
-            $swatch = $(event.currentTarget);
-            if ($swatch.attr("style").length > 0) {
-                color = $swatch.css("background-color");
-            }
-            if (color.length > 0) {
-                hsvColor = tinycolor(color).toHsv();
-                return this.setColorAsHsv(hsvColor, true);
-            }
-        };
-        return this.$element.find(".color_swatch").click(handler);
-    };
-
     ColorEditor.prototype.addSwatches = function () {
-        var index, swatch, _i, _len, _ref,
-            _this = this;
-        _ref = this.swatches;
-        for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
-            swatch = _ref[index];
-            this.$swatches.append("<li><div class=\"swatch_bg\"><div class=\"swatch\" style=\"background-color: " + swatch.value + ";\"></div></div> <span class=\"value\">" + swatch.value + "</span></li>");
-        }
-        return this.$swatches.find("li").click(function (event) {
+        var _this = this;
+ 
+        this.swatches.forEach(function (swatch) {
+            _this.$swatches.append("<li><div class=\"swatch_bg\"><div class=\"swatch\" style=\"background-color: " + swatch.value + ";\"></div></div> <span class=\"value\">" + swatch.value + "</span></li>");
+        });
+
+        this.$swatches.find("li").click(function (event) {
             return _this.commitColor($(event.currentTarget).find(".value").html());
         });
     };
@@ -216,7 +225,7 @@ define(function (require, exports, module) {
             colorVal = this.hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
             break;
         }
-        return this.commitColor(colorVal, commitHsv);
+        this.commitColor(colorVal, commitHsv);
     };
 
     ColorEditor.prototype.commitColor = function (colorVal, resetHsv) {
@@ -232,17 +241,21 @@ define(function (require, exports, module) {
             this.hsv = colorObj.toHsv();
             this.color = colorObj;
         }
-        return this.synchronize();
+        this.synchronize();
     };
 
+    function _getNewOffset(newVal, minVal, maxVal) {
+        var offset = newVal - minVal;
+        offset = Math.min(maxVal, Math.max(0, offset));
+        return offset;
+    }
+    
     ColorEditor.prototype.handleSelectionFieldDrag = function (event) {
         var height, hsv, width, xOffset, yOffset;
-        yOffset = event.clientY - this.$selection.offset().top;
-        xOffset = event.clientX - this.$selection.offset().left;
         height = this.$selection.height();
         width = this.$selection.width();
-        xOffset = Math.min(width, Math.max(0, xOffset));
-        yOffset = Math.min(height, Math.max(0, yOffset));
+        xOffset = _getNewOffset(event.clientX, this.$selection.offset().left, width);
+        yOffset = _getNewOffset(event.clientY, this.$selection.offset().top, height);
         hsv = {};
         hsv.s = xOffset / width;
         hsv.v = 1 - yOffset / height;
@@ -254,9 +267,8 @@ define(function (require, exports, module) {
 
     ColorEditor.prototype.handleHueDrag = function (event) {
         var height, hsv, offset;
-        offset = event.clientY - this.$hueSlider.offset().top;
         height = this.$hueSlider.height();
-        offset = Math.min(height, Math.max(0, offset));
+        offset = _getNewOffset(event.clientY, this.$hueSlider.offset().top, height);
         hsv = {};
         hsv.h = (1 - offset / height) * 360;
         this.setColorAsHsv(hsv, false);
@@ -267,9 +279,8 @@ define(function (require, exports, module) {
 
     ColorEditor.prototype.handleOpacityDrag = function (event) {
         var height, hsv, offset;
-        offset = event.clientY - this.$opacitySlider.offset().top;
         height = this.$opacitySlider.height();
-        offset = Math.min(height, Math.max(0, offset));
+        offset = _getNewOffset(event.clientY, this.$opacitySlider.offset().top, height);
         hsv = {};
         hsv.a = 1 - offset / height;
         this.setColorAsHsv(hsv, false);
@@ -293,41 +304,28 @@ define(function (require, exports, module) {
     };
 
     ColorEditor.prototype.handleSelectionFocus = function (event) {
-        var hsv, step, xOffset, yOffset;
+        var hsv = {},
+            step = 1.5,
+            xOffset,
+            yOffset,
+            adjustedOffset;
+
         switch (event.keyCode) {
-        case 37:
-            step = 1.5;
-            step = event.shiftKey ? step * 5 : step;
+        case KeyEvent.DOM_VK_LEFT:
+        case KeyEvent.DOM_VK_RIGHT:
+            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             xOffset = Number($.trim(this.$selectionBase.css("left").replace("%", "")));
-            xOffset = Math.min(100, Math.max(0, xOffset - step));
-            hsv = {};
+            adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_LEFT) ? (xOffset - step) : (xOffset + step);
+            xOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.s = xOffset / 100;
             this.setColorAsHsv(hsv, false);
             return false;
-        case 39:
-            step = 1.5;
-            step = event.shiftKey ? step * 5 : step;
-            xOffset = Number($.trim(this.$selectionBase.css("left").replace("%", "")));
-            xOffset = Math.min(100, Math.max(0, xOffset + step));
-            hsv = {};
-            hsv.s = xOffset / 100;
-            this.setColorAsHsv(hsv, false);
-            return false;
-        case 40:
-            step = 1.5;
-            step = event.shiftKey ? step * 5 : step;
+        case KeyEvent.DOM_VK_DOWN:
+        case KeyEvent.DOM_VK_UP:
+            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             yOffset = Number($.trim(this.$selectionBase.css("bottom").replace("%", "")));
-            yOffset = Math.min(100, Math.max(0, yOffset - step));
-            hsv = {};
-            hsv.v = yOffset / 100;
-            this.setColorAsHsv(hsv, false);
-            return false;
-        case 38:
-            step = 1.5;
-            step = event.shiftKey ? step * 5 : step;
-            yOffset = Number($.trim(this.$selectionBase.css("bottom").replace("%", "")));
-            yOffset = Math.min(100, Math.max(0, yOffset + step));
-            hsv = {};
+            adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_DOWN) ? (yOffset - step) : (yOffset + step);
+            yOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.v = yOffset / 100;
             this.setColorAsHsv(hsv, false);
             return false;
@@ -335,23 +333,20 @@ define(function (require, exports, module) {
     };
 
     ColorEditor.prototype.handleHueFocus = function (event) {
-        var hsv, hue, step;
-        switch (event.keyCode) {
-        case 40:
+        var hsv = {},
+            hue = Number(this.hsv.h),
             step = 3.6;
-            step = event.shiftKey ? step * 5 : step;
-            hsv = {};
-            hue = Number(this.hsv.h);
+
+        switch (event.keyCode) {
+        case KeyEvent.DOM_VK_DOWN:
+            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (hue > 0) {
                 hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
                 this.setColorAsHsv(hsv);
             }
             return false;
-        case 38:
-            step = 3.6;
-            step = event.shiftKey ? step * 5 : step;
-            hsv = {};
-            hue = Number(this.hsv.h);
+        case KeyEvent.DOM_VK_UP:
+            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (hue < 360) {
                 hsv.h = (hue + step) >= 360 ? step : hue + step;
                 this.setColorAsHsv(hsv);
@@ -361,26 +356,23 @@ define(function (require, exports, module) {
     };
 
     ColorEditor.prototype.handleOpacityFocus = function (event) {
-        var alpha, hsv, step;
-        switch (event.keyCode) {
-        case 40:
+        var alpha = this.hsv.a,
+            hsv = {},
             step = 0.01;
-            step = event.shiftKey ? step * 5 : step;
-            hsv = {};
-            alpha = this.hsv.a;
+
+        switch (event.keyCode) {
+        case KeyEvent.DOM_VK_DOWN:
+            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (alpha > 0) {
                 hsv.a = (alpha - step) <= 0 ? 0 : alpha - step;
                 this.setColorAsHsv(hsv);
             }
             return false;
-        case 38:
-            step = 0.01;
-            step = event.shiftKey ? step * 5 : step;
-            hsv = {};
-            alpha = this.hsv.a;
+        case KeyEvent.DOM_VK_UP:
+            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (alpha < 100) {
                 hsv.a = (alpha + step) >= 1 ? 1 : alpha + step;
-                return this.setColorAsHsv(hsv);
+                this.setColorAsHsv(hsv);
             }
             return false;
         }
@@ -395,5 +387,5 @@ define(function (require, exports, module) {
         });
     };
 
-    return ColorEditor;
+    exports.ColorEditor = ColorEditor;
 });

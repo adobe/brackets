@@ -191,6 +191,7 @@
     border-radius: 3px;
     margin: 1px 0 0 0;
     vertical-align: center;
+    cursor: text;
 }
 .color_editor section footer input:focus {
     background: #fff;
@@ -198,6 +199,7 @@
     box-shadow: 0 0 8px rgba(0,0,0,0.35), inset 0 2px 4px rgba(0,0,0,0.15);
     border: 1px solid #1b1d1d;
     z-index: 911;
+    cursor: text;
 }
 @media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
     .color_editor aside header .large_swatches {
@@ -230,7 +232,7 @@
         background-image: -webkit-linear-gradient(top, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
     }
 }
-ul, li {
+.color_editor ul, .color_editor li {
     margin: 0;
     padding: 0;
     border: 0;
