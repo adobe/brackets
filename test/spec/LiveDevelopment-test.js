@@ -29,6 +29,8 @@ define(function (require, exports, module) {
 
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         CommandManager,
         Commands,
         NativeApp,      //The following are all loaded from the test window
@@ -410,25 +412,25 @@ define(function (require, exports, module) {
                     .toBe("");
 
                 expect(PreferencesDialogs._validateBaseUrl("ftp://localhost"))
-                    .toBe("Invalid Base URL protocol (ftp:). Use http: or https: .");
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, "ftp:"));
 
                 expect(PreferencesDialogs._validateBaseUrl("localhost"))
-                    .toBe("Invalid Base URL protocol (). Use http: or https: .");
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, ""));
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/?id=123"))
-                    .toBe("Search parameters disallowed in Base URL: ?id=123");
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_SEARCH_DISALLOWED, "?id=123"));
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/#anchor1"))
-                    .toBe("Hash disallowed in Base URL: #anchor1");
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_HASH_DISALLOWED, "#anchor1"));
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/abc<123"))
-                    .toBe("Invalid character in encoded Base URL: '<'");
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, "<"));
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/?"))
-                    .toBe("Invalid character in encoded Base URL: '?'");
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, "?"));
 
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost/sub dir"))
-                    .toBe("Invalid character in encoded Base URL: ' '");
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, " "));
             });
         });
     });
