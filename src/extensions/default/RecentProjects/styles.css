@@ -13,6 +13,11 @@
 	position: absolute;
 }
 
+#project-dropdown-toggle {
+    height: 18px;
+    overflow: hidden;
+}
+
 #project-dropdown-toggle:hover {
     color: #a0a0a0;
     text-decoration: none;
