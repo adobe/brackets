@@ -96,6 +96,8 @@ define(function (require, exports, module) {
         case "xml":
         case "wxs":  // Wix XML extensions - used in Brackets installer
         case "wxl":
+        case "xsd":
+        case "xsl":
             return "xml";
 
         case "php":
