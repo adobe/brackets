@@ -341,10 +341,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.error */
     function _onError(event, error) {
-        var message = error.message;
+        var message;
+        
+        // Sometimes error.message is undefined
+        if (!error.message) {
+            console.warn("Expected a non-empty string in error.message, got this instead:", error.message);
+            message = JSON.stringify(error);
+        } else {
+            message = error.message;
+        }
 
         // Remove "Uncaught" from the beginning to avoid the inspector popping up
-        if (message.substr(0, 8) === "Uncaught") {
+        if (message && message.substr(0, 8) === "Uncaught") {
             message = message.substr(9);
         }
 
