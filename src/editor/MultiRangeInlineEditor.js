@@ -317,8 +317,9 @@ define(function (require, exports, module) {
 
     /**
      * Called any time inline is closed, whether manually (via closeThisInline()) or automatically
+     * @param {InlineWidget} InlineWidget that is closing.
      */
-    MultiRangeInlineEditor.prototype.onClosed = function () {
+    MultiRangeInlineEditor.prototype.onClosed = function (inlineWidget) {
         // Superclass onClosed() destroys editor
         this.parentClass.onClosed.call(this);
         

@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var _colorPickers = {};
 
-    function onClose(colorPicker) {
+    function _onClosed(colorPicker) {
         return delete _colorPickers[colorPicker.pos.line];
     }
     
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         
         result = new $.Deferred();
         inlineColorEditor = new InlineColorEditor(match[0], pos);
-        inlineColorEditor.onClose = onClose;
+        inlineColorEditor.onClosed = _onClosed;
         inlineColorEditor.load(hostEditor);
         _colorPickers[pos.line] = inlineColorEditor;
         result.resolve(inlineColorEditor);

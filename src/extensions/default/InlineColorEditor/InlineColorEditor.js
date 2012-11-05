@@ -69,17 +69,10 @@ define(function (require, exports, module) {
         this.$htmlContent.append(this.$wrapperDiv);
     };
 
-    InlineColorEditor.prototype.close = function () {
-        if (this.closed) {
-            return;
-        }
-        this.closed = true;
-        this.hostEditor.removeInlineWidget(this);
-        if (this.onClose) {
-            return this.onClose(this);
-        }
+    InlineColorEditor.prototype._editorHasFocus = function () {
+        return true;
     };
-
+        
     InlineColorEditor.prototype.onAdded = function () {
         window.setTimeout(this._sizeEditorToContent.bind(this));
         this.colorEditor.focus();
