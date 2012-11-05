@@ -52,7 +52,8 @@ define(function (require, exports, module) {
         FileIndexManager    = require("project/FileIndexManager"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
-        StatusBar           = require("widgets/StatusBar");
+        StatusBar           = require("widgets/StatusBar"),
+        Menus               = require("command/Menus");
 
     var searchResults = [];
     
@@ -129,6 +130,7 @@ define(function (require, exports, module) {
     * @returns {$.Promise} that is resolved with the string to search for
     */
     FindInFilesDialog.prototype.showDialog = function (initialString) {
+        Menus.closeAll();
         var dialogHTML = Strings.CMD_FIND_IN_FILES +
             ": <input type='text' id='findInFilesInput' style='width: 10em'> <span style='color: #888'>(" +
             Strings.SEARCH_REGEXP_INFO  + ")</span>";
