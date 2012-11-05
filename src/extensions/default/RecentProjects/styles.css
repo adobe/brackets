@@ -16,6 +16,7 @@
 #project-dropdown-toggle {
     height: 18px;
     overflow: hidden;
+    white-space: nowrap;
 }
 
 #project-dropdown-toggle:hover {
