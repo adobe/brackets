@@ -393,7 +393,7 @@ define(function (require, exports, module) {
                 expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
                 expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
 
-                // File outside project should still url file url
+                // File outside project should still use file url
                 expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
                 expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
 
