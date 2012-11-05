@@ -34,9 +34,7 @@ define(function (require, exports, module) {
     
     var _colorPickers = {};
 
-    function _onClosed() {
-        return delete _colorPickers[this.pos.line];
-    }
+    
     
     function inlineColorEditorProvider(hostEditor, pos) {
         var colorPicker, colorRegEx, cursorLine, end, inlineColorEditor, match, result, sel, start;
@@ -45,18 +43,17 @@ define(function (require, exports, module) {
             return null;
         }
         
-        colorRegEx = /#[a-f0-9]{6}|#[a-f0-9]{3}|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b(1|0|0\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b(1|0|0\.[0-9]{1,3}) ?\)/i;
+        colorRegEx = new RegExp(InlineColorEditor.colorRegEx);
         cursorLine = hostEditor.document.getLine(pos.line);
-        match = cursorLine.match(colorRegEx);
+        
+        do {
+            match = colorRegEx.exec(cursorLine);
+            start = match.index;
+            end = start + match[0].length;
+        } while (match && (pos.ch < start || pos.ch > end));
         
         if (!match) {
             return null;
-        } else {
-            start = match.index;
-            end = start + match[0].length;
-            if (pos.ch < start || pos.ch > end) {
-                return null;
-            }
         }
         
         pos.ch = start;
@@ -73,7 +70,11 @@ define(function (require, exports, module) {
         
         result = new $.Deferred();
         inlineColorEditor = new InlineColorEditor(match[0], pos);
-        inlineColorEditor.onClosed = _onClosed;
+
+        inlineColorEditor.onClosed = function () {
+            return delete _colorPickers[this.pos.line];
+        };
+        
         inlineColorEditor.load(hostEditor);
         _colorPickers[pos.line] = inlineColorEditor;
         result.resolve(inlineColorEditor);
