@@ -617,6 +617,8 @@ define(function (require, exports, module) {
         if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
         }
+        e.preventDefault();
+        e.stopPropagation();
     };
 
     /**
@@ -670,7 +672,8 @@ define(function (require, exports, module) {
             itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
             itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
             keydown: function (e) { that._handleKeyDown(e); },
-            keyup: function (e, query) { that._handleKeyUp(e); }
+            keyup: function (e, query) { that._handleKeyUp(e); },
+            blur: function (e) { that._close(); }
             // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
             // triggers lostFocus
         });

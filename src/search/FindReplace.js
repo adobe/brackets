@@ -179,7 +179,7 @@ define(function (require, exports, module) {
             });
         }
         
-        dialog(cm, queryDialog, Strings.CMD_FIND, findFirst);
+        dialog(cm, queryDialog, Strings.CMD_FIND, function () {});
         getDialogTextField().on("input", function () {
             findFirst(getDialogTextField().attr("value"));
         });
