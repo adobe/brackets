@@ -74,8 +74,9 @@ define(function (require, exports, module) {
     
     /**
      * Called any time inline is closed, whether manually or automatically
+     * @param {InlineWidget} InlineWidget that is closing.
      */
-    InlineWidget.prototype.onClosed = function () {
+    InlineWidget.prototype.onClosed = function (inlineWidget) {
         // do nothing - base implementation
     };
 
