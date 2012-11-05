@@ -373,8 +373,16 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /** Triggered by Inspector.detached */
+    function _onDetached(event, res) {
+        // res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
+        // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
+        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
+    }    
+
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
+        $(Inspector.Inspector).on("detached", _onDetached);
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
         $.when.apply(undefined, promises).then(_onLoad, _onError);
@@ -382,6 +390,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
+        $(Inspector.Inspector).off("detached", _onDetached);
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
