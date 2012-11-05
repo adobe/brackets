@@ -169,7 +169,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Augments the given Brackets document with information that's useful for live development. */
     function _setDocInfo(doc) {
 
-        var url,
+        var parentUrl,
             rootUrl,
             matches;
 
@@ -182,16 +182,13 @@ define(function LiveDevelopment(require, exports, module) {
 
         doc.extension = matches[3];
 
-        url = _pathToUrl(doc.file.fullPath);
-        doc.url = url;
+        parentUrl = _pathToUrl(matches[1]);
+        doc.url = parentUrl + encodeURI(matches[2]);
 
         // the root represents the document that should be displayed in the browser
         // for live development (the file for HTML files, index.html for others)
         // TODO: Issue #2033 Improve how default page is determined
-        rootUrl = url;
-        if (!_isHtmlFileExt(matches[3])) {
-            rootUrl = rootUrl.replace(encodeURI(matches[2]), "index.html");
-        }
+        rootUrl = (_isHtmlFileExt(matches[3]) ? doc.url : parentUrl + "index.html");
         doc.root = { url: rootUrl };
     }
 
