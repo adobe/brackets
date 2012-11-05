@@ -320,9 +320,6 @@ define(function (require, exports, module) {
             "Esc": function (instance) {
                 self.removeAllInlineWidgets();
             },
-            "Shift-Delete": "cut",
-            "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste",
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
