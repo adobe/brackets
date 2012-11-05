@@ -314,7 +314,7 @@ define(function (require, exports, module) {
             command;
         
         // skip if this binding doesn't match the current platform
-        if (targetPlatform !== brackets.platform) {
+        if ((targetPlatform === "mac") !== (brackets.platform === "mac")) {
             return null;
         }
         
