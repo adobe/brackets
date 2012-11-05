@@ -614,10 +614,10 @@ define(function (require, exports, module) {
             self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
 
-        // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
+        // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.setOption("onFocus", function () {
             self._focused = true;
-            EditorManager._notifyFocusedEditorChanged(self);
+            EditorManager._notifyActiveEditorChanged(self);
         });
         
         this._codeMirror.setOption("onBlur", function () {

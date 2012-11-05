@@ -35,16 +35,17 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- Fires after the focused editor (full or inline) changes and size/visibility
+ *    - activeEditorChange --  Fires after the active editor (full or inline) changes and size/visibility
  *                             are complete. Doesn't fire when editor temporarily loses focus to a non-editor
  *                             control (e.g. search toolbar or modal dialog, or window deactivation). Does
  *                             fire when focus moves between inline editor and its full-size container.
- *                             Roughly, this event tracks getFocusedEditor() changes, while DocumentManager's
+ *                             This event tracks getActiveEditor() changes, while DocumentManager's
  *                             currentDocumentChange tracks getCurrentFullEditor() changes.
- *                             The 2nd arg to the listener is which Editor gained focus; the 3rd arg is
- *                             which Editor lost focus as a result. Either one may be null.
- *                             TODO (#1257): getFocusedEditor() sometimes lags behind this event. Listeners
- *                             should use the arguments to reliably see which Editor just gained focus.
+ *                             The 2nd arg to the listener is which Editor became active; the 3rd arg is
+ *                             which Editor is deactivated as a result. Either one may be null.
+ *                             NOTE (#1257): getFocusedEditor() sometimes lags behind this event. Listeners
+ *                             should use the arguments or call getActiveEditor() to reliably see which Editor 
+ *                             just gained focus.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -320,7 +321,7 @@ define(function (require, exports, module) {
     }
 
     /** 
-     * Returns focus to the last visible editor that had focus. 
+     * Returns focus to the last visible editor that had focus. If no editor visible, does nothing.
      * This function should be called to restore editor focus after it has been temporarily
      * removed. For example, after a dialog with editable text is closed.
      */
@@ -386,7 +387,7 @@ define(function (require, exports, module) {
      * @private
      * @param {?Editor} current
      */
-    function _notifyFocusedEditorChanged(current) {
+    function _notifyActiveEditorChanged(current) {
         // Skip if the Editor that gained focus was already the most recently focused editor.
         // This may happen e.g. if the window loses then regains focus.
         if (_lastFocusedEditor === current) {
@@ -395,7 +396,7 @@ define(function (require, exports, module) {
         var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
         
-        $(exports).triggerHandler("focusedEditorChange", [current, previous]);
+        $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
     
     /**
@@ -449,7 +450,7 @@ define(function (require, exports, module) {
             $("#not-editor").css("display", "");
             
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
-            _notifyFocusedEditorChanged(null);
+            _notifyActiveEditorChanged(null);
         }
     }
 
@@ -701,7 +702,7 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
-    function _onFocusedEditorChange(event, current, previous) {
+    function _onActiveEditorChange(event, current, previous) {
         if (previous) {
             $(previous).off("cursorActivity.statusbar");
             $(previous).off("change.statusbar");
@@ -775,7 +776,7 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
-        _onFocusedEditorChange(null, getFocusedEditor(), null);
+        _onActiveEditorChange(null, getFocusedEditor(), null);
     }
 
     // Initialize: command handlers
@@ -792,14 +793,14 @@ define(function (require, exports, module) {
     window.addEventListener("resize", _updateEditorDuringResize, true);
     
     // Initialize: status bar focused listener
-    $(exports).on("focusedEditorChange", _onFocusedEditorChange);
+    $(exports).on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
     
     // For unit tests and internal use only
     exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
-    exports._notifyFocusedEditorChanged = _notifyFocusedEditorChanged;
+    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     
