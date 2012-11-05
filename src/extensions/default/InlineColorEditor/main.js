@@ -34,8 +34,8 @@ define(function (require, exports, module) {
     
     var _colorPickers = {};
 
-    function _onClosed(colorPicker) {
-        return delete _colorPickers[colorPicker.pos.line];
+    function _onClosed() {
+        return delete _colorPickers[this.pos.line];
     }
     
     function inlineColorEditorProvider(hostEditor, pos) {

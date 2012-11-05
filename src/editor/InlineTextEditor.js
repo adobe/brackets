@@ -123,9 +123,8 @@ define(function (require, exports, module) {
 
     /**
      * Called any time inline was closed, whether manually (via close()) or automatically
-     * @param {InlineWidget} InlineWidget that is closing.
      */
-    InlineTextEditor.prototype.onClosed = function (inlineWidget) {
+    InlineTextEditor.prototype.onClosed = function () {
         _syncGutterWidths(this.hostEditor);
         
         this.editors.forEach(function (editor) {
