@@ -407,14 +407,12 @@ define(function LiveDevelopment(require, exports, module) {
         $.when.apply(undefined, promises).then(_onLoad, _onError);
         
         // Load the right document (some agents are waiting for the page's load event)
-        Inspector.DOM.getDocument(function onGetDocument(res) {
-            var doc = _getCurrentDocument();
-            if (doc && res.root.documentURL === launcherUrl) {
-                Inspector.Page.navigate(doc.root.url);
-            } else {
-                Inspector.Page.reload();
-            }
-        });
+        var doc = _getCurrentDocument();
+        if (doc) {
+            Inspector.Page.navigate(doc.root.url);
+        } else {
+            Inspector.Page.reload();
+        }
     }
 
     /** Triggered by Inspector.disconnect */
@@ -521,7 +519,7 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
 
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
-                    url = launcherUrl;
+                    url = launcherUrl + '?' + encodeURIComponent(url);
 
                     // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
                     // is available, but the requested URL is not loaded in the browser. In that
