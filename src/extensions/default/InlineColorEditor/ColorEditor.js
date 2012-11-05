@@ -261,7 +261,7 @@ define(function (require, exports, module) {
         hsv.v = 1 - yOffset / height;
         this.setColorAsHsv(hsv, false);
         if (!this.$selection.find(".selector_base").is(":focus")) {
-            return this.$selection.find(".selector_base").focus();
+            this.$selection.find(".selector_base").focus();
         }
     };
 
