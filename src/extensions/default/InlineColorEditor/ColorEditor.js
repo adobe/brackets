@@ -183,7 +183,7 @@ define(function (require, exports, module) {
 
     ColorEditor.prototype.bindOriginalColorButton = function () {
         var _this = this;
-        return this.$lastColor.click(function (event) {
+        this.$lastColor.click(function (event) {
             return _this.commitColor(_this.lastColor, true);
         });
     };
