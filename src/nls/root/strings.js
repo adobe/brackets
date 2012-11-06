@@ -194,6 +194,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -262,6 +266,6 @@ define({
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Invalid Base URL protocol ({0}). Use http: or https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Search parameters disallowed in Base URL: {0}",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash disallowed in Base URL: {0}",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in Base URL: {0}",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in encoded Base URL: '{0}'",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL"
 });

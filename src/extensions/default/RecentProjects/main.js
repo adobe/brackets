@@ -44,7 +44,9 @@ define(function (require, exports, module) {
         FileUtils               = brackets.getModule("file/FileUtils"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
     
-    var $dropdownToggle;
+    var $dropdownToggle,
+        $settings;
+    
     var MAX_PROJECTS = 20;
 
     /**
@@ -251,5 +253,10 @@ define(function (require, exports, module) {
             .wrap("<div id='project-dropdown-toggle'></div>")
             .after("<span class='dropdown-arrow'></span>");
         $dropdownToggle = $("#project-dropdown-toggle").click(toggle);
+        
+        $settings = $("#sidebar").find(".settings");
+        $("#sidebar").on("panelResizeEnd panelResizeUpdate panelResizeExpanded", function (evt, width) {
+            $dropdownToggle.width($settings.position().left - $dropdownToggle.position().left);
+        });
     });
 });

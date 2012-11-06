@@ -245,9 +245,6 @@ define(function (require, exports, module) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
             }
-            
-            // Dispatch event
-            $(DocumentManager).triggerHandler("workingSetReorder");
         }
         
         
@@ -275,7 +272,6 @@ define(function (require, exports, module) {
         $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
             $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
             drop();
-            
         });
     }
     
@@ -490,9 +486,17 @@ define(function (require, exports, module) {
     function _handleFileRemoved(file) {
         var $listItem = _findListItemFromFile(file);
         if ($listItem) {
+            // Make the next file in the list show the close icon, 
+            // without having to move the mouse, if there is a next file.
+            var $nextListItem = $listItem.next();
+            if ($nextListItem && $nextListItem.length > 0) {
+                var canClose = ($listItem.find(".can-close").length === 1);
+                var isDirty = isOpenAndDirty($nextListItem.data(_FILE_KEY));
+                _updateFileStatusIcon($nextListItem, isDirty, canClose);
+            }
             $listItem.remove();
         }
-
+        
         _redraw();
     }
 
@@ -505,6 +509,14 @@ define(function (require, exports, module) {
         });
 
         _redraw();
+    }
+    
+    /** 
+     * @private
+     */
+    function _handleWorkingSetSort() {
+        _rebuildWorkingSet();
+        _scrollSelectedDocIntoView();
     }
 
     /** 
@@ -552,6 +564,10 @@ define(function (require, exports, module) {
 
         $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
             _handleRemoveList(removedFiles);
+        });
+        
+        $(DocumentManager).on("workingSetSort", function (event) {
+            _handleWorkingSetSort();
         });
 
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {

@@ -136,16 +136,18 @@ define(function LiveDevelopment(require, exports, module) {
             var baseUrl = ProjectManager.getBaseUrl();
             if (baseUrl !== "") {
 
-                // Map to server url
-                var serverUrl = doc.file.fullPath.replace(ProjectManager.getProjectRoot().fullPath, baseUrl);
-                doc.url = encodeURI(serverUrl);
+                // Map to server url. Base url is already encoded, so don't encode again.
+                var encodedDocPath = encodeURI(doc.file.fullPath);
+                var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().fullPath);
+                var serverUrl = encodedDocPath.replace(encodedProjectPath, baseUrl);
+                doc.url = serverUrl;
 
                 // the root represents the document that should be displayed in the browser
                 // for live development (the file for HTML files, index.html for others)
                 if (!_isHtmlFileExt(matches[3])) {
-                    serverUrl = serverUrl.replace(matches[2], "index.html");
+                    serverUrl = serverUrl.replace(encodeURI(matches[2]), "index.html");
                 }
-                doc.root = {url: encodeURI(serverUrl)};
+                doc.root = {url: serverUrl};
                 return;
             }
         }
@@ -240,8 +242,9 @@ define(function LiveDevelopment(require, exports, module) {
             baseUrl = ProjectManager.getBaseUrl();
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
-            // Use base url to translte to local file path
-            path = url.replace(baseUrl, ProjectManager.getProjectRoot().fullPath);
+            // Use base url to translate to local file path.
+            // Need to use encoded project path because it's decoded below.
+            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
 
         } else if (url.indexOf("file://") === 0) {
             // Convert a file URL to local file path
@@ -338,10 +341,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.error */
     function _onError(event, error) {
-        var message = error.message;
+        var message;
+        
+        // Sometimes error.message is undefined
+        if (!error.message) {
+            console.warn("Expected a non-empty string in error.message, got this instead:", error.message);
+            message = JSON.stringify(error);
+        } else {
+            message = error.message;
+        }
 
         // Remove "Uncaught" from the beginning to avoid the inspector popping up
-        if (message.substr(0, 8) === "Uncaught") {
+        if (message && message.substr(0, 8) === "Uncaught") {
             message = message.substr(9);
         }
 
@@ -370,8 +381,16 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /** Triggered by Inspector.detached */
+    function _onDetached(event, res) {
+        // res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
+        // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
+        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
+    }    
+
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
+        $(Inspector.Inspector).on("detached", _onDetached);
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
         $.when.apply(undefined, promises).then(_onLoad, _onError);
@@ -379,6 +398,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
+        $(Inspector.Inspector).off("detached", _onDetached);
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
