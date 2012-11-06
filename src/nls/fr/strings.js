@@ -174,6 +174,7 @@ define({
     // Edit menu commands
 	"EDIT_MENU": "Modifier",
 	"CMD_SELECT_ALL": "Sélectionner tout",
+	"CMD_SELECT_LINE": "Select Line",
 	"CMD_FIND": "Rechercher",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
 	"CMD_FIND_NEXT": "Rechercher suivant",
@@ -262,9 +263,9 @@ define({
 	"PROJECT_SETTINGS_TITLE": "Project Settings",
 	"PROJECT_SETTING_BASE_URL": "Live Preview Base URL",
 	"PROJECT_SETTING_BASE_URL_HINT": "(leave blank for file url)",
-	"BASEURL_ERROR_INVALID_PROTOCOL": "Invalid Base URL protocol ({0}). Use http: or https: .",
-	"BASEURL_ERROR_SEARCH_DISALLOWED": "Search parameters disallowed in Base URL: {0}",
-	"BASEURL_ERROR_HASH_DISALLOWED": "Hash disallowed in Base URL: {0}",
-	"BASEURL_ERROR_INVALID_CHAR": "Invalid character in encoded Base URL: '{0}'",
+	"BASEURL_ERROR_INVALID_PROTOCOL": "The {0} protocol isn't supported by Live Preview&mdash;please use http: or https: .",
+	"BASEURL_ERROR_SEARCH_DISALLOWED": "The base URL can't contain search parameters like \"{0}\".",
+	"BASEURL_ERROR_HASH_DISALLOWED": "The base URL can't contain hashes like \"{0}\".",
+	"BASEURL_ERROR_INVALID_CHAR": "Special characters like '{0}' must be %-encoded.",
 	"BASEURL_ERROR_UNKOWN_ERROR": "Unknown error parsing Base URL"
 });
