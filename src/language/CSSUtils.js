@@ -38,8 +38,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
-        FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
+        FileIndexManager    = require("project/FileIndexManager");
 
     /**
      * Extracts all CSS selectors from the given text

@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         Menus                 = require("command/Menus"),
         EditorManager         = require("editor/EditorManager"),
         FileViewController    = require("project/FileViewController"),
-        NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
         ViewUtils             = require("utils/ViewUtils");
     
     
