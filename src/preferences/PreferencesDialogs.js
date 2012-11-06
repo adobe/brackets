@@ -102,16 +102,14 @@ define(function (require, exports, module) {
 
         // Title
         $title = $dlg.find(".dialog-title");
-        if ($title) {
-            var projectName = "",
-                projectRoot = ProjectManager.getProjectRoot(),
-                title;
-            if (projectRoot) {
-                projectName = projectRoot.name;
-            }
-            title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
-            $title.text(title);
+        var projectName = "",
+            projectRoot = ProjectManager.getProjectRoot(),
+            title;
+        if (projectRoot) {
+            projectName = projectRoot.name;
         }
+        title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
+        $title.text(title);
 
         // Base URL
         $baseUrlControl = $dlg.find(".base-url");

@@ -81,8 +81,8 @@ define({
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
     
@@ -259,7 +259,7 @@ define({
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings",
-    "PROJECT_SETTINGS_MENU"                : "Project Settings...",
+    "PROJECT_SETTINGS_MENU"                : "Project Settings\u2026",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",
