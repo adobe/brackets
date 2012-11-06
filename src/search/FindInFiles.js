@@ -322,7 +322,7 @@ define(function (require, exports, module) {
         var dialog = new FindInFilesDialog();
         
         // Default to searching for the current selection
-        var currentEditor = EditorManager.getFocusedEditor();
+        var currentEditor = EditorManager.getActiveEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
         
         searchResults = [];
