@@ -616,9 +616,14 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype.handleDocumentMouseDown = function (e) {
         if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
+        } else {
+            // Allow clicks in the search field to propagate. Clicks in the menu should be 
+            // blocked to prevent focus from leaving the search field.
+            if ($("input#quickOpenSearch").get(0) !== e.target) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         }
-        e.preventDefault();
-        e.stopPropagation();
     };
 
     /**
