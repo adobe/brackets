@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      * @param {String} url
      * @return {String} empty string if valid, otherwise error string
      */
-    function validateBaseUrl(url) {
+    function _validateBaseUrl(url) {
         var result = "";
         // empty url means "no server mapping; use file directly"
         if (url === "") {
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     var baseUrlValue = $baseUrlControl.val();
-                    var result = validateBaseUrl(baseUrlValue);
+                    var result = _validateBaseUrl(baseUrlValue);
                     if (result === "") {
                         ProjectManager.setBaseUrl(baseUrlValue);
                     } else {
@@ -115,6 +115,9 @@ define(function (require, exports, module) {
 
         return promise;
     }
+
+    // For unit testing
+    exports._validateBaseUrl                = _validateBaseUrl;
 
     exports.showProjectPreferencesDialog    = showProjectPreferencesDialog;
 });
