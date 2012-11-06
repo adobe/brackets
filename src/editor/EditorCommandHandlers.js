@@ -295,8 +295,8 @@ define(function (require, exports, module) {
         editor._codeMirror.execCommand("indentLess");
     }
 
-    function selectLine() {
-        var editor = EditorManager.getFocusedEditor();
+    function selectLine(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
             var sel  = editor.getSelection();
             var from = {line: sel.start.line, ch: 0};
