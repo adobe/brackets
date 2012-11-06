@@ -387,5 +387,10 @@ define(function (require, exports, module) {
         });
     };
 
+    // Prevent clicks on some UI elements (color selection field, slider and large swatch) from taking focus
+    $(window.document).on("mousedown", ".color_selection_field, .slider, .large_swatch", function (e) {
+        e.preventDefault();
+    });
+
     exports.ColorEditor = ColorEditor;
 });
