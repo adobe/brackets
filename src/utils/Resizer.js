@@ -182,7 +182,10 @@ define(function (require, exports, module) {
             }
             
             forceMargins(elementSize);
-            EditorManager.resizeEditor();   // V resize affects editor directly; H resize could change ht of top toolbar
+            
+            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
+            EditorManager.resizeEditor();
+            
             $element.trigger("panelExpanded", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
@@ -204,7 +207,10 @@ define(function (require, exports, module) {
             }
             
             forceMargins(0);
-            EditorManager.resizeEditor();   // V resize affects editor directly; H resize could change ht of top toolbar
+            
+            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
+            EditorManager.resizeEditor();
+            
             $element.trigger("panelCollapsed", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
@@ -269,7 +275,8 @@ define(function (require, exports, module) {
                         $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
                     }
     
-                    EditorManager.resizeEditor();   // V resize affects editor directly; H resize could change ht of top toolbar
+                    // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
+                    EditorManager.resizeEditor();
                 }
                 
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
