@@ -367,6 +367,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error);
+        _setStatus(STATUS_ERROR);
     }
 
     /** Run when all agents are loaded */
@@ -389,7 +390,7 @@ define(function LiveDevelopment(require, exports, module) {
         // res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
         // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
         // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
-    }    
+    }
 
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
