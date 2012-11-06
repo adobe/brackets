@@ -944,7 +944,7 @@ define(function (require, exports, module) {
      * Invoke project settings dialog.
      */
     function _projectSettings() {
-        PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
     }
 
     /**
