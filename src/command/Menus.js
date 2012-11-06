@@ -867,6 +867,8 @@ define(function (require, exports, module) {
          */
         menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
         menu.addMenuItem(Commands.EDIT_SELECT_ALL,          "Ctrl-A");
+        menu.addMenuItem(Commands.EDIT_SELECT_LINE,         [{key: "Ctrl-L", platform: "win"},
+                                                             {key: "Ctrl-L", platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_FIND,                "Ctrl-F");
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES,       "Ctrl-Shift-F");
