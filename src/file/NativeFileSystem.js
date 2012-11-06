@@ -46,21 +46,44 @@
  *
  * Basic usage examples:
  *
- *  CREATE_DIRECTORY
- *      NativeFileSystem.DirectoryEntry().getDirectory(path)
+ *  - CREATE A DIRECTORY
+ *      NativeFileSystem.DirectoryEntry().getDirectory(path, {create: true});
  *
- *  GET_FILE
- *      NativeFileSystem.DirectoryEntry(path).getFile(filename)
+ *  - CHECK IF A FILE OR FOLDER EXISTS
+ *      NativeFileSystem.requestNativeFileSystem(path 
+ *                                              , function() { console.log("Entry exists"); }
+ *                                              , function() { console.log("Entry does not exist"); });
  *
- *  GET_FILE
- *      NativeFileSystem.requestNativeFileSystem(
+ *  - READ A FILE
+ *      reader = new NativeFileSystem.FileReader();
+ *      fileEntry.file(function (file) {
+ *          reader.onload = function (event) {
+ *              var text = event.target.result;
+ *          };
  *
- *  GET_METADATA
- *      var fileEntry = new NativeFileSystem.FileEntry(path)
- *      fileEntry.getMetadata(success, error)
+ *          reader.onerror = function (event) {
+ *          };
+ *          
+ *          reader.readAsText(file, Encodings.UTF8);
+ *      });
  *
- *  OPEN_FILE
- *      NativeFileSystem.showOpenDialog()
+ *  - WRITE TO A FILE
+ *      writer = fileEntry.createWriter(function (fileWriter) {
+ *          fileWriter.onwriteend = function (e) {
+ *          };
+ *
+ *          fileWriter.onerror = function (err) {
+ *          };
+ *          
+ *          fileWriter.write(text);
+ *      });
+ *      
+ *  - GET THE METADATA OF A FILE
+ *      var fileEntry = new NativeFileSystem.FileEntry(path);
+ *      fileEntry.getMetadata(function(metadata) {}, function(error) {});
+ *
+ *  - LET THE USER SELECT FILES OR FOLDERS FROM THE FILE SYSTEM
+ *      NativeFileSystem.showOpenDialog(true, true, "Choose a file...", null, function(files) {}, function(err) {});
  */
 
 define(function (require, exports, module) {
