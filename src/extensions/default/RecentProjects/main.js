@@ -184,7 +184,7 @@ define(function (require, exports, module) {
                         $(this).append($del);
 
                         $del.css("right", 5);
-                        $del.css("top", $target.position().top + 11);
+                        $del.css("top", $target.position().top + 6);
                         $del.css("display", "inline-block");
                         $del.data("path", $(this).data("path"));
                     })
