@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
+        PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Commands                = brackets.getModule("command/Commands"),
         CommandManager          = brackets.getModule("command/CommandManager"),
@@ -89,7 +90,7 @@ define(function (require, exports, module) {
             lastSlash = path.slice(0, path.length - 1).lastIndexOf("/");
         }
         if (lastSlash >= 0) {
-            rest = rest = " - " + (lastSlash ? path.slice(0, lastSlash) : "/");
+            rest = " - " + (lastSlash ? path.slice(0, lastSlash) : "/");
             folder = path.slice(lastSlash + 1);
         } else {
             rest = "/";
@@ -142,6 +143,7 @@ define(function (require, exports, module) {
         
         var currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
             hasProject = false;
+
         recentProjects.forEach(function (root) {
             if (root !== currentProject) {
                 var $link = renderPath(root)
@@ -182,7 +184,7 @@ define(function (require, exports, module) {
                         $(this).append($del);
 
                         $del.css("right", 5);
-                        $del.css("top", $target.position().top + 11);
+                        $del.css("top", $target.position().top + 6);
                         $del.css("display", "inline-block");
                         $del.data("path", $(this).data("path"));
                     })
@@ -201,6 +203,12 @@ define(function (require, exports, module) {
         if (hasProject) {
             $("<li class='divider'>").appendTo($dropdown);
         }
+        // Entry for project settings dialog
+        $("<li><a id='project-settings-link'>" + Strings.CMD_PROJECT_SETTINGS + "</a></li>")
+            .click(function () {
+                CommandManager.execute(Commands.FILE_PROJECT_SETTINGS);
+            })
+            .appendTo($dropdown);
         $("<li><a id='open-folder-link'>" + Strings.CMD_OPEN_FOLDER + "</a></li>")
             .click(function () {
                 CommandManager.execute(Commands.FILE_OPEN_FOLDER);
