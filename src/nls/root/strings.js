@@ -168,6 +168,7 @@ define({
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_QUIT"                            : "Quit",
 
@@ -259,7 +260,6 @@ define({
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings",
-    "PROJECT_SETTINGS_MENU"                : "Project Settings\u2026",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",

@@ -204,9 +204,9 @@ define(function (require, exports, module) {
             $("<li class='divider'>").appendTo($dropdown);
         }
         // Entry for project settings dialog
-        $("<li><a id='project-settings-link'>" + Strings.PROJECT_SETTINGS_MENU + "</a></li>")
+        $("<li><a id='project-settings-link'>" + Strings.CMD_PROJECT_SETTINGS + "</a></li>")
             .click(function () {
-                PreferencesDialogs.showProjectPreferencesDialog(ProjectManager.getBaseUrl());
+                CommandManager.execute(Commands.FILE_PROJECT_SETTINGS);
             })
             .appendTo($dropdown);
         $("<li><a id='open-folder-link'>" + Strings.CMD_OPEN_FOLDER + "</a></li>")

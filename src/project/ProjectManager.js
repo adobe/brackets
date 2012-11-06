@@ -941,6 +941,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Invoke project settings dialog.
+     */
+    function _projectSettings() {
+        PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+    }
+
+    /**
      * @private
      *
      * Check a filename for illegal characters. If any are found, show an error
@@ -1301,7 +1308,8 @@ define(function (require, exports, module) {
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
 
     // Commands
-    CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
+    CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
+    CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;

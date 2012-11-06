@@ -75,6 +75,8 @@ define(function (require, exports, module) {
      * Show a dialog that shows the project preferences
      * @param {String} baseUrl - initial value
      * @param {String} errorMessage - error to display
+     * @return {$.Promise} A promise object that will be resolved when user successfully enters
+     *          project settings and clicks OK, or rejected if user clicks Cancel.
      */
     function showProjectPreferencesDialog(baseUrl, errorMessage) {
 
