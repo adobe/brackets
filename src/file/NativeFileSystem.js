@@ -106,16 +106,16 @@ define(function (require, exports, module) {
          * Shows a modal dialog for selecting and opening files
          *
          * @param {bool} allowMultipleSelection Allows selecting more than one file at a time
-         * @param {bool} chooseDirectories Allows directories as 
+         * @param {bool} chooseDirectories Allows directories to be opened
          * @param {string} title The title for the window
          * @param {string} initialPath The folder opened inside the window initially. If initialPath
          *                             is not set, or it doesn't exist, the window would show the last
          *                             browsed folder depending on the OS preferences
          * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
          *                                   allows any extension to be selected.
-         * @param {function(...)} successCallback Callback function for successful operations. Receives an
+         * @param {function(Array.<string>)} successCallback Callback function for successful operations. Receives an
                                                   array with the selected paths as first parameter.
-         * @param {function(...)} errorCallback Callback function for error operations.
+         * @param {function(FileError)} errorCallback Callback function for error operations.
          */
         showOpenDialog: function (allowMultipleSelection,
                                   chooseDirectories,
@@ -147,9 +147,9 @@ define(function (require, exports, module) {
         /**
          * Implementation of w3 requestFileSystem entry point
          * @param {string} path Path of the file in the system
-         * @param {function(...)} successCallback Callback function for successful operations. Receives a
+         * @param {function(DirectoryEntry)} successCallback Callback function for successful operations. Receives a
          *                                        DirectoryEntry pointing to the path
-         * @param {function(...)} errorCallback Callback function for errors, including permission errors.
+         * @param {function(FileError)} errorCallback Callback function for errors, including permission errors.
          */
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, data) {
