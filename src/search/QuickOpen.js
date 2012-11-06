@@ -806,6 +806,13 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype.handleDocumentMouseDown = function (e) {
         if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
+        } else {
+            // Allow clicks in the search field to propagate. Clicks in the menu should be 
+            // blocked to prevent focus from leaving the search field.
+            if ($("input#quickOpenSearch").get(0) !== e.target) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         }
     };
 
@@ -860,7 +867,8 @@ define(function (require, exports, module) {
             itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
             itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
             keydown: function (e) { that._handleKeyDown(e); },
-            keyup: function (e, query) { that._handleKeyUp(e); }
+            keyup: function (e, query) { that._handleKeyUp(e); },
+            blur: function (e) { that._close(); }
             // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
             // triggers lostFocus
         });
@@ -878,7 +886,7 @@ define(function (require, exports, module) {
     };
 
     function getCurrentEditorSelectedText() {
-        var currentEditor = EditorManager.getFocusedEditor();
+        var currentEditor = EditorManager.getActiveEditor();
         return (currentEditor && currentEditor.getSelectedText()) || "";
     }
 
