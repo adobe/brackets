@@ -1287,10 +1287,6 @@ define(function (require, exports, module) {
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });
-
-//        $("#project-files-header .settings").on("click", function () {
-//            PreferencesDialogs.showProjectPreferencesDialog(_projectBaseUrl);
-//        });
     });
 
     // Init PreferenceStorage
