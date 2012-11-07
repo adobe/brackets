@@ -382,13 +382,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Removes a  menu item with the specified id.
+     * Removes the specified menu item from this Menu. Key bindings are unaffected; use KeyBindingManager
+     * directly to remove key bindings if desired.
      *
-     * @param {!string | Command} command - the command the menu would execute if we weren't deleting it.
-     *
-     * Note, keyBindings are not affected at all by removing a menu item.
-     * They would have to be removed separately.
-     *
+     * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
      */
     Menu.prototype.removeMenuItem = function (command) {
         var menuItemID;
@@ -399,17 +396,16 @@ define(function (require, exports, module) {
 
         if (typeof (command) === "string") {
             var commandObj = CommandManager.get(command);
-
             if (!commandObj) {
                 throw new Error("removeMenuItem(): command not found: " + command);
             }
 
-            menuItemID = menuItemMap[this.id + "-" + command].id;
+            menuItemID = this._getMenuItemId(command);
         } else {
-            menuItemID = this.id + "-" + command.getID();
+            menuItemID = this._getMenuItemId(command.getID());
         }
 
-        //Targeting parent to get the menu item <a> and the <li> that contains it
+        // Targeting parent to get the menu item <a> and the <li> that contains it
         $(_getHTMLMenuItem(menuItemID)).parent().remove();
         delete menuItemMap[menuItemID];
     };
