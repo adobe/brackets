@@ -35,7 +35,8 @@ define(function (require, exports, module) {
 
     var KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent"),
-        NativeApp         = require("utils/NativeApp");
+        NativeApp         = require("utils/NativeApp"),
+        Menus             = require("command/Menus");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
@@ -129,6 +130,7 @@ define(function (require, exports, module) {
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
+        Menus.closeAll();
         var result = $.Deferred(),
             promise = result.promise();
         
