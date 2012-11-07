@@ -374,11 +374,12 @@ define(function (require, exports, module) {
                 // File paths used in tests:
                 //  * file1 - file inside  project
                 //  * file2 - file outside project
-                var file1Path       =                projectPath + fileRelPath,
-                    file1FileUrl    = fileProtocol + projectPath + fileRelPath,
-                    file1ServerUrl  = baseUrl                    + fileRelPath,
-                    file2Path       =                outsidePath + fileRelPath,
-                    file2FileUrl    = fileProtocol + outsidePath + fileRelPath;
+                // Encode the URLs
+                var file1Path       = projectPath + fileRelPath,
+                    file2Path       = outsidePath + fileRelPath,
+                    file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
+                    file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
+                    file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
 
                 // Should use file url when no base url
                 expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1FileUrl);
