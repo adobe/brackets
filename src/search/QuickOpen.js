@@ -25,15 +25,15 @@
 /*global define, $, window, setTimeout */
 
 /*
-* Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
-* within a file.
-* Uses FileIndexManger to supply the file list.
-* 
-* TODO (issue 333) - currently jquery smart auto complete is used for the pop-up list. While it mostly works
-* it has several issues, so it should be replace with an alternative. Issues:
-* - the pop-up position logic has flaws that require CSS workarounds
-* - the pop-up properties cannot be modified once the object is constructed
-*/
+ * Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
+ * within a file.
+ * Uses FileIndexManger to supply the file list.
+ * 
+ * TODO (issue 333) - currently jquery smart auto complete is used for the pop-up list. While it mostly works
+ * it has several issues, so it should be replace with an alternative. Issues:
+ * - the pop-up position logic has flaws that require CSS workarounds
+ * - the pop-up properties cannot be modified once the object is constructed
+ */
 
 
 define(function (require, exports, module) {
@@ -146,9 +146,9 @@ define(function (require, exports, module) {
     }
 
     /**
-    * QuickNavigateDialog class
-    * @constructor
-    */
+     * QuickNavigateDialog class
+     * @constructor
+     */
     function QuickNavigateDialog() {
         this.$searchField = undefined; // defined when showDialog() is called
     }
@@ -394,35 +394,208 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this.handleDocumentMouseDown);
     };
     
+    /**
+     * Helper functions for stringMatch score calculation.
+     */
     
     /**
-     * Performs basic filtering of a string based on a filter query, and ranks how close the match
-     * is. Use basicMatchSort() to sort the filtered results taking this ranking into account. The
-     * label of the SearchResult is set to 'str'.
-     * @param {!string} str
-     * @param {!string} query
-     * @return {?SearchResult}
+     * The current scoring gives a boost for matches in the "most specific" (generally farthest right) 
+     * segment of the string being tested against the query.
      */
+    function _adjustScoreForSegment(segmentCounter, score) {
+        if (segmentCounter === 0) {
+            // Multiplier used for matches within the most-specific part of the name (filename, for example)
+            return score * 3;
+        } else {
+            return score;
+        }
+    }
+    
+    /**
+     * Additional points are added when multiple characters in the string
+     * being tested match against query characters.
+     */
+    function _boostForMatches(sequentialMatches) {
+        // Multiplier for the number of sequential matched characters
+        return sequentialMatches * sequentialMatches * 5;
+    }
+    
+    /**
+     * The score is boosted for matches that occur at the beginning
+     * of a segment of string that is being tested against the query.
+     */
+    function _boostForPathSegmentStart(sequentialMatches) {
+        // Multiplier for sequential matched characters at the beginning
+        // of a delimited section (after a '/' in a path, for example)
+        return sequentialMatches * sequentialMatches * 5;
+    }
+    
+    /**
+    * Upper case characters are boosted to help match MixedCase strings better.
+    */
+    function _boostForUpperCase(c) {
+        return c.toUpperCase() === c ? 50 : 0;
+    }
+
+   /**
+    * Performs matching of a string based on a query, and scores
+    * the result based on specificity (assuming that the rightmost
+    * side of the input is the most specific) and how clustered the
+    * query characters are in the input string. The matching is
+    * case-insensitive, but case is taken into account in the scoring.
+    *
+    * If the query characters cannot be found in order (but not necessarily all together), 
+    * undefined is returned.
+    *
+    * The returned SearchResult has a matchGoodness score that can be used
+    * for sorting. It also has a stringRanges array, each entry with
+    * "text", "matched" and "segment". If you string the "text" properties together, you will
+    * get the original str. Using the matched property, you can highlight
+    * the string matches. The segment property tells you the most specific (rightmost)
+    * segment covered by the range, though there may be more than one segment covered.
+    * Segments are currently determined by "/"s.
+    *
+    * Use basicMatchSort() to sort the filtered results taking this ranking into account.
+    * The label of the SearchResult is set to 'str'.
+    * @param {!string} str
+    * @param {!string} query
+    * @return {?SearchResult}
+    */
     function stringMatch(str, query) {
-        // is it a match at all?
-        var matchIndex = str.toLowerCase().indexOf(query.toLowerCase());
-        if (matchIndex !== -1) {
-            var searchResult = new SearchResult(str);
+        var result;
+        
+        // start at the end and work backward, because we give preference
+        // to matches in the name (last) segment
+        var strCounter = str.length - 1;
+        
+        // stringRanges are used to keep track of which parts of
+        // the input str matched the query
+        var stringRanges = [];
+        
+        // segmentCounter tracks which "segment" (delimited section) of the
+        // str we are in so that we can treat certain (generally most-specific) segments
+        // specially.
+        var segmentCounter = 0;
+        
+        // Keeps track of the most specific segment that the current stringRange
+        // is associated with.
+        var rangeSegment = 0;
+        
+        // addToStringRanges is used when we transition between matched and unmatched
+        // parts of the string.
+        function addToStringRanges(numberOfCharacters, matched) {
+            var segment = rangeSegment;
+            rangeSegment = segmentCounter;
+            stringRanges.unshift({
+                text: str.substr(strCounter + 1, numberOfCharacters),
+                matched: matched,
+                segment: segment
+            });
+        }
+
+        // No query? Short circuit the normal work done and just
+        // return a single range that covers the whole string.
+        if (!query) {
+            result = new SearchResult(str);
+            result.matchGoodness = 0;
+            strCounter = -1;
+            addToStringRanges(str.length, false);
+            result.stringRanges = stringRanges;
+            return result;
+        }
+        
+        var queryChars = query.toLowerCase().split("");
+        
+        // start at the end of the query
+        var queryCounter = queryChars.length - 1;
+
+        var score = 0;
+        
+        // sequentialMatches is positive when we are stepping through matched
+        // characters and negative when stepping through unmatched characters
+        var sequentialMatches = 0;
+        
+        while (strCounter >= 0 && queryCounter >= 0) {
+            var curChar = str.charAt(strCounter);
             
-            // Rough heuristic to decide how good the match is: if query very closely matches str,
-            // rank it highly. Divides the search results into three broad buckets (0-2)
-            if (matchIndex === 0) {
-                if (str.length === query.length) {
-                    searchResult.matchGoodness = 0;
-                } else {
-                    searchResult.matchGoodness = 1;
+            // Ideally, this function will work with different delimiters used in
+            // different contexts. For now, this is used for paths delimited by '/'.
+            if (curChar === '/') {
+                // Beginning of segment, apply boost for a matching
+                // string of characters, if there is one
+                if (sequentialMatches > 0) {
+                    score += _boostForPathSegmentStart(sequentialMatches);
                 }
-            } else {
-                searchResult.matchGoodness = 2;
+                
+                score = _adjustScoreForSegment(segmentCounter, score);
+                segmentCounter++;
             }
             
-            return searchResult;
+            if (queryChars[queryCounter] === curChar.toLowerCase()) {
+                
+                score += _boostForUpperCase(curChar);
+                
+                // are we ending a string of unmatched characters?
+                if (sequentialMatches < 0) {
+                    addToStringRanges(-sequentialMatches, false);
+                    sequentialMatches = 0;
+                }
+                
+                // matched character, chalk up another match
+                // and move both counters back a character
+                sequentialMatches++;
+                queryCounter--;
+                strCounter--;
+            } else {
+                // are we ending a string of matched characters?
+                if (sequentialMatches > 0) {
+                    addToStringRanges(sequentialMatches, true);
+                    score += _boostForMatches(sequentialMatches);
+                    sequentialMatches = 0;
+                }
+                // character didn't match, apply sequential matches
+                // to score and keep looking
+                strCounter--;
+                sequentialMatches--;
+            }
         }
+        
+        // if there are still query characters left, we don't
+        // have a match
+        if (queryCounter >= 0) {
+            return undefined;
+        }
+        
+        if (sequentialMatches) {
+            addToStringRanges(Math.abs(sequentialMatches), sequentialMatches > 0);
+        }
+        
+        if (strCounter >= 0) {
+            stringRanges.unshift({
+                text: str.substring(0, strCounter + 1),
+                matched: false,
+                segment: rangeSegment
+            });
+        }
+        
+        // now, we need to apply any score we've accumulated
+        // before we ran out of query characters
+        score += _boostForMatches(sequentialMatches);
+        
+        if (sequentialMatches && strCounter >= 0) {
+            if (str.charAt(strCounter) === '/') {
+                score += _boostForPathSegmentStart(sequentialMatches);
+            }
+        }
+        score = _adjustScoreForSegment(segmentCounter, score);
+        
+        // Produce a SearchResult that is augmented with matchGoodness
+        // (used for sorting) and stringRanges (used for highlighting
+        // matched areas of the string)
+        result = new SearchResult(str);
+        result.matchGoodness = -1 * score;
+        result.stringRanges = stringRanges;
+        return result;
     }
     
     /**
@@ -472,7 +645,7 @@ define(function (require, exports, module) {
      * within each tier.
      */
     function basicMatchSort(searchResults) {
-        multiFieldSort(searchResults, { matchGoodness: 0, label: 2 });
+        multiFieldSort(searchResults, { matchGoodness: 0, label: 1 });
     }
     
     
@@ -500,9 +673,10 @@ define(function (require, exports, module) {
         // for sorting & display
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
-            // match query against filename only (not the full path)
-            var searchResult = stringMatch(fileInfo.name, query);
+            // match query against the full path (with gaps between query characters allowed)
+            var searchResult = stringMatch(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             if (searchResult) {
+                searchResult.label = fileInfo.name;
                 searchResult.fullPath = fileInfo.fullPath;
                 searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.name, false);
             }
@@ -540,39 +714,67 @@ define(function (require, exports, module) {
     }
 
 
+    /**
+     * Formats item's label as properly escaped HTML text, highlighting sections that match 'query'.
+     * If item is a SearchResult generated by stringMatch(), uses its metadata about which string ranges
+     * matched; else formats the label with no highlighting.
+     * @param {!string|SearchResult} item
+     * @param {?string} matchClass CSS class for highlighting matched text
+     * @param {?function(number, string):string} rangeFilter
+     * @return {!string} bolded, HTML-escaped result
+     */
+    function highlightMatch(item, matchClass, rangeFilter) {
+        var label = item.label || item;
+        matchClass = matchClass || "quicksearch-namematch";
+        
+        var stringRanges = item.stringRanges;
+        if (!stringRanges) {
+            // If result didn't come from stringMatch(), highlight nothing
+            stringRanges = [{
+                text: label,
+                matched: false,
+                segment: 0
+            }];
+        }
+        
+        var displayName = "";
+        
+        // Put the path pieces together, highlighting the matched parts
+        stringRanges.forEach(function (range) {
+            if (range.matched) {
+                displayName += "<span class='" + matchClass + "'>";
+            }
+            
+            var rangeText = rangeFilter ? rangeFilter(range.segment, range.text) : range.text;
+            displayName += StringUtils.breakableUrl(StringUtils.htmlEscape(rangeText));
+            
+            if (range.matched) {
+                displayName += "</span>";
+            }
+        });
+        return displayName;
+    }
+    
     function defaultResultsFormatter(item, query) {
         query = query.slice(query.indexOf("@") + 1, query.length);
 
-        // Escape both query and item so the replace works properly below
-        query = StringUtils.htmlEscape(query);
-        var label = item.label || item;
-        var displayName = StringUtils.htmlEscape(label);
-
-        if (query.length > 0) {
-            // make the user's query bold within the item's text
-            displayName = displayName.replace(
-                new RegExp(StringUtils.regexEscape(query), "gi"),
-                "<strong>$&</strong>"
-            );
-        }
-
+        var displayName = highlightMatch(item);
         return "<li>" + displayName + "</li>";
     }
     
     function _filenameResultsFormatter(item, query) {
-        // Use the filename formatter
-        query = StringUtils.htmlEscape(query);
-        var displayName = StringUtils.htmlEscape(item.label);
-        var displayPath = StringUtils.breakableUrl(StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath)));
-
-        if (query.length > 0) {
-            // make the user's query bold within the item's text
-            displayName = displayName.replace(
-                new RegExp(StringUtils.regexEscape(query), "gi"),
-                "<strong>$&</strong>"
-            );
+        // For main label, we just want filename: drop most of the string
+        function fileNameFilter(segment, rangeText) {
+            if (segment === 0) {
+                var rightmostSlash = rangeText.lastIndexOf('/');
+                return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
+            } else {
+                return "";
+            }
         }
-
+        var displayName = highlightMatch(item, null, fileNameFilter);
+        var displayPath = highlightMatch(item, "quicksearch-pathmatch");
+        
         return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
     }
 
@@ -616,12 +818,19 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype.handleDocumentMouseDown = function (e) {
         if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
+        } else {
+            // Allow clicks in the search field to propagate. Clicks in the menu should be 
+            // blocked to prevent focus from leaving the search field.
+            if ($("input#quickOpenSearch").get(0) !== e.target) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         }
     };
 
     /**
-    * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
-    */
+     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
+     */
     QuickNavigateDialog.prototype.showDialog = function (prefix, initialString) {
         var that = this;
 
@@ -670,7 +879,8 @@ define(function (require, exports, module) {
             itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
             itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
             keydown: function (e) { that._handleKeyDown(e); },
-            keyup: function (e, query) { that._handleKeyUp(e); }
+            keyup: function (e, query) { that._handleKeyUp(e); },
+            blur: function (e) { that._close(); }
             // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
             // triggers lostFocus
         });
@@ -688,7 +898,7 @@ define(function (require, exports, module) {
     };
 
     function getCurrentEditorSelectedText() {
-        var currentEditor = EditorManager.getFocusedEditor();
+        var currentEditor = EditorManager.getActiveEditor();
         return (currentEditor && currentEditor.getSelectedText()) || "";
     }
 
@@ -740,4 +950,5 @@ define(function (require, exports, module) {
     exports.stringMatch         = stringMatch;
     exports.basicMatchSort      = basicMatchSort;
     exports.multiFieldSort      = multiFieldSort;
+    exports.highlightMatch      = highlightMatch;
 });

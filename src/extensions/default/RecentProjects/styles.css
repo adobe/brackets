@@ -13,6 +13,12 @@
 	position: absolute;
 }
 
+#project-dropdown-toggle {
+    height: 18px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 #project-dropdown-toggle:hover {
     color: #a0a0a0;
     text-decoration: none;
@@ -33,11 +39,10 @@
 #project-dropdown.dropdown-menu .recent-folder-link
 {
 	display: block;
-	margin: 5px 0;
-	padding: 5px 26px 5px 10px;
+	padding: 5px 26px 5px 15px;
 }
 
-.recent-folder, #open-folder-link {
+.recent-folder, #open-folder-link, #project-settings-link {
     color: #333;
 }
 

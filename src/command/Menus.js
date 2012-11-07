@@ -189,16 +189,6 @@ define(function (require, exports, module) {
         return binding;
     }
     
-    /** NOT IMPLEMENTED
-     * Removes MenuItem
-     * 
-     * TODO Question: for convenience should API provide a way to remove related
-     * keybindings and Command object?
-     */
-    // function removeMenuItem(id) {
-    //    NOT IMPLEMENTED
-    // }
-
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
@@ -389,6 +379,35 @@ define(function (require, exports, module) {
         }
         
         return $relativeElement;
+    };
+
+    /**
+     * Removes the specified menu item from this Menu. Key bindings are unaffected; use KeyBindingManager
+     * directly to remove key bindings if desired.
+     *
+     * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
+     */
+    Menu.prototype.removeMenuItem = function (command) {
+        var menuItemID;
+
+        if (!command) {
+            throw new Error("removeMenuItem(): missing required parameters: command");
+        }
+
+        if (typeof (command) === "string") {
+            var commandObj = CommandManager.get(command);
+            if (!commandObj) {
+                throw new Error("removeMenuItem(): command not found: " + command);
+            }
+
+            menuItemID = this._getMenuItemId(command);
+        } else {
+            menuItemID = this._getMenuItemId(command.getID());
+        }
+
+        // Targeting parent to get the menu item <a> and the <li> that contains it
+        $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        delete menuItemMap[menuItemID];
     };
     
     /**
@@ -859,6 +878,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
+        menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_QUIT,                "Ctrl-Q");
 
@@ -867,6 +887,8 @@ define(function (require, exports, module) {
          */
         menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
         menu.addMenuItem(Commands.EDIT_SELECT_ALL,          "Ctrl-A");
+        menu.addMenuItem(Commands.EDIT_SELECT_LINE,         [{key: "Ctrl-L", platform: "win"},
+                                                             {key: "Ctrl-L", platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_FIND,                "Ctrl-F");
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES,       "Ctrl-Shift-F");

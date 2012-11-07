@@ -118,55 +118,78 @@ define(function LiveDevelopment(require, exports, module) {
                 (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
     }
 
+    /** Convert a URL to a local full file path */
+    function _urlToPath(url) {
+        var path,
+            baseUrl = ProjectManager.getBaseUrl();
+
+        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
+            // Use base url to translate to local file path.
+            // Need to use encoded project path because it's decoded below.
+            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
+
+        } else if (url.indexOf("file://") === 0) {
+            // Convert a file URL to local file path
+            path = url.slice(7);
+            if (path && brackets.platform === "win" && path.charAt(0) === "/") {
+                path = path.slice(1);
+            }
+        }
+        return decodeURI(path);
+    }
+
+    /** Convert a local full file path to a URL */
+    function _pathToUrl(path) {
+        var url,
+            baseUrl = ProjectManager.getBaseUrl();
+
+        // See if base url has been specified and path is within project
+        if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
+            // Map to server url. Base url is already encoded, so don't encode again.
+            var encodedDocPath = encodeURI(path);
+            var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().fullPath);
+            url = encodedDocPath.replace(encodedProjectPath, baseUrl);
+
+        } else {
+            var prefix = "file://";
+    
+            if (brackets.platform === "win") {
+                // The path on Windows starts with a drive letter (e.g. "C:").
+                // In order to make it a valid file: URL we need to add an
+                // additional slash to the prefix.
+                prefix += "/";
+            }
+    
+            url = encodeURI(prefix + path);
+        }
+
+        return url;
+    }
+
     /** Augments the given Brackets document with information that's useful for live development. */
     function _setDocInfo(doc) {
+
+        var parentUrl,
+            rootUrl,
+            matches;
+
         // FUTURE: some of these things should just be moved into core Document; others should
         // be in a LiveDevelopment-specific object attached to the doc.
-        var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
+        matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
         if (!matches) {
             return;
         }
 
         doc.extension = matches[3];
 
-        // Check if doc is in current project
-        if (ProjectManager.isWithinProject(doc.file.fullPath)) {
-
-            // See if base url has been specified
-            var baseUrl = ProjectManager.getBaseUrl();
-            if (baseUrl !== "") {
-
-                // Map to server url. Base url is already encoded, so don't encode again.
-                var encodedDocPath = encodeURI(doc.file.fullPath);
-                var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().fullPath);
-                var serverUrl = encodedDocPath.replace(encodedProjectPath, baseUrl);
-                doc.url = serverUrl;
-
-                // the root represents the document that should be displayed in the browser
-                // for live development (the file for HTML files, index.html for others)
-                if (!_isHtmlFileExt(matches[3])) {
-                    serverUrl = serverUrl.replace(encodeURI(matches[2]), "index.html");
-                }
-                doc.root = {url: serverUrl};
-                return;
-            }
-        }
-
-        var prefix = "file://";
-
-        // The file.fullPath on Windows starts with a drive letter ("C:").
-        // In order to make it a valid file: URL we need to add an
-        // additional slash to the prefix.
-        if (brackets.platform === "win") {
-            prefix += "/";
-        }
-
-        doc.url = encodeURI(prefix + doc.file.fullPath);
+        parentUrl = _pathToUrl(matches[1]);
+        doc.url = parentUrl + encodeURI(matches[2]);
 
         // the root represents the document that should be displayed in the browser
         // for live development (the file for HTML files, index.html for others)
-        var fileName = _isHtmlFileExt(matches[3]) ? matches[2] : "index.html";
-        doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
+        // TODO: Issue #2033 Improve how default page is determined
+        rootUrl = (_isHtmlFileExt(matches[3]) ? doc.url : parentUrl + "index.html");
+        doc.root = { url: rootUrl };
     }
 
     /** Get the current document from the document manager
@@ -191,7 +214,7 @@ define(function LiveDevelopment(require, exports, module) {
             return exports.config.experimental ? JSDocument : null;
         }
 
-        if (_isHtmlFileExt(doc.extension)) {
+        if (exports.config.experimental && _isHtmlFileExt(doc.extension)) {
             return HTMLDocument;
         }
 
@@ -234,26 +257,6 @@ define(function LiveDevelopment(require, exports, module) {
         } else {
             return null;
         }
-    }
-
-    /** Convert a file: URL to a local full file path */
-    function _urlToPath(url) {
-        var path,
-            baseUrl = ProjectManager.getBaseUrl();
-
-        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
-            // Use base url to translate to local file path.
-            // Need to use encoded project path because it's decoded below.
-            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
-
-        } else if (url.indexOf("file://") === 0) {
-            // Convert a file URL to local file path
-            path = url.slice(7);
-            if (path && brackets.platform === "win" && path.charAt(0) === "/") {
-                path = path.slice(1);
-            }
-        }
-        return decodeURI(path);
     }
 
     /** Open a live document
@@ -341,10 +344,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.error */
     function _onError(event, error) {
-        var message = error.message;
+        var message;
+        
+        // Sometimes error.message is undefined
+        if (!error.message) {
+            console.warn("Expected a non-empty string in error.message, got this instead:", error.message);
+            message = JSON.stringify(error);
+        } else {
+            message = error.message;
+        }
 
         // Remove "Uncaught" from the beginning to avoid the inspector popping up
-        if (message.substr(0, 8) === "Uncaught") {
+        if (message && message.substr(0, 8) === "Uncaught") {
             message = message.substr(9);
         }
 
@@ -356,6 +367,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error);
+        _setStatus(STATUS_ERROR);
     }
 
     /** Run when all agents are loaded */
@@ -373,8 +385,16 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /** Triggered by Inspector.detached */
+    function _onDetached(event, res) {
+        // res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
+        // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
+        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
+    }
+
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
+        $(Inspector.Inspector).on("detached", _onDetached);
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
         $.when.apply(undefined, promises).then(_onLoad, _onError);
@@ -382,6 +402,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
+        $(Inspector.Inspector).off("detached", _onDetached);
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
@@ -625,13 +646,17 @@ define(function LiveDevelopment(require, exports, module) {
             .on("dirtyFlagChange", _onDirtyFlagChange);
     }
 
+    // For unit testing
+    exports._pathToUrl          = _pathToUrl;
+    exports._urlToPath          = _urlToPath;
+
     // Export public functions
-    exports.agents = agents;
-    exports.open = open;
-    exports.close = close;
-    exports.enableAgent = enableAgent;
-    exports.disableAgent = disableAgent;
-    exports.getLiveDocForPath = getLiveDocForPath;
-    exports.hideHighlight = hideHighlight;
-    exports.init = init;
+    exports.agents              = agents;
+    exports.open                = open;
+    exports.close               = close;
+    exports.enableAgent         = enableAgent;
+    exports.disableAgent        = disableAgent;
+    exports.getLiveDocForPath   = getLiveDocForPath;
+    exports.hideHighlight       = hideHighlight;
+    exports.init                = init;
 });

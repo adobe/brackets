@@ -81,6 +81,31 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should be able to read a drive", function () {
+                var entries = null,
+                    deferred = new $.Deferred();
+                
+                function requestNativeFileSystemSuccessCB(nfs) {
+                    var reader = nfs.createReader();
+
+                    var successCallback = function (e) { entries = e; deferred.resolve(); };
+                    var errorCallback = function () { deferred.reject(); };
+
+                    reader.readEntries(successCallback, errorCallback);
+                }
+                
+                var drivePath = this.path.substr(0, this.path.indexOf("/") + 1);
+                
+                runs(function () {
+                    NativeFileSystem.requestNativeFileSystem(drivePath, requestNativeFileSystemSuccessCB);
+                    waitsForDone(deferred, "requestNativeFileSystem");
+                });
+
+                runs(function () {
+                    expect(entries).not.toBe(null);
+                });
+            });
+            
             it("should return an error if the directory doesn't exist", function () {
                 var deferred = new $.Deferred(),
                     error;
