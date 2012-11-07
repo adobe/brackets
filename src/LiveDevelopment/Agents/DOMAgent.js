@@ -177,7 +177,8 @@ define(function DOMAgent(require, exports, module) {
         var request = new XMLHttpRequest();
         request.open("GET", exports.url);
         request.onload = function onLoad() {
-            if ((request.status >= 200 && request.status < 300) || request.status === 304) {
+            if ((request.status >= 200 && request.status < 300) ||
+                    request.status === 304 || request.status === 0) {
                 _mapDocumentToSource(request.response);
                 _load.resolve();
             } else {
