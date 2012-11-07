@@ -570,7 +570,7 @@ define(function (require, exports, module) {
             addToStringRanges(Math.abs(sequentialMatches), sequentialMatches > 0);
         }
         
-        if (strCounter > 0) {
+        if (strCounter >= 0) {
             stringRanges.unshift({
                 text: str.substring(0, strCounter + 1),
                 matched: false,
