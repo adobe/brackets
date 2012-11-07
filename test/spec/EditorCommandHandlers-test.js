@@ -1006,12 +1006,28 @@ define(function (require, exports, module) {
         
         describe("Select Line - editor with visible range", function () {
 
-            it("shouldn't select past end of visible range", function () {
+            it("shouldn't select past end of visible range, IP in middle of last visible line", function () {
                 makeEditorWithRange({startLine: 1, endLine: 5});
                 myEditor.setSelection({line: 5, ch: 4}, {line: 5, ch: 4});
                 CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
                 
                 expectSelection({start: {line: 5, ch: 0}, end: {line: 5, ch: 5}});
+            });
+            
+            it("shouldn't select past end of visible range, IP at start of last visible line", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 5, ch: 0}, {line: 5, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 5, ch: 0}, end: {line: 5, ch: 5}});
+            });
+            
+            it("should extend selection to include last line of visible range", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 4, ch: 4}, {line: 4, ch: 4});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 4, ch: 0}, end: {line: 5, ch: 0}});
             });
         });
         
