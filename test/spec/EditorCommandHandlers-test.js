@@ -56,7 +56,16 @@ define(function (require, exports, module) {
             
             myEditor.focus();
         }
-
+        
+        function makeEditorWithRange(range) {
+            // create editor with a visible range
+            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript", range);
+            myDocument = mocks.doc;
+            myEditor = mocks.editor;
+            
+            myEditor.focus();
+        }
+        
         afterEach(function () {
             SpecRunnerUtils.destroyMockEditor(myDocument);
             myEditor = null;
@@ -501,6 +510,7 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("Move Lines Up/Down", function () {
             beforeEach(setupFullEditor);
             
@@ -810,6 +820,7 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("Delete Line", function () {
             beforeEach(setupFullEditor);
             
@@ -887,14 +898,6 @@ define(function (require, exports, module) {
         });
         
         describe("Delete Line - editor with visible range", function () {
-            function makeEditorWithRange(range) {
-                // create editor with a visible range
-                var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript", range);
-                myDocument = mocks.doc;
-                myEditor = mocks.editor;
-                
-                myEditor.focus();
-            }
 
             it("should delete the top line of the visible range", function () {
                 makeEditorWithRange({startLine: 1, endLine: 5});
@@ -942,6 +945,89 @@ define(function (require, exports, module) {
                 expect(myDocument.getText()).toEqual(lines.join("\n"));
                 expect(myEditor._visibleRange.startLine).toNotBe(null);
                 expect(myEditor._visibleRange.endLine).toNotBe(null);
+            });
+        });
+        
+        
+        describe("Select Line", function () {
+            beforeEach(setupFullEditor);
+            
+            it("should select the first line with IP in that line", function () {
+                myEditor.setSelection({line: 0, ch: 5}, {line: 0, ch: 5});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 1, ch: 0}});
+            });
+            
+            it("should select the last line with IP in that line", function () {
+                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 7, ch: 0}, end: {line: 7, ch: 1}});
+            });
+            
+            it("should select all in one-line file", function () {
+                myDocument.setText("// x");
+                myEditor.setSelection({line: 0, ch: 0}, {line: 0, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 4}});
+            });
+            
+            it("should extend selection to whole line", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 8});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+            });
+            
+            it("should extend whole line selection to next line", function () {
+                myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("should extend multi-line selection to full lines", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 9});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+            });
+            
+            it("should extend full multi-line selection to one more line", function () {
+                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 5, ch: 0}});
+            });
+            
+        });
+        
+        describe("Select Line - editor with visible range", function () {
+
+            it("shouldn't select past end of visible range, IP in middle of last visible line", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 5, ch: 4}, {line: 5, ch: 4});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 5, ch: 0}, end: {line: 5, ch: 5}});
+            });
+            
+            it("shouldn't select past end of visible range, IP at start of last visible line", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 5, ch: 0}, {line: 5, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 5, ch: 0}, end: {line: 5, ch: 5}});
+            });
+            
+            it("should extend selection to include last line of visible range", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 4, ch: 4}, {line: 4, ch: 4});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 4, ch: 0}, end: {line: 5, ch: 0}});
             });
         });
         

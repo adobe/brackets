@@ -295,12 +295,20 @@ define(function (require, exports, module) {
         editor._codeMirror.execCommand("indentLess");
     }
 
-    function selectLine() {
-        var editor = EditorManager.getFocusedEditor();
+    function selectLine(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
             var sel  = editor.getSelection();
             var from = {line: sel.start.line, ch: 0};
             var to   = {line: sel.end.line + 1, ch: 0};
+            
+            if (to.line === editor.getLastVisibleLine() + 1) {
+                // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
+                // which due to how CM clips coords would only work some of the time
+                to.line -= 1;
+                to.ch = editor.document.getLine(to.line).length;
+            }
+            
             editor.setSelection(from, to);
         }
     }
