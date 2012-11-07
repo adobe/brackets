@@ -177,8 +177,14 @@ define(function DOMAgent(require, exports, module) {
         var request = new XMLHttpRequest();
         request.open("GET", exports.url);
         request.onload = function onLoad() {
-            _mapDocumentToSource(request.response);
-            _load.resolve();
+            if ((request.status >= 200 && request.status < 300) ||
+                    request.status === 304 || request.status === 0) {
+                _mapDocumentToSource(request.response);
+                _load.resolve();
+            } else {
+                var msg = "Received status " + request.status + " from XMLHttpRequest while attempting to load source file at " + exports.url;
+                _load.reject(msg, { message: msg });
+            }
         };
         request.onerror = function onError() {
             _load.reject("Could not load source file at " + exports.url);

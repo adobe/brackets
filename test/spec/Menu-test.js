@@ -169,6 +169,7 @@ define(function (require, exports, module) {
             });
         });
 
+
         describe("Add Menu Items", function () {
 
             it("should add new menu items", function () {
@@ -386,6 +387,97 @@ define(function (require, exports, module) {
             });
         });
 
+
+        describe("Remove Menu Items", function () {
+            
+            function menuDOMChildren(menuItemId) {
+                return testWindow.$("#" + menuItemId + " > ul").children();
+            }
+            
+            it("should add then remove new menu item to empty menu with a command id", function () {
+                runs(function () {
+                    var commandId = "Menu-test.removeMenuItem.command0";
+                    var menuItemId = "menu-test-removeMenuItem0";
+                    CommandManager.register("Brackets Test Command Custom", commandId, function () {});
+                    var menu = Menus.addMenu("Custom", menuItemId);
+                    var $listItems = menuDOMChildren(menuItemId);
+                    expect($listItems.length).toBe(0);
+
+                    // Re-use commands that are already registered
+                    var menuItem = menu.addMenuItem(commandId);
+                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeDefined();
+
+                    expect(typeof (commandId)).toBe("string");
+
+                    $listItems = menuDOMChildren(menuItemId);
+                    expect($listItems.length).toBe(1);
+
+                    menu.removeMenuItem(commandId);
+                    $listItems = menuDOMChildren(menuItemId);
+                    expect($listItems.length).toBe(0);
+                });
+            });
+
+            it("should add then remove new menu item to empty menu with a command", function () {
+                runs(function () {
+                    var commandId = "Menu-test.removeMenuItem.command1";
+                    var menuItemId = "menu-test-removeMenuItem1";
+                    CommandManager.register("Brackets Test Command Custom", commandId, function () {});
+                    var menu = Menus.addMenu("Custom", menuItemId);
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+
+                    // Re-use commands that are already registered
+                    var menuItem = menu.addMenuItem(commandId);
+                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeDefined();
+
+                    $listItems = menuDOMChildren(menuItemId);
+                    expect($listItems.length).toBe(1);
+
+                    var command = CommandManager.get(commandId);
+                    expect(typeof (command)).toBe("object");
+
+                    menu.removeMenuItem(command);
+                    $listItems = menuDOMChildren(menuItemId);
+                    expect($listItems.length).toBe(0);
+                });
+            });
+
+            it("should gracefully handle someone trying to delete a menu item that doesn't exist", function () {
+                runs(function () {
+                    var commandId = "Menu-test.removeMenuItem.command2";
+                    var menuItemId = "menu-test-removeMenuItem2";
+                    var menu = Menus.addMenu("Custom", menuItemId);
+
+                    var exceptionThrown = false;
+                    try {
+                        menu.removeMenuItem(commandId);
+                    } catch (e) {
+                        exceptionThrown = true;
+                    }
+                    expect(exceptionThrown).toBeTruthy();
+                });
+            });
+
+            it("should gracefully handle someone trying to delete nothing", function () {
+                runs(function () {
+                    var menuItemId = "menu-test-removeMenuItem3";
+                    var menu = Menus.addMenu("Custom", menuItemId);
+
+                    var exceptionThrown = false;
+                    try {
+                        menu.removeMenuItem();
+                    } catch (e) {
+                        exceptionThrown = true;
+                    }
+                    expect(exceptionThrown).toBeTruthy();
+                });
+            });
+        });
+        
+        
         describe("Menu Item synchronizing", function () {
 
             it("should have same state as command", function () {
@@ -463,6 +555,7 @@ define(function (require, exports, module) {
                 });
             });
         });
+
 
         describe("Context Menus", function () {
             it("register a context menu", function () {

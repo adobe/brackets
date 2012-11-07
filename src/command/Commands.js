@@ -44,6 +44,7 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
+    exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
@@ -54,6 +55,7 @@ define(function (require, exports, module) {
     exports.EDIT_COPY                   = "edit.copy";
     exports.EDIT_PASTE                  = "edit.paste";
     exports.EDIT_SELECT_ALL             = "edit.selectAll";
+    exports.EDIT_SELECT_LINE            = "edit.selectLine";
     exports.EDIT_FIND                   = "edit.find";
     exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";
     exports.EDIT_FIND_NEXT              = "edit.findNext";
