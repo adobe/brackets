@@ -228,7 +228,7 @@ define(function (require, exports, module) {
      * Add or remove block-comment tokens to the selection, preserving selection
      * and cursor position. Applies to the currently focused Editor.
      * 
-     * If the selection is inside a block-comment or one block-comment is inside or partially 
+     * If the selection is inside a block-comment or one block-comment is inside or partially
      * inside the selection we uncomment; otherwise we comment out.
      * Commenting out adds the prefix before the selection and the suffix after.
      * Uncommenting removes them.
