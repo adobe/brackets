@@ -70,7 +70,7 @@
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
  *    - workingSetReorder -- When the indexes of 2 files are swapped. Listener receives no arguments.
  *    - workingSetSort -- When the workingSet array is sorted. Listener receives no arguments.
- *      TODO: combine workingSetSort & workingSetReorder since they don't convey different information?
+ *      TODO (#2076): combine workingSetSort & workingSetReorder since they convey nearly identical information.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.

@@ -33,17 +33,16 @@
  * "bottom-resizer", "left-resizer" and "right-resizer" classes control the 
  * position of the resizer on the element.
  *
- * An element can be made resizable at any time using the `makeResizable` API
+ * An element can be made resizable at any time using the `makeResizable()` API.
+ * Panel sizes are saved via preferences and restored when the DOM node becomes resizable
+ * again in a subsequent launch.
  *
  * The resizable elements trigger a panelResizeStart, panelResizeUpdate and panelResizeEnd
  * event that can be used to create performance optimizations (such as hiding/showing elements 
- * while resizing), custom or internal resizes and save the final resized value into local 
- * storage for example.
+ * while resizing), custom layout logic, etc. See makeResizable() for details on the events.
  *
- * A resizable element can be collapsed/expanded using the `show`, `hide` and `toggle` APIs
- *
- * The resizable elements trigger a panelCollapsed and panelExpanded event when the panel toggles
- * between visible and invisible
+ * A resizable element can be collapsed/expanded using the `show`, `hide` and `toggle` APIs or
+ * via user action. This triggers panelCollapsed/panelExpanded events - see makeResizable().
  */
 define(function (require, exports, module) {
     "use strict";
@@ -122,20 +121,25 @@ define(function (require, exports, module) {
      *  - Left ("left") or right ("right") for horizontal resizing
      *
      * A resizable element triggers the following events while resizing:
-     *  - panelResizeStart: When the resize starts
-     *  - panelResizeUpdate: When the resize gets updated
-     *  - panelResizeEnds: When the resize ends
-     *  - panelCollapsed: When the panel gets collapsed (or hidden)
-     *  - panelExpanded: When the panel gets expanded (or shown)     
+     *  - panelResizeStart: When the resize starts. Passed the new size.
+     *  - panelResizeUpdate: When the resize gets updated. Passed the new size.
+     *  - panelResizeEnd: When the resize ends. Passed the final size.
+     *  - panelCollapsed: When the panel gets collapsed (or hidden). Passed the last size
+     *      before collapse. May occur without any resize events.
+     *  - panelExpanded: When the panel gets expanded (or shown). Passed the initial size.
+     *      May occur without any resize events.
+     * TODO (#2079): Spurious resize events may occur after collapse or before expand, reporting
+     *      the wrong size. If a panel is currently hidden (display:none), ignore these events.
      *
-     * @param {DOMNode} element Html element which should be made resizable.
-     * @param {string} direction The direction of the resize action. Must be "horz" or "vert".
-     * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
-     *                          for vertical resizing and "left" or "right" for horizontal resizing.
-     * @param {int} minSize Minimum size (width or height) of the element.
-     * @param {boolean} collapsible True indicates the panel is collapsible on double click
-     *                              on the resizer.
-     * @param {string} forcemargin Classes which margins need to be pushed when the element resizes
+     * @param {!DOMNode} element DOM element which should be made resizable.
+     * @param {!string} direction Direction of the resize action: one of the DIRECTION_* constants.
+     * @param {!string} position Which side of the element can be dragged: one of the POSITION_* constants
+     *                          (TOP/BOTTOM for vertical resizing or LEFT/RIGHT for horizontal).
+     * @param {?number} minSize Minimum size (width or height) of the element. Defaults to 0.
+     * @param {?boolean} collapsible Indicates the panel is collapsible on double click on the
+     *                          resizer. Defaults to false.
+     * @param {?string} forcemargin CSS selector indicating element whose margin-left should be locked to
+     *                          the resizable elemnt's size.
      */
     function makeResizable(element, direction, position, minSize, collapsible, forcemargin) {
         
