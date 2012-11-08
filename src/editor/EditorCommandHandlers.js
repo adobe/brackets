@@ -229,13 +229,13 @@ define(function (require, exports, module) {
      * and cursor position. Applies to the currently focused Editor.
      * 
      * If the selection is inside a block-comment or one block-comment is inside or partially 
-     * inside the selection we we uncomment; otherwise we comment out.
-     * Commenting out adds the prefix before the selection and the suffix after
+     * inside the selection we uncomment; otherwise we comment out.
+     * Commenting out adds the prefix before the selection and the suffix after.
      * Uncommenting removes them.
      * 
      * If slashComment is true and the start or end of the selection is inside a line-comment it 
-     * will try to do a line uncomment if all the lines in the selection are line-commented and
-     * will do nothing if at least one line is not line-commented.
+     * will try to do a line uncomment if is not actually inside a bigger block comment and all
+     * the lines in the selection are line-commented.
      *
      * @param {!Editor} editor
      * @param {!String} prefix
