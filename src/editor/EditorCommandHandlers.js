@@ -230,7 +230,7 @@ define(function (require, exports, module) {
      * 
      * If the selection is inside a block-comment or one block-comment is inside or partially 
      * inside the selection we we uncomment; otherwise we comment out.
-     * Commenting out adds the prefix before the selection and the suffix after
+     * Commenting out adds the prefix before the selection and the suffix after.
      * Uncommenting removes them.
      * 
      * If slashComment is true and the start or end of the selection is inside a line-comment it 
