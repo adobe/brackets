@@ -35,7 +35,8 @@ define(function (require, exports, module) {
     var Commands           = require("command/Commands"),
         Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
-        EditorManager      = require("editor/EditorManager");
+        EditorManager      = require("editor/EditorManager"),
+        StringUtils        = require("utils/StringUtils");
     
     
     /**
@@ -43,6 +44,30 @@ define(function (require, exports, module) {
      */
     var DIRECTION_UP    = -1;
     var DIRECTION_DOWN  = +1;
+    
+    
+    /**
+     * @private
+     * Searchs for an uncomented line in between sartLine and endLine
+     * @param {!Editor} editor
+     * @param {!number} startLine - valid line inside the document
+     * @param {!number} endLine - valid line inside the document
+     * @return {boolean} true if there is at least one uncomented line
+     */
+    function _containsUncommented(editor, startLine, endLine) {
+        var containsUncommented = false;
+        var i;
+        var line;
+        for (i = startLine; i <= endLine; i++) {
+            line = editor.document.getLine(i);
+            // A line is commented out if it starts with 0-N whitespace chars, then "//"
+            if (!line.match(/^\s*\/\//) && line.match(/\S/)) {
+                containsUncommented = true;
+                break;
+            }
+        }
+        return containsUncommented;
+    }
     
     /**
      * Add or remove line-comment tokens to all the lines in the selected range, preserving selection
@@ -70,17 +95,9 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var containsUncommented = false;
+        var containsUncommented = _containsUncommented(editor, startLine, endLine);
         var i;
         var line;
-        for (i = startLine; i <= endLine; i++) {
-            line = doc.getLine(i);
-            // A line is commented out if it starts with 0-N whitespace chars, then "//"
-            if (!line.match(/^\s*\/\//) && line.match(/\S/)) {
-                containsUncommented = true;
-                break;
-            }
-        }
         
         // Make the edit
         doc.batchOperation(function () {
@@ -126,6 +143,239 @@ define(function (require, exports, module) {
         // Currently we only support languages with "//" commenting
         if (mode === "javascript" || mode === "less") {
             lineCommentSlashSlash(editor);
+        }
+    }
+    
+    
+    /**
+     * @private
+     * Returns the position of the block-comment starting prefix for the block-comment passed.
+     * @param {!Editor} editor
+     * @param {!{line: number, ch: number}} start - must be a position inside a block-comment
+     * @param {!RegExp} prefixExp - a valid regular expression
+     * @return {{line: number, ch: number}}
+     */
+    function _findCommentStart(editor, start, prefixExp) {
+        var pos   = {line: start.line, ch: start.ch},
+            token = editor._codeMirror.getTokenAt(pos),
+            line  = "";
+        
+        while (!token.string.match(prefixExp)) {
+            pos.line--;
+            line   = editor.document.getLine(pos.line);
+            pos.ch = line.length - 1;
+            token  = editor._codeMirror.getTokenAt(pos);
+        }
+        return {line: pos.line, ch: token.start};
+    }
+    
+    /**
+     * @private
+     * Returns the position of the block-comment ending suffix for the block-comment passed.
+     * Returns null if gets to the end of the document and didn't found it.
+     * @param {Editor} editor
+     * @param {!{line: number, ch: number}} start - must be a position inside a block-comment
+     * @param {!RegExp} suffixExp - a valid regular expression
+     * @param {!number} suffixLen - length of the suffix
+     * @return {?{line: number, ch: number}}
+     */
+    function _findCommentEnd(editor, start, suffixExp, suffixLen) {
+        var pos   = {line: start.line, ch: start.ch},
+            token = editor._codeMirror.getTokenAt(pos),
+            total = editor.lineCount() - 1,
+            line  = "";
+        
+        while (pos.line < total && !token.string.match(suffixExp)) {
+            pos.line++;
+            line   = editor.document.getLine(pos.line);
+            pos.ch = line.indexOf(line.trim().charAt(0)) + 1;
+            token  = editor._codeMirror.getTokenAt(pos);
+        }
+        return (pos.line === total) ? null : {line: pos.line, ch: token.end - suffixLen};
+    }
+    
+    /**
+     * @private
+     * Returns the position position of the next block-comment (the character position will be
+     * inside a block-comment and not necessarily at the start character).
+     * Returns null if there isn't one in between start and end.
+     * @param {!Editor} editor
+     * @param {!{line: number, ch: number}} start - from where to start searching
+     * @param {!{line: number, ch: number}} end - where to stop searching
+     * @param {!RegExp} prefixExp - a valid regular expression
+     * @return {?{line: number, ch: number}}
+     */
+    function _findNextCommentToken(editor, start, end, prefixExp) {
+        var pos   = {line: start.line, ch: start.ch + 1},
+            token = editor._codeMirror.getTokenAt(pos),
+            line  = editor.document.getLine(pos.line);
+        
+        while (token.className !== "comment" || token.string.match(/^\/\//)) {
+            pos.ch++;
+            if (pos.line === end.line && (pos.ch > end.ch || pos.ch >= line.length)) {
+                break;
+            } else if (pos.ch >= line.length) {
+                pos.line++;
+                line   = editor.document.getLine(pos.line);
+                pos.ch = line.indexOf(line.trim().charAt(0)) + 1;
+            }
+            token = editor._codeMirror.getTokenAt(pos);
+        }
+        return token.className !== "comment" || token.string.match(/^\/\//) ? null : pos;
+    }
+    
+    /**
+     * Add or remove block-comment tokens to the selection, preserving selection
+     * and cursor position. Applies to the currently focused Editor.
+     * 
+     * If the selection is inside a block-comment or one block-comment is inside or partially 
+     * inside the selection we we uncomment; otherwise we comment out.
+     * Commenting out adds the prefix before the selection and the suffix after
+     * Uncommenting removes them.
+     * 
+     * If slashComment is true and the start or end of the selection is inside a line-comment it 
+     * will try to do a line uncomment if all the lines in the selection are line-commented and
+     * will do nothing if at least one line is not line-commented.
+     *
+     * @param {!Editor} editor
+     * @param {!String} prefix
+     * @param {!String} suffix
+     * @param {?boolean} slashComment - if the mode also supports "//" comments
+     */
+    function blockCommentPrefixSuffix(editor, prefix, suffix, slashComment) {
+        
+        var doc         = editor.document,
+            sel         = editor.getSelection(),
+            lineCount   = editor.lineCount(),
+            startToken  = editor._codeMirror.getTokenAt(sel.start),
+            endToken    = editor._codeMirror.getTokenAt(sel.end),
+            prefixExp   = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
+            suffixExp   = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
+            prefixPos   = null,
+            suffixPos   = null,
+            canComment  = false;
+        
+        var i, pos, line, token, start;
+        
+        // Check if we should just do a line uncomment (if all lines in the selection are commented)
+        if (slashComment && (startToken.string.match(/^\/\//) || endToken.string.match(/^\/\//))) {
+            // Check if the line-comment is actually inside a block-comment
+            line  = editor.document.getLine(sel.start.line - 1);
+            token = editor._codeMirror.getTokenAt({line: sel.start.line - 1, ch: line.length - 1});
+            
+            if (!token.string.match(prefixExp)) {
+                if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
+                    lineCommentSlashSlash(editor);
+                    return;
+                // If can't uncomment then let the user comment even if it will be an invalid block-comment
+                } else {
+                    canComment = true;
+                }
+            } else {
+                start     = line.indexOf(line.trim().charAt(0)) + 1;
+                prefixPos = _findCommentStart(editor, {line: sel.start.line - 1, ch: line.length - 1}, prefixExp);
+                suffixPos = _findCommentEnd(editor, {line: sel.start.line + 1, ch: start}, suffixExp, suffix.length);
+            }
+        
+        // If the start of the selection is inside a comment, find the start
+        } else if (startToken.className === "comment" && startToken.end > sel.start.ch) {
+            prefixPos = _findCommentStart(editor, sel.start, prefixExp);
+            suffixPos = _findCommentEnd(editor, sel.start, suffixExp, suffix.length);
+        
+        // If this is a one line selection and is before the text or in an "empty" line
+        } else if (sel.start.line === sel.end.line && endToken.className === null) {
+            // Find the first not empty line
+            i = sel.start.line;
+            do {
+                line = doc.getLine(i);
+                i--;
+            } while (line.trim().length === 0 && i >= 0);
+            
+            // Get the token at the first character after the spaces
+            pos   = {line: i, ch: line.indexOf(line.trim().charAt(0)) + 1};
+            token = editor._codeMirror.getTokenAt(pos);
+            
+            if (token.className === "comment") {
+                prefixPos = _findCommentStart(editor, pos, prefixExp);
+                suffixPos = _findCommentEnd(editor, pos, suffixExp, suffix.length);
+            } else {
+                canComment = true;
+            }
+            
+        // If not try to find the first comment inside the selection
+        } else {
+            pos = _findNextCommentToken(editor, sel.start, sel.end, prefixExp);
+            
+            // If nothing was found is ok to comment
+            if (pos === null) {
+                canComment = true;
+            } else {
+                token = editor._codeMirror.getTokenAt(pos);
+                
+                if (!token.string.match(prefixExp)) {
+                    prefixPos = _findCommentStart(editor, pos, prefixExp);
+                } else {
+                    prefixPos = {line: pos.line, ch: token.start};
+                }
+                suffixPos = _findCommentEnd(editor, pos, suffixExp, suffix.length);
+            }
+        }
+        
+        // Search if there is another comment in the selection. Let the user comment if there is.
+        if (!canComment && suffixPos) {
+            start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
+            if (editor.posWithinRange(start, sel.start, sel.end)) {
+                pos = _findNextCommentToken(editor, start, sel.end, prefixExp);
+                
+                if (pos !== null) {
+                    canComment = true;
+                }
+            }
+        }
+        
+        // Make the edit
+        doc.batchOperation(function () {
+            
+            if (canComment) {
+                // Comment out - add the suffix to the start and the prefix to the end
+                doc.replaceRange(prefix + editor.getSelectedText() + suffix, sel.start, sel.end);
+                
+                // Correct the selection by prefix length
+                var newSelStart = {line: sel.start.line, ch: sel.start.ch + prefix.length};
+                if (sel.start.line === sel.end.line) {
+                    editor.setSelection(newSelStart, {line: sel.end.line, ch: sel.end.ch + prefix.length});
+                } else {
+                    editor.setSelection(newSelStart, {line: sel.end.line, ch: sel.end.ch});
+                }
+            
+            } else {
+                // Uncomment - remove prefix and suffix
+                if (suffixPos) {
+                    doc.replaceRange("", suffixPos, {line: suffixPos.line, ch: suffixPos.ch + suffix.length});
+                }
+                doc.replaceRange("", prefixPos, {line: prefixPos.line, ch: prefixPos.ch + prefix.length});
+            }
+        });
+    }
+    
+    /**
+     * Invokes a language-specific block-comment/uncomment handler
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function blockComment(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var mode = editor.getModeForSelection();
+        
+        if (mode === "javascript" || mode === "less") {
+            blockCommentPrefixSuffix(editor, "/*", "*/", true);
+        } else if (mode === "css") {
+            blockCommentPrefixSuffix(editor, "/*", "*/");
+        } else if (mode === "html") {
+            blockCommentPrefixSuffix(editor, "<!--", "-->");
         }
     }
     
@@ -317,6 +567,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
     CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
     CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
+    CommandManager.register(Strings.CMD_BLOCK_COMMENT,  Commands.EDIT_BLOCK_COMMENT,    blockComment);
     CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
     CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);

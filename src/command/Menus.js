@@ -916,6 +916,8 @@ define(function (require, exports, module) {
                                                           platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT,   [{key: "Ctrl-Shift-/", platform: "win"},
+                                                         {key: "Ctrl-Alt-/",   platform: "mac"}]);
 
         /*
          * View menu
