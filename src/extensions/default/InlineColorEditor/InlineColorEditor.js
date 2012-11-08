@@ -33,9 +33,10 @@ define(function (require, exports, module) {
 
     var MAX_USED_COLORS = 7;
     
-    function InlineColorEditor(color, pos) {
+    function InlineColorEditor(color, startBookmark, endBookmark) {
         this.color = color;
-        this.pos = pos;
+        this.startBookmark = startBookmark;
+        this.endBookmark = endBookmark;
         this.setColor = this.setColor.bind(this);
 
         InlineWidget.call(this);
@@ -49,12 +50,27 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype.$wrapperDiv = null;
     
     InlineColorEditor.prototype.setColor = function (colorLabel) {
-        var end = { line: this.pos.line, ch: this.pos.ch + this.color.length };
+        var start, end;
+        if (!colorLabel) {
+            return;
+        }
+        
         if (colorLabel !== this.color) {
-            this.editor.document.replaceRange(colorLabel, this.pos, end);
-            this.editor.setSelection(this.pos, {
-                line: this.pos.line,
-                ch: this.pos.ch + colorLabel.length
+            start = this.startBookmark.find();
+            if (!start) {
+                return;
+            }
+            
+            end = this.endBookmark.find();
+            if (!end || start.ch === end.ch) {
+                end = { line: start.line,
+                        ch: start.ch + (this.color ? this.color.length : 0) };
+            }
+            
+            this.editor.document.replaceRange(colorLabel, start, end);
+            this.editor.setSelection(start, {
+                line: start.line,
+                ch: start.ch + colorLabel.length
             });
             this.color = colorLabel;
         }
@@ -73,6 +89,11 @@ define(function (require, exports, module) {
 
     InlineColorEditor.prototype._editorHasFocus = function () {
         return true;
+    };
+        
+    InlineColorEditor.prototype.clearBookmarks = function () {
+        this.startBookmark.clear();
+        this.endBookmark.clear();
     };
         
     InlineColorEditor.prototype.onAdded = function () {

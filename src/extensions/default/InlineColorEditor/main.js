@@ -34,10 +34,10 @@ define(function (require, exports, module) {
     
     var _colorPickers = {};
 
-    
-    
     function inlineColorEditorProvider(hostEditor, pos) {
-        var colorPicker, colorRegEx, cursorLine, end, inlineColorEditor, match, result, sel, start;
+        var colorPicker, colorRegEx, cursorLine, inlineColorEditor, match, result,
+            sel, start, end, startBookmark, endBookmark;
+        
         sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
             return null;
@@ -46,10 +46,13 @@ define(function (require, exports, module) {
         colorRegEx = new RegExp(InlineColorEditor.colorRegEx);
         cursorLine = hostEditor.document.getLine(pos.line);
         
+        // Loop through each match of colorRegEx and stop when the one that contains pos is found.
         do {
             match = colorRegEx.exec(cursorLine);
-            start = match.index;
-            end = start + match[0].length;
+            if (match) {
+                start = match.index;
+                end = start + match[0].length;
+            }
         } while (match && (pos.ch < start || pos.ch > end));
         
         if (!match) {
@@ -57,7 +60,10 @@ define(function (require, exports, module) {
         }
         
         pos.ch = start;
-        colorPicker = _colorPickers[pos.line];
+        startBookmark = hostEditor.document.setBookmark(pos);
+        endBookmark = hostEditor.document.setBookmark({ line: pos.line, ch: end });
+        
+        colorPicker = _colorPickers[startBookmark];
         if (colorPicker) {
             colorPicker.close();
             if (match[0] === colorPicker.color) {
@@ -65,18 +71,20 @@ define(function (require, exports, module) {
             }
         }
         
-        hostEditor.setSelection({ line: pos.line, ch: start },
-                                { line: pos.line, ch: end });
+        hostEditor.setSelection(pos, { line: pos.line, ch: end });
         
         result = new $.Deferred();
-        inlineColorEditor = new InlineColorEditor(match[0], pos);
+        inlineColorEditor = new InlineColorEditor(match[0], startBookmark, endBookmark);
 
         inlineColorEditor.onClosed = function () {
-            return delete _colorPickers[this.pos.line];
+            if (this.clearBookmarks) {
+                this.clearBookmarks();
+            }
+            return delete _colorPickers[this.startBookmark];
         };
         
         inlineColorEditor.load(hostEditor);
-        _colorPickers[pos.line] = inlineColorEditor;
+        _colorPickers[startBookmark] = inlineColorEditor;
         result.resolve(inlineColorEditor);
         return result.promise();
     }

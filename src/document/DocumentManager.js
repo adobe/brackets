@@ -769,6 +769,16 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Inserts a bookmark at the given position.
+     * @param {{line:number, ch:number}} pos
+     * @return {bookmark}
+     */
+    Document.prototype.setBookmark = function (pos) {
+        this._ensureMasterEditor();
+        return this._masterEditor._codeMirror.setBookmark(pos);
+    };
+    
+    /**
      * Batches a series of related Document changes. Repeated calls to replaceRange() should be wrapped in a
      * batch for efficiency. Begins the batch, calls doOperation(), ends the batch, and then returns.
      * @param {function()} doOperation
