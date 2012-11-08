@@ -75,13 +75,14 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei, um die Live-Vorschau zu starten.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben..",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a class=\"clickable-link\" data-href=\"{0}\">Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau: Klicken, um Verbindung zu trennen (Zum Aktualisieren Datei speichern)",
     
@@ -172,11 +173,13 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_QUIT"                            : "Beenden",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Bearbeiten",
     "CMD_SELECT_ALL"                      : "Alles auswählen",
+    "CMD_SELECT_LINE"                     : "Zeile auswählen",
     "CMD_FIND"                            : "Suchen",
     "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
     "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
@@ -197,6 +200,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Schriftart vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schriftart verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftart zurücksetzen",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
@@ -261,9 +268,9 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leer lassen für Datei-URL)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Ungültiges Protokoll für Basis-URL ({0}). Bitte http: oder https: verwenden.",
-    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Such-Parameter in Basis-URL nicht erlaubt: {0}",
-    "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash in Basis-URL nicht erlaubt: {0}",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Ungültiges Zeichen in Basis-URL: {0}",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Das Protokoll {0} wird von der Live-Vorschau nicht unterstützt &ndash; bitte http: oder https: verwenden.",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL"
 });
