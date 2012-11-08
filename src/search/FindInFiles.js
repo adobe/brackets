@@ -89,14 +89,14 @@ define(function (require, exports, module) {
     
     /**
      * Returns label text to indicate the search scope
-     * @param {?DirectoryEntry} scope
+     * @param {?Entry} scope
      */
     function _labelForScope(scope) {
         var projName = ProjectManager.getProjectRoot().name;
         if (scope) {
-            return StringUtils.format(Strings.FIND_IN_FILES_SCOPE_DIR, projName + "/" + ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
+            return StringUtils.format(Strings.FIND_IN_FILES_SCOPED, projName + "/" + ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
         } else {
-            return StringUtils.format(Strings.FIND_IN_FILES_SCOPE_PROJ, projName);
+            return StringUtils.format(Strings.FIND_IN_FILES_NO_SCOPE, projName);
         }
     }
     
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
     /**
     * Shows the search dialog 
     * @param {?string} initialString Default text to prepopulate the search field with
-    * @param {?DirectoryEntry} scope Search scope
+    * @param {?Entry} scope Search scope, or null to search whole proj
     * @returns {$.Promise} that is resolved with the string to search for
     */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
@@ -270,11 +270,8 @@ define(function (require, exports, module) {
                         return $("<td/>").html(content);
                     };
                     
-                    var esc = function (str) {
-                        str = str.replace(/</g, "&lt;");
-                        str = str.replace(/>/g, "&gt;");
-                        return str;
-                    };
+                    // shorthand function name
+                    var esc = StringUtils.htmlEscape;
                     
                     var highlightMatch = function (line, start, end) {
                         return esc(line.substr(0, start)) + "<span class='highlight'>" + esc(line.substring(start, end)) + "</span>" + esc(line.substr(end));
@@ -282,7 +279,7 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(item.fullPath)) + "</td>")
+                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(esc(item.fullPath))) + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
@@ -333,9 +330,27 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @param {!FileInfo} fileInfo File in question
+     * @param {?Entry} scope Search scope, or null if whole project
+     * @return {boolean}
+     */
+    function inScope(fileInfo, scope) {
+        if (scope) {
+            if (scope.isDirectory) {
+                // Dirs always have trailing slash, so we don't have to worry about being
+                // a substring of another dir name
+                return fileInfo.fullPath.indexOf(scope.fullPath) === 0;
+            } else {
+                return fileInfo.fullPath === scope.fullPath;
+            }
+        }
+        return true;
+    }
+    
+    /**
     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
     * a find operation across all files in the project.
-    * @param {?DirectoryEntry} scope Project subfolder to search within. Else searches whole project.
+    * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
     */
     function doFindInFiles(scope) {
 
@@ -361,8 +376,7 @@ define(function (require, exports, module) {
                             Async.doInParallel(fileListResult, function (fileInfo) {
                                 var result = new $.Deferred();
                                 
-                                if (scope && fileInfo.fullPath.indexOf(scope.fullPath) !== 0) {
-                                    // Skip file outside search scope
+                                if (!inScope(fileInfo, scope)) {
                                     result.resolve();
                                 } else {
                                     // Search one file
@@ -400,12 +414,10 @@ define(function (require, exports, module) {
             });
     }
     
+    /** Search within the file/subtree defined by the project tree selection */
     function doFindInSubtree() {
         var treeSelection = ProjectManager.getSelectedItem();
-        if (treeSelection.isDirectory) {
-            doFindInFiles(treeSelection);
-        }
-        // TODO: what to do if NOT a directory??
+        doFindInFiles(treeSelection);
     }
     
     
