@@ -75,13 +75,14 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS files</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
     
@@ -167,12 +168,14 @@ define({
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_QUIT"                            : "Quit",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Edit",
     "CMD_SELECT_ALL"                      : "Select All",
+    "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
     "CMD_FIND_NEXT"                       : "Find Next",
@@ -193,6 +196,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -254,12 +261,12 @@ define({
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings",
-    "PROJECT_SETTINGS_TITLE"               : "Project Settings",
+    "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Invalid Base URL protocol ({0}). Use http: or https: .",
-    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Search parameters disallowed in Base URL: {0}",
-    "BASEURL_ERROR_HASH_DISALLOWED"        : "Hash disallowed in Base URL: {0}",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Invalid character in Base URL: {0}",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "The {0} protocol isn't supported by Live Preview&mdash;please use http: or https: .",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL"
 });

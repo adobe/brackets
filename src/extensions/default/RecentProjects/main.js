@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
+        PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Commands                = brackets.getModule("command/Commands"),
         CommandManager          = brackets.getModule("command/CommandManager"),
@@ -40,9 +41,12 @@ define(function (require, exports, module) {
         SidebarView             = brackets.getModule("project/SidebarView"),
         Menus                   = brackets.getModule("command/Menus"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
-        FileUtils               = brackets.getModule("file/FileUtils");
+        FileUtils               = brackets.getModule("file/FileUtils"),
+        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
     
-    var $dropdownToggle;
+    var $dropdownToggle,
+        $settings;
+    
     var MAX_PROJECTS = 20;
 
     /**
@@ -86,7 +90,7 @@ define(function (require, exports, module) {
             lastSlash = path.slice(0, path.length - 1).lastIndexOf("/");
         }
         if (lastSlash >= 0) {
-            rest = rest = " - " + (lastSlash ? path.slice(0, lastSlash) : "/");
+            rest = " - " + (lastSlash ? path.slice(0, lastSlash) : "/");
             folder = path.slice(lastSlash + 1);
         } else {
             rest = "/";
@@ -139,16 +143,21 @@ define(function (require, exports, module) {
         
         var currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
             hasProject = false;
+
         recentProjects.forEach(function (root) {
             if (root !== currentProject) {
                 var $link = renderPath(root)
                     .click(function () {
                         ProjectManager.openProject(root)
                             .fail(function () {
-                                // Remove the project from the list.
+                                // Remove the project from the list only if it does not exist on disk
                                 var index = recentProjects.indexOf(root);
                                 if (index !== -1) {
-                                    recentProjects.splice(index, 1);
+                                    NativeFileSystem.requestNativeFileSystem(root,
+                                        function () {},
+                                        function () {
+                                            recentProjects.splice(index, 1);
+                                        });
                                 }
                             });
                         closeDropdown();
@@ -175,7 +184,7 @@ define(function (require, exports, module) {
                         $(this).append($del);
 
                         $del.css("right", 5);
-                        $del.css("top", $target.position().top + 11);
+                        $del.css("top", $target.position().top + 6);
                         $del.css("display", "inline-block");
                         $del.data("path", $(this).data("path"));
                     })
@@ -194,6 +203,12 @@ define(function (require, exports, module) {
         if (hasProject) {
             $("<li class='divider'>").appendTo($dropdown);
         }
+        // Entry for project settings dialog
+        $("<li><a id='project-settings-link'>" + Strings.CMD_PROJECT_SETTINGS + "</a></li>")
+            .click(function () {
+                CommandManager.execute(Commands.FILE_PROJECT_SETTINGS);
+            })
+            .appendTo($dropdown);
         $("<li><a id='open-folder-link'>" + Strings.CMD_OPEN_FOLDER + "</a></li>")
             .click(function () {
                 CommandManager.execute(Commands.FILE_OPEN_FOLDER);

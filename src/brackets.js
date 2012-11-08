@@ -68,6 +68,7 @@ define(function (require, exports, module) {
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
         WorkingSetView          = require("project/WorkingSetView"),
+        WorkingSetSort          = require("project/WorkingSetSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
@@ -258,7 +259,13 @@ define(function (require, exports, module) {
             // loading will work correctly without this directory.
             // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
             // during extension loading.
-            new NativeFileSystem.DirectoryEntry().getDirectory(ExtensionLoader.getUserExtensionPath(),
+            var extensionPath = ExtensionLoader.getUserExtensionPath();
+            new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
+                                                               {create: true});
+            
+            // Create the extensions/disabled directory, too.
+            var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
+            new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
                                                                {create: true});
             
             // Load all extensions, and when done fire APP_READY (even if some extensions failed

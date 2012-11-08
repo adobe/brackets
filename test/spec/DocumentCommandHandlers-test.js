@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -45,6 +45,7 @@ define(function (require, exports, module) {
 
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
+        var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
 
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -273,10 +274,6 @@ define(function (require, exports, module) {
                 });
             });
 
-            // This test is not currently valid. For issue 152, we have temporarily decided to make it so
-            // the file is always dirty as soon as you make a change, regardless of whether you undo back to
-            // its last saved state. In the future, we might restore this behavior.
-
             it("should report not dirty after undo", function () {
                 runs(function () {
                     // change editor content, followed by undo
@@ -289,6 +286,71 @@ define(function (require, exports, module) {
                     // verify Document dirty status
                     expect(doc.getText()).toBe(TEST_JS_CONTENT);
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
+                });
+            });
+            
+            it("should update dirty flag with undo/redo after explicit clean", function () {
+                var doc = DocumentManager.getCurrentDocument();
+                var editor = doc._masterEditor._codeMirror;
+                
+                runs(function () {
+                    // Change editor content and make that the new clean state
+                    doc.setText(TEST_JS_NEW_CONTENT);
+                    doc._markClean();
+                    
+                    // Undo past the clean state (and back to counter == 0)
+                    editor.undo();
+                    expect(doc.isDirty).toBe(true);
+                    expect(doc.getText()).toBe(TEST_JS_CONTENT);
+                    
+                    // Redo: should be clean again
+                    editor.redo();
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc.getText()).toBe(TEST_JS_NEW_CONTENT);
+                });
+                
+                // Wait > 400ms, else setText() below gets merged with earlier setText() despite intervening undo/redo
+                // TODO (#1994): remove this once we're using CodeMirror v3
+                waits(500);
+                
+                runs(function () {
+                    // Add another change
+                    doc.setText(TEST_JS_SECOND_NEW_CONTENT);
+                    expect(doc.getText()).toBe(TEST_JS_SECOND_NEW_CONTENT);
+                    expect(doc.isDirty).toBe(true);
+                    
+                    // Undo back to clean state
+                    editor.undo();
+                    expect(doc.isDirty).toBe(false);
+                    expect(doc.getText()).toBe(TEST_JS_NEW_CONTENT);
+                });
+            });
+            
+            it("should report dirty after undo past clean state, followed by new change", function () {
+                runs(function () {
+                    // Change editor content and make that the new clean state
+                    var doc = DocumentManager.getCurrentDocument();
+                    var editor = doc._masterEditor._codeMirror;
+                    
+                    doc.setText(TEST_JS_NEW_CONTENT);
+                    doc._markClean();
+                    
+                    // Undo past the clean state (and back to counter == 0)
+                    editor.undo();
+                    expect(doc.isDirty).toBe(true);
+                    
+                    // Make a new change - should remain dirty
+                    doc.setText(TEST_JS_SECOND_NEW_CONTENT);
+                    expect(doc.isDirty).toBe(true);
+                    
+                    // Should be impossible to get back to clean via undo/redo
+                    editor.undo();
+                    expect(doc.isDirty).toBe(true);
+                    expect(doc.getText()).toBe(TEST_JS_CONTENT);
+                    
+                    editor.redo();
+                    expect(doc.isDirty).toBe(true);
+                    expect(doc.getText()).toBe(TEST_JS_SECOND_NEW_CONTENT);
                 });
             });
 

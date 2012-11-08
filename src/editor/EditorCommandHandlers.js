@@ -35,8 +35,7 @@ define(function (require, exports, module) {
     var Commands           = require("command/Commands"),
         Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
-        EditorManager      = require("editor/EditorManager"),
-        Editor             = require("editor/Editor").Editor;
+        EditorManager      = require("editor/EditorManager");
     
     
     /**
@@ -295,6 +294,24 @@ define(function (require, exports, module) {
         
         editor._codeMirror.execCommand("indentLess");
     }
+
+    function selectLine(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (editor) {
+            var sel  = editor.getSelection();
+            var from = {line: sel.start.line, ch: 0};
+            var to   = {line: sel.end.line + 1, ch: 0};
+            
+            if (to.line === editor.getLastVisibleLine() + 1) {
+                // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
+                // which due to how CM clips coords would only work some of the time
+                to.line -= 1;
+                to.ch = editor.document.getLine(to.line).length;
+            }
+            
+            editor.setSelection(from, to);
+        }
+    }
         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
@@ -304,4 +321,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
+    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
 });
