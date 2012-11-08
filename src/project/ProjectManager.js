@@ -49,6 +49,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
@@ -115,6 +116,13 @@ define(function (require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+
+    /**
+     * @private
+     * Encoded URL
+     * @ see getBaseUrl(), setBaseUrl()
+     */
+    var _projectBaseUrl = "";
 
     /**
      * Unique PreferencesManager clientID
@@ -216,6 +224,38 @@ define(function (require, exports, module) {
      */
     function getProjectRoot() {
         return _projectRoot;
+    }
+
+    /**
+     * @private
+     */
+    function _getBaseUrlKey() {
+        return "projectBaseUrl_" + _projectRoot;
+    }
+
+    /**
+     * Returns the encoded Base URL of the currently loaded project, or empty string if no project
+     * is open (during startup, or running outside of app shell).
+     * @return {String}
+     */
+    function getBaseUrl() {
+        return _projectBaseUrl;
+    }
+
+    /**
+     * Sets the encoded Base URL of the currently loaded project.
+     * @param {String}
+     */
+    function setBaseUrl(projectBaseUrl) {
+        _projectBaseUrl = projectBaseUrl;
+
+        // Ensure trailing slash to be consistent with _projectRoot.fullPath
+        // so they're interchangable (i.e. easy to convert back and forth)
+        if (_projectBaseUrl.length > 0 && _projectBaseUrl[_projectBaseUrl.length - 1] !== "/") {
+            _projectBaseUrl += "/";
+        }
+
+        _prefs.setValue(_getBaseUrlKey(), _projectBaseUrl);
     }
     
     /**
@@ -339,6 +379,7 @@ define(function (require, exports, module) {
             .jstree(
                 {
                     plugins : ["ui", "themes", "json_data", "crrm", "sort"],
+                    ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
                     json_data : { data: treeDataProvider, correct_state: false },
                     core : { animation: 0 },
                     themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
@@ -707,7 +748,8 @@ define(function (require, exports, module) {
                         canonPath = FileUtils.canonicalizeFolderPath(rootPath);
 
                     _projectRoot = rootEntry;
-                    
+                    _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+
                     // If this is the current welcome project, record it. In future launches, we always 
                     // want to substitute the welcome project for the current build instead of using an
                     // outdated one (when loading recent projects or the last opened project).
@@ -898,6 +940,13 @@ define(function (require, exports, module) {
 
         // if fail, don't open new project: user canceled (or we failed to save its unsaved changes)
         return result.promise();
+    }
+
+    /**
+     * Invoke project settings dialog.
+     */
+    function _projectSettings() {
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
     }
 
     /**
@@ -1261,10 +1310,13 @@ define(function (require, exports, module) {
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
 
     // Commands
-    CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
+    CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
+    CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
+    exports.getBaseUrl               = getBaseUrl;
+    exports.setBaseUrl               = setBaseUrl;
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;

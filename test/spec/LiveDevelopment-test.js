@@ -22,22 +22,25 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, $*/
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs*/
 
 define(function (require, exports, module) {
     'use strict';
 
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         CommandManager,
         Commands,
         NativeApp,      //The following are all loaded from the test window
         LiveDevelopment,
         DOMAgent,
         Inspector,
-        DocumentManager;
+        DocumentManager,
+        ProjectManager;
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
-        userDataPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-chrome-user-data"),
         testWindow,
         allSpacesRE = /\s+/gi;
     
@@ -106,51 +109,36 @@ define(function (require, exports, module) {
 
     describe("Live Development", function () {
         
-        beforeEach(function () {
-            runs(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow          = w;
-                    LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
-                    DOMAgent            = testWindow.brackets.test.DOMAgent;
-                    Inspector           = testWindow.brackets.test.Inspector;
-                    DocumentManager     = testWindow.brackets.test.DocumentManager;
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    NativeApp           = testWindow.brackets.test.NativeApp;
-                    NativeApp._setLiveBrowserUserDataDir(userDataPath);
-                });
-                
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-        });
-    
-    
-        afterEach(function () {
-            runs(function () {
-                LiveDevelopment.close();
-            });
-            waitsFor(function () { return !Inspector.connected(); }, "Waiting for to close inspector", 10000);
-            waits(20);
-            NativeApp._setLiveBrowserUserDataDir("");
-            
-            if (window.appshell) {
-                runs(function () {
-                    waitsForDone(NativeApp.closeAllLiveBrowsers(), "NativeApp.closeAllLiveBrowsers", 10000);
-                });
-            } else {
-                // Remove this 'else' after migrating to brackets-shell.
-                // brackets-app never resolves the promise for brackets.app.closeLiveBrowser.
-                runs(function () {
-                    NativeApp.closeAllLiveBrowsers();
-                });
-                waits(100);
-            }
-
-            SpecRunnerUtils.closeTestWindow();
-        });
-        
         describe("CSS Editing", function () {
 
+            beforeEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                        testWindow          = w;
+                        LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
+                        DOMAgent            = testWindow.brackets.test.DOMAgent;
+                        Inspector           = testWindow.brackets.test.Inspector;
+                        DocumentManager     = testWindow.brackets.test.DocumentManager;
+                        CommandManager      = testWindow.brackets.test.CommandManager;
+                        Commands            = testWindow.brackets.test.Commands;
+                        NativeApp           = testWindow.brackets.test.NativeApp;
+                        ProjectManager      = testWindow.brackets.test.ProjectManager;
+                    });
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            afterEach(function () {
+                runs(function () {
+                    LiveDevelopment.close();
+                });
+
+                waitsFor(function () { return !Inspector.connected(); }, "Waiting to close inspector", 10000);
+
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
             it("should establish a browser connection for an opened html file", function () {
                 //verify we aren't currently connected
                 expect(Inspector.connected()).toBeFalsy();
@@ -263,7 +251,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should reapply in-memory css changes after saving changes in html document", function () {
+            it("should reapply in-memory css changes after saving changes in html document", function () {
                 var localCssText,
                     browserCssText,
                     origHtmlText,
@@ -271,7 +259,7 @@ define(function (require, exports, module) {
                     browserHtmlText,
                     htmlDoc;
                 
-                //verify we aren't currently connected
+                // verify we aren't currently connected
                 expect(Inspector.connected()).toBeFalsy();
                 
                 var cssOpened = false;
@@ -292,7 +280,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]), "SpecRunnerUtils.openProjectFiles");
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
                 // Modify some text in test file before starting live connection
@@ -303,52 +291,57 @@ define(function (require, exports, module) {
                     htmlDoc.setText(updatedHtmlText);
                 });
                                 
-                //start the connection
+                // start the connection
                 var liveDoc, liveHtmlDoc;
                 runs(function () {
-                    LiveDevelopment.open();
+                    waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
                 });
-
-                waits(2000);
+                
+                waitsFor(function () {
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC)
+                        && (DOMAgent.root);
+                }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
-                var originalNode;
-                waitsFor(function () {
-                    originalNode = DOMAgent.nodeAtLocation(230);
-                    return !!originalNode;
-                }, "getting original html content", 10000);
-                
                 // Verify that we get the original text and not modified text.
+                var originalNode;
                 runs(function () {
+                    originalNode = DOMAgent.nodeAtLocation(230);
                     expect(originalNode.value).toBe("Brackets is awesome!");
                 });
-
-                // Save changes to the test file
+                
+                // wait for LiveDevelopment to unload and reload agents after saving
+                var loadingStatus = false,
+                    activeStatus = false,
+                    statusChangeHandler = function (event, status) {
+                        // waits for loading agents status followed by active status
+                        loadingStatus = loadingStatus || status === LiveDevelopment.STATUS_LOADING_AGENTS;
+                        activeStatus = activeStatus || (loadingStatus && status === LiveDevelopment.STATUS_ACTIVE);
+                    };
+                
                 runs(function () {
+                    testWindow.$(LiveDevelopment).on("statusChange", statusChangeHandler);
+
+                    // Save changes to the test file
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Saving modified html document");
                 });
-
-                waits(1000);
+                
+                waitsFor(function () {
+                    return loadingStatus && activeStatus;
+                }, "LiveDevelopment re-load and re-activate", 10000);
                 
                 // Grab the node that we've modified in Brackets. 
                 // This time we should have modified text since the file has been saved in Brackets.
-                var updatedNode;
-                waitsFor(function () {
-                    updatedNode = DOMAgent.nodeAtLocation(230);
-                    return !!updatedNode;
-                }, "getting modified html content", 10000);
-                
-                waitsFor(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
-                    return !!liveDoc;
-                }, "Waiting for LiveDevelopment document", 10000);
-                                                
-                var doneSyncing = false;
+                var updatedNode, doneSyncing = false;
                 runs(function () {
+                    testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
+                    
+                    updatedNode = DOMAgent.nodeAtLocation(230);
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
-                    }).always(function () {
                         doneSyncing = true;
                     });
                 });
@@ -356,18 +349,89 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
-                });
-
-                // Verify that we have modified text and then restore the original text for saving.
-                runs(function () {
+                    
+                    // Verify that we have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
-                    htmlDoc.setText(origHtmlText);
                 });
-
+                    
+                // Save original content back to the file after this test passes/fails
                 runs(function () {
+                    htmlDoc.setText(origHtmlText);
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Restoring the original html content");
                 });
+            });
+
+            // This tests url mapping -- files do not need to exist on disk
+            it("should translate urls to/from local paths", function () {
+                // Define testing parameters
+                var projectPath     = testPath + "/",
+                    outsidePath     = testPath.substr(0, testPath.lastIndexOf("/") + 1),
+                    fileProtocol    = (testWindow.brackets.platform === "win") ? "file:///" : "file://",
+                    baseUrl         = "http://localhost/",
+                    fileRelPath     = "subdir/index.html";
+
+                // File paths used in tests:
+                //  * file1 - file inside  project
+                //  * file2 - file outside project
+                // Encode the URLs
+                var file1Path       = projectPath + fileRelPath,
+                    file2Path       = outsidePath + fileRelPath,
+                    file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
+                    file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
+                    file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
+
+                // Should use file url when no base url
+                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1FileUrl);
+                expect(LiveDevelopment._urlToPath(file1FileUrl)).toBe(file1Path);
+                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+
+                // Set base url
+                ProjectManager.setBaseUrl(baseUrl);
+
+                // Should use server url with base url
+                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
+                expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
+
+                // File outside project should still use file url
+                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+
+                // Clear base url
+                ProjectManager.setBaseUrl("");
+            });
+        });
+
+        describe("URL Mapping", function () {
+
+            it("should validate base urls", function () {
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
+                    .toBe("");
+
+                expect(PreferencesDialogs._validateBaseUrl("https://localhost:8080/sub%20folder"))
+                    .toBe("");
+
+                expect(PreferencesDialogs._validateBaseUrl("ftp://localhost"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, "ftp:"));
+
+                expect(PreferencesDialogs._validateBaseUrl("localhost"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, ""));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/?id=123"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_SEARCH_DISALLOWED, "?id=123"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/#anchor1"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_HASH_DISALLOWED, "#anchor1"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/abc<123"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, "<"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/?"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, "?"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/sub dir"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, " "));
             });
         });
     });

@@ -115,7 +115,7 @@ define(function (require, exports, module) {
     function offsetInToken(ctx) {
         var offset = ctx.pos.ch - ctx.token.start;
         if (offset < 0) {
-            console.log("CodeHintUtils: _offsetInToken - Invalid context: the pos what not in the current token!");
+            console.log("CodeHintUtils: _offsetInToken - Invalid context: pos not in the current token!");
         }
         return offset;
     }

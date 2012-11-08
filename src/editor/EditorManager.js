@@ -35,16 +35,17 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- Fires after the focused editor (full or inline) changes and size/visibility
+ *    - activeEditorChange --  Fires after the active editor (full or inline) changes and size/visibility
  *                             are complete. Doesn't fire when editor temporarily loses focus to a non-editor
  *                             control (e.g. search toolbar or modal dialog, or window deactivation). Does
  *                             fire when focus moves between inline editor and its full-size container.
- *                             Roughly, this event tracks getFocusedEditor() changes, while DocumentManager's
+ *                             This event tracks getActiveEditor() changes, while DocumentManager's
  *                             currentDocumentChange tracks getCurrentFullEditor() changes.
- *                             The 2nd arg to the listener is which Editor gained focus; the 3rd arg is
- *                             which Editor lost focus as a result. Either one may be null.
- *                             TODO (#1257): getFocusedEditor() sometimes lags behind this event. Listeners
- *                             should use the arguments to reliably see which Editor just gained focus.
+ *                             The 2nd arg to the listener is which Editor became active; the 3rd arg is
+ *                             which Editor is deactivated as a result. Either one may be null.
+ *                             NOTE (#1257): getFocusedEditor() sometimes lags behind this event. Listeners
+ *                             should use the arguments or call getActiveEditor() to reliably see which Editor 
+ *                             just gained focus.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -319,10 +320,14 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Focus the currently visible full-size editor. If no editor visible, does nothing. */
+    /** 
+     * Returns focus to the last visible editor that had focus. If no editor visible, does nothing.
+     * This function should be called to restore editor focus after it has been temporarily
+     * removed. For example, after a dialog with editable text is closed.
+     */
     function focusEditor() {
-        if (_currentEditor) {
-            _currentEditor.focus();
+        if (_lastFocusedEditor) {
+            _lastFocusedEditor.focus();
         }
     }
     
@@ -382,7 +387,7 @@ define(function (require, exports, module) {
      * @private
      * @param {?Editor} current
      */
-    function _notifyFocusedEditorChanged(current) {
+    function _notifyActiveEditorChanged(current) {
         // Skip if the Editor that gained focus was already the most recently focused editor.
         // This may happen e.g. if the window loses then regains focus.
         if (_lastFocusedEditor === current) {
@@ -391,7 +396,7 @@ define(function (require, exports, module) {
         var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
         
-        $(exports).triggerHandler("focusedEditorChange", [current, previous]);
+        $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
     
     /**
@@ -403,6 +408,7 @@ define(function (require, exports, module) {
         _currentEditor = document._masterEditor;
         
         _currentEditor.setVisible(true);
+        _currentEditor.focus();
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
@@ -444,7 +450,7 @@ define(function (require, exports, module) {
             $("#not-editor").css("display", "");
             
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
-            _notifyFocusedEditorChanged(null);
+            _notifyActiveEditorChanged(null);
         }
     }
 
@@ -552,6 +558,11 @@ define(function (require, exports, module) {
     
     /**
      * Returns the currently focused editor instance (full-sized OR inline editor).
+     * This function is similar to getActiveEditor(), with one main difference: this
+     * function will only return editors that currently have focus, whereas 
+     * getActiveEditor() will return the last visible editor that was given focus (but
+     * may not currently have focus because, for example, a dialog with editable text
+     * is open).
      * @returns {Editor}
      */
     function getFocusedEditor() {
@@ -572,6 +583,17 @@ define(function (require, exports, module) {
         return null;
     }
  
+    /**
+     * Returns the current active editor (full-sized OR inline editor). This editor may not 
+     * have focus at the moment, but it is visible and was the last editor that was given 
+     * focus. Returns null if no editors are active.
+     * @see getFocusedEditor()
+     * @returns {Editor}
+     */
+    function getActiveEditor() {
+        return _lastFocusedEditor;
+    }
+     
     /**
      * Toggle Quick Edit command handler
      * @return {!Promise} A promise resolved with true if an inline editor
@@ -614,7 +636,7 @@ define(function (require, exports, module) {
     }
     
     function _updateModeInfo(editor) {
-        $modeInfo.text(editor.getModeForSelection());
+        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForDocument()));
     }
     
     function _updateFileInfo(editor) {
@@ -680,7 +702,7 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
-    function _onFocusedEditorChange(event, current, previous) {
+    function _onActiveEditorChange(event, current, previous) {
         if (previous) {
             $(previous).off("cursorActivity.statusbar");
             $(previous).off("change.statusbar");
@@ -702,6 +724,19 @@ define(function (require, exports, module) {
             _updateFileInfo(current);
             _updateIndentType();
             _updateIndentSize();
+        }
+    }
+    
+    function _onFileNameChange(event, oldName, newName) {
+        
+        // The current document file entry has already been updated.
+        // We only need to update the editor mode to match the new file extension 
+        var editor = getCurrentFullEditor();
+        
+        if (editor && editor.document.file.fullPath === newName) {
+            editor.setModeForDocument(
+                EditorUtils.getModeFromFileExtension(editor.document.file.fullPath)
+            );
         }
     }
 
@@ -741,7 +776,7 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
-        _onFocusedEditorChange(null, getFocusedEditor(), null);
+        _onActiveEditorChange(null, getFocusedEditor(), null);
     }
 
     // Initialize: command handlers
@@ -751,20 +786,21 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
+    $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
     window.addEventListener("resize", _updateEditorDuringResize, true);
     
     // Initialize: status bar focused listener
-    $(exports).on("focusedEditorChange", _onFocusedEditorChange);
+    $(exports).on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
     
     // For unit tests and internal use only
     exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
-    exports._notifyFocusedEditorChanged = _notifyFocusedEditorChanged;
+    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     
@@ -774,6 +810,7 @@ define(function (require, exports, module) {
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
+    exports.getActiveEditor = getActiveEditor;
     exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;

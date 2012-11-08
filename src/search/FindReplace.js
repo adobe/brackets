@@ -179,7 +179,16 @@ define(function (require, exports, module) {
             });
         }
         
-        dialog(cm, queryDialog, Strings.CMD_FIND, findFirst);
+        dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
+            // If the dialog is closed and the query string is not empty,
+            // make sure we have called findFirst at least once. This way
+            // if the Find dialog is opened with pre-populated text, pressing
+            // enter will find the next occurance of the text and store
+            // the query for subsequent "Find Next" commands.
+            if (query && !state.query) {
+                findFirst(query);
+            }
+        });
         getDialogTextField().on("input", function () {
             findFirst(getDialogTextField().attr("value"));
         });
@@ -222,7 +231,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     clearSearch(cm);
-                    var cursor = getSearchCursor(cm, query, cm.getCursor());
+                    var cursor = getSearchCursor(cm, query, cm.getCursor(true));
                     var advance = function () {
                         var start = cursor.from(),
                             match = cursor.findNext();
@@ -247,10 +256,15 @@ define(function (require, exports, module) {
                 }
             });
         });
+        
+        // Prepopulate the replace field with the current selection, if any
+        getDialogTextField()
+            .attr("value", cm.getSelection())
+            .get(0).select();
     }
 
     function _launchFind() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             var codeMirror = editor._codeMirror;
 
@@ -266,21 +280,21 @@ define(function (require, exports, module) {
     }
 
     function _findNext() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             doSearch(editor._codeMirror);
         }
     }
 
     function _findPrevious() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             doSearch(editor._codeMirror, true);
         }
     }
 
     function _replace() {
-        var editor = EditorManager.getFocusedEditor();
+        var editor = EditorManager.getActiveEditor();
         if (editor) {
             replace(editor._codeMirror);
         }

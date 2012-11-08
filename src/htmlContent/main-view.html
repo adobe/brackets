@@ -217,6 +217,20 @@
             <a href="#" class="dialog-button btn primary" data-button-id="download">{{GET_IT_NOW}}</a>
         </div>
     </div>
+    <div class="project-settings-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title"></h1>
+        </div>
+        <div class="modal-body">
+            <div class="settings-list">
+                <label>{{PROJECT_SETTING_BASE_URL}}: <input type="text" placeholder="{{PROJECT_SETTING_BASE_URL_HINT}}" class="base-url" /></label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>
+        </div>
+    </div>
     <div id="context-menu-bar">
         <ul data-dropdown="dropdown"></ul>
     </div>

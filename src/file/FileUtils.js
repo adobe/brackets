@@ -230,33 +230,18 @@ define(function (require, exports, module) {
     
     /**
      * Given the module object passed to JS module define function,
-     * convert the path (which is relative to the current window)
-     * to a native absolute path.
+     * convert the path to a native absolute path.
      * Returns a native absolute path to the module folder.
      * @return {string}
      */
     function getNativeModuleDirectoryPath(module) {
-        var path, relPath, index, pathname;
-
+        var path;
+        
         if (module && module.uri) {
-
-            // Remove window name from base path. Maintain trailing slash.
-            path = getNativeBracketsDirectoryPath() + "/";
-
-            // Remove module name from relative path. Remove trailing slash.
-            pathname = decodeURI(module.uri);
-            relPath = pathname.substr(0, pathname.lastIndexOf("/"));
-
-            // handle leading "../" in relative directory
-            while (relPath.substr(0, 3) === "../") {
-                path = path.substr(0, path.length - 1); // strip trailing slash from base path
-                index = path.lastIndexOf("/");          // find next slash from end
-                if (index !== -1) {
-                    path = path.substr(0, index + 1);   // remove last dir while maintaining slash
-                }
-                relPath = relPath.substr(3);            // remove leading "../" from relative path
-            }
-            path += relPath;
+            path = decodeURI(module.uri);
+            
+            // Remove module name and trailing slash from path.
+            path = path.substr(0, path.lastIndexOf("/"));
         }
         return path;
     }
@@ -291,6 +276,42 @@ define(function (require, exports, module) {
         return false;
     }
 
+    /** @const - hard-coded for now, but may want to make these preferences */
+    var _staticHtmlFileExts = ["htm", "html"],
+        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "shtm", "shtml"];
+
+    /**
+     * Determine if file extension is a static html file extension.
+     * @param {String} file name with extension or just a file extension
+     * @return {Boolean} Returns true if fileExt is in the list
+     */
+    function isStaticHtmlFileExt(fileExt) {
+        if (!fileExt) {
+            return false;
+        }
+
+        var i = fileExt.lastIndexOf("."),
+            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
+
+        return (_staticHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+    }
+
+    /**
+     * Determine if file extension is a server html file extension.
+     * @param {String} file name with extension or just a file extension
+     * @return {Boolean} Returns true if fileExt is in the list
+     */
+    function isServerHtmlFileExt(fileExt) {
+        if (!fileExt) {
+            return false;
+        }
+
+        var i = fileExt.lastIndexOf("."),
+            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
+
+        return (_serverHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+    }
+
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
@@ -306,4 +327,6 @@ define(function (require, exports, module) {
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.updateFileEntryPath            = updateFileEntryPath;
+    exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
+    exports.isServerHtmlFileExt            = isServerHtmlFileExt;
 });

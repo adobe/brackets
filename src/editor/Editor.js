@@ -320,9 +320,6 @@ define(function (require, exports, module) {
             "Esc": function (instance) {
                 self.removeAllInlineWidgets();
             },
-            "Shift-Delete": "cut",
-            "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste",
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
@@ -537,15 +534,6 @@ define(function (require, exports, module) {
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
         
-        if (this._visibleRange) {
-            // _visibleRange has already updated via its own Document listener, when we pushed our
-            // change into the Document above (_masterEditor._applyChanges()). But changes due to our
-            // own edits should never cause the range to lose sync - verify that.
-            if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");
-            }
-        }
-        
         CodeHintManager.handleChange(this);
     };
     
@@ -623,10 +611,10 @@ define(function (require, exports, module) {
             self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
 
-        // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
+        // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.setOption("onFocus", function () {
             self._focused = true;
-            EditorManager._notifyFocusedEditorChanged(self);
+            EditorManager._notifyActiveEditorChanged(self);
         });
         
         this._codeMirror.setOption("onBlur", function () {
@@ -763,13 +751,27 @@ define(function (require, exports, module) {
     /**
      * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
+     * Adapted from selectWordAt() in CodeMirror v2.
      * @param {!{line:number, ch:number}}
      */
     Editor.prototype.selectWordAt = function (pos) {
-        this._codeMirror.selectWordAt(pos);
+        var line = this.document.getLine(pos.line),
+            start = pos.ch,
+            end = pos.ch;
+        
+        function isWordChar(ch) {
+            return (/\w/).test(ch) || ch.toUpperCase() !== ch.toLowerCase();
+        }
+        
+        while (start > 0 && isWordChar(line.charAt(start - 1))) {
+            --start;
+        }
+        while (end < line.length && isWordChar(line.charAt(end))) {
+            ++end;
+        }
+        this.setSelection({line: pos.line, ch: start}, {line: pos.line, ch: end});
     };
     
-
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
      * @returns {!number}
@@ -826,7 +828,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the root DOM node of the editor.
-     * @returns {Object} The editor's root DOM node.
+     * @returns {!HTMLDivElement} The editor's root DOM node.
      */
     Editor.prototype.getRootElement = function () {
         return this._codeMirror.getWrapperElement();
@@ -836,7 +838,7 @@ define(function (require, exports, module) {
      * Gets the lineSpace element within the editor (the container around the individual lines of code).
      * FUTURE: This is fairly CodeMirror-specific. Logic that depends on this may break if we switch
      * editors.
-     * @returns {Object} The editor's lineSpace element.
+     * @returns {!HTMLDivElement} The editor's lineSpace element.
      */
     Editor.prototype._getLineSpaceElement = function () {
         return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
@@ -1039,7 +1041,7 @@ define(function (require, exports, module) {
      * an *approximation* of whether the mode is consistent across the whole range (a pattern like
      * A-B-A would return A as the mode, not null).
      *
-     * @return {?string} Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     * @return {?(Object|String)} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
      */
     Editor.prototype.getModeForSelection = function () {
         var sel = this.getSelection();
@@ -1066,6 +1068,24 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Gets the syntax-highlighting mode for the document.
+     *
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     */
+    Editor.prototype.getModeForDocument = function () {
+        return this._codeMirror.getOption("mode");
+    };
+    
+    /**
+     * Sets the syntax-highlighting mode for the document.
+     *
+     * @param {string} mode Name of syntax highlighting mode.
+     */
+    Editor.prototype.setModeForDocument = function (mode) {
+        this._codeMirror.setOption("mode", mode);
+    };
+
     /**
      * The Document we're bound to
      * @type {!Document}
