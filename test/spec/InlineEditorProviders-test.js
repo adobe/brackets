@@ -650,6 +650,8 @@ define(function (require, exports, module) {
             
             
             describe("Bi-directional Editor Synchronizing", function () {
+                // For these tests we *deliberately* use Editor._codeMirror instead of Document to make edits,
+                // in order to test Editor->Document syncing (instead of Document->Editor).
                 
                 it("should not add an inline document to the working set without being edited", function () {
                     initInlineTest("test1.html", 0);
