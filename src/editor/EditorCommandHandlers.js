@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
-        StringUtils        = require("utils/StringUtils");
+        StringUtils        = require("utils/StringUtils"),
+        TokenUtils         = require("utils/TokenUtils");
     
     
     /**
@@ -149,79 +150,54 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns the position of the block-comment starting prefix for the block-comment passed.
-     * @param {!Editor} editor
-     * @param {!{line: number, ch: number}} start - must be a position inside a block-comment
+     * Moves ctx to the token that starts the block-comment. Ctx starts in a block-comment
+     * Returns the position of the prefix.
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
      * @param {!RegExp} prefixExp - a valid regular expression
      * @return {{line: number, ch: number}}
      */
-    function _findCommentStart(editor, start, prefixExp) {
-        var pos   = {line: start.line, ch: start.ch},
-            token = editor._codeMirror.getTokenAt(pos),
-            line  = "";
-        
-        while (!token.string.match(prefixExp)) {
-            pos.line--;
-            line   = editor.document.getLine(pos.line);
-            pos.ch = line.length - 1;
-            token  = editor._codeMirror.getTokenAt(pos);
+    function _findCommentStart(ctx, prefixExp) {
+        while (!ctx.token.string.match(prefixExp)) {
+            TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
         }
-        return {line: pos.line, ch: token.start};
+        return {line: ctx.pos.line, ch: ctx.token.start};
     }
     
     /**
      * @private
-     * Returns the position of the block-comment ending suffix for the block-comment passed.
-     * Returns null if gets to the end of the document and didn't found it.
-     * @param {Editor} editor
-     * @param {!{line: number, ch: number}} start - must be a position inside a block-comment
+     * Moves ctx to the token that ends the block-comment. Ctx starts in a block-comment.
+     * Returns the position of the sufix or null if gets to the end of the document and didn't found it.
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
      * @param {!RegExp} suffixExp - a valid regular expression
      * @param {!number} suffixLen - length of the suffix
      * @return {?{line: number, ch: number}}
      */
-    function _findCommentEnd(editor, start, suffixExp, suffixLen) {
-        var pos   = {line: start.line, ch: start.ch},
-            token = editor._codeMirror.getTokenAt(pos),
-            total = editor.lineCount() - 1,
-            line  = "";
+    function _findCommentEnd(ctx, suffixExp, suffixLen) {
+        var result = true;
         
-        while (pos.line < total && !token.string.match(suffixExp)) {
-            pos.line++;
-            line   = editor.document.getLine(pos.line);
-            pos.ch = line.indexOf(line.trim().charAt(0)) + 1;
-            token  = editor._codeMirror.getTokenAt(pos);
+        while (result && !ctx.token.string.match(suffixExp)) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
-        return (pos.line === total) ? null : {line: pos.line, ch: token.end - suffixLen};
+        return !result ? null : {line: ctx.pos.line, ch: ctx.token.end - suffixLen};
     }
     
     /**
      * @private
-     * Returns the position position of the next block-comment (the character position will be
-     * inside a block-comment and not necessarily at the start character).
-     * Returns null if there isn't one in between start and end.
-     * @param {!Editor} editor
-     * @param {!{line: number, ch: number}} start - from where to start searching
+     * Moves ctx to the next block-comment if there is one before end.
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
      * @param {!{line: number, ch: number}} end - where to stop searching
      * @param {!RegExp} prefixExp - a valid regular expression
-     * @return {?{line: number, ch: number}}
+     * @return {boolean} - true if it found a block-comment
      */
-    function _findNextCommentToken(editor, start, end, prefixExp) {
-        var pos   = {line: start.line, ch: start.ch + 1},
-            token = editor._codeMirror.getTokenAt(pos),
-            line  = editor.document.getLine(pos.line);
+    function _findNextBlockComment(ctx, end, prefixExp) {
+        var index  = ctx.editor.indexFromPos(end),
+            search = true;
         
-        while (token.className !== "comment" || token.string.match(/^\/\//)) {
-            pos.ch++;
-            if (pos.line === end.line && (pos.ch > end.ch || pos.ch >= line.length)) {
-                break;
-            } else if (pos.ch >= line.length) {
-                pos.line++;
-                line   = editor.document.getLine(pos.line);
-                pos.ch = line.indexOf(line.trim().charAt(0)) + 1;
-            }
-            token = editor._codeMirror.getTokenAt(pos);
+        while (search && (ctx.token.className !== "comment" || ctx.token.string.match(/^\/\//))) {
+            TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+            search = ctx.editor.indexFromPos(ctx.pos) <= index;
         }
-        return token.className !== "comment" || token.string.match(/^\/\//) ? null : pos;
+        return search && ctx.token.className === "comment" && !ctx.token.string.match(/^\/\//);
     }
     
     /**
@@ -247,23 +223,24 @@ define(function (require, exports, module) {
         var doc         = editor.document,
             sel         = editor.getSelection(),
             lineCount   = editor.lineCount(),
-            startToken  = editor._codeMirror.getTokenAt(sel.start),
-            endToken    = editor._codeMirror.getTokenAt(sel.end),
+            startCtx    = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.end.ch}),
+            endCtx      = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
             prefixExp   = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
             suffixExp   = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
             prefixPos   = null,
             suffixPos   = null,
             canComment  = false;
         
-        var i, pos, line, token, start;
+        var result, start;
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented)
-        if (slashComment && (startToken.string.match(/^\/\//) || endToken.string.match(/^\/\//))) {
-            // Check if the line-comment is actually inside a block-comment
-            line  = editor.document.getLine(sel.start.line - 1);
-            token = editor._codeMirror.getTokenAt({line: sel.start.line - 1, ch: line.length - 1});
+        if (slashComment && (startCtx.token.string.match(/^\/\//) || startCtx.token.string.match(/^\/\//))) {
+            // Find if we aren't actually inside a block-comment
+            while (startCtx.token.string.match(/^\/\//)) {
+                result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
+            }
             
-            if (!token.string.match(prefixExp)) {
+            if (!result || startCtx.token.className !== "comment") {
                 if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
                     lineCommentSlashSlash(editor);
                     return;
@@ -272,52 +249,40 @@ define(function (require, exports, module) {
                     canComment = true;
                 }
             } else {
-                start     = line.indexOf(line.trim().charAt(0)) + 1;
-                prefixPos = _findCommentStart(editor, {line: sel.start.line - 1, ch: line.length - 1}, prefixExp);
-                suffixPos = _findCommentEnd(editor, {line: sel.start.line + 1, ch: start}, suffixExp, suffix.length);
+                prefixPos = _findCommentStart(startCtx, prefixExp);
+                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
             }
         
         // If the start of the selection is inside a comment, find the start
-        } else if (startToken.className === "comment" && startToken.end > sel.start.ch) {
-            prefixPos = _findCommentStart(editor, sel.start, prefixExp);
-            suffixPos = _findCommentEnd(editor, sel.start, suffixExp, suffix.length);
+        } else if (startCtx.token.className === "comment" && startCtx.token.end > sel.start.ch) {
+            prefixPos = _findCommentStart(startCtx, prefixExp);
+            suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
         
         // If this is a one line selection and is before the text or in an "empty" line
-        } else if (sel.start.line === sel.end.line && endToken.className === null) {
-            // Find the first not empty line
-            i = sel.start.line;
-            do {
-                line = doc.getLine(i);
-                i--;
-            } while (line.trim().length === 0 && i >= 0);
+        } else if (sel.start.line === sel.end.line && endCtx.token.className === null) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
             
-            // Get the token at the first character after the spaces
-            pos   = {line: i, ch: line.indexOf(line.trim().charAt(0)) + 1};
-            token = editor._codeMirror.getTokenAt(pos);
-            
-            if (token.className === "comment") {
-                prefixPos = _findCommentStart(editor, pos, prefixExp);
-                suffixPos = _findCommentEnd(editor, pos, suffixExp, suffix.length);
+            if (startCtx.token.className === "comment") {
+                prefixPos = _findCommentStart(startCtx, prefixExp);
+                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
             } else {
                 canComment = true;
             }
-            
+        
         // If not try to find the first comment inside the selection
         } else {
-            pos = _findNextCommentToken(editor, sel.start, sel.end, prefixExp);
+            result = _findNextBlockComment(startCtx, sel.end, prefixExp);
             
             // If nothing was found is ok to comment
-            if (pos === null) {
+            if (!result) {
                 canComment = true;
             } else {
-                token = editor._codeMirror.getTokenAt(pos);
-                
-                if (!token.string.match(prefixExp)) {
-                    prefixPos = _findCommentStart(editor, pos, prefixExp);
+                if (!startCtx.token.string.match(prefixExp)) {
+                    prefixPos = _findCommentStart(startCtx, prefixExp);
                 } else {
-                    prefixPos = {line: pos.line, ch: token.start};
+                    prefixPos = {line: startCtx.pos.line, ch: startCtx.token.start};
                 }
-                suffixPos = _findCommentEnd(editor, pos, suffixExp, suffix.length);
+                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
             }
         }
         
@@ -325,9 +290,9 @@ define(function (require, exports, module) {
         if (!canComment && suffixPos) {
             start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
             if (editor.posWithinRange(start, sel.start, sel.end)) {
-                pos = _findNextCommentToken(editor, start, sel.end, prefixExp);
+                result = _findNextBlockComment(startCtx, sel.end, prefixExp);
                 
-                if (pos !== null) {
+                if (result) {
                     canComment = true;
                 }
             }
