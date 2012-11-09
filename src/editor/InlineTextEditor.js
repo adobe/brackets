@@ -238,12 +238,12 @@ define(function (require, exports, module) {
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
 
-        // Size editor to content whenever it changes (via edits here or any other view of the doc)
+        // Size editor to content whenever text changes (via edits here or any other view of the doc: Editor
+        // fires "change" any time its text changes, regardless of origin)
         $(inlineInfo.editor).on("change", function () {
             self.sizeInlineWidgetToContents();
             
-            // And update line number since a change to the Editor equals a change to the Document,
-            // which may mean a change to the line range too
+            // Changes above the inline range could change our line number, so update label
             $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
         });
         
