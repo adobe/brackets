@@ -314,7 +314,7 @@ define(function (require, exports, module) {
             command;
         
         // skip if this binding doesn't match the current platform
-        if ((targetPlatform === "mac") !== (brackets.platform === "mac")) {
+        if (targetPlatform !== brackets.platform) {
             return null;
         }
         
@@ -422,11 +422,15 @@ define(function (require, exports, module) {
             var keyBinding;
             results = [];
                                             
-            keyBindings.forEach(function (keyBindingRequest) {
+            keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
+                }
+                if(keyBindingRequest.platform && keyBindingRequest.platform == "win") {
+                    keyBindingRequest.platform = "linux";
+                    addSingleBinding(keyBindingRequest);
                 }
             });
         } else {
