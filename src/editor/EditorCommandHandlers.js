@@ -240,7 +240,7 @@ define(function (require, exports, module) {
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
             }
             
-            if (!result || startCtx.token.className !== "comment") {
+            if (!result || startCtx.token.className !== "comment" || startCtx.token.string.match(suffixExp)) {
                 if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
                     lineCommentSlashSlash(editor);
                     return;
