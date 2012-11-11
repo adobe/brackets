@@ -103,9 +103,7 @@ define(function (require, exports, module) {
                     }
                 }
                 prefs.setValue("recentProjects", newProjects);
-                
-                // Recreate the dropdown list.
-                renderList();
+                $(this).remove();
             });
     }
     
