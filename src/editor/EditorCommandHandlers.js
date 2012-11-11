@@ -150,9 +150,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Moves ctx to the token that starts the block-comment. Ctx starts in a block-comment
+     * Moves the token context to the token that starts the block-comment. Ctx starts in a block-comment
      * Returns the position of the prefix.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {!{editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}} ctx - token context
      * @param {!RegExp} prefixExp - a valid regular expression
      * @return {{line: number, ch: number}}
      */
@@ -165,9 +165,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Moves ctx to the token that ends the block-comment. Ctx starts in a block-comment.
+     * Moves the token context to the token that ends the block-comment. Ctx starts in a block-comment.
      * Returns the position of the sufix or null if gets to the end of the document and didn't found it.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {!{editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}} ctx - token context
      * @param {!RegExp} suffixExp - a valid regular expression
      * @param {!number} suffixLen - length of the suffix
      * @return {?{line: number, ch: number}}
@@ -183,21 +183,21 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Moves ctx to the next block-comment if there is one before end.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * Movesthe token context to the next block-comment if there is one before end.
+     * @param {!{editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}} ctx - token context
      * @param {!{line: number, ch: number}} end - where to stop searching
      * @param {!RegExp} prefixExp - a valid regular expression
      * @return {boolean} - true if it found a block-comment
      */
     function _findNextBlockComment(ctx, end, prefixExp) {
         var index  = ctx.editor.indexFromPos(end),
-            search = true;
+            search = ctx.editor.indexFromPos(ctx.pos) <= index;
         
-        while (search && (ctx.token.className !== "comment" || ctx.token.string.match(/^\/\//))) {
+        while (search && !ctx.token.string.match(prefixExp)) {
             TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
             search = ctx.editor.indexFromPos(ctx.pos) <= index;
         }
-        return search && ctx.token.className === "comment" && !ctx.token.string.match(/^\/\//);
+        return search && !!ctx.token.string.match(prefixExp);
     }
     
     /**
@@ -216,14 +216,13 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!String} prefix
      * @param {!String} suffix
-     * @param {?boolean} slashComment - if the mode also supports "//" comments
+     * @param {?boolean} slashComment - true if the mode also supports "//" comments
      */
     function blockCommentPrefixSuffix(editor, prefix, suffix, slashComment) {
         
         var doc         = editor.document,
             sel         = editor.getSelection(),
-            lineCount   = editor.lineCount(),
-            startCtx    = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.end.ch}),
+            startCtx    = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
             endCtx      = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
             prefixExp   = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
             suffixExp   = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
@@ -231,72 +230,87 @@ define(function (require, exports, module) {
             suffixPos   = null,
             canComment  = false;
         
-        var result, start;
+        var result;
         
-        // Check if we should just do a line uncomment (if all lines in the selection are commented)
-        if (slashComment && (startCtx.token.string.match(/^\/\//) || startCtx.token.string.match(/^\/\//))) {
-            // Find if we aren't actually inside a block-comment
-            while (startCtx.token.string.match(/^\/\//)) {
-                result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
-            }
+        // If we are in an empty selection, find the next non-empty token
+        if (startCtx.token.className === null && endCtx.token.className === null) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, startCtx);
             
-            if (!result || startCtx.token.className !== "comment" || startCtx.token.string.match(suffixExp)) {
-                if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
-                    lineCommentSlashSlash(editor);
-                    return;
-                // If can't uncomment then let the user comment even if it will be an invalid block-comment
-                } else {
-                    canComment = true;
-                }
-            } else {
-                prefixPos = _findCommentStart(startCtx, prefixExp);
-                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
-            }
-        
-        // If the start of the selection is inside a comment, find the start
-        } else if (startCtx.token.className === "comment" && startCtx.token.end > sel.start.ch) {
-            prefixPos = _findCommentStart(startCtx, prefixExp);
-            suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
-        
-        // If this is a one line selection and is before the text or in an "empty" line
-        } else if (sel.start.line === sel.end.line && endCtx.token.className === null) {
-            result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
-            
+            // We found a comment, find the start and end and check if the selection is inside the block-comment 
             if (startCtx.token.className === "comment") {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
                 suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
+                
+                if (!editor.posWithinRange(sel.start, prefixPos, suffixPos)) {
+                    canComment = true;
+                }
             } else {
                 canComment = true;
             }
-        
-        // If not try to find the first comment inside the selection
         } else {
-            result = _findNextBlockComment(startCtx, sel.end, prefixExp);
+        
+            // Move the context to the first non-empty token
+            if (startCtx.token.className === null) {
+                TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, startCtx);
+            }
             
-            // If nothing was found is ok to comment
-            if (!result) {
-                canComment = true;
-            } else {
-                if (!startCtx.token.string.match(prefixExp)) {
-                    prefixPos = _findCommentStart(startCtx, prefixExp);
-                } else {
-                    prefixPos = {line: startCtx.pos.line, ch: startCtx.token.start};
+            // Check if we should just do a line uncomment (if all lines in the selection are commented)
+            if (slashComment && (startCtx.token.string.match(/^\/\//) || endCtx.token.string.match(/^\/\//))) {
+                // Find if we aren't actually inside a block-comment
+                while (startCtx.token.string.match(/^\/\//)) {
+                    result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
                 }
+                
+                if (!result || startCtx.token.className !== "comment" || startCtx.token.string.match(suffixExp)) {
+                    if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
+                        lineCommentSlashSlash(editor);
+                        return;
+                    // If can't uncomment then let the user comment even if it will be an invalid block-comment
+                    } else {
+                        canComment = true;
+                    }
+                } else {
+                    prefixPos = _findCommentStart(startCtx, prefixExp);
+                    suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
+                }
+            
+            // If the start is inside a comment, find the prefix and suffix positions
+            } else if (startCtx.token.className === "comment") {
+                prefixPos = _findCommentStart(startCtx, prefixExp);
                 suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
+                
+            // If not try to find the first comment inside the selection
+            } else {
+                result = _findNextBlockComment(startCtx, sel.end, prefixExp);
+                
+                // If nothing was found is ok to comment
+                if (!result) {
+                    canComment = true;
+                } else {
+                    if (!startCtx.token.string.match(prefixExp)) {
+                        prefixPos = _findCommentStart(startCtx, prefixExp);
+                    } else {
+                        prefixPos = {line: startCtx.pos.line, ch: startCtx.token.start};
+                    }
+                    suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
+                }
             }
         }
         
         // Search if there is another comment in the selection. Let the user comment if there is.
         if (!canComment && suffixPos) {
-            start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
+            var start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
             if (editor.posWithinRange(start, sel.start, sel.end)) {
-                result = _findNextBlockComment(startCtx, sel.end, prefixExp);
+                // Start searching at the next token
+                result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, startCtx);
+                result = !result || _findNextBlockComment(startCtx, sel.end, prefixExp);
                 
                 if (result) {
                     canComment = true;
                 }
             }
         }
+        
         
         // Make the edit
         doc.batchOperation(function () {
