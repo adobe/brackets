@@ -223,18 +223,19 @@ define(function (require, exports, module) {
      */
     function blockCommentPrefixSuffix(editor, prefix, suffix, slashComment) {
         
-        var doc           = editor.document,
-            sel           = editor.getSelection(),
-            ctx           = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
-            startCtx      = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
-            endCtx        = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
-            prefixExp     = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
-            suffixExp     = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
-            lineExp       = new RegExp("^\/\/"),
-            prefixPos     = null,
-            suffixPos     = null,
-            canComment    = false,
-            lineUncomment = false;
+        var doc            = editor.document,
+            sel            = editor.getSelection(),
+            ctx            = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
+            startCtx       = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
+            endCtx         = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
+            prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
+            suffixExp      = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
+            lineExp        = new RegExp("^\/\/"),
+            prefixPos      = null,
+            suffixPos      = null,
+            canComment     = false,
+            invalidComment = false,
+            lineUncomment  = false;
         
         var result, text, line;
         
@@ -256,9 +257,9 @@ define(function (require, exports, module) {
                 if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
                     lineUncomment = true;
                 
-                // If can't uncomment then let the user comment even if it will be an invalid block-comment.
+                // If can't uncomment then do nothing, since it would create an invalid comment.
                 } else {
-                    canComment = true;
+                    invalidComment = true;
                 }
             } else {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
@@ -305,8 +306,8 @@ define(function (require, exports, module) {
             }
         }
         
-        // Search if there is another comment in the selection. Let the user comment if there is one.
-        if (!canComment && !lineUncomment && suffixPos) {
+        // Search if there is another comment in the selection. Do nothing if there is one.
+        if (!canComment && !invalidComment && !lineUncomment && suffixPos) {
             var start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
             if (editor.posWithinRange(start, sel.start, sel.end)) {
                 // Start searching at the next token, if there is one.
@@ -314,14 +315,17 @@ define(function (require, exports, module) {
                 result = !result || _findNextBlockComment(ctx, sel.end, prefixExp);
                 
                 if (result) {
-                    canComment = true;
+                    invalidComment = true;
                 }
             }
         }
         
         
         // Make the edit
-        if (lineUncomment) {
+        if (invalidComment) {
+            return;
+        
+        } else if (lineUncomment) {
             lineCommentSlashSlash(editor);
         
         } else {
