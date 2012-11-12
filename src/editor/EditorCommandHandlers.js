@@ -49,11 +49,11 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Searchs for an uncommented line in between startLine and endLine
+     * Searchs for an uncommented line between startLine and endLine
      * @param {!Editor} editor
      * @param {!number} startLine - valid line inside the document
      * @param {!number} endLine - valid line inside the document
-     * @return {boolean} true if there is at least one uncomented line
+     * @return {boolean} true if there is at least one uncommented line
      */
     function _containsUncommented(editor, startLine, endLine) {
         var containsUncommented = false;
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
         while (result && !ctx.token.string.match(prefixExp)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
         }
-        return !result ? null : {line: ctx.pos.line, ch: ctx.token.start};
+        return result ? {line: ctx.pos.line, ch: ctx.token.start} : null;
     }
     
     /**
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
         while (result && !ctx.token.string.match(suffixExp)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
-        return !result ? null : {line: ctx.pos.line, ch: ctx.token.end - suffixLen};
+        return result ? {line: ctx.pos.line, ch: ctx.token.end - suffixLen} : null;
     }
     
     /**
