@@ -77,11 +77,12 @@ define(function (require, exports, module) {
         inlineColorEditor = new InlineColorEditor(match[0], startBookmark, endBookmark);
 
         inlineColorEditor.onClosed = function () {
-            var colorPicker = _colorPickers[this.startBookmark];
+            if (this.startBookmark) {
+                delete _colorPickers[this.startBookmark];
+            }
             if (this.clearBookmarks) {
                 this.clearBookmarks();
             }
-            return delete colorPicker;
         };
         
         inlineColorEditor.load(hostEditor);
