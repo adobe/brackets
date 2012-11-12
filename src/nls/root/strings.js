@@ -186,6 +186,7 @@ define({
     "CMD_DUPLICATE"                       : "Duplicate",
     "CMD_DELETE_LINES"                    : "Delete Line",
     "CMD_COMMENT"                         : "Toggle Line Comment",
+    "CMD_BLOCK_COMMENT"                   : "Toggle Block Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
      
