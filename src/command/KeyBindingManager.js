@@ -421,7 +421,7 @@ define(function (require, exports, module) {
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
-                                            
+            
             keyBindings.forEach(function (keyBindingRequest) {
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 

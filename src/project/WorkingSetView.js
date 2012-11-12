@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
-        EditorManager         = require("editor/EditorManager"),
         FileViewController    = require("project/FileViewController"),
         ViewUtils             = require("utils/ViewUtils");
     

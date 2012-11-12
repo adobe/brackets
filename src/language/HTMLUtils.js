@@ -114,13 +114,16 @@ define(function (require, exports, module) {
     
     /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
-     * @param {string} tokenType what is getting edited and should be hinted
-     * @param {number} offset where the cursor is for the part getting hinted
-     * @param {string} tagName The name of the tag
-     * @param {string} attrName The name of the attribute
-     * @param {string} attrValue The value of the attribute
-     * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
-     *              A tagInfo object with some context about the current tag hint.            
+     * @param {string=} tokenType what is getting edited and should be hinted
+     * @param {number=} offset where the cursor is for the part getting hinted
+     * @param {string=} tagName The name of the tag
+     * @param {string=} attrName The name of the attribute
+     * @param {string=} attrValue The value of the attribute
+     * @return {{tagName:string,
+     *           attr:{name:string, value:string, valueAssigned:boolean, quoteChar:string, hasEndQuote:boolean},
+     *           position:{tokenType:string, offset:number}
+     *         }}
+     *         A tagInfo object with some context about the current tag hint.
      */
     function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned, quoteChar, hasEndQuote) {
         return { tagName: tagName || "",
@@ -223,7 +226,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Figure out if we're in a tag, and if we are return info about what to hint about it
+     * Figure out if we're in a tag, and if we are return info about it
      * An example token stream for this tag is <span id="open-files-disclosure-arrow"></span> : 
      *      className:tag       string:"<span"
      *      className:          string:" "
@@ -233,13 +236,15 @@ define(function (require, exports, module) {
      *      className:tag       string:"></span>"
      * @param {Editor} editor An instance of a Brackets editor
      * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
-     * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
-     *              A tagInfo object with some context about the current tag hint.
+     * @return {{tagName:string,
+     *           attr:{name:string, value:string, valueAssigned:boolean, quoteChar:string, hasEndQuote:boolean},
+     *           position:{tokenType:string, offset:number}
+     *         }}
+     *         A tagInfo object with some context about the current tag hint.
      */
     function getTagInfo(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.	
-        // This is what pass by value in c++ would do.	
         var pos = $.extend({}, constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             tempCtx = null,
@@ -402,6 +407,7 @@ define(function (require, exports, module) {
      * Returns an Array of info about all <style> blocks in the given Editor's HTML document (assumes
      * the Editor contains HTML text).
      * @param {!Editor} editor
+     * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, text:string}>}
      */
     function findStyleBlocks(editor) {
         // Start scanning from beginning of file
@@ -415,6 +421,7 @@ define(function (require, exports, module) {
             if (inStyleBlock) {
                 // Check for end of this <style> block
                 if (ctx.token.state.mode !== "css") {
+                    // currentStyleBlock.end is already set to pos of the last CSS token by now
                     currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
                     inStyleBlock = false;
                 } else {

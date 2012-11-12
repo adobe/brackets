@@ -51,23 +51,29 @@
  * any unsaved changes.
  *
  * This module dispatches several events:
+ *
  *    - dirtyFlagChange -- When any Document's isDirty flag changes. The 2nd arg to the listener is the
  *      Document whose flag changed.
  *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
  *      Document that has been saved.
+ *
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
+ *
+ *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
  *      to the listener is the added FileEntry.
- *    - workingSetAddList -- When a list of files are added to the working set (e.g. project open, multiple file open).
+ *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added FileEntry objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed FileEntry.
- *    - workingSetRemoveList -- When a list of files is to be removed from the working set (e.g. project close).
+ *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
+ *    - workingSetReorder -- When the indexes of 2 files are swapped. Listener receives no arguments.
+ *    - workingSetSort -- When the workingSet array is sorted. Listener receives no arguments.
+ *      TODO (#2076): combine workingSetSort & workingSetReorder since they convey nearly identical information.
+ *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
- *    - workingSetReorder -- When the indexes of 2 files are swapped during a drag and drop order.
- *    - workingSetSort -- When the workingSet array is sorted.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -962,6 +968,8 @@ define(function (require, exports, module) {
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
      * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
      * it; see {@link getDocumentForPath()} for details.
+     * @param {!string} fullPath
+     * @return {?Document}
      */
     function getOpenDocumentForPath(fullPath) {
         return _openDocuments[fullPath];
@@ -978,6 +986,8 @@ define(function (require, exports, module) {
      *
      * FUTURE: Instead of an explicit notify, we should eventually listen for deletion events on some
      * sort of "project file model," making this just a private event handler.
+     *
+     * @param {!FileEntry} file
      */
     function notifyFileDeleted(file) {
         // First ensure it's not currentDocument, and remove from working set

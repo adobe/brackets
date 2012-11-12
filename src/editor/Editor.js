@@ -320,9 +320,6 @@ define(function (require, exports, module) {
             "Esc": function (instance) {
                 self.removeAllInlineWidgets();
             },
-            "Shift-Delete": "cut",
-            "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste",
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
@@ -614,10 +611,10 @@ define(function (require, exports, module) {
             self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
 
-        // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
+        // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.setOption("onFocus", function () {
             self._focused = true;
-            EditorManager._notifyFocusedEditorChanged(self);
+            EditorManager._notifyActiveEditorChanged(self);
         });
         
         this._codeMirror.setOption("onBlur", function () {
@@ -831,7 +828,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the root DOM node of the editor.
-     * @returns {Object} The editor's root DOM node.
+     * @returns {!HTMLDivElement} The editor's root DOM node.
      */
     Editor.prototype.getRootElement = function () {
         return this._codeMirror.getWrapperElement();
@@ -841,7 +838,7 @@ define(function (require, exports, module) {
      * Gets the lineSpace element within the editor (the container around the individual lines of code).
      * FUTURE: This is fairly CodeMirror-specific. Logic that depends on this may break if we switch
      * editors.
-     * @returns {Object} The editor's lineSpace element.
+     * @returns {!HTMLDivElement} The editor's lineSpace element.
      */
     Editor.prototype._getLineSpaceElement = function () {
         return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
