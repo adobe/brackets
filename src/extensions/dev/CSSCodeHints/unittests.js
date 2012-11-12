@@ -7,14 +7,47 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         Editor          = brackets.getModule("editor/Editor").Editor,
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        CSSCodeHints   = require("main");
+        CSSCodeHints    = require("main");
     
     describe("CSS Code Hinting", function () {
 
-        describe("CSS attribute hint provider", function () {
+        var defaultContent = "body { \n" +
+                             "    width: 300px; \n" +
+                             "    position: relative; \n" +
+                             "    \n" +
+                             "} \n" +
+                             "h1 { }\n";
+        
+        var testWindow;
+        var testDocument, testEditor;
+        
+        beforeEach(function () {
+            // create dummy Document for the Editor
+            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
             
-            it("unittesttest", function () {
-                expect(1).toBe(0);       // additional sanity check
+            // create Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editor'/>");
+            testEditor = new Editor(testDocument, true, "css", $("#editor").get(0), {});
+        });
+        
+        afterEach(function () {
+            testEditor.destroy();
+            testEditor = null;
+            $("#editor").remove();
+            testDocument = null;    
+        });
+        
+        
+        describe("CSS attribute hint provider in .css files", function () {
+            
+            it("should list hints after curly bracket", function () {
+                testEditor.setCursorPos({line:5, ch:4});    // inside h1, after {
+
+                expect(true).toBe(false);
+            });
+            
+            it("should list hints at end of existing attribute+value", function () {
+                expect(true).toBe(false);
             });
         });
     });
