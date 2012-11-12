@@ -103,7 +103,7 @@ define(function (require, exports, module) {
                     }
                 }
                 prefs.setValue("recentProjects", newProjects);
-                $(this).remove();
+                $(this).closest("li").remove();
             });
     }
     
