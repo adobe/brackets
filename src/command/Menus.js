@@ -427,11 +427,13 @@ define(function (require, exports, module) {
      *      Pass Menus.DIVIDER for a menu divider, or just call addMenuDivider() instead.
      * @param {?string | Array.<{key: string, platform: string}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
-     * @param {?string} position - constant defining the position of new the MenuItem relative
-     *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
-     * @param {?string} relativeID - id of command or menu section (future: sub-menu) that 
-     *      the new menuItem will be positioned relative to. Required for all position constants
-     *      except FIRST and LAST.
+     * @param {?string} position - constant defining the position of new MenuItem relative to
+     *      other MenuItems. Values:
+     *          - With no relativeID, use Menus.FIRST or LAST (default is LAST)
+     *          - Relative to a command id, use BEFORE or AFTER (required)
+     *          - Relative to a MenuSection, use FIRST_IN_SECTION or LAST_IN_SECTION (required)
+     * @param {?string} relativeID - command id OR one of the MenuSection.* constants. Required
+     *      for all position constants except FIRST and LAST.
      *
      * @return {MenuItem} the newly created MenuItem
      */
@@ -902,20 +904,21 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_REPLACE,             [{key: "Ctrl-H",     platform: "win"},
                                                              {key: "Cmd-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
-        menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
-        menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
-        menu.addMenuItem(Commands.EDIT_DELETE_LINES,    "Ctrl-Shift-D");
-        menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
-                                                          platform: "win"},
-                                                         {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
-                                                          platform: "mac"}]);
-        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2193",
-                                                          platform: "win"},
-                                                         {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
-                                                          platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_INDENT,              [{key: "Indent", displayKey: "Tab"}]);
+        menu.addMenuItem(Commands.EDIT_UNINDENT,            [{key: "Unindent", displayKey: "Shift-Tab"}]);
+        menu.addMenuItem(Commands.EDIT_DUPLICATE,           "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_DELETE_LINES,        "Ctrl-Shift-D");
+        menu.addMenuItem(Commands.EDIT_LINE_UP,             [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
+                                                              platform: "win"},
+                                                             {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
+                                                              platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_LINE_DOWN,           [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2193",
+                                                              platform: "win"},
+                                                             {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
+                                                              platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,        "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT,       "Ctrl-Shift-/");
 
         /*
          * View menu
@@ -923,10 +926,10 @@ define(function (require, exports, module) {
         menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR,        "Ctrl-Shift-H");
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"},
-                                                            {key: "Ctrl-+", displayKey: "Ctrl-+"}]);
-        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
-        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
+        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE,  [{key: "Ctrl-=", displayKey: "Ctrl-+"},
+                                                             {key: "Ctrl-+", displayKey: "Ctrl-+"}]);
+        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE,  [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
+        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE,   "Ctrl-0");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_JSLINT);
 
