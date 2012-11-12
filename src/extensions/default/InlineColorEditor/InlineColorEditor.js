@@ -146,7 +146,7 @@ define(function (require, exports, module) {
             }
         }).sort(_colorSort);
 
-        return compressed;
+        return compressed.slice(0, length);
     };
 
     module.exports.InlineColorEditor = InlineColorEditor;
