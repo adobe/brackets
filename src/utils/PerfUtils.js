@@ -29,12 +29,14 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var Global = require("utils/Global");
 
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)
      * @type {boolean} enabled
      */
-    var enabled = true;
+    var enabled = brackets && !!brackets.app.getElapsedMilliseconds;
     
     /**
      * Peformance data is stored in this hash object. The key is the name of the
@@ -83,7 +85,7 @@ define(function (require, exports, module) {
      */
     function createPerfMeasurement(id, name) {
         if (perfMeasurementIds[id]) {
-            throw new Error("Performance measurement " + id + " is already defined");
+            console.error("Performance measurement " + id + " is already defined");
         }
         
         var pm = new PerfMeasurement(id, name);
@@ -109,7 +111,7 @@ define(function (require, exports, module) {
      */
     function _markStart(name, time) {
         if (activeTests[name]) {
-            throw new Error("Recursive tests with the same name are not supported. Timer name: " + name);
+            console.error("Recursive tests with the same name are not supported. Timer name: " + name);
         }
         
         activeTests[name] = { startTime: time };

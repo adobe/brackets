@@ -180,11 +180,7 @@ define(function (require, exports, module) {
                         if (!$activeLanguage) {
                             return;
                         }
-                        if (locale) {
-                            window.localStorage.setItem("locale", locale);
-                        } else {
-                            window.localStorage.removeItem("locale");
-                        }
+                        brackets.setLocale(locale);
                         
                         CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
                     })
@@ -238,6 +234,10 @@ define(function (require, exports, module) {
     }
     
     function _enableRunTestsMenuItem() {
+        if (brackets.inBrowser) {
+            return;
+        }
+
         // Check for the SpecRunner.html file
         var fileEntry = new NativeFileSystem.FileEntry(
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"

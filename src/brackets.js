@@ -34,7 +34,7 @@ require.config({
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || brackets.app.language
+    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });
 
 /**
@@ -68,13 +68,13 @@ define(function (require, exports, module) {
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
         WorkingSetView          = require("project/WorkingSetView"),
+        WorkingSetSort          = require("project/WorkingSetSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
         KeyBindingManager       = require("command/KeyBindingManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        BuildInfoUtils          = require("utils/BuildInfoUtils"),
         CodeHintManager         = require("editor/CodeHintManager"),
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -91,7 +91,8 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        PreferencesManager      = require("preferences/PreferencesManager");
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        Resizer                 = require("utils/Resizer");
 
     // Local variables
     var params                  = new UrlParams(),
@@ -110,17 +111,25 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("utils/ExtensionUtils");
     
-    // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
-    // Making this fix will fix a warning (search for issue 1029) related to the global brackets 'ready' event.
+    
     function _initExtensions() {
         // allow unit tests to override which plugin folder(s) to load
-        var paths = params.get("extensions") || "default,user";
+        var paths = params.get("extensions");
+        
+        if (!paths) {
+            paths = "default,dev," + ExtensionLoader.getUserExtensionPath();
+        }
         
         return Async.doInParallel(paths.split(","), function (item) {
-            return ExtensionLoader.loadAllExtensionsInNativeDirectory(
-                FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item,
-                "extensions/" + item
-            );
+            var extensionPath = item;
+            
+            // If the item has "/" in it, assume it is a full path. Otherwise, load
+            // from our source path + "/extensions/".
+            if (item.indexOf("/") === -1) {
+                extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
+            }
+            
+            return ExtensionLoader.loadAllExtensionsInNativeDirectory(extensionPath);
         });
     }
     
@@ -150,6 +159,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : require("utils/ExtensionUtils"),
@@ -218,10 +228,6 @@ define(function (require, exports, module) {
         KeyBindingManager.init();
         Menus.init(); // key bindings should be initialized first
         _initWindowListeners();
-        
-        // Read "build number" SHAs off disk at the time the matching Brackets JS code is being loaded, instead
-        // of later, when they may have been updated to a different version
-        BuildInfoUtils.init();
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
@@ -242,13 +248,31 @@ define(function (require, exports, module) {
         
         // finish UI initialization before loading extensions
         var initialProjectPath = ProjectManager.getInitialProjectPath();
-        ProjectManager.openProject(initialProjectPath).done(function () {
+        ProjectManager.openProject(initialProjectPath).always(function () {
             _initTest();
 
-            // WARNING: AppInit.appReady won't fire if ANY extension fails to
-            // load or throws an error during init. To fix this, we need to
-            // make a change to _initExtensions (filed as issue 1029)
-            _initExtensions().always(AppInit._dispatchReady(AppInit.APP_READY));
+            // Create a new DirectoryEntry and call getDirectory() on the user extension
+            // directory. If the directory doesn't exist, it will be created.
+            // Note that this is an async call and there are no success or failure functions passed
+            // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
+            // before the directory is finished being created, but that is okay, since the extension
+            // loading will work correctly without this directory.
+            // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
+            // during extension loading.
+            var extensionPath = ExtensionLoader.getUserExtensionPath();
+            new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
+                                                               {create: true});
+            
+            // Create the extensions/disabled directory, too.
+            var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
+            new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
+                                                               {create: true});
+            
+            // Load all extensions, and when done fire APP_READY (even if some extensions failed
+            // to load or initialize)
+            _initExtensions().always(function () {
+                AppInit._dispatchReady(AppInit.APP_READY);
+            });
             
             // If this is the first launch, and we have an index.html file in the project folder (which should be
             // the samples folder on first launch), open it automatically. (We explicitly check for the
@@ -257,7 +281,7 @@ define(function (require, exports, module) {
             var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
             if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
-                if (ProjectManager.isDefaultProjectPath(initialProjectPath)) {
+                if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                     var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
                     dirEntry.getFile("index.html", {}, function (fileEntry) {
                         CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
@@ -267,17 +291,30 @@ define(function (require, exports, module) {
         });
         
         // Check for updates
-        if (!params.get("skipUpdateCheck")) {
+        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             UpdateNotification.checkForUpdate();
         }
     }
-
+    
+    // Prevent unhandled middle button clicks from triggering native behavior
+    // Example: activating AutoScroll (see #510)
+    $("html").on("mousedown", ".inline-widget", function (e) {
+        if (e.button === 1) {
+            e.preventDefault();
+        }
+    });
+    
     // Localize MainViewHTML and inject into <BODY> tag
-    var templateVars = $.extend({ ABOUT_ICON: brackets.config.about_icon }, Strings);
+    var templateVars    = $.extend({
+        ABOUT_ICON          : brackets.config.about_icon,
+        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+        VERSION             : brackets.metadata.version
+    }, Strings);
+    
     $("body").html(Mustache.render(MainViewHTML, templateVars));
     
     // Update title
-    $("title").text(Strings.APP_NAME);
+    $("title").text(brackets.config.app_title);
 
     // Dispatch htmlReady callbacks
     AppInit._dispatchReady(AppInit.HTML_READY);

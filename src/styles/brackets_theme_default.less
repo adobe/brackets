@@ -99,27 +99,32 @@
 
 /* Code font formatting
  *
- * NOTE: The fonts below must be system fonts (native installed fonts), not web fonts. To use a web font we'd need to
- * jump through some additional hoops (and we couldn't easily vary the font by OS like we do now). See earlier versions
- * of this file for details.
+ * NOTE (JRB): At this time, the font-family must be set in .code-font (not in one of the platform-specific versions).
+ * This is because, in order to get the web font to load early enough, we have a div called "dummy-text" that
+ * is styled with .code-font().
+ *
+ * The platform-specific selector gets added to the body tag at document ready time, so it may not happen soon
+ * enough to get the web font loaded. So, we can't rely on this selector to load web fonts in a platform-specific way
+ *
+ * An alternative (if we wanted platform-specific fonts) would be to have a dummy text div for EVERY web font, and
+ * then style those dummy text divs directly in brackets_fonts.less. However, this would result in us downloading
+ * all fonts for every platform. This probably isn't a huge performance problem, but isn't necessary at this time.
  */
 .code-font() {
     color: @content-color;
     // line-height must be specified in px not em because the code font and line number font sizes are different.
     // Sizing via em will cause the code and line numbers to misalign
     line-height: 15px;
+    font-size: 12px;
+    font-family: 'SourceCodePro', monospace;
 }
 
 .code-font-win() {
     .code-font();
-    font-family: Consolas, "Lucida Console", "Courier New", monospace;
-    font-size: 13px;    /* TODO: ideally, we want 12px for Lucida & Courier */
 }
 
 .code-font-mac() {
     .code-font();
-    font-family: Menlo, Monaco, monospace;
-    font-size: 12px;
 }
 
 .code-cursor() {

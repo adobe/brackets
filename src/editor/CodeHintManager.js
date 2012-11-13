@@ -34,12 +34,14 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         EditorManager   = require("editor/EditorManager"),
         PopUpManager    = require("widgets/PopUpManager"),
-        ViewUtils       = require("utils/ViewUtils");
+        ViewUtils       = require("utils/ViewUtils"),
+        KeyEvent        = require("utils/KeyEvent");
 
 
     var hintProviders = [],
         hintList,
-        shouldShowHintsOnChange = false;
+        shouldShowHintsOnChange = false,
+        keyDownEditor;
 
 
     /**
@@ -71,12 +73,16 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Enters the code completion text into the editor
+     * Enters the code completion text into the editor and closes list if the provider 
+     * returns true. Otherwise, get a new query and update the list based on the new query.
      * @string {string} completion - text to insert into current code editor
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
-        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos());
-        this.close();
+        if (this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos())) {
+            this.close();
+        } else {
+            this.updateQueryAndList();
+        }
     };
 
     /**
@@ -168,6 +174,21 @@ define(function (require, exports, module) {
         }
     };
     
+    
+    /**
+     * Gets the new query from the current provider and rebuilds the hint list based on the new one.
+     */
+    CodeHintList.prototype.updateQueryAndList = function () {
+        this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
+        this.updateList();
+
+        // Update the CodeHintList location
+        if (this.displayList.length) {
+            var hintPos = this.calcHintListLocation();
+            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
+        }
+    };
+
     /**
      * Handles key presses when the hint list is being displayed
      * @param {Editor} editor
@@ -177,47 +198,42 @@ define(function (require, exports, module) {
         var keyCode = event.keyCode;
         
         // Up arrow, down arrow and enter key are always handled here
-        if (event.type !== "keypress" &&
-                (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
-                keyCode === 33 || keyCode === 34)) {
+        if (event.type !== "keypress") {
 
-            if (event.type === "keydown") {
-                if (keyCode === 38) {
-                    // Up arrow
-                    this.setSelectedIndex(this.selectedIndex - 1);
-                } else if (keyCode === 40) {
-                    // Down arrow
-                    this.setSelectedIndex(this.selectedIndex + 1);
-                } else if (keyCode === 33) {
-                    // Page Up
-                    this.setSelectedIndex(this.selectedIndex - this.getItemsPerPage());
-                } else if (keyCode === 34) {
-                    // Page Down
-                    this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
-                } else {
-                    // Enter/return key
-                    // Trigger a click handler to commmit the selected item
-                    $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
+            if (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB ||
+                    keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
+                    keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
+
+                var isNavigationKey = (keyCode !== KeyEvent.DOM_VK_RETURN && keyCode !== KeyEvent.DOM_VK_TAB);
+                if (event.type === "keydown") {
+                    if (keyCode === KeyEvent.DOM_VK_UP) {
+                        // Up arrow
+                        this.setSelectedIndex(this.selectedIndex - 1);
+                    } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
+                        // Down arrow
+                        this.setSelectedIndex(this.selectedIndex + 1);
+                    } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
+                        // Page Up
+                        this.setSelectedIndex(this.selectedIndex - this.getItemsPerPage());
+                    } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
+                        // Page Down
+                        this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
+                    } else {
+                        // Enter/return key or Tab key
+                        // Trigger a click handler to commmit the selected item
+                        $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
+                    }
                 }
+
+                event.preventDefault();
+                return;
             }
-            
-            event.preventDefault();
-            return;
         }
         
         // All other key events trigger a rebuild of the list, but only
         // on keyup events
-        if (event.type !== "keyup") {
-            return;
-        }
-
-        this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
-        this.updateList();
-
-        // Update the CodeHintList location
-        if (this.displayList.length) {
-            var hintPos = this.calcHintListLocation();
-            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
+        if (event.type === "keyup") {
+            this.updateQueryAndList();
         }
     };
 
@@ -296,6 +312,7 @@ define(function (require, exports, module) {
         if (hintList === this) {
             hintList = null;
             shouldShowHintsOnChange = false;
+            keyDownEditor = null;
         }
     };
         
@@ -385,6 +402,9 @@ define(function (require, exports, module) {
             });
             
             shouldShowHintsOnChange = !!provider;
+            if (shouldShowHintsOnChange) {
+                keyDownEditor = editor;
+            }
         }
 
         // Pass to the hint list, if it's open
@@ -397,8 +417,9 @@ define(function (require, exports, module) {
      *
      */
     function handleChange(editor) {
-        if (shouldShowHintsOnChange) {
+        if (shouldShowHintsOnChange && keyDownEditor === editor) {
             shouldShowHintsOnChange = false;
+            keyDownEditor = null;
             showHint(editor);
         }
     }
@@ -423,7 +444,8 @@ define(function (require, exports, module) {
      * - search - takes a query object and returns an array of hint strings based on the queryStr property
      *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
-     *      position
+     *      position. It should return true by default to close the hint list, but if the code hint provider
+     *      can return false if it wants to keep the hint list open and continue with a updated list. 
      * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {

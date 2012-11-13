@@ -238,20 +238,18 @@ define(function (require, exports, module) {
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
 
-        // Size editor to content whenever it changes (via edits here or any other view of the doc)
+        // Size editor to content whenever text changes (via edits here or any other view of the doc: Editor
+        // fires "change" any time its text changes, regardless of origin)
         $(inlineInfo.editor).on("change", function () {
             self.sizeInlineWidgetToContents();
             
-            // And update line number since a change to the Editor equals a change to the Document,
-            // which may mean a change to the line range too
+            // Changes above the inline range could change our line number, so update label
             $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
         });
         
-        // If Document's file is deleted, or Editor loses sync with Document, just close
+        // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
         $(inlineInfo.editor).on("lostContent", function () {
-            // Note: this closes the entire inline widget if any one Editor loses sync. This seems
-            // better than leaving it open but suddenly removing one rule from the result list.
-            self.close();
+            self._onLostContent.apply(self, arguments);
         });
         
         // set dirty indicator state
@@ -285,6 +283,14 @@ define(function (require, exports, module) {
         });
     };
         
+    /**
+     * If Document's file is deleted, or Editor loses sync with Document, just close
+     */
+    InlineTextEditor.prototype._onLostContent = function () {
+        // Note: this closes the entire inline widget if any one Editor loses sync. This seems
+        // better than leaving it open but suddenly removing one rule from the result list.
+        this.close();
+    };
     
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);

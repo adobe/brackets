@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     require("utils/Global");
 
     var CommandManager = require("command/CommandManager"),
+        KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings");
 
     /**
@@ -125,13 +126,13 @@ define(function (require, exports, module) {
             right = right.trim().toLowerCase();
             var matched = (left.length > 0 && left === right);
             if (matched && previouslyFound) {
-                console.log("KeyBindingManager normalizeKeyDescriptorString() - Modifier defined twice: " + origDescriptor);
+                console.log("KeyBindingManager normalizeKeyDescriptorString() - Modifier " + left + " defined twice: " + origDescriptor);
             }
             return matched;
         }
         
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
-            if (_compareModifierString("ctrl", ele, hasCtrl)) {
+            if (_compareModifierString("ctrl", ele, hasCtrl, origDescriptor)) {
                 if (brackets.platform === "mac") {
                     hasMacCtrl = true;
                 } else {
@@ -181,28 +182,44 @@ define(function (require, exports, module) {
      * @return {string} If the key is OS-inconsistent, the correct key; otherwise, the original key.
      **/
     function _mapKeycodeToKey(keycode, key) {
+        // If keycode represents one of the digit keys (0-9), then return the corresponding digit
+        // by subtracting KeyEvent.DOM_VK_0 from keycode. ie. [48-57] --> [0-9]
+        if (keycode >= KeyEvent.DOM_VK_0 && keycode <= KeyEvent.DOM_VK_9) {
+            return String(keycode - KeyEvent.DOM_VK_0);
+        // Do the same with the numpad numbers
+        // by subtracting KeyEvent.DOM_VK_NUMPAD0 from keycode. ie. [96-105] --> [0-9]
+        } else if (keycode >= KeyEvent.DOM_VK_NUMPAD0 && keycode <= KeyEvent.DOM_VK_NUMPAD9) {
+            return String(keycode - KeyEvent.DOM_VK_NUMPAD0);
+        }
+        
+        
         switch (keycode) {
-        case 186:
+        case KeyEvent.DOM_VK_SEMICOLON:
             return ";";
-        case 187:
+        case KeyEvent.DOM_VK_EQUALS:
             return "=";
-        case 188:
+        case KeyEvent.DOM_VK_COMMA:
             return ",";
-        case 189:
+        case KeyEvent.DOM_VK_SUBTRACT:
+        case KeyEvent.DOM_VK_DASH:
             return "-";
-        case 190:
+        case KeyEvent.DOM_VK_ADD:
+            return "+";
+        case KeyEvent.DOM_VK_DECIMAL:
+        case KeyEvent.DOM_VK_PERIOD:
             return ".";
-        case 191:
+        case KeyEvent.DOM_VK_DIVIDE:
+        case KeyEvent.DOM_VK_SLASH:
             return "/";
-        case 192:
+        case KeyEvent.DOM_VK_BACK_QUOTE:
             return "`";
-        case 219:
+        case KeyEvent.DOM_VK_OPEN_BRACKET:
             return "[";
-        case 220:
+        case KeyEvent.DOM_VK_BACK_SLASH:
             return "\\";
-        case 221:
+        case KeyEvent.DOM_VK_CLOSE_BRACKET:
             return "]";
-        case 222:
+        case KeyEvent.DOM_VK_QUOTE:
             return "'";
         default:
             return key;
@@ -319,7 +336,7 @@ define(function (require, exports, module) {
         // skip if the key is already assigned
         if (_isKeyAssigned(normalized)) {
             console.log("Cannot assign " + normalized + " to " + commandID +
-                        ". It is already assigned to " + _keyMap[normalized]);
+                        ". It is already assigned to " + _keyMap[normalized].commandID);
             return null;
         }
         
@@ -385,7 +402,7 @@ define(function (require, exports, module) {
      * Add one or more key bindings to a particular Command.
      * 
      * @param {!string} commandID
-     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string)}>}  keyBindings - a single key binding
+     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)}  keyBindings - a single key binding
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other. Use displayKey property to display a different string (e.g. "CMD+" instead of "CMD=").
      * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
@@ -404,7 +421,7 @@ define(function (require, exports, module) {
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
-                                            
+            
             keyBindings.forEach(function (keyBindingRequest) {
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
@@ -476,6 +493,7 @@ define(function (require, exports, module) {
             function (event) {
                 if (handleKey(_translateKeyboardEvent(event))) {
                     event.stopPropagation();
+                    event.preventDefault();
                 }
             },
             true

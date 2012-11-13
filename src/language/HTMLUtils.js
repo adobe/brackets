@@ -28,102 +28,13 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var TokenUtils = require("utils/TokenUtils");
+    
     //constants
     var TAG_NAME = "tagName",
         ATTR_NAME = "attr.name",
         ATTR_VALUE = "attr.value";
     
-    /**
-     * @private
-     * moves the current context backwards by one token
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
-     * @return {boolean} whether the context changed
-     */
-    function _movePrevToken(ctx) {
-        if (ctx.pos.ch <= 0 || ctx.token.start <= 0) {
-            //move up a line
-            if (ctx.pos.line <= 0) {
-                return false; //at the top already
-            }
-            ctx.pos.line--;
-            ctx.pos.ch = ctx.editor.getLine(ctx.pos.line).length;
-        } else {
-            ctx.pos.ch = ctx.token.start;
-        }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
-        return true;
-    }
-    
-    /**
-     * @private
-     * moves the current context forward by one token
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
-     * @return {boolean} whether the context changed
-     */
-    function _moveNextToken(ctx) {
-        var eol = ctx.editor.getLine(ctx.pos.line).length;
-        if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
-            //move down a line
-            if (ctx.pos.line >= ctx.editor.lineCount() - 1) {
-                return false; //at the bottom
-            }
-            ctx.pos.line++;
-            ctx.pos.ch = 0;
-        } else {
-            ctx.pos.ch = ctx.token.end + 1;
-        }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
-        return true;
-    }
-    
-   /**
-     * @private
-     * moves the current context in the given direction, skipping any whitespace it hits
-     * @param {function} moveFxn the funciton to move the context
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
-     * @return {boolean} whether the context changed
-     */
-    function _moveSkippingWhitespace(moveFxn, ctx) {
-        if (!moveFxn(ctx)) {
-            return false;
-        }
-        while (!ctx.token.className && ctx.token.string.trim().length === 0) {
-            if (!moveFxn(ctx)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-   /**
-     * @private
-     * creates a context object
-     * @param {CodeMirror} editor
-     * @param {{ch:{string}, line:{number}} pos
-     * @return {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}
-     */
-    function _getInitialContext(editor, pos) {
-        return {
-            "editor": editor,
-            "pos": pos,
-            "token": editor.getTokenAt(pos)
-        };
-    }
-    
-    /**
-     * @private
-     * in the given context, get the character offset of pos from the start of the token
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
-     * @return {number}
-     */
-    function _offsetInToken(ctx) {
-        var offset = ctx.pos.ch - ctx.token.start;
-        if (offset < 0) {
-            console.log("CodeHintUtils: _offsetInToken - Invalid context: the pos what not in the current token!");
-        }
-        return offset;
-    }
- 
    /**
      * @private
      * Sometimes as attr values are getting typed, if the quotes aren't balanced yet
@@ -136,7 +47,7 @@ define(function (require, exports, module) {
         var attrValue = ctx.token.string,
             startChar = attrValue.charAt(0),
             endChar = attrValue.charAt(attrValue.length - 1),
-            offset = _offsetInToken(ctx),
+            offset = TokenUtils.offsetInToken(ctx),
             foundEqualSign = false;
         
         //If this is a fully quoted value, return the whole
@@ -191,9 +102,11 @@ define(function (require, exports, module) {
      */
     function _extractTagName(ctx) {
         if (ctx.token.state.tagName) {
-            return ctx.token.state.tagName; //XML mode
+            return ctx.token.state.tagName;           //XML mode
         } else if (ctx.token.state.htmlState) {
             return ctx.token.state.htmlState.tagName; //HTML mode
+        } else if (ctx.token.state.html) {
+            return ctx.token.state.html.tagName;      //HTML mode for PHP files
         }
         // Some mixed modes that offer HTML as a nested mode don't actually expose the HTML state
         return null;
@@ -201,13 +114,16 @@ define(function (require, exports, module) {
     
     /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
-     * @param {string} tokenType what is getting edited and should be hinted
-     * @param {number} offset where the cursor is for the part getting hinted
-     * @param {string} tagName The name of the tag
-     * @param {string} attrName The name of the attribute
-     * @param {string} attrValue The value of the attribute
-     * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
-     *              A tagInfo object with some context about the current tag hint.            
+     * @param {string=} tokenType what is getting edited and should be hinted
+     * @param {number=} offset where the cursor is for the part getting hinted
+     * @param {string=} tagName The name of the tag
+     * @param {string=} attrName The name of the attribute
+     * @param {string=} attrValue The value of the attribute
+     * @return {{tagName:string,
+     *           attr:{name:string, value:string, valueAssigned:boolean, quoteChar:string, hasEndQuote:boolean},
+     *           position:{tokenType:string, offset:number}
+     *         }}
+     *         A tagInfo object with some context about the current tag hint.
      */
     function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned, quoteChar, hasEndQuote) {
         return { tagName: tagName || "",
@@ -251,12 +167,12 @@ define(function (require, exports, module) {
         }
         
         //Move to the prev token, and check if it's "="
-        if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.string !== "=") {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.string !== "=") {
             return createTagInfo();
         }
         
         //Move to the prev token, and check if it's an attribute
-        if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.className !== "attribute") {
             return createTagInfo();
         }
         
@@ -283,13 +199,21 @@ define(function (require, exports, module) {
         
         var tagName = _extractTagName(ctx);
         var attrName = ctx.token.string;
-        var offset = _offsetInToken(ctx);
+        var offset = TokenUtils.offsetInToken(ctx);
         
-        if (!_moveSkippingWhitespace(_moveNextToken, ctx) || ctx.token.string !== "=") {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) || ctx.token.string !== "=") {
+            // If we're checking for a prior attribute and the next token we get is a tag or an html comment or
+            // an undefined token class, then we've already scanned past our original cursor location. 
+            // So just return an empty tag info.
+            if (isPriorAttr &&
+                    (!ctx.token.className ||
+                    (ctx.token.className !== "attribute" && ctx.token.string.indexOf("<") !== -1))) {
+                return createTagInfo();
+            }
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         
-        if (!_moveSkippingWhitespace(_moveNextToken, ctx)) {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx)) {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
@@ -302,7 +226,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Figure out if we're in a tag, and if we are return info about what to hint about it
+     * Figure out if we're in a tag, and if we are return info about it
      * An example token stream for this tag is <span id="open-files-disclosure-arrow"></span> : 
      *      className:tag       string:"<span"
      *      className:          string:" "
@@ -312,17 +236,19 @@ define(function (require, exports, module) {
      *      className:tag       string:"></span>"
      * @param {Editor} editor An instance of a Brackets editor
      * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
-     * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
-     *              A tagInfo object with some context about the current tag hint.
+     * @return {{tagName:string,
+     *           attr:{name:string, value:string, valueAssigned:boolean, quoteChar:string, hasEndQuote:boolean},
+     *           position:{tokenType:string, offset:number}
+     *         }}
+     *         A tagInfo object with some context about the current tag hint.
      */
     function getTagInfo(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.	
-        // This is what pass by value in c++ would do.	
         var pos = $.extend({}, constPos),
-            ctx = _getInitialContext(editor._codeMirror, pos),
+            ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             tempCtx = null,
-            offset = _offsetInToken(ctx),
+            offset = TokenUtils.offsetInToken(ctx),
             tagInfo,
             tokenType;
         
@@ -366,15 +292,15 @@ define(function (require, exports, module) {
                 // use it to scan backwards if we don't find an equal sign here.
                 // Comment out this block to fix issue #1510.
 //                if (testToken.string.length > 0 && testToken.string.charAt(0) !== ">") {
-//                    tempCtx = _getInitialContext(editor._codeMirror, pos);
-//                    if (_moveSkippingWhitespace(_moveNextToken, tempCtx) && tempCtx.token.string === "=") {
+//                    tempCtx = TokenUtils.getInitialContext(editor._codeMirror, pos);
+//                    if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, tempCtx) && tempCtx.token.string === "=") {
 //                        // Return an empty tag info since we're between an atribute name and the equal sign.
 //                        return createTagInfo();
 //                    }
 //                }
 
                 // next, see what's before pos
-                if (!_movePrevToken(ctx)) {
+                if (!TokenUtils.movePrevToken(ctx)) {
                     return createTagInfo();
                 }
 
@@ -386,9 +312,11 @@ define(function (require, exports, module) {
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
 
                     // Check to see if this is the closing of a tag (either the start or end)
-                    if (ctx.token.className === "tag" &&
+                    // or a comment tag.
+                    if (ctx.token.className === "comment" ||
+                            (ctx.token.className === "tag" &&
                             (ctx.token.string === ">" || ctx.token.string === "/>" ||
-                            (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/"))) {
+                                (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")))) {
                         return createTagInfo();
                     }
                     
@@ -436,7 +364,7 @@ define(function (require, exports, module) {
         if (ctx.token.string === "=") {
             // We could be between the attr and the value
             // Step back and check
-            if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
+            if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.className !== "attribute") {
                 return createTagInfo();
             }
             
@@ -479,19 +407,21 @@ define(function (require, exports, module) {
      * Returns an Array of info about all <style> blocks in the given Editor's HTML document (assumes
      * the Editor contains HTML text).
      * @param {!Editor} editor
+     * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, text:string}>}
      */
     function findStyleBlocks(editor) {
         // Start scanning from beginning of file
-        var ctx = _getInitialContext(editor._codeMirror, {line: 0, ch: 0});
+        var ctx = TokenUtils.getInitialContext(editor._codeMirror, {line: 0, ch: 0});
         
         var styleBlocks = [];
         var currentStyleBlock = null;
         var inStyleBlock = false;
         
-        while (_moveNextToken(ctx)) {
+        while (TokenUtils.moveNextToken(ctx)) {
             if (inStyleBlock) {
                 // Check for end of this <style> block
                 if (ctx.token.state.mode !== "css") {
+                    // currentStyleBlock.end is already set to pos of the last CSS token by now
                     currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
                     inStyleBlock = false;
                 } else {

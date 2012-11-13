@@ -3,7 +3,20 @@
     width: 10px;
     height: 8px;
     margin-left: 4px;
-    background-image: url("down-arrow.png");
+    background-image: url("down-arrow.svg");
+}
+
+.trash-icon {
+	width: 16px;
+	height: 16px;
+	background-image: url("close_btn.svg");
+	position: absolute;
+}
+
+#project-dropdown-toggle {
+    height: 18px;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 #project-dropdown-toggle:hover {
@@ -23,7 +36,13 @@
     white-space: nowrap;
 }
 
-.recent-folder, #open-folder-link {
+#project-dropdown.dropdown-menu .recent-folder-link
+{
+	display: block;
+	padding: 5px 26px 5px 15px;
+}
+
+.recent-folder, #open-folder-link, #project-settings-link {
     color: #333;
 }
 

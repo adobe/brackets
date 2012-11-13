@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         EDIT_MENU       : "edit-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
-        DEBUG_MENU      : "debug-menu",
+        DEBUG_MENU      : "debug-menu",     // Note: not present in some configurations of Brackets (getMenu() will return null)
         HELP_MENU       : "help-menu"
     };
 
@@ -58,7 +58,8 @@ define(function (require, exports, module) {
     var ContextMenuIds = {
         EDITOR_MENU:        "editor-context-menu",
         INLINE_EDITOR_MENU: "inline-editor-context-menu",
-        PROJECT_MENU:       "project-context-menu"
+        PROJECT_MENU:       "project-context-menu",
+        WORKING_SET_MENU:   "working-set-context-menu"
     };
 
 
@@ -188,16 +189,6 @@ define(function (require, exports, module) {
         return binding;
     }
     
-    /** NOT IMPLEMENTED
-     * Removes MenuItem
-     * 
-     * TODO Question: for convenience should API provide a way to remove related
-     * keybindings and Command object?
-     */
-    // function removeMenuItem(id) {
-    //    NOT IMPLEMENTED
-    // }
-
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
@@ -389,6 +380,35 @@ define(function (require, exports, module) {
         
         return $relativeElement;
     };
+
+    /**
+     * Removes the specified menu item from this Menu. Key bindings are unaffected; use KeyBindingManager
+     * directly to remove key bindings if desired.
+     *
+     * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
+     */
+    Menu.prototype.removeMenuItem = function (command) {
+        var menuItemID;
+
+        if (!command) {
+            throw new Error("removeMenuItem(): missing required parameters: command");
+        }
+
+        if (typeof (command) === "string") {
+            var commandObj = CommandManager.get(command);
+            if (!commandObj) {
+                throw new Error("removeMenuItem(): command not found: " + command);
+            }
+
+            menuItemID = this._getMenuItemId(command);
+        } else {
+            menuItemID = this._getMenuItemId(command.getID());
+        }
+
+        // Targeting parent to get the menu item <a> and the <li> that contains it
+        $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        delete menuItemMap[menuItemID];
+    };
     
     /**
      * Adds a new menu item with the specified id and display text. The insertion position is
@@ -407,11 +427,13 @@ define(function (require, exports, module) {
      *      Pass Menus.DIVIDER for a menu divider, or just call addMenuDivider() instead.
      * @param {?string | Array.<{key: string, platform: string}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
-     * @param {?string} position - constant defining the position of new the MenuItem relative
-     *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
-     * @param {?string} relativeID - id of command or menu section (future: sub-menu) that 
-     *      the new menuItem will be positioned relative to. Required for all position constants
-     *      except FIRST and LAST.
+     * @param {?string} position - constant defining the position of new MenuItem relative to
+     *      other MenuItems. Values:
+     *          - With no relativeID, use Menus.FIRST or LAST (default is LAST)
+     *          - Relative to a command id, use BEFORE or AFTER (required)
+     *          - Relative to a MenuSection, use FIRST_IN_SECTION or LAST_IN_SECTION (required)
+     * @param {?string} relativeID - command id OR one of the MenuSection.* constants. Required
+     *      for all position constants except FIRST and LAST.
      *
      * @return {MenuItem} the newly created MenuItem
      */
@@ -848,14 +870,17 @@ define(function (require, exports, module) {
         var menu;
         menu = addMenu(Strings.FILE_MENU, AppMenuBar.FILE_MENU);
         menu.addMenuItem(Commands.FILE_NEW,                 "Ctrl-N");
+        menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN,                "Ctrl-O");
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
+        menu.addMenuItem(Commands.FILE_CLOSE_ALL,           "Ctrl-Shift-W");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
         menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
+        menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_QUIT,                "Ctrl-Q");
 
@@ -864,6 +889,8 @@ define(function (require, exports, module) {
          */
         menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
         menu.addMenuItem(Commands.EDIT_SELECT_ALL,          "Ctrl-A");
+        menu.addMenuItem(Commands.EDIT_SELECT_LINE,         [{key: "Ctrl-L", platform: "win"},
+                                                             {key: "Ctrl-L", platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_FIND,                "Ctrl-F");
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES,       "Ctrl-Shift-F");
@@ -877,21 +904,21 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_REPLACE,             [{key: "Ctrl-H",     platform: "win"},
                                                              {key: "Cmd-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
-        menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
-        menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
-        menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
-                                                          platform: "win"},
-                                                         {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
-                                                          platform: "mac"}]);
-        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2193",
-                                                          platform: "win"},
-                                                         {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
-                                                          platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_INDENT,              [{key: "Indent", displayKey: "Tab"}]);
+        menu.addMenuItem(Commands.EDIT_UNINDENT,            [{key: "Unindent", displayKey: "Shift-Tab"}]);
+        menu.addMenuItem(Commands.EDIT_DUPLICATE,           "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_DELETE_LINES,        "Ctrl-Shift-D");
+        menu.addMenuItem(Commands.EDIT_LINE_UP,             [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
+                                                              platform: "win"},
+                                                             {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
+                                                              platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_LINE_DOWN,           [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2193",
+                                                              platform: "win"},
+                                                             {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
+                                                              platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_USE_TAB_CHARS);
+        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,        "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT,       "Ctrl-Shift-/");
 
         /*
          * View menu
@@ -899,9 +926,10 @@ define(function (require, exports, module) {
         menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR,        "Ctrl-Shift-H");
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
-        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
-        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
+        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE,  [{key: "Ctrl-=", displayKey: "Ctrl-+"},
+                                                             {key: "Ctrl-+", displayKey: "Ctrl-+"}]);
+        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE,  [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
+        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE,   "Ctrl-0");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_JSLINT);
 
@@ -914,6 +942,13 @@ define(function (require, exports, module) {
                                                              {key: "Cmd-L", platform: "mac"}]);
 
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION, "Ctrl-T");
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC,        [{key: "Ctrl-Tab", platform: "win"},
+                                                             {key: "Ctrl-Tab", platform: "mac"}]);
+        menu.addMenuItem(Commands.NAVIGATE_PREV_DOC,        [{key: "Ctrl-Shift-Tab", platform: "win"},
+                                                             {key: "Ctrl-Shift-Tab", platform: "mac"}]);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});
@@ -957,6 +992,20 @@ define(function (require, exports, module) {
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
+        project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
+        project_cmenu.addMenuItem(Commands.FILE_RENAME, "F2");
+
+        var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
+        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
+        working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
+        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        working_set_cmenu.addMenuDivider();
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
+        working_set_cmenu.addMenuDivider();
+        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
@@ -1008,12 +1057,14 @@ define(function (require, exports, module) {
         });
 
         /**
-         * Context menu for folder tree & working set list
-         *
-         * TODO (#1069): change selection on right mousedown if not on something already selected
+         * Context menus for folder tree & working set list
          */
-        $("#projects").on("contextmenu", function (e) {
+        $("#project-files-container").on("contextmenu", function (e) {
             project_cmenu.open(e);
+        });
+
+        $("#open-files-container").on("contextmenu", function (e) {
+            working_set_cmenu.open(e);
         });
 
         // Prevent the browser context menu since Brackets creates a custom context menu

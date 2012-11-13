@@ -63,25 +63,22 @@ define({
     "ERROR_MAX_FILES_TITLE" : "Feil ved indeksering av filer",
     "ERROR_MAX_FILES" : "Maksimalt antall filer har blitt indeksert. Handlinger som slår opp filer i indeksen kan feile.",
 
-    // CSSManager error strings
-    "ERROR_PARSE_TITLE" : "Feil ved analysering av fil(er):",
-
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE" : "Feil ved åpning av nettleser",
     "ERROR_CANT_FIND_CHROME" : "Nettleseren Google Chrome ble ikke funnet. Vennligst sørg for at den er installert.",
     "ERROR_LAUNCHING_BROWSER" : "En feil skjedde ved åpning av Nettleseren. (feil {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE" : "Live Preview feil",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Kobler til nettleser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En Live Development kobling til Chrome kunne ikke bli etablert. For at Live Development skal fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
-    "LIVE_DEV_NEED_HTML_MESSAGE" : "Åpne en HTML-fil for å åpne live forhåndsvisning.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Velkommen til Live Preview!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Ptrview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE" : "Kobler til nettleser",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En Live Preview kobling til Chrome kunne ikke bli etablert. For at Live Preview skal fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
+    "LIVE_DEV_NEED_HTML_MESSAGE" : "Åpne en HTML-fil for å åpne live Preview.",
+    "LIVE_DEVELOPMENT_INFO_TITLE" : "Velkommen til Live Preview!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE" : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Preview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
 
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live File forhåndsvisning",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live File forhåndsvisning: Kobler...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live File forhåndsvisning: Initaliserer...",
-    "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live File forhåndsvisning",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live Preview: Kobler til...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live Preview: Initaliserer...",
+    "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live Preview",
 
     "SAVE_CLOSE_TITLE" : "Lagre endringer",
     "SAVE_CLOSE_MESSAGE" : "Ønsker du å lagre enderinger i dokumentet <span class='dialog-filename'>{0}</span>?",
@@ -129,6 +126,14 @@ define({
     "UNTITLED" : "Uten Tittel",
 
     /**
+     * Keyboard modifier names
+     */
+
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SPACE"  : "Space",
+
+    /**
      * Command Name Constants
      */
 
@@ -142,7 +147,7 @@ define({
     "CMD_FILE_CLOSE_ALL" : "Lukk alle",
     "CMD_FILE_SAVE" : "Lagre",
     "CMD_FILE_SAVE_ALL" : "Lagre alle",
-    "CMD_LIVE_FILE_PREVIEW" : "Live File forhåndsvisning",
+    "CMD_LIVE_FILE_PREVIEW" : "Live Preview",
     "CMD_QUIT" : "Avslutt",
 
     // Edit menu commands
@@ -194,7 +199,7 @@ define({
 
     // Help menu commands
     "HELP_MENU" : "Hjelp",
-    "CMD_ABOUT" : "Om",
+    "CMD_ABOUT" : "Om {APP_TITLE}",
     "CMD_FORUM" : "{APP_NAME} forum",
 
     // Special commands invoked by the native shell
@@ -216,9 +221,9 @@ define({
     "ABOUT" : "About",
     "APP_NAME" : "Brackets",
     "CLOSE" : "Lukk",
-    "ABOUT_TEXT_LINE1" : "sprint 14 experimental build ",
-    "ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE4" : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "ABOUT_TEXT_LINE1" : "sprint {VERSION_MINOR} experimental build {VERSION}",
+    "ABOUT_TEXT_LINE3" : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4" : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for {APP_NAME} er tilgjengelig! Klikk her for mer informasjon.",
     "UPDATE_AVAILABLE_TITLE" : "Oppdatering er tilgjengelig",
     "UPDATE_MESSAGE" : "Hei, en ny bygg for {APP_NAME} er tilgjengelig. Her er noen av de nye funksjonene:",

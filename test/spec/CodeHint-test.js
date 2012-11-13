@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     var HTMLUtils       = require("language/HTMLUtils"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Editor          = require("editor/Editor").Editor,
+        KeyEvent        = require("utils/KeyEvent"),
         EditorManager,      // loaded from brackets.test
         CodeHintManager;
 
@@ -103,7 +104,7 @@ define(function (require, exports, module) {
                 // simulate Ctrl+space keystroke to invoke code hints menu
                 runs(function () {
                     var e = $.Event("keydown");
-                    e.keyCode = 32;      // spacebar key
+                    e.keyCode = KeyEvent.DOM_VK_SPACE;      // spacebar key
                     e.ctrlKey = true;
 
                     editor = EditorManager.getCurrentFullEditor();

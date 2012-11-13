@@ -56,6 +56,7 @@ footer p {text-align: center; margin: 0;}
 <ul class="dropdown-menu">
 <li><a href='#ApplicationCache'>ApplicationCache</a></li>
 <li><a href='#CSS'>CSS</a></li>
+<li><a href='#Canvas'>Canvas</a></li>
 <li><a href='#Console'>Console</a></li>
 <li><a href='#DOM'>DOM</a></li>
 <li><a href='#DOMDebugger'>DOMDebugger</a></li>
@@ -71,7 +72,6 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Profiler'>Profiler</a></li>
 <li><a href='#Runtime'>Runtime</a></li>
 <li><a href='#Timeline'>Timeline</a></li>
-<li><a href='#WebGL'>WebGL</a></li>
 <li><a href='#Worker'>Worker</a></li>
 </ul>
 </li>
@@ -108,8 +108,10 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#CSS.CSSStyleId'>CSS.CSSStyleId</a>: This object identifies a CSS style in a unique way.</li>
 <li><a href='#CSS.StyleSheetOrigin'>CSS.StyleSheetOrigin</a>: Stylesheet type: "user" for user stylesheets, "user-agent" for user-agent stylesheets, "inspector" for stylesheets created by the inspector (i.e. those holding the "via inspector" rules), "regular" for regular stylesheets.</li>
 <li><a href='#CSS.CSSRuleId'>CSS.CSSRuleId</a>: This object identifies a CSS rule in a unique way.</li>
-<li><a href='#CSS.PseudoIdRules'>CSS.PseudoIdRules</a>: CSS rule collection for a single pseudo style.</li>
+<li><a href='#CSS.PseudoIdMatches'>CSS.PseudoIdMatches</a>: CSS rule collection for a single pseudo style.</li>
 <li><a href='#CSS.InheritedStyleEntry'>CSS.InheritedStyleEntry</a>: CSS rule collection for a single pseudo style.</li>
+<li><a href='#CSS.RuleMatch'>CSS.RuleMatch</a>: Match data for a CSS rule.</li>
+<li><a href='#CSS.SelectorList'>CSS.SelectorList</a>: Selector list data.</li>
 <li><a href='#CSS.CSSStyleAttribute'>CSS.CSSStyleAttribute</a>: CSS style information for a DOM style attribute.</li>
 <li><a href='#CSS.CSSStyleSheetHeader'>CSS.CSSStyleSheetHeader</a>: CSS stylesheet metainformation.</li>
 <li><a href='#CSS.CSSStyleSheetBody'>CSS.CSSStyleSheetBody</a>: CSS stylesheet contents.</li>
@@ -146,7 +148,6 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#CSS.startSelectorProfiler'>CSS.startSelectorProfiler</a></li>
 <li><a href='#CSS.stopSelectorProfiler'>CSS.stopSelectorProfiler</a></li>
 <li><a href='#CSS.getNamedFlowCollection'>CSS.getNamedFlowCollection</a>: Returns the Named Flows from the document.</li>
-<li><a href='#CSS.getFlowByName'>CSS.getFlowByName</a>: Returns the Named Flow identified by the given name</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -154,6 +155,23 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#CSS.styleSheetChanged'>CSS.styleSheetChanged</a>: Fired whenever a stylesheet is changed as a result of the client operation.</li>
 <li><a href='#CSS.namedFlowCreated'>CSS.namedFlowCreated</a>: Fires when a Named Flow is created.</li>
 <li><a href='#CSS.namedFlowRemoved'>CSS.namedFlowRemoved</a>: Fires when a Named Flow is removed: has no associated content nodes and regions.</li>
+<li><a href='#CSS.regionLayoutUpdated'>CSS.regionLayoutUpdated</a>: Fires when a Named Flow's layout may have changed.</li>
+</ul>
+<h3><a href="#Canvas">Canvas</a></h3>
+<span class='label'>Type</span>
+<ul>
+<li><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a>: Unique object identifier.</li>
+<li><a href='#Canvas.Call'>Canvas.Call</a></li>
+<li><a href='#Canvas.TraceLog'>Canvas.TraceLog</a></li>
+</ul>
+<span class='label label-success'>Command</span>
+<ul>
+<li><a href='#Canvas.enable'>Canvas.enable</a>: Enables Canvas inspection.</li>
+<li><a href='#Canvas.disable'>Canvas.disable</a>: Disables Canvas inspection.</li>
+<li><a href='#Canvas.dropTraceLog'>Canvas.dropTraceLog</a></li>
+<li><a href='#Canvas.captureFrame'>Canvas.captureFrame</a></li>
+<li><a href='#Canvas.getTraceLog'>Canvas.getTraceLog</a></li>
+<li><a href='#Canvas.replayTraceLog'>Canvas.replayTraceLog</a></li>
 </ul>
 <h3><a href="#Console">Console</a></h3>
 <span class='label'>Type</span>
@@ -285,8 +303,6 @@ footer p {text-align: center; margin: 0;}
 <span class='label label-info'>Event</span>
 <ul>
 <li><a href='#Database.addDatabase'>Database.addDatabase</a></li>
-<li><a href='#Database.sqlTransactionSucceeded'>Database.sqlTransactionSucceeded</a></li>
-<li><a href='#Database.sqlTransactionFailed'>Database.sqlTransactionFailed</a></li>
 </ul>
 <h3><a href="#Debugger">Debugger</a></h3>
 <span class='label'>Type</span>
@@ -339,7 +355,6 @@ footer p {text-align: center; margin: 0;}
 <h3><a href="#FileSystem">FileSystem</a></h3>
 <span class='label'>Type</span>
 <ul>
-<li><a href='#FileSystem.RequestId'>FileSystem.RequestId</a>: Request Identifier to glue a request and its completion event.</li>
 <li><a href='#FileSystem.Entry'>FileSystem.Entry</a>: Represents a browser side file or directory.</li>
 <li><a href='#FileSystem.Metadata'>FileSystem.Metadata</a>: Represents metadata of a file or entry.</li>
 </ul>
@@ -347,17 +362,11 @@ footer p {text-align: center; margin: 0;}
 <ul>
 <li><a href='#FileSystem.enable'>FileSystem.enable</a>: Enables events from backend.</li>
 <li><a href='#FileSystem.disable'>FileSystem.disable</a>: Disables events from backend.</li>
-<li><a href='#FileSystem.requestFileSystemRoot'>FileSystem.requestFileSystemRoot</a>: Returns root directory of the FileSystem as fileSystemRootReceived event, if exists.</li>
-<li><a href='#FileSystem.requestDirectoryContent'>FileSystem.requestDirectoryContent</a>: Returns content of the directory as directoryContentReceived event.</li>
-<li><a href='#FileSystem.requestMetadata'>FileSystem.requestMetadata</a>: Returns metadata of the entry as metadataReceived event.</li>
-<li><a href='#FileSystem.requestFileContent'>FileSystem.requestFileContent</a>: Returns content of the file as fileContentReceived event. Result should be sliced into [start, end).</li>
-</ul>
-<span class='label label-info'>Event</span>
-<ul>
-<li><a href='#FileSystem.fileSystemRootReceived'>FileSystem.fileSystemRootReceived</a>: Completion event of requestFileSystemRoot command.</li>
-<li><a href='#FileSystem.directoryContentReceived'>FileSystem.directoryContentReceived</a>: Completion event of requestDirectoryContent command.</li>
-<li><a href='#FileSystem.metadataReceived'>FileSystem.metadataReceived</a>: Completion event of requestMetadata command.</li>
-<li><a href='#FileSystem.fileContentReceived'>FileSystem.fileContentReceived</a>: Completion event of requestFileContent command.</li>
+<li><a href='#FileSystem.requestFileSystemRoot'>FileSystem.requestFileSystemRoot</a>: Returns root directory of the FileSystem, if exists.</li>
+<li><a href='#FileSystem.requestDirectoryContent'>FileSystem.requestDirectoryContent</a>: Returns content of the directory.</li>
+<li><a href='#FileSystem.requestMetadata'>FileSystem.requestMetadata</a>: Returns metadata of the entry.</li>
+<li><a href='#FileSystem.requestFileContent'>FileSystem.requestFileContent</a>: Returns content of the file. Result should be sliced into [start, end).</li>
+<li><a href='#FileSystem.deleteEntry'>FileSystem.deleteEntry</a>: Deletes specified entry. If the entry is a directory, the agent deletes children recursively.</li>
 </ul>
 <h3><a href="#IndexedDB">IndexedDB</a></h3>
 <span class='label'>Type</span>
@@ -379,13 +388,6 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#IndexedDB.requestDatabase'>IndexedDB.requestDatabase</a>: Requests database with given name in given frame.</li>
 <li><a href='#IndexedDB.requestData'>IndexedDB.requestData</a>: Requests data from object store or index.</li>
 </ul>
-<span class='label label-info'>Event</span>
-<ul>
-<li><a href='#IndexedDB.databaseNamesLoaded'>IndexedDB.databaseNamesLoaded</a></li>
-<li><a href='#IndexedDB.databaseLoaded'>IndexedDB.databaseLoaded</a></li>
-<li><a href='#IndexedDB.objectStoreDataLoaded'>IndexedDB.objectStoreDataLoaded</a></li>
-<li><a href='#IndexedDB.indexDataLoaded'>IndexedDB.indexDataLoaded</a></li>
-</ul>
 <h3><a href="#Inspector">Inspector</a></h3>
 <span class='label label-success'>Command</span>
 <ul>
@@ -396,6 +398,7 @@ footer p {text-align: center; margin: 0;}
 <ul>
 <li><a href='#Inspector.evaluateForTestInFrontend'>Inspector.evaluateForTestInFrontend</a></li>
 <li><a href='#Inspector.inspect'>Inspector.inspect</a></li>
+<li><a href='#Inspector.detached'>Inspector.detached</a>: Fired when remote debugging connection is about to be terminated. Contains detach reason.</li>
 </ul>
 <h3><a href="#Memory">Memory</a></h3>
 <span class='label'>Type</span>
@@ -435,6 +438,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Network.setUserAgentOverride'>Network.setUserAgentOverride</a>: Allows overriding user agent with the given string.</li>
 <li><a href='#Network.setExtraHTTPHeaders'>Network.setExtraHTTPHeaders</a>: Specifies whether to always send extra HTTP headers with the requests from this page.</li>
 <li><a href='#Network.getResponseBody'>Network.getResponseBody</a>: Returns content served for the given request.</li>
+<li><a href='#Network.replayXHR'>Network.replayXHR</a>: This method sends a new XMLHttpRequest which is identical to the original one. The following parameters should be identical: method, url, async, request body, extra headers, withCredentials attribute, user, password.</li>
 <li><a href='#Network.canClearBrowserCache'>Network.canClearBrowserCache</a>: Tells whether clearing browser cache is supported.</li>
 <li><a href='#Network.clearBrowserCache'>Network.clearBrowserCache</a>: Clears browser cache.</li>
 <li><a href='#Network.canClearBrowserCookies'>Network.canClearBrowserCookies</a>: Tells whether clearing browser cookies is supported.</li>
@@ -496,6 +500,8 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Page.clearDeviceOrientationOverride'>Page.clearDeviceOrientationOverride</a>: Clears the overridden Device Orientation.</li>
 <li><a href='#Page.canOverrideDeviceOrientation'>Page.canOverrideDeviceOrientation</a>: Check the backend if Web Inspector can override the device orientation.</li>
 <li><a href='#Page.setTouchEmulationEnabled'>Page.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
+<li><a href='#Page.getCompositingBordersVisible'>Page.getCompositingBordersVisible</a>: Indicates the visibility of compositing borders.</li>
+<li><a href='#Page.setCompositingBordersVisible'>Page.setCompositingBordersVisible</a>: Controls the visibility of compositing borders.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -546,6 +552,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Runtime.ObjectPreview'>Runtime.ObjectPreview</a>: Object containing abbreviated remote object value.</li>
 <li><a href='#Runtime.PropertyPreview'>Runtime.PropertyPreview</a></li>
 <li><a href='#Runtime.PropertyDescriptor'>Runtime.PropertyDescriptor</a>: Object property descriptor.</li>
+<li><a href='#Runtime.InternalPropertyDescriptor'>Runtime.InternalPropertyDescriptor</a>: Object internal property descriptor. This property isn't normally visible in JavaScript code.</li>
 <li><a href='#Runtime.CallArgument'>Runtime.CallArgument</a>: Represents function call argument. Either remote object id objectId or primitive value or neither of (for undefined) them should be specified.</li>
 <li><a href='#Runtime.ExecutionContextId'>Runtime.ExecutionContextId</a>: Id of an execution context.</li>
 <li><a href='#Runtime.ExecutionContextDescription'>Runtime.ExecutionContextDescription</a>: Description of an isolated world.</li>
@@ -558,11 +565,12 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Runtime.releaseObject'>Runtime.releaseObject</a>: Releases remote object with given id.</li>
 <li><a href='#Runtime.releaseObjectGroup'>Runtime.releaseObjectGroup</a>: Releases all remote objects that belong to a given group.</li>
 <li><a href='#Runtime.run'>Runtime.run</a>: Tells inspected instance(worker or page) that it can run in case it was started paused.</li>
-<li><a href='#Runtime.setReportExecutionContextCreation'>Runtime.setReportExecutionContextCreation</a>: Enables reporting about creation of isolated contexts by means of isolatedContextCreated event. When the reporting gets enabled the event will be sent immediately for each existing isolated context.</li>
+<li><a href='#Runtime.enable'>Runtime.enable</a>: Enables reporting of execution contexts creation by means of executionContextCreated event. When the reporting gets enabled the event will be sent immediately for each existing execution context.</li>
+<li><a href='#Runtime.disable'>Runtime.disable</a>: Disables reporting of execution contexts creation.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
-<li><a href='#Runtime.isolatedContextCreated'>Runtime.isolatedContextCreated</a>: Issued when new isolated context is created.</li>
+<li><a href='#Runtime.executionContextCreated'>Runtime.executionContextCreated</a>: Issued when new execution context is created.</li>
 </ul>
 <h3><a href="#Timeline">Timeline</a></h3>
 <span class='label'>Type</span>
@@ -575,16 +583,11 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Timeline.stop'>Timeline.stop</a>: Stops capturing instrumentation events.</li>
 <li><a href='#Timeline.setIncludeMemoryDetails'>Timeline.setIncludeMemoryDetails</a>: Starts calculating various DOM statistics and sending them as part of timeline events.</li>
 <li><a href='#Timeline.supportsFrameInstrumentation'>Timeline.supportsFrameInstrumentation</a>: Tells whether timeline agent supports frame instrumentation.</li>
+<li><a href='#Timeline.canMonitorMainThread'>Timeline.canMonitorMainThread</a>: Tells whether timeline agent supports main thread CPU utilization instrumentation.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
 <li><a href='#Timeline.eventRecorded'>Timeline.eventRecorded</a>: Fired for every instrumentation event while timeline is started.</li>
-</ul>
-<h3><a href="#WebGL">WebGL</a></h3>
-<span class='label label-success'>Command</span>
-<ul>
-<li><a href='#WebGL.enable'>WebGL.enable</a>: Enables WebGL inspection.</li>
-<li><a href='#WebGL.disable'>WebGL.disable</a>: Disables WebGL inspection.</li>
 </ul>
 <h3><a href="#Worker">Worker</a></h3>
 <span class='label label-success'>Command</span>
@@ -772,8 +775,10 @@ function onNetworkStateUpdated(res) {
 <li><a href='#CSS.CSSStyleId'>CSS.CSSStyleId</a>: This object identifies a CSS style in a unique way.</li>
 <li><a href='#CSS.StyleSheetOrigin'>CSS.StyleSheetOrigin</a>: Stylesheet type: "user" for user stylesheets, "user-agent" for user-agent stylesheets, "inspector" for stylesheets created by the inspector (i.e. those holding the "via inspector" rules), "regular" for regular stylesheets.</li>
 <li><a href='#CSS.CSSRuleId'>CSS.CSSRuleId</a>: This object identifies a CSS rule in a unique way.</li>
-<li><a href='#CSS.PseudoIdRules'>CSS.PseudoIdRules</a>: CSS rule collection for a single pseudo style.</li>
+<li><a href='#CSS.PseudoIdMatches'>CSS.PseudoIdMatches</a>: CSS rule collection for a single pseudo style.</li>
 <li><a href='#CSS.InheritedStyleEntry'>CSS.InheritedStyleEntry</a>: CSS rule collection for a single pseudo style.</li>
+<li><a href='#CSS.RuleMatch'>CSS.RuleMatch</a>: Match data for a CSS rule.</li>
+<li><a href='#CSS.SelectorList'>CSS.SelectorList</a>: Selector list data.</li>
 <li><a href='#CSS.CSSStyleAttribute'>CSS.CSSStyleAttribute</a>: CSS style information for a DOM style attribute.</li>
 <li><a href='#CSS.CSSStyleSheetHeader'>CSS.CSSStyleSheetHeader</a>: CSS stylesheet metainformation.</li>
 <li><a href='#CSS.CSSStyleSheetBody'>CSS.CSSStyleSheetBody</a>: CSS stylesheet contents.</li>
@@ -810,7 +815,6 @@ function onNetworkStateUpdated(res) {
 <li><a href='#CSS.startSelectorProfiler'>CSS.startSelectorProfiler</a></li>
 <li><a href='#CSS.stopSelectorProfiler'>CSS.stopSelectorProfiler</a></li>
 <li><a href='#CSS.getNamedFlowCollection'>CSS.getNamedFlowCollection</a>: Returns the Named Flows from the document.</li>
-<li><a href='#CSS.getFlowByName'>CSS.getFlowByName</a>: Returns the Named Flow identified by the given name</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -818,6 +822,7 @@ function onNetworkStateUpdated(res) {
 <li><a href='#CSS.styleSheetChanged'>CSS.styleSheetChanged</a>: Fired whenever a stylesheet is changed as a result of the client operation.</li>
 <li><a href='#CSS.namedFlowCreated'>CSS.namedFlowCreated</a>: Fires when a Named Flow is created.</li>
 <li><a href='#CSS.namedFlowRemoved'>CSS.namedFlowRemoved</a>: Fires when a Named Flow is removed: has no associated content nodes and regions.</li>
+<li><a href='#CSS.regionLayoutUpdated'>CSS.regionLayoutUpdated</a>: Fires when a Named Flow's layout may have changed.</li>
 </ul>
 <div id='CSS_StyleSheetId' class='type'>
 <h3>CSS.StyleSheetId <span class='label'>Type</span></h3>
@@ -852,14 +857,14 @@ function onNetworkStateUpdated(res) {
 <dd>Integer <span class='text'>The rule ordinal within the stylesheet.</span></dd>
 </dl>
 </div>
-<div id='CSS_PseudoIdRules' class='type'>
-<h3>CSS.PseudoIdRules <span class='label'>Type</span></h3>
+<div id='CSS_PseudoIdMatches' class='type'>
+<h3>CSS.PseudoIdMatches <span class='label'>Type</span></h3>
 <p>CSS rule collection for a single pseudo style.</p>
 <dl>
 <dt>pseudoId</dt>
 <dd>Integer <span class='text'>Pseudo style identifier (see <code>enum PseudoId</code> in <code>RenderStyleConstants.h</code>).</span></dd>
-<dt>rules</dt>
-<dd>[<a href='#CSS.CSSRule'>CSS.CSSRule</a>] <span class='text'>CSS rules applicable to the pseudo style.</span></dd>
+<dt>matches</dt>
+<dd>[<a href='#CSS.RuleMatch'>CSS.RuleMatch</a>] <span class='text'>Matches of CSS rules applicable to the pseudo style.</span></dd>
 </dl>
 </div>
 <div id='CSS_InheritedStyleEntry' class='type'>
@@ -869,7 +874,29 @@ function onNetworkStateUpdated(res) {
 <dt>inlineStyle (optional)</dt>
 <dd><a href='#CSS.CSSStyle'>CSS.CSSStyle</a> <span class='text'>The ancestor node's inline style, if any, in the style inheritance chain.</span></dd>
 <dt>matchedCSSRules</dt>
-<dd>[<a href='#CSS.CSSRule'>CSS.CSSRule</a>] <span class='text'>CSS rules matching the ancestor node in the style inheritance chain.</span></dd>
+<dd>[<a href='#CSS.RuleMatch'>CSS.RuleMatch</a>] <span class='text'>Matches of CSS rules matching the ancestor node in the style inheritance chain.</span></dd>
+</dl>
+</div>
+<div id='CSS_RuleMatch' class='type'>
+<h3>CSS.RuleMatch <span class='label'>Type</span></h3>
+<p>Match data for a CSS rule.</p>
+<dl>
+<dt>rule</dt>
+<dd><a href='#CSS.CSSRule'>CSS.CSSRule</a> <span class='text'>CSS rule in the match.</span></dd>
+<dt>matchingSelectors</dt>
+<dd>[Integer] <span class='text'>Matching selector indices in the rule's selectorList selectors (0-based).</span></dd>
+</dl>
+</div>
+<div id='CSS_SelectorList' class='type'>
+<h3>CSS.SelectorList <span class='label'>Type</span></h3>
+<p>Selector list data.</p>
+<dl>
+<dt>selectors</dt>
+<dd>[String] <span class='text'>Selectors in the list.</span></dd>
+<dt>text</dt>
+<dd>String <span class='text'>Rule selector text.</span></dd>
+<dt>range (optional)</dt>
+<dd><a href='#CSS.SourceRange'>CSS.SourceRange</a> <span class='text'>Rule selector range in the underlying resource (if available).</span></dd>
 </dl>
 </div>
 <div id='CSS_CSSStyleAttribute' class='type'>
@@ -918,8 +945,8 @@ function onNetworkStateUpdated(res) {
 <dl>
 <dt>ruleId (optional)</dt>
 <dd><a href='#CSS.CSSRuleId'>CSS.CSSRuleId</a> <span class='text'>The CSS rule identifier (absent for user agent stylesheet and user-specified stylesheet rules).</span></dd>
-<dt>selectorText</dt>
-<dd>String <span class='text'>Rule selector.</span></dd>
+<dt>selectorList</dt>
+<dd><a href='#CSS.SelectorList'>CSS.SelectorList</a> <span class='text'>Rule selector data.</span></dd>
 <dt>sourceURL (optional)</dt>
 <dd>String <span class='text'>Parent stylesheet resource URL (for regular rules).</span></dd>
 <dt>sourceLine</dt>
@@ -928,8 +955,6 @@ function onNetworkStateUpdated(res) {
 <dd><a href='#CSS.StyleSheetOrigin'>CSS.StyleSheetOrigin</a> <span class='text'>Parent stylesheet's origin.</span></dd>
 <dt>style</dt>
 <dd><a href='#CSS.CSSStyle'>CSS.CSSStyle</a> <span class='text'>Associated style declaration.</span></dd>
-<dt>selectorRange (optional)</dt>
-<dd><a href='#CSS.SourceRange'>CSS.SourceRange</a> <span class='text'>The rule selector range in the underlying resource (if available).</span></dd>
 <dt>media (optional)</dt>
 <dd>[<a href='#CSS.CSSMedia'>CSS.CSSMedia</a>] <span class='text'>Media list array (for rules involving media queries). The array enumerates media queries starting with the innermost one, going outwards.</span></dd>
 </dl>
@@ -946,6 +971,12 @@ function onNetworkStateUpdated(res) {
 </div>
 <div id='CSS_ShorthandEntry' class='type'>
 <h3>CSS.ShorthandEntry <span class='label'>Type</span></h3>
+<dl>
+<dt>name</dt>
+<dd>String <span class='text'>Shorthand name.</span></dd>
+<dt>value</dt>
+<dd>String <span class='text'>Shorthand value.</span></dd>
+</dl>
 </div>
 <div id='CSS_CSSPropertyInfo' class='type'>
 <h3>CSS.CSSPropertyInfo <span class='label'>Type</span></h3>
@@ -1106,9 +1137,9 @@ CSS.disable();
 <h4>Callback Parameters:</h4>
 <dl>
 <dt>matchedCSSRules (optional)</dt>
-<dd>[<a href='#CSS.CSSRule'>CSS.CSSRule</a>] <span class='text'>CSS rules matching this node, from all applicable stylesheets.</span></dd>
+<dd>[<a href='#CSS.RuleMatch'>CSS.RuleMatch</a>] <span class='text'>CSS rules matching this node, from all applicable stylesheets.</span></dd>
 <dt>pseudoElements (optional)</dt>
-<dd>[<a href='#CSS.PseudoIdRules'>CSS.PseudoIdRules</a>] <span class='text'>Pseudo style rules for this node.</span></dd>
+<dd>[<a href='#CSS.PseudoIdMatches'>CSS.PseudoIdMatches</a>] <span class='text'>Pseudo style matches for this node.</span></dd>
 <dt>inherited (optional)</dt>
 <dd>[<a href='#CSS.InheritedStyleEntry'>CSS.InheritedStyleEntry</a>] <span class='text'>A chain of inherited styles (from the immediate node parent up to the DOM tree root).</span></dd>
 </dl>
@@ -1401,28 +1432,6 @@ CSS.getNamedFlowCollection(documentNodeId, function callback(res) {
 });
 </pre>
 </div>
-<div id='CSS_getFlowByName' class='command'>
-<h3>CSS.getFlowByName <span class='label label-success'>Command</span></h3>
-<p>Returns the Named Flow identified by the given name</p>
-<dl>
-<dt>documentNodeId</dt>
-<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id.</span></dd>
-<dt>name</dt>
-<dd>String <span class='text'>Named Flow identifier.</span></dd>
-</dl>
-<h4>Callback Parameters:</h4>
-<dl>
-<dt>namedFlow</dt>
-<dd><a href='#CSS.NamedFlow'>CSS.NamedFlow</a> <span class='text'>A Named Flow.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Command: CSS.getFlowByName
-CSS.getFlowByName(documentNodeId, name, function callback(res) {
-	// res = {namedFlow}
-});
-</pre>
-</div>
 <div id='CSS_mediaQueryResultChanged' class='command'>
 <h3>CSS.mediaQueryResultChanged <span class='label label-info'>Event</span></h3>
 <p>Fires whenever a MediaQuery result changes (for example, after a browser window has been resized.) The current implementation considers only viewport-dependent media features.</p>
@@ -1453,16 +1462,14 @@ function onStyleSheetChanged(res) {
 <h3>CSS.namedFlowCreated <span class='label label-info'>Event</span></h3>
 <p>Fires when a Named Flow is created.</p>
 <dl>
-<dt>documentNodeId</dt>
-<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id.</span></dd>
 <dt>namedFlow</dt>
-<dd>String <span class='text'>Identifier of the new Named Flow.</span></dd>
+<dd><a href='#CSS.NamedFlow'>CSS.NamedFlow</a> <span class='text'>The new Named Flow.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Event: CSS.namedFlowCreated
 function onNamedFlowCreated(res) {
-	// res = {documentNodeId, namedFlow}
+	// res = {namedFlow}
 }
 </pre>
 </div>
@@ -1472,15 +1479,171 @@ function onNamedFlowCreated(res) {
 <dl>
 <dt>documentNodeId</dt>
 <dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id.</span></dd>
-<dt>namedFlow</dt>
+<dt>flowName</dt>
 <dd>String <span class='text'>Identifier of the removed Named Flow.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Event: CSS.namedFlowRemoved
 function onNamedFlowRemoved(res) {
-	// res = {documentNodeId, namedFlow}
+	// res = {documentNodeId, flowName}
 }
+</pre>
+</div>
+<div id='CSS_regionLayoutUpdated' class='command'>
+<h3>CSS.regionLayoutUpdated <span class='label label-info'>Event</span></h3>
+<p>Fires when a Named Flow's layout may have changed.</p>
+<dl>
+<dt>namedFlow</dt>
+<dd><a href='#CSS.NamedFlow'>CSS.NamedFlow</a> <span class='text'>The Named Flow whose layout may have changed.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: CSS.regionLayoutUpdated
+function onRegionLayoutUpdated(res) {
+	// res = {namedFlow}
+}
+</pre>
+</div>
+</section>
+<section id='Canvas' class='domain'>
+<h1>Canvas</h1>
+<p></p>
+<span class='label'>Type</span>
+<ul>
+<li><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a>: Unique object identifier.</li>
+<li><a href='#Canvas.Call'>Canvas.Call</a></li>
+<li><a href='#Canvas.TraceLog'>Canvas.TraceLog</a></li>
+</ul>
+<span class='label label-success'>Command</span>
+<ul>
+<li><a href='#Canvas.enable'>Canvas.enable</a>: Enables Canvas inspection.</li>
+<li><a href='#Canvas.disable'>Canvas.disable</a>: Disables Canvas inspection.</li>
+<li><a href='#Canvas.dropTraceLog'>Canvas.dropTraceLog</a></li>
+<li><a href='#Canvas.captureFrame'>Canvas.captureFrame</a></li>
+<li><a href='#Canvas.getTraceLog'>Canvas.getTraceLog</a></li>
+<li><a href='#Canvas.replayTraceLog'>Canvas.replayTraceLog</a></li>
+</ul>
+<div id='Canvas_TraceLogId' class='type'>
+<h3>Canvas.TraceLogId <span class='label'>Type</span></h3>
+<p>Unique object identifier.</p>
+<dl>
+<dd>String</dd>
+</dl>
+</div>
+<div id='Canvas_Call' class='type'>
+<h3>Canvas.Call <span class='label'>Type</span></h3>
+<dl>
+<dt>functionName (optional)</dt>
+<dd>String</dd>
+<dt>arguments (optional)</dt>
+<dd>[String]</dd>
+<dt>property (optional)</dt>
+<dd>String</dd>
+<dt>value (optional)</dt>
+<dd>String</dd>
+<dt>result (optional)</dt>
+<dd>String</dd>
+<dt>sourceURL (optional)</dt>
+<dd>String</dd>
+<dt>lineNumber (optional)</dt>
+<dd>Integer</dd>
+<dt>columnNumber (optional)</dt>
+<dd>Integer</dd>
+</dl>
+</div>
+<div id='Canvas_TraceLog' class='type'>
+<h3>Canvas.TraceLog <span class='label'>Type</span></h3>
+<dl>
+<dt>id</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+<dt>calls</dt>
+<dd>[<a href='#Canvas.Call'>Canvas.Call</a>]</dd>
+</dl>
+</div>
+<div id='Canvas_enable' class='command'>
+<h3>Canvas.enable <span class='label label-success'>Command</span></h3>
+<p>Enables Canvas inspection.</p>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.enable
+Canvas.enable();
+</pre>
+</div>
+<div id='Canvas_disable' class='command'>
+<h3>Canvas.disable <span class='label label-success'>Command</span></h3>
+<p>Disables Canvas inspection.</p>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.disable
+Canvas.disable();
+</pre>
+</div>
+<div id='Canvas_dropTraceLog' class='command'>
+<h3>Canvas.dropTraceLog <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.dropTraceLog
+Canvas.dropTraceLog(traceLogId);
+</pre>
+</div>
+<div id='Canvas_captureFrame' class='command'>
+<h3>Canvas.captureFrame <span class='label label-success'>Command</span></h3>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.captureFrame
+Canvas.captureFrame(function callback(res) {
+	// res = {traceLogId}
+});
+</pre>
+</div>
+<div id='Canvas_getTraceLog' class='command'>
+<h3>Canvas.getTraceLog <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>traceLog</dt>
+<dd><a href='#Canvas.TraceLog'>Canvas.TraceLog</a></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.getTraceLog
+Canvas.getTraceLog(traceLogId, function callback(res) {
+	// res = {traceLog}
+});
+</pre>
+</div>
+<div id='Canvas_replayTraceLog' class='command'>
+<h3>Canvas.replayTraceLog <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+<dt>stepNo</dt>
+<dd>Integer</dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>screenshotDataUrl</dt>
+<dd>String</dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.replayTraceLog
+Canvas.replayTraceLog(traceLogId, stepNo, function callback(res) {
+	// res = {screenshotDataUrl}
+});
 </pre>
 </div>
 </section>
@@ -1748,6 +1911,8 @@ function onMessagesCleared(res) {
 <dd>[String] <span class='text'>Attributes of the <code>Element</code> node in the form of flat array <code>[name1, value1, name2, value2]</code>.</span></dd>
 <dt>documentURL (optional)</dt>
 <dd>String <span class='text'>Document URL that <code>Document</code> or <code>FrameOwner</code> node points to.</span></dd>
+<dt>baseURL (optional)</dt>
+<dd>String <span class='text'>Base URL that <code>Document</code> or <code>FrameOwner</code> node uses for URL completion.</span></dd>
 <dt>publicId (optional)</dt>
 <dd>String <span class='text'><code>DocumentType</code>'s publicId.</span></dd>
 <dt>systemId (optional)</dt>
@@ -1782,6 +1947,8 @@ function onMessagesCleared(res) {
 <dd>String <span class='text'>Event handler function body.</span></dd>
 <dt>location (optional)</dt>
 <dd><a href='#Debugger.Location'>Debugger.Location</a> <span class='text'>Handler code location.</span></dd>
+<dt>sourceName (optional)</dt>
+<dd>String <span class='text'>Source script URL.</span></dd>
 </dl>
 </div>
 <div id='DOM_RGBA' class='type'>
@@ -2807,8 +2974,6 @@ function onDomStorageUpdated(res) {
 <span class='label label-info'>Event</span>
 <ul>
 <li><a href='#Database.addDatabase'>Database.addDatabase</a></li>
-<li><a href='#Database.sqlTransactionSucceeded'>Database.sqlTransactionSucceeded</a></li>
-<li><a href='#Database.sqlTransactionFailed'>Database.sqlTransactionFailed</a></li>
 </ul>
 <div id='Database_DatabaseId' class='type'>
 <h3>Database.DatabaseId <span class='label'>Type</span></h3>
@@ -2834,6 +2999,12 @@ function onDomStorageUpdated(res) {
 <div id='Database_Error' class='type'>
 <h3>Database.Error <span class='label'>Type</span></h3>
 <p>Database error.</p>
+<dl>
+<dt>message</dt>
+<dd>String <span class='text'>Error message.</span></dd>
+<dt>code</dt>
+<dd>Integer <span class='text'>Error code.</span></dd>
+</dl>
 </div>
 <div id='Database_enable' class='command'>
 <h3>Database.enable <span class='label label-success'>Command</span></h3>
@@ -2882,16 +3053,18 @@ Database.getDatabaseTableNames(databaseId, function callback(res) {
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
-<dt>success</dt>
-<dd>Boolean</dd>
-<dt>transactionId</dt>
-<dd>Integer</dd>
+<dt>columnNames (optional)</dt>
+<dd>[String]</dd>
+<dt>values (optional)</dt>
+<dd>[Any]</dd>
+<dt>sqlError (optional)</dt>
+<dd><a href='#Database.Error'>Database.Error</a></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Database.executeSQL
 Database.executeSQL(databaseId, query, function callback(res) {
-	// res = {success, transactionId}
+	// res = {columnNames, values, sqlError}
 });
 </pre>
 </div>
@@ -2906,40 +3079,6 @@ Database.executeSQL(databaseId, query, function callback(res) {
 // WebInspector Event: Database.addDatabase
 function onAddDatabase(res) {
 	// res = {database}
-}
-</pre>
-</div>
-<div id='Database_sqlTransactionSucceeded' class='command'>
-<h3>Database.sqlTransactionSucceeded <span class='label label-info'>Event</span></h3>
-<dl>
-<dt>transactionId</dt>
-<dd>Integer</dd>
-<dt>columnNames</dt>
-<dd>[String]</dd>
-<dt>values</dt>
-<dd>[Any]</dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: Database.sqlTransactionSucceeded
-function onSqlTransactionSucceeded(res) {
-	// res = {transactionId, columnNames, values}
-}
-</pre>
-</div>
-<div id='Database_sqlTransactionFailed' class='command'>
-<h3>Database.sqlTransactionFailed <span class='label label-info'>Event</span></h3>
-<dl>
-<dt>transactionId</dt>
-<dd>Integer</dd>
-<dt>sqlError</dt>
-<dd><a href='#Database.Error'>Database.Error</a></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: Database.sqlTransactionFailed
-function onSqlTransactionFailed(res) {
-	// res = {transactionId, sqlError}
 }
 </pre>
 </div>
@@ -3416,6 +3555,8 @@ Debugger.setPauseOnExceptions(state);
 <dd>Boolean <span class='text'>Specifies whether evaluation should stop on exceptions and mute console. Overrides setPauseOnException state.</span></dd>
 <dt>returnByValue (optional)</dt>
 <dd>Boolean <span class='text'>Whether the result is expected to be a JSON object that should be sent by value.</span></dd>
+<dt>generatePreview (optional)</dt>
+<dd>Boolean <span class='text'>Whether preview should be generated for the result.</span></dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
@@ -3427,7 +3568,7 @@ Debugger.setPauseOnExceptions(state);
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Debugger.evaluateOnCallFrame
-Debugger.evaluateOnCallFrame(callFrameId, expression, objectGroup, includeCommandLineAPI, doNotPauseOnExceptionsAndMuteConsole, returnByValue, function callback(res) {
+Debugger.evaluateOnCallFrame(callFrameId, expression, objectGroup, includeCommandLineAPI, doNotPauseOnExceptionsAndMuteConsole, returnByValue, generatePreview, function callback(res) {
 	// res = {result, wasThrown}
 });
 </pre>
@@ -3528,12 +3669,14 @@ function onGlobalObjectCleared(res) {
 <dd>Boolean <span class='text'>Determines whether this script is a user extension script.</span></dd>
 <dt>sourceMapURL (optional)</dt>
 <dd>String <span class='text'>URL of source map associated with script (if any).</span></dd>
+<dt>hasSourceURL (optional)</dt>
+<dd>Boolean <span class='text'>True, if this script has sourceURL.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Event: Debugger.scriptParsed
 function onScriptParsed(res) {
-	// res = {scriptId, url, startLine, startColumn, endLine, endColumn, isContentScript, sourceMapURL}
+	// res = {scriptId, url, startLine, startColumn, endLine, endColumn, isContentScript, sourceMapURL, hasSourceURL}
 }
 </pre>
 </div>
@@ -3584,7 +3727,7 @@ function onBreakpointResolved(res) {
 <dt>callFrames</dt>
 <dd>[<a href='#Debugger.CallFrame'>Debugger.CallFrame</a>] <span class='text'>Call stack the virtual machine stopped on.</span></dd>
 <dt>reason</dt>
-<dd>( XHR | DOM | EventListener | exception | other ) <span class='text'>Pause reason.</span></dd>
+<dd>( XHR | DOM | EventListener | exception | assert | CSPViolation | other ) <span class='text'>Pause reason.</span></dd>
 <dt>data (optional)</dt>
 <dd>Object <span class='text'>Object containing break-specific auxiliary properties.</span></dd>
 </dl>
@@ -3613,7 +3756,6 @@ function onResumed(res) {
 <p></p>
 <span class='label'>Type</span>
 <ul>
-<li><a href='#FileSystem.RequestId'>FileSystem.RequestId</a>: Request Identifier to glue a request and its completion event.</li>
 <li><a href='#FileSystem.Entry'>FileSystem.Entry</a>: Represents a browser side file or directory.</li>
 <li><a href='#FileSystem.Metadata'>FileSystem.Metadata</a>: Represents metadata of a file or entry.</li>
 </ul>
@@ -3621,25 +3763,12 @@ function onResumed(res) {
 <ul>
 <li><a href='#FileSystem.enable'>FileSystem.enable</a>: Enables events from backend.</li>
 <li><a href='#FileSystem.disable'>FileSystem.disable</a>: Disables events from backend.</li>
-<li><a href='#FileSystem.requestFileSystemRoot'>FileSystem.requestFileSystemRoot</a>: Returns root directory of the FileSystem as fileSystemRootReceived event, if exists.</li>
-<li><a href='#FileSystem.requestDirectoryContent'>FileSystem.requestDirectoryContent</a>: Returns content of the directory as directoryContentReceived event.</li>
-<li><a href='#FileSystem.requestMetadata'>FileSystem.requestMetadata</a>: Returns metadata of the entry as metadataReceived event.</li>
-<li><a href='#FileSystem.requestFileContent'>FileSystem.requestFileContent</a>: Returns content of the file as fileContentReceived event. Result should be sliced into [start, end).</li>
+<li><a href='#FileSystem.requestFileSystemRoot'>FileSystem.requestFileSystemRoot</a>: Returns root directory of the FileSystem, if exists.</li>
+<li><a href='#FileSystem.requestDirectoryContent'>FileSystem.requestDirectoryContent</a>: Returns content of the directory.</li>
+<li><a href='#FileSystem.requestMetadata'>FileSystem.requestMetadata</a>: Returns metadata of the entry.</li>
+<li><a href='#FileSystem.requestFileContent'>FileSystem.requestFileContent</a>: Returns content of the file. Result should be sliced into [start, end).</li>
+<li><a href='#FileSystem.deleteEntry'>FileSystem.deleteEntry</a>: Deletes specified entry. If the entry is a directory, the agent deletes children recursively.</li>
 </ul>
-<span class='label label-info'>Event</span>
-<ul>
-<li><a href='#FileSystem.fileSystemRootReceived'>FileSystem.fileSystemRootReceived</a>: Completion event of requestFileSystemRoot command.</li>
-<li><a href='#FileSystem.directoryContentReceived'>FileSystem.directoryContentReceived</a>: Completion event of requestDirectoryContent command.</li>
-<li><a href='#FileSystem.metadataReceived'>FileSystem.metadataReceived</a>: Completion event of requestMetadata command.</li>
-<li><a href='#FileSystem.fileContentReceived'>FileSystem.fileContentReceived</a>: Completion event of requestFileContent command.</li>
-</ul>
-<div id='FileSystem_RequestId' class='type'>
-<h3>FileSystem.RequestId <span class='label'>Type</span></h3>
-<p>Request Identifier to glue a request and its completion event.</p>
-<dl>
-<dd>Integer</dd>
-</dl>
-</div>
 <div id='FileSystem_Entry' class='type'>
 <h3>FileSystem.Entry <span class='label'>Type</span></h3>
 <p>Represents a browser side file or directory.</p>
@@ -3688,7 +3817,7 @@ FileSystem.disable();
 </div>
 <div id='FileSystem_requestFileSystemRoot' class='command'>
 <h3>FileSystem.requestFileSystemRoot <span class='label label-success'>Command</span></h3>
-<p>Returns root directory of the FileSystem as fileSystemRootReceived event, if exists.</p>
+<p>Returns root directory of the FileSystem, if exists.</p>
 <dl>
 <dt>origin</dt>
 <dd>String <span class='text'>Security origin of requesting FileSystem. One of frames in current page needs to have this security origin.</span></dd>
@@ -3697,60 +3826,66 @@ FileSystem.disable();
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
-<dt>requestId</dt>
-<dd><a href='#FileSystem.RequestId'>FileSystem.RequestId</a> <span class='text'>Request identifier. Corresponding fileSystemRootReceived event should have same requestId with this.</span></dd>
+<dt>errorCode</dt>
+<dd>Integer <span class='text'>0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value.</span></dd>
+<dt>root (optional)</dt>
+<dd><a href='#FileSystem.Entry'>FileSystem.Entry</a> <span class='text'>Contains root of the requested FileSystem if the command completed successfully.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: FileSystem.requestFileSystemRoot
 FileSystem.requestFileSystemRoot(origin, type, function callback(res) {
-	// res = {requestId}
+	// res = {errorCode, root}
 });
 </pre>
 </div>
 <div id='FileSystem_requestDirectoryContent' class='command'>
 <h3>FileSystem.requestDirectoryContent <span class='label label-success'>Command</span></h3>
-<p>Returns content of the directory as directoryContentReceived event.</p>
+<p>Returns content of the directory.</p>
 <dl>
 <dt>url</dt>
 <dd>String <span class='text'>URL of the directory that the frontend is requesting to read from.</span></dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
-<dt>requestId</dt>
-<dd><a href='#FileSystem.RequestId'>FileSystem.RequestId</a> <span class='text'>Request identifier. Corresponding directoryContentReceived event should have same requestId with this.</span></dd>
+<dt>errorCode</dt>
+<dd>Integer <span class='text'>0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value.</span></dd>
+<dt>entries (optional)</dt>
+<dd>[<a href='#FileSystem.Entry'>FileSystem.Entry</a>] <span class='text'>Contains all entries on directory if the command completed successfully.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: FileSystem.requestDirectoryContent
 FileSystem.requestDirectoryContent(url, function callback(res) {
-	// res = {requestId}
+	// res = {errorCode, entries}
 });
 </pre>
 </div>
 <div id='FileSystem_requestMetadata' class='command'>
 <h3>FileSystem.requestMetadata <span class='label label-success'>Command</span></h3>
-<p>Returns metadata of the entry as metadataReceived event.</p>
+<p>Returns metadata of the entry.</p>
 <dl>
 <dt>url</dt>
 <dd>String <span class='text'>URL of the entry that the frontend is requesting to get metadata from.</span></dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
-<dt>requestId</dt>
-<dd><a href='#FileSystem.RequestId'>FileSystem.RequestId</a> <span class='text'>Request identifier. Corresponding metadataReceived event should have same requestId with this.</span></dd>
+<dt>errorCode</dt>
+<dd>Integer <span class='text'>0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value.</span></dd>
+<dt>metadata (optional)</dt>
+<dd><a href='#FileSystem.Metadata'>FileSystem.Metadata</a> <span class='text'>Contains metadata of the entry if the command completed successfully.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: FileSystem.requestMetadata
 FileSystem.requestMetadata(url, function callback(res) {
-	// res = {requestId}
+	// res = {errorCode, metadata}
 });
 </pre>
 </div>
 <div id='FileSystem_requestFileContent' class='command'>
 <h3>FileSystem.requestFileContent <span class='label label-success'>Command</span></h3>
-<p>Returns content of the file as fileContentReceived event. Result should be sliced into [start, end).</p>
+<p>Returns content of the file. Result should be sliced into [start, end).</p>
 <dl>
 <dt>url</dt>
 <dd>String <span class='text'>URL of the file that the frontend is requesting to read from.</span></dd>
@@ -3765,80 +3900,6 @@ FileSystem.requestMetadata(url, function callback(res) {
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
-<dt>requestId</dt>
-<dd><a href='#FileSystem.RequestId'>FileSystem.RequestId</a> <span class='text'>Request identifier. Corresponding fileContentReceived event should have same requestId with this.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Command: FileSystem.requestFileContent
-FileSystem.requestFileContent(url, readAsText, start, end, charset, function callback(res) {
-	// res = {requestId}
-});
-</pre>
-</div>
-<div id='FileSystem_fileSystemRootReceived' class='command'>
-<h3>FileSystem.fileSystemRootReceived <span class='label label-info'>Event</span></h3>
-<p>Completion event of requestFileSystemRoot command.</p>
-<dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request Identifier that was returned by corresponding requestFileSystemRoot command.</span></dd>
-<dt>errorCode</dt>
-<dd>Integer <span class='text'>0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value.</span></dd>
-<dt>root (optional)</dt>
-<dd><a href='#FileSystem.Entry'>FileSystem.Entry</a> <span class='text'>Contains root of the requested FileSystem if the command completed successfully.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: FileSystem.fileSystemRootReceived
-function onFileSystemRootReceived(res) {
-	// res = {requestId, errorCode, root}
-}
-</pre>
-</div>
-<div id='FileSystem_directoryContentReceived' class='command'>
-<h3>FileSystem.directoryContentReceived <span class='label label-info'>Event</span></h3>
-<p>Completion event of requestDirectoryContent command.</p>
-<dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request Identifier that was returned by corresponding requestDirectoryContent command.</span></dd>
-<dt>errorCode</dt>
-<dd>Integer <span class='text'>0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value.</span></dd>
-<dt>entries (optional)</dt>
-<dd>[<a href='#FileSystem.Entry'>FileSystem.Entry</a>] <span class='text'>Contains all entries on directory if the command completed successfully.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: FileSystem.directoryContentReceived
-function onDirectoryContentReceived(res) {
-	// res = {requestId, errorCode, entries}
-}
-</pre>
-</div>
-<div id='FileSystem_metadataReceived' class='command'>
-<h3>FileSystem.metadataReceived <span class='label label-info'>Event</span></h3>
-<p>Completion event of requestMetadata command.</p>
-<dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request Identifier that was returned in response to the corresponding requestMetadata command.</span></dd>
-<dt>errorCode</dt>
-<dd>Integer <span class='text'>0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value.</span></dd>
-<dt>metadata (optional)</dt>
-<dd><a href='#FileSystem.Metadata'>FileSystem.Metadata</a> <span class='text'>Contains metadata of the entry if the command completed successfully.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: FileSystem.metadataReceived
-function onMetadataReceived(res) {
-	// res = {requestId, errorCode, metadata}
-}
-</pre>
-</div>
-<div id='FileSystem_fileContentReceived' class='command'>
-<h3>FileSystem.fileContentReceived <span class='label label-info'>Event</span></h3>
-<p>Completion event of requestFileContent command.</p>
-<dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request Identifier that was returned in response to the corresponding requestFileContent command.</span></dd>
 <dt>errorCode</dt>
 <dd>Integer <span class='text'>0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value.</span></dd>
 <dt>content (optional)</dt>
@@ -3848,10 +3909,30 @@ function onMetadataReceived(res) {
 </dl>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Event: FileSystem.fileContentReceived
-function onFileContentReceived(res) {
-	// res = {requestId, errorCode, content, charset}
-}
+// WebInspector Command: FileSystem.requestFileContent
+FileSystem.requestFileContent(url, readAsText, start, end, charset, function callback(res) {
+	// res = {errorCode, content, charset}
+});
+</pre>
+</div>
+<div id='FileSystem_deleteEntry' class='command'>
+<h3>FileSystem.deleteEntry <span class='label label-success'>Command</span></h3>
+<p>Deletes specified entry. If the entry is a directory, the agent deletes children recursively.</p>
+<dl>
+<dt>url</dt>
+<dd>String <span class='text'>URL of the entry to delete.</span></dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>errorCode</dt>
+<dd>Integer <span class='text'>0, if no error. Otherwise errorCode is set to FileError::ErrorCode value.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: FileSystem.deleteEntry
+FileSystem.deleteEntry(url, function callback(res) {
+	// res = {errorCode}
+});
 </pre>
 </div>
 </section>
@@ -3877,13 +3958,6 @@ function onFileContentReceived(res) {
 <li><a href='#IndexedDB.requestDatabase'>IndexedDB.requestDatabase</a>: Requests database with given name in given frame.</li>
 <li><a href='#IndexedDB.requestData'>IndexedDB.requestData</a>: Requests data from object store or index.</li>
 </ul>
-<span class='label label-info'>Event</span>
-<ul>
-<li><a href='#IndexedDB.databaseNamesLoaded'>IndexedDB.databaseNamesLoaded</a></li>
-<li><a href='#IndexedDB.databaseLoaded'>IndexedDB.databaseLoaded</a></li>
-<li><a href='#IndexedDB.objectStoreDataLoaded'>IndexedDB.objectStoreDataLoaded</a></li>
-<li><a href='#IndexedDB.indexDataLoaded'>IndexedDB.indexDataLoaded</a></li>
-</ul>
 <div id='IndexedDB_SecurityOriginWithDatabaseNames' class='type'>
 <h3>IndexedDB.SecurityOriginWithDatabaseNames <span class='label'>Type</span></h3>
 <p>Security origin with database names.</p>
@@ -3901,7 +3975,9 @@ function onFileContentReceived(res) {
 <dt>name</dt>
 <dd>String <span class='text'>Database name.</span></dd>
 <dt>version</dt>
-<dd>String <span class='text'>Database version.</span></dd>
+<dd>String <span class='text'>Deprecated string database version.</span></dd>
+<dt>intVersion</dt>
+<dd>Integer <span class='text'>Integer database version.</span></dd>
 <dt>objectStores</dt>
 <dd>[<a href='#IndexedDB.ObjectStore'>IndexedDB.ObjectStore</a>] <span class='text'>Object stores in this database.</span></dd>
 </dl>
@@ -4010,40 +4086,48 @@ IndexedDB.disable();
 <h3>IndexedDB.requestDatabaseNamesForFrame <span class='label label-success'>Command</span></h3>
 <p>Requests database names for given frame's security origin.</p>
 <dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request id.</span></dd>
 <dt>frameId</dt>
 <dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Frame id.</span></dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>securityOriginWithDatabaseNames</dt>
+<dd><a href='#IndexedDB.SecurityOriginWithDatabaseNames'>IndexedDB.SecurityOriginWithDatabaseNames</a> <span class='text'>Frame with database names.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: IndexedDB.requestDatabaseNamesForFrame
-IndexedDB.requestDatabaseNamesForFrame(requestId, frameId);
+IndexedDB.requestDatabaseNamesForFrame(frameId, function callback(res) {
+	// res = {securityOriginWithDatabaseNames}
+});
 </pre>
 </div>
 <div id='IndexedDB_requestDatabase' class='command'>
 <h3>IndexedDB.requestDatabase <span class='label label-success'>Command</span></h3>
 <p>Requests database with given name in given frame.</p>
 <dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request id.</span></dd>
 <dt>frameId</dt>
 <dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Frame id.</span></dd>
 <dt>databaseName</dt>
 <dd>String <span class='text'>Database name.</span></dd>
 </dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>databaseWithObjectStores</dt>
+<dd><a href='#IndexedDB.DatabaseWithObjectStores'>IndexedDB.DatabaseWithObjectStores</a> <span class='text'>Database with an array of object stores.</span></dd>
+</dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: IndexedDB.requestDatabase
-IndexedDB.requestDatabase(requestId, frameId, databaseName);
+IndexedDB.requestDatabase(frameId, databaseName, function callback(res) {
+	// res = {databaseWithObjectStores}
+});
 </pre>
 </div>
 <div id='IndexedDB_requestData' class='command'>
 <h3>IndexedDB.requestData <span class='label label-success'>Command</span></h3>
 <p>Requests data from object store or index.</p>
 <dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request id.</span></dd>
 <dt>frameId</dt>
 <dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Frame id.</span></dd>
 <dt>databaseName</dt>
@@ -4059,49 +4143,8 @@ IndexedDB.requestDatabase(requestId, frameId, databaseName);
 <dt>keyRange (optional)</dt>
 <dd><a href='#IndexedDB.KeyRange'>IndexedDB.KeyRange</a> <span class='text'>Key range.</span></dd>
 </dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Command: IndexedDB.requestData
-IndexedDB.requestData(requestId, frameId, databaseName, objectStoreName, indexName, skipCount, pageSize, keyRange);
-</pre>
-</div>
-<div id='IndexedDB_databaseNamesLoaded' class='command'>
-<h3>IndexedDB.databaseNamesLoaded <span class='label label-info'>Event</span></h3>
+<h4>Callback Parameters:</h4>
 <dl>
-<dt>requestId</dt>
-<dd>Number <span class='text'>Request id.</span></dd>
-<dt>securityOriginWithDatabaseNames</dt>
-<dd><a href='#IndexedDB.SecurityOriginWithDatabaseNames'>IndexedDB.SecurityOriginWithDatabaseNames</a> <span class='text'>Frame with database names.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: IndexedDB.databaseNamesLoaded
-function onDatabaseNamesLoaded(res) {
-	// res = {requestId, securityOriginWithDatabaseNames}
-}
-</pre>
-</div>
-<div id='IndexedDB_databaseLoaded' class='command'>
-<h3>IndexedDB.databaseLoaded <span class='label label-info'>Event</span></h3>
-<dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request id.</span></dd>
-<dt>databaseWithObjectStores</dt>
-<dd><a href='#IndexedDB.DatabaseWithObjectStores'>IndexedDB.DatabaseWithObjectStores</a> <span class='text'>Database with an array of object stores.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: IndexedDB.databaseLoaded
-function onDatabaseLoaded(res) {
-	// res = {requestId, databaseWithObjectStores}
-}
-</pre>
-</div>
-<div id='IndexedDB_objectStoreDataLoaded' class='command'>
-<h3>IndexedDB.objectStoreDataLoaded <span class='label label-info'>Event</span></h3>
-<dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request id.</span></dd>
 <dt>objectStoreDataEntries</dt>
 <dd>[<a href='#IndexedDB.DataEntry'>IndexedDB.DataEntry</a>] <span class='text'>Array of object store data entries.</span></dd>
 <dt>hasMore</dt>
@@ -4109,28 +4152,10 @@ function onDatabaseLoaded(res) {
 </dl>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Event: IndexedDB.objectStoreDataLoaded
-function onObjectStoreDataLoaded(res) {
-	// res = {requestId, objectStoreDataEntries, hasMore}
-}
-</pre>
-</div>
-<div id='IndexedDB_indexDataLoaded' class='command'>
-<h3>IndexedDB.indexDataLoaded <span class='label label-info'>Event</span></h3>
-<dl>
-<dt>requestId</dt>
-<dd>Integer <span class='text'>Request id.</span></dd>
-<dt>indexDataEntries</dt>
-<dd>[<a href='#IndexedDB.DataEntry'>IndexedDB.DataEntry</a>] <span class='text'>Array of index data entries.</span></dd>
-<dt>hasMore</dt>
-<dd>Boolean <span class='text'>If true, there are more entries to fetch in the given range.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Event: IndexedDB.indexDataLoaded
-function onIndexDataLoaded(res) {
-	// res = {requestId, indexDataEntries, hasMore}
-}
+// WebInspector Command: IndexedDB.requestData
+IndexedDB.requestData(frameId, databaseName, objectStoreName, indexName, skipCount, pageSize, keyRange, function callback(res) {
+	// res = {objectStoreDataEntries, hasMore}
+});
 </pre>
 </div>
 </section>
@@ -4146,6 +4171,7 @@ function onIndexDataLoaded(res) {
 <ul>
 <li><a href='#Inspector.evaluateForTestInFrontend'>Inspector.evaluateForTestInFrontend</a></li>
 <li><a href='#Inspector.inspect'>Inspector.inspect</a></li>
+<li><a href='#Inspector.detached'>Inspector.detached</a>: Fired when remote debugging connection is about to be terminated. Contains detach reason.</li>
 </ul>
 <div id='Inspector_enable' class='command'>
 <h3>Inspector.enable <span class='label label-success'>Command</span></h3>
@@ -4194,6 +4220,21 @@ function onEvaluateForTestInFrontend(res) {
 // WebInspector Event: Inspector.inspect
 function onInspect(res) {
 	// res = {object, hints}
+}
+</pre>
+</div>
+<div id='Inspector_detached' class='command'>
+<h3>Inspector.detached <span class='label label-info'>Event</span></h3>
+<p>Fired when remote debugging connection is about to be terminated. Contains detach reason.</p>
+<dl>
+<dt>reason</dt>
+<dd>String <span class='text'>The reason why connection has been terminated.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Inspector.detached
+function onDetached(res) {
+	// res = {reason}
 }
 </pre>
 </div>
@@ -4331,6 +4372,7 @@ Memory.getProcessMemoryDistribution(function callback(res) {
 <li><a href='#Network.setUserAgentOverride'>Network.setUserAgentOverride</a>: Allows overriding user agent with the given string.</li>
 <li><a href='#Network.setExtraHTTPHeaders'>Network.setExtraHTTPHeaders</a>: Specifies whether to always send extra HTTP headers with the requests from this page.</li>
 <li><a href='#Network.getResponseBody'>Network.getResponseBody</a>: Returns content served for the given request.</li>
+<li><a href='#Network.replayXHR'>Network.replayXHR</a>: This method sends a new XMLHttpRequest which is identical to the original one. The following parameters should be identical: method, url, async, request body, extra headers, withCredentials attribute, user, password.</li>
 <li><a href='#Network.canClearBrowserCache'>Network.canClearBrowserCache</a>: Tells whether clearing browser cache is supported.</li>
 <li><a href='#Network.clearBrowserCache'>Network.clearBrowserCache</a>: Clears browser cache.</li>
 <li><a href='#Network.canClearBrowserCookies'>Network.canClearBrowserCookies</a>: Tells whether clearing browser cookies is supported.</li>
@@ -4588,6 +4630,19 @@ Network.setExtraHTTPHeaders(headers);
 Network.getResponseBody(requestId, function callback(res) {
 	// res = {body, base64Encoded}
 });
+</pre>
+</div>
+<div id='Network_replayXHR' class='command'>
+<h3>Network.replayXHR <span class='label label-success'>Command</span></h3>
+<p>This method sends a new XMLHttpRequest which is identical to the original one. The following parameters should be identical: method, url, async, request body, extra headers, withCredentials attribute, user, password.</p>
+<dl>
+<dt>requestId</dt>
+<dd><a href='#Network.RequestId'>Network.RequestId</a> <span class='text'>Identifier of XHR to replay.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Network.replayXHR
+Network.replayXHR(requestId);
 </pre>
 </div>
 <div id='Network_canClearBrowserCache' class='command'>
@@ -4978,6 +5033,8 @@ function onWebSocketFrameSent(res) {
 <li><a href='#Page.clearDeviceOrientationOverride'>Page.clearDeviceOrientationOverride</a>: Clears the overridden Device Orientation.</li>
 <li><a href='#Page.canOverrideDeviceOrientation'>Page.canOverrideDeviceOrientation</a>: Check the backend if Web Inspector can override the device orientation.</li>
 <li><a href='#Page.setTouchEmulationEnabled'>Page.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
+<li><a href='#Page.getCompositingBordersVisible'>Page.getCompositingBordersVisible</a>: Indicates the visibility of compositing borders.</li>
+<li><a href='#Page.setCompositingBordersVisible'>Page.setCompositingBordersVisible</a>: Controls the visibility of compositing borders.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -5469,6 +5526,35 @@ Page.canOverrideDeviceOrientation(function callback(res) {
 Page.setTouchEmulationEnabled(enabled);
 </pre>
 </div>
+<div id='Page_getCompositingBordersVisible' class='command'>
+<h3>Page.getCompositingBordersVisible <span class='label label-success'>Command</span></h3>
+<p>Indicates the visibility of compositing borders.</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>result</dt>
+<dd>Boolean <span class='text'>If true, compositing borders are visible.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.getCompositingBordersVisible
+Page.getCompositingBordersVisible(function callback(res) {
+	// res = {result}
+});
+</pre>
+</div>
+<div id='Page_setCompositingBordersVisible' class='command'>
+<h3>Page.setCompositingBordersVisible <span class='label label-success'>Command</span></h3>
+<p>Controls the visibility of compositing borders.</p>
+<dl>
+<dt>visible</dt>
+<dd>Boolean <span class='text'>True for showing compositing borders.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.setCompositingBordersVisible
+Page.setCompositingBordersVisible(visible);
+</pre>
+</div>
 <div id='Page_domContentEventFired' class='command'>
 <h3>Page.domContentEventFired <span class='label label-info'>Event</span></h3>
 <dl>
@@ -5881,6 +5967,7 @@ function onReportHeapSnapshotProgress(res) {
 <li><a href='#Runtime.ObjectPreview'>Runtime.ObjectPreview</a>: Object containing abbreviated remote object value.</li>
 <li><a href='#Runtime.PropertyPreview'>Runtime.PropertyPreview</a></li>
 <li><a href='#Runtime.PropertyDescriptor'>Runtime.PropertyDescriptor</a>: Object property descriptor.</li>
+<li><a href='#Runtime.InternalPropertyDescriptor'>Runtime.InternalPropertyDescriptor</a>: Object internal property descriptor. This property isn't normally visible in JavaScript code.</li>
 <li><a href='#Runtime.CallArgument'>Runtime.CallArgument</a>: Represents function call argument. Either remote object id objectId or primitive value or neither of (for undefined) them should be specified.</li>
 <li><a href='#Runtime.ExecutionContextId'>Runtime.ExecutionContextId</a>: Id of an execution context.</li>
 <li><a href='#Runtime.ExecutionContextDescription'>Runtime.ExecutionContextDescription</a>: Description of an isolated world.</li>
@@ -5893,11 +5980,12 @@ function onReportHeapSnapshotProgress(res) {
 <li><a href='#Runtime.releaseObject'>Runtime.releaseObject</a>: Releases remote object with given id.</li>
 <li><a href='#Runtime.releaseObjectGroup'>Runtime.releaseObjectGroup</a>: Releases all remote objects that belong to a given group.</li>
 <li><a href='#Runtime.run'>Runtime.run</a>: Tells inspected instance(worker or page) that it can run in case it was started paused.</li>
-<li><a href='#Runtime.setReportExecutionContextCreation'>Runtime.setReportExecutionContextCreation</a>: Enables reporting about creation of isolated contexts by means of isolatedContextCreated event. When the reporting gets enabled the event will be sent immediately for each existing isolated context.</li>
+<li><a href='#Runtime.enable'>Runtime.enable</a>: Enables reporting of execution contexts creation by means of executionContextCreated event. When the reporting gets enabled the event will be sent immediately for each existing execution context.</li>
+<li><a href='#Runtime.disable'>Runtime.disable</a>: Disables reporting of execution contexts creation.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
-<li><a href='#Runtime.isolatedContextCreated'>Runtime.isolatedContextCreated</a>: Issued when new isolated context is created.</li>
+<li><a href='#Runtime.executionContextCreated'>Runtime.executionContextCreated</a>: Issued when new execution context is created.</li>
 </ul>
 <div id='Runtime_RemoteObjectId' class='type'>
 <h3>Runtime.RemoteObjectId <span class='label'>Type</span></h3>
@@ -5971,6 +6059,18 @@ function onReportHeapSnapshotProgress(res) {
 <dd>Boolean <span class='text'>True if this property shows up during enumeration of the properties on the corresponding object.</span></dd>
 <dt>wasThrown (optional)</dt>
 <dd>Boolean <span class='text'>True if the result was thrown during the evaluation.</span></dd>
+<dt>isOwn (optional)</dt>
+<dd>Boolean <span class='text'>True if the property is owned for the object.</span></dd>
+</dl>
+</div>
+<div id='Runtime_InternalPropertyDescriptor' class='type'>
+<h3>Runtime.InternalPropertyDescriptor <span class='label'>Type</span></h3>
+<p>Object internal property descriptor. This property isn't normally visible in JavaScript code.</p>
+<dl>
+<dt>name</dt>
+<dd>String <span class='text'>Conventional property name.</span></dd>
+<dt>value (optional)</dt>
+<dd><a href='#Runtime.RemoteObject'>Runtime.RemoteObject</a> <span class='text'>The value associated with the property.</span></dd>
 </dl>
 </div>
 <div id='Runtime_CallArgument' class='type'>
@@ -6020,6 +6120,8 @@ function onReportHeapSnapshotProgress(res) {
 <dd><a href='#Runtime.ExecutionContextId'>Runtime.ExecutionContextId</a> <span class='text'>Specifies in which isolated context to perform evaluation. Each content script lives in an isolated context and this parameter may be used to specify one of those contexts. If the parameter is omitted or 0 the evaluation will be performed in the context of the inspected page.</span></dd>
 <dt>returnByValue (optional)</dt>
 <dd>Boolean <span class='text'>Whether the result is expected to be a JSON object that should be sent by value.</span></dd>
+<dt>generatePreview (optional)</dt>
+<dd>Boolean <span class='text'>Whether preview should be generated for the result.</span></dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
@@ -6031,7 +6133,7 @@ function onReportHeapSnapshotProgress(res) {
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Runtime.evaluate
-Runtime.evaluate(expression, objectGroup, includeCommandLineAPI, doNotPauseOnExceptionsAndMuteConsole, contextId, returnByValue, function callback(res) {
+Runtime.evaluate(expression, objectGroup, includeCommandLineAPI, doNotPauseOnExceptionsAndMuteConsole, contextId, returnByValue, generatePreview, function callback(res) {
 	// res = {result, wasThrown}
 });
 </pre>
@@ -6050,6 +6152,8 @@ Runtime.evaluate(expression, objectGroup, includeCommandLineAPI, doNotPauseOnExc
 <dd>Boolean <span class='text'>Specifies whether function call should stop on exceptions and mute console. Overrides setPauseOnException state.</span></dd>
 <dt>returnByValue (optional)</dt>
 <dd>Boolean <span class='text'>Whether the result is expected to be a JSON object which should be sent by value.</span></dd>
+<dt>generatePreview (optional)</dt>
+<dd>Boolean <span class='text'>Whether preview should be generated for the result.</span></dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
@@ -6061,7 +6165,7 @@ Runtime.evaluate(expression, objectGroup, includeCommandLineAPI, doNotPauseOnExc
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Runtime.callFunctionOn
-Runtime.callFunctionOn(objectId, functionDeclaration, arguments, doNotPauseOnExceptionsAndMuteConsole, returnByValue, function callback(res) {
+Runtime.callFunctionOn(objectId, functionDeclaration, arguments, doNotPauseOnExceptionsAndMuteConsole, returnByValue, generatePreview, function callback(res) {
 	// res = {result, wasThrown}
 });
 </pre>
@@ -6079,12 +6183,14 @@ Runtime.callFunctionOn(objectId, functionDeclaration, arguments, doNotPauseOnExc
 <dl>
 <dt>result</dt>
 <dd>[<a href='#Runtime.PropertyDescriptor'>Runtime.PropertyDescriptor</a>] <span class='text'>Object properties.</span></dd>
+<dt>internalProperties (optional)</dt>
+<dd>[<a href='#Runtime.InternalPropertyDescriptor'>Runtime.InternalPropertyDescriptor</a>] <span class='text'>Internal object properties.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Runtime.getProperties
 Runtime.getProperties(objectId, ownProperties, function callback(res) {
-	// res = {result}
+	// res = {result, internalProperties}
 });
 </pre>
 </div>
@@ -6123,30 +6229,35 @@ Runtime.releaseObjectGroup(objectGroup);
 Runtime.run();
 </pre>
 </div>
-<div id='Runtime_setReportExecutionContextCreation' class='command'>
-<h3>Runtime.setReportExecutionContextCreation <span class='label label-success'>Command</span></h3>
-<p>Enables reporting about creation of isolated contexts by means of <code>isolatedContextCreated</code> event. When the reporting gets enabled the event will be sent immediately for each existing isolated context.</p>
-<dl>
-<dt>enabled</dt>
-<dd>Boolean <span class='text'>Reporting enabled state.</span></dd>
-</dl>
+<div id='Runtime_enable' class='command'>
+<h3>Runtime.enable <span class='label label-success'>Command</span></h3>
+<p>Enables reporting of execution contexts creation by means of <code>executionContextCreated</code> event. When the reporting gets enabled the event will be sent immediately for each existing execution context.</p>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Command: Runtime.setReportExecutionContextCreation
-Runtime.setReportExecutionContextCreation(enabled);
+// WebInspector Command: Runtime.enable
+Runtime.enable();
 </pre>
 </div>
-<div id='Runtime_isolatedContextCreated' class='command'>
-<h3>Runtime.isolatedContextCreated <span class='label label-info'>Event</span></h3>
-<p>Issued when new isolated context is created.</p>
+<div id='Runtime_disable' class='command'>
+<h3>Runtime.disable <span class='label label-success'>Command</span></h3>
+<p>Disables reporting of execution contexts creation.</p>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Runtime.disable
+Runtime.disable();
+</pre>
+</div>
+<div id='Runtime_executionContextCreated' class='command'>
+<h3>Runtime.executionContextCreated <span class='label label-info'>Event</span></h3>
+<p>Issued when new execution context is created.</p>
 <dl>
 <dt>context</dt>
-<dd><a href='#Runtime.ExecutionContextDescription'>Runtime.ExecutionContextDescription</a> <span class='text'>A newly created isolated contex.</span></dd>
+<dd><a href='#Runtime.ExecutionContextDescription'>Runtime.ExecutionContextDescription</a> <span class='text'>A newly created execution contex.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Event: Runtime.isolatedContextCreated
-function onIsolatedContextCreated(res) {
+// WebInspector Event: Runtime.executionContextCreated
+function onExecutionContextCreated(res) {
 	// res = {context}
 }
 </pre>
@@ -6165,6 +6276,7 @@ function onIsolatedContextCreated(res) {
 <li><a href='#Timeline.stop'>Timeline.stop</a>: Stops capturing instrumentation events.</li>
 <li><a href='#Timeline.setIncludeMemoryDetails'>Timeline.setIncludeMemoryDetails</a>: Starts calculating various DOM statistics and sending them as part of timeline events.</li>
 <li><a href='#Timeline.supportsFrameInstrumentation'>Timeline.supportsFrameInstrumentation</a>: Tells whether timeline agent supports frame instrumentation.</li>
+<li><a href='#Timeline.canMonitorMainThread'>Timeline.canMonitorMainThread</a>: Tells whether timeline agent supports main thread CPU utilization instrumentation.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -6233,6 +6345,22 @@ Timeline.supportsFrameInstrumentation(function callback(res) {
 });
 </pre>
 </div>
+<div id='Timeline_canMonitorMainThread' class='command'>
+<h3>Timeline.canMonitorMainThread <span class='label label-success'>Command</span></h3>
+<p>Tells whether timeline agent supports main thread CPU utilization instrumentation.</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>result</dt>
+<dd>Boolean <span class='text'>True if timeline supports main thread CPU utilization instrumentation.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Timeline.canMonitorMainThread
+Timeline.canMonitorMainThread(function callback(res) {
+	// res = {result}
+});
+</pre>
+</div>
 <div id='Timeline_eventRecorded' class='command'>
 <h3>Timeline.eventRecorded <span class='label label-info'>Event</span></h3>
 <p>Fired for every instrumentation event while timeline is started.</p>
@@ -6246,33 +6374,6 @@ Timeline.supportsFrameInstrumentation(function callback(res) {
 function onEventRecorded(res) {
 	// res = {record}
 }
-</pre>
-</div>
-</section>
-<section id='WebGL' class='domain'>
-<h1>WebGL</h1>
-<p></p>
-<span class='label label-success'>Command</span>
-<ul>
-<li><a href='#WebGL.enable'>WebGL.enable</a>: Enables WebGL inspection.</li>
-<li><a href='#WebGL.disable'>WebGL.disable</a>: Disables WebGL inspection.</li>
-</ul>
-<div id='WebGL_enable' class='command'>
-<h3>WebGL.enable <span class='label label-success'>Command</span></h3>
-<p>Enables WebGL inspection.</p>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Command: WebGL.enable
-WebGL.enable();
-</pre>
-</div>
-<div id='WebGL_disable' class='command'>
-<h3>WebGL.disable <span class='label label-success'>Command</span></h3>
-<p>Disables WebGL inspection.</p>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Command: WebGL.disable
-WebGL.disable();
 </pre>
 </div>
 </section>
@@ -6422,7 +6523,7 @@ function onDisconnectedFromWorker(res) {
 </section>
 </div>
 <footer>
-<p>Generated from Inspector.json v1.0 on 2012-08-17 16:44:25+0200</p>
+<p>Generated from Inspector.json v1.0 on 2012-11-05 17:50:14+0100</p>
 <p>Implementation by <a href='mailto:jdiehl@adobe.com'>Jonathan Diehl</a></p>
 </footer>
 </body>

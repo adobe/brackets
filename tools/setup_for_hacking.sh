@@ -10,7 +10,7 @@ if [[ ${1} == "" ]]; then
   exit;
 fi
 
-if [ ! -d ${1} ]; then
+if [ ! -d "${1}" ]; then
   echo "$1 not found."
   exit;
 fi

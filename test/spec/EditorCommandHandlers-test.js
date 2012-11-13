@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var Editor                = require("editor/Editor").Editor,
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
+        EditorManager         = require("editor/EditorManager"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
@@ -46,22 +47,28 @@ define(function (require, exports, module) {
                              "}";
 
         var myDocument, myEditor;
-        beforeEach(function () {
-            // create dummy Document for the Editor
-            myDocument = SpecRunnerUtils.createMockDocument(defaultContent);
+        
+        function setupFullEditor() {
+            // create dummy Document and Editor
+            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
+            myDocument = mocks.doc;
+            myEditor = mocks.editor;
             
-            // create Editor instance (containing a CodeMirror instance)
-            $("body").append("<div id='editor'/>");
-            myEditor = new Editor(myDocument, true, "javascript", $("#editor").get(0), {});
-            
-            // Must be focused so editor commands target it
             myEditor.focus();
-        });
-
+        }
+        
+        function makeEditorWithRange(range) {
+            // create editor with a visible range
+            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript", range);
+            myDocument = mocks.doc;
+            myEditor = mocks.editor;
+            
+            myEditor.focus();
+        }
+        
         afterEach(function () {
-            myEditor.destroy();
+            SpecRunnerUtils.destroyMockEditor(myDocument);
             myEditor = null;
-            $("#editor").remove();
             myDocument = null;
         });
         
@@ -78,7 +85,8 @@ define(function (require, exports, module) {
         
 
         describe("Line comment/uncomment", function () {
-
+            beforeEach(setupFullEditor);
+            
             it("should comment/uncomment a single line, cursor at start", function () {
                 myEditor.setCursorPos(3, 0);
                 
@@ -355,6 +363,8 @@ define(function (require, exports, module) {
         
         
         describe("Duplicate", function () {
+            beforeEach(setupFullEditor);
+
             it("should duplicate whole line if no selection", function () {
                 // place cursor in middle of line 1
                 myEditor.setCursorPos(1, 10);
@@ -500,7 +510,9 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("Move Lines Up/Down", function () {
+            beforeEach(setupFullEditor);
             
             it("should move whole line up if no selection", function () {
                 // place cursor in middle of line 1
@@ -808,6 +820,216 @@ define(function (require, exports, module) {
             });
         });
         
+        
+        describe("Delete Line", function () {
+            beforeEach(setupFullEditor);
+            
+            it("should delete the first line when selection is an IP in that line", function () {
+                myEditor.setSelection({line: 0, ch: 5}, {line: 0, ch: 5});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n").slice(1).join("\n");
+                expect(myDocument.getText()).toEqual(expectedText);
+            });
+            
+            it("should delete the first line when selection is a range in that line", function () {
+                myEditor.setSelection({line: 0, ch: 5}, {line: 0, ch: 8});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n").slice(1).join("\n");
+                expect(myDocument.getText()).toEqual(expectedText);
+            });
+            
+            it("should delete a middle line when selection is an IP in that line", function () {
+                myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 5});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(2, 1);
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+            });
+            
+            it("should delete a middle line when selection is a range in that line", function () {
+                myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 8});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(2, 1);
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+            });
+            
+            it("should delete the last line when selection is an IP in that line", function () {
+                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 0});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n").slice(0, 7).join("\n");
+                expect(myDocument.getText()).toEqual(expectedText);
+            });
+            
+            it("should delete the last line when selection is a range in that line", function () {
+                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 1});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n").slice(0, 7).join("\n");
+                expect(myDocument.getText()).toEqual(expectedText);
+            });
+            
+            it("should delete multiple lines starting at the top when selection spans them", function () {
+                myEditor.setSelection({line: 0, ch: 5}, {line: 2, ch: 4});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n").slice(3).join("\n");
+                expect(myDocument.getText()).toEqual(expectedText);
+            });
+
+            it("should delete multiple lines ending at the bottom when selection spans them", function () {
+                myEditor.setSelection({line: 5, ch: 5}, {line: 7, ch: 0});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n").slice(0, 5).join("\n");
+                expect(myDocument.getText()).toEqual(expectedText);
+            });
+            
+            it("should leave empty text when all lines are selected", function () {
+                myEditor.setSelection({line: 0, ch: 4}, {line: 7, ch: 1});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                expect(myDocument.getText()).toEqual("");
+            });
+        });
+        
+        describe("Delete Line - editor with visible range", function () {
+
+            it("should delete the top line of the visible range", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 1, ch: 5}, {line: 1, ch: 5});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 1);
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
+            });
+
+            it("should delete the bottom line of the visible range", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 5, ch: 2}, {line: 5, ch: 2});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(5, 1);
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
+            });
+            
+            it("should leave a single newline when all visible lines are selected", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 1, ch: 5}, {line: 5, ch: 2});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 5, "");
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
+            });
+            
+            it("should leave a single newline when only one line is visible", function () {
+                makeEditorWithRange({startLine: 3, endLine: 3});
+                myEditor.setSelection({line: 3, ch: 4}, {line: 3, ch: 4});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(3, 1, "");
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toNotBe(null);
+                expect(myEditor._visibleRange.endLine).toNotBe(null);
+            });
+        });
+        
+        
+        describe("Select Line", function () {
+            beforeEach(setupFullEditor);
+            
+            it("should select the first line with IP in that line", function () {
+                myEditor.setSelection({line: 0, ch: 5}, {line: 0, ch: 5});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 1, ch: 0}});
+            });
+            
+            it("should select the last line with IP in that line", function () {
+                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 7, ch: 0}, end: {line: 7, ch: 1}});
+            });
+            
+            it("should select all in one-line file", function () {
+                myDocument.setText("// x");
+                myEditor.setSelection({line: 0, ch: 0}, {line: 0, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 4}});
+            });
+            
+            it("should extend selection to whole line", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 8});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+            });
+            
+            it("should extend whole line selection to next line", function () {
+                myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("should extend multi-line selection to full lines", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 3, ch: 9});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+            });
+            
+            it("should extend full multi-line selection to one more line", function () {
+                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 5, ch: 0}});
+            });
+            
+        });
+        
+        describe("Select Line - editor with visible range", function () {
+
+            it("shouldn't select past end of visible range, IP in middle of last visible line", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 5, ch: 4}, {line: 5, ch: 4});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 5, ch: 0}, end: {line: 5, ch: 5}});
+            });
+            
+            it("shouldn't select past end of visible range, IP at start of last visible line", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 5, ch: 0}, {line: 5, ch: 0});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 5, ch: 0}, end: {line: 5, ch: 5}});
+            });
+            
+            it("should extend selection to include last line of visible range", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelection({line: 4, ch: 4}, {line: 4, ch: 4});
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 4, ch: 0}, end: {line: 5, ch: 0}});
+            });
+        });
         
     });
 });

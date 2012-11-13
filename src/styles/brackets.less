@@ -60,32 +60,42 @@ html, body {
 }
 
 body {
-    .vbox;
-    
-    /* This appears to be necessary in Firefox when body is set to display: box. */
-    width: 100%;
-    &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
-        cursor: col-resize;   
-    }
+    height: 100%;
 }
 
+.resizing-container {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: @z-index-brackets-panel-resizer;
+    
+    &.horz-resizing {
+        cursor: col-resize;
+    }
+    
+    &.vert-resizing {
+        cursor: row-resize;
+    }
+}
 
 a, img {
     -webkit-user-drag: none;
 }
 
 .main-view {
-    .hbox;
-    .box-flex(1);
+    height: 100%;
 
     .sidebar {
+        height: 100%;
         .vbox;
         width: @sidebar-width;
+        float: left;
     }
 
     .content {
-        .vbox;
-        .box-flex(1);
+        height: 100%;
+        position: relative;
     }
 }
 
@@ -94,28 +104,164 @@ a, img {
     z-index: @z-index-brackets-toolbar;
 }
 
+.busyCursor {
+    cursor: wait !important;
+}
+
+#status-bar {
+    position: relative;
+    background-color: @background-color-3;
+    border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
+    box-sizing: border-box;
+    color: @bc-grey;
+    font-family: @fontstack-sans-serif;
+    font-size: 0.9em;
+    line-height: 1;
+    
+    height: 20px;
+    overflow: hidden;
+    padding: 3px 20px 3px 10px;
+}
+    
+#status-info {
+    position: absolute;
+    left: 8px;
+    background-color: @background-color-3;
+    white-space: nowrap;
+    
+    div {
+        display: inline;
+        margin-right: 20px;
+    }
+}
+    
+#status-indicators {
+    position: absolute;
+    right: 4px;
+    background-color: @background-color-3;
+    white-space: nowrap;
+    
+    &>div {
+        display: inline;
+        margin-left: 20px;
+        
+        &#busy-indicator {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -2px;
+            width: 12px;
+            height: 12px;
+            background: url("images/small_spinner.svg") no-repeat;
+            visibility: hidden;
+        
+            &.spin {
+                -webkit-animation: rotating 1.5s linear infinite;
+                visibility: visible;
+            }
+        }        
+    }
+}
+
+@-webkit-keyframes rotating {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+#status-indent > * {
+    display: inline-block;
+}
+
+#status-indent > *.hidden {
+    display: none;
+}
+
+#indent-type, #indent-width-label {
+    margin-right: 2px;
+}
+
+#indent-type, #indent-width-label {
+    cursor: pointer;
+}
+
+#indent-width-label {
+    width: 14px;
+}
+
+#indent-type:hover, #indent-width-label:hover {
+    text-decoration: underline;
+}
+
+#indent-width-input {
+    font-size: 1em;
+    height: 12px;
+    line-height: 1;
+    vertical-align: -2px;
+    border: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
+    color: @bc-black;
+    margin: 0;
+    padding: 0;
+    width: 14px;
+    position: relative;
+    left: -1px;
+    top: -2px;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
+}
+
+#indent-width-input:focus {
+    border: 1px solid rgba(9,64,253,0.84);
+    outline: none;
+}
+
+#indent-width-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 #editor-holder {
-    .vbox;
-    .box-flex(1);
     position: relative;
     
     /* Placeholder shown when there is no editor open */
     #not-editor {
-        .box-flex(1);
+        height: 100%;
         .vbox;
         .box-pack(center);
         .box-align(center);
         background: @background-color-2 url('images/no_content_bg.svg') no-repeat center 45%;
     }
 }
-    
+
+.vert-resizer {
+    position: absolute;
+    height: 6px;
+    width: 100%;
+    z-index: @z-index-brackets-panel-resizer;
+    opacity: 0;
+    cursor: row-resize;
+}
+
+.horz-resizer {
+    position: absolute;
+    height: 100%;
+    width: 6px;
+    z-index: @z-index-brackets-panel-resizer;
+    opacity: 0;
+    cursor: col-resize;
+}
+
 .bottom-panel {
     display: none;
     height: 200px;
     border-top-style: solid;
     border-width: 1px;
     border-color: lighten(@bc-grey, @bc-color-step-size*4);
-
+    
     .toolbar {
         height: auto;
         padding-top: @base-padding / 2;
@@ -161,10 +307,19 @@ a, img {
     display:none;
 }
 
-#gold-star {
-    display: none;
-    font-size: 1.2em;
-    color: #ffe13b;
+.jslint-disabled {
+    font-size: 1em;
+    color: @bc-grey;
+}
+
+.jslint-errors {
+    font-size: 1em;
+    color: @bc-red;
+}
+
+.jslint-valid {
+    font-size: 1em;
+    color: lighten(@bc-yellow, @bc-color-step-size*2);
 }
 
 #toolbar-go-live {
@@ -186,6 +341,13 @@ a, img {
     // 'Connection in progress' state
     &.info {
         .sprite-swap(0,44px);
+    }
+    // 'Out-of-sync' state
+    &.out-of-sync {
+        .sprite-swap(0,55px);
+    }
+    &.out-of-sync:hover {
+        .sprite-swap(0,66px);
     }
 }
 
@@ -319,7 +481,7 @@ a, img {
 }
 
 .scroller-shadow {
-    background-size: 100% 5px;
+    background-size: 100%;
     background-repeat: no-repeat;
     height: 5px;
     position: fixed;
@@ -529,39 +691,63 @@ ins.jstree-icon {
     }
 }
 
-/* Styles for the search dialog--this is temporary, only for debugging */
+/* This text is used to force the code editor's font to be loaded early on if it's a
+   web font. This is necessary in order for the editor's horizontal measurement of text
+   to work properly.
+
+   In the future, when we allow the user to switch fonts, we'll need to make sure to
+   update the font for this text item whenever the user switches. We'll also need to
+   wait to initiate a re-measure in CodeMirror until the new font is loaded (if they
+   choose a web font). This library allows for checking if a web font is loaded:
+
+     http://code.google.com/apis/webfonts/docs/webfont_loader.html
+*/
+.dummy-text {
+    position: fixed;
+    top: -10000px;
+    .code-font();
+}
+
+
+/* Find & Replace search bars - temporary UI, to be replaced with a richer search feature later */
 
 .CodeMirror-dialog {
-  position: relative;
-  z-index: @z-index-cm-dialog-override;
+    position: relative;
+    z-index: @z-index-cm-dialog-override;
 }
 
 .CodeMirror-dialog > div {
-  font-family: @fontstack-sans-serif;
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  background: @background-color-2;
-  color: @content-color;
-  border-bottom: 1px solid @bc-gray;
-  .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
-  z-index: 1;
-  padding: .5em .8em;
-  overflow: hidden;
+    font-family: @fontstack-sans-serif;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: @background-color-2;
+    color: @content-color;
+    border-bottom: 1px solid @bc-gray;
+    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
+    z-index: 1;
+    padding: .5em .8em;
+    overflow: hidden;
 }
 
 .CodeMirror-dialog input {
-  font-family: @fontstack-sans-serif;
-  border: 1px solid @content-color-weaker;
-  outline: none;
-  background: @background-color-3;
-  width: 20em;
-  margin: .3em .3em;
-  color: inherit;
+    font-family: @fontstack-sans-serif;
+    border: 1px solid @content-color-weaker;
+    outline: none;
+    background: @background-color-3;
+    width: 20em;
+    margin: .3em .3em;
+    color: inherit;
+    &.no-results {
+        background-color: mix(@background-color-3, #FF0000, 70%);
+    }
 }
 
 .CodeMirror-searching {
-  background-color: inherit;
+    background-color: inherit;
 }
+
+
+/* Quick Open search bar & dropdown */
 
 .smart_autocomplete_container {
     
@@ -588,8 +774,15 @@ ins.jstree-icon {
     }
 }
 
-
 li.smart_autocomplete_highlight {
-    background-color: #5fa3e0;
+    background-color: #e0f0fa;
+}
 
+.quicksearch-pathmatch {
+    font-weight: bold;
+    color: #555;
+}
+
+.quicksearch-namematch {
+    font-weight: bold;
 }

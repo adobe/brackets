@@ -125,7 +125,7 @@ define(function (require, exports, module) {
             }
         };
         
-        $(EditorManager).on("focusedEditorChange", function (event, focusedEditor) {
+        $(EditorManager).on("activeEditorChange", function (event, focusedEditor) {
             updateFocusedEditor(focusedEditor);
         });
         updateFocusedEditor(EditorManager.getFocusedEditor());
