@@ -7,10 +7,11 @@
 }
 
 .trash-icon {
-	width: 16px;
-	height: 16px;
-	background-image: url("close_btn.svg");
-	position: absolute;
+    position: absolute;
+    right: 5px;
+    width: 16px;
+    height: 16px;
+    background-image: url("close_btn.svg");
 }
 
 #project-dropdown-toggle {

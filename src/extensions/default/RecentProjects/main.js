@@ -85,8 +85,7 @@ define(function (require, exports, module) {
      * Create the "delete" button that shows up when you hover over a project.
      */
     function renderDelete() {
-        return $("<div id='recent-folder-delete'></div>")
-            .addClass("trash-icon")
+        return $("<div id='recent-folder-delete' class='trash-icon'></div>")
             .click(function (e) {
                 // Don't let the click bubble upward.
                 e.stopPropagation();
@@ -146,9 +145,9 @@ define(function (require, exports, module) {
             folder = path;
         }
         
-        var folderSpan = $("<span></span>").addClass("recent-folder").text(folder),
-            restSpan = $("<span></span>").addClass("recent-folder-path").text(rest);
-        return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan).data("path", path)
+        var folderSpan = $("<span class='recent-folder'></span>").text(folder),
+            restSpan = $("<span class='recent-folder-path'></span>").text(rest);
+        return $("<a class='recent-folder-link'></a>").append(folderSpan).append(restSpan).data("path", path)
             .click(function () {
                 ProjectManager.openProject(path)
                     .fail(function () {
@@ -171,9 +170,7 @@ define(function (require, exports, module) {
                 
                 $(this).append($del);
 
-                $del.css("right", 5);
                 $del.css("top", $target.position().top + 6);
-                $del.css("display", "inline-block");
                 $del.data("path", $(this).data("path"));
             })
             .mouseleave(function () {
