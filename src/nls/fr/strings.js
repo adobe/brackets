@@ -35,7 +35,7 @@ define({
     "NOT_READABLE_ERR": "Impossible de lire le fichier.",
     "NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
-    "FILE_EXISTS_ERR": "The file already exists.",
+    "FILE_EXISTS_ERR": "Le fichier existe déjà.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -50,8 +50,8 @@ define({
     "ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
     "ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE": "Error renaming file",
-    "ERROR_RENAMING_FILE": "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE": "Erreur lors du renommage du fichier",
+    "ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de renommage du fichier <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE": "Nom de fichier non valide",
     "INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
@@ -82,7 +82,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation...",
     "LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Live Preview: Click to disconnect (Save file to update)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Aperçu en direct : Cliquez pour déconnecter (Enregistrez le fichier pour la mise à jour)",
     
     "SAVE_CLOSE_TITLE": "Enregistrer les modifications",
     "SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
@@ -141,13 +141,13 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION": "Line {0}, Column {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES": "Click to switch indentation to spaces",
-    "STATUSBAR_INDENT_TOOLTIP_TABS": "Click to switch indentation to tabs",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Click to change number of spaces used when indenting",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Click to change tab character width",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES": "Cliquez pour passer l’indentation en espaces",
+    "STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez pour passer l'indentation en tabulations",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez pour modifier le nombre d’espaces utilisés lors de l’indentation",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez pour modifier la taille de la tabulation",
     "STATUSBAR_SPACES": "Espaces",
-    "STATUSBAR_TAB_SIZE": "Tab Size",
-    "STATUSBAR_LINE_COUNT": "{0} Lines",
+    "STATUSBAR_TAB_SIZE": "Taille de tabulation",
+    "STATUSBAR_LINE_COUNT": "{0} Lignes",
 
     /**
      * Command Name Constants
@@ -179,7 +179,7 @@ define({
     "CMD_INDENT": "Retrait",
     "CMD_UNINDENT": "Annuler le retrait",
     "CMD_DUPLICATE": "Dupliquer",
-    "CMD_DELETE_LINES": "Delete Selected Line(s)",
+    "CMD_DELETE_LINES": "Supprimer les lignes sélectionnées",
     "CMD_COMMENT": "Commenter les lignes/Annuler les commentaires",
     "CMD_LINE_UP": "Déplacer les lignes vers le haut",
     "CMD_LINE_DOWN": "Déplacer les lignes vers le bas",
@@ -202,7 +202,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
     "CMD_NEXT_DOC": "Document suivant",
     "CMD_PREV_DOC": "Document précédent",
-    "CMD_SHOW_IN_TREE": "Show in File Tree",
+    "CMD_SHOW_IN_TREE": "Voir dans l’arborescence de fichiers",
     
     // Debug menu commands
     "DEBUG_MENU": "Déboguer",
@@ -232,7 +232,7 @@ define({
     "JSLINT_ERROR_INFORMATION": "1 JSLint Error",
     "JSLINT_ERRORS_INFORMATION": "{0} JSLint Errors",
     "JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-    "JSLINT_DISABLED": "JSLint disabled or not working for the current file",
+    "JSLINT_DISABLED": "JSLint désactivé ou ne fonctionnant pas pour le fichier actuel",
     "SEARCH_RESULTS": "Résultats de la recherche",
     "OK": "OK",
     "DONT_SAVE": "Ne pas enregistrer",
