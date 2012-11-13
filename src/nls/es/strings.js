@@ -75,12 +75,14 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Desarrollo en Vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML para poder iniciar el modo de Desarrollo en Vivo.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Desarrollo en Vivo con archivos de servidor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS</strong> y únicamente con <strong>Google Chrome</strong>. ¡Pronto estará disponible también para HTML y JavaScript!<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Consulta <a class=\"clickable-link\" data-href=\"{0}\">Resolución de Problemas de conexión en Desarrollo en Vivo</a> para más información.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Desarrollo en Vivo",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Desarrollo en Vivo: Conectando...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Desarrollo en Vivo: Inicializando...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Desarrollo en Vivo: Conectando\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Desarrollo en Vivo: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Desarrollo en Vivo",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Desarrollo en Vivo: Haz click para desconectar (Guarda el archivo para actualizar)",
     
@@ -110,6 +112,7 @@ define({
     "FIND_IN_FILES_FILES"               : "archivos",
     "FIND_IN_FILES_MATCH"               : "coincidencia",
     "FIND_IN_FILES_MATCHES"             : "coincidencias",
+    "FIND_IN_FILES_MORE_THAN"           : "Más de ",
     "FIND_IN_FILES_MAX"                 : " (mostrando las primeras {0} coincidencias)",
     "FIND_IN_FILES_FILE_PATH"           : "Archivo: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "línea:&nbsp;{0}",
@@ -165,12 +168,14 @@ define({
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
+    "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_QUIT"                            : "Salir",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Edición",
     "CMD_SELECT_ALL"                      : "Seleccionar todo",
+    "CMD_SELECT_LINE"                     : "Seleccionar línea",
     "CMD_FIND"                            : "Buscar",
     "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
     "CMD_FIND_NEXT"                       : "Buscar siguiente",
@@ -179,10 +184,11 @@ define({
     "CMD_INDENT"                          : "Aumentar sangría",
     "CMD_UNINDENT"                        : "Disminuir sangría",
     "CMD_DUPLICATE"                       : "Duplicar",
-    "CMD_DELETE_LINES"                    : "Eliminar líneas seleccionadas",
-    "CMD_COMMENT"                         : "Comentar/Descomentar líneas",
-    "CMD_LINE_UP"                         : "Subir línea(s)",
-    "CMD_LINE_DOWN"                       : "Bajar línea(s)",
+    "CMD_DELETE_LINES"                    : "Eliminar línea",
+    "CMD_COMMENT"                         : "Comentar/Descomentar línea",
+    "CMD_BLOCK_COMMENT"                   : "Comentar/Descomentar bloque",
+    "CMD_LINE_UP"                         : "Subir línea",
+    "CMD_LINE_DOWN"                       : "Bajar línea",
      
     // View menu commands
     "VIEW_MENU"                           : "Visualización",
@@ -191,6 +197,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamaño de fuente",
     "CMD_DECREASE_FONT_SIZE"              : "Disminuir tamaño de fuente",
     "CMD_RESTORE_FONT_SIZE"               : "Restablecer tamaño de fuente",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",
@@ -213,7 +223,6 @@ define({
     "CMD_SHOW_PERF_DATA"                  : "Mostrar información de rendimiento",
     "CMD_NEW_BRACKETS_WINDOW"             : "Nueva ventana de {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
-    "CMD_USE_TAB_CHARS"                   : "Usar tabulaciones",
     "CMD_SWITCH_LANGUAGE"                 : "Cambiar idioma",
     "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
 
@@ -250,6 +259,15 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
-    "UPDATE_MESSAGE"                       : "Oye, hay una nueva versión de {APP_NAME} disponible. Éstas son algunas de las nuevas características:",
-    "GET_IT_NOW"                           : "¡Consíguelo ahora!"
+    "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
+    "GET_IT_NOW"                           : "¡Consíguelo ahora!",
+    "PROJECT_SETTINGS_TOOLTIP"             : "Configuración del proyecto",
+    "PROJECT_SETTINGS_TITLE"               : "Configuración del proyecto para: {0}",
+    "PROJECT_SETTING_BASE_URL"             : "URL base para Desarrollo en Vivo",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(deja en blanco para urls de tipo \"file\")",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Desarrollo en Vivo no soporta el protocolo {0}. Por favor, utiliza http: o https: .",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base"
 });
