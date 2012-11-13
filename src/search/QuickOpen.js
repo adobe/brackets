@@ -353,6 +353,13 @@ define(function (require, exports, module) {
     
     
     /**
+     * Give visual clue when there are no results
+     */
+    QuickNavigateDialog.prototype._handleResultsReady = function (results) {
+        $("input#quickOpenSearch").toggleClass("no-results", results.length === 0);
+    };
+
+    /**
      * Closes the search dialog and notifies all quick open plugins that
      * searching is done.
      */
@@ -793,7 +800,6 @@ define(function (require, exports, module) {
         return formatter(item, query);
     }
 
-
     function setSearchFieldValue(prefix, initialString) {
         prefix = prefix || "";
         initialString = initialString || "";
@@ -876,6 +882,7 @@ define(function (require, exports, module) {
         });
 
         that.$searchField.bind({
+            resultsReady: function (e, results) { that._handleResultsReady(results); },
             itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
             itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
             keydown: function (e) { that._handleKeyDown(e); },
