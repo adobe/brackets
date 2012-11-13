@@ -88,15 +88,16 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns label text to indicate the search scope
+     * Returns label text to indicate the search scope. Already HTML-escaped.
      * @param {?Entry} scope
      */
     function _labelForScope(scope) {
         var projName = ProjectManager.getProjectRoot().name;
         if (scope) {
-            return StringUtils.format(Strings.FIND_IN_FILES_SCOPED, projName + "/" + ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
+            var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
+            return StringUtils.format(Strings.FIND_IN_FILES_SCOPED, displayPath);
         } else {
-            return StringUtils.format(Strings.FIND_IN_FILES_NO_SCOPE, projName);
+            return Strings.FIND_IN_FILES_NO_SCOPE;
         }
     }
     
@@ -145,8 +146,9 @@ define(function (require, exports, module) {
     * @returns {$.Promise} that is resolved with the string to search for
     */
     FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
-        var dialogHTML = Strings.CMD_FIND_IN_FILES +
-            ": <input type='text' id='findInFilesInput' style='width: 10em'> <span id='findInFilesScope'></span> " +
+        // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
+        var dialogHTML = Strings.CMD_FIND +
+            ": <input type='text' id='findInFilesInput' style='width: 10em'> <span id='findInFilesScope'></span> &nbsp;" +
             "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>";
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
@@ -156,7 +158,7 @@ define(function (require, exports, module) {
         $searchField.attr("value", initialString || "");
         $searchField.get(0).select();
         
-        $("#findInFilesScope").text(_labelForScope(scope));
+        $("#findInFilesScope").html(_labelForScope(scope));
         
         $searchField.bind("keydown", function (event) {
             if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
@@ -247,6 +249,7 @@ define(function (require, exports, module) {
             }
             numMatchesStr += String(numMatches);
 
+            // This text contains some formatting, so all the strings are assumed to be already escaped
             var summary = StringUtils.format(
                 Strings.FIND_IN_FILES_TITLE,
                 numMatchesStr,
@@ -258,7 +261,7 @@ define(function (require, exports, module) {
             );
             
             $("#search-result-summary")
-                .text(summary +
+                .html(summary +
                      (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
                 .prepend("&nbsp;"); // putting a normal space before the "-" is not enough
             

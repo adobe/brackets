@@ -108,8 +108,8 @@ define({
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "for \"{4}\" {5} - {0} {1} in {2} {3}",
-    "FIND_IN_FILES_SCOPED"              : "in {0}",
-    "FIND_IN_FILES_NO_SCOPE"            : "in all of {0}",
+    "FIND_IN_FILES_SCOPED"              : "in <b>{0}</b>",
+    "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
