@@ -35,7 +35,7 @@ define({
     "NOT_READABLE_ERR": "Impossible de lire le fichier.",
     "NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
-    "FILE_EXISTS_ERR": "The file already exists.",
+    "FILE_EXISTS_ERR": "Ce fichier existe déjà.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -50,13 +50,14 @@ define({
     "ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
     "ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE": "Error renaming file",
-    "ERROR_RENAMING_FILE": "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du fichier",
+    "ERROR_RENAMING_FILE": "Une erreur s’est produite lorsque vous avez tenté de renommer le fichier <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE": "Nom de fichier non valide",
     "INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
     "ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du fichier",
     "ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
+
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
@@ -75,14 +76,16 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
     "LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
     "LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
     "LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version de {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec les modifications apportées aux <strong>fichiers CSS</strong> et uniquement dans <strong>Google Chrome</strong>. Nous prévoyons de le rendre bientôt compatible avec les fichiers HTML et JavaScript.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour en savoir plus, reportez-vous à la rubrique <a class=\"clickable-link\" data-href=\"{0}\">Dépannage des erreurs de connexion Live Development</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Live Preview: Click to disconnect (Save file to update)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Aperçu en direct : cliquez ici pour déconnecter (enregistrez le fichier pour lancer la mise à jour).",
     
     "SAVE_CLOSE_TITLE": "Enregistrer les modifications",
     "SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
@@ -105,11 +108,12 @@ define({
     "NO_UPDATE_TITLE": "Votre logiciel est à jour.",
     "NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE": "for \"{4}\" - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE": "\"{4}\" - {0} {1} dans {2} {3}",
     "FIND_IN_FILES_FILE": "fichier",
     "FIND_IN_FILES_FILES": "fichiers",
     "FIND_IN_FILES_MATCH": "résultat",
     "FIND_IN_FILES_MATCHES": "résultats",
+    "FIND_IN_FILES_MORE_THAN": "Plus de ",
     "FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
     "FIND_IN_FILES_FILE_PATH": "Fichier : <b>{0}</b>",
     "FIND_IN_FILES_LINE": "Ligne :&nbsp;{0}",
@@ -140,14 +144,14 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION": "Line {0}, Column {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES": "Click to switch indentation to spaces",
-    "STATUSBAR_INDENT_TOOLTIP_TABS": "Click to switch indentation to tabs",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Click to change number of spaces used when indenting",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Click to change tab character width",
+    "STATUSBAR_CURSOR_POSITION": "Ligne {0}, colonne {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES": "Cliquez ici pour remplacer la mise en retrait par des espaces.",
+    "STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez ici pour remplacer la mise en retrait par des tabulations.",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez ici pour changer le nombre d’espaces utilisés lors de la mise en retrait.",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
     "STATUSBAR_SPACES": "Espaces",
-    "STATUSBAR_TAB_SIZE": "Tab Size",
-    "STATUSBAR_LINE_COUNT": "{0} Lines",
+    "STATUSBAR_TAB_SIZE": "Taille de tabulation",
+    "STATUSBAR_LINE_COUNT": "{0} lignes",
 
     /**
      * Command Name Constants
@@ -155,7 +159,7 @@ define({
 
     // File menu commands
     "FILE_MENU": "Fichier",
-    "CMD_FILE_NEW": "Nouveau fichier",
+    "CMD_FILE_NEW": "Nouveau Fichier",
     "CMD_FILE_NEW_FOLDER": "Nouveau dossier",
     "CMD_FILE_OPEN": "Ouvrir\u2026",
     "CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
@@ -165,12 +169,14 @@ define({
     "CMD_FILE_SAVE": "Enregistrer",
     "CMD_FILE_SAVE_ALL": "Enregistrer tout",
     "CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
+    "CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
     "CMD_FILE_RENAME": "Renommer",
     "CMD_QUIT": "Quitter",
 
     // Edit menu commands
     "EDIT_MENU": "Modifier",
     "CMD_SELECT_ALL": "Sélectionner tout",
+    "CMD_SELECT_LINE": "Sélectionner la ligne",
     "CMD_FIND": "Rechercher",
     "CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
     "CMD_FIND_NEXT": "Rechercher suivant",
@@ -179,10 +185,10 @@ define({
     "CMD_INDENT": "Retrait",
     "CMD_UNINDENT": "Annuler le retrait",
     "CMD_DUPLICATE": "Dupliquer",
-    "CMD_DELETE_LINES": "Delete Selected Line(s)",
-    "CMD_COMMENT": "Commenter les lignes/Annuler les commentaires",
-    "CMD_LINE_UP": "Déplacer les lignes vers le haut",
-    "CMD_LINE_DOWN": "Déplacer les lignes vers le bas",
+    "CMD_DELETE_LINES": "Supprimer la ligne",
+    "CMD_COMMENT": "Activer/Désactiver le commentaire de ligne",
+    "CMD_LINE_UP": "Déplacer la ligne vers le haut",
+    "CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
      
     // View menu commands
     "VIEW_MENU": "Affichage",
@@ -191,6 +197,10 @@ define({
     "CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
     "CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
     "CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
+    "CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
+    "CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
+    "CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
+    "CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
 
     // Navigate menu Commands
     "NAVIGATE_MENU": "Naviguer",
@@ -202,7 +212,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
     "CMD_NEXT_DOC": "Document suivant",
     "CMD_PREV_DOC": "Document précédent",
-    "CMD_SHOW_IN_TREE": "Show in File Tree",
+    "CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
     
     // Debug menu commands
     "DEBUG_MENU": "Déboguer",
@@ -213,7 +223,6 @@ define({
     "CMD_SHOW_PERF_DATA": "Afficher les données de performances",
     "CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-    "CMD_USE_TAB_CHARS": "Utiliser les caractères de tabulation",
     "CMD_SWITCH_LANGUAGE": "Changer de langue",
     "CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 
@@ -229,10 +238,10 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD": "Version expérimentale",
     "JSLINT_ERRORS": "Erreurs JSLint",
-    "JSLINT_ERROR_INFORMATION": "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION": "{0} JSLint Errors",
+    "JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
+    "JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
     "JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-    "JSLINT_DISABLED": "JSLint disabled or not working for the current file",
+    "JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
     "SEARCH_RESULTS": "Résultats de la recherche",
     "OK": "OK",
     "DONT_SAVE": "Ne pas enregistrer",
@@ -245,11 +254,20 @@ define({
     "ABOUT": "A propos",
     "APP_NAME": "Brackets",
     "CLOSE": "Fermer",
-    "ABOUT_TEXT_LINE1": "version expérimentale sprint {VERSION_MINOR} {VERSION}",
-    "ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles (en anglais) à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
-    "ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE1": "sprint {VERSION_MINOR} version expérimentale {VERSION}",
+    "ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr\">http://www.adobe.com/go/thirdparty_fr</a> et sont incluses dans le présent document à titre de référence.",
+    "ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
     "UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
     "UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
-    "GET_IT_NOW": "Télécharger"
+    "GET_IT_NOW": "Télécharger",
+    "PROJECT_SETTINGS_TOOLTIP": "Paramètres du projet",
+    "PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
+    "PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct",
+    "PROJECT_SETTING_BASE_URL_HINT": "(Dans le cas d’une URL de fichier, ne rien indiquer)",
+    "BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
+    "BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
+    "BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
+    "BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
+    "BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base"
 });
