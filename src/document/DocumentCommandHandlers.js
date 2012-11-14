@@ -492,6 +492,7 @@ define(function (require, exports, module) {
                     var i;
                     
                     if (path !== null) {
+                        fileEntry = new NativeFileSystem.FileEntry(path);
                         fileEntry.createWriter(
                             function (writer) {
                                 writer.onwriteend = function () {
@@ -515,12 +516,12 @@ define(function (require, exports, module) {
                         );
 
                         // Add the file to the working set
-                        DocumentManager.addToWorkingSet(new NativeFileSystem.FileEntry(file));
+                        DocumentManager.addToWorkingSet(fileEntry);
 
                         // close old-name file, then open file with new name
                         // TODO convert this to in-place path swap, is editing the docToSave object save w/o sidefx?
                         doClose(docToSave.file);
-                        doOpen(file);
+                        doOpen(path);
 
                         result.resolve();
                     } else {
