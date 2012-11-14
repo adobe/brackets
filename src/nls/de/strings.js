@@ -190,6 +190,7 @@ define({
     "CMD_DUPLICATE"                       : "Duplizieren",
     "CMD_DELETE_LINES"                    : "Zeile löschen",
     "CMD_COMMENT"                         : "Zeile (aus-)kommentieren",
+    "CMD_BLOCK_COMMENT"                   : "Block (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
      
