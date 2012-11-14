@@ -343,7 +343,7 @@ define(function (require, exports, module) {
                     // Comment out - add the suffix to the start and the prefix to the end.
                     doc.replaceRange(text, sel.start, sel.end);
                     
-                    // Correct the selection.
+                    // Recreate the selection
                     if (completeLineSel) {
                         editor.setSelection({line: sel.start.line + 1, ch: 0}, {line: sel.end.line + 1, ch: 0});
                     } else {
@@ -356,33 +356,58 @@ define(function (require, exports, module) {
                     }
                 
                 // Uncomment - remove prefix and suffix.
-                } else {
+                } else if (suffixPos) {
                     // Find if the prefix and suffix are at the ch 0 and if they are the only thing in the line.
                     // If both are found we assume that a complete line selection comment added new lines, so we remove them.
                     var prefixAtStart = false, suffixAtStart = false;
+                    var startReplace = {line: prefixPos.line, ch: prefixPos.ch},
+                        endReplace   = {line: suffixPos.line, ch: suffixPos.ch};
                     
                     line = doc.getLine(prefixPos.line).trim();
                     prefixAtStart = prefixPos.ch === 0 && prefix.length === line.length;
-                    if (suffixPos) {
-                        line = doc.getLine(suffixPos.line).trim();
-                        suffixAtStart = suffixPos.ch === 0 && suffix.length === line.length;
+                    
+                    line = doc.getLine(suffixPos.line).trim();
+                    suffixAtStart = suffixPos.ch === 0 && suffix.length === line.length;
+                    
+                    if (prefixAtStart && suffixAtStart) {
+                        startReplace.line -= 1;
+                        startReplace.ch    = doc.getLine(startReplace.line).length;
+                        endReplace.line   += 1;
+                    } else {
+                        endReplace.ch += suffix.length;
                     }
                     
-                    // Remove the suffix if there is one
-                    if (suffixPos) {
-                        if (prefixAtStart && suffixAtStart) {
-                            doc.replaceRange("", suffixPos, {line: suffixPos.line + 1, ch: 0});
-                        } else {
-                            doc.replaceRange("", suffixPos, {line: suffixPos.line, ch: suffixPos.ch + suffix.length});
+                    // Get the text inside the block-comment without the prefix and suffix and replace the whole comment with it
+                    text = doc.getRange({line: prefixPos.line, ch: prefixPos.ch + prefix.length}, suffixPos);
+                    doc.replaceRange(text, startReplace, endReplace);
+                    
+                    // Recreate the selection
+                    if (prefixAtStart && suffixAtStart) {
+                        if (prefixPos.line < sel.start.line) {
+                            sel.start.line -= 1;
+                        }
+                        if (suffixPos.line < sel.end.line) {
+                            sel.end.line -= 2;
+                        } else if (prefixPos.line < sel.end.line) {
+                            sel.end.line -= 1;
+                        }
+                    } else {
+                        if (prefixPos.line === sel.start.line && prefixPos.ch < sel.start.ch) {
+                            sel.start.ch -= (prefixPos.ch + prefix.length <= sel.start.ch) ? prefix.length : sel.start.ch - prefixPos.ch;
+                        } else if (suffixPos.line === sel.start.line && suffixPos.ch < sel.start.ch) {
+                            sel.start.ch -= (suffixPos.ch + suffix.length <= sel.start.ch) ? suffix.length : sel.start.ch - suffixPos.ch;
+                        }
+                        if (prefixPos.line === sel.end.line && prefixPos.ch < sel.end.ch) {
+                            sel.end.ch -= (prefixPos.ch + prefix.length <= sel.end.ch) ? prefix.length : sel.end.ch - prefixPos.ch;
+                        } else if (suffixPos.line === sel.end.line && suffixPos.ch < sel.end.ch) {
+                            sel.end.ch -= (suffixPos.ch + suffix.length <= sel.end.ch) ? suffix.length : sel.end.ch - suffixPos.ch;
                         }
                     }
+                    editor.setSelection(sel.start, sel.end);
                     
-                    // Remove the prefix
-                    if (prefixAtStart && suffixAtStart) {
-                        doc.replaceRange("", prefixPos, {line: prefixPos.line + 1, ch: 0});
-                    } else {
-                        doc.replaceRange("", prefixPos, {line: prefixPos.line, ch: prefixPos.ch + prefix.length});
-                    }
+                // Uncomment - just remove the prefix
+                } else {
+                    doc.replaceRange("", prefixPos, {line: prefixPos.line, ch: prefixPos.ch + prefix.length});
                 }
             });
         }
