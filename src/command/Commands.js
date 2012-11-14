@@ -58,6 +58,7 @@ define(function (require, exports, module) {
     exports.EDIT_SELECT_LINE            = "edit.selectLine";
     exports.EDIT_FIND                   = "edit.find";
     exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";
+    exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";
     exports.EDIT_FIND_NEXT              = "edit.findNext";
     exports.EDIT_FIND_PREVIOUS          = "edit.findPrevious";
     exports.EDIT_REPLACE                = "edit.replace";
