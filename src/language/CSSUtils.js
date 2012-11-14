@@ -569,8 +569,46 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Returns the selector(s) of the rule at the specified document pos, or "" if the position is 
+     * is not within a style rule.
+     *
+     * @param {!Document} doc Document to search
+     * @param {!{line: number, ch: number}} pos Position to search
+     * @return {string} Selector(s) for the rule at the specified position, or "" if the position
+     *          is not within a style rule. If the rule has multiple selectors, a comma-separated
+     *          selector string is returned.
+     */
+    function findSelectorAtDocumentPos(doc, pos) {
+        var i, allRules = extractAllSelectors(doc.getText()), result = "";
+        
+        for (i = 0; i < allRules.length; i++) {
+            var rule = allRules[i];
+            
+            if ((rule.selectorGroupStartLine < pos.line ||
+                    (rule.selectorGroupStartLine === pos.line && rule.selectorGroupStartChar <= pos.ch))
+                    &&
+                    (rule.declListEndLine > pos.line ||
+                    (rule.declListEndLine === pos.line && rule.declListEndChar >= pos.ch))) {
+                
+                if (result.length > 0) {
+                    result += ", ";
+                }
+                result += rule.selector;
+            }
+            
+            // Stop if the selector starts past pos. This depends on allRules being sorted
+            // in file order, which they currently are.
+            if (rule.selectorGroupStartLine > pos.line) {
+                break;
+            }
+        }
+        
+        return result;
+    }
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
+    exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
 });

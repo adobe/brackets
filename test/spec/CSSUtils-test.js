@@ -326,6 +326,37 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("findSelectorAtDocumentPos", function () {
+            var doc;
+            
+            beforeEach(function () {
+                init(this, groupsFileEntry);
+                runs(function () {
+                    doc = SpecRunnerUtils.createMockDocument(this.fileCssContent);
+                });
+            });
+            
+            it("should find the selector at a document pos", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 9, ch: 0});
+                expect(selector).toEqual("h1");
+            });
+            
+            it("should return empty string if selection is not in a style rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 11, ch: 0});
+                expect(selector).toEqual("");
+            });
+            
+            it("should return a comma separated string of all selectors for the rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 13, ch: 0});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should support multiple rules on the same line", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 31, ch: 24});
+                expect(selector).toEqual(".g, .h");
+            });
+        });
+        
     }); // describe("CSSUtils")
 
     
