@@ -32,8 +32,6 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         InlineColorEditor   = require("InlineColorEditor").InlineColorEditor;
     
-    var _colorPickers = {};
-
     function inlineColorEditorProvider(hostEditor, pos) {
         var colorPicker, colorRegEx, cursorLine, inlineColorEditor, match, result,
             sel, start, end, startBookmark, endBookmark;
@@ -59,34 +57,18 @@ define(function (require, exports, module) {
             return null;
         }
         
+        // Adjust pos to the beginning of the match so that the inline editor won't get 
+        // dismissed while we're updating the color with the new values from user's inline editing.
         pos.ch = start;
-        startBookmark = hostEditor.document.setBookmark(pos);
-        endBookmark = hostEditor.document.setBookmark({ line: pos.line, ch: end });
-        
-        colorPicker = _colorPickers[startBookmark];
-        if (colorPicker) {
-            colorPicker.close();
-            if (match[0] === colorPicker.color) {
-                return null;
-            }
-        }
+        startBookmark = hostEditor._codeMirror.setBookmark(pos);
+        endBookmark = hostEditor._codeMirror.setBookmark({ line: pos.line, ch: end });
         
         hostEditor.setSelection(pos, { line: pos.line, ch: end });
         
-        result = new $.Deferred();
         inlineColorEditor = new InlineColorEditor(match[0], startBookmark, endBookmark);
-
-        inlineColorEditor.onClosed = function () {
-            if (this.startBookmark) {
-                delete _colorPickers[this.startBookmark];
-            }
-            if (this.clearBookmarks) {
-                this.clearBookmarks();
-            }
-        };
-        
         inlineColorEditor.load(hostEditor);
-        _colorPickers[startBookmark] = inlineColorEditor;
+
+        result = new $.Deferred();
         result.resolve(inlineColorEditor);
         return result.promise();
     }

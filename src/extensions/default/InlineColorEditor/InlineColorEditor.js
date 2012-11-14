@@ -49,6 +49,15 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
     InlineColorEditor.prototype.$wrapperDiv = null;
     
+    InlineColorEditor.prototype.onClosed = function () {
+        if (this.startBookmark) {
+            this.startBookmark.clear();
+        }
+        if (this.endBookmark) {
+            this.endBookmark.clear();
+        }
+    };
+        
     InlineColorEditor.prototype.setColor = function (colorLabel) {
         var start, end;
         if (!colorLabel) {
@@ -91,11 +100,6 @@ define(function (require, exports, module) {
         return true;
     };
         
-    InlineColorEditor.prototype.clearBookmarks = function () {
-        this.startBookmark.clear();
-        this.endBookmark.clear();
-    };
-        
     InlineColorEditor.prototype.onAdded = function () {
         window.setTimeout(this._sizeEditorToContent.bind(this));
         this.colorEditor.focus();
@@ -117,7 +121,7 @@ define(function (require, exports, module) {
         }
     }
 
-    InlineColorEditor.prototype.usedColors = function (originalArray, length) {
+    InlineColorEditor.prototype.usedColors = function (originalArray, maxLength) {
         var copyArray,
             compressed = [];
         
@@ -146,7 +150,7 @@ define(function (require, exports, module) {
             }
         }).sort(_colorSort);
 
-        return compressed.slice(0, length);
+        return compressed.slice(0, maxLength);
     };
 
     module.exports.InlineColorEditor = InlineColorEditor;

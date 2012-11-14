@@ -26,20 +26,20 @@
 
 define(function (require, exports, module) {
     "use strict";
-    require("helper/tinycolor-min");
+    require("thirdparty/tinycolor-min");
     
-    var KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        STEP_MULTIPLIER = 5;
+    var KeyEvent = brackets.getModule("utils/KeyEvent");
+    var STEP_MULTIPLIER = 5;
     
     function ColorEditor(element, color, callback, swatches) {
         this.element = element;
         this.callback = callback;
         this.swatches = swatches;
-        this.registerFocusHandler = this.registerFocusHandler.bind(this);
+        this.bindKeyHandler = this.bindKeyHandler.bind(this);
 
-        this.handleOpacityFocus = this.handleOpacityFocus.bind(this);
-        this.handleHueFocus = this.handleHueFocus.bind(this);
-        this.handleSelectionFocus = this.handleSelectionFocus.bind(this);
+        this.handleOpacityKeydown = this.handleOpacityKeydown.bind(this);
+        this.handleHueKeydown = this.handleHueKeydown.bind(this);
+        this.handleSelectionKeydown = this.handleSelectionKeydown.bind(this);
         this.registerDragHandler = this.registerDragHandler.bind(this);
         this.handleOpacityDrag = this.handleOpacityDrag.bind(this);
         this.handleHueDrag = this.handleHueDrag.bind(this);
@@ -65,8 +65,8 @@ define(function (require, exports, module) {
         this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$opacitySelector = this.$element.find(".opacity_slider .selector_base");
         this.$swatches = this.$element.find(".swatches");
-        this.addFieldListeners();
         this.addSwatches();
+        this.addFieldListeners();
         this.$lastColor.css("background-color", this.lastColor);
         this.commitColor(color);
     }
@@ -86,9 +86,15 @@ define(function (require, exports, module) {
         this.registerDragHandler(this.$selection, this.handleSelectionFieldDrag);
         this.registerDragHandler(this.$hueSlider, this.handleHueDrag);
         this.registerDragHandler(this.$opacitySlider, this.handleOpacityDrag);
-        this.registerFocusHandler(this.$selectionBase, this.handleSelectionFocus);
-        this.registerFocusHandler(this.$hueBase, this.handleHueFocus);
-        this.registerFocusHandler(this.$opacitySelector, this.handleOpacityFocus);
+        this.bindKeyHandler(this.$selectionBase, this.handleSelectionKeydown);
+        this.bindKeyHandler(this.$hueBase, this.handleHueKeydown);
+        this.bindKeyHandler(this.$opacitySelector, this.handleOpacityKeydown);
+        
+        // Bind key handler to HSLa button only if we don't have any color swatches
+        // and this becomes the last UI element in the tab loop.
+        if ($(this.$swatches).children().length === 0) {
+            this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
+        }
     };
 
     ColorEditor.prototype.synchronize = function () {
@@ -146,12 +152,15 @@ define(function (require, exports, module) {
         this.$buttonList.find("li").removeClass("selected");
         switch (format) {
         case "rgb":
-            return this.$buttonList.find(".rgba").parent().addClass("selected");
+            this.$buttonList.find(".rgba").parent().addClass("selected");
+            break;
         case "hex":
         case "name":
-            return this.$buttonList.find(".hex").parent().addClass("selected");
+            this.$buttonList.find(".hex").parent().addClass("selected");
+            break;
         case "hsl":
-            return this.$buttonList.find(".hsla").parent().addClass("selected");
+            this.$buttonList.find(".hsla").parent().addClass("selected");
+            break;
         }
     };
 
@@ -176,7 +185,7 @@ define(function (require, exports, module) {
                 _this.synchronize();
                 break;
             }
-            return _this.commitColor(newColor, false);
+            _this.commitColor(newColor, false);
         };
         this.$element.find("." + buttonClass).click(handler);
     };
@@ -184,7 +193,7 @@ define(function (require, exports, module) {
     ColorEditor.prototype.bindOriginalColorButton = function () {
         var _this = this;
         this.$lastColor.click(function (event) {
-            return _this.commitColor(_this.lastColor, true);
+            _this.commitColor(_this.lastColor, true);
         });
     };
 
@@ -192,11 +201,26 @@ define(function (require, exports, module) {
         var _this = this;
  
         this.swatches.forEach(function (swatch) {
-            _this.$swatches.append("<li><div class=\"swatch_bg\"><div class=\"swatch\" style=\"background-color: " + swatch.value + ";\"></div></div> <span class=\"value\">" + swatch.value + "</span></li>");
+            _this.$swatches.append("<li><div class='swatch_bg'><div class='swatch' style='background-color: " + swatch.value + ";'></div></div> <span class='value'" + " tabindex='0'>" + swatch.value + "</span></li>");
+        });
+
+        this.$swatches.find("li").keydown(function (event) {
+            if (event.keyCode === KeyEvent.DOM_VK_RETURN ||
+                    event.keyCode === KeyEvent.DOM_VK_ENTER ||
+                    event.keyCode === KeyEvent.DOM_VK_SPACE) {
+                return _this.commitColor($(event.currentTarget).find(".value").html());
+            } else if (event.keyCode === KeyEvent.DOM_VK_TAB) {
+                if (!event.shiftKey && $(this).next("li").length === 0) {
+                    _this.$selectionBase.focus();
+                    return false;
+                }
+            }
         });
 
         this.$swatches.find("li").click(function (event) {
-            return _this.commitColor($(event.currentTarget).find(".value").html());
+            // Set focus to the corresponding value label of the swatch.
+            $(event.currentTarget).find(".value").focus();
+             _this.commitColor($(event.currentTarget).find(".value").html());
         });
     };
 
@@ -303,7 +327,17 @@ define(function (require, exports, module) {
         });
     };
 
-    ColorEditor.prototype.handleSelectionFocus = function (event) {
+    ColorEditor.prototype.handleHslKeydown = function (event) {
+        switch (event.keyCode) {
+        case KeyEvent.DOM_VK_TAB:
+            if (!event.shiftKey) {
+                this.$selectionBase.focus();
+                return false;
+            }
+        }
+    };
+
+    ColorEditor.prototype.handleSelectionKeydown = function (event) {
         var hsv = {},
             step = 1.5,
             xOffset,
@@ -329,10 +363,19 @@ define(function (require, exports, module) {
             hsv.v = yOffset / 100;
             this.setColorAsHsv(hsv, false);
             return false;
+        case KeyEvent.DOM_VK_TAB:
+            if (event.shiftKey) {
+                if ($(this.$swatches).children().length === 0) {
+                    this.$hslButton.focus();
+                } else {
+                    $(this.$swatches).children("li:last").children("span:last").focus();
+                }
+                return false;
+            }
         }
     };
 
-    ColorEditor.prototype.handleHueFocus = function (event) {
+    ColorEditor.prototype.handleHueKeydown = function (event) {
         var hsv = {},
             hue = Number(this.hsv.h),
             step = 3.6;
@@ -355,7 +398,7 @@ define(function (require, exports, module) {
         }
     };
 
-    ColorEditor.prototype.handleOpacityFocus = function (event) {
+    ColorEditor.prototype.handleOpacityKeydown = function (event) {
         var alpha = this.hsv.a,
             hsv = {},
             step = 0.01;
@@ -378,13 +421,8 @@ define(function (require, exports, module) {
         }
     };
 
-    ColorEditor.prototype.registerFocusHandler = function (element, handler) {
-        element.focus(function (event) {
-            element.bind("keydown", handler);
-        });
-        element.blur(function (event) {
-            element.unbind("keydown", handler);
-        });
+    ColorEditor.prototype.bindKeyHandler = function (element, handler) {
+        element.bind("keydown", handler);
     };
 
     // Prevent clicks on some UI elements (color selection field, slider and large swatch) from taking focus
