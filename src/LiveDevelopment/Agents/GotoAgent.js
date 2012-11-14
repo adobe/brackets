@@ -127,9 +127,7 @@ define(function GotoAgent(require, exports, module) {
             }
             for (i in node.events) {
                 var trace = node.events[i];
-                if (trace.children.length > 0) {
-                    _makeJSTarget(targets, trace.children[0].callFrames[0]);
-                }
+                _makeJSTarget(targets, trace.callFrames[0]);
             }
             for (i in res.matchedCSSRules.reverse()) {
                 _makeCSSTarget(targets, res.matchedCSSRules[i]);
