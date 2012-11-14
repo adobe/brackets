@@ -417,10 +417,16 @@ define(function (require, exports, module) {
             });
     }
     
-    /** Search within the file/subtree defined by the project tree selection */
+    /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        var treeSelection = ProjectManager.getSelectedItem();
-        doFindInFiles(treeSelection);
+        // Prefer project tree selection, else use working set selection
+        var selectedEntry = ProjectManager.getSelectedItem();
+        if (!selectedEntry) {
+            var doc = DocumentManager.getCurrentDocument();
+            selectedEntry = (doc && doc.file);
+        }
+        
+        doFindInFiles(selectedEntry);
     }
     
     

@@ -108,7 +108,7 @@ define({
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "for \"{4}\" {5} - {0} {1} in {2} {3}",
-    "FIND_IN_FILES_SCOPED"              : "in <b>{0}</b>",
+    "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
@@ -116,7 +116,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "More than ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
-    "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
+    "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
