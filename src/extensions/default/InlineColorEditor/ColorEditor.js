@@ -368,7 +368,7 @@ define(function (require, exports, module) {
                 if ($(this.$swatches).children().length === 0) {
                     this.$hslButton.focus();
                 } else {
-                    $(this.$swatches).children("li:last").children("span:last").focus();
+                    $(this.$swatches).find(".value:last").focus();
                 }
                 return false;
             }
