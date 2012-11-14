@@ -208,7 +208,7 @@ define(function (require, exports, module) {
             if (event.keyCode === KeyEvent.DOM_VK_RETURN ||
                     event.keyCode === KeyEvent.DOM_VK_ENTER ||
                     event.keyCode === KeyEvent.DOM_VK_SPACE) {
-                return _this.commitColor($(event.currentTarget).find(".value").html());
+                _this.commitColor($(event.currentTarget).find(".value").html());
             } else if (event.keyCode === KeyEvent.DOM_VK_TAB) {
                 if (!event.shiftKey && $(this).next("li").length === 0) {
                     _this.$selectionBase.focus();
