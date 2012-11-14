@@ -487,7 +487,7 @@ define(function (require, exports, module) {
                 _defaultSaveDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            NativeFileSystem.showSaveDialog(false, Strings.SAVE_FILE_AS, _defaultSaveDialogFullPath,
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, _defaultSaveDialogFullPath,
                 null, function (path) {
                     var i;
                     

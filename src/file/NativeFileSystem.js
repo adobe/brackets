@@ -90,7 +90,6 @@ define(function (require, exports, module) {
 
         /** showSaveDialog
          *
-         * @param {bool} chooseDirectories
          * @param {string} title
          * @param {string} initialPath
          * @param {Array.<string>} fileTypes
@@ -98,8 +97,7 @@ define(function (require, exports, module) {
          * @param {!function(number)} errorCallback (TODO #2057: should this pass a FileError?)
          * @constructor
          */
-        showSaveDialog: function (chooseDirectories,
-                                  title,
+        showSaveDialog: function (title,
                                   initialPath,
                                   fileTypes,
                                   successCallback,
@@ -109,7 +107,6 @@ define(function (require, exports, module) {
             }
 
             var files = brackets.fs.showSaveDialog(
-                chooseDirectories,
                 title,
                 initialPath,
                 fileTypes,
