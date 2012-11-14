@@ -88,6 +88,41 @@ define(function (require, exports, module) {
             );
         },
 
+        /** showSaveDialog
+         *
+         * @param {bool} chooseDirectories
+         * @param {string} title
+         * @param {string} initialPath
+         * @param {Array.<string>} fileTypes
+         * @param {!function(Array.<string>)} successCallback
+         * @param {!function(number)} errorCallback (TODO #2057: should this pass a FileError?)
+         * @constructor
+         */
+        showSaveDialog: function (chooseDirectories,
+                                  title,
+                                  initialPath,
+                                  fileTypes,
+                                  successCallback,
+                                  errorCallback) {
+            if (!successCallback) {
+                return;
+            }
+
+            var files = brackets.fs.showSaveDialog(
+                chooseDirectories,
+                title,
+                initialPath,
+                fileTypes,
+                function (err, data) {
+                    if (!err) {
+                        successCallback(data);
+                    } else if (errorCallback) {
+                        errorCallback(NativeFileSystem._nativeToFileError(err));
+                    }
+                }
+            );
+        },
+
         /** requestNativeFileSystem
          *
          * @param {!string} path

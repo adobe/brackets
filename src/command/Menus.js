@@ -877,6 +877,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_CLOSE_ALL,           "Ctrl-Shift-W");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
+        menu.addMenuItem(Commands.FILE_SAVE_AS,             "Ctrl-Shift-S");
         menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
