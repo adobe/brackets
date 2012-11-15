@@ -330,7 +330,7 @@ define(function (require, exports, module) {
         // If a directory is currently selected, put it in it.
         // If nothing is selected, put it at the root of the project
         var baseDir,
-            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
+            selected = ProjectManager.getTreeSelectedItem() || ProjectManager.getProjectRoot();
         
         baseDir = selected.fullPath;
         if (selected.isFile) {
@@ -745,7 +745,7 @@ define(function (require, exports, module) {
     /** Show a textfield to rename whatever is currently selected in the sidebar (working set OR tree) */
     function handleFileRename() {
         // Prefer selected tree item (which could be a folder); else use current file
-        var entry = ProjectManager.getSelectedItem();
+        var entry = ProjectManager.getTreeSelectedItem();
         if (!entry) {
             var doc = DocumentManager.getCurrentDocument();
             entry = doc && doc.file;
@@ -823,7 +823,21 @@ define(function (require, exports, module) {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
-
+    function handleShowInOS() {
+        var entry = ProjectManager.getSidebarSelectedItem();
+        if (entry) {
+            var path = entry.fullPath;
+            if (entry.isFile) {  // if file, we want its containing folder
+                var lastSlash = entry.fullPath.lastIndexOf("/");
+                path = path.substring(0, lastSlash + 1);
+            }
+            brackets.app.showOSFolder(path, function errback(err) {
+                console.error(err);
+            });
+        }
+    }
+    
+    
     function init($titleContainerToolbar) {
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
@@ -852,6 +866,7 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
         CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
         CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+        CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

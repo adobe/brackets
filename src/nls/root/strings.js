@@ -216,6 +216,7 @@ define({
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
+    "CMD_SHOW_IN_OS"                      : "Show in OS",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",

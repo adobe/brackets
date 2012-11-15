@@ -994,6 +994,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME, "F2");
+        project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
 
@@ -1002,6 +1003,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();

@@ -86,6 +86,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
     exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
+    exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";

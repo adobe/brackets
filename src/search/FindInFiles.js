@@ -419,13 +419,7 @@ define(function (require, exports, module) {
     
     /** Search within the file/subtree defined by the sidebar selection */
     function doFindInSubtree() {
-        // Prefer project tree selection, else use working set selection
-        var selectedEntry = ProjectManager.getSelectedItem();
-        if (!selectedEntry) {
-            var doc = DocumentManager.getCurrentDocument();
-            selectedEntry = (doc && doc.file);
-        }
-        
+        var selectedEntry = ProjectManager.getSidebarSelectedItem();
         doFindInFiles(selectedEntry);
     }
     

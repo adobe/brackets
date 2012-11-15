@@ -178,17 +178,32 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
-     * if no item is selected.
-     *
+     * Returns the FileEntry or DirectoryEntry corresponding to the item selected in the file tree, or null
+     * if no item is selected in the tree (though the working set may still have a selection; use
+     * getSidebarSelectedItem() to get the selection regardless of whether it's in the tree or working set).
      * @return {?Entry}
      */
-    function getSelectedItem() {
+    function getTreeSelectedItem() {
         var selected = _projectTree.jstree("get_selected");
         if (selected) {
             return selected.data("entry");
         }
         return null;
+    }
+    
+    /**
+     * Returns the FileEntry or DirectoryEntry corresponding to the item selected in the sidebar panel, whether in
+     * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
+     * @return {?Entry}
+     */
+    function getSidebarSelectedItem() {
+        // Prefer file tree selection, else use working set selection
+        var selectedEntry = getTreeSelectedItem();
+        if (!selectedEntry) {
+            var doc = DocumentManager.getCurrentDocument();
+            selectedEntry = (doc && doc.file);
+        }
+        return selectedEntry;
     }
 
     function _fileViewFocusChange() {
@@ -1321,7 +1336,8 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;
     exports.openProject              = openProject;
-    exports.getSelectedItem          = getSelectedItem;
+    exports.getTreeSelectedItem      = getTreeSelectedItem;
+    exports.getSidebarSelectedItem   = getSidebarSelectedItem;
     exports.getInitialProjectPath    = getInitialProjectPath;
     exports.isWelcomeProjectPath     = isWelcomeProjectPath;
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
