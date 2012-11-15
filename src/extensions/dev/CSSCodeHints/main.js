@@ -11,29 +11,48 @@ define(function (require, exports, module) {
         attributes          = JSON.parse(CSSAttributes);
 
     
-    function AttrHints() {}
+    function CssAttrHints() {}
     
     
-    AttrHints.prototype.getQueryInfo = function (editor, cursor) {
-        console.log('csscodehint - getQueryInfo');
-        var query = {queryStr: null};
-        
-        /* notes:
-            return query only if a) inside style.tag in regular .html file // b) inside .css file inside { }
-        */
-        
+    CssAttrHints.prototype.getQueryInfo = function (editor, cursor) {
+        var query       = {queryStr: null},
+            styleblocks = HTMLUtils.findStyleBlocks(editor);
+          
+        if(editor.getModeForDocument() === "css") {
+            query.queryStr = "";
+        } else {
+            
+            /* check whether the cursor is inside any <style> block in the document */
+            if (styleblocks.length > 0) {
+                var insideStyleBlock = false,
+                    item = null;
+                // styleblocks.forEach(function(index, item) {
+                for(var i=0; i < styleblocks.length; i++) {
+                    item = styleblocks[i];
+                    if (item.start.line < cursor.line && item.end.line > cursor.line) {
+                        /* TODO: add other cases for cursor and styleblock */
+                        insideStyleBlock = true;
+                        break;
+                    }
+                }
+                
+                if (insideStyleBlock) {
+                    query.queryStr = "";
+                }
+            }      
+        }
         
         return query;
     }
     
-    AttrHints.prototype.search = function(query) {
+    CssAttrHints.prototype.search = function(query) {
         console.log('csscodehint - search');
-        var result = [];
+        var result = ['somecssattr'];
         
         return result;
     }    
     
-    AttrHints.prototype.handleSelect = function (completion, editor, cursor) {
+    CssAttrHints.prototype.handleSelect = function (completion, editor, cursor) {
         console.log('csscodehint - handleSelect');
         return true;
     }
@@ -43,16 +62,16 @@ define(function (require, exports, module) {
      * @param {string} key -- the character for the key user just presses.
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
-    AttrHints.prototype.shouldShowHintsOnKey = function (key) {
+    CssAttrHints.prototype.shouldShowHintsOnKey = function (key) {
         return (key === "{"); /* only popup after brackets, else this will always trigger */
-        return (key === " " || key === "{" );
+        // return (key === " " || key === "{" );
     };
     
     
-    var attrHints = new AttrHints();
-    CodeHintManager.registerHintProvider(attrHints);
+    var cssAttrHints = new CssAttrHints();
+    CodeHintManager.registerHintProvider(cssAttrHints);
     
     // For unit testing
-    exports.attrHintProvider = attrHints;
+    exports.attrHintProvider = cssAttrHints;
     
 });
