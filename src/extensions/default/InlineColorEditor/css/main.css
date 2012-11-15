@@ -231,12 +231,6 @@
     .color_editor aside ul.swatches li .swatch_bg {
         background-image: url("../img/color_thumb_back@2x.png");
     }
-    .color_editor section .color_selection_field .saturation_gradient {
-        background-image: -webkit-gradient(linear, 0% 25%, 50% 25%, from(#fff), to(rgba(255,255,255,0)));
-    }
-    .color_editor section .color_selection_field .luminosity_gradient {
-        background-image: -webkit-gradient(linear, 0% 0%, 0% 50%, from(transparent), to(#000));
-    }
     .color_editor section .color_selection_field .selector {
         background-image: url("../img/grabber_color-well@2x.png");
         background-size: 100% 100%;
@@ -247,12 +241,6 @@
     }
     .color_editor section .slider.opacity_slider {
         background-image: url("../img/color_thumb_back@2x.png");
-    }
-    .color_editor section .slider.opacity_slider .opacity_gradient {
-        background-size: contain;
-    }
-    .color_editor section .hue_slider {
-        background-image: -webkit-linear-gradient(top, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
     }
 }
 .color_editor ul, .color_editor li {
