@@ -454,22 +454,20 @@ define(function (require, exports, module) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            var wsIndex = findInWorkingSet(file.fullPath);
+            var wsIndex = findInWorkingSet(file.fullPath, _workingSetMRUOrder);
             
             // Decide which doc to show in editor after this one
             var nextFile;
             if (wsIndex === -1) {
-                // If doc wasn't in working set, use bottommost working set item
-                if (_workingSet.length > 0) {
-                    nextFile = _workingSet[_workingSet.length  - 1];
+                // If doc wasn't in working set, use last visited file, first item in workingSetMRUOrder
+                if (_workingSetMRUOrder.length > 0) {
+                    nextFile = _workingSetMRUOrder[0];
                 }
                 // else: leave nextDocument null; editor area will be blank
             } else {
-                // If doc was in working set, use item next to it (below if possible)
-                if (wsIndex < _workingSet.length - 1) {
-                    nextFile = _workingSet[wsIndex + 1];
-                } else if (wsIndex > 0) {
-                    nextFile = _workingSet[wsIndex - 1];
+                // If doc was in working set, go to the previously visited file (if there is another file opened)
+                if (wsIndex < _workingSetMRUOrder.length - 1) {
+                    nextFile = _workingSetMRUOrder[wsIndex + 1];
                 }
                 // else: leave nextDocument null; editor area will be blank
             }
