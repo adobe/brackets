@@ -253,7 +253,7 @@
     background: transparent;
     -webkit-font-smoothing: subpixel-antialiased;
 }
-.button-bar {
+.color_editor ul.button-bar {
     list-style: none;
     border: 1px solid rgba(0,0,0,0.3);
     -webkit-border-radius: 3px;
