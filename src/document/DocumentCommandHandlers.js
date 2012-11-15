@@ -515,14 +515,13 @@ define(function (require, exports, module) {
                             }
                         );
 
-                        // Add the file to the working set
+                        // Open the file and ddd it to the working set
+                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
                         DocumentManager.addToWorkingSet(fileEntry);
 
-                        // close old-name file, then open file with new name
-                        // TODO convert this to in-place path swap, is editing the docToSave object save w/o sidefx?
-                        doClose(docToSave.file);
-                        doOpen(path);
-
+                        // Close the existing doc
+                        CommandManager.execute(Commands.FILE_CLOSE, {file: new NativeFileSystem.FileEntry(docToSave.file)});
+                        
                         result.resolve();
                     } else {
                         // Reject if the user canceled the dialog
