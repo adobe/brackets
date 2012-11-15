@@ -215,7 +215,7 @@ define(function (require, exports, module) {
         var index = $(domItem).index();
         
         // This is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
-        var lastFilterResult = $('input#quickOpenSearch').data("smart-autocomplete").rawResults;
+        var lastFilterResult = $("input#quickOpenSearch").data("smart-autocomplete").rawResults;
         return lastFilterResult[index];
     }
     
@@ -356,7 +356,8 @@ define(function (require, exports, module) {
      * Give visual clue when there are no results
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (results) {
-        $("input#quickOpenSearch").toggleClass("no-results", results.length === 0);
+        var isNoResults = (results.length === 0 && isNaN(extractLineNumber(this.$searchField.val())));
+        this.$searchField.toggleClass("no-results", isNoResults);
     };
 
     /**
