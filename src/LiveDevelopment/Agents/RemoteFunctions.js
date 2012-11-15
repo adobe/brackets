@@ -217,8 +217,8 @@ function RemoteFunctions(experimental) {
             highlight.style.setProperty("z-index", 2000000);
             highlight.style.setProperty("position", "absolute");
             highlight.style.setProperty("pointer-events", "none");
-            highlight.style.setProperty("background", "rgba(94,167,255, 0.2)");
-            highlight.style.setProperty("box-shadow", "0 0 4px 2px rgba(94,167,255, 0.5)");
+            highlight.style.setProperty("background","rgba(94,167,255, 0.1)");
+            highlight.style.setProperty("box-shadow", "0 0 8px 2px rgba(94,167,255, 0.3), inset 0 0 4px 1px rgba(255,255,255,0.6)");
             highlight.style.setProperty("border-top-left-radius", styles.borderTopLeftRadius);
             highlight.style.setProperty("border-top-right-radius", styles.borderTopRightRadius);
             highlight.style.setProperty("border-bottom-left-radius", styles.borderBottomLeftRadius);
