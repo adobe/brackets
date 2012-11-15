@@ -499,6 +499,14 @@ define(function (require, exports, module) {
                                     // Per spec, onwriteend is called after onerror too
                                     if (!writeError) {
                                         docToSave.notifySaved();
+
+                                        // Open the file and ddd it to the working set
+                                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
+                                        DocumentManager.addToWorkingSet(fileEntry);
+
+                                        // Close the existing doc
+                                        DocumentManager.closeFullEditor(docToSave.file);
+                                        
                                         result.resolve();
                                     }
                                 };
@@ -514,15 +522,6 @@ define(function (require, exports, module) {
                                 handleError(error, fileEntry);
                             }
                         );
-
-                        // Open the file and ddd it to the working set
-                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
-                        DocumentManager.addToWorkingSet(fileEntry);
-
-                        // Close the existing doc
-                        CommandManager.execute(Commands.FILE_CLOSE, {file: new NativeFileSystem.FileEntry(docToSave.file)});
-                        
-                        result.resolve();
                     } else {
                         // Reject if the user canceled the dialog
                         result.reject();
