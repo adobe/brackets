@@ -220,7 +220,7 @@ define(function (require, exports, module) {
         this.$swatches.find("li").click(function (event) {
             // Set focus to the corresponding value label of the swatch.
             $(event.currentTarget).find(".value").focus();
-             _this.commitColor($(event.currentTarget).find(".value").html());
+            _this.commitColor($(event.currentTarget).find(".value").html());
         });
     };
 
@@ -334,6 +334,7 @@ define(function (require, exports, module) {
                 this.$selectionBase.focus();
                 return false;
             }
+            break;
         }
     };
 
@@ -372,6 +373,7 @@ define(function (require, exports, module) {
                 }
                 return false;
             }
+            break;
         }
     };
 
