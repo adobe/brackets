@@ -168,6 +168,9 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
         CSSAgent.reloadCSSForDocument(this.doc);
+        this.getStyleSheetFromBrowser().done(function (styleSheet) {
+            this.rules = styleSheet.rules;
+        });
     };
     /** Triggered if the Document's file is deleted */
     CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {

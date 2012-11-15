@@ -204,6 +204,29 @@ function RemoteFunctions(experimental) {
             return false;
         },
 
+        _makeHighlightDiv: function (element) {
+            var elementBounds = element.getBoundingClientRect(),
+                highlight = window.document.createElement("div"),
+                styles = window.getComputedStyle(element);
+                
+            highlight.className = "__LD-highlight";
+            highlight.style.setProperty("left", _screenOffset(element, "offsetLeft") + "px");
+            highlight.style.setProperty("top", _screenOffset(element, "offsetTop") + "px");
+            highlight.style.setProperty("width", elementBounds.width + "px");
+            highlight.style.setProperty("height", elementBounds.height + "px");
+            highlight.style.setProperty("z-index", 2000000);
+            highlight.style.setProperty("position", "absolute");
+            highlight.style.setProperty("pointer-events", "none");
+            highlight.style.setProperty("background", "rgba(94,167,255, 0.2)");
+            highlight.style.setProperty("box-shadow", "0 0 4px 2px rgba(94,167,255, 0.5)");
+            highlight.style.setProperty("border-top-left-radius", styles.borderTopLeftRadius);
+            highlight.style.setProperty("border-top-right-radius", styles.borderTopRightRadius);
+            highlight.style.setProperty("border-bottom-left-radius", styles.borderBottomLeftRadius);
+            highlight.style.setProperty("border-bottom-right-radius", styles.borderBottomRightRadius);
+    
+            window.document.body.appendChild(highlight);
+        },
+        
         add: function (element) {
             if (this._elementExists(element) || element === document) {
                 return;
@@ -212,19 +235,28 @@ function RemoteFunctions(experimental) {
                 _trigger(element, "highlight", 1);
             }
             this.elements.push(element);
-            this.orgColors.push(element.style.getPropertyValue("background-color"));
-            element.style.setProperty("background-color", this.color);
+            
+            this._makeHighlightDiv(element);
         },
 
         clear: function () {
-            var i;
-            for (i in this.elements) {
-                var e = this.elements[i];
-                e.style.setProperty("background-color", this.orgColors[i]);
-                _trigger(e, "highlight", 0, true);
+            var i, highlights = window.document.querySelectorAll(".__LD-highlight"),
+                body = window.document.body;
+        
+            for (i = 0; i < highlights.length; i++) {
+                body.removeChild(highlights[i]);
             }
+            
             this.elements = [];
-            this.orgColors = [];
+        },
+        
+        redraw: function () {
+            var i, highlighted = this.elements.slice(0);
+            
+            this.clear();
+            for (i in highlighted) {
+                this.add(highlighted[i]);
+            }
         }
     };
 
@@ -305,6 +337,11 @@ function RemoteFunctions(experimental) {
         }
     }
 
+    function updateHighlights(event) {
+        if (_remoteHighlight) {
+            _remoteHighlight.redraw();
+        }
+    }
 
     /** Public Commands **********************************************************/
 
@@ -351,6 +388,14 @@ function RemoteFunctions(experimental) {
     // init
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
+    }
+    
+    window.addEventListener("resize", updateHighlights);
+    
+    // Scrolling a div can interfere with highlighting. 
+    var i, divs = window.document.getElementsByTagName("div");
+    for (i = 0; i < divs.length; i++) {
+        divs[i].addEventListener("scroll", updateHighlights);
     }
 
     return {

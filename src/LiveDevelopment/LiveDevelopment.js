@@ -104,7 +104,8 @@ define(function LiveDevelopment(require, exports, module) {
         "remote"    : true,
         "network"   : true,
         "dom"       : true,
-        "css"       : true
+        "css"       : true,
+        "highlight" : true
     };
 
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
@@ -569,6 +570,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         if (Inspector.connected()) {
+            hideHighlight();
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
