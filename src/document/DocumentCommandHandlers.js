@@ -491,7 +491,7 @@ define(function (require, exports, module) {
                 null, function (path) {
                     var i;
                     
-                    if (path !== null) {
+                    if (path !== "") {
                         fileEntry = new NativeFileSystem.FileEntry(path);
                         fileEntry.createWriter(
                             function (writer) {
