@@ -128,24 +128,6 @@ define(function (require, exports, module) {
         });
         
     }
-
-    /**
-     * Invokes a language-specific line-comment/uncomment handler
-     * @param {?Editor} editor If unspecified, applies to the currently focused editor
-     */
-    function lineComment(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        
-        var mode = editor.getModeForSelection();
-        
-        // Currently we only support languages with "//" commenting
-        if (mode === "javascript" || mode === "less") {
-            lineCommentSlashSlash(editor);
-        }
-    }
     
     
     /**
@@ -388,6 +370,49 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    /**
+     * Add or remove block-comment tokens to the selection, preserving selection
+     * and cursor position. Applies to the currently focused Editor.
+     * 
+     * The implementation uses blockCommentPrefixSuffix, with the exception of the case where
+     * there is no selection on a uncommented and not empty line. In this case the whole lines gets
+     * commented in a bock-comment.
+     *
+     * @param {!Editor} editor
+     * @param {!String} prefix
+     * @param {!String} suffix
+     */
+    function lineCommentPrefixSuffix(editor, prefix, suffix) {
+        var sel          = editor.getSelection(),
+            ctx          = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
+            line         = editor.document.getLine(sel.start.line),
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+        
+        // If we are not inside a comment and there is no selection and the line is not empty,
+        // we comment the complete line from the first non-empty character
+        if (ctx.token.className !== "comment" && !hasSelection && line.trim().length > 0) {
+            var start = line.length - line.replace(/^\s+/, "").length,
+                end   = line.length;
+            
+            // Make a new selection of the line so that the prefix and suffix get placed where we want
+            editor.setSelection({line: sel.start.line, ch: start}, {line: sel.end.line, ch: end});
+            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+            
+            // Restore the selection. Moving the cursor if needed
+            if (sel.start.ch > start) {
+                sel.start.ch += prefix.length;
+                sel.end.ch   += prefix.length;
+            }
+            editor.setSelection(sel.start, sel.end);
+        
+        // if not, just do a normal block-comment
+        } else {
+            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+        }
+    }
+    
+    
     /**
      * Invokes a language-specific block-comment/uncomment handler
      * @param {?Editor} editor If unspecified, applies to the currently focused editor
@@ -406,6 +431,28 @@ define(function (require, exports, module) {
             blockCommentPrefixSuffix(editor, "/*", "*/", false);
         } else if (mode === "html") {
             blockCommentPrefixSuffix(editor, "<!--", "-->", false);
+        }
+    }
+    
+    /**
+     * Invokes a language-specific line-comment/uncomment handler
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function lineComment(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var mode = editor.getModeForSelection();
+        
+        // Currently we only support languages with "//" commenting
+        if (mode === "javascript" || mode === "less") {
+            lineCommentSlashSlash(editor);
+        } else if (mode === "css") {
+            lineCommentPrefixSuffix(editor, "/*", "*/");
+        } else if (mode === "html") {
+            lineCommentPrefixSuffix(editor, "<!--", "-->");
         }
     }
     
