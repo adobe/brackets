@@ -223,7 +223,7 @@ function RemoteFunctions(experimental) {
             highlight.style.setProperty("pointer-events", "none");
             if (skipAnimation) {
                 highlight.style.setProperty("background", "rgba(94,167,255, 0.1)");
-                highlight.style.setProperty("box-shadow", "0 0 1px 1px rgba(94,167,255, 0.3), inset 0 0 4px 1px rgba(255,255,255,0.6)");
+                highlight.style.setProperty("box-shadow", "0 0 1px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,0.8)");
             } else {
                 highlight.style.setProperty("background", "rgba(94,167,255, 0.5)");
                 highlight.style.setProperty("box-shadow", "0 0 2px 1px rgba(94,167,255, 1), inset 0 0 4px 1px rgba(255,255,255,1)");
@@ -241,7 +241,7 @@ function RemoteFunctions(experimental) {
                 window.setTimeout(function () {
                     highlight.style.setProperty("opacity", 1);
                     highlight.style.setProperty("background", "rgba(94,167,255, 0.1)");
-                    highlight.style.setProperty("box-shadow", "0 0 1px 1px rgba(94,167,255, 0.3), inset 0 0 4px 1px rgba(255,255,255,0.6)");
+                    highlight.style.setProperty("box-shadow", "0 0 1px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,0.8)");
                 }, 0);
             }
         
