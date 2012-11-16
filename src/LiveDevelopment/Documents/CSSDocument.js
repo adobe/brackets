@@ -132,8 +132,14 @@ define(function CSSDocumentModule(require, exports, module) {
 
     // Reload rules
     CSSDocument.prototype.reloadRules = function () {
-        this.getStyleSheetFromBrowser().done(function (styleSheet) {
+        console.assert(!this.loadRulePromise, "Rule promise has not resolved.");
+        this.loadRulePromise = this.getStyleSheetFromBrowser().done(function (styleSheet) {
             this.rules = styleSheet.rules;
+            this.loadRulePromise = null;
+            if (this.pendingCursorActivity) {
+                this.pendingCursorActivity = false;
+                this.onCursorActivity();
+            }
         }.bind(this));
     };
     
@@ -155,6 +161,13 @@ define(function CSSDocumentModule(require, exports, module) {
     /** Triggered on cursor activity of the editor */
     CSSDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
         if (Inspector.config.highlight) {
+            // If there is an active loadRulePromise, we can't accurately get the rule
+            // at the location. Set a flag here so we can get called again once the
+            // rules have arrived.
+            if (this.loadRulePromise) {
+                this.pendingCursorActivity = true;
+                return;
+            }
             var codeMirror = this.editor._codeMirror;
             var location = codeMirror.indexFromPos(codeMirror.getCursor());
             var rule = this.ruleAtLocation(location);

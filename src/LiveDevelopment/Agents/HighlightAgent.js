@@ -34,9 +34,10 @@
 define(function HighlightAgent(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
+    var DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        RemoteAgent     = require("LiveDevelopment/Agents/RemoteAgent");
 
     var _highlight; // active highlight
 
@@ -66,6 +67,10 @@ define(function HighlightAgent(require, exports, module) {
      * @param {DOMNode} node
      */
     function node(n) {
+        if (!LiveDevelopment.config.experimental) {
+            return;
+        }
+        
         if (!Inspector.config.highlight) {
             return;
         }
@@ -112,12 +117,16 @@ define(function HighlightAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _highlight = {};
-        $(RemoteAgent).on("highlight.HighlightAgent", _onRemoteHighlight);
+        if (LiveDevelopment.config.experimental) {
+            $(RemoteAgent).on("highlight.HighlightAgent", _onRemoteHighlight);
+        }
     }
 
     /** Clean up */
     function unload() {
-        $(RemoteAgent).off(".HighlightAgent");
+        if (LiveDevelopment.config.experimental) {
+            $(RemoteAgent).off(".HighlightAgent");
+        }
     }
 
     // Export public functions

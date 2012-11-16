@@ -33,6 +33,8 @@
 function RemoteFunctions(experimental) {
     "use strict";
 
+    var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight";
+    
     // determine the color for a type
     function _typeColor(type, highlight) {
         switch (type) {
@@ -208,47 +210,73 @@ function RemoteFunctions(experimental) {
             return false;
         },
 
-        _makeHighlightDiv: function (element, skipAnimation) {
+        _makeHighlightDiv: function (element, doAnimation) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
                 styles = window.getComputedStyle(element);
                 
-            highlight.className = "__LD-highlight";
-            highlight.style.setProperty("left", _screenOffset(element, "offsetLeft") + "px");
-            highlight.style.setProperty("top", _screenOffset(element, "offsetTop") + "px");
-            highlight.style.setProperty("width", elementBounds.width + "px");
-            highlight.style.setProperty("height", elementBounds.height + "px");
-            highlight.style.setProperty("z-index", 2000000);
-            highlight.style.setProperty("position", "absolute");
-            highlight.style.setProperty("pointer-events", "none");
-            if (skipAnimation) {
-                highlight.style.setProperty("background", "rgba(94,167,255, 0.1)");
-                highlight.style.setProperty("box-shadow", "0 0 1px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,0.8)");
-            } else {
-                highlight.style.setProperty("background", "rgba(94,167,255, 0.5)");
-                highlight.style.setProperty("box-shadow", "0 0 2px 1px rgba(94,167,255, 1), inset 0 0 4px 1px rgba(255,255,255,1)");
-            }
-            highlight.style.setProperty("border-top-left-radius", styles.borderTopLeftRadius);
-            highlight.style.setProperty("border-top-right-radius", styles.borderTopRightRadius);
-            highlight.style.setProperty("border-bottom-left-radius", styles.borderBottomLeftRadius);
-            highlight.style.setProperty("border-bottom-right-radius", styles.borderBottomRightRadius);
+            highlight.className = HIGHLIGHT_CLASSNAME;
             
-            if (!skipAnimation) {
-                highlight.style.setProperty("opacity", 0);
-                highlight.style.setProperty("-webkit-transition-property", "opacity, box-shadow, background");
-                highlight.style.setProperty("-webkit-transition-duration", "0.3s, 0.4s, 0.4s");
+            var stylesToSet = {
+                "left": _screenOffset(element, "offsetLeft") + "px",
+                "top": _screenOffset(element, "offsetTop") + "px",
+                "width": elementBounds.width + "px",
+                "height": elementBounds.height + "px",
+                "z-index": 2000000,
+                "position": "absolute",
+                "pointer-events": "none",
+                "border-top-left-radius": styles.borderTopLeftRadius,
+                "border-top-right-radius": styles.borderTopRightRadius,
+                "border-bottom-left-radius": styles.borderBottomLeftRadius,
+                "border-bottom-right-radius": styles.borderBottomRightRadius
+            };
+            
+            var animateStartValues = {
+                "opacity": 0,
+                "background": "rgba(94,167,255, 0.5)",
+                "box-shadow": "0 0 2px 1px rgba(94,167,255, 1), inset 0 0 4px 1px rgba(255,255,255,1)"
+            };
+            
+            var animateEndValues = {
+                "opacity": 1,
+                "background": "rgba(94,167,255, 0.1)",
+                "box-shadow": "0 0 1px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,0.8)"
+            };
+            
+            var transitionValues = {
+                "-webkit-transition-property": "opacity, box-shadow, background",
+                "-webkit-transition-duration": "0.3s, 0.4s, 0.4s",
+                "transition-property": "opacity, box-shadow, background",
+                "transition-duration": "0.3s, 0.4s, 0.4s"
+            };
+            
+            function _setStyleValues(styleValues, obj) {
+                var prop;
+                
+                for (prop in styleValues) {
+                    obj.setProperty(prop, styleValues[prop]);
+                }
+            }
+
+            _setStyleValues(stylesToSet, highlight.style);
+            _setStyleValues(
+                doAnimation ? animateStartValues : animateEndValues,
+                highlight.style
+            );
+            
+            
+            if (doAnimation) {
+                _setStyleValues(transitionValues, highlight.style);
                 
                 window.setTimeout(function () {
-                    highlight.style.setProperty("opacity", 1);
-                    highlight.style.setProperty("background", "rgba(94,167,255, 0.1)");
-                    highlight.style.setProperty("box-shadow", "0 0 1px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,0.8)");
+                    _setStyleValues(animateEndValues, highlight.style);
                 }, 0);
             }
         
             window.document.body.appendChild(highlight);
         },
         
-        add: function (element, skipAnimation) {
+        add: function (element, doAnimation) {
             if (this._elementExists(element) || element === document) {
                 return;
             }
@@ -257,11 +285,11 @@ function RemoteFunctions(experimental) {
             }
             this.elements.push(element);
             
-            this._makeHighlightDiv(element, skipAnimation);
+            this._makeHighlightDiv(element, doAnimation);
         },
 
         clear: function () {
-            var i, highlights = window.document.querySelectorAll(".__LD-highlight"),
+            var i, highlights = window.document.querySelectorAll("." + HIGHLIGHT_CLASSNAME),
                 body = window.document.body;
         
             for (i = 0; i < highlights.length; i++) {
@@ -276,7 +304,7 @@ function RemoteFunctions(experimental) {
             
             this.clear();
             for (i in highlighted) {
-                this.add(highlighted[i], true);
+                this.add(highlighted[i], false);
             }
         }
     };
@@ -305,7 +333,7 @@ function RemoteFunctions(experimental) {
         if (!event.metaKey) {
             return;
         }
-        _localHighlight.add(event.target);
+        _localHighlight.add(event.target, true);
     }
 
     function onMouseOut(event) {
@@ -388,7 +416,7 @@ function RemoteFunctions(experimental) {
         if (clear) {
             _remoteHighlight.clear();
         }
-        _remoteHighlight.add(node);
+        _remoteHighlight.add(node, true);
     }
 
     // highlight a rule

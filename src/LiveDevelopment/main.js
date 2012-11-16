@@ -164,32 +164,13 @@ define(function main(require, exports, module) {
         });
     }
 
-    /** Create the menu item "Highlight" */
-    function _setupHighlightButton() {
-        // TODO: this should be moved into index.html like the Go Live button once it's re-enabled
-        _$btnHighlight = $("<a href=\"#\">Highlight </a>");
-        $(".nav").append($("<li>").append(_$btnHighlight));
-        _$btnHighlight.click(function onClick() {
-            config.highlight = !config.highlight;
-            if (config.highlight) {
-                _setLabel(_$btnHighlight, _checkMark, "success");
-            } else {
-                _setLabel(_$btnHighlight);
-                LiveDevelopment.hideHighlight();
-            }
-        });
-        if (config.highlight) {
-            _setLabel(_$btnHighlight, _checkMark, "success");
-        }
-    }
-
-    function _setHighlightCheckmark() {
+    function _updateHighlightCheckmark() {
         CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setChecked(config.highlight);
     }
     
     function _handlePreviewHighlightCommand() {
         config.highlight = !config.highlight;
-        _setHighlightCheckmark();
+        _updateHighlightCheckmark();
         if (config.highlight) {
             LiveDevelopment.showHighlight();
         } else {
@@ -217,8 +198,7 @@ define(function main(require, exports, module) {
         _setupGoLiveButton();
         _setupGoLiveMenu();
 
-        /* _setupHighlightButton(); FUTURE - Highlight button */
-        _setHighlightCheckmark();
+        _updateHighlightCheckmark();
         
         if (config.debug) {
             _setupDebugHelpers();
