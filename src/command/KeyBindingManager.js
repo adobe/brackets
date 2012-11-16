@@ -399,8 +399,6 @@ define(function (require, exports, module) {
     function setEnabled(value) {
         _enabled = value;
     }
-    
-    var rawBindings = {};
 
     /**
      * Add one or more key bindings to a particular Command.
@@ -425,8 +423,6 @@ define(function (require, exports, module) {
         if (!keyBindings) {
             return;
         }
-        
-        rawBindings[commandID] = {keyBindings: keyBindings, platform: platform};
         
         var normalizedBindings = [],
             targetPlatform,
@@ -496,10 +492,6 @@ define(function (require, exports, module) {
         var bindings = _commandMap[commandID];
         return bindings || [];
     }
-    
-    function toJSON() {
-        return JSON.stringify(rawBindings, null, "    ");
-    }
 
     /**
      * Install keydown event listener.
@@ -523,7 +515,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.init = init;
-    exports.toJSON = toJSON;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
