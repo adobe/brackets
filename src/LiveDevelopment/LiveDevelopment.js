@@ -560,6 +560,23 @@ define(function LiveDevelopment(require, exports, module) {
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
     }
+    
+    /** Enable highlighting */
+    function showHighlight() {
+        // Trigger an "onCursorChange" in the main editor to
+        // kick highlighting
+        var editor = EditorManager.getActiveEditor();
+        if (editor) {
+            $(editor).trigger("cursorActivity");
+        }
+    }
+
+    /** Hide any active highlighting */
+    function hideHighlight() {
+        if (Inspector.connected() && agents.highlight) {
+            agents.highlight.hide();
+        }
+    }
 
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
@@ -630,13 +647,6 @@ define(function LiveDevelopment(require, exports, module) {
         return foundDoc;
     }
 
-    /** Hide any active highlighting */
-    function hideHighlight() {
-        if (Inspector.connected() && agents.highlight) {
-            agents.highlight.hide();
-        }
-    }
-
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -659,6 +669,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;
+    exports.showHighlight       = showHighlight;
     exports.hideHighlight       = hideHighlight;
     exports.init                = init;
 });

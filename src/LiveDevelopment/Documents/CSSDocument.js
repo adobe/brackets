@@ -171,6 +171,9 @@ define(function CSSDocumentModule(require, exports, module) {
         // brute force: update the CSS
         CSSAgent.reloadCSSForDocument(this.doc);
         this.reloadRules();
+        if (Inspector.config.highlight) {
+            HighlightAgent.redraw();
+        }
     };
     /** Triggered if the Document's file is deleted */
     CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {

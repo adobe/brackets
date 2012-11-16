@@ -101,6 +101,13 @@ define(function HighlightAgent(require, exports, module) {
         _highlight = {type: "css", ref: name};
         RemoteAgent.call("highlightRule", name);
     }
+    
+    /**
+     * Redraw active highlights
+     */
+    function redraw() {
+        RemoteAgent.call("redrawHighlights");
+    }
 
     /** Initialize the agent */
     function load() {
@@ -117,6 +124,7 @@ define(function HighlightAgent(require, exports, module) {
     exports.hide = hide;
     exports.node = node;
     exports.rule = rule;
+    exports.redraw = redraw;
     exports.load = load;
     exports.unload = unload;
 });

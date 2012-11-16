@@ -354,12 +354,6 @@ function RemoteFunctions(experimental) {
         }
     }
 
-    function updateHighlights(event) {
-        if (_remoteHighlight) {
-            _remoteHighlight.redraw();
-        }
-    }
-
     /** Public Commands **********************************************************/
 
     // show goto
@@ -401,24 +395,32 @@ function RemoteFunctions(experimental) {
             highlight(nodes[i]);
         }
     }
+    
+    // redraw active highlights
+    function redrawHighlights() {
+        if (_remoteHighlight) {
+            _remoteHighlight.redraw();
+        }
+    }
 
     // init
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
     
-    window.addEventListener("resize", updateHighlights);
+    window.addEventListener("resize", redrawHighlights);
     
     // Scrolling a div can interfere with highlighting. 
     var i, divs = window.document.getElementsByTagName("div");
     for (i = 0; i < divs.length; i++) {
-        divs[i].addEventListener("scroll", updateHighlights);
+        divs[i].addEventListener("scroll", redrawHighlights);
     }
 
     return {
         "showGoto": showGoto,
         "hideHighlight": hideHighlight,
         "highlight": highlight,
-        "highlightRule": highlightRule
+        "highlightRule": highlightRule,
+        "redrawHighlights": redrawHighlights
     };
 }

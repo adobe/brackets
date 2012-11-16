@@ -183,6 +183,21 @@ define(function main(require, exports, module) {
         }
     }
 
+    function _setHighlightCheckmark() {
+        CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setChecked(config.highlight);
+    }
+    
+    function _handlePreviewHighlightCommand() {
+        config.highlight = !config.highlight;
+        _setHighlightCheckmark();
+        if (config.highlight) {
+            LiveDevelopment.showHighlight();
+        } else {
+            LiveDevelopment.hideHighlight();
+        }
+        prefs.setValue("highlight", config.highlight);
+    }
+    
     /** Setup window references to useful LiveDevelopment modules */
     function _setupDebugHelpers() {
         window.ld = LiveDevelopment;
@@ -192,9 +207,10 @@ define(function main(require, exports, module) {
 
     /** Initialize LiveDevelopment */
     function init() {
-        prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY);
+        prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY, {highlight: true});
         params.parse();
 
+        config.highlight = prefs.getValue("highlight");
         Inspector.init(config);
         LiveDevelopment.init(config);
         _loadStyles();
@@ -202,6 +218,8 @@ define(function main(require, exports, module) {
         _setupGoLiveMenu();
 
         /* _setupHighlightButton(); FUTURE - Highlight button */
+        _setHighlightCheckmark();
+        
         if (config.debug) {
             _setupDebugHelpers();
         }
@@ -218,6 +236,7 @@ define(function main(require, exports, module) {
     window.setTimeout(init);
    
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
+    CommandManager.register(Strings.CMD_LIVE_HIGHLIGHT, Commands.FILE_LIVE_HIGHLIGHT, _handlePreviewHighlightCommand);
 
     // Export public functions
     exports.init = init;
