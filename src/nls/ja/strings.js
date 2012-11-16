@@ -201,7 +201,7 @@ define({
     "CMD_DECREASE_FONT_SIZE"              : "フォントサイズを小さく",
     "CMD_RESTORE_FONT_SIZE"               : "フォントサイズを元に戻す",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "並べ替え（追加順）",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "並べ替え（ソート）",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "並べ替え（名前順）",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "並べ替え（ファイル種別）",
     "CMD_SORT_WORKINGSET_AUTO"            : "自動的に並べ替え",
 
