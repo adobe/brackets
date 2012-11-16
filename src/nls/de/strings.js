@@ -172,6 +172,7 @@ define({
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
+    "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
