@@ -82,6 +82,23 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Check the list of items to see if any of them are hovered, and if so trigger a mouseenter.
+     * Normally the mouseenter event handles this, but when a previous item is deleted and the next
+     * item moves up to be underneath the mouse, we don't get a mouseenter event for that item.
+     */
+    function checkHovers(pageX, pageY) {
+        $dropdown.children().each(function () {
+            var offset = $(this).offset(), 
+                width = $(this).outerWidth(),
+                height = $(this).outerHeight();
+            if (pageX >= offset.left && pageX <= offset.left + width &&
+                pageY >= offset.top && pageY <= offset.top + height) {
+                $(".recent-folder-link", this).triggerHandler("mouseenter");
+            }
+        });
+    }
+    
+    /**
      * Create the "delete" button that shows up when you hover over a project.
      */
     function renderDelete() {
@@ -103,6 +120,7 @@ define(function (require, exports, module) {
                 }
                 prefs.setValue("recentProjects", newProjects);
                 $(this).closest("li").remove();
+                checkHovers(e.pageX, e.pageY);
             });
     }
     
@@ -129,6 +147,24 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Hide the delete button.
+     */
+    function hideDeleteButton() {
+        $("#recent-folder-delete").remove();
+    }
+    
+    /**
+     * Show the delete button over a given target.
+     */
+    function showDeleteButton($target) {
+        hideDeleteButton();
+        renderDelete()
+            .css("top", $target.position().top + 6)
+            .appendTo($target)
+            .data("path", $target.data("path"));
+    }
+    
+    /**
      * Create the DOM node for a single recent folder path in the dropdown menu.
      * @param {string} path The full path to the folder.
      */
@@ -146,8 +182,9 @@ define(function (require, exports, module) {
         }
         
         var folderSpan = $("<span class='recent-folder'></span>").text(folder),
-            restSpan = $("<span class='recent-folder-path'></span>").text(rest);
-        return $("<a class='recent-folder-link'></a>").append(folderSpan).append(restSpan).data("path", path)
+            restSpan = $("<span class='recent-folder-path'></span>").text(rest),
+            $link = $("<a class='recent-folder-link'></a>");
+        return $link.append(folderSpan).append(restSpan).data("path", path)
             .click(function () {
                 ProjectManager.openProject(path)
                     .fail(function () {
@@ -164,17 +201,13 @@ define(function (require, exports, module) {
                     });
                 closeDropdown();
             })
-            .mouseenter(function (e) {
-                var $target = $(e.currentTarget),
-                    $del = renderDelete();
-                
-                $(this).append($del);
-
-                $del.css("top", $target.position().top + 6);
-                $del.data("path", $(this).data("path"));
+            .mouseenter(function () {
+                // Note: we can't depend on the event here because this can be triggered
+                // manually from checkHovers().
+                showDeleteButton($link);
             })
             .mouseleave(function () {
-                $("#recent-folder-delete").remove();
+                hideDeleteButton();
             });
     }
 
