@@ -7,10 +7,14 @@
 }
 
 .trash-icon {
-	width: 16px;
-	height: 16px;
-	background-image: url("close_btn.svg");
-	position: absolute;
+    position: absolute;
+    right: 5px;
+    width: 16px;
+    height: 16px;
+    background-image: url("close-btn.svg");
+}
+.trash-icon:hover {
+    background-image: url("close-btn-hover.svg");
 }
 
 #project-dropdown-toggle {
@@ -22,6 +26,9 @@
 #project-dropdown-toggle:hover {
     color: #a0a0a0;
     text-decoration: none;
+}
+#project-dropdown-toggle:hover .dropdown-arrow {
+    background-image: url("down-arrow-hover.svg");
 }
 
 /* TODO: style the dropdown content */
