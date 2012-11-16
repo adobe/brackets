@@ -258,8 +258,8 @@ define(function (require, exports, module) {
             // If we aren't in a block-comment.
             if (!result || ctx.token.className !== "comment" || ctx.token.string.match(suffixExp)) {
                 // If the selection includes all the line-comments, do a block-comment
-                if (editor.posWithinRange(ctxPos, sel.start, sel.end) && (!endCtx.token.string.match(lineExp)
-                        || editor.indexFromPos(sel.end) >= endCtxIndex)) {
+                if (editor.posWithinRange(ctxPos, sel.start, sel.end) &&
+                        (!endCtx.token.string.match(lineExp) || editor.indexFromPos(sel.end) >= endCtxIndex)) {
                     canComment = true;
                 
                 // Find if all the lines are line-commented.
