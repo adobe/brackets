@@ -49,6 +49,10 @@ function RemoteFunctions(experimental) {
 
     // compute the screen offset of an element
     function _screenOffset(element, key) {
+        if (element === document.body) {
+            var bounds = element.getBoundingClientRect();
+            return (key === "offsetLeft" ? bounds.left : bounds.top);
+        }
         var value = 0;
         while (element) {
             value += element[key];
