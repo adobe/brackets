@@ -204,7 +204,7 @@ function RemoteFunctions(experimental) {
             return false;
         },
 
-        _makeHighlightDiv: function (element) {
+        _makeHighlightDiv: function (element, skipAnimation) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
                 styles = window.getComputedStyle(element);
@@ -217,17 +217,34 @@ function RemoteFunctions(experimental) {
             highlight.style.setProperty("z-index", 2000000);
             highlight.style.setProperty("position", "absolute");
             highlight.style.setProperty("pointer-events", "none");
-            highlight.style.setProperty("background","rgba(94,167,255, 0.1)");
-            highlight.style.setProperty("box-shadow", "0 0 8px 2px rgba(94,167,255, 0.3), inset 0 0 4px 1px rgba(255,255,255,0.6)");
+            if (skipAnimation) {
+                highlight.style.setProperty("background", "rgba(94,167,255, 0.1)");
+                highlight.style.setProperty("box-shadow", "0 0 8px 2px rgba(94,167,255, 0.3), inset 0 0 4px 1px rgba(255,255,255,0.6)");
+            } else {
+                highlight.style.setProperty("background", "rgba(94,167,255, 0.3)");
+                highlight.style.setProperty("box-shadow", "0 0 16px 2px rgba(94,167,255, 0.8), inset 0 0 4px 1px rgba(255,255,255,1)");
+            }
             highlight.style.setProperty("border-top-left-radius", styles.borderTopLeftRadius);
             highlight.style.setProperty("border-top-right-radius", styles.borderTopRightRadius);
             highlight.style.setProperty("border-bottom-left-radius", styles.borderBottomLeftRadius);
             highlight.style.setProperty("border-bottom-right-radius", styles.borderBottomRightRadius);
-    
+            
+            if (!skipAnimation) {
+                highlight.style.setProperty("opacity", 0);
+                highlight.style.setProperty("-webkit-transition-property", "opacity, box-shadow, background");
+                highlight.style.setProperty("-webkit-transition-duration", "0.3s, 0.6s, 0.6s");
+                
+                window.setTimeout(function () {
+                    highlight.style.setProperty("opacity", 1);
+                    highlight.style.setProperty("background", "rgba(94,167,255, 0.1)");
+                    highlight.style.setProperty("box-shadow", "0 0 8px 2px rgba(94,167,255, 0.3), inset 0 0 4px 1px rgba(255,255,255,0.6)");
+                }, 0);
+            }
+        
             window.document.body.appendChild(highlight);
         },
         
-        add: function (element) {
+        add: function (element, skipAnimation) {
             if (this._elementExists(element) || element === document) {
                 return;
             }
@@ -236,7 +253,7 @@ function RemoteFunctions(experimental) {
             }
             this.elements.push(element);
             
-            this._makeHighlightDiv(element);
+            this._makeHighlightDiv(element, skipAnimation);
         },
 
         clear: function () {
@@ -255,7 +272,7 @@ function RemoteFunctions(experimental) {
             
             this.clear();
             for (i in highlighted) {
-                this.add(highlighted[i]);
+                this.add(highlighted[i], true);
             }
         }
     };
