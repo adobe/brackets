@@ -29,7 +29,7 @@ define(function (require, exports, module) {
 
     //define FileError as currently ONLY Chrome implements the File API W3C Working Draft
     window.FileError = window.FileError || {
-        OT_FOUND_ERR: 1,
+        NOT_FOUND_ERR: 1,
         SECURITY_ERR: 2,
         ABORT_ERR: 3,
         NOT_READABLE_ERR: 4,
