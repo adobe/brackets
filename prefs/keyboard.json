@@ -1,0 +1,295 @@
+{
+    "file.new": {
+        "keyBindings": [
+            "Ctrl-N"
+        ]
+    },
+    "file.open": {
+        "keyBindings": [
+            "Ctrl-O"
+        ]
+    },
+    "file.close": {
+        "keyBindings": [
+            "Ctrl-W"
+        ]
+    },
+    "file.close_all": {
+        "keyBindings": [
+            "Ctrl-Shift-W"
+        ]
+    },
+    "file.save": {
+        "keyBindings": [
+            "Ctrl-S"
+        ]
+    },
+    "file.saveAll": {
+        "keyBindings": [
+            "Ctrl-Alt-S"
+        ]
+    },
+    "file.liveFilePreview": {
+        "keyBindings": [
+            "Ctrl-Alt-P"
+        ]
+    },
+    "file.quit": {
+        "keyBindings": [
+            "Ctrl-Q"
+        ]
+    },
+    "edit.selectAll": {
+        "keyBindings": [
+            "Ctrl-A"
+        ]
+    },
+    "edit.selectLine": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-L",
+                "platform": "win"
+            },
+            {
+                "key": "Ctrl-L",
+                "platform": "mac"
+            }
+        ]
+    },
+    "edit.find": {
+        "keyBindings": [
+            "Ctrl-F"
+        ]
+    },
+    "edit.findInFiles": {
+        "keyBindings": [
+            "Ctrl-Shift-F"
+        ]
+    },
+    "edit.findNext": {
+        "keyBindings": [
+            {
+                "key": "F3",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-G",
+                "platform": "mac"
+            }
+        ]
+    },
+    "edit.findPrevious": {
+        "keyBindings": [
+            {
+                "key": "Shift-F3",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-Shift-G",
+                "platform": "mac"
+            }
+        ]
+    },
+    "edit.replace": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-H",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-Alt-F",
+                "platform": "mac"
+            }
+        ]
+    },
+    "edit.indent": {
+        "keyBindings": [
+            {
+                "key": "Indent",
+                "displayKey": "Tab"
+            }
+        ]
+    },
+    "edit.unindent": {
+        "keyBindings": [
+            {
+                "key": "Unindent",
+                "displayKey": "Shift-Tab"
+            }
+        ]
+    },
+    "edit.duplicate": {
+        "keyBindings": [
+            "Ctrl-D"
+        ]
+    },
+    "edit.deletelines": {
+        "keyBindings": [
+            "Ctrl-Shift-D"
+        ]
+    },
+    "edit.lineUp": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-Shift-Up",
+                "displayKey": "Ctrl-Shift-↑",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-Ctrl-Up",
+                "displayKey": "Cmd-Ctrl-↑",
+                "platform": "mac"
+            }
+        ]
+    },
+    "edit.lineDown": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-Shift-Down",
+                "displayKey": "Ctrl-Shift-↓",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-Ctrl-Down",
+                "displayKey": "Cmd-Ctrl-↓",
+                "platform": "mac"
+            }
+        ]
+    },
+    "edit.lineComment": {
+        "keyBindings": [
+            "Ctrl-/"
+        ]
+    },
+    "edit.blockComment": {
+        "keyBindings": [
+            "Ctrl-Shift-/"
+        ]
+    },
+    "view.hideSidebar": {
+        "keyBindings": [
+            "Ctrl-Shift-H"
+        ]
+    },
+    "view.increaseFontSize": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-=",
+                "displayKey": "Cmd-+"
+            },
+            {
+                "key": "Ctrl-+",
+                "displayKey": "Cmd-+"
+            }
+        ]
+    },
+    "view.decreaseFontSize": {
+        "keyBindings": [
+            {
+                "key": "Ctrl--",
+                "displayKey": "Cmd-−"
+            }
+        ]
+    },
+    "view.restoreFontSize": {
+        "keyBindings": [
+            "Ctrl-0"
+        ]
+    },
+    "navigate.quickOpen": {
+        "keyBindings": [
+            "Ctrl-Shift-O"
+        ]
+    },
+    "navigate.gotoLine": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-G",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-L",
+                "platform": "mac"
+            }
+        ]
+    },
+    "navigate.gotoDefinition": {
+        "keyBindings": [
+            "Ctrl-T"
+        ]
+    },
+    "navigate.nextDoc": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-Tab",
+                "platform": "win"
+            },
+            {
+                "key": "Ctrl-Tab",
+                "platform": "mac"
+            }
+        ]
+    },
+    "navigate.prevDoc": {
+        "keyBindings": [
+            {
+                "key": "Ctrl-Shift-Tab",
+                "platform": "win"
+            },
+            {
+                "key": "Ctrl-Shift-Tab",
+                "platform": "mac"
+            }
+        ]
+    },
+    "navigate.toggleQuickEdit": {
+        "keyBindings": [
+            "Ctrl-E"
+        ]
+    },
+    "navigate.previousMatch": {
+        "keyBindings": [
+            {
+                "key": "Alt-Up",
+                "displayKey": "Alt-↑"
+            }
+        ]
+    },
+    "navigate.nextMatch": {
+        "keyBindings": [
+            {
+                "key": "Alt-Down",
+                "displayKey": "Alt-↓"
+            }
+        ]
+    },
+    "debug.showDeveloperTools": {
+        "keyBindings": [
+            {
+                "key": "F12",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-Opt-I",
+                "platform": "mac"
+            }
+        ]
+    },
+    "debug.refreshWindow": {
+        "keyBindings": [
+            {
+                "key": "F5",
+                "platform": "win"
+            },
+            {
+                "key": "Cmd-R",
+                "platform": "mac"
+            }
+        ]
+    },
+    "file.rename": {
+        "keyBindings": [
+            "F2"
+        ]
+    }
+}

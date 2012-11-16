@@ -37,6 +37,8 @@ define(function (require, exports, module) {
         KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings");
 
+    var KeyboardPrefs = JSON.parse(require("text!prefs/keyboard.json"));
+    
     /**
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
@@ -397,6 +399,8 @@ define(function (require, exports, module) {
     function setEnabled(value) {
         _enabled = value;
     }
+    
+    var rawBindings = {};
 
     /**
      * Add one or more key bindings to a particular Command.
@@ -410,9 +414,19 @@ define(function (require, exports, module) {
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>} Returns record(s) for valid key binding(s)
      */
     function addBinding(commandID, keyBindings, platform) {
-        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
+        if ((commandID === null) || (commandID === undefined)) {
             return;
         }
+        
+        var defaultBinding = KeyboardPrefs[commandID];
+        keyBindings = keyBindings || (defaultBinding ? defaultBinding.keyBindings : undefined);
+        platform = platform || ((defaultBinding && !Array.isArray(keyBindings)) ? defaultBinding.platform : undefined);
+
+        if (!keyBindings) {
+            return;
+        }
+        
+        rawBindings[commandID] = {keyBindings: keyBindings, platform: platform};
         
         var normalizedBindings = [],
             targetPlatform,
@@ -482,6 +496,10 @@ define(function (require, exports, module) {
         var bindings = _commandMap[commandID];
         return bindings || [];
     }
+    
+    function toJSON() {
+        return JSON.stringify(rawBindings, null, "    ");
+    }
 
     /**
      * Install keydown event listener.
@@ -505,6 +523,7 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.init = init;
+    exports.toJSON = toJSON;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
