@@ -240,17 +240,16 @@ define(function (require, exports, module) {
         }
     
         $resizer.on("mousedown", function (e) {
-            var $resizeCont     = $("<div class='resizing-container " + direction + "-resizing' />"),
+            var $resizeShield   = $("<div class='resizing-container " + direction + "-resizing' />"),
                 startPosition   = e[directionProperty],
                 startSize       = $element.is(":visible") ? elementSizeFunction.apply($element) : 0,
                 newSize         = startSize,
                 previousSize    = startSize,
                 baseSize        = 0,
-                doResize        = false,
                 isMouseDown     = true,
                 resizeStarted   = false;
             
-            $body.append($resizeCont);
+            $body.append($resizeShield);
                         
             if ($resizableElement.length) {
                 $element.children().not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
@@ -262,7 +261,7 @@ define(function (require, exports, module) {
                 });
             }
                         
-            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+            function doRedraw() {
                 // only run this if the mouse is down so we don't constantly loop even 
                 // after we're done resizing.
                 if (!isMouseDown) {
@@ -270,7 +269,7 @@ define(function (require, exports, module) {
                 }
                 
                 // Check for real size changes to avoid unnecessary resizing and events
-                if (doResize && newSize !== previousSize) {
+                if (newSize !== previousSize) {
                     previousSize = newSize;
                     
                     if ($element.is(":visible")) {
@@ -307,23 +306,27 @@ define(function (require, exports, module) {
                 }
                 
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
-            });
+            }
             
-            $resizeCont.on("mousemove", function (e) {
-                doResize = true;
+            $(window.document).on("mousemove", function (e) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
                 e.preventDefault();
+                
+                if (animationRequest === null) {
+                    animationRequest = window.webkitRequestAnimationFrame(doRedraw);
+                }
             });
             
             // If the element is marked as collapsible, check for double click
             // to toggle the element visibility
             if (collapsible) {
-                $resizeCont.on("mousedown", function (e) {
-                    $resizeCont.off("mousemove");
-                    $resizeCont.off("mousedown");
-                    $resizeCont.remove();
+                $resizeShield.on("mousedown", function (e) {
+                    $(window.document).off("mousemove");
+                    $(window.document).off("mousedown");
+                    $resizeShield.remove();
+                    animationRequest = null;
                     toggle($element);
                 });
             }
@@ -350,15 +353,15 @@ define(function (require, exports, module) {
                     // We wait 300ms to remove the resizer container to capture a mousedown
                     // on the container that would account for double click
                     window.setTimeout(function () {
-                        $resizeCont.off("mousemove");
-                        $resizeCont.off("mousedown");
-                        $resizeCont.remove();
+                        $(window.document).off("mousemove");
+                        $(window.document).off("mousedown");
+                        $resizeShield.remove();
+                        animationRequest = null;
                     }, 300);
                 }
             }
             
-            $resizeCont.one("mouseup", endResize);
-            $resizeCont.mouseleave(endResize);
+            $(window.document).one("mouseup", endResize);
             
             e.preventDefault();
         });
