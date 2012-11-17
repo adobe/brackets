@@ -79,9 +79,7 @@ define(function (require, exports, module) {
         this.bindColorFormatToRadioButton("rgba");
         this.bindColorFormatToRadioButton("hex");
         this.bindColorFormatToRadioButton("hsla");
-        // TODO: This is not really updating other UI and the color value. 
-        // Commenting it out and temporarily making it read only input field.
-        //this.$colorValue.change(this.colorSetter);
+        this.bindInputHandlers();
         this.bindOriginalColorButton();
         this.registerDragHandler(this.$selection, this.handleSelectionFieldDrag);
         this.registerDragHandler(this.$hueSlider, this.handleHueDrag);
@@ -129,19 +127,6 @@ define(function (require, exports, module) {
             return true;
         }
         return false;
-    };
-
-    ColorEditor.prototype.colorSetter = function () {
-        var newColor, newValue;
-        newValue = $.trim(this.$colorValue.val());
-        newColor = tinycolor(newValue);
-        if (!newColor.ok) {
-            newValue = this.getColor();
-            newColor = tinycolor(newValue);
-        }
-        this.commitColor(newValue, true);
-        this.hsv = newColor.toHsv();
-        this.synchronize();
     };
 
     ColorEditor.prototype.getColor = function () {
@@ -194,6 +179,106 @@ define(function (require, exports, module) {
         var _this = this;
         this.$lastColor.click(function (event) {
             _this.commitColor(_this.lastColor, true);
+        });
+    };
+
+    /**
+     * Convert an RGB color with percentage values into a normal RGB values
+     *     in the range of 0 - 255.
+     * @param {String} color - the color to be converted to non-percentage RGB color string.
+     * @param {String} redStr - the number representing the red color in percentage.
+     * @param {String} greenStr - the number representing the green color in percentage.
+     * @param {String} blueStr - the number representing the blue color in percentage.
+     * @return {String} an RGB color string in the normal format using non-percentage values
+     */
+    function _convertToNormalRGB(color, redStr, greenStr, blueStr) {
+        var red = Math.round(255 * Number(redStr) / 100),
+            green = Math.round(255 * Number(greenStr) / 100),
+            blue = Math.round(255 * Number(blueStr) / 100),
+            convertedColor = color;
+        
+        if (isNaN(red) || isNaN(green) || isNaN(blue)) {
+            return color;
+        }
+        
+        convertedColor = convertedColor.replace(redStr + "%", red);
+        convertedColor = convertedColor.replace(greenStr + "%", green);
+        convertedColor = convertedColor.replace(blueStr + "%", blue);
+        return convertedColor;
+    }
+                    
+    /**
+     * If the given color is an invalid color, it is returned without any modification. Otherwise,
+     *     convert the color to the format used by tiny color by adding a space after the comma
+     *     or convert an RGB color from percentage format to non-percentage RGB format.
+     * @param {String} color - the color to be corrected if it looks like an RGB or HSL color.
+     * @return {String} an unmodified color string or a color string that will match with 
+     *     the tinycolor returned color string.
+     */
+    function _correctColorString(color) {
+        var correctedColor = color,
+            percentRegEx = new RegExp(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
+        if (color.match(/^(rgb|hsl)/)) {
+            correctedColor = correctedColor.replace(/,\s*/g, ", ");
+            correctedColor = correctedColor.replace(/\(\s+/, "(");
+            correctedColor = correctedColor.replace(/\s+\)/, ")");
+        }
+        if (percentRegEx.test(color)) {
+            correctedColor = _convertToNormalRGB(correctedColor, RegExp.$1, RegExp.$2, RegExp.$3);
+        }
+        return correctedColor;
+    }
+
+    ColorEditor.prototype.bindInputHandlers = function () {
+        var _this = this;
+                    
+        this.$colorValue.bind("input", function (event) {
+            var newColor = $.trim($(this).val()),
+                newColorObj = tinycolor(newColor),
+                correctedColor = newColor,
+                newColorOk = newColorObj.ok;
+
+            // tinycolor will auto correct an incomplete rgb or hsl value into a valid color value.
+            // eg. rgb(0,0,0 -> rgb(0, 0, 0) 
+            // So we need to catch those incomplete values and prevent those values from syncing to 
+            // other UI and the color value in main editor.
+            if (newColorOk) {
+                correctedColor = _correctColorString(newColor);
+                newColorOk = (newColorObj.toString() === correctedColor);
+            }
+                    
+            // Sync only if we have a valid color.
+            if (newColorOk) {
+                _this.commitColor(correctedColor, true);
+                _this.hsv = newColorObj.toHsv();
+                _this.synchronize();
+            }
+        });
+
+        this.$colorValue.bind("change", function (event) {
+            var newColor = $.trim($(this).val()),
+                newColorObj = tinycolor(newColor),
+                correctedColor,
+                newColorOk = newColorObj.ok;
+
+            // tinycolor will auto correct an incomplete rgb or hsl value into a valid color value.
+            // eg. rgb(0,0,0 -> rgb(0, 0, 0) 
+            // So we need to catch those incomplete values and prevent those values from syncing to 
+            // other UI and the color value in main editor.
+            if (newColorOk) {
+                correctedColor = _correctColorString(newColor);
+                newColorOk = (newColorObj.toString() === correctedColor);
+            }
+
+            // Restore to the previous valid color if the new color is invalid or incomplete.
+            if (!newColorOk) {
+                newColor = _this.getColor().toString();
+                newColorObj = tinycolor(newColor);
+            }
+            
+            _this.commitColor(newColor, true);
+            _this.hsv = newColorObj.toHsv();
+            _this.synchronize();
         });
     };
 
