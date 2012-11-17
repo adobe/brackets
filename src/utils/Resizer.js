@@ -308,7 +308,7 @@ define(function (require, exports, module) {
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
             }
             
-            $(window.document).on("mousemove", function (e) {
+            function onMouseMove(e) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
@@ -317,13 +317,15 @@ define(function (require, exports, module) {
                 if (animationRequest === null) {
                     animationRequest = window.webkitRequestAnimationFrame(doRedraw);
                 }
-            });
+            }
+            
+            $(window.document).on("mousemove", onMouseMove);
             
             // If the element is marked as collapsible, check for double click
             // to toggle the element visibility
             if (collapsible) {
                 $resizeShield.on("mousedown", function (e) {
-                    $(window.document).off("mousemove");
+                    $(window.document).off("mousemove", onMouseMove);
                     $resizeShield.off("mousedown");
                     $resizeShield.remove();
                     animationRequest = null;
@@ -353,7 +355,7 @@ define(function (require, exports, module) {
                     // We wait 300ms to remove the resizer container to capture a mousedown
                     // on the container that would account for double click
                     window.setTimeout(function () {
-                        $(window.document).off("mousemove");
+                        $(window.document).off("mousemove", onMouseMove);
                         $resizeShield.off("mousedown");
                         $resizeShield.remove();
                         animationRequest = null;
