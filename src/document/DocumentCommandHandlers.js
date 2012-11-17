@@ -484,7 +484,7 @@ define(function (require, exports, module) {
 
             //first time save-as, default to the current project path
             if (!_defaultSaveDialogFullPath) {
-                _defaultSaveDialogFullPath = ProjectManager.getProjectRoot().fullPath;
+                _defaultSaveDialogFullPath = docToSave.fullPath;
             }
             // Prompt the user with a dialog
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, _defaultSaveDialogFullPath,
@@ -500,8 +500,8 @@ define(function (require, exports, module) {
                                     if (!writeError) {
                                         docToSave.notifySaved();
 
-                                        scrollPosition = DocumentManager.getCurrentDocument().getScrollPosition();
-                                        cursor = DocumentManager.getCurrentDocument().getCursor();
+                                        scrollPosition = docToSave.getScrollPosition();
+                                        cursor = docToSave.getCursor();
 
                                         // Close the existing doc
                                         DocumentManager.closeFullEditor(docToSave.file);
