@@ -81,8 +81,8 @@ define({
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "より詳しい情報は、<a class=\"clickable-link\" data-href=\"{0}\">ライブ開発の接続エラーに関するトラブルシューティング</a> を参照してください。",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "ライブプレビュー",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "ライブプレビュー : 接続中...\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "ライブプレビュー : 初期化中...\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "ライブプレビュー : 接続中\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "ライブプレビュー : 初期化中\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "ライブプレビューの接続を切断します",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "ライブプレビュー : クリックして切断 (ファイルを保存して更新)",
     
