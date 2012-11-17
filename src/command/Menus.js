@@ -904,20 +904,21 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_REPLACE,             [{key: "Ctrl-H",     platform: "win"},
                                                              {key: "Cmd-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
-        menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
-        menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
-        menu.addMenuItem(Commands.EDIT_DELETE_LINES,    "Ctrl-Shift-D");
-        menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
-                                                          platform: "win"},
-                                                         {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
-                                                          platform: "mac"}]);
-        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2193",
-                                                          platform: "win"},
-                                                         {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
-                                                          platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_INDENT,              [{key: "Indent", displayKey: "Tab"}]);
+        menu.addMenuItem(Commands.EDIT_UNINDENT,            [{key: "Unindent", displayKey: "Shift-Tab"}]);
+        menu.addMenuItem(Commands.EDIT_DUPLICATE,           "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_DELETE_LINES,        "Ctrl-Shift-D");
+        menu.addMenuItem(Commands.EDIT_LINE_UP,             [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
+                                                              platform: "win"},
+                                                             {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
+                                                              platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_LINE_DOWN,           [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2193",
+                                                              platform: "win"},
+                                                             {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
+                                                              platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,        "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT,       "Ctrl-Shift-/");
 
         /*
          * View menu
@@ -925,10 +926,10 @@ define(function (require, exports, module) {
         menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR,        "Ctrl-Shift-H");
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"},
-                                                            {key: "Ctrl-+", displayKey: "Ctrl-+"}]);
-        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
-        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
+        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE,  [{key: "Ctrl-=", displayKey: "Ctrl-+"},
+                                                             {key: "Ctrl-+", displayKey: "Ctrl-+"}]);
+        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE,  [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
+        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE,   "Ctrl-0");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_JSLINT);
 
@@ -993,12 +994,16 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME, "F2");
+        project_cmenu.addMenuDivider();
+        project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
 
         var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        working_set_cmenu.addMenuDivider();
+        working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
         working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);

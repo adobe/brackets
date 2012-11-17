@@ -269,6 +269,8 @@ define(function (require, exports, module) {
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
      * Does not support paths containing ".."
+     * @param {!string} absPath
+     * @return {!string}
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
