@@ -324,7 +324,7 @@ define(function (require, exports, module) {
             if (collapsible) {
                 $resizeShield.on("mousedown", function (e) {
                     $(window.document).off("mousemove");
-                    $(window.document).off("mousedown");
+                    $resizeShield.off("mousedown");
                     $resizeShield.remove();
                     animationRequest = null;
                     toggle($element);
@@ -354,7 +354,7 @@ define(function (require, exports, module) {
                     // on the container that would account for double click
                     window.setTimeout(function () {
                         $(window.document).off("mousemove");
-                        $(window.document).off("mousedown");
+                        $resizeShield.off("mousedown");
                         $resizeShield.remove();
                         animationRequest = null;
                     }, 300);
