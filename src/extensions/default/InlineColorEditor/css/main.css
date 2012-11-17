@@ -214,7 +214,6 @@
     border-radius: 3px;
     margin: 1px 0 0 0;
     vertical-align: center;
-    cursor: text;
 }
 .color_editor section footer input:focus {
     background: #fff;
@@ -222,7 +221,6 @@
     box-shadow: 0 0 8px rgba(0,0,0,0.35), inset 0 2px 4px rgba(0,0,0,0.15);
     border: 1px solid #1b1d1d;
     z-index: 911;
-    cursor: text;
 }
 @media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
     .color_editor aside header .large_swatches {
@@ -253,7 +251,7 @@
     background: transparent;
     -webkit-font-smoothing: subpixel-antialiased;
 }
-.button-bar {
+.color_editor ul.button-bar {
     list-style: none;
     border: 1px solid rgba(0,0,0,0.3);
     -webkit-border-radius: 3px;
