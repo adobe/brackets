@@ -489,7 +489,7 @@ define(function (require, exports, module) {
             // Prompt the user with a dialog
             NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, _defaultSaveDialogFullPath,
                 null, function (path) {
-                    var i;
+                    var scrollPosition, cursor, openPromise;
                     
                     if (path !== "") {
                         fileEntry = new NativeFileSystem.FileEntry(path);
@@ -500,13 +500,21 @@ define(function (require, exports, module) {
                                     if (!writeError) {
                                         docToSave.notifySaved();
 
-                                        // Open the file and ddd it to the working set
-                                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
-                                        DocumentManager.addToWorkingSet(fileEntry);
+                                        scrollPosition = DocumentManager.getCurrentDocument().getScrollPosition();
+                                        cursor = DocumentManager.getCurrentDocument().getCursor();
 
                                         // Close the existing doc
                                         DocumentManager.closeFullEditor(docToSave.file);
-                                        
+
+                                        // Open the file and add it to the working set
+                                        openPromise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
+                                        DocumentManager.addToWorkingSet(fileEntry);
+
+                                        openPromise.then(function () {
+                                            DocumentManager.getCurrentDocument().setScrollPosition(scrollPosition);
+                                            DocumentManager.getCurrentDocument().setCursor(cursor);
+                                        });
+
                                         result.resolve();
                                     }
                                 };
