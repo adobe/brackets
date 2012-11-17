@@ -155,6 +155,10 @@
             font-style: italic;
             padding-right: 22px;
         }
+
+        span, a {
+            cursor: default;
+        }
     }
 }
 
@@ -175,6 +179,7 @@
     a {
         color: @bc-black;
         text-shadow: none;
+        cursor: default;
     }
 
     // Menubar item appearance
@@ -318,6 +323,10 @@
     width: auto;
 }
 
+.modal .close {
+    cursor: default;
+}
+
 .modal-body, .modal-header {
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
@@ -369,6 +378,7 @@
 }
 
 .btn {
+    cursor: default;
     font-size: 16px;
     font-weight: @font-weight-semibold;
     color: #454545;
