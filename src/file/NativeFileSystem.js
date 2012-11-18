@@ -256,10 +256,23 @@ define(function (require, exports, module) {
         // TODO (issue #241)
         // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-toURL
     };
-    
+
+    /**
+     * Deletes a file or directory. It is an error to attempt to delete a directory that is not empty. It is an error to attempt to delete the root directory of a filesystem.
+     *
+     * @param {function} successCallback A callback that is called on success.
+     * @param {function} errorCallback A callback that is called when errors happen.
+     *
+     * @return None. This is an asynchronous call that sends all return information to the callback.
+     **/
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
-        // TODO (issue #241)
-        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove
+        brackets.fs.unlink(this.fullPath, function (err) {
+            if(err === brackets.fs.NO_ERROR) {
+                successCallback();
+            } else {
+                errorCallback(err);
+            }
+        });
     };
     
     NativeFileSystem.Entry.prototype.getParent = function (successCallback, errorCallback) {

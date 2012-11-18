@@ -46,6 +46,7 @@ define(function (require, exports, module) {
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
+    exports.FILE_DELETE                 = "file.delete";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT

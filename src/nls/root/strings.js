@@ -52,6 +52,8 @@ define({
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
+    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
@@ -172,6 +174,7 @@ define({
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
+    "CMD_FILE_DELETE"                     : "Delete",
     "CMD_QUIT"                            : "Quit",
 
     // Edit menu commands
