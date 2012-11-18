@@ -179,7 +179,7 @@ define(function (require, exports, module) {
                 expectNoHints(CSSCodeHints.attrHintProvider);
             });             
 
-            it("should NOT list hinds inside head-tag", function () {
+            it("should NOT list hints inside head-tag", function () {
                 testEditor.setCursorPos({ line: 1, ch: 6 });    // between <head> and </head> {
                 expectNoHints(CSSCodeHints.attrHintProvider);
             }); 
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
         
         describe("CSS attribute hint provider in other filecontext (e.g. javascript)", function () {
             var defaultContent = "function foobar (args) { \n " +
-                                 "    /* do sth*/ \n" +
+                                 "    /* do sth */ \n" +
                                  "    return 1; \n" +
                                  "} \n"; 
             beforeEach(function () {
