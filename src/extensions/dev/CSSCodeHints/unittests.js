@@ -11,22 +11,24 @@ define(function (require, exports, module) {
     
     describe("CSS Code Hinting", function () {
 
-        var defaultContent = "body { \n" +
-                             "    width: 300px; \n" +
-                             "    position: relative; \n" +
-                             "    \n" +
-                             "} \n" +
-                             "h1 { }\n";
+        var defaultContent = ".selector { \n" +
+                             " \n" +
+                             " b\n" +
+                             " bord\n" +
+                             " border-\n" +
+                             " border-colo\n" +
+                             " border-color: red; \n" +
+                             "} \n";
         
         var testWindow;
         var testDocument, testEditor;
         
         beforeEach(function () {
-            // create dummy Document for the Editor
-            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-            
             // create Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
+            
+            // create dummy Document for the Editor
+            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
             testEditor = new Editor(testDocument, true, "css", $("#editor").get(0), {});
         });
         
@@ -58,36 +60,31 @@ define(function (require, exports, module) {
         }        
 
         
-        // Expect hintList to contain attribute names, starting with given value (if unspecified, expects the default unfilered list)
+        // Expect hintList to contain attribute names, starting with given value
         function verifyAttrHints(hintList, expectedFirstHint) {
             expect(hintList.indexOf("div")).toBe(-1);   // make sure tag names aren't sneaking in there
             
             expect(hintList[0]).toBe(expectedFirstHint);
         }        
-
+        
+            
+        function selectHint(provider, expectedHint) {
+            var hintList = expectHints(provider);
+            expect(hintList.indexOf(expectedHint)).not.toBe(-1);
+            provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos(), true);
+        }
+        
+        // Helper function for testing cursor position
+        function expectCursorAt(pos) {
+            var selection = testEditor.getSelection();
+            expect(selection.start).toEqual(selection.end);
+            expect(selection.start).toEqual(pos);
+        }        
+        
         describe("CSS attributes in general (selection of correct attribute based on input)", function () {
-            var defaultContent = ".selector {\n" +
-                                 " \n" +
-                                 " b\n" +
-                                 " bord\n" +
-                                 " border-\n" +
-                                 " border-colo\n" +
-                                 "} \n";
-                    
-            beforeEach(function () {
-                // create dummy Document for the Editor
-                testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                $("body").append("<div id='editor'/>");
-                testEditor = new Editor(testDocument, true, "css", $("#editor").get(0), {});
-            });
-            
-            
-            
+   
             it("should list all hints right after curly bracket", function () {
-                testEditor.setCursorPos({ line: 0, ch: 11 });    // inside h1, after {
-                
+                testEditor.setCursorPos({ line: 0, ch: 11 });    // after {
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
             });
@@ -128,43 +125,47 @@ define(function (require, exports, module) {
                 expect(hintList.length).toBe(1);
             });
             
-        });        
-        
-        
-        describe("CSS attribute hint provider in .css files", function () {
-            
-            it("should list hints right after curly bracket", function () {
-                testEditor.setCursorPos({ line: 5, ch: 4 });    // inside h1, after {
+            it("should list hints at end of existing attribute+value", function () {
+                testEditor.setCursorPos({ line: 6, ch: 19 });    // after ;
                 expectHints(CSSCodeHints.attrHintProvider);
             });
-            
-            it("should list hints at end of existing attribute+value", function () {
-                testEditor.setCursorPos({ line: 1, ch: 17 });    // after ; in first line
+       
+            it("should list hints right after curly bracket", function () {
+                testEditor.setCursorPos({ line: 0, ch: 11 });    // inside .selector, after {
                 expectHints(CSSCodeHints.attrHintProvider);
             });
             
             it("should NOT list hints right before curly bracket", function () {
-                testEditor.setCursorPos({ line: 5, ch: 3 });    // inside h1, before {
+                testEditor.setCursorPos({ line: 0, ch: 10 });    // inside .selector, before {
                 expectNoHints(CSSCodeHints.attrHintProvider);
-            });
+            });            
+            
+        });        
+        
+        
+        describe("CSS attribute handleSelect", function () {
+            it("should insert colon followd by whitespace after attribute", function () {
+                testEditor.setCursorPos({ line: 3, ch: 5 });   // cursor after 'bord'
+                selectHint(HTMLCodeHints.attrHintProvider, "border");
+                expect(testDocument.getLine(3)).toBe(" border: ");
+                expectCursorAt({ line: 3, ch: 9 });
+            });            
+
         });
         
         describe("CSS attribute hint provider inside mixed htmlfiles", function () {
-            var defaultContent = "<html> \n"+
-                                 "<head></head> \n"+
-                                 "<body> <style> \n"+
-                                 " body { \n"+
-                                 "    background-color: red; \n"+
-                                 " \n"+ 
-                                 "} \n"+
+            var defaultContent = "<html> \n" +
+                                 "<head></head> \n" +
+                                 "<body> <style> \n" +
+                                 " body { \n" +
+                                 "    background-color: red; \n" +
+                                 " \n" + 
+                                 "} \n" +
                                  "</style></body></html>";
                     
             beforeEach(function () {
                 // create dummy Document for the Editor
                 testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                $("body").append("<div id='editor'/>");
                 testEditor = new Editor(testDocument, true, "hmtlmixed", $("#editor").get(0), {});
             });
             
@@ -178,12 +179,29 @@ define(function (require, exports, module) {
                 expectNoHints(CSSCodeHints.attrHintProvider);
             });             
 
-            it("should NOT inside head-tag", function () {
+            it("should NOT list hinds inside head-tag", function () {
                 testEditor.setCursorPos({ line: 1, ch: 6 });    // between <head> and </head> {
                 expectNoHints(CSSCodeHints.attrHintProvider);
             }); 
             
         });
         
+        
+        describe("CSS attribute hint provider in other filecontext (e.g. javascript)", function () {
+            var defaultContent = "function foobar (args) { \n " +
+                                 "    /* do sth*/ \n" +
+                                 "    return 1; \n" +
+                                 "} \n"; 
+            beforeEach(function () {
+                // create dummy Document for the Editor
+                testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
+                testEditor = new Editor(testDocument, true, "javascript", $("#editor").get(0), {});
+            }); 
+            
+            it("should NOT list hints after function declaration", function () {
+                testEditor.setCursorPos({ line: 0, ch: 24 });    // after {  after function declaration
+                expectNoHints(CSSCodeHints.attrHintProvider);
+            }); 
+        });
     });
 });
