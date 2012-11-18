@@ -444,6 +444,9 @@ define(function (require, exports, module) {
                     expect(inlineEditor.document.isDirty).toBeTruthy();
                     expect(hostEditor.document.isDirty).toBeFalsy();
                     
+                    // verify focus is in inline editor
+                    expect(inlineEditor.hasFocus()).toBeTruthy();
+                    
                     // execute file save command
                     testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
                         saved = true;
@@ -455,6 +458,9 @@ define(function (require, exports, module) {
                 waitsFor(function () { return saved && !err; }, "save timeout", 1000);
                 
                 runs(function () {
+                    // verify focus is still in inline editor
+                    expect(inlineEditor.hasFocus()).toBeTruthy();
+                    
                     // read saved file contents
                     FileUtils.readAsText(inlineEditor.document.file).done(function (text) {
                         savedText = text;
@@ -644,6 +650,8 @@ define(function (require, exports, module) {
             
             
             describe("Bi-directional Editor Synchronizing", function () {
+                // For these tests we *deliberately* use Editor._codeMirror instead of Document to make edits,
+                // in order to test Editor->Document syncing (instead of Document->Editor).
                 
                 it("should not add an inline document to the working set without being edited", function () {
                     initInlineTest("test1.html", 0);
