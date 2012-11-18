@@ -6,7 +6,8 @@ define(function (require, exports, module) {
 
     var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),        
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),  
+        TokenUtils          = brackets.getModule("utils/TokenUtils"),
         CSSAttributes       = require("text!CSSAttributes.json"),
         attributes          = JSON.parse(CSSAttributes);
 
@@ -16,10 +17,11 @@ define(function (require, exports, module) {
     
     CssAttrHints.prototype.getQueryInfo = function (editor, cursor) {
         var query       = {queryStr: null},
+            ctx         = TokenUtils.getInitialContext(editor._codeMirror, cursor),
             styleblocks = HTMLUtils.findStyleBlocks(editor);
           
         if(editor.getModeForDocument() === "css") {
-            query.queryStr = "";
+            query.queryStr = ctx.token.string;
         } else {
             
             /* check whether the cursor is inside any <style> block in the document */
@@ -37,18 +39,34 @@ define(function (require, exports, module) {
                 }
                 
                 if (insideStyleBlock) {
-                    query.queryStr = "";
+                    query.queryStr = ctx.token.string;
                 }
             }      
+        }
+        
+        if (query.queryStr !== null) {
+            query.queryStr = query.queryStr.trim();
         }
         
         return query;
     }
     
     CssAttrHints.prototype.search = function(query) {
-        console.log('csscodehint - search');
-        var result = ['somecssattr'];
+        console.log('csscodehint - search' + query.queryStr);
+        var result = [];
+        var filter = query.queryStr;
         
+        if (filter === "") {
+            result = $.map(attributes, function (obj, name) {
+                return name;
+            });
+        } else {
+            result = $.map(attributes, function(obj, name) {
+                if (name.indexOf(filter) === 0) {
+                    return name;
+                }
+            });
+        }
         return result;
     }    
     
@@ -64,7 +82,7 @@ define(function (require, exports, module) {
      */
     CssAttrHints.prototype.shouldShowHintsOnKey = function (key) {
         return (key === "{"); /* only popup after brackets, else this will always trigger */
-        // return (key === " " || key === "{" );
+        //return (key === " " || key === "{" );
     };
     
     
