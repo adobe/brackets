@@ -18,10 +18,12 @@ define(function (require, exports, module) {
     CssAttrHints.prototype.getQueryInfo = function (editor, cursor) {
         var query       = {queryStr: null},
             ctx         = TokenUtils.getInitialContext(editor._codeMirror, cursor),
-            styleblocks = HTMLUtils.findStyleBlocks(editor);
+            styleblocks = HTMLUtils.findStyleBlocks(editor),
+            csscontext  = false;
           
+        /* first: check overall context - is this a css-valid context */
         if(editor.getModeForDocument() === "css") {
-            query.queryStr = ctx.token.string;
+            csscontext = true;
         } else {
             
             /* check whether the cursor is inside any <style> block in the document */
@@ -33,26 +35,36 @@ define(function (require, exports, module) {
                     item = styleblocks[i];
                     if (item.start.line < cursor.line && item.end.line > cursor.line) {
                         /* TODO: add other cases for cursor and styleblock */
-                        insideStyleBlock = true;
+                        csscontext = true;
                         break;
                     }
                 }
                 
+                /*
                 if (insideStyleBlock) {
                     query.queryStr = ctx.token.string;
                 }
+                */
             }      
         }
         
-        if (query.queryStr !== null) {
-            query.queryStr = query.queryStr.trim();
+        /* second: determine queryStr based on characters around cursor if actually in csscontext */
+        if (csscontext) {
+            query.queryStr = ctx.token.string;            
+            if (query.queryStr !== null) {
+                query.queryStr = query.queryStr.trim();
+            }
+            
+            if (query.queryStr === "{") {
+                query.queryStr = "";
+            }
         }
+
         
         return query;
     }
     
     CssAttrHints.prototype.search = function(query) {
-        console.log('csscodehint - search' + query.queryStr);
         var result = [];
         var filter = query.queryStr;
         
@@ -81,7 +93,7 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     CssAttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return (key === "{"); /* only popup after brackets, else this will always trigger */
+        return (key === "{" || key === "\t"); /* only popup after brackets, else this will always trigger */
         //return (key === " " || key === "{" );
     };
     
