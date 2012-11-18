@@ -38,6 +38,9 @@ define(function (require, exports, module) {
         this.startBookmark = startBookmark;
         this.endBookmark = endBookmark;
         this.setColor = this.setColor.bind(this);
+        this.handleHostDocumentChange = this.handleHostDocumentChange.bind(this);
+        this.isOwnChange = false;
+        this.isHostChange = false;
 
         InlineWidget.call(this);
     }
@@ -49,37 +52,52 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
     InlineColorEditor.prototype.$wrapperDiv = null;
     
-    InlineColorEditor.prototype.onClosed = function () {
-        if (this.startBookmark) {
-            this.startBookmark.clear();
+    InlineColorEditor.prototype.getCurrentRange = function () {
+        var start, end;
+        
+        start = this.startBookmark.find();
+        if (!start) {
+            return null;
         }
-        if (this.endBookmark) {
+        
+        end = this.endBookmark.find();
+        if (!end || start.ch === end.ch) {
+            // Try to re-locate the end by matching the color regex.
+            var endCh,
+                matches = this.editor.document.getLine(start.line).slice(start.ch).match(InlineColorEditor.colorRegEx);
+            if (matches) {
+                endCh = start.ch + matches[0].length;
+            } else {
+                // Couldn't match a color. Assume our current color length.
+                endCh = start.ch + (this.color ? this.color.length : 0);
+            }
+            end = { line: start.line, ch: endCh };
+            
+            // Update our end bookmark.
             this.endBookmark.clear();
+            this.endBookmark = this.editor._codeMirror.setBookmark(end);
         }
+        
+        return {start: start, end: end};
     };
         
     InlineColorEditor.prototype.setColor = function (colorLabel) {
-        var start, end;
-        if (!colorLabel) {
+        if (this.isHostChange || !colorLabel) {
             return;
         }
         
         if (colorLabel !== this.color) {
-            start = this.startBookmark.find();
-            if (!start) {
+            var range = this.getCurrentRange();
+            if (!range) {
                 return;
             }
             
-            end = this.endBookmark.find();
-            if (!end || start.ch === end.ch) {
-                end = { line: start.line,
-                        ch: start.ch + (this.color ? this.color.length : 0) };
-            }
-            
-            this.editor.document.replaceRange(colorLabel, start, end);
-            this.editor.setSelection(start, {
-                line: start.line,
-                ch: start.ch + colorLabel.length
+            this.isOwnChange = true;
+            this.editor.document.replaceRange(colorLabel, range.start, range.end);
+            this.isOwnChange = false;
+            this.editor.setSelection(range.start, {
+                line: range.start.line,
+                ch: range.start.ch + colorLabel.length
             });
             this.color = colorLabel;
         }
@@ -101,8 +119,29 @@ define(function (require, exports, module) {
     };
         
     InlineColorEditor.prototype.onAdded = function () {
+        this.parentClass.onAdded.call(this);
+        
+        var doc = this.editor.document;
+        doc.addRef();
+        $(doc).on("change", this.handleHostDocumentChange);
+        
         window.setTimeout(this._sizeEditorToContent.bind(this));
         this.colorEditor.focus();
+    };
+    
+    InlineColorEditor.prototype.onClosed = function () {
+        if (this.startBookmark) {
+            this.startBookmark.clear();
+        }
+        if (this.endBookmark) {
+            this.endBookmark.clear();
+        }
+
+        var doc = this.editor.document;
+        $(doc).off("change", this.handleHostDocumentChange);
+        doc.releaseRef();
+
+        this.parentClass.onClosed.call(this);
     };
 
     InlineColorEditor.prototype._sizeEditorToContent = function () {
@@ -151,6 +190,22 @@ define(function (require, exports, module) {
         }).sort(_colorSort);
 
         return compressed.slice(0, maxLength);
+    };
+    
+    InlineColorEditor.prototype.handleHostDocumentChange = function () {
+        if (this.isOwnChange) {
+            return;
+        }
+        
+        var range = this.getCurrentRange();
+        if (range) {
+            var newColor = this.editor.document.getRange(range.start, range.end);
+            if (newColor !== this.color) {
+                this.isHostChange = true;
+                this.colorEditor.commitColor(newColor, true);
+                this.isHostChange = false;
+            }
+        }
     };
 
     module.exports.InlineColorEditor = InlineColorEditor;
