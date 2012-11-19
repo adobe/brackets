@@ -62,7 +62,6 @@ define(function (require, exports, module) {
         this.$hueSlider = this.$element.find(".hue_slider");
         this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$hueSelector = this.$element.find(".hue_slider .selector_base");
-        this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$opacitySelector = this.$element.find(".opacity_slider .selector_base");
         this.$swatches = this.$element.find(".swatches");
         this.addSwatches();
@@ -218,6 +217,11 @@ define(function (require, exports, module) {
     function _correctColorString(color) {
         var correctedColor = color,
             percentRegEx = new RegExp(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
+                    
+        // Convert 6-digit hex to 3-digit hex as tinycolor (#ffaacc -> #fac)
+        if (color.match(/^#[0-9a-f]{6}/)) {
+            return tinycolor(color).toString();
+        }
         if (color.match(/^(rgb|hsl)/)) {
             correctedColor = correctedColor.replace(/,\s*/g, ", ");
             correctedColor = correctedColor.replace(/\(\s+/, "(");
@@ -229,56 +233,44 @@ define(function (require, exports, module) {
         return correctedColor;
     }
 
+    ColorEditor.prototype.syncUserInput = function (losingFocus) {
+        var newColor = $.trim(this.$colorValue.val()),
+            newColorObj = tinycolor(newColor),
+            correctedColor = newColor,
+            newColorOk = newColorObj.ok;
+
+        // tinycolor will auto correct an incomplete rgb or hsl value into a valid color value.
+        // eg. rgb(0,0,0 -> rgb(0, 0, 0) 
+        // So we need to catch those incomplete values and prevent those values from syncing to 
+        // other UI and the color value in main editor.
+        if (newColorOk) {
+            correctedColor = _correctColorString(newColor);
+            newColorOk = (newColorObj.toString() === correctedColor);
+        }
+                
+        // Restore to the previous valid color if the new color is invalid or incomplete.
+        if (losingFocus && !newColorOk) {
+            correctedColor = this.getColor().toString();
+            newColorObj = tinycolor(correctedColor);
+        }
+        
+        // Sync only if we have a valid color or we're restoring the previous valid color.
+        if (losingFocus || newColorOk) {
+            this.commitColor(correctedColor, true);
+            this.hsv = newColorObj.toHsv();
+            this.synchronize();
+        }
+    };
+                    
     ColorEditor.prototype.bindInputHandlers = function () {
         var _this = this;
                     
         this.$colorValue.bind("input", function (event) {
-            var newColor = $.trim($(this).val()),
-                newColorObj = tinycolor(newColor),
-                correctedColor = newColor,
-                newColorOk = newColorObj.ok;
-
-            // tinycolor will auto correct an incomplete rgb or hsl value into a valid color value.
-            // eg. rgb(0,0,0 -> rgb(0, 0, 0) 
-            // So we need to catch those incomplete values and prevent those values from syncing to 
-            // other UI and the color value in main editor.
-            if (newColorOk) {
-                correctedColor = _correctColorString(newColor);
-                newColorOk = (newColorObj.toString() === correctedColor);
-            }
-                    
-            // Sync only if we have a valid color.
-            if (newColorOk) {
-                _this.commitColor(correctedColor, true);
-                _this.hsv = newColorObj.toHsv();
-                _this.synchronize();
-            }
+            _this.syncUserInput(false);
         });
 
         this.$colorValue.bind("change", function (event) {
-            var newColor = $.trim($(this).val()),
-                newColorObj = tinycolor(newColor),
-                correctedColor,
-                newColorOk = newColorObj.ok;
-
-            // tinycolor will auto correct an incomplete rgb or hsl value into a valid color value.
-            // eg. rgb(0,0,0 -> rgb(0, 0, 0) 
-            // So we need to catch those incomplete values and prevent those values from syncing to 
-            // other UI and the color value in main editor.
-            if (newColorOk) {
-                correctedColor = _correctColorString(newColor);
-                newColorOk = (newColorObj.toString() === correctedColor);
-            }
-
-            // Restore to the previous valid color if the new color is invalid or incomplete.
-            if (!newColorOk) {
-                newColor = _this.getColor().toString();
-                newColorObj = tinycolor(newColor);
-            }
-            
-            _this.commitColor(newColor, true);
-            _this.hsv = newColorObj.toHsv();
-            _this.synchronize();
+            _this.syncUserInput(true);
         });
     };
 
