@@ -160,7 +160,7 @@ define({
 
     // File menu commands
 	"FILE_MENU": "Fichier",
-	"CMD_FILE_NEW": "Nouveau Fichier",
+	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
@@ -257,8 +257,8 @@ define({
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "sprint {VERSION_MINOR} version expérimentale {VERSION}",
-	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr\">http://www.adobe.com/go/thirdparty_fr</a> et sont incluses dans le présent document à titre de référence.",
+	"ABOUT_TEXT_LINE1": "version expérimentale sprint {VERSION_MINOR} {VERSION}",
+	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles (en anglais) à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
