@@ -2,19 +2,19 @@
 <div class="color_editor">
   <section>
     <div class="sliders">
-      <div class="color_selection_field">
+      <div class="color_selection_field" title="{{SELECTION_FIELD_TIP}}">
         <div class="saturation_gradient gradient_overlay"></div>
         <div class="luminosity_gradient gradient_overlay"></div>
         <div tabindex="0" class="selector_base">
           <div class="selector"></div>
         </div>
       </div>
-      <div class="hue_slider slider">
+      <div class="hue_slider slider" title="{{HUE_SLIDER_TIP}}">
         <div tabindex="0" class="selector_base">
           <div class="selector"></div>
         </div>
       </div>
-      <div class="opacity_slider slider">
+      <div class="opacity_slider slider" title="{{OPACITY_SLIDER_TIP}}">
         <div class="opacity_gradient gradient_overlay"></div>
         <div tabindex="0" class="selector_base">
           <div class="selector"></div>
@@ -22,19 +22,19 @@
       </div>
     </div>
     <footer>
-      <input class="color_value" readonly="readonly" />
+      <input class="color_value" title="{{COLOR_INPUT_TIP}}" />
       <ul class="button-bar">
-        <li class="selected"><a href="#" tabindex="0" class="rgba">RGBa</a></li>
-        <li><a href="#" tabindex="0" class="hex">HEX</a></li>
-        <li><a href="#" tabindex="0" class="hsla">HSLa</a></li>
+        <li class="selected" title="{{RGBA_BUTTON_TIP}}"><a href="#" tabindex="0" class="rgba">RGBa</a></li>
+        <li title="{{HEX_BUTTON_TIP}}"><a href="#" tabindex="0" class="hex">HEX</a></li>
+        <li title="{{HSLA_BUTTON_TIP}}"><a href="#" tabindex="0" class="hsla">HSLa</a></li>
       </ul>
     </footer>
   </section>
   <aside>
     <header>
       <div class="large_swatches">
-        <div class="current_color large_swatch"></div>
-        <div class="last_color large_swatch"></div>
+        <div class="current_color large_swatch" title="{{CURRENT_COLOR_SWATCH_TIP}}"></div>
+        <div class="last_color large_swatch" title="{{ORIGINAL_COLOR_SWATCH_TIP}}"></div>
       </div>
     </header>
     <ul class="swatches"></ul>
