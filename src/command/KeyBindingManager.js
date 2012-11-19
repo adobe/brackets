@@ -233,7 +233,7 @@ define(function (require, exports, module) {
      */
     function _translateKeyboardEvent(event) {
         var hasMacCtrl = (brackets.platform === "mac") ? (event.ctrlKey) : false,
-            hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey),
+            hasCtrl = (brackets.platform !== "mac") ? (event.ctrlKey) : (event.metaKey),
             hasAlt = (event.altKey),
             hasShift = (event.shiftKey),
             key = String.fromCharCode(event.keyCode);
