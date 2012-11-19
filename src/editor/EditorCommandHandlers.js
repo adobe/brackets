@@ -384,31 +384,45 @@ define(function (require, exports, module) {
      * @param {!String} suffix
      */
     function lineCommentPrefixSuffix(editor, prefix, suffix) {
-        var sel          = editor.getSelection(),
-            ctx          = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
-            line         = editor.document.getLine(sel.start.line),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+        var sel           = editor.getSelection(),
+            selStart      = sel.start,
+            selEnd        = sel.end,
+            prefixExp     = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
+            lineSelection = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line !== sel.end.line,
+            multipleLine  = sel.start.line !== sel.end.line,
+            lineLength    = editor.document.getLine(sel.start.line).length;
         
-        // If we are not inside a comment and there is no selection and the line is not empty,
-        // we comment the complete line from the first non-empty character
-        if (ctx.token.className !== "comment" && !hasSelection && line.trim().length > 0) {
-            var start = line.length - line.replace(/^\s+/, "").length,
-                end   = line.length;
-            
-            // Make a new selection of the line so that the prefix and suffix get placed where we want
-            editor.setSelection({line: sel.start.line, ch: start}, {line: sel.end.line, ch: end});
+        // For a multiple line selection transform it to a multiple whole line selection
+        if (!lineSelection && multipleLine) {
+            selStart = {line: sel.start.line, ch: 0};
+            selEnd   = {line: sel.end.line + 1, ch: 0};
+        
+        // For one line selections, just start at column 0 and end at the end of the line
+        } else if (!lineSelection) {
+            selStart = {line: sel.start.line, ch: 0};
+            selEnd   = {line: sel.end.line, ch: lineLength};
+        }
+        
+        // If the selection includes a comment or is already a line selection, delegate to Block-Comment
+        var ctx     = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
+        var hasNext = _findNextBlockComment(ctx, selEnd, prefixExp);
+        if (ctx.token.className === "comment" || hasNext || lineSelection) {
+            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+        
+        } else {
+            // Set the new selection and comment it
+            editor.setSelection(selStart, selEnd);
             blockCommentPrefixSuffix(editor, prefix, suffix, false);
             
-            // Restore the selection. Moving the cursor if needed
-            if (sel.start.ch > start) {
+            // Restore the old selection taking into account the prefix change
+            if (multipleLine) {
+                sel.start.line++;
+                sel.end.line++;
+            } else {
                 sel.start.ch += prefix.length;
-                sel.end.ch   += prefix.length;
+                sel.end.ch += prefix.length;
             }
             editor.setSelection(sel.start, sel.end);
-        
-        // if not, just do a normal block-comment
-        } else {
-            blockCommentPrefixSuffix(editor, prefix, suffix, false);
         }
     }
     
