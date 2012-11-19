@@ -563,11 +563,11 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Enable highlighting */
     function showHighlight() {
-        // Trigger an "onCursorChange" in the main editor to
-        // kick highlighting
-        var editor = EditorManager.getActiveEditor();
-        if (editor) {
-            $(editor).trigger("cursorActivity");
+        var doc = _getCurrentDocument();
+        
+        // Force cursor activity to kick highlighting
+        if (_liveDocument instanceof CSSDocument) {
+            _liveDocument.onCursorActivity();
         }
     }
 

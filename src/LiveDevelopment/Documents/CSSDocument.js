@@ -132,7 +132,6 @@ define(function CSSDocumentModule(require, exports, module) {
 
     // Reload rules
     CSSDocument.prototype.reloadRules = function () {
-        console.assert(!this.loadRulePromise, "Rule promise has not resolved.");
         this.loadRulePromise = this.getStyleSheetFromBrowser().done(function (styleSheet) {
             this.rules = styleSheet.rules;
             this.loadRulePromise = null;
