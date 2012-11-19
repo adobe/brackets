@@ -332,16 +332,15 @@ define(function (require, exports, module) {
             doc.batchOperation(function () {
                 
                 if (canComment) {
-                    // Get the text with the prefix and suffix added.
+                    // Comment out - add the suffix to the start and the prefix to the end.
                     var completeLineSel = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line < sel.end.line;
                     if (completeLineSel) {
-                        text = prefix + "\n" + editor.getSelectedText() + suffix + "\n";
+                        doc.replaceRange(suffix + "\n", sel.end);
+                        doc.replaceRange(prefix + "\n", sel.start);
                     } else {
-                        text = prefix + editor.getSelectedText() + suffix;
+                        doc.replaceRange(suffix, sel.end);
+                        doc.replaceRange(prefix, sel.start);
                     }
-                    
-                    // Comment out - add the suffix to the start and the prefix to the end.
-                    doc.replaceRange(text, sel.start, sel.end);
                     
                     // Correct the selection.
                     if (completeLineSel) {
