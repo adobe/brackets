@@ -356,8 +356,9 @@ define(function (require, exports, module) {
             self.cachedHints = {};
             self.cachedHints.unfiltered = [];
 
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (dirEntry) {
-                dirEntry.createReader().readEntries(function (entries) {
+            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
+                console.log(fs);
+                fs.root.createReader().readEntries(function (entries) {
 
                     entries.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
