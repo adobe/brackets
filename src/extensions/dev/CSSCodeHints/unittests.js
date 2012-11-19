@@ -147,7 +147,7 @@ define(function (require, exports, module) {
         describe("CSS attribute handleSelect", function () {
             it("should insert colon followd by whitespace after attribute", function () {
                 testEditor.setCursorPos({ line: 3, ch: 5 });   // cursor after 'bord'
-                selectHint(HTMLCodeHints.attrHintProvider, "border");
+                selectHint(CSSCodeHints.attrHintProvider, "border");
                 expect(testDocument.getLine(3)).toBe(" border: ");
                 expectCursorAt({ line: 3, ch: 9 });
             });            

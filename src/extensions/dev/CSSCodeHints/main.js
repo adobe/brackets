@@ -55,7 +55,7 @@ define(function (require, exports, module) {
                 query.queryStr = query.queryStr.trim();
             }
             
-            if (query.queryStr === "{") {
+            if (query.queryStr === "{" || query.queryStr === ";") {
                 query.queryStr = "";
             }
         }
@@ -83,6 +83,15 @@ define(function (require, exports, module) {
     }    
     
     CssAttrHints.prototype.handleSelect = function (completion, editor, cursor) {
+        var ctx  = TokenUtils.getInitialContext(editor._codeMirror, cursor);
+        
+        if (ctx.token !== null) {
+            var len  = ctx.token.end - ctx.token.start;
+            completion = completion.substr(len) + ": ";
+        }
+        
+        editor.document.replaceRange(completion, cursor);
+        
         console.log('csscodehint - handleSelect');
         return true;
     }
@@ -93,8 +102,8 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     CssAttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return (key === "{" || key === "\t"); /* only popup after brackets, else this will always trigger */
-        //return (key === " " || key === "{" );
+        return (key === "{" || key ===  " "); /* only popup after brackets, else this will always trigger */
+        // return (key === " " || key === "{" );
     };
     
     
