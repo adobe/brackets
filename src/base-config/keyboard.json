@@ -31,8 +31,7 @@
     ],
     "edit.selectLine":  [
         {
-            "key": "Ctrl-L",
-            "platform": "win"
+            "key": "Ctrl-L"
         },
         {
             "key": "Ctrl-L",
@@ -47,8 +46,7 @@
     ],
     "edit.findNext":  [
         {
-            "key": "F3",
-            "platform": "win"
+            "key": "F3"
         },
         {
             "key": "Cmd-G",
@@ -57,8 +55,7 @@
     ],
     "edit.findPrevious":  [
         {
-            "key": "Shift-F3",
-            "platform": "win"
+            "key": "Shift-F3"
         },
         {
             "key": "Cmd-Shift-G",
@@ -67,8 +64,7 @@
     ],
     "edit.replace":  [
         {
-            "key": "Ctrl-H",
-            "platform": "win"
+            "key": "Ctrl-H"
         },
         {
             "key": "Cmd-Alt-F",
@@ -96,8 +92,7 @@
     "edit.lineUp":  [
         {
             "key": "Ctrl-Shift-Up",
-            "displayKey": "Ctrl-Shift-↑",
-            "platform": "win"
+            "displayKey": "Ctrl-Shift-↑"
         },
         {
             "key": "Cmd-Ctrl-Up",
@@ -108,8 +103,7 @@
     "edit.lineDown":  [
         {
             "key": "Ctrl-Shift-Down",
-            "displayKey": "Ctrl-Shift-↓",
-            "platform": "win"
+            "displayKey": "Ctrl-Shift-↓"
         },
         {
             "key": "Cmd-Ctrl-Down",
@@ -150,8 +144,7 @@
     ],
     "navigate.gotoLine":  [
         {
-            "key": "Ctrl-G",
-            "platform": "win"
+            "key": "Ctrl-G"
         },
         {
             "key": "Cmd-L",
@@ -163,8 +156,7 @@
     ],
     "navigate.nextDoc":  [
         {
-            "key": "Ctrl-Tab",
-            "platform": "win"
+            "key": "Ctrl-Tab"
         },
         {
             "key": "Ctrl-Tab",
@@ -173,8 +165,7 @@
     ],
     "navigate.prevDoc":  [
         {
-            "key": "Ctrl-Shift-Tab",
-            "platform": "win"
+            "key": "Ctrl-Shift-Tab"
         },
         {
             "key": "Ctrl-Shift-Tab",
@@ -198,8 +189,7 @@
     ],
     "debug.showDeveloperTools":  [
         {
-            "key": "F12",
-            "platform": "win"
+            "key": "F12"
         },
         {
             "key": "Cmd-Opt-I",
@@ -208,8 +198,7 @@
     ],
     "debug.refreshWindow":  [
         {
-            "key": "F5",
-            "platform": "win"
+            "key": "F5"
         },
         {
             "key": "Cmd-R",

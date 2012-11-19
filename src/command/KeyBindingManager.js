@@ -232,7 +232,7 @@ define(function (require, exports, module) {
      * Takes a keyboard event and translates it into a key in a key map
      */
     function _translateKeyboardEvent(event) {
-        var hasMacCtrl = (brackets.platform === "win") ? false : (event.ctrlKey),
+        var hasMacCtrl = (brackets.platform === "mac") ? (event.ctrlKey) : false,
             hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey),
             hasAlt = (event.altKey),
             hasShift = (event.shiftKey),
@@ -409,7 +409,7 @@ define(function (require, exports, module) {
      * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)}  keyBindings - a single key binding
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other. Use displayKey property to display a different string (e.g. "CMD+" instead of "CMD=").
-     * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
+     * @param {?string} platform - the target OS of the keyBindings either "mac", "win" or "linux". If undefined, all platforms will use
      *      the key binding. Ignored if keyBindings is passed an Array.
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>} Returns record(s) for valid key binding(s)
      */
@@ -432,12 +432,6 @@ define(function (require, exports, module) {
                 
                 if (keyBinding) {
                     results.push(keyBinding);
-                } else if (brackets.platform === "linux" &&
-                        keyBindingRequest.platform &&
-                        keyBindingRequest.platform === "win") {
-                    // if running on linux, map windows-specific keybindings to linux
-                    keyBindingRequest.platform = brackets.platform;
-                    addSingleBinding(keyBindingRequest);
                 }
             });
         } else {
@@ -494,6 +488,11 @@ define(function (require, exports, module) {
         return bindings || [];
     }
     
+    /**
+     * Adds default key bindings when commands are registered to CommandManager
+     * @param {$.Event} event jQuery event
+     * @param {Command} command Newly registered command
+     */
     function _handleCommandRegistered(event, command) {
         var commandId   = command.getID(),
             defaults    = KeyboardPrefs[commandId];
