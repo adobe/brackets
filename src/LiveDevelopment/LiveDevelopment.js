@@ -104,7 +104,8 @@ define(function LiveDevelopment(require, exports, module) {
         "remote"    : true,
         "network"   : true,
         "dom"       : true,
-        "css"       : true
+        "css"       : true,
+        "highlight" : true
     };
 
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
@@ -559,6 +560,21 @@ define(function LiveDevelopment(require, exports, module) {
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
     }
+    
+    /** Enable highlighting */
+    function showHighlight() {
+        // Force cursor activity to kick highlighting
+        if (_liveDocument instanceof CSSDocument) {
+            _liveDocument.onCursorActivity();
+        }
+    }
+
+    /** Hide any active highlighting */
+    function hideHighlight() {
+        if (Inspector.connected() && agents.highlight) {
+            agents.highlight.hide();
+        }
+    }
 
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
@@ -569,6 +585,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         if (Inspector.connected()) {
+            hideHighlight();
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
@@ -628,13 +645,6 @@ define(function LiveDevelopment(require, exports, module) {
         return foundDoc;
     }
 
-    /** Hide any active highlighting */
-    function hideHighlight() {
-        if (Inspector.connected() && agents.highlight) {
-            agents.highlight.hide();
-        }
-    }
-
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -657,6 +667,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;
+    exports.showHighlight       = showHighlight;
     exports.hideHighlight       = hideHighlight;
     exports.init                = init;
 });
