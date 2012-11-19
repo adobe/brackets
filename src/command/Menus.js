@@ -880,6 +880,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
+        menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT,      "Ctrl-Alt-Shift-H");
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_QUIT,                "Ctrl-Q");

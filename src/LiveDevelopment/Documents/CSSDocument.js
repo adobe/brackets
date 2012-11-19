@@ -80,16 +80,11 @@ define(function CSSDocumentModule(require, exports, module) {
         // get the style sheet
         this.styleSheet = CSSAgent.styleForURL(this.doc.url);
 
-        // WebInspector Command: CSS.getStyleSheet
-        Inspector.CSS.getStyleSheet(this.styleSheet.styleSheetId, function callback(res) {
-            // res = {styleSheet}
-            this.rules = res.styleSheet.rules;
-        }.bind(this));
-
         // If the CSS document is dirty, push the changes into the browser now
         if (doc.isDirty) {
             CSSAgent.reloadCSSForDocument(this.doc);
         }
+        this.reloadRules();
     };
 
     /** Get the browser version of the StyleSheet object */
@@ -135,6 +130,18 @@ define(function CSSDocumentModule(require, exports, module) {
         }
     };
 
+    // Reload rules
+    CSSDocument.prototype.reloadRules = function () {
+        this.loadRulePromise = this.getStyleSheetFromBrowser().done(function (styleSheet) {
+            this.rules = styleSheet.rules;
+            this.loadRulePromise = null;
+            if (this.pendingCursorActivity) {
+                this.pendingCursorActivity = false;
+                this.onCursorActivity();
+            }
+        }.bind(this));
+    };
+    
     // find a rule in the given rules
     CSSDocument.prototype.ruleAtLocation = function ruleAtLocation(location) {
         var i, rule;
@@ -153,6 +160,13 @@ define(function CSSDocumentModule(require, exports, module) {
     /** Triggered on cursor activity of the editor */
     CSSDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
         if (Inspector.config.highlight) {
+            // If there is an active loadRulePromise, we can't accurately get the rule
+            // at the location. Set a flag here so we can get called again once the
+            // rules have arrived.
+            if (this.loadRulePromise) {
+                this.pendingCursorActivity = true;
+                return;
+            }
             var codeMirror = this.editor._codeMirror;
             var location = codeMirror.indexFromPos(codeMirror.getCursor());
             var rule = this.ruleAtLocation(location);
@@ -168,6 +182,10 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
         CSSAgent.reloadCSSForDocument(this.doc);
+        this.reloadRules();
+        if (Inspector.config.highlight) {
+            HighlightAgent.redraw();
+        }
     };
     /** Triggered if the Document's file is deleted */
     CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
