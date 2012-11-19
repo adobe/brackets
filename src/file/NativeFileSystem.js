@@ -208,8 +208,9 @@ define(function (require, exports, module) {
     
     /** class: Entry
      *
-     * @param {string} name
-     * @param {string} isFile
+     * @param {string} fullPath
+     * @param {boolean} isDirectory
+     * @param {FileSystem} fs
      * @constructor
      */
     NativeFileSystem.Entry = function (fullPath, isDirectory, fs) {
@@ -291,6 +292,7 @@ define(function (require, exports, module) {
      * This interface represents a file on a file system.
      *
      * @param {string} name
+     * @param {FileSystem} fs
      * @constructor
      * @extends {Entry}
      */
@@ -524,6 +526,7 @@ define(function (require, exports, module) {
      *
      * @constructor
      * @param {string} name
+     * @param {FileSystem} fs
      * @extends {Entry}
      */
     NativeFileSystem.DirectoryEntry = function (name, fs) {
