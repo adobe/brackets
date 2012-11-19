@@ -31,8 +31,7 @@ define(function (require, exports, module) {
     // Modules from the SpecRunner window
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         Editor          = brackets.getModule("editor/Editor").Editor,
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        DocumentManager = brackets.getModule("editor/DocumentManager"),
+        DocumentManager = brackets.getModule("document/DocumentManager"),
         testContent     = require("text!unittests.css"),
         tinycolor       = require("thirdparty/tinycolor-min"),
         provider        = require("main").inlineColorEditorProvider;
@@ -47,12 +46,13 @@ define(function (require, exports, module) {
         function makeColorEditor(cursor) {
             var result = new $.Deferred(), editorPromise, inline;
             runs(function () {
-                editorPromise = provider(this.editor, {line: 1, ch: 18})
+                editorPromise = provider(testEditor, {line: 1, ch: 18})
                     .done(function (result) {
+                        result.onAdded();
                         inline = result;
                     });
+                waitsForDone(editorPromise, "open color editor", 500);
             });
-            waitsForDone(editorPromise, "open color editor", 500);
             runs(function () {
                 result.resolve(inline);
             });
@@ -84,24 +84,26 @@ define(function (require, exports, module) {
         
         it("should properly add/remove ref to document when opened/closed", function () {
             runs(function () {
-                spyOn(this.testDocument, "addRef").andCallThrough();
-                spyOn(this.testDocument, "releaseRef").andCallThrough();
+                spyOn(testDocument, "addRef").andCallThrough();
+                spyOn(testDocument, "releaseRef").andCallThrough();
             });
-            makeColorEditor({line: 1, ch: 18}).done(function (inline) {
-                expect(this.testDocument.addRef).toHaveBeenCalled();
-                expect(this.testDocument.addRef.callCount).toBe(1);
-                
-                inline.onClosed();
-                expect(this.testDocument.releaseRef).toHaveBeenCalled();
-                expect(this.testDocument.releaseRef.callCount).toBe(1);
+            runs(function () {
+                makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    expect(testDocument.addRef).toHaveBeenCalled();
+                    expect(testDocument.addRef.callCount).toBe(1);
+                    
+                    inline.onClosed();
+                    expect(testDocument.releaseRef).toHaveBeenCalled();
+                    expect(testDocument.releaseRef.callCount).toBe(1);
+                });
             });
         });
         
         it("should update when edit is made to color range in host editor", function () {
             makeColorEditor({line: 1, ch: 18}).done(function (inline) {
-                this.testDocument.replaceRange("0", {line: 1, ch: 18}, {line: 1, ch: 19});
-                expect(inline.color).toBe("#ab0def");
-                expect(inline.colorEditor.color.toHexString().toLowerCase()).toEqual("#ab0def");
+                testDocument.replaceRange("0", {line: 1, ch: 18}, {line: 1, ch: 19});
+                expect(inline.color).toBe("#a0cdef");
+                expect(inline.colorEditor.color.toHexString().toLowerCase()).toEqual("#a0cdef");
             });
         });
     });

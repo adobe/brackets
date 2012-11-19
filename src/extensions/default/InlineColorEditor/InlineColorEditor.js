@@ -82,7 +82,7 @@ define(function (require, exports, module) {
     };
         
     InlineColorEditor.prototype.setColor = function (colorLabel) {
-        if (this.isHostChange || !colorLabel) {
+        if (!colorLabel) {
             return;
         }
         
@@ -91,14 +91,18 @@ define(function (require, exports, module) {
             if (!range) {
                 return;
             }
+
+            // Don't push the change back into the host editor if it came from the host editor.
+            if (!this.isHostChange) {
+                this.isOwnChange = true;
+                this.editor.document.replaceRange(colorLabel, range.start, range.end);
+                this.isOwnChange = false;
+                this.editor.setSelection(range.start, {
+                    line: range.start.line,
+                    ch: range.start.ch + colorLabel.length
+                });
+            }
             
-            this.isOwnChange = true;
-            this.editor.document.replaceRange(colorLabel, range.start, range.end);
-            this.isOwnChange = false;
-            this.editor.setSelection(range.start, {
-                line: range.start.line,
-                ch: range.start.ch + colorLabel.length
-            });
             this.color = colorLabel;
         }
     };
@@ -193,6 +197,7 @@ define(function (require, exports, module) {
     };
     
     InlineColorEditor.prototype.handleHostDocumentChange = function () {
+        // Don't push the change into the color editor if it came from the color editor.
         if (this.isOwnChange) {
             return;
         }
