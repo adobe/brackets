@@ -28,9 +28,9 @@ define(function (require, exports, module) {
     "use strict";
     
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
+        Strings              = brackets.getModule("strings"),
         ColorEditor          = require("ColorEditor").ColorEditor,
-        InlineEditorTemplate = require("text!InlineColorEditorTemplate.html"),
-        Strings              = require("strings");
+        InlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
         
 
     var MAX_USED_COLORS = 7;
