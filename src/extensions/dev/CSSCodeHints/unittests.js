@@ -17,7 +17,7 @@ define(function (require, exports, module) {
                              " bord\n" +
                              " border-\n" +
                              " border-colo\n" +
-                             " border-color: red; \n" +
+                             " border-color: red;\n" +
                              "} \n";
         
         var testWindow;
@@ -125,9 +125,10 @@ define(function (require, exports, module) {
                 expect(hintList.length).toBe(1);
             });
             
-            it("should list hints at end of existing attribute+value", function () {
+            it("should list hints at end of existing attribute+value finished by ;", function () {
                 testEditor.setCursorPos({ line: 6, ch: 19 });    // after ;
-                expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                verifyAttrHints(hintList, "align-content");  // filtered on "empty string"    
             });
        
             it("should list hints right after curly bracket", function () {
@@ -155,13 +156,17 @@ define(function (require, exports, module) {
         
         describe("CSS attribute hint provider inside mixed htmlfiles", function () {
             var defaultContent = "<html> \n" +
-                                 "<head></head> \n" +
+                                 "<head><style>.selector{display: none;}</style></head> \n" +
                                  "<body> <style> \n" +
                                  " body { \n" +
                                  "    background-color: red; \n" +
                                  " \n" + 
                                  "} \n" +
-                                 "</style></body></html>";
+                                 "</style>\n" +
+                                 "<div class='selector'></div>\n" +
+                                 "<style> .foobar { \n" +
+                                 " colo </style>\n" +
+                                 "</body></html>";
                     
             beforeEach(function () {
                 // create dummy Document for the Editor
@@ -170,12 +175,39 @@ define(function (require, exports, module) {
             });
             
             it("should list hints right after curly bracket", function () {
-                testEditor.setCursorPos({ line: 3, ch: 7 });    // inside h1, after {
+                testEditor.setCursorPos({ line: 3, ch: 7 });    // inside body-selector, after {
                 expectHints(CSSCodeHints.attrHintProvider);
             }); 
-  
+
+            it("should list hints inside oneline styletags at start", function () {
+                testEditor.setCursorPos({ line: 1, ch: 23 });    // inside style, after {
+                expectHints(CSSCodeHints.attrHintProvider);
+            });             
+
+            it("should list hints inside oneline styletags after ;", function () {
+                testEditor.setCursorPos({ line: 1, ch: 37 });    // inside style, after ;
+                expectHints(CSSCodeHints.attrHintProvider);
+            });               
+
+            it("should list hints inside multiline styletags with cursor in first line", function () {
+                testEditor.setCursorPos({ line: 9, ch: 18 });    // inside style, after {
+                expectHints(CSSCodeHints.attrHintProvider);
+            });            
+
+            it("should list hints inside multiline styletags with cursor in last line", function () {
+                testEditor.setCursorPos({ line: 10, ch: 5 });    // inside style, after colo
+                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                verifyAttrHints(hintList, "color");  // filtered on "colo"
+                expect(hintList.length).toBe(1);
+            });  
+            
+            it("should NOT list hints between closed styletag and new opening style tag", function () {
+                testEditor.setCursorPos({ line: 8, ch: 0 });    // right before <div
+                expectNoHints(CSSCodeHints.attrHintProvider);
+            });                        
+            
             it("should NOT list hints right before curly bracket", function () {
-                testEditor.setCursorPos({ line: 3, ch: 6 });    // inside h1, after {
+                testEditor.setCursorPos({ line: 3, ch: 6 });    // inside body-selector, before {
                 expectNoHints(CSSCodeHints.attrHintProvider);
             });             
 
