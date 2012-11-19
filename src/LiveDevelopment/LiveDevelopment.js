@@ -563,8 +563,6 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Enable highlighting */
     function showHighlight() {
-        var doc = _getCurrentDocument();
-        
         // Force cursor activity to kick highlighting
         if (_liveDocument instanceof CSSDocument) {
             _liveDocument.onCursorActivity();
