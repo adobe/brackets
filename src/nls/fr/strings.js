@@ -170,6 +170,7 @@ define({
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
+	"CMD_LIVE_HIGHLIGHT": "[D9] !é=Live Highlight=!",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_QUIT": "Quitter",
