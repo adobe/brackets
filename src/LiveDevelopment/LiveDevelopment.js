@@ -224,6 +224,33 @@ define(function LiveDevelopment(require, exports, module) {
         return null;
     }
 
+    function getLiveDocForPath(path) {
+        var docsToSearch = [];
+        if (_relatedDocuments) {
+            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        }
+        if (_liveDocument) {
+            docsToSearch = docsToSearch.concat(_liveDocument);
+        }
+        var foundDoc;
+        docsToSearch.some(function matchesPath(ele) {
+            if (ele.doc.file.fullPath === path) {
+                foundDoc = ele;
+                return true;
+            }
+            return false;
+        });
+
+        return foundDoc;
+    }
+    
+    function getLiveDocForEditor(editor) {
+        if (!editor) {
+            return null;
+        }
+        return getLiveDocForPath(editor.document.file.fullPath);
+    }
+    
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -277,11 +304,13 @@ define(function LiveDevelopment(require, exports, module) {
             // stuff from happening while we wait to add these listeners
             DocumentManager.getDocumentForPath(_urlToPath(url))
                 .done(function (doc) {
-                    _setDocInfo(doc);
-                    var liveDoc = _createDocument(doc);
-                    if (liveDoc) {
-                        _relatedDocuments.push(liveDoc);
-                        $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                    if (!_liveDocument || (doc !== _liveDocument.doc)) {
+                        _setDocInfo(doc);
+                        var liveDoc = _createDocument(doc);
+                        if (liveDoc) {
+                            _relatedDocuments.push(liveDoc);
+                            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                        }
                     }
                 });
         });
@@ -581,9 +610,10 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Enable highlighting */
     function showHighlight() {
-        // Force cursor activity to kick highlighting
-        if (_liveDocument instanceof CSSDocument) {
-            _liveDocument.onCursorActivity();
+        var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
+        
+        if (doc instanceof CSSDocument) {
+            doc.updateHighlight();
         }
     }
 
@@ -641,26 +671,6 @@ define(function LiveDevelopment(require, exports, module) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
             _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }
-    }
-
-    function getLiveDocForPath(path) {
-        var docsToSearch = [];
-        if (_relatedDocuments) {
-            docsToSearch = docsToSearch.concat(_relatedDocuments);
-        }
-        if (_liveDocument) {
-            docsToSearch = docsToSearch.concat(_liveDocument);
-        }
-        var foundDoc;
-        docsToSearch.some(function matchesPath(ele) {
-            if (ele.doc.file.fullPath === path) {
-                foundDoc = ele;
-                return true;
-            }
-            return false;
-        });
-
-        return foundDoc;
     }
 
     /** Initialize the LiveDevelopment Session */
