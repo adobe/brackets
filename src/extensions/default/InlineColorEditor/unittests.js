@@ -106,5 +106,26 @@ define(function (require, exports, module) {
                 expect(inline.colorEditor.color.toHexString().toLowerCase()).toEqual("#a0cdef");
             });
         });
+        
+        it("should properly apply a change after edit is made that destroys end bookmark", function () {
+            makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                // Replace everything including the semicolon, so it crosses the bookmark boundary.
+                testDocument.replaceRange("rgb(255, 255, 255);", {line: 1, ch: 16}, {line: 1, ch: 24});
+                expect(inline.color).toBe("rgb(255, 255, 255)");
+                inline.colorEditor.commitColor("rgb(0, 0, 0)", true);
+                expect(testDocument.getLine(1).slice(16)).toEqual("rgb(0, 0, 0);");
+            });
+        });
+        it("should properly apply a change after multiple edits are made that destroys end bookmark", function () {
+            makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                // This simulates deleting the existing color (and semicolon) and then retyping it in pieces.
+                testDocument.replaceRange("", {line: 1, ch: 16}, {line: 1, ch: 24});
+                testDocument.replaceRange("rgb(255,", {line: 1, ch: 16}, {line: 1, ch: 16});
+                testDocument.replaceRange(" 255, 255);", {line: 1, ch: 24}, {line: 1, ch: 24});
+                expect(inline.color).toBe("rgb(255, 255, 255)");
+                inline.colorEditor.commitColor("rgb(0, 0, 0)", true);
+                expect(testDocument.getLine(1).slice(16)).toEqual("rgb(0, 0, 0);");
+            });
+        });
     });
 });

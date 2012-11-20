@@ -62,20 +62,22 @@ define(function (require, exports, module) {
         
         end = this.endBookmark.find();
         if (!end || start.ch === end.ch) {
-            // Try to re-locate the end by matching the color regex.
-            var endCh,
+            // Try to re-locate the end by matching the color regex. If we can't locate the end,
+            // collapse the range so we'll rethink the bookmark on the next edit.
+            var endCh = start.ch,
+                updateBookmark = false,
                 matches = this.editor.document.getLine(start.line).slice(start.ch).match(InlineColorEditor.colorRegEx);
             if (matches) {
-                endCh = start.ch + matches[0].length;
-            } else {
-                // Couldn't match a color. Assume our current color length.
-                endCh = start.ch + (this.color ? this.color.length : 0);
+                updateBookmark = true;
+                endCh += matches[0].length;
             }
             end = { line: start.line, ch: endCh };
             
             // Update our end bookmark.
             this.endBookmark.clear();
-            this.endBookmark = this.editor._codeMirror.setBookmark(end);
+            if (updateBookmark) {
+                this.endBookmark = this.editor._codeMirror.setBookmark(end);
+            }
         }
         
         return {start: start, end: end};
