@@ -62,7 +62,7 @@ define(function (require, exports, module) {
         
         end = this.endBookmark.find();
         if (!end) {
-            end = { line: start.line, ch: start.ch };
+            end = { line: start.line };
         }
         
         // Even if we think we have a good end bookmark, we want to run the
@@ -76,13 +76,18 @@ define(function (require, exports, module) {
         var line = this.editor.document.getLine(start.line),
             matches = line.slice(start.ch).match(InlineColorEditor.colorRegEx);
         
-        if (matches && end.ch - start.ch < matches[0].length) {
+        if (matches && (end.ch === undefined || end.ch - start.ch < matches[0].length)) {
             end.ch = start.ch + matches[0].length;
             this.endBookmark.clear();
             this.endBookmark = this.editor._codeMirror.setBookmark(end);
         }
         
-        return {start: start, end: end};
+        if (end.ch === undefined) {
+            // We were unable to resync the end bookmark.
+            return null;
+        } else {
+            return {start: start, end: end};
+        }
     };
         
     InlineColorEditor.prototype.setColor = function (colorLabel) {
@@ -214,6 +219,9 @@ define(function (require, exports, module) {
                 this.colorEditor.commitColor(newColor, true);
                 this.isHostChange = false;
             }
+        } else {
+            // The edit caused our range to become invalid. Close the editor.
+            this.close();
         }
     };
 
