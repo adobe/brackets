@@ -246,24 +246,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (!editor) {
             return null;
         }
-        
-        var docsToSearch = [];
-        if (_relatedDocuments) {
-            docsToSearch = docsToSearch.concat(_relatedDocuments);
-        }
-        if (_liveDocument) {
-            docsToSearch = docsToSearch.concat(_liveDocument);
-        }
-        var foundDoc;
-        docsToSearch.some(function matchesEditor(ele) {
-            if (ele.doc === editor.document) {
-                foundDoc = ele;
-                return true;
-            }
-            return false;
-        });
-
-        return foundDoc;
+        return getLiveDocForPath(editor.document.file.fullPath);
     }
     
     /**
@@ -611,7 +594,7 @@ define(function LiveDevelopment(require, exports, module) {
     function showHighlight() {
         var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
         
-        if (doc && doc instanceof CSSDocument) {
+        if (doc instanceof CSSDocument) {
             doc.updateHighlight();
         }
     }
