@@ -95,6 +95,8 @@ define(function LiveDevelopment(require, exports, module) {
         "edit"      : require("LiveDevelopment/Agents/EditAgent")
     };
 
+    var launcherUrl = window.location.href.replace(/\/index.html.*/, "") + "/LiveDevelopment/launch.html";
+
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().
     // This object is used as a set (thus all properties have the value 'true').
@@ -222,6 +224,33 @@ define(function LiveDevelopment(require, exports, module) {
         return null;
     }
 
+    function getLiveDocForPath(path) {
+        var docsToSearch = [];
+        if (_relatedDocuments) {
+            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        }
+        if (_liveDocument) {
+            docsToSearch = docsToSearch.concat(_liveDocument);
+        }
+        var foundDoc;
+        docsToSearch.some(function matchesPath(ele) {
+            if (ele.doc.file.fullPath === path) {
+                foundDoc = ele;
+                return true;
+            }
+            return false;
+        });
+
+        return foundDoc;
+    }
+    
+    function getLiveDocForEditor(editor) {
+        if (!editor) {
+            return null;
+        }
+        return getLiveDocForPath(editor.document.file.fullPath);
+    }
+    
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -275,11 +304,13 @@ define(function LiveDevelopment(require, exports, module) {
             // stuff from happening while we wait to add these listeners
             DocumentManager.getDocumentForPath(_urlToPath(url))
                 .done(function (doc) {
-                    _setDocInfo(doc);
-                    var liveDoc = _createDocument(doc);
-                    if (liveDoc) {
-                        _relatedDocuments.push(liveDoc);
-                        $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                    if (!_liveDocument || (doc !== _liveDocument.doc)) {
+                        _setDocInfo(doc);
+                        var liveDoc = _createDocument(doc);
+                        if (liveDoc) {
+                            _relatedDocuments.push(liveDoc);
+                            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                        }
                     }
                 });
         });
@@ -374,16 +405,18 @@ define(function LiveDevelopment(require, exports, module) {
     /** Run when all agents are loaded */
     function _onLoad() {
         var doc = _getCurrentDocument();
-        if (doc) {
-            var editor = EditorManager.getCurrentFullEditor(),
-                status = STATUS_ACTIVE;
-
-            _openDocument(doc, editor);
-            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-                status = STATUS_OUT_OF_SYNC;
-            }
-            _setStatus(status);
+        if (!doc) {
+            return;
         }
+
+        var editor = EditorManager.getCurrentFullEditor(),
+            status = STATUS_ACTIVE;
+
+        _openDocument(doc, editor);
+        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+            status = STATUS_OUT_OF_SYNC;
+        }
+        _setStatus(status);
     }
 
     /** Triggered by Inspector.detached */
@@ -396,9 +429,19 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         $(Inspector.Inspector).on("detached", _onDetached);
-        var promises = loadAgents();
+        
+        // Load agents
         _setStatus(STATUS_LOADING_AGENTS);
+        var promises = loadAgents();
         $.when.apply(undefined, promises).then(_onLoad, _onError);
+        
+        // Load the right document (some agents are waiting for the page's load event)
+        var doc = _getCurrentDocument();
+        if (doc) {
+            Inspector.Page.navigate(doc.root.url);
+        } else {
+            Inspector.Page.reload();
+        }
     }
 
     /** Triggered by Inspector.disconnect */
@@ -465,8 +508,10 @@ define(function LiveDevelopment(require, exports, module) {
                 }
             }
 
+            var url = doc.root.url;
+
             _setStatus(STATUS_CONNECTING);
-            Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
+            Inspector.connectToURL(url).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -503,6 +548,8 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
 
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
+                    url = launcherUrl + '?' + encodeURIComponent(url);
+
                     // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
                     // is available, but the requested URL is not loaded in the browser. In that
                     // case we want to launch the live browser (to open the url in a new tab)
@@ -510,7 +557,7 @@ define(function LiveDevelopment(require, exports, module) {
                     // on Windows where Chrome can't be opened more than once with the
                     // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url,
+                        url,
                         err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
@@ -540,10 +587,10 @@ define(function LiveDevelopment(require, exports, module) {
                             result.reject("OPEN_LIVE_BROWSER");
                         });
                 }
-
+                    
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
+                        Inspector.connectToURL(url).then(result.resolve, onConnectFail);
                     }, 500);
                 }
             });
@@ -555,7 +602,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Close the Connection */
     function close() {
         if (Inspector.connected()) {
-            Inspector.Runtime.evaluate("window.close()");
+            Inspector.Runtime.evaluate("window.open('', '_self').close();");
         }
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
@@ -563,9 +610,10 @@ define(function LiveDevelopment(require, exports, module) {
     
     /** Enable highlighting */
     function showHighlight() {
-        // Force cursor activity to kick highlighting
-        if (_liveDocument instanceof CSSDocument) {
-            _liveDocument.onCursorActivity();
+        var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
+        
+        if (doc instanceof CSSDocument) {
+            doc.updateHighlight();
         }
     }
 
@@ -623,26 +671,6 @@ define(function LiveDevelopment(require, exports, module) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
             _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }
-    }
-
-    function getLiveDocForPath(path) {
-        var docsToSearch = [];
-        if (_relatedDocuments) {
-            docsToSearch = docsToSearch.concat(_relatedDocuments);
-        }
-        if (_liveDocument) {
-            docsToSearch = docsToSearch.concat(_liveDocument);
-        }
-        var foundDoc;
-        docsToSearch.some(function matchesPath(ele) {
-            if (ele.doc.file.fullPath === path) {
-                foundDoc = ele;
-                return true;
-            }
-            return false;
-        });
-
-        return foundDoc;
     }
 
     /** Initialize the LiveDevelopment Session */
