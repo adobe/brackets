@@ -14,7 +14,6 @@ define(function (require, exports, module) {
     
     function CssAttrHints() {}
     
-    
     CssAttrHints.prototype.getQueryInfo = function (editor, cursor) {
         var query       = {queryStr: null},
             ctx         = TokenUtils.getInitialContext(editor._codeMirror, cursor),
@@ -33,8 +32,7 @@ define(function (require, exports, module) {
                 // styleblocks.forEach(function(index, item) {
                 for(var i=0; i < styleblocks.length; i++) {
                     item = styleblocks[i];
-                    if (item.start.line < cursor.line && item.end.line > cursor.line) {
-                        /* TODO: add other cases for cursor and styleblock */
+                    if (this._inRange(cursor, item.start, item.end)) {
                         csscontext = true;
                         break;
                     }
@@ -112,6 +110,7 @@ define(function (require, exports, module) {
     }    
     
     CssAttrHints.prototype.handleSelect = function (completion, editor, cursor) {
+/*
         var ctx  = TokenUtils.getInitialContext(editor._codeMirror, cursor);
         
         if (ctx.token !== null) {
@@ -120,8 +119,9 @@ define(function (require, exports, module) {
         }
         
         editor.document.replaceRange(completion, cursor);
-        
+*/
         return true;
+
     }
          
     /**
@@ -135,6 +135,23 @@ define(function (require, exports, module) {
     };
     
     
+                
+    CssAttrHints.prototype._inRange = function (cursor, start, end) {
+        var afterStart = false,
+            beforeEnd  = false;
+        
+        if( start.line < cursor.line || start.line <= cursor.line && start.ch <= cursor.ch) {
+            afterStart = true;
+        }
+        if( end.line > cursor.line || end.line >= cursor.line && end.ch >= cursor.ch) {
+            beforeEnd = true;
+        }
+        
+        return (afterStart && beforeEnd);
+    }
+                
+                
+                
     var cssAttrHints = new CssAttrHints();
     CodeHintManager.registerHintProvider(cssAttrHints);
     
