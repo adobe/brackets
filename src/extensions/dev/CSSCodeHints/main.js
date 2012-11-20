@@ -32,7 +32,7 @@ define(function (require, exports, module) {
                 // styleblocks.forEach(function(index, item) {
                 for(var i=0; i < styleblocks.length; i++) {
                     item = styleblocks[i];
-                    if (this._inRange(cursor, item.start, item.end)) {
+                    if (this._cursorInRange(cursor, item.start, item.end)) {
                         csscontext = true;
                         break;
                     }
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
     
     
                 
-    CssAttrHints.prototype._inRange = function (cursor, start, end) {
+    CssAttrHints.prototype._cursorInRange = function (cursor, start, end) {
         var afterStart = false,
             beforeEnd  = false;
         
