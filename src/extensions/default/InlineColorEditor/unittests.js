@@ -38,9 +38,6 @@ define(function (require, exports, module) {
 
     describe("Inline Color Editor", function () {
 
-        var defaultContent = "";
-        
-        var testWindow;
         var testDocument, testEditor;
         
         function makeColorEditor(cursor) {
@@ -51,7 +48,7 @@ define(function (require, exports, module) {
                         result.onAdded();
                         inline = result;
                     });
-                waitsForDone(editorPromise, "open color editor", 500);
+                waitsForDone(editorPromise, "open color editor");
             });
             runs(function () {
                 result.resolve(inline);
@@ -60,18 +57,14 @@ define(function (require, exports, module) {
         }
         
         beforeEach(function () {
-            // create dummy Document for the Editor
-            testDocument = SpecRunnerUtils.createMockDocument(testContent);
-            
-            // create Editor instance (containing a CodeMirror instance)
-            $("body").append("<div id='editor'/>");
-            testEditor = new Editor(testDocument, true, "css", $("#editor").get(0), {});
+            var mock = SpecRunnerUtils.createMockEditor(testContent, "css");
+            testDocument = mock.doc;
+            testEditor = mock.editor;
         });
         
         afterEach(function () {
-            testEditor.destroy();
+            SpecRunnerUtils.destroyMockEditor(testDocument);
             testEditor = null;
-            $("#editor").remove();
             testDocument = null;
         });
  
@@ -103,11 +96,11 @@ define(function (require, exports, module) {
             makeColorEditor({line: 1, ch: 18}).done(function (inline) {
                 testDocument.replaceRange("0", {line: 1, ch: 18}, {line: 1, ch: 19});
                 expect(inline.color).toBe("#a0cdef");
-                expect(inline.colorEditor.color.toHexString().toLowerCase()).toEqual("#a0cdef");
+                expect(inline.colorEditor.color.toHexString().toLowerCase()).toBe("#a0cdef");
             });
         });
         
-        it("should close if edit is made that destroys end bookmark and leaves color invalid", function () {
+        it("should close itself if edit is made that destroys end bookmark and leaves color invalid", function () {
             makeColorEditor({line: 1, ch: 18}).done(function (inline) {
                 spyOn(inline, "close");
                 
