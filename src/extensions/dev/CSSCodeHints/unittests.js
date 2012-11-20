@@ -18,6 +18,10 @@ define(function (require, exports, module) {
                              " border-\n" +
                              " border-colo\n" +
                              " border-color: red;\n" +
+                             " d\n" +
+                             " disp\n" +
+                             " display: \n" +
+                             " display: in\n" +            
                              "} \n";
         
         var testWindow;
@@ -153,6 +157,30 @@ define(function (require, exports, module) {
             });            
 
         });
+
+        describe("CSS attribute value hints", function () {
+            it("should list all display-values after colon", function () {
+                testEditor.setCursorPos({ line: 9, ch: 9 });
+                
+                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                verifyAttrHints(hintList, "block");  // filtered after "display:"
+            });          
+
+            it("should list all display-values after colon and whitespace", function () {
+                testEditor.setCursorPos({ line: 9, ch: 10 });
+                
+                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                verifyAttrHints(hintList, "block");  // filtered after "display: "
+            });               
+
+            it("should list all display-values after colon and whitespace", function () {
+                testEditor.setCursorPos({ line: 10, ch: 12 });
+                
+                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                verifyAttrHints(hintList, "inline");  // filtered after "display: in"
+            });             
+            
+        });        
         
         describe("CSS attribute hint provider inside mixed htmlfiles", function () {
             var defaultContent = "<html> \n" +
