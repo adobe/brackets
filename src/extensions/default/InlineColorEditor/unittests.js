@@ -94,9 +94,12 @@ define(function (require, exports, module) {
         
         it("should update when edit is made to color range in host editor", function () {
             makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                spyOn(inline, "close");
+
                 testDocument.replaceRange("0", {line: 1, ch: 18}, {line: 1, ch: 19});
                 expect(inline.color).toBe("#a0cdef");
                 expect(inline.colorEditor.color.toHexString().toLowerCase()).toBe("#a0cdef");
+                expect(inline.close).not.toHaveBeenCalled();
             });
         });
         
@@ -112,9 +115,12 @@ define(function (require, exports, module) {
         
         it("should maintain the range if the user deletes the last character of the color and types a new one", function () {
             makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                spyOn(inline, "close");
+
                 testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
                 testDocument.replaceRange("0", {line: 1, ch: 22}, {line: 1, ch: 22});
                 expect(inline.color).toBe("#abcde0");
+                expect(inline.close).not.toHaveBeenCalled();
             });
         });
         
