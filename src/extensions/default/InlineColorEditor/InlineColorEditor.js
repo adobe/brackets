@@ -61,23 +61,25 @@ define(function (require, exports, module) {
         }
         
         end = this.endBookmark.find();
-        if (!end || start.ch === end.ch) {
-            // Try to re-locate the end by matching the color regex. If we can't locate the end,
-            // collapse the range so we'll rethink the bookmark on the next edit.
-            var endCh = start.ch,
-                updateBookmark = false,
-                matches = this.editor.document.getLine(start.line).slice(start.ch).match(InlineColorEditor.colorRegEx);
-            if (matches) {
-                updateBookmark = true;
-                endCh += matches[0].length;
-            }
-            end = { line: start.line, ch: endCh };
-            
-            // Update our end bookmark.
+        if (!end) {
+            end = { line: start.line, ch: start.ch };
+        }
+        
+        // Even if we think we have a good end bookmark, we want to run the
+        // regexp match to see if there's a valid match that extends past the bookmark.
+        // This can happen if the user deletes the end of the existing color and then
+        // types some more.
+        // TODO: when we migrate to CodeMirror v3, we might be able to use markText()
+        // instead of two bookmarks to track the range. (In our current old version of
+        // CodeMirror v2, markText() isn't robust enough for this case.)
+        
+        var line = this.editor.document.getLine(start.line),
+            matches = line.slice(start.ch).match(InlineColorEditor.colorRegEx);
+        
+        if (matches && end.ch - start.ch < matches[0].length) {
+            end.ch = start.ch + matches[0].length;
             this.endBookmark.clear();
-            if (updateBookmark) {
-                this.endBookmark = this.editor._codeMirror.setBookmark(end);
-            }
+            this.endBookmark = this.editor._codeMirror.setBookmark(end);
         }
         
         return {start: start, end: end};

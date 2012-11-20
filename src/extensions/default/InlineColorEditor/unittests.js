@@ -116,6 +116,7 @@ define(function (require, exports, module) {
                 expect(testDocument.getLine(1).slice(16)).toEqual("rgb(0, 0, 0);");
             });
         });
+        
         it("should properly apply a change after multiple edits are made that destroys end bookmark", function () {
             makeColorEditor({line: 1, ch: 18}).done(function (inline) {
                 // This simulates deleting the existing color (and semicolon) and then retyping it in pieces.
@@ -125,6 +126,21 @@ define(function (require, exports, module) {
                 expect(inline.color).toBe("rgb(255, 255, 255)");
                 inline.colorEditor.commitColor("rgb(0, 0, 0)", true);
                 expect(testDocument.getLine(1).slice(16)).toEqual("rgb(0, 0, 0);");
+            });
+        });
+        
+        it("should maintain the range if the user deletes the last character of the color and types a new one", function () {
+            makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
+                testDocument.replaceRange("0", {line: 1, ch: 22}, {line: 1, ch: 22});
+                expect(inline.color).toBe("#abcde0");
+            });
+        });
+        
+        it("should not update the end bookmark to a shorter valid match if the color becomes invalid", function () {
+            makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
+                expect(inline.color).toBe("#abcde");
             });
         });
     });
