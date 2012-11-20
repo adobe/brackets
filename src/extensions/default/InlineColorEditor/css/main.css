@@ -61,7 +61,7 @@
     border-radius: 3px 0px 0px 3px;
     left: 0;
     top: 0;
-    background-color: rgba(0,187,255,0.8);
+    background-color: rgb(50%,50%,50%);
 }
 .color_editor aside header .last_color {
     border-radius: 0px 3px 3px 0px;
@@ -261,11 +261,11 @@
     font-size: 12px;
     margin-left: -3px;
 }
-.button-bar li {
+.color_editor .button-bar li {
     display: inline-block;
     margin-left: -3px;
 }
-.button-bar a {
+.color_editor .button-bar a {
     text-decoration: none;
     color: #454545;
     display: block;
@@ -283,16 +283,16 @@
     -webkit-box-shadow: inset 0 1px 1px #fff;
     box-shadow: inset 0 1px 1px #fff;
 }
-.button-bar a:hover {
+.color_editor .button-bar a:hover {
     background-color: #fff;
     background-image: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f4f6f7));
     background-image: -webkit-linear-gradient(top, #fff, #f4f6f7);
     background-image: linear-gradient(top, #fff, #f4f6f7);
 }
-.button-bar li:first-child {
+.color_editor .button-bar li:first-child {
     margin-left: 0;
 }
-.button-bar li:first-child a {
+.color_editor .button-bar li:first-child a {
     margin-left: 0;
     -webkit-border-top-left-radius: 3px;
     -webkit-border-bottom-left-radius: 3px;
@@ -301,7 +301,7 @@
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
 }
-.button-bar li:last-child a {
+.color_editor .button-bar li:last-child a {
     border-right: none;
     -webkit-border-top-right-radius: 3px;
     -webkit-border-bottom-right-radius: 3px;
@@ -310,13 +310,13 @@
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
 }
-.button-bar li.selected a {
+.color_editor .button-bar li.selected a {
     background-color: #d7d7d7;
     box-shadow: none;
     cursor: default;
     background-image: none;
 }
-.button-bar li.disabled a {
+.color_editor .button-bar li.disabled a {
     cursor: default;
     color: rgba(69,69,69,0.4);
     background-color: rgba(245,249,250,0.4);

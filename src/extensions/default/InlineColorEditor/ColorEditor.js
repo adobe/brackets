@@ -184,83 +184,71 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Convert an RGB color with percentage values into a normal RGB values
-     *     in the range of 0 - 255.
+     * Convert percentage values in an RGB color into normal RGB values in the range of 0 - 255.
+     * If the original color is already in non-percentage format, does nothing.
      * @param {String} color - the color to be converted to non-percentage RGB color string.
-     * @param {String} redStr - the number representing the red color in percentage.
-     * @param {String} greenStr - the number representing the green color in percentage.
-     * @param {String} blueStr - the number representing the blue color in percentage.
      * @return {String} an RGB color string in the normal format using non-percentage values
      */
-    function _convertToNormalRGB(color, redStr, greenStr, blueStr) {
-        var red = Math.round(255 * Number(redStr) / 100),
-            green = Math.round(255 * Number(greenStr) / 100),
-            blue = Math.round(255 * Number(blueStr) / 100),
-            convertedColor = color;
-        
-        if (isNaN(red) || isNaN(green) || isNaN(blue)) {
-            return color;
+    function _convertToNormalRGB(color) {
+        var matches = color.match(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
+        if (matches) {
+            var i, percentStr, value;
+            for (i = 0; i < 3; i++) {
+                percentStr = matches[i + 1];
+                value = Math.round(255 * Number(percentStr) / 100);
+                if (!isNaN(value)) {
+                    color = color.replace(percentStr + "%", value);
+                }
+            }
         }
-        
-        convertedColor = convertedColor.replace(redStr + "%", red);
-        convertedColor = convertedColor.replace(greenStr + "%", green);
-        convertedColor = convertedColor.replace(blueStr + "%", blue);
-        return convertedColor;
+        return color;
     }
                     
     /**
-     * If the given color is an invalid color, it is returned without any modification. Otherwise,
-     *     convert the color to the format used by tiny color by adding a space after the comma
-     *     or convert an RGB color from percentage format to non-percentage RGB format.
-     * @param {String} color - the color to be corrected if it looks like an RGB or HSL color.
-     * @return {String} an unmodified color string or a color string that will match with 
-     *     the tinycolor returned color string.
+     * Normalize the given color string into the format used by tinycolor, by adding a space 
+     * after commas and converting RGB colors from percentages to integers.
+     * @param {string} color - the color to be corrected if it looks like an RGB or HSL color.
+     * @return {string} a normalized color string.
      */
-    function _correctColorString(color) {
-        var correctedColor = color,
-            percentRegEx = new RegExp(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
+    function _normalizeColorString(color) {
+        var normalizedColor = color;
                     
         // Convert 6-digit hex to 3-digit hex as tinycolor (#ffaacc -> #fac)
         if (color.match(/^#[0-9a-f]{6}/)) {
             return tinycolor(color).toString();
         }
         if (color.match(/^(rgb|hsl)/)) {
-            correctedColor = correctedColor.replace(/,\s*/g, ", ");
-            correctedColor = correctedColor.replace(/\(\s+/, "(");
-            correctedColor = correctedColor.replace(/\s+\)/, ")");
+            normalizedColor = normalizedColor.replace(/,\s*/g, ", ");
+            normalizedColor = normalizedColor.replace(/\(\s+/, "(");
+            normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        if (percentRegEx.test(color)) {
-            correctedColor = _convertToNormalRGB(correctedColor, RegExp.$1, RegExp.$2, RegExp.$3);
-        }
-        return correctedColor;
+        return _convertToNormalRGB(normalizedColor);
     }
 
-    ColorEditor.prototype.syncUserInput = function (losingFocus) {
+    ColorEditor.prototype.syncTextFieldInput = function (losingFocus) {
         var newColor = $.trim(this.$colorValue.val()),
             newColorObj = tinycolor(newColor),
-            correctedColor = newColor,
             newColorOk = newColorObj.ok;
 
         // tinycolor will auto correct an incomplete rgb or hsl value into a valid color value.
         // eg. rgb(0,0,0 -> rgb(0, 0, 0) 
-        // So we need to catch those incomplete values and prevent those values from syncing to 
-        // other UI and the color value in main editor.
+        // We want to avoid having tinycolor do this, because we don't want to sync the color
+        // to the UI if it's incomplete. To accomplish this, we first normalize the original
+        // color string into the format tinycolor would generate, and then compare it to what
+        // tinycolor actually generates to see if it's different. If so, then we assume the color
+        // was incomplete to begin with.
         if (newColorOk) {
-            correctedColor = _correctColorString(newColor);
-            newColorOk = (newColorObj.toString() === correctedColor);
+            newColorOk = (newColorObj.toString() === _normalizeColorString(newColor));
         }
                 
         // Restore to the previous valid color if the new color is invalid or incomplete.
         if (losingFocus && !newColorOk) {
-            correctedColor = this.getColor().toString();
-            newColorObj = tinycolor(correctedColor);
+            newColor = this.getColor().toString();
         }
         
         // Sync only if we have a valid color or we're restoring the previous valid color.
         if (losingFocus || newColorOk) {
-            this.commitColor(correctedColor, true);
-            this.hsv = newColorObj.toHsv();
-            this.synchronize();
+            this.commitColor(newColor, true);
         }
     };
                     
@@ -268,11 +256,11 @@ define(function (require, exports, module) {
         var _this = this;
                     
         this.$colorValue.bind("input", function (event) {
-            _this.syncUserInput(false);
+            _this.syncTextFieldInput(false);
         });
 
         this.$colorValue.bind("change", function (event) {
-            _this.syncUserInput(true);
+            _this.syncTextFieldInput(true);
         });
     };
 
