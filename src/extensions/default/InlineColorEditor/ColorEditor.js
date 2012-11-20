@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     var KeyEvent    = brackets.getModule("utils/KeyEvent"),
         StringUtils = brackets.getModule("utils/StringUtils"),
-        Strings     = require("strings");
+        Strings     = brackets.getModule("strings");
     var STEP_MULTIPLIER = 5;
     
     function ColorEditor(element, color, callback, swatches) {
@@ -203,7 +203,7 @@ define(function (require, exports, module) {
         var _this = this;
  
         this.swatches.forEach(function (swatch) {
-            var stringFormat = (swatch.count > 1) ? Strings.USED_COLOR_TIP_PLURAL : Strings.USED_COLOR_TIP_SINGULAR,
+            var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
             _this.$swatches.append("<li><div class='swatch_bg'><div class='swatch' style='background-color: " +
                     swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " tabindex='0' title='" +
