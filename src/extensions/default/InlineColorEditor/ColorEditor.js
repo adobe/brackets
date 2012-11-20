@@ -186,8 +186,8 @@ define(function (require, exports, module) {
     /**
      * Convert percentage values in an RGB color into normal RGB values in the range of 0 - 255.
      * If the original color is already in non-percentage format, does nothing.
-     * @param {String} color - the color to be converted to non-percentage RGB color string.
-     * @return {String} an RGB color string in the normal format using non-percentage values
+     * @param {string} color The color to be converted to non-percentage RGB color string.
+     * @return {string} an RGB color string in the normal format using non-percentage values
      */
     function _convertToNormalRGB(color) {
         var matches = color.match(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
     /**
      * Normalize the given color string into the format used by tinycolor, by adding a space 
      * after commas and converting RGB colors from percentages to integers.
-     * @param {string} color - the color to be corrected if it looks like an RGB or HSL color.
+     * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
      * @return {string} a normalized color string.
      */
     function _normalizeColorString(color) {
