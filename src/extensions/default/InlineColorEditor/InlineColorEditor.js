@@ -37,10 +37,11 @@ define(function (require, exports, module) {
         this.color = color;
         this.startBookmark = startBookmark;
         this.endBookmark = endBookmark;
-        this.setColor = this.setColor.bind(this);
-        this.handleHostDocumentChange = this.handleHostDocumentChange.bind(this);
         this.isOwnChange = false;
         this.isHostChange = false;
+
+        this.setColor = this.setColor.bind(this);
+        this.handleHostDocumentChange = this.handleHostDocumentChange.bind(this);
 
         InlineWidget.call(this);
     }
@@ -51,6 +52,12 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype.constructor = InlineColorEditor;
     InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
     InlineColorEditor.prototype.$wrapperDiv = null;
+    
+    InlineColorEditor.prototype.color = null;
+    InlineColorEditor.prototype.startBookmark = null;
+    InlineColorEditor.prototype.endBookmark = null;
+    InlineColorEditor.prototype.isOwnChange = null;
+    InlineColorEditor.prototype.isHostChange = null;
     
     InlineColorEditor.prototype.getCurrentRange = function () {
         var start, end;
@@ -74,8 +81,10 @@ define(function (require, exports, module) {
         // CodeMirror v2, markText() isn't robust enough for this case.)
         
         var line = this.editor.document.getLine(start.line),
-            matches = line.slice(start.ch).match(InlineColorEditor.colorRegEx);
+            matches = line.substr(start.ch).match(InlineColorEditor.colorRegEx);
         
+        // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
+        // the matched length here.
         if (matches && (end.ch === undefined || end.ch - start.ch < matches[0].length)) {
             end.ch = start.ch + matches[0].length;
             this.endBookmark.clear();

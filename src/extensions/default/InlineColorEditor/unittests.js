@@ -125,11 +125,22 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should not update the end bookmark to a shorter valid match if the color becomes invalid", function () {
+        it("should not update the end bookmark to a shorter valid match if the bookmark still exists color becomes invalid", function () {
             makeColorEditor({line: 1, ch: 18}).done(function (inline) {
                 testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
                 expect(inline.color).toBe("#abcde");
             });
         });
+        
+        // The following test fails because if the end bookmark is deleted, we match the shorter
+        // #xxx string at the beginning of the color and assume that's valid, and then reset the bookmark
+        // to the end of that location. Filed as #2166.
+//        it("should not update the end bookmark to a shorter valid match if the bookmark no longer exists and the color becomes invalid", function () {
+//            makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+//                testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
+//                expect(inline.color).toBe("#abcde");
+//            });
+//        });
+       
     });
 });
