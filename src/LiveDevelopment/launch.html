@@ -48,32 +48,42 @@
 			height: 100%;
 			padding: 0;
 			margin: 0;
+			background: #E6E6E6;
 		}
-		
-		img {
-			position: absolute;
-			left: 50%;
+		#loading-image {
+			background: url('../styles/images/no_content_bg.svg');
+			width: 55px;
+			height: 55px;
+			position: relative;
+			margin: -55px auto 0;
 			top: 50%;
-			width: 120px;
-			height: 120px;
-			margin-left: -60px;
-			margin-top: -60px;
-			-webkit-animation-name:            pulse; 
-			-webkit-animation-duration:        1s; 
-			-webkit-animation-iteration-count: infinite;
-			-webkit-animation-timing-function: ease-in-out;
+		}
+		#spinner {
+			position: absolute;
+			top: 64px;
+			left: 22px;
+			width: 12px;
+			height: 12px;
+			background: url('../styles/images/small_spinner.svg');
+			-webkit-animation: rotating 1.5s linear infinite;
+		}
+		@-webkit-keyframes rotating {
+		    0% {
+		        -webkit-transform: rotate(0deg);
+		    }
+
+		    100% {
+		        -webkit-transform: rotate(360deg);
+		    }
 		}
 		
-		@-webkit-keyframes pulse {
-			0%   { -webkit-transform: scale(0.8); }
-			50%  { -webkit-transform: scale(1.0); }
-			100% { -webkit-transform: scale(0.8); }
-		}
+		
 	</style>
 </head>
-
 <body>
-	<img src="../styles/images/brackets_icon.svg">
+	<div id="loading-image">
+		<div id="spinner"></div>
+	</div>
 </body>
 
 </html>
