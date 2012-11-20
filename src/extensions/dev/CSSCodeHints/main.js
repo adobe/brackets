@@ -16,7 +16,8 @@ define(function (require, exports, module) {
     
     CssAttrHints.prototype.getQueryInfo = function (editor, cursor) {
         var query       = {queryStr: null},
-            ctx         = TokenUtils.getInitialContext(editor._codeMirror, cursor),
+            pos         = $.extend({}, cursor),
+            ctx         = TokenUtils.getInitialContext(editor._codeMirror, pos),
             styleblocks = HTMLUtils.findStyleBlocks(editor),
             csscontext  = false;
           
@@ -37,22 +38,37 @@ define(function (require, exports, module) {
                         break;
                     }
                 }
-                
-                /*
-                if (insideStyleBlock) {
-                    query.queryStr = ctx.token.string;
-                }
-                */
             }      
         }
         
-        /* second: determine queryStr based on characters around cursor if actually in csscontext */
+        /* second: check if we are actually inside a { } */
+        if (csscontext) {
+            // we know we are dealing with a .css file or the cursor is inside a <style/> tag, but we don't know if we are actually
+            // inside a set of rules { } or between two or in a selector
+            // we only need to check if we hit a { and return true, or } and return false, if we hit a ; it's okay, but not sufficent
+            csscontext = false;
+            do {
+                if(ctx.token.string === "{") {
+                    /* first relevant symbol, everything fine */
+                    csscontext = true;
+                    ctx = TokenUtils.getInitialContext(editor._codeMirror, cursor);
+                    break;   
+                } else if (ctx.token.string === "}") {
+                    /* cursor is outside of set of rules */
+                    csscontext = false;
+                    break;
+                } 
+            } while (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx));
+        }
+        
+        
+        /* third: determine queryStr based on characters around cursor if actually in csscontext */
         if (csscontext) {
             query.queryStr = ctx.token.string;
             if (query.queryStr !== null) {
                 query.queryStr = query.queryStr.trim();
                 if(query.queryStr === "") {
-                    TokenUtils.movePrevToken(ctx);
+                    TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
                     query.queryStr = ctx.token.string;
                 }
                 
@@ -78,7 +94,6 @@ define(function (require, exports, module) {
             }
         }
         console.log(query);
-        
         return query;
     }
     
