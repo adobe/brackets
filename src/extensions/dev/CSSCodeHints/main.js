@@ -50,34 +50,63 @@ define(function (require, exports, module) {
         
         /* second: determine queryStr based on characters around cursor if actually in csscontext */
         if (csscontext) {
-            query.queryStr = ctx.token.string;            
+            query.queryStr = ctx.token.string;
             if (query.queryStr !== null) {
                 query.queryStr = query.queryStr.trim();
-            }
+                if(query.queryStr === "") {
+                    TokenUtils.movePrevToken(ctx);
+                    query.queryStr = ctx.token.string;
+                }
+                
+                if (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx)) {
+                    query.prevStr = ctx.token.string;
+                }
+            } 
+            /* notes: we need some contextinformation around cursor, 2-3 tokens to determine if we need to show attrs or values */
+            console.log("cssdebug: pS='"+query.prevStr+"' followed by qS='"+query.queryStr+"'");
+            
             
             if (query.queryStr === "{" || query.queryStr === ";") {
+                /* cssattribute context */
                 query.queryStr = "";
+            } else if (query.queryStr === ":") {
+                /* cssattrvalue context */
+                /* move token 1 step back to get attibutename */
+                query.queryStr = "";
+                query.attrName = query.prevStr;
+            } else if (query.prevStr === ":") {
+                TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
+                query.attrName = ctx.token.string;
             }
         }
-
+        console.log(query);
         
         return query;
     }
     
     CssAttrHints.prototype.search = function(query) {
-        var result = [];
-        var filter = query.queryStr;
+        var result = [],
+            filter = query.queryStr,
+            attrName = query.attrName;
         
-        if (filter === "") {
-            result = $.map(attributes, function (obj, name) {
-                return name;
-            });
-        } else {
-            result = $.map(attributes, function(obj, name) {
-                if (name.indexOf(filter) === 0) {
-                    return name;
+        if(attrName) {
+            result = $.map(attributes[attrName].values, function(value, index) {
+                if (value.indexOf(filter) === 0) {
+                    return value;
                 }
             });
+        } else {     
+            if (filter === "") {
+                result = $.map(attributes, function (obj, name) {
+                    return name;
+                });
+            } else {
+                result = $.map(attributes, function(obj, name) {
+                    if (name.indexOf(filter) === 0) {
+                        return name;
+                    }
+                });
+            }
         }
         return result;
     }    
@@ -92,7 +121,6 @@ define(function (require, exports, module) {
         
         editor.document.replaceRange(completion, cursor);
         
-        console.log('csscodehint - handleSelect');
         return true;
     }
          
@@ -102,7 +130,7 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     CssAttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return (key === "{" || key ===  " "); /* only popup after brackets, else this will always trigger */
+        return (key === "{" || key === ";"); /* only popup after brackets, else this will always trigger */
         // return (key === " " || key === "{" );
     };
     
