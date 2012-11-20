@@ -51,16 +51,12 @@ function RemoteFunctions(experimental) {
 
     // compute the screen offset of an element
     function _screenOffset(element, key) {
-        if (element === document.body) {
-            var bounds = element.getBoundingClientRect();
-            return (key === "offsetLeft" ? bounds.left : bounds.top);
+        var bounds = element.getBoundingClientRect();
+        if (key === "offsetLeft") {
+            return bounds.left + window.pageXOffset;
+        } else {
+            return bounds.top + window.pageYOffset;
         }
-        var value = 0;
-        while (element) {
-            value += element[key];
-            element = element.offsetParent;
-        }
-        return value;
     }
 
     // set an event on a element
@@ -405,6 +401,7 @@ function RemoteFunctions(experimental) {
     function hideHighlight() {
         if (_remoteHighlight) {
             _remoteHighlight.clear();
+            _remoteHighlight = null;
         }
     }
 
@@ -441,12 +438,19 @@ function RemoteFunctions(experimental) {
     }
     
     window.addEventListener("resize", redrawHighlights);
-    
-    // Scrolling a div can interfere with highlighting. 
-    var i, divs = window.document.getElementsByTagName("div");
-    for (i = 0; i < divs.length; i++) {
-        divs[i].addEventListener("scroll", redrawHighlights);
-    }
+    // Add a capture-phase scroll listener to update highlights when
+    // any element scrolls.
+    window.addEventListener("scroll", function (e) {
+        // Document scrolls can be updated immediately. Any other scrolls
+        // need to be updated on a timer to ensure the layout is correct.
+        if (e.target === document) {
+            redrawHighlights();
+        } else {
+            if (_remoteHighlight || _localHighlight) {
+                window.setTimeout(redrawHighlights, 0);
+            }
+        }
+    }, true);
 
     return {
         "showGoto": showGoto,
