@@ -199,7 +199,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 // create dummy Document for the Editor
                 testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-                testEditor = new Editor(testDocument, true, "hmtlmixed", $("#editor").get(0), {});
+                testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0), {});
             });
             
             it("should list hints right after curly bracket", function () {
