@@ -28,7 +28,9 @@ define(function (require, exports, module) {
     "use strict";
     require("thirdparty/tinycolor-min");
     
-    var KeyEvent = brackets.getModule("utils/KeyEvent");
+    var KeyEvent    = brackets.getModule("utils/KeyEvent"),
+        StringUtils = brackets.getModule("utils/StringUtils"),
+        Strings     = brackets.getModule("strings");
     var STEP_MULTIPLIER = 5;
     
     function ColorEditor(element, color, callback, swatches) {
@@ -278,7 +280,11 @@ define(function (require, exports, module) {
         var _this = this;
  
         this.swatches.forEach(function (swatch) {
-            _this.$swatches.append("<li><div class='swatch_bg'><div class='swatch' style='background-color: " + swatch.value + ";'></div></div> <span class='value'" + " tabindex='0'>" + swatch.value + "</span></li>");
+            var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
+                usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
+            _this.$swatches.append("<li><div class='swatch_bg'><div class='swatch' style='background-color: " +
+                    swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " tabindex='0' title='" +
+                    usedColorTip + "'>" + swatch.value + "</span></li>");
         });
 
         this.$swatches.find("li").keydown(function (event) {

@@ -22,14 +22,16 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, Mustache, brackets, $, window */
 
 define(function (require, exports, module) {
     "use strict";
     
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
+        Strings              = brackets.getModule("strings"),
         ColorEditor          = require("ColorEditor").ColorEditor,
         InlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
+        
 
     var MAX_USED_COLORS = 7;
     
@@ -91,7 +93,7 @@ define(function (require, exports, module) {
         this.parentClass.load.call(this, hostEditor);
         selectedColors = this.editor.document.getText().match(InlineColorEditor.colorRegEx);
         selectedColors = this.usedColors(selectedColors, MAX_USED_COLORS);
-        this.$wrapperDiv = $(InlineEditorTemplate);
+        this.$wrapperDiv = $(Mustache.render(InlineEditorTemplate, Strings));
         this.colorEditor = new ColorEditor(this.$wrapperDiv, this.color, this.setColor, selectedColors);
         this.$htmlContent.append(this.$wrapperDiv);
     };
