@@ -56,8 +56,8 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
-    // Load LiveDeveopment
-    require("LiveDevelopment/main");
+    // Load LiveDeveopment after all other core modules have initialized
+    window.setTimeout(require("LiveDevelopment/main").init);
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
