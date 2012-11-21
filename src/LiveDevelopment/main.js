@@ -48,7 +48,8 @@ define(function main(require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         Strings             = require("strings"),
-        ExtensionUtils      = require("utils/ExtensionUtils");
+        ExtensionUtils      = require("utils/ExtensionUtils"),
+        StringUtils         = require("utils/StringUtils");
 
     var prefs;
     var params = new UrlParams();
@@ -113,6 +114,9 @@ define(function main(require, exports, module) {
 
     /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
     function _handleGoLiveCommand() {
+        // Hide the tooltip that shows the reason why live preview was cancelled
+        _$btnGoLive.twipsy("hide");
+        
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
         } else {
@@ -131,6 +135,32 @@ define(function main(require, exports, module) {
         }
     }
 
+    /** Triggered by Inspector.detached */
+    function _onDetached(event, res) {
+        // Get the explanation using res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
+        // Examples taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
+        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
+        var reason = Strings["LIVE_DEV_" + res.reason.toUpperCase()];
+        if (!reason) {
+            reason = StringUtils.format(Strings.LIVE_DEV_DETACHED_UNKNOWN_REASON, res.reason);
+        }
+        
+        // Tooltip options
+        var options = {
+            placement: "below",
+            trigger: "manual",
+            autoHideDelay: 5000,
+            title: function () {
+                return reason;
+            }
+        };
+
+        // Destroy the previous twipsy (options are not updated otherwise)    
+        _$btnGoLive.twipsy("hide").removeData("twipsy");
+        // Show a tooltip explaning why live preview was cancelled
+        _$btnGoLive.twipsy(options).twipsy("show");
+    }
+    
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
         _$btnGoLive = $("#toolbar-go-live");
@@ -183,11 +213,15 @@ define(function main(require, exports, module) {
         window.report = function report(params) { window.params = params; console.info(params); };
     }
 
+    function _onInspectorDone() {
+        $(Inspector.Inspector).on("detached", _onDetached);
+    }
+
     /** Initialize LiveDevelopment */
     AppInit.appReady(function () {
         params.parse();
 
-        Inspector.init(config);
+        Inspector.init(config).done(_onInspectorDone);
         LiveDevelopment.init(config);
         _loadStyles();
         _setupGoLiveButton();

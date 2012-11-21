@@ -59,6 +59,7 @@
     this.$element = $(element)
     this.options = options
     this.enabled = true
+    this.autoHideTimeout = null;
     this.fixTitle()
   }
 
@@ -68,10 +69,16 @@
       var pos
         , actualWidth
         , actualHeight
+        , paddingLeft
+        , paddingRight
+        , surplusRight
+        , shiftArrow
         , placement
         , $tip
+        , $arrow
         , tp
-
+        , _this = this
+      
       if (this.hasContent() && this.enabled) {
         $tip = this.tip()
         this.setContent()
@@ -90,8 +97,8 @@
         , height: this.$element[0].offsetHeight
         })
         
-        var paddingLeft  = parseInt(this.$element.css("padding-left"),  10);
-        var paddingRight = parseInt(this.$element.css("padding-right"), 10);
+        paddingLeft  = parseInt(this.$element.css("padding-left"),  10);
+        paddingRight = parseInt(this.$element.css("padding-right"), 10);
         
         pos.left += paddingLeft;
         pos.width -= (paddingLeft + paddingRight);
@@ -116,9 +123,9 @@
             break
         }
         
-        var shiftArrow = 0;
+        shiftArrow = 0;
         
-        var surplusRight = (tp.left + actualWidth - $(document).width());
+        surplusRight = (tp.left + actualWidth - $(document).width());
         if (surplusRight > 0) {
           shiftArrow = surplusRight;
           tp.left -= surplusRight;
@@ -133,11 +140,18 @@
           .addClass('in')
         
         if (surplusRight > 0) {
-          var $arrow = $tip.find(".twipsy-arrow");
+          $arrow = $tip.find(".twipsy-arrow");
           if (! this.defaultMargin) {
             this.defaultMargin = parseInt($arrow.css("margin-left"), 10);
           }
           $arrow.css("margin-left", this.defaultMargin + shiftArrow);
+        }
+
+        if (this.options.autoHideDelay) {
+          window.clearTimeout(this.autoHideTimeout);
+          this.autoHideTimeout = window.setTimeout(function () {
+            _this.hide();
+          }, this.options.autoHideDelay);
         }
       }
     }
@@ -161,6 +175,8 @@
       $.support.transition && this.$tip.hasClass('fade') ?
         $tip.bind(transitionEnd, removeElement) :
         removeElement()
+
+      window.clearTimeout(this.autoHideTimeout);
     }
 
   , fixTitle: function() {

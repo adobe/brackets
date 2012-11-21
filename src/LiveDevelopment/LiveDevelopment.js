@@ -134,8 +134,6 @@ define(function LiveDevelopment(require, exports, module) {
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _serverProvider;      // current LiveDevServerProvider
     
-    var _timeoutForOnDetachedPopup;
-
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
                 (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
@@ -506,35 +504,6 @@ define(function LiveDevelopment(require, exports, module) {
             });
     }
 
-    /** Triggered by Inspector.detached */
-    function _onDetached(event, res) {
-        var reason = Strings["LIVE_DEV_" + res.reason.toUpperCase()];
-        if (!reason) {
-            reason = StringUtils.format(Strings.LIVE_DEV_DETACHED_UNKNOWN_REASON, res.reason);
-        }
-        
-        // res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
-        // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
-        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
-        var $button = $("#toolbar-go-live"),
-            options = {
-                placement: "below",
-                trigger: "manual",
-                title: function () {
-                    return reason;
-                }
-            };
-        
-        $button.twipsy("hide");
-        $button.removeData("twipsy");
-        $button.twipsy(options).twipsy("show");
-        
-        window.clearTimeout(_timeoutForOnDetachedPopup);
-        _timeoutForOnDetachedPopup = window.setTimeout(function _hidePopup() {
-            $button.twipsy("hide");
-        }, 5000);
-    }
-
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
@@ -580,8 +549,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     function reconnect() {
         unloadAgents();
-        var promises = loadAgents();
+        
         _setStatus(STATUS_LOADING_AGENTS);
+        var promises = loadAgents();
         $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
     }
 
@@ -859,7 +829,6 @@ define(function LiveDevelopment(require, exports, module) {
             $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
         }
         
-        $(Inspector.Inspector).on("detached.livedev", _onDetached);
         $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
 		
         waitForInterstitialPageLoad()

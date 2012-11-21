@@ -312,6 +312,8 @@ define(function Inspector(require, exports, module) {
      * -> Inspector.domain.command()
      */
     function init(theConfig) {
+        var result = new $.Deferred();
+        
         exports.config = theConfig;
 
         var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
