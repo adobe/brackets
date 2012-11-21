@@ -66,18 +66,8 @@
   Twipsy.prototype = {
 
     show: function() {
-      var pos
-        , actualWidth
-        , actualHeight
-        , paddingLeft
-        , paddingRight
-        , surplusRight
-        , shiftArrow
-        , placement
-        , $tip
-        , $arrow
-        , tp
-        , _this = this
+      var $tip
+        , that = this;
       
       if (this.hasContent() && this.enabled) {
         $tip = this.tip()
@@ -92,68 +82,94 @@
           .css({ top: 0, left: 0, display: 'block' })
           .prependTo(document.body)
 
-        pos = $.extend({}, this.$element.offset(), {
-          width: this.$element[0].offsetWidth
-        , height: this.$element[0].offsetHeight
-        })
+        this.updatePosition();
         
-        paddingLeft  = parseInt(this.$element.css("padding-left"),  10);
-        paddingRight = parseInt(this.$element.css("padding-right"), 10);
-        
-        pos.left += paddingLeft;
-        pos.width -= (paddingLeft + paddingRight);
-        
-        actualWidth = $tip[0].offsetWidth
-        actualHeight = $tip[0].offsetHeight
-
-        placement = maybeCall(this.options.placement, this, [ $tip[0], this.$element[0] ])
-
-        switch (placement) {
-          case 'below':
-            tp = {top: pos.top + pos.height + this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2}
-            break
-          case 'above':
-            tp = {top: pos.top - actualHeight - this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2}
-            break
-          case 'left':
-            tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth - this.options.offset}
-            break
-          case 'right':
-            tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width + this.options.offset}
-            break
-        }
-        
-        shiftArrow = 0;
-        
-        surplusRight = (tp.left + actualWidth - $(document).width());
-        if (surplusRight > 0) {
-          shiftArrow = surplusRight;
-          tp.left -= surplusRight;
-        } else if (tp.left < 0) {
-          shiftArrow = tp.left;
-          tp.left = 0;
-        }
-        
-        $tip
-          .css(tp)
-          .addClass(placement)
-          .addClass('in')
-        
-        if (surplusRight > 0) {
-          $arrow = $tip.find(".twipsy-arrow");
-          if (! this.defaultMargin) {
-            this.defaultMargin = parseInt($arrow.css("margin-left"), 10);
-          }
-          $arrow.css("margin-left", this.defaultMargin + shiftArrow);
-        }
+        $(window).off("resize", this.resizeHandler);
+        this.resizeHandler = function(e) {
+          that.updatePosition();
+        };
+        $(window).on("resize", this.resizeHandler);
 
         if (this.options.autoHideDelay) {
           window.clearTimeout(this.autoHideTimeout);
           this.autoHideTimeout = window.setTimeout(function () {
-            _this.hide();
+            that.hide();
           }, this.options.autoHideDelay);
         }
+        
+        $tip.addClass('in');
       }
+    }
+
+  , updatePosition: function () {
+      var pos
+        , actualWidth
+        , actualHeight
+        , paddingLeft
+        , paddingRight
+        , surplusRight
+        , shiftArrow
+        , placement
+        , $tip
+        , $arrow
+        , tp
+        , that = this
+      
+      $tip = this.tip()
+
+      pos = $.extend({}, this.$element.offset(), {
+        width: this.$element[0].offsetWidth
+      , height: this.$element[0].offsetHeight
+      })
+      
+      paddingLeft  = parseInt(this.$element.css("padding-left"),  10);
+      paddingRight = parseInt(this.$element.css("padding-right"), 10);
+      
+      pos.left += paddingLeft;
+      pos.width -= (paddingLeft + paddingRight);
+      
+      actualWidth = $tip[0].offsetWidth
+      actualHeight = $tip[0].offsetHeight
+
+      placement = maybeCall(this.options.placement, this, [ $tip[0], this.$element[0] ])
+      // Add the placement class so the arrow's margin can be determined
+      $tip.addClass(placement)
+
+      switch (placement) {
+        case 'below':
+          tp = {top: pos.top + pos.height + this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2}
+          break
+        case 'above':
+          tp = {top: pos.top - actualHeight - this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2}
+          break
+        case 'left':
+          tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth - this.options.offset}
+          break
+        case 'right':
+          tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width + this.options.offset}
+          break
+      }
+      
+      shiftArrow = 0;
+
+      surplusRight = (tp.left + actualWidth - $(document.body).width());
+      if (surplusRight > 0) {
+        shiftArrow = surplusRight;
+        tp.left -= surplusRight;
+      } else if (tp.left < 0) {
+        shiftArrow = tp.left;
+        tp.left = 0;
+      }
+      
+      if (surplusRight > 0) {
+        $arrow = $tip.find(".twipsy-arrow");
+        if (! this.defaultMargin) {
+          this.defaultMargin = parseInt($arrow.css("margin-left"), 10);
+        }
+        $arrow.css("margin-left", this.defaultMargin + shiftArrow);
+      }
+
+      $tip.css(tp);
     }
 
   , setContent: function () {
@@ -177,6 +193,7 @@
         removeElement()
 
       window.clearTimeout(this.autoHideTimeout);
+      $(window).off("resize", this.resizeHandler)
     }
 
   , fixTitle: function() {
