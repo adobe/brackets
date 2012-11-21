@@ -24,6 +24,7 @@
 .color_editor {
     -webkit-text-size-adjust: none;
     font-size: 12px;
+    min-width: 450px;
     height: 190px;
     padding: 16px 16px 14px 38px;
 }
