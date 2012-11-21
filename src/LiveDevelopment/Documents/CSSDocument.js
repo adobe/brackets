@@ -152,18 +152,6 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.reloadRules = function () {
         this.rules = CSSUtils.extractAllSelectors(this.doc.getText());
     };
-    
-    // find a rule in the given rules
-    CSSDocument.prototype.ruleAtLocation = function ruleAtLocation(location) {
-        var i, rule;
-        for (i in this.rules) {
-            rule = this.rules[i];
-            if (rule.selectorRange.start <= location && location <= rule.style.range.end) {
-                return rule;
-            }
-        }
-        return null;
-    };
 
     CSSDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight) {
