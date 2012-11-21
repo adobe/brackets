@@ -46,9 +46,9 @@ define(function (require, exports, module) {
         CommandsManagerModule   = require("command/CommandManager"),
         LiveDevelopmentModule   = require("LiveDevelopment/LiveDevelopment"),
         InspectorModule         = require("LiveDevelopment/Inspector/Inspector"),
-        CSSDocument             = require("LiveDevelopment/documents/CSSDocument"),
-        CSSAgent                = require("LiveDevelopment/Agents/CSSAgent"),
-        HighlightAgent          = require("LiveDevelopment/Agents/HighlightAgent");
+        CSSDocumentModule       = require("LiveDevelopment/documents/CSSDocument"),
+        CSSAgentModule          = require("LiveDevelopment/Agents/CSSAgent"),
+        HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -449,18 +449,24 @@ define(function (require, exports, module) {
             
             var testDocument,
                 testEditor,
-                testCSSDoc;
+                testCSSDoc,
+                LiveDevelopmentConfig,
+                InspectorConfig;
             
             beforeEach(function () {
+                // save original configs
+                LiveDevelopmentConfig = LiveDevelopmentModule.config;
+                InspectorConfig = InspectorModule.config;
+                
                 // force init
                 LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
-                HighlightAgent.load();
+                HighlightAgentModule.load();
                 
                 // module spies
-                spyOn(CSSAgent, "styleForURL").andReturn("");
-                spyOn(CSSAgent, "reloadCSSForDocument").andCallFake(function () {});
-                spyOn(HighlightAgent, "redraw").andCallFake(function () {});
-                spyOn(HighlightAgent, "rule").andCallFake(function () {});
+                spyOn(CSSAgentModule, "styleForURL").andReturn("");
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
                 InspectorModule.CSS = {
                     getStyleSheet   : jasmine.createSpy("getStyleSheet")
                 };
@@ -469,14 +475,14 @@ define(function (require, exports, module) {
                 
                 // document spies
                 var deferred = new $.Deferred();
-                spyOn(CSSDocument.prototype, "getStyleSheetFromBrowser").andCallFake(function () {
+                spyOn(CSSDocumentModule.prototype, "getStyleSheetFromBrowser").andCallFake(function () {
                     return deferred.promise();
                 });
                 
                 var mock = SpecRunnerUtils.createMockEditor("p {}\n\ndiv {}", "css");
                 testDocument = mock.doc;
                 testEditor = mock.editor;
-                testCSSDoc = new CSSDocument(testDocument, testEditor);
+                testCSSDoc = new CSSDocumentModule(testDocument, testEditor);
                 
                 // resolve reloadRules()
                 deferred.resolve({rules: [
@@ -493,6 +499,11 @@ define(function (require, exports, module) {
                 ]});
             });
             
+            afterEach(function () {
+                LiveDevelopmentModule.config = LiveDevelopmentConfig;
+                InspectorModule.config = InspectorConfig;
+            });
+            
             it("should toggle the highlight via a command", function () {
                 // force command to be enabled (see LiveDevelopment/main::_setupGoLiveMenu())
                 var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
@@ -507,17 +518,17 @@ define(function (require, exports, module) {
             
             it("should redraw highlights when the document changes", function () {
                 testDocument.setText("body {}");
-                expect(HighlightAgent.redraw).toHaveBeenCalled();
+                expect(HighlightAgentModule.redraw).toHaveBeenCalled();
             });
             
             it("should redraw highlights when the cursor moves", function () {
                 testEditor.setCursorPos(0, 3);
-                expect(HighlightAgent.rule).toHaveBeenCalled();
-                expect(HighlightAgent.rule.mostRecentCall.args[0]).toEqual("p");
+                expect(HighlightAgentModule.rule).toHaveBeenCalled();
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("p");
                 
                 testEditor.setCursorPos(2, 0);
-                expect(HighlightAgent.rule.calls.length).toEqual(3);
-                expect(HighlightAgent.rule.mostRecentCall.args[0]).toEqual("div");
+                expect(HighlightAgentModule.rule.calls.length).toEqual(3);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div");
             });
         });
     });
