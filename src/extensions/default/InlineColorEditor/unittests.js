@@ -701,7 +701,6 @@ define(function (require, exports, module) {
                  *     delta: The expected change in value for the parameter.
                  *     tolerance: The tolerance in variation for the expected value.
                  */
-                
                 function testKey(opts) {
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
                     var orig = tinycolor(colorEditor.color).toHsv()[opts.param];
