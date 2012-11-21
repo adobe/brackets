@@ -599,6 +599,46 @@ define(function (require, exports, module) {
                 });
                 
             });
+            
+            describe("input text field syncing", function () {
+                
+                it("should commit valid changes made in the input field on the input event", function () {
+                    makeUI("#abcdef");
+                    colorEditor.$colorValue.val("#fedcba");
+                    colorEditor.$colorValue.trigger("input");
+                    expect(tinycolor(colorEditor.color).toHexString()).toBe("#fedcba");
+                });
+                it("should commit valid changes made in the input field on the change event", function () {
+                    makeUI("#abcdef");
+                    colorEditor.$colorValue.val("#fedcba");
+                    colorEditor.$colorValue.trigger("change");
+                    expect(tinycolor(colorEditor.color).toHexString()).toBe("#fedcba");
+                });
+                it("should not commit changes on the input event while the value is invalid, but should keep them in the text field", function () {
+                    makeUI("#abcdef");
+                    colorEditor.$colorValue.val("rgb(0, 0, 0");
+                    colorEditor.$colorValue.trigger("input");
+                    expect(tinycolor(colorEditor.color).toHexString()).toBe("#abcdef");
+                    expect(colorEditor.$colorValue.val()).toBe("rgb(0, 0, 0");
+                });
+                it("should revert to the previous value on the change event while the value is invalid", function () {
+                    makeUI("#abcdef");
+                    colorEditor.$colorValue.val("rgb(0, 0, 0");
+                    colorEditor.$colorValue.trigger("change");
+                    expect(tinycolor(colorEditor.color).toHexString()).toBe("#abcdef");
+                    expect(colorEditor.$colorValue.val()).toBe("#abcdef");
+                });
+                
+                it("should convert percentage RGB values to normal values", function () {
+                    makeUI("#abcdef");
+                    expect(colorEditor._convertToNormalRGB("rgb(25%, 50%, 75%)")).toBe("rgb(64, 128, 191)");
+                });
+                it("should normalize a string to match tinycolor's format", function () {
+                    makeUI("#abcdef");
+                    expect(colorEditor._normalizeColorString("rgb(25%,50%,75%)")).toBe("rgb(64, 128, 191)");
+                    expect(colorEditor._normalizeColorString("rgb(10,20,   30)")).toBe("rgb(10, 20, 30)");
+                });
+            });
         });
     });
 });
