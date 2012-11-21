@@ -480,13 +480,13 @@ define(function (require, exports, module) {
                  * item).
                  * @param {string} event The name of the event to simulate.
                  * @param {object} $item A jQuery object to trigger the event on.
-                 * @param {number} hRatio A number between 0 and 1 indicating the x position relative to the item's width.
-                 * @param {number} vRatio A number between 0 and 1 indicating the y position relative to the item's height.
+                 * @param {Array.<number>} ratios Numbers between 0 and 1 indicating the x and y positions of the
+                 *      event relative to the item's width and height.
                  */
-                function eventAtRatio(event, $item, hRatio, vRatio) {
+                function eventAtRatio(event, $item, ratios) {
                     $item.trigger($.Event(event, {
-                        clientX: $item.offset().left + (hRatio * $item.width()),
-                        clientY: $item.offset().top + (vRatio * $item.height())
+                        clientX: $item.offset().left + (ratios[0] * $item.width()),
+                        clientY: $item.offset().top + (ratios[1] * $item.height())
                     }));
                 }
                 
@@ -503,7 +503,7 @@ define(function (require, exports, module) {
                  */
                 function testMousedown(opts) {
                     makeUI("#0000ff");
-                    eventAtRatio("mousedown", colorEditor[opts.item], opts.clickAt[0], opts.clickAt[1]);
+                    eventAtRatio("mousedown", colorEditor[opts.item], opts.clickAt);
                     checkNear(tinycolor(colorEditor.color).toHsv()[opts.param], opts.expected, opts.tolerance);
                     colorEditor[opts.item].trigger("mouseup");
                 }
@@ -522,8 +522,8 @@ define(function (require, exports, module) {
                  */
                 function testDrag(opts) {
                     makeUI("#0000ff");
-                    eventAtRatio("mousedown", colorEditor[opts.item], opts.clickAt[0], opts.clickAt[1]);
-                    eventAtRatio("mousemove", colorEditor[opts.item], opts.dragTo[0], opts.dragTo[1]);
+                    eventAtRatio("mousedown", colorEditor[opts.item], opts.clickAt);
+                    eventAtRatio("mousemove", colorEditor[opts.item], opts.dragTo);
                     checkNear(tinycolor(colorEditor.color).toHsv()[opts.param], opts.expected, opts.tolerance);
                     colorEditor[opts.item].trigger("mouseup");
                 }
