@@ -29,3 +29,15 @@
 .multiple-colors {
     background: linear-gradient(90deg, #aabbcc, #ddeeff);
 }
+
+.uppercase-hex {
+    background: #DEFCBA;
+}
+
+.missing-percent {
+    background: hsla(180, 50, 50, 0.5);
+}
+
+.in-shorthand {
+    border: 1px solid #0f0f0f;
+}
