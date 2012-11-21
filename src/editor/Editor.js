@@ -1001,12 +1001,8 @@ define(function (require, exports, module) {
      */
     Editor.prototype.refreshAll = function () {
         this.refresh();
-        this.getInlineWidgets().forEach(function (multilineEditor, i, arr) {
-            multilineEditor.sizeInlineWidgetToContents(true);
-            multilineEditor._updateRelatedContainer();
-            multilineEditor.editors.forEach(function (editor, j, arr) {
-                editor.refresh();
-            });
+        this.getInlineWidgets().forEach(function (inlineWidget, i, arr) {
+            inlineWidget.refresh();
         });
     };
     
