@@ -582,24 +582,70 @@ define(function (require, exports, module) {
     function selectorAtPos(rules, pos) {
         var i, result = "";
         
-        for (i = 0; i < rules.length; i++) {
-            var rule = rules[i];
+        if (!rules.length) {
+            return "";
+        }
+        
+        // Returns 0 if pos is in rule, -1 is pos is before rule, 1 if pos is after rule
+        function _posCompare(pos, rule) {
+            if (pos.line < rule.selectorGroupStartLine ||
+                    (pos.line === rule.selectorGroupStartLine && pos.ch < rule.selectorGroupStartChar)) {
+                return -1;
+            }
             
-            if ((rule.selectorGroupStartLine < pos.line ||
-                    (rule.selectorGroupStartLine === pos.line && rule.selectorGroupStartChar <= pos.ch))
-                    &&
-                    (rule.declListEndLine > pos.line ||
-                    (rule.declListEndLine === pos.line && rule.declListEndChar >= pos.ch))) {
-                
+            if (pos.line > rule.declListEndLine ||
+                    (pos.line === rule.declListEndLine && pos.ch > rule.declListEndChar)) {
+                return 1;
+            }
+            
+            return 0;
+        }
+        
+        // Binary search to find a match
+        var foundMatch = false, lo = 0, hi = rules.length - 1;
+        i = Math.round(hi / 2);
+        while (!foundMatch) {
+            var comp = _posCompare(pos, rules[i]);
+            
+            if (comp === -1) {
+                hi = i - 1;
+            } else if (comp === 1) {
+                lo = i + 1;
+            } else {
+                foundMatch = true;
+                break;
+            }
+            
+            if (lo > hi) {
+                // No match
+                break;
+            }
+            
+            i = Math.round((hi - lo) / 2) + lo;
+        }
+        
+        if (!foundMatch) {
+            return "";
+        }
+        
+        // There may be multiple rules that match the pos. Walk backwards until we don't have a match
+        while (i > 0) {
+            if (_posCompare(pos, rules[i - 1]) === 0) {
+                i--;
+            } else {
+                break;
+            }
+        }
+        
+        // Walk forward to hit all matches
+        while (i < rules.length) {
+            if (_posCompare(pos, rules[i]) === 0) {
                 if (result.length > 0) {
                     result += ", ";
                 }
-                result += rule.selector;
-            }
-            
-            // Stop if the selector starts past pos. This depends on allRules being sorted
-            // in file order, which they currently are.
-            if (rule.selectorGroupStartLine > pos.line) {
+                result += rules[i].selector;
+                i++;
+            } else {
                 break;
             }
         }
