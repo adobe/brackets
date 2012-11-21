@@ -230,7 +230,8 @@
 .color_editor section footer input:focus {
     background: #fff;
     outline: none;
-    box-shadow: 0 0 8px rgba(0,0,0,0.35), inset 0 2px 4px rgba(0,0,0,0.15);
+    outline: none;
+    box-shadow: 0 0 4px 0 rgba(0,136,255,0.8), inset 0 2px 4px rgba(0,0,0,0.15);
     border: 1px solid #1b1d1d;
     z-index: 911;
 }
@@ -300,6 +301,10 @@
     background-image: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f4f6f7));
     background-image: -webkit-linear-gradient(top, #fff, #f4f6f7);
     background-image: linear-gradient(top, #fff, #f4f6f7);
+}
+.color_editor .button-bar a:focus, .color_editor .button-bar li.selected a:focus{
+    outline: none;
+    box-shadow: 0 0 4px rgba(0,136,255,0.8);
 }
 .color_editor .button-bar li:first-child {
     margin-left: 0;
