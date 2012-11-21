@@ -273,5 +273,18 @@ define({
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
-	"BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base"
+	"BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
+    
+    // extensions/default/InlineColorEditor
+	"COLOR_EDITOR_SELECTION_FIELD_TIP": "[EG] !é=Saturation (x) and Brightness (y)=!",
+	"COLOR_EDITOR_HUE_SLIDER_TIP": "Teinte",
+	"COLOR_EDITOR_OPACITY_SLIDER_TIP": "Opacité",
+	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "[D/] !é=Current Color=!",
+	"COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "[EE] !é=Original Color=!",
+	"COLOR_EDITOR_COLOR_INPUT_TIP": "[D+] !é=Color Value=!",
+	"COLOR_EDITOR_RGBA_BUTTON_TIP": "[EF] !é=RGBa Format=!",
+	"COLOR_EDITOR_HEX_BUTTON_TIP": "[EA] !é=Hex Format=!",
+	"COLOR_EDITOR_HSLA_BUTTON_TIP": "[EB] !é=HSLa Format=!",
+	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "[EI] !é={0} (Used {1} time)=!",
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "[EH] !é={0} (Used {1} times)=!"
 });
