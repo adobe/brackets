@@ -450,13 +450,13 @@ define(function (require, exports, module) {
             var testDocument,
                 testEditor,
                 testCSSDoc,
-                LiveDevelopmentConfig,
-                InspectorConfig;
+                liveDevelopmentConfig,
+                inspectorConfig;
             
             beforeEach(function () {
                 // save original configs
-                LiveDevelopmentConfig = LiveDevelopmentModule.config;
-                InspectorConfig = InspectorModule.config;
+                liveDevelopmentConfig = LiveDevelopmentModule.config;
+                inspectorConfig = InspectorModule.config;
                 
                 // force init
                 LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
@@ -500,8 +500,8 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                LiveDevelopmentModule.config = LiveDevelopmentConfig;
-                InspectorModule.config = InspectorConfig;
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
             });
             
             it("should toggle the highlight via a command", function () {
