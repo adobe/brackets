@@ -32,7 +32,7 @@
     display: inline-block;
     position: relative;
     height: 100%;
-    overflow: hidden;
+    overflow: visible;
     margin-left: 6px;
     vertical-align: top;
 }
@@ -76,7 +76,14 @@
 .color_editor aside ul.swatches li {
     -webkit-text-size-adjust: none;
     cursor: pointer;
-    height: 20px;
+    height: 18px;
+    margin-bottom: 2px;
+    padding: 0 1px 1px 2px;
+}
+.color_editor aside ul.swatches li:focus {
+    outline: none;
+    box-shadow: 0 0 4px rgba(0,136,255,0.8);
+    border-radius: 2px;
 }
 .color_editor aside ul.swatches li .swatch_bg {
     background-image: url("../img/color_thumb_back.png");
@@ -85,7 +92,7 @@
     height: 15px;
     border-radius: 3px;
     position: relative;
-    top: 3px;
+    top: 2px;
     display: inline-block;
 }
 .color_editor aside ul.swatches li .swatch_bg .swatch {
@@ -95,6 +102,10 @@
     border-radius: 3px;
     box-shadow: 0 -1px 0 rgba(0,0,0,0.2), 0 1px 0 #fff;
     top: 0;
+}
+.color_editor aside ul.swatches li .value {
+    position: relative;
+    top: -2px;
 }
 .color_editor section {
     display: inline-block;
