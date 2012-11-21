@@ -49,6 +49,7 @@ define(function (require, exports, module) {
 
         this.color = tinycolor(color);
         this.lastColor = color;
+        this.redoColor = null;
         this.$element = $(this.element);
         this.$colorValue = this.$element.find(".color_value");
         this.$buttonList = this.$element.find("ul.button-bar");
@@ -336,6 +337,7 @@ define(function (require, exports, module) {
             this.hsv = colorObj.toHsv();
             this.color = colorObj;
         }
+        this.redoColor = null;
         this.synchronize();
     };
 
@@ -397,16 +399,35 @@ define(function (require, exports, module) {
             $(window).bind("mouseup", mouseupHandler);
         });
     };
+    
+    ColorEditor.prototype.undo = function () {
+        if (!tinycolor.equals(this.lastColor, this.color)) {
+            var curColor = this.color.toString();
+            this.commitColor(this.lastColor, true);
+            this.redoColor = curColor;
+        }
+    };
+
+    ColorEditor.prototype.redo = function () {
+        if (this.redoColor) {
+            this.commitColor(this.redoColor, true);
+            this.redoColor = null;
+        }
+    };
 
     ColorEditor.prototype.handleKeydown = function (event) {
         var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
         if (hasCtrl) {
             switch (event.keyCode) {
             case KeyEvent.DOM_VK_Z:
-                // TODO
+                if (event.shiftKey) {
+                    this.redo();
+                } else {
+                    this.undo();
+                }
                 break;
             case KeyEvent.DOM_VK_Y:
-                // TODO
+                this.redo();
                 break;
             }
         }
