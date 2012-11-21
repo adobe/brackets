@@ -189,7 +189,7 @@ define(function (require, exports, module) {
      * @param {string} color The color to be converted to non-percentage RGB color string.
      * @return {string} an RGB color string in the normal format using non-percentage values
      */
-    function _convertToNormalRGB(color) {
+    ColorEditor.prototype._convertToNormalRGB = function (color) {
         var matches = color.match(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
         if (matches) {
             var i, percentStr, value;
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
             }
         }
         return color;
-    }
+    };
                     
     /**
      * Normalize the given color string into the format used by tinycolor, by adding a space 
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
      * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
      * @return {string} a normalized color string.
      */
-    function _normalizeColorString(color) {
+    ColorEditor.prototype._normalizeColorString = function (color) {
         var normalizedColor = color;
                     
         // Convert 6-digit hex to 3-digit hex as tinycolor (#ffaacc -> #fac)
@@ -222,8 +222,8 @@ define(function (require, exports, module) {
             normalizedColor = normalizedColor.replace(/\(\s+/, "(");
             normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        return _convertToNormalRGB(normalizedColor);
-    }
+        return this._convertToNormalRGB(normalizedColor);
+    };
 
     ColorEditor.prototype.syncTextFieldInput = function (losingFocus) {
         var newColor = $.trim(this.$colorValue.val()),
@@ -238,7 +238,7 @@ define(function (require, exports, module) {
         // tinycolor actually generates to see if it's different. If so, then we assume the color
         // was incomplete to begin with.
         if (newColorOk) {
-            newColorOk = (newColorObj.toString() === _normalizeColorString(newColor));
+            newColorOk = (newColorObj.toString() === this._normalizeColorString(newColor));
         }
                 
         // Restore to the previous valid color if the new color is invalid or incomplete.
