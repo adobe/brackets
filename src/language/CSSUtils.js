@@ -570,20 +570,20 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the selector(s) of the rule at the specified document pos, or "" if the position is 
+     * Returns the selector(s) of the rule at the specified document pos, or "" if the position
      * is not within a style rule.
      *
-     * @param {!Document} doc Document to search
+     * @param {Array.<Object>} rules Array of rules, as returned by extractAllSelectors()
      * @param {!{line: number, ch: number}} pos Position to search
      * @return {string} Selector(s) for the rule at the specified position, or "" if the position
      *          is not within a style rule. If the rule has multiple selectors, a comma-separated
      *          selector string is returned.
      */
-    function findSelectorAtDocumentPos(doc, pos) {
-        var i, allRules = extractAllSelectors(doc.getText()), result = "";
+    function selectorAtPos(rules, pos) {
+        var i, result = "";
         
-        for (i = 0; i < allRules.length; i++) {
-            var rule = allRules[i];
+        for (i = 0; i < rules.length; i++) {
+            var rule = rules[i];
             
             if ((rule.selectorGroupStartLine < pos.line ||
                     (rule.selectorGroupStartLine === pos.line && rule.selectorGroupStartChar <= pos.ch))
@@ -607,8 +607,23 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Returns the selector(s) of the rule at the specified document pos, or "" if the position is 
+     * is not within a style rule.
+     *
+     * @param {!Document} doc Document to search
+     * @param {!{line: number, ch: number}} pos Position to search
+     * @return {string} Selector(s) for the rule at the specified position, or "" if the position
+     *          is not within a style rule. If the rule has multiple selectors, a comma-separated
+     *          selector string is returned.
+     */
+    function findSelectorAtDocumentPos(doc, pos) {
+        return selectorAtPos(extractAllSelectors(doc.getText()), pos);
+    }
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
+    exports.selectorAtPos = selectorAtPos;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
 });

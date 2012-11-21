@@ -49,6 +49,7 @@ define(function CSSDocumentModule(require, exports, module) {
     "use strict";
 
     var CSSAgent        = require("LiveDevelopment/Agents/CSSAgent"),
+        CSSUtils        = require("language/CSSUtils"),
         EditorManager   = require("editor/EditorManager"),
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -149,14 +150,7 @@ define(function CSSDocumentModule(require, exports, module) {
     
     // Reload rules
     CSSDocument.prototype.reloadRules = function () {
-        this.loadRulePromise = this.getStyleSheetFromBrowser().done(function (styleSheet) {
-            this.rules = styleSheet.rules;
-            this.loadRulePromise = null;
-            if (this.pendingCursorActivity) {
-                this.pendingCursorActivity = false;
-                this.onCursorActivity();
-            }
-        }.bind(this));
+        this.rules = CSSUtils.extractAllSelectors(this.doc.getText());
     };
     
     // find a rule in the given rules
@@ -173,18 +167,10 @@ define(function CSSDocumentModule(require, exports, module) {
 
     CSSDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight) {
-            // If there is an active loadRulePromise, we can't accurately get the rule
-            // at the location. Set a flag here so we can get called again once the
-            // rules have arrived.
-            if (this.loadRulePromise) {
-                this.pendingCursorActivity = true;
-                return;
-            }
             var codeMirror = this.editor._codeMirror;
-            var location = codeMirror.indexFromPos(codeMirror.getCursor());
-            var rule = this.ruleAtLocation(location);
-            if (rule) {
-                HighlightAgent.rule(rule.selectorText);
+            var selector = CSSUtils.selectorAtPos(this.rules, codeMirror.getCursor());
+            if (selector) {
+                HighlightAgent.rule(selector);
             } else {
                 HighlightAgent.hide();
             }
