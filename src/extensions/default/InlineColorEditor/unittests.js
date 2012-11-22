@@ -877,17 +877,16 @@ define(function (require, exports, module) {
                         tolerance: 1
                     });
                 });
-                // TODO: (issue #2139) Wraparound cases don't work currently.
-//                it("should wrap around max hue on up arrow", function () {
-//                    testKey({
-//                        color:     "hsla(360, 25%, 50%, 0.5)",
-//                        item:      "$hueBase",
-//                        key:       KeyEvent.DOM_VK_UP,
-//                        param:     "h",
-//                        delta:     -360 + 3.6,
-//                        tolerance: 1
-//                    });
-//                });
+                it("should wrap around max hue on up arrow", function () {
+                    testKey({
+                        color:     "hsla(359, 25%, 50%, 0.5)",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_UP,
+                        param:     "h",
+                        delta:     -359 + 3.6,
+                        tolerance: 1
+                    });
+                });
                 it("should increase hue by 18 on shift up arrow", function () {
                     testKey({
                         item:      "$hueBase",
@@ -898,17 +897,17 @@ define(function (require, exports, module) {
                         tolerance: 1
                     });
                 });
-//                it("should wrap around max hue on shift up arrow", function () {
-//                    testKey({
-//                        color:     "hsla(360, 25%, 50%, 0.5)",
-//                        item:      "$hueBase",
-//                        key:       KeyEvent.DOM_VK_UP,
-//                        shift:     true,
-//                        param:     "h",
-//                        delta:     -360 + 18,
-//                        tolerance: 1
-//                    });
-//                });
+                it("should wrap around max hue on shift up arrow", function () {
+                    testKey({
+                        color:     "hsla(359, 25%, 50%, 0.5)",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_UP,
+                        shift:     true,
+                        param:     "h",
+                        delta:     -359 + 18,
+                        tolerance: 1
+                    });
+                });
                 it("should decrease hue by 3.6 on down arrow", function () {
                     testKey({
                         item:      "$hueBase",
@@ -918,16 +917,16 @@ define(function (require, exports, module) {
                         tolerance: 1
                     });
                 });
-//                it("should wrap around min hue on down arrow", function () {
-//                    testKey({
-//                        color:     "hsla(0, 25%, 50%, 0.5)",
-//                        item:      "$hueBase",
-//                        key:       KeyEvent.DOM_VK_DOWN,
-//                        param:     "h",
-//                        delta:     360 - 3.6,
-//                        tolerance: 1
-//                    });
-//                });
+                it("should wrap around min hue on down arrow", function () {
+                    testKey({
+                        color:     "hsla(0, 25%, 50%, 0.5)",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_DOWN,
+                        param:     "h",
+                        delta:     360 - 3.6,
+                        tolerance: 1
+                    });
+                });
                 it("should decrease hue by 18 on shift down arrow", function () {
                     testKey({
                         item:      "$hueBase",
@@ -938,17 +937,17 @@ define(function (require, exports, module) {
                         tolerance: 1
                     });
                 });
-//                it("should wrap around min hue on shift down arrow", function () {
-//                    testKey({
-//                        color:     "hsla(0, 25%, 50%, 0.5)",
-//                        item:      "$hueBase",
-//                        key:       KeyEvent.DOM_VK_DOWN,
-//                        shift:     true,
-//                        param:     "h",
-//                        delta:     360 - 18,
-//                        tolerance: 1
-//                    });
-//                });
+                it("should wrap around min hue on shift down arrow", function () {
+                    testKey({
+                        color:     "hsla(0, 25%, 50%, 0.5)",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_DOWN,
+                        shift:     true,
+                        param:     "h",
+                        delta:     360 - 18,
+                        tolerance: 1
+                    });
+                });
                 it("should increase opacity by 0.01 on up arrow", function () {
                     testKey({
                         item:      "$opacitySelector",
