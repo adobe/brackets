@@ -438,8 +438,9 @@ define(function (require, exports, module) {
         case KeyEvent.DOM_VK_TAB:
             if (!event.shiftKey) {
                 this.$selectionBase.focus();
+                return false;
             }
-            return false;
+            break;
         default:
             this.handleKeydown(event);
             break;
@@ -479,8 +480,9 @@ define(function (require, exports, module) {
                 } else {
                     $(this.$swatches).find(".value:last").focus();
                 }
+                return false;
             }
-            return false;
+            break;
         default:
             this.handleKeydown(event);
             break;
