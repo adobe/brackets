@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         this.swatches = swatches;
         this.bindKeyHandler = this.bindKeyHandler.bind(this);
 
+        this.handleKeydown = this.handleKeydown.bind(this);
         this.handleOpacityKeydown = this.handleOpacityKeydown.bind(this);
         this.handleHueKeydown = this.handleHueKeydown.bind(this);
         this.handleSelectionKeydown = this.handleSelectionKeydown.bind(this);
@@ -90,10 +91,18 @@ define(function (require, exports, module) {
         this.bindKeyHandler(this.$hueBase, this.handleHueKeydown);
         this.bindKeyHandler(this.$opacitySelector, this.handleOpacityKeydown);
         
+        // Bind the undo/redo key handler to other buttons that take focus but
+        // don't have their own key handlers.
+        this.bindKeyHandler(this.$colorValue, this.handleKeydown);
+        this.bindKeyHandler(this.$rgbaButton, this.handleKeydown);
+        this.bindKeyHandler(this.$hexButton, this.handleKeydown);
+        
         // Bind key handler to HSLa button only if we don't have any color swatches
         // and this becomes the last UI element in the tab loop.
         if ($(this.$swatches).children().length === 0) {
             this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
+        } else {
+            this.bindKeyHandler(this.$hslButton, this.handleKeydown);
         }
     };
 
@@ -286,6 +295,8 @@ define(function (require, exports, module) {
                     _this.$selectionBase.focus();
                     return false;
                 }
+            } else {
+                return _this.handleKeydown(event);
             }
         });
 
@@ -401,7 +412,7 @@ define(function (require, exports, module) {
     };
     
     ColorEditor.prototype.undo = function () {
-        if (!tinycolor.equals(this.lastColor, this.color)) {
+        if (this.lastColor.toString() !== this.color.toString()) {
             var curColor = this.color.toString();
             this.commitColor(this.lastColor, true);
             this.redoColor = curColor;
@@ -442,8 +453,7 @@ define(function (require, exports, module) {
             }
             break;
         default:
-            this.handleKeydown(event);
-            break;
+            return this.handleKeydown(event);
         }
     };
 
@@ -484,8 +494,7 @@ define(function (require, exports, module) {
             }
             break;
         default:
-            this.handleKeydown(event);
-            break;
+            return this.handleKeydown(event);
         }
     };
 
@@ -510,8 +519,7 @@ define(function (require, exports, module) {
             }
             return false;
         default:
-            this.handleKeydown(event);
-            break;
+            return this.handleKeydown(event);
         }
     };
 
@@ -536,8 +544,7 @@ define(function (require, exports, module) {
             }
             return false;
         default:
-            this.handleKeydown(event);
-            break;
+            return this.handleKeydown(event);
         }
     };
 

@@ -81,6 +81,22 @@ define(function (require, exports, module) {
             });
         }
         
+        /**
+         * Simulate the given event with clientX/clientY specified by the given
+         * ratios of the item's actual width/height (offset by the left/top of the
+         * item).
+         * @param {string} event The name of the event to simulate.
+         * @param {object} $item A jQuery object to trigger the event on.
+         * @param {Array.<number>} ratios Numbers between 0 and 1 indicating the x and y positions of the
+         *      event relative to the item's width and height.
+         */
+        function eventAtRatio(event, $item, ratios) {
+            $item.trigger($.Event(event, {
+                clientX: $item.offset().left + (ratios[0] * $item.width()),
+                clientY: $item.offset().top + (ratios[1] * $item.height())
+            }));
+        }
+                
         describe("Inline editor - CSS", function () {
 
             beforeEach(function () {
@@ -468,22 +484,6 @@ define(function (require, exports, module) {
             });
             
             describe("parameter editing with mouse", function () {
-                
-                /**
-                 * Simulate the given event with clientX/clientY specified by the given
-                 * ratios of the item's actual width/height (offset by the left/top of the
-                 * item).
-                 * @param {string} event The name of the event to simulate.
-                 * @param {object} $item A jQuery object to trigger the event on.
-                 * @param {Array.<number>} ratios Numbers between 0 and 1 indicating the x and y positions of the
-                 *      event relative to the item's width and height.
-                 */
-                function eventAtRatio(event, $item, ratios) {
-                    $item.trigger($.Event(event, {
-                        clientX: $item.offset().left + (ratios[0] * $item.width()),
-                        clientY: $item.offset().top + (ratios[1] * $item.height())
-                    }));
-                }
                 
                 /**
                  * Test a mouse down event on the given UI element.
@@ -1152,6 +1152,74 @@ define(function (require, exports, module) {
                         triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Y);
                         triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
                         expect(tinycolor(colorEditor.color).toString()).toBe("#abcdef");
+                    });
+                });
+
+                it("should undo an rgba conversion", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.$rgbaButton.click();
+                        triggerCtrlKey(colorEditor.$rgbaButton, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#abcdef");
+                    });
+                });
+                it("should undo an hsla conversion", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.$hslButton.click();
+                        triggerCtrlKey(colorEditor.$hslButton, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#abcdef");
+                    });
+                });
+                it("should undo a hex conversion", function () {
+                    makeUI("rgba(12, 32, 65, 0.2)");
+                    runs(function () {
+                        colorEditor.$hexButton.trigger("click");
+                        triggerCtrlKey(colorEditor.$hexButton, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(12, 32, 65, 0.2)");
+                    });
+                });
+
+                it("should undo a saturation/value change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        eventAtRatio("mousedown", colorEditor.$selectionBase, [0.5, 0.5]);
+                        triggerCtrlKey(colorEditor.$selectionBase, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                it("should undo a hue change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        eventAtRatio("mousedown", colorEditor.$hueBase, [0, 0.5]);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                it("should undo an opacity change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        eventAtRatio("mousedown", colorEditor.$opacitySelector, [0, 0.5]);
+                        triggerCtrlKey(colorEditor.$opacitySelector, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                
+                it("should undo a text field change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        colorEditor.$colorValue.val("rgba(50, 50, 50, 0.9)");
+                        triggerCtrlKey(colorEditor.$colorValue, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                it("should undo a swatch click", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        var $swatch = $(colorEditor.$swatches.find("li")[0]);
+                        $swatch.trigger("click");
+                        triggerCtrlKey($swatch, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
                     });
                 });
 
