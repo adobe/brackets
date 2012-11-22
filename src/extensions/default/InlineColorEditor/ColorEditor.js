@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         this.swatches = swatches;
         this.bindKeyHandler = this.bindKeyHandler.bind(this);
 
+        this.handleKeydown = this.handleKeydown.bind(this);
         this.handleOpacityKeydown = this.handleOpacityKeydown.bind(this);
         this.handleHueKeydown = this.handleHueKeydown.bind(this);
         this.handleSelectionKeydown = this.handleSelectionKeydown.bind(this);
@@ -49,6 +50,7 @@ define(function (require, exports, module) {
 
         this.color = tinycolor(color);
         this.lastColor = color;
+        this.redoColor = null;
         this.$element = $(this.element);
         this.$colorValue = this.$element.find(".color_value");
         this.$buttonList = this.$element.find("ul.button-bar");
@@ -89,10 +91,18 @@ define(function (require, exports, module) {
         this.bindKeyHandler(this.$hueBase, this.handleHueKeydown);
         this.bindKeyHandler(this.$opacitySelector, this.handleOpacityKeydown);
         
+        // Bind the undo/redo key handler to other buttons that take focus but
+        // don't have their own key handlers.
+        this.bindKeyHandler(this.$colorValue, this.handleKeydown);
+        this.bindKeyHandler(this.$rgbaButton, this.handleKeydown);
+        this.bindKeyHandler(this.$hexButton, this.handleKeydown);
+        
         // Bind key handler to HSLa button only if we don't have any color swatches
         // and this becomes the last UI element in the tab loop.
         if ($(this.$swatches).children().length === 0) {
             this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
+        } else {
+            this.bindKeyHandler(this.$hslButton, this.handleKeydown);
         }
     };
 
@@ -285,6 +295,8 @@ define(function (require, exports, module) {
                     _this.$selectionBase.focus();
                     return false;
                 }
+            } else {
+                return _this.handleKeydown(event);
             }
         });
 
@@ -336,6 +348,7 @@ define(function (require, exports, module) {
             this.hsv = colorObj.toHsv();
             this.color = colorObj;
         }
+        this.redoColor = null;
         this.synchronize();
     };
 
@@ -397,6 +410,39 @@ define(function (require, exports, module) {
             $(window).bind("mouseup", mouseupHandler);
         });
     };
+    
+    ColorEditor.prototype.undo = function () {
+        if (this.lastColor.toString() !== this.color.toString()) {
+            var curColor = this.color.toString();
+            this.commitColor(this.lastColor, true);
+            this.redoColor = curColor;
+        }
+    };
+
+    ColorEditor.prototype.redo = function () {
+        if (this.redoColor) {
+            this.commitColor(this.redoColor, true);
+            this.redoColor = null;
+        }
+    };
+
+    ColorEditor.prototype.handleKeydown = function (event) {
+        var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
+        if (hasCtrl) {
+            switch (event.keyCode) {
+            case KeyEvent.DOM_VK_Z:
+                if (event.shiftKey) {
+                    this.redo();
+                } else {
+                    this.undo();
+                }
+                return false;
+            case KeyEvent.DOM_VK_Y:
+                this.redo();
+                return false;
+            }
+        }
+    };
 
     ColorEditor.prototype.handleHslKeydown = function (event) {
         switch (event.keyCode) {
@@ -406,6 +452,8 @@ define(function (require, exports, module) {
                 return false;
             }
             break;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
@@ -445,6 +493,8 @@ define(function (require, exports, module) {
                 return false;
             }
             break;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
@@ -468,6 +518,8 @@ define(function (require, exports, module) {
                 this.setColorAsHsv(hsv);
             }
             return false;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
@@ -491,6 +543,8 @@ define(function (require, exports, module) {
                 this.setColorAsHsv(hsv);
             }
             return false;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
