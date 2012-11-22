@@ -49,6 +49,7 @@ define(function CSSDocumentModule(require, exports, module) {
     "use strict";
 
     var CSSAgent        = require("LiveDevelopment/Agents/CSSAgent"),
+        CSSUtils        = require("language/CSSUtils"),
         EditorManager   = require("editor/EditorManager"),
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -78,7 +79,6 @@ define(function CSSDocumentModule(require, exports, module) {
         if (doc.isDirty) {
             CSSAgent.reloadCSSForDocument(this.doc);
         }
-        this.reloadRules();
         
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
         $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
@@ -146,45 +146,13 @@ define(function CSSDocumentModule(require, exports, module) {
             this.editor = null;
         }
     };
-    
-    // Reload rules
-    CSSDocument.prototype.reloadRules = function () {
-        this.loadRulePromise = this.getStyleSheetFromBrowser().done(function (styleSheet) {
-            this.rules = styleSheet.rules;
-            this.loadRulePromise = null;
-            if (this.pendingCursorActivity) {
-                this.pendingCursorActivity = false;
-                this.onCursorActivity();
-            }
-        }.bind(this));
-    };
-    
-    // find a rule in the given rules
-    CSSDocument.prototype.ruleAtLocation = function ruleAtLocation(location) {
-        var i, rule;
-        for (i in this.rules) {
-            rule = this.rules[i];
-            if (rule.selectorRange.start <= location && location <= rule.style.range.end) {
-                return rule;
-            }
-        }
-        return null;
-    };
 
     CSSDocument.prototype.updateHighlight = function () {
-        if (Inspector.config.highlight) {
-            // If there is an active loadRulePromise, we can't accurately get the rule
-            // at the location. Set a flag here so we can get called again once the
-            // rules have arrived.
-            if (this.loadRulePromise) {
-                this.pendingCursorActivity = true;
-                return;
-            }
+        if (Inspector.config.highlight && this.editor) {
             var codeMirror = this.editor._codeMirror;
-            var location = codeMirror.indexFromPos(codeMirror.getCursor());
-            var rule = this.ruleAtLocation(location);
-            if (rule) {
-                HighlightAgent.rule(rule.selectorText);
+            var selector = CSSUtils.findSelectorAtDocumentPos(this.editor, codeMirror.getCursor());
+            if (selector) {
+                HighlightAgent.rule(selector);
             } else {
                 HighlightAgent.hide();
             }
@@ -202,7 +170,6 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
         CSSAgent.reloadCSSForDocument(this.doc);
-        this.reloadRules();
         if (Inspector.config.highlight) {
             HighlightAgent.redraw();
         }

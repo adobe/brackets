@@ -41,3 +41,11 @@ a {
         color: maroon;
     }
 }
+
+/* rules inside a comment */
+/* p { color: "black" } */
+div {
+    color: "white";
+    /* nested comment */
+    /* border: none */
+}
