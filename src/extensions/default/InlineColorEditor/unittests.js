@@ -45,42 +45,26 @@ define(function (require, exports, module) {
 
     describe("Inline Color Editor - unit", function () {
 
-        var testDocument, testEditor;
+        var testDocument, testEditor, inline;
         
         /**
          * Creates an inline color editor connected to the given cursor position in the test editor.
          * Note that this does *not* actually open it as an inline editor in the test editor.
+         * Tests that use this must wrap their contents in a runs() block.
          * @param {!{line:number, ch: number}} cursor Position for which to open the inline editor.
-         * @return {object} A promise that is resolved with the created inline editor, or rejected
          * if the provider did not create an inline editor.
          */
         function makeColorEditor(cursor) {
-            var result = new $.Deferred(),
-                editorPromise,
-                inline;
-            
             runs(function () {
-                editorPromise = provider(testEditor, cursor);
-                if (editorPromise) {
-                    editorPromise.done(function (inlineResult) {
+                var promise = provider(testEditor, cursor);
+                if (promise) {
+                    promise.done(function (inlineResult) {
                         inlineResult.onAdded();
                         inline = inlineResult;
                     });
-                    waitsForDone(editorPromise, "open color editor");
-                } else {
-                    result.reject();
+                    waitsForDone(promise, "open color editor");
                 }
             });
-            
-            // This runs block will execute after either the waitsForDone() in the block above
-            // completes, or the result is already rejected (because no promise was returned
-            // from the provider).
-            runs(function () {
-                if (!result.isRejected()) {
-                    result.resolve(inline);
-                }
-            });
-            return result.promise();
         }
             
         /**
@@ -90,12 +74,29 @@ define(function (require, exports, module) {
          * @param {string} color The expected color.
          */
         function testOpenColor(cursor, color) {
-            makeColorEditor(cursor).done(function (inline) {
+            makeColorEditor(cursor);
+            runs(function () {
                 expect(inline).toBeTruthy();
                 expect(inline.color).toBe(color);
             });
         }
         
+        /**
+         * Simulate the given event with clientX/clientY specified by the given
+         * ratios of the item's actual width/height (offset by the left/top of the
+         * item).
+         * @param {string} event The name of the event to simulate.
+         * @param {object} $item A jQuery object to trigger the event on.
+         * @param {Array.<number>} ratios Numbers between 0 and 1 indicating the x and y positions of the
+         *      event relative to the item's width and height.
+         */
+        function eventAtRatio(event, $item, ratios) {
+            $item.trigger($.Event(event, {
+                clientX: $item.offset().left + (ratios[0] * $item.width()),
+                clientY: $item.offset().top + (ratios[1] * $item.height())
+            }));
+        }
+                
         describe("Inline editor - CSS", function () {
 
             beforeEach(function () {
@@ -108,6 +109,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
+                inline = null;
             });
          
             describe("simple open cases", function () {
@@ -144,18 +146,21 @@ define(function (require, exports, module) {
                 });
                 
                 it("should not open when not on a color", function () {
-                    makeColorEditor({line: 1, ch: 6}).done(function (inline) {
-                        expect(inline).toBeNull();
+                    makeColorEditor({line: 1, ch: 6});
+                    runs(function () {
+                        expect(inline).toEqual(null);
                     });
                 });
                 it("should not open when on an invalid color", function () {
-                    makeColorEditor({line: 25, ch: 18}).done(function (inline) {
-                        expect(inline).toBeNull();
+                    makeColorEditor({line: 25, ch: 18});
+                    runs(function () {
+                        expect(inline).toEqual(null);
                     });
                 });
                 it("should not open when on an hsl color with missing percent signs", function () {
-                    makeColorEditor({line: 37, ch: 18}).done(function (inline) {
-                        expect(inline).toBeNull();
+                    makeColorEditor({line: 37, ch: 18});
+                    runs(function (inline) {
+                        expect(inline).toEqual(null);
                     });
                 });
                 
@@ -168,15 +173,14 @@ define(function (require, exports, module) {
                         spyOn(testDocument, "addRef").andCallThrough();
                         spyOn(testDocument, "releaseRef").andCallThrough();
                     });
+                    makeColorEditor({line: 1, ch: 18});
                     runs(function () {
-                        makeColorEditor({line: 1, ch: 18}).done(function (inline) {
-                            expect(testDocument.addRef).toHaveBeenCalled();
-                            expect(testDocument.addRef.callCount).toBe(1);
-                            
-                            inline.onClosed();
-                            expect(testDocument.releaseRef).toHaveBeenCalled();
-                            expect(testDocument.releaseRef.callCount).toBe(1);
-                        });
+                        expect(testDocument.addRef).toHaveBeenCalled();
+                        expect(testDocument.addRef.callCount).toBe(1);
+                        
+                        inline.onClosed();
+                        expect(testDocument.releaseRef).toHaveBeenCalled();
+                        expect(testDocument.releaseRef.callCount).toBe(1);
                     });
                 });
                 
@@ -185,21 +189,24 @@ define(function (require, exports, module) {
             describe("update host document on edit in color editor", function () {
                 
                 it("should update host document when change is committed in color editor", function () {
-                    makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
                         inline.colorEditor.commitColor("#c0c0c0", false);
                         expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#c0c0c0");
                     });
                 });
                 
                 it("should update correct range of host document with color format of different length", function () {
-                    makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
                         inline.colorEditor.commitColor("rgb(20, 20, 20)", false);
                         expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 31})).toBe("rgb(20, 20, 20)");
                     });
                 });
     
                 it("should not invalidate range when change is committed", function () {
-                    makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
                         inline.colorEditor.commitColor("rgb(20, 20, 20)", false);
                         expect(inline.getCurrentRange()).not.toBeNull();
                     });
@@ -210,7 +217,8 @@ define(function (require, exports, module) {
             describe("update color editor on edit in host editor", function () {
                 
                 it("should update when edit is made to color range in host editor", function () {
-                    makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
                         spyOn(inline, "close");
         
                         testDocument.replaceRange("0", {line: 1, ch: 18}, {line: 1, ch: 19});
@@ -222,7 +230,8 @@ define(function (require, exports, module) {
                 });
                 
                 it("should close itself if edit is made that destroys end bookmark and leaves color invalid", function () {
-                    makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
                         spyOn(inline, "close");
                         
                         // Replace everything including the semicolon, so it crosses the bookmark boundary.
@@ -232,7 +241,8 @@ define(function (require, exports, module) {
                 });
                 
                 it("should maintain the range if the user deletes the last character of the color and types a new one", function () {
-                    makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
                         spyOn(inline, "close");
         
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
@@ -244,7 +254,8 @@ define(function (require, exports, module) {
                 });
                 
                 it("should not update the end bookmark to a shorter valid match if the bookmark still exists and the color becomes invalid", function () {
-                    makeColorEditor({line: 1, ch: 18}).done(function (inline) {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
                         expect(inline.color).toBe("#abcde");
                         expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
@@ -330,7 +341,7 @@ define(function (require, exports, module) {
                                               swatches || defaultSwatches);
                 $(document.body).append($container);
             }
-            
+                        
             afterEach(function () {
                 $container.remove();
             });
@@ -473,22 +484,6 @@ define(function (require, exports, module) {
             });
             
             describe("parameter editing with mouse", function () {
-                
-                /**
-                 * Simulate the given event with clientX/clientY specified by the given
-                 * ratios of the item's actual width/height (offset by the left/top of the
-                 * item).
-                 * @param {string} event The name of the event to simulate.
-                 * @param {object} $item A jQuery object to trigger the event on.
-                 * @param {Array.<number>} ratios Numbers between 0 and 1 indicating the x and y positions of the
-                 *      event relative to the item's width and height.
-                 */
-                function eventAtRatio(event, $item, ratios) {
-                    $item.trigger($.Event(event, {
-                        clientX: $item.offset().left + (ratios[0] * $item.width()),
-                        clientY: $item.offset().top + (ratios[1] * $item.height())
-                    }));
-                }
                 
                 /**
                  * Test a mouse down event on the given UI element.
@@ -1092,6 +1087,142 @@ define(function (require, exports, module) {
                     expect(colorEditor._normalizeColorString("rgb(25%,50%,75%)")).toBe("rgb(64, 128, 191)");
                     expect(colorEditor._normalizeColorString("rgb(10,20,   30)")).toBe("rgb(10, 20, 30)");
                 });
+            });
+            
+            describe("undo/redo", function () {
+                
+                function triggerCtrlKey($element, key, shift) {
+                    var ctrlKeyProperty = (brackets.platform === "win" ? "ctrlKey" : "metaKey"),
+                        eventProps = {keyCode: key, shiftKey: shift};
+                    eventProps[ctrlKeyProperty] = true;
+                    $element.trigger($.Event("keydown", eventProps));
+                }
+                
+                it("should undo when Ctrl-Z is pressed on a focused element in the color editor", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.commitColor("#a0a0a0", true);
+                        colorEditor.$hueBase.focus();
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#abcdef");
+                    });
+                });
+
+                it("should redo when Ctrl-Shift-Z is pressed on a focused element in the color editor", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.commitColor("#a0a0a0", true);
+                        colorEditor.$hueBase.focus();
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z, true);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#a0a0a0");
+                    });
+                });
+                
+                it("should redo when Ctrl-Y is pressed on a focused element in the color editor", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.commitColor("#a0a0a0", true);
+                        colorEditor.$hueBase.focus();
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Y);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#a0a0a0");
+                    });
+                });
+                
+                it("should redo when Ctrl-Y is pressed after two Ctrl-Zs (only one Ctrl-Z should take effect)", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.commitColor("#a0a0a0", true);
+                        colorEditor.$hueBase.focus();
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Y);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#a0a0a0");
+                    });
+                });
+
+                it("should undo when Ctrl-Z is pressed after two Ctrl-Ys (only one Ctrl-Y should take effect)", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.commitColor("#a0a0a0", true);
+                        colorEditor.$hueBase.focus();
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Y);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Y);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#abcdef");
+                    });
+                });
+
+                it("should undo an rgba conversion", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.$rgbaButton.click();
+                        triggerCtrlKey(colorEditor.$rgbaButton, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#abcdef");
+                    });
+                });
+                it("should undo an hsla conversion", function () {
+                    makeUI("#abcdef");
+                    runs(function () {
+                        colorEditor.$hslButton.click();
+                        triggerCtrlKey(colorEditor.$hslButton, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("#abcdef");
+                    });
+                });
+                it("should undo a hex conversion", function () {
+                    makeUI("rgba(12, 32, 65, 0.2)");
+                    runs(function () {
+                        colorEditor.$hexButton.trigger("click");
+                        triggerCtrlKey(colorEditor.$hexButton, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(12, 32, 65, 0.2)");
+                    });
+                });
+
+                it("should undo a saturation/value change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        eventAtRatio("mousedown", colorEditor.$selectionBase, [0.5, 0.5]);
+                        triggerCtrlKey(colorEditor.$selectionBase, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                it("should undo a hue change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        eventAtRatio("mousedown", colorEditor.$hueBase, [0, 0.5]);
+                        triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                it("should undo an opacity change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        eventAtRatio("mousedown", colorEditor.$opacitySelector, [0, 0.5]);
+                        triggerCtrlKey(colorEditor.$opacitySelector, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                
+                it("should undo a text field change", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        colorEditor.$colorValue.val("rgba(50, 50, 50, 0.9)");
+                        triggerCtrlKey(colorEditor.$colorValue, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+                it("should undo a swatch click", function () {
+                    makeUI("rgba(100, 150, 200, 0.3)");
+                    runs(function () {
+                        var $swatch = $(colorEditor.$swatches.find("li")[0]);
+                        $swatch.trigger("click");
+                        triggerCtrlKey($swatch, KeyEvent.DOM_VK_Z);
+                        expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                    });
+                });
+
             });
         });
     });
