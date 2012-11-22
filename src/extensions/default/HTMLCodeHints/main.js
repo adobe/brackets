@@ -337,7 +337,8 @@ define(function (require, exports, module) {
             if (!this.cachedHints.query ||
                     this.cachedHints.query.tag !== query.tag ||
                     this.cachedHints.query.attrName !== query.attrName ||
-                    this.cachedHints.queryDir !== queryDir) {
+                    this.cachedHints.queryDir !== queryDir ||
+                    this.cachedHints.docDir !== docDir) {
 
                 // delete stale cache
                 this.cachedHints = null;
@@ -373,6 +374,7 @@ define(function (require, exports, module) {
                     self.cachedHints.unfiltered = unfiltered;
                     self.cachedHints.query      = query;
                     self.cachedHints.queryDir   = queryDir;
+                    self.cachedHints.docDir     = docDir;
 
                     // If the editor has not changed, then re-initiate code hints. Cached data
                     // is still valid for folder even if we're not going to show it now.
