@@ -453,6 +453,38 @@ define(function (require, exports, module) {
             
         });
         
+        describe("findSelectorAtDocumentPos beginning, middle and end of selector", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, groupsFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+            
+            it("should find selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 0});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should find selector when pos is in the middle of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 3});
+                expect(selector).toEqual('h3, h2, h1');
+            });
+            
+            it("should find selector when pos is at the end of a selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 10});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should not find selector when pos is before a selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual("");
+            });
+            
+        });
+        
     }); // describe("CSSUtils")
 
     
