@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        TokenUtils          = require("utils/TokenUtils");
 
     /**
      * Extracts all CSS selectors from the given text
@@ -569,8 +570,111 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Returns the selector(s) of the rule at the specified document pos, or "" if the position is 
+     * is not within a style rule.
+     *
+     * @param {!Editor} editor Editor to search
+     * @param {!{line: number, ch: number}} pos Position to search
+     * @return {string} Selector(s) for the rule at the specified position, or "" if the position
+     *          is not within a style rule. If the rule has multiple selectors, a comma-separated
+     *          selector string is returned.
+     */
+    function findSelectorAtDocumentPos(editor, pos) {
+        var cm = editor._codeMirror;
+        var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        var selector = "", inSelector = false, foundChars = false;
+
+        function _stripAtRules(selector) {
+            selector = selector.trim();
+            if (selector.indexOf("@") === 0) {
+                return "";
+            }
+            return selector;
+        }
+        
+        // Parse a selector. Assumes ctx is pointing at the opening
+        // { that is after the selector name.
+        function _parseSelector(ctx) {
+            var selector = "";
+            
+            // Skip over {
+            TokenUtils.movePrevToken(ctx);
+            
+            while (true) {
+                if (ctx.token.className !== "comment") {
+                    // Stop once we've reached a {, }, or ;
+                    if (/[\{\}\;]/.test(ctx.token.string)) {
+                        break;
+                    }
+                    selector = ctx.token.string + selector;
+                }
+                if (!TokenUtils.movePrevToken(ctx)) {
+                    break;
+                }
+            }
+            
+            return selector;
+        }
+        
+        // scan backwards to see if the cursor is in a rule
+        while (true) {
+            if (ctx.token.className !== "comment") {
+                if (ctx.token.string === "}") {
+                    break;
+                } else if (ctx.token.string === "{") {
+                    selector = _parseSelector(ctx);
+                    break;
+                } else {
+                    if (ctx.token.string.trim() !== "") {
+                        foundChars = true;
+                    }
+                }
+            }
+            
+            if (!TokenUtils.movePrevToken(ctx)) {
+                break;
+            }
+        }
+        
+        selector = _stripAtRules(selector);
+        
+        // Reset the context to original scan position
+        ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        
+        // special case - we aren't in a selector and haven't found any chars,
+        // look at the next immediate token to see if it is non-whitespace
+        if (!selector && !foundChars) {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.className !== "comment" && ctx.token.string.trim() !== "") {
+                foundChars = true;
+                ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+            }
+        }
+        
+        // At this point if we haven't found a selector, but have seen chars when
+        // scanning, assume we are in the middle of a selector.
+        if (!selector && foundChars) {
+            // scan forward to see if the cursor is in a selector
+            while (true) {
+                if (ctx.token.className !== "comment") {
+                    if (ctx.token.string === "{") {
+                        selector = _parseSelector(ctx);
+                        break;
+                    } else if (ctx.token.string === "}" || ctx.token.string === ";") {
+                        break;
+                    }
+                }
+                if (!TokenUtils.moveNextToken(ctx)) {
+                    break;
+                }
+            }
+        }
+        
+        return _stripAtRules(selector);
+    }
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
+    exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
 });
