@@ -527,6 +527,7 @@ define(function (require, exports, module) {
     
     /**
      * Refreshes the height of the inline editor and all child editors.
+     * @override
      */
     MultiRangeInlineEditor.prototype.refresh = function () {
         this.sizeInlineWidgetToContents(true);
