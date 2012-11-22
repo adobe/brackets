@@ -593,25 +593,38 @@ define(function (require, exports, module) {
             return selector;
         }
         
+        // Extract a selector. Assumes ctx is pointing at the opening
+        // { that is after the selector name.
+        function _extractSelector(ctx) {
+            var selector = "";
+            
+            // Skip over {
+            TokenUtils.movePrevToken(ctx);
+            
+            while (true) {
+                if (ctx.token.className !== "comment") {
+                    // Stop once we've reached a {, }, or ;
+                    if (/[\{\}\;]/.test(ctx.token.string)) {
+                        break;
+                    }
+                    selector = ctx.token.string + selector;
+                }
+                if (!TokenUtils.movePrevToken(ctx)) {
+                    break;
+                }
+            }
+            
+            return selector;
+        }
+        
         // scan backwards to see if the cursor is in a rule
         while (true) {
             if (ctx.token.className !== "comment") {
                 if (ctx.token.string === "}") {
                     break;
                 } else if (ctx.token.string === "{") {
-                    // If we're already in a selector and found another {,
-                    // stop looking. This happens when pos is inside the selector
-                    // of the first rule in a media query
-                    if (inSelector) {
-                        break;
-                    }
-                    inSelector = true;
-                } else if (inSelector) {
-                    // If we're in a selector and see a ;, stop
-                    if (ctx.token.string === ";") {
-                        break;
-                    }
-                    selector = ctx.token.string + selector;
+                    selector = _extractSelector(ctx);
+                    break;
                 } else {
                     if (ctx.token.string.trim() !== "") {
                         foundChars = true;
@@ -626,6 +639,7 @@ define(function (require, exports, module) {
         
         selector = _stripAtRules(selector);
         
+        // Reset the context to original scan position
         ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
         
         // special case - we aren't in a selector and haven't found any chars,
@@ -637,27 +651,16 @@ define(function (require, exports, module) {
             }
         }
         
+        // At this point if we haven't found a selector, but have seen chars when
+        // scanning, assume we are in the middle of a selector.
         if (!selector && foundChars) {
             // scan forward to see if the cursor is in a selector
             while (true) {
                 if (ctx.token.className !== "comment") {
                     if (ctx.token.string === "{") {
-                        // Move backwards until we hit { or }
-                        TokenUtils.movePrevToken(ctx);
-                        while (true) {
-                            if (ctx.token.className !== "comment") {
-                                if (ctx.token.string === "}" || ctx.token.string === "{") {
-                                    return _stripAtRules(selector);
-                                }
-                                
-                                selector = ctx.token.string + selector;
-                            }
-                            
-                            if (!TokenUtils.movePrevToken(ctx)) {
-                                return _stripAtRules(selector);
-                            }
-                        }
-                    } else if (ctx.token.string === "}") {
+                        selector = _extractSelector(ctx);
+                        break;
+                    } else if (ctx.token.string === "}" || ctx.token.string === ";") {
                         break;
                     }
                 }
