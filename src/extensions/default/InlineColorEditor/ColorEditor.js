@@ -270,8 +270,8 @@ define(function (require, exports, module) {
         this.swatches.forEach(function (swatch) {
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
-            _this.$swatches.append("<li><div class='swatch_bg'><div class='swatch' style='background-color: " +
-                    swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " tabindex='0' title='" +
+            _this.$swatches.append("<li tabindex='0'><div class='swatch_bg'><div class='swatch' style='background-color: " +
+                    swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
         });
 
