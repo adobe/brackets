@@ -593,9 +593,9 @@ define(function (require, exports, module) {
             return selector;
         }
         
-        // Extract a selector. Assumes ctx is pointing at the opening
+        // Parse a selector. Assumes ctx is pointing at the opening
         // { that is after the selector name.
-        function _extractSelector(ctx) {
+        function _parseSelector(ctx) {
             var selector = "";
             
             // Skip over {
@@ -623,7 +623,7 @@ define(function (require, exports, module) {
                 if (ctx.token.string === "}") {
                     break;
                 } else if (ctx.token.string === "{") {
-                    selector = _extractSelector(ctx);
+                    selector = _parseSelector(ctx);
                     break;
                 } else {
                     if (ctx.token.string.trim() !== "") {
@@ -658,7 +658,7 @@ define(function (require, exports, module) {
             while (true) {
                 if (ctx.token.className !== "comment") {
                     if (ctx.token.string === "{") {
-                        selector = _extractSelector(ctx);
+                        selector = _parseSelector(ctx);
                         break;
                     } else if (ctx.token.string === "}" || ctx.token.string === ";") {
                         break;
