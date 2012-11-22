@@ -425,10 +425,10 @@ define(function (require, exports, module) {
                 } else {
                     this.undo();
                 }
-                break;
+                return false;
             case KeyEvent.DOM_VK_Y:
                 this.redo();
-                break;
+                return false;
             }
         }
     };
@@ -439,7 +439,7 @@ define(function (require, exports, module) {
             if (!event.shiftKey) {
                 this.$selectionBase.focus();
             }
-            break;
+            return false;
         default:
             this.handleKeydown(event);
             break;
@@ -462,7 +462,7 @@ define(function (require, exports, module) {
             xOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.s = xOffset / 100;
             this.setColorAsHsv(hsv, false);
-            break;
+            return false;
         case KeyEvent.DOM_VK_DOWN:
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
@@ -471,7 +471,7 @@ define(function (require, exports, module) {
             yOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.v = yOffset / 100;
             this.setColorAsHsv(hsv, false);
-            break;
+            return false;
         case KeyEvent.DOM_VK_TAB:
             if (event.shiftKey) {
                 if ($(this.$swatches).children().length === 0) {
@@ -480,7 +480,7 @@ define(function (require, exports, module) {
                     $(this.$swatches).find(".value:last").focus();
                 }
             }
-            break;
+            return false;
         default:
             this.handleKeydown(event);
             break;
@@ -499,14 +499,14 @@ define(function (require, exports, module) {
                 hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
                 this.setColorAsHsv(hsv);
             }
-            break;
+            return false;
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (hue < 360) {
                 hsv.h = (hue + step) >= 360 ? step : hue + step;
                 this.setColorAsHsv(hsv);
             }
-            break;
+            return false;
         default:
             this.handleKeydown(event);
             break;
@@ -525,14 +525,14 @@ define(function (require, exports, module) {
                 hsv.a = (alpha - step) <= 0 ? 0 : alpha - step;
                 this.setColorAsHsv(hsv);
             }
-            break;
+            return false;
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (alpha < 100) {
                 hsv.a = (alpha + step) >= 1 ? 1 : alpha + step;
                 this.setColorAsHsv(hsv);
             }
-            break;
+            return false;
         default:
             this.handleKeydown(event);
             break;
