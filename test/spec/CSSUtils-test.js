@@ -327,127 +327,127 @@ define(function (require, exports, module) {
         });
         
         describe("findSelectorAtDocumentPos selector groups", function () {
-            var doc;
+            var editor;
             
             beforeEach(function () {
                 init(this, groupsFileEntry);
                 runs(function () {
-                    doc = SpecRunnerUtils.createMockDocument(this.fileCssContent);
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
             });
             
             it("should find the selector at a document pos", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 9, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 9, ch: 0});
                 expect(selector).toEqual("h1");
             });
             
             it("should return empty string if selection is not in a style rule", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 11, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
                 expect(selector).toEqual("");
             });
             
             it("should return a comma separated string of all selectors for the rule", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 13, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 13, ch: 0});
                 expect(selector).toEqual("h3, h2, h1");
             });
             
             it("should support multiple rules on the same line", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 31, ch: 24});
-                expect(selector).toEqual(".g, .h");
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 31, ch: 24});
+                expect(selector).toEqual(".g,.h");
             });
             
             it("should support multiple rules on multiple lines", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 28, ch: 0});
-                expect(selector).toEqual(".a, .b, .c, .d");
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 28, ch: 0});
+                expect(selector).toEqual(".a,.b, .c,.d");
             });
         });
         
         describe("findSelectorAtDocumentPos comments", function () {
-            var doc;
+            var editor;
             
             beforeEach(function () {
                 init(this, offsetsCssFileEntry);
                 runs(function () {
-                    doc = SpecRunnerUtils.createMockDocument(this.fileCssContent);
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
             });
             
             it("should ignore rules inside comments", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 45, ch: 22});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 45, ch: 22});
                 expect(selector).toEqual("");
             });
             
             it("should find rules adjacent to comments", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 47, ch: 4});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 47, ch: 4});
                 expect(selector).toEqual("div");
             });
             
             it("should find rules when the position is inside a nested comment", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 49, ch: 14});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 49, ch: 14});
                 expect(selector).toEqual("div");
             });
             
         });
         
         describe("findSelectorAtDocumentPos pseudo-classes and at-rules", function () {
-            var doc;
+            var editor;
             
             beforeEach(function () {
                 init(this, offsetsCssFileEntry);
                 runs(function () {
-                    doc = SpecRunnerUtils.createMockDocument(this.fileCssContent);
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
             });
             
             it("should find a simple pseudo selector", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 8, ch: 11});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 8, ch: 11});
                 expect(selector).toEqual("a:visited");
             });
             
             it("should find a selector with a preceding at-rule", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 18, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 18, ch: 0});
                 expect(selector).toEqual("a");
             });
             
             it("should not find a selector when inside an at-rule", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 15, ch: 12});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 15, ch: 12});
                 expect(selector).toEqual("");
                 
-                selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 28, ch: 31});
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 28, ch: 31});
                 expect(selector).toEqual("");
                 
-                selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 22, ch: 16});
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 22, ch: 16});
                 expect(selector).toEqual("");
             });
         });
         
         describe("findSelectorAtDocumentPos complex selectors", function () {
-            var doc;
+            var editor;
             
             beforeEach(function () {
                 init(this, bootstrapCssFileEntry);
                 runs(function () {
-                    doc = SpecRunnerUtils.createMockDocument(this.fileCssContent);
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
             });
             
             it("should find pseudo selectors", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 72, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 72, ch: 0});
                 expect(selector).toEqual("button::-moz-focus-inner, input::-moz-focus-inner");
             });
             
             it("should find attribute selectors", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 83, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 83, ch: 0});
                 expect(selector).toEqual('input[type="search"]');
             });
             
             it("should find structural pseudo-classes", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 1053, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 1053, ch: 0});
                 expect(selector).toEqual(".table-striped tbody tr:nth-child(odd) td, .table-striped tbody tr:nth-child(odd) th");
             });
             
             it("should find combinators", function () {
-                var selector = CSSUtils.findSelectorAtDocumentPos(doc, {line: 2073, ch: 0});
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 2073, ch: 0});
                 expect(selector).toEqual(".alert-block p + p");
             });
             

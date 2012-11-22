@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        TokenUtils          = require("utils/TokenUtils");
 
     /**
      * Extracts all CSS selectors from the given text
@@ -570,106 +571,107 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the selector(s) of the rule at the specified document pos, or "" if the position
-     * is not within a style rule.
-     *
-     * @param {Array.<Object>} rules Array of rules, as returned by extractAllSelectors()
-     * @param {!{line: number, ch: number}} pos Position to search
-     * @return {string} Selector(s) for the rule at the specified position, or "" if the position
-     *          is not within a style rule. If the rule has multiple selectors, a comma-separated
-     *          selector string is returned.
-     */
-    function selectorAtPos(rules, pos) {
-        var i, result = "";
-        
-        if (!rules.length) {
-            return "";
-        }
-        
-        // Returns 0 if pos is in rule, -1 is pos is before rule, 1 if pos is after rule
-        function _posCompare(pos, rule) {
-            if (pos.line < rule.selectorGroupStartLine ||
-                    (pos.line === rule.selectorGroupStartLine && pos.ch < rule.selectorGroupStartChar)) {
-                return -1;
-            }
-            
-            if (pos.line > rule.declListEndLine ||
-                    (pos.line === rule.declListEndLine && pos.ch > rule.declListEndChar)) {
-                return 1;
-            }
-            
-            return 0;
-        }
-        
-        // Binary search to find a match
-        var foundMatch = false, lo = 0, hi = rules.length - 1;
-        i = Math.round(hi / 2);
-        while (!foundMatch) {
-            var comp = _posCompare(pos, rules[i]);
-            
-            if (comp === -1) {
-                hi = i - 1;
-            } else if (comp === 1) {
-                lo = i + 1;
-            } else {
-                foundMatch = true;
-                break;
-            }
-            
-            if (lo > hi) {
-                // No match
-                break;
-            }
-            
-            i = Math.round((hi - lo) / 2) + lo;
-        }
-        
-        if (!foundMatch) {
-            return "";
-        }
-        
-        // There may be multiple rules that match the pos. Walk backwards until we don't have a match
-        while (i > 0) {
-            if (_posCompare(pos, rules[i - 1]) === 0) {
-                i--;
-            } else {
-                break;
-            }
-        }
-        
-        // Walk forward to hit all matches
-        while (i < rules.length) {
-            if (_posCompare(pos, rules[i]) === 0) {
-                if (result.length > 0) {
-                    result += ", ";
-                }
-                result += rules[i].selector;
-                i++;
-            } else {
-                break;
-            }
-        }
-        
-        return result;
-    }
-    
-    /**
      * Returns the selector(s) of the rule at the specified document pos, or "" if the position is 
      * is not within a style rule.
      *
-     * @param {!Document} doc Document to search
+     * @param {!Editor} editor Editor to search
      * @param {!{line: number, ch: number}} pos Position to search
      * @return {string} Selector(s) for the rule at the specified position, or "" if the position
      *          is not within a style rule. If the rule has multiple selectors, a comma-separated
      *          selector string is returned.
      */
-    function findSelectorAtDocumentPos(doc, pos) {
-        return selectorAtPos(extractAllSelectors(doc.getText()), pos);
+    function findSelectorAtDocumentPos(editor, pos) {
+        var cm = editor._codeMirror;
+        var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        var selector = "", inSelector = false, foundChars = false;
+
+        function _stripAtRules(selector) {
+            selector = selector.trim();
+            if (selector.indexOf("@") === 0) {
+                return "";
+            }
+            return selector;
+        }
+        
+        // scan backwards to see if the cursor is in a rule
+        while (true) {
+            if (ctx.token.className !== "comment") {
+                if (ctx.token.string === "}") {
+                    break;
+                } else if (ctx.token.string === "{") {
+                    // If we're already in a selector and found another {,
+                    // stop looking. This happens when pos is inside the selector
+                    // of the first rule in a media query
+                    if (inSelector) {
+                        break;
+                    }
+                    inSelector = true;
+                } else if (inSelector) {
+                    // If we're in a selector and see a ;, stop
+                    if (ctx.token.string === ";") {
+                        break;
+                    }
+                    selector = ctx.token.string + selector;
+                } else {
+                    if (ctx.token.string.trim() !== "") {
+                        foundChars = true;
+                    }
+                }
+            }
+            
+            if (!TokenUtils.movePrevToken(ctx)) {
+                break;
+            }
+        }
+        
+        selector = _stripAtRules(selector);
+        
+        ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        
+        // special case - we aren't in a selector and haven't found any chars,
+        // look at the next immediate token to see if it is non-whitespace
+        if (!selector && !foundChars) {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.className !== "comment" && ctx.token.string.trim() !== "") {
+                foundChars = true;
+                ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+            }
+        }
+        
+        if (!selector && foundChars) {
+            // scan forward to see if the cursor is in a selector
+            while (true) {
+                if (ctx.token.className !== "comment") {
+                    if (ctx.token.string === "{") {
+                        // Move backwards until we hit { or }
+                        TokenUtils.movePrevToken(ctx);
+                        while (true) {
+                            if (ctx.token.className !== "comment") {
+                                if (ctx.token.string === "}" || ctx.token.string === "{") {
+                                    return _stripAtRules(selector);
+                                }
+                                
+                                selector = ctx.token.string + selector;
+                            }
+                            
+                            if (!TokenUtils.movePrevToken(ctx)) {
+                                return _stripAtRules(selector);
+                            }
+                        }
+                    } else if (ctx.token.string === "}") {
+                        break;
+                    }
+                }
+                if (!TokenUtils.moveNextToken(ctx)) {
+                    break;
+                }
+            }
+        }
+        
+        return _stripAtRules(selector);
     }
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
-    exports.selectorAtPos = selectorAtPos;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
 });

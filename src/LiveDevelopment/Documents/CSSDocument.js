@@ -79,7 +79,6 @@ define(function CSSDocumentModule(require, exports, module) {
         if (doc.isDirty) {
             CSSAgent.reloadCSSForDocument(this.doc);
         }
-        this.reloadRules();
         
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
         $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
@@ -147,16 +146,11 @@ define(function CSSDocumentModule(require, exports, module) {
             this.editor = null;
         }
     };
-    
-    // Reload rules
-    CSSDocument.prototype.reloadRules = function () {
-        this.rules = CSSUtils.extractAllSelectors(this.doc.getText());
-    };
 
     CSSDocument.prototype.updateHighlight = function () {
-        if (Inspector.config.highlight) {
+        if (Inspector.config.highlight && this.editor) {
             var codeMirror = this.editor._codeMirror;
-            var selector = CSSUtils.selectorAtPos(this.rules, codeMirror.getCursor());
+            var selector = CSSUtils.findSelectorAtDocumentPos(this.editor, codeMirror.getCursor());
             if (selector) {
                 HighlightAgent.rule(selector);
             } else {
@@ -176,7 +170,6 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
         CSSAgent.reloadCSSForDocument(this.doc);
-        this.reloadRules();
         if (Inspector.config.highlight) {
             HighlightAgent.redraw();
         }
