@@ -39,7 +39,11 @@ define(function (require, exports, module) {
         this.color = color;
         this.startBookmark = startBookmark;
         this.endBookmark = endBookmark;
+        this.isOwnChange = false;
+        this.isHostChange = false;
+
         this.setColor = this.setColor.bind(this);
+        this.handleHostDocumentChange = this.handleHostDocumentChange.bind(this);
 
         InlineWidget.call(this);
     }
@@ -51,38 +55,74 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
     InlineColorEditor.prototype.$wrapperDiv = null;
     
-    InlineColorEditor.prototype.onClosed = function () {
-        if (this.startBookmark) {
-            this.startBookmark.clear();
+    InlineColorEditor.prototype.color = null;
+    InlineColorEditor.prototype.startBookmark = null;
+    InlineColorEditor.prototype.endBookmark = null;
+    InlineColorEditor.prototype.isOwnChange = null;
+    InlineColorEditor.prototype.isHostChange = null;
+    
+    InlineColorEditor.prototype.getCurrentRange = function () {
+        var start, end;
+        
+        start = this.startBookmark.find();
+        if (!start) {
+            return null;
         }
-        if (this.endBookmark) {
+        
+        end = this.endBookmark.find();
+        if (!end) {
+            end = { line: start.line };
+        }
+        
+        // Even if we think we have a good end bookmark, we want to run the
+        // regexp match to see if there's a valid match that extends past the bookmark.
+        // This can happen if the user deletes the end of the existing color and then
+        // types some more.
+        // TODO: when we migrate to CodeMirror v3, we might be able to use markText()
+        // instead of two bookmarks to track the range. (In our current old version of
+        // CodeMirror v2, markText() isn't robust enough for this case.)
+        
+        var line = this.editor.document.getLine(start.line),
+            matches = line.substr(start.ch).match(InlineColorEditor.colorRegEx);
+        
+        // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
+        // the matched length here.
+        if (matches && (end.ch === undefined || end.ch - start.ch < matches[0].length)) {
+            end.ch = start.ch + matches[0].length;
             this.endBookmark.clear();
+            this.endBookmark = this.editor._codeMirror.setBookmark(end);
+        }
+        
+        if (end.ch === undefined) {
+            // We were unable to resync the end bookmark.
+            return null;
+        } else {
+            return {start: start, end: end};
         }
     };
         
     InlineColorEditor.prototype.setColor = function (colorLabel) {
-        var start, end;
         if (!colorLabel) {
             return;
         }
         
         if (colorLabel !== this.color) {
-            start = this.startBookmark.find();
-            if (!start) {
+            var range = this.getCurrentRange();
+            if (!range) {
                 return;
             }
-            
-            end = this.endBookmark.find();
-            if (!end || start.ch === end.ch) {
-                end = { line: start.line,
-                        ch: start.ch + (this.color ? this.color.length : 0) };
+
+            // Don't push the change back into the host editor if it came from the host editor.
+            if (!this.isHostChange) {
+                this.isOwnChange = true;
+                this.editor.document.replaceRange(colorLabel, range.start, range.end);
+                this.isOwnChange = false;
+                this.editor.setSelection(range.start, {
+                    line: range.start.line,
+                    ch: range.start.ch + colorLabel.length
+                });
             }
             
-            this.editor.document.replaceRange(colorLabel, start, end);
-            this.editor.setSelection(start, {
-                line: start.line,
-                ch: start.ch + colorLabel.length
-            });
             this.color = colorLabel;
         }
     };
@@ -103,8 +143,29 @@ define(function (require, exports, module) {
     };
         
     InlineColorEditor.prototype.onAdded = function () {
+        this.parentClass.onAdded.call(this);
+        
+        var doc = this.editor.document;
+        doc.addRef();
+        $(doc).on("change", this.handleHostDocumentChange);
+        
         window.setTimeout(this._sizeEditorToContent.bind(this));
         this.colorEditor.focus();
+    };
+    
+    InlineColorEditor.prototype.onClosed = function () {
+        if (this.startBookmark) {
+            this.startBookmark.clear();
+        }
+        if (this.endBookmark) {
+            this.endBookmark.clear();
+        }
+
+        var doc = this.editor.document;
+        $(doc).off("change", this.handleHostDocumentChange);
+        doc.releaseRef();
+
+        this.parentClass.onClosed.call(this);
     };
 
     InlineColorEditor.prototype._sizeEditorToContent = function () {
@@ -153,6 +214,26 @@ define(function (require, exports, module) {
         }).sort(_colorSort);
 
         return compressed.slice(0, maxLength);
+    };
+    
+    InlineColorEditor.prototype.handleHostDocumentChange = function () {
+        // Don't push the change into the color editor if it came from the color editor.
+        if (this.isOwnChange) {
+            return;
+        }
+        
+        var range = this.getCurrentRange();
+        if (range) {
+            var newColor = this.editor.document.getRange(range.start, range.end);
+            if (newColor !== this.color) {
+                this.isHostChange = true;
+                this.colorEditor.commitColor(newColor, true);
+                this.isHostChange = false;
+            }
+        } else {
+            // The edit caused our range to become invalid. Close the editor.
+            this.close();
+        }
     };
 
     module.exports.InlineColorEditor = InlineColorEditor;

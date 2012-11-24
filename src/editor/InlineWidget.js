@@ -98,14 +98,20 @@ define(function (require, exports, module) {
         // that just shows a range of text. See CSSInlineEditor.css for an implementation of load()
     };
     
-
     /**
      * Called when the editor containing the inline is made visible.
      */
     InlineWidget.prototype.onParentShown = function () {
         // do nothing - base implementation
     };
-
+    
+    /**
+     * Called when the parent editor does a full refresh--for example, when the font size changes.
+     */
+    InlineWidget.prototype.refresh = function () {
+        // do nothing - base implementation
+    };
+    
     exports.InlineWidget = InlineWidget;
 
 });

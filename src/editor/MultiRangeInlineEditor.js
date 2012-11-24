@@ -524,6 +524,18 @@ define(function (require, exports, module) {
         // Use setTimeout to trigger a layout update before accessing positions, heights, etc.
         window.setTimeout(this._updateRelatedContainer);
     };
+    
+    /**
+     * Refreshes the height of the inline editor and all child editors.
+     * @override
+     */
+    MultiRangeInlineEditor.prototype.refresh = function () {
+        this.sizeInlineWidgetToContents(true);
+        this._updateRelatedContainer();
+        this.editors.forEach(function (editor, j, arr) {
+            editor.refresh();
+        });
+    };
 
     /**
      * Returns the currently focused MultiRangeInlineEditor.

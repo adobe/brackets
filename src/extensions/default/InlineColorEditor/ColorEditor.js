@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         this.swatches = swatches;
         this.bindKeyHandler = this.bindKeyHandler.bind(this);
 
+        this.handleKeydown = this.handleKeydown.bind(this);
         this.handleOpacityKeydown = this.handleOpacityKeydown.bind(this);
         this.handleHueKeydown = this.handleHueKeydown.bind(this);
         this.handleSelectionKeydown = this.handleSelectionKeydown.bind(this);
@@ -49,6 +50,7 @@ define(function (require, exports, module) {
 
         this.color = tinycolor(color);
         this.lastColor = color;
+        this.redoColor = null;
         this.$element = $(this.element);
         this.$colorValue = this.$element.find(".color_value");
         this.$buttonList = this.$element.find("ul.button-bar");
@@ -64,7 +66,6 @@ define(function (require, exports, module) {
         this.$hueSlider = this.$element.find(".hue_slider");
         this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$hueSelector = this.$element.find(".hue_slider .selector_base");
-        this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$opacitySelector = this.$element.find(".opacity_slider .selector_base");
         this.$swatches = this.$element.find(".swatches");
         this.addSwatches();
@@ -81,9 +82,7 @@ define(function (require, exports, module) {
         this.bindColorFormatToRadioButton("rgba");
         this.bindColorFormatToRadioButton("hex");
         this.bindColorFormatToRadioButton("hsla");
-        // TODO: This is not really updating other UI and the color value. 
-        // Commenting it out and temporarily making it read only input field.
-        //this.$colorValue.change(this.colorSetter);
+        this.bindInputHandlers();
         this.bindOriginalColorButton();
         this.registerDragHandler(this.$selection, this.handleSelectionFieldDrag);
         this.registerDragHandler(this.$hueSlider, this.handleHueDrag);
@@ -92,10 +91,18 @@ define(function (require, exports, module) {
         this.bindKeyHandler(this.$hueBase, this.handleHueKeydown);
         this.bindKeyHandler(this.$opacitySelector, this.handleOpacityKeydown);
         
+        // Bind the undo/redo key handler to other buttons that take focus but
+        // don't have their own key handlers.
+        this.bindKeyHandler(this.$colorValue, this.handleKeydown);
+        this.bindKeyHandler(this.$rgbaButton, this.handleKeydown);
+        this.bindKeyHandler(this.$hexButton, this.handleKeydown);
+        
         // Bind key handler to HSLa button only if we don't have any color swatches
         // and this becomes the last UI element in the tab loop.
         if ($(this.$swatches).children().length === 0) {
             this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
+        } else {
+            this.bindKeyHandler(this.$hslButton, this.handleKeydown);
         }
     };
 
@@ -131,19 +138,6 @@ define(function (require, exports, module) {
             return true;
         }
         return false;
-    };
-
-    ColorEditor.prototype.colorSetter = function () {
-        var newColor, newValue;
-        newValue = $.trim(this.$colorValue.val());
-        newColor = tinycolor(newValue);
-        if (!newColor.ok) {
-            newValue = this.getColor();
-            newColor = tinycolor(newValue);
-        }
-        this.commitColor(newValue, true);
-        this.hsv = newColor.toHsv();
-        this.synchronize();
     };
 
     ColorEditor.prototype.getColor = function () {
@@ -199,14 +193,95 @@ define(function (require, exports, module) {
         });
     };
 
+    /**
+     * Convert percentage values in an RGB color into normal RGB values in the range of 0 - 255.
+     * If the original color is already in non-percentage format, does nothing.
+     * @param {string} color The color to be converted to non-percentage RGB color string.
+     * @return {string} an RGB color string in the normal format using non-percentage values
+     */
+    ColorEditor.prototype._convertToNormalRGB = function (color) {
+        var matches = color.match(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
+        if (matches) {
+            var i, percentStr, value;
+            for (i = 0; i < 3; i++) {
+                percentStr = matches[i + 1];
+                value = Math.round(255 * Number(percentStr) / 100);
+                if (!isNaN(value)) {
+                    color = color.replace(percentStr + "%", value);
+                }
+            }
+        }
+        return color;
+    };
+                    
+    /**
+     * Normalize the given color string into the format used by tinycolor, by adding a space 
+     * after commas and converting RGB colors from percentages to integers.
+     * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
+     * @return {string} a normalized color string.
+     */
+    ColorEditor.prototype._normalizeColorString = function (color) {
+        var normalizedColor = color;
+                    
+        // Convert 6-digit hex to 3-digit hex as tinycolor (#ffaacc -> #fac)
+        if (color.match(/^#[0-9a-f]{6}/)) {
+            return tinycolor(color).toString();
+        }
+        if (color.match(/^(rgb|hsl)/)) {
+            normalizedColor = normalizedColor.replace(/,\s*/g, ", ");
+            normalizedColor = normalizedColor.replace(/\(\s+/, "(");
+            normalizedColor = normalizedColor.replace(/\s+\)/, ")");
+        }
+        return this._convertToNormalRGB(normalizedColor);
+    };
+
+    ColorEditor.prototype.syncTextFieldInput = function (losingFocus) {
+        var newColor = $.trim(this.$colorValue.val()),
+            newColorObj = tinycolor(newColor),
+            newColorOk = newColorObj.ok;
+
+        // tinycolor will auto correct an incomplete rgb or hsl value into a valid color value.
+        // eg. rgb(0,0,0 -> rgb(0, 0, 0) 
+        // We want to avoid having tinycolor do this, because we don't want to sync the color
+        // to the UI if it's incomplete. To accomplish this, we first normalize the original
+        // color string into the format tinycolor would generate, and then compare it to what
+        // tinycolor actually generates to see if it's different. If so, then we assume the color
+        // was incomplete to begin with.
+        if (newColorOk) {
+            newColorOk = (newColorObj.toString() === this._normalizeColorString(newColor));
+        }
+                
+        // Restore to the previous valid color if the new color is invalid or incomplete.
+        if (losingFocus && !newColorOk) {
+            newColor = this.getColor().toString();
+        }
+        
+        // Sync only if we have a valid color or we're restoring the previous valid color.
+        if (losingFocus || newColorOk) {
+            this.commitColor(newColor, true);
+        }
+    };
+                    
+    ColorEditor.prototype.bindInputHandlers = function () {
+        var _this = this;
+                    
+        this.$colorValue.bind("input", function (event) {
+            _this.syncTextFieldInput(false);
+        });
+
+        this.$colorValue.bind("change", function (event) {
+            _this.syncTextFieldInput(true);
+        });
+    };
+
     ColorEditor.prototype.addSwatches = function () {
         var _this = this;
  
         this.swatches.forEach(function (swatch) {
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
-            _this.$swatches.append("<li><div class='swatch_bg'><div class='swatch' style='background-color: " +
-                    swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " tabindex='0' title='" +
+            _this.$swatches.append("<li tabindex='0'><div class='swatch_bg'><div class='swatch' style='background-color: " +
+                    swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
         });
 
@@ -220,6 +295,8 @@ define(function (require, exports, module) {
                     _this.$selectionBase.focus();
                     return false;
                 }
+            } else {
+                return _this.handleKeydown(event);
             }
         });
 
@@ -271,6 +348,7 @@ define(function (require, exports, module) {
             this.hsv = colorObj.toHsv();
             this.color = colorObj;
         }
+        this.redoColor = null;
         this.synchronize();
     };
 
@@ -332,6 +410,39 @@ define(function (require, exports, module) {
             $(window).bind("mouseup", mouseupHandler);
         });
     };
+    
+    ColorEditor.prototype.undo = function () {
+        if (this.lastColor.toString() !== this.color.toString()) {
+            var curColor = this.color.toString();
+            this.commitColor(this.lastColor, true);
+            this.redoColor = curColor;
+        }
+    };
+
+    ColorEditor.prototype.redo = function () {
+        if (this.redoColor) {
+            this.commitColor(this.redoColor, true);
+            this.redoColor = null;
+        }
+    };
+
+    ColorEditor.prototype.handleKeydown = function (event) {
+        var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
+        if (hasCtrl) {
+            switch (event.keyCode) {
+            case KeyEvent.DOM_VK_Z:
+                if (event.shiftKey) {
+                    this.redo();
+                } else {
+                    this.undo();
+                }
+                return false;
+            case KeyEvent.DOM_VK_Y:
+                this.redo();
+                return false;
+            }
+        }
+    };
 
     ColorEditor.prototype.handleHslKeydown = function (event) {
         switch (event.keyCode) {
@@ -341,6 +452,8 @@ define(function (require, exports, module) {
                 return false;
             }
             break;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
@@ -380,6 +493,8 @@ define(function (require, exports, module) {
                 return false;
             }
             break;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
@@ -403,6 +518,8 @@ define(function (require, exports, module) {
                 this.setColorAsHsv(hsv);
             }
             return false;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
@@ -426,6 +543,8 @@ define(function (require, exports, module) {
                 this.setColorAsHsv(hsv);
             }
             return false;
+        default:
+            return this.handleKeydown(event);
         }
     };
 
