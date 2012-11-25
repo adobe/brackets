@@ -324,6 +324,15 @@ define(function (require, exports, module) {
             break;
         }
         this.commitColor(colorVal, commitHsv);
+        // Some color values (gray-ish colors) may not get updated with the above 
+        // commitColor call since they are different in hsv values, but still exactly
+        // the same when converting to tiny color object. ie. newColor == oldColor.
+        // So we will update this.hsv here since commitColor call does not update it.
+        // This is necessary to prevent the hue slider from getting stuck when using 
+        // up/down arrow keys (issue #2138).
+        if (this.hsv !== newHsv) {
+            this.hsv = newHsv;
+        }
     };
 
     ColorEditor.prototype.commitColor = function (colorVal, resetHsv) {
