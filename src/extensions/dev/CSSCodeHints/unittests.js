@@ -9,6 +9,9 @@ define(function (require, exports, module) {
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         CSSCodeHints    = require("main");
     
+    /* set indentation to one, to make use of tabs for the following testContent */
+    Editor.setIndentUnit(1);
+    
     describe("CSS Code Hinting", function () {
 
         var defaultContent = ".selector { \n" +
@@ -157,12 +160,19 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 3, ch: 9 });
             });     
             
-            it("should insert semicolon followd by newline after value added", function () {
+            it("should insert semicolon followed by newline after value added", function () {
                 testEditor.setCursorPos({ line: 9, ch: 10 });   // cursor after 'display: '
                 selectHint(CSSCodeHints.attrHintProvider, "block");
                 expect(testDocument.getLine(9)).toBe(" display: block;");
                 // expectCursorAt({ line: 10, ch: 4 });
-            });           
+            });       
+            
+            it("should insert attribute directly after semicolon ", function () {
+                testEditor.setCursorPos({ line: 6, ch: 19 });   // cursor after red;
+                selectHint(CSSCodeHints.attrHintProvider, "align-content");
+                expect(testDocument.getLine(6)).toBe(" border-color: red;align-content: ");
+                // expectCursorAt({ line: 10, ch: 4 });
+            });              
 
         });
 
