@@ -12,7 +12,9 @@ define(function (require, exports, module) {
         attributes          = JSON.parse(CSSAttributes);
 
     
-    function CssAttrHints() {}
+    function CssAttrHints() {
+        this.cssMode = "";
+    }
     
     CssAttrHints.prototype.getQueryInfo = function (editor, cursor) {
         var query       = {queryStr: null},
@@ -76,24 +78,25 @@ define(function (require, exports, module) {
                     query.prevStr = ctx.token.string;
                 }
             } 
-            /* notes: we need some contextinformation around cursor, 2-3 tokens to determine if we need to show attrs or values */
-            console.log("cssdebug: pS='"+query.prevStr+"' followed by qS='"+query.queryStr+"'");
-            
+            /* notes: we need some contextinformation around cursor, 2-3 tokens to determine if we need to show attrs or values */            
             
             if (query.queryStr === "{" || query.queryStr === ";") {
                 /* cssattribute context */
                 query.queryStr = "";
+                this.cssMode = "attr";
             } else if (query.queryStr === ":") {
                 /* cssattrvalue context */
                 /* move token 1 step back to get attibutename */
                 query.queryStr = "";
                 query.attrName = query.prevStr;
+                this.cssMode = "value";
+
             } else if (query.prevStr === ":") {
                 TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
                 query.attrName = ctx.token.string;
+                this.cssMode = "value";
             }
         }
-        console.log(query);
         return query;
     }
     
@@ -103,6 +106,9 @@ define(function (require, exports, module) {
             attrName = query.attrName;
         
         if(attrName) {
+            if (!attributes[attrName]) {
+                return result;
+            }
             result = $.map(attributes[attrName].values, function(value, index) {
                 if (value.indexOf(filter) === 0) {
                     return value;
@@ -125,16 +131,22 @@ define(function (require, exports, module) {
     }    
     
     CssAttrHints.prototype.handleSelect = function (completion, editor, cursor) {
-/*
-        var ctx  = TokenUtils.getInitialContext(editor._codeMirror, cursor);
+        var ctx  = TokenUtils.getInitialContext(editor._codeMirror, cursor),
+            closure = "";
         
         if (ctx.token !== null) {
-            var len  = ctx.token.end - ctx.token.start;
-            completion = completion.substr(len) + ": ";
+            if (this.cssMode === "value") {
+                closure = ";\n";
+            } else if (this.cssMode === "attr") {
+                closure = ": ";
+            }
+            
+            var len  = ctx.token.string.trim().length;
+            completion = completion.substr(len) + closure;
         }
-        
         editor.document.replaceRange(completion, cursor);
-*/
+        this.cssMode = "";
+
         return true;
 
     }
