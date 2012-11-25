@@ -136,9 +136,14 @@ define(function (require, exports, module) {
         
         if (ctx.token !== null) {
             if (this.cssMode === "value") {
-                closure = ";\n";
+                closure = ";";
             } else if (this.cssMode === "attr") {
                 closure = ": ";
+            }
+            
+            /* if token is special char, 'len' will be wrong, since a wrong token is used, set token directly to be the empty string */
+            if(ctx.token.string === "{" || ctx.token.string === ";") {
+                ctx.token.string = "";
             }
             
             var len  = ctx.token.string.trim().length;
