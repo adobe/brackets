@@ -142,7 +142,7 @@ define(function (require, exports, module) {
             }
             
             /* if token is special char, 'len' will be wrong, since a wrong token is used, set token directly to be the empty string */
-            if(ctx.token.string === "{" || ctx.token.string === ";") {
+            if(ctx.token.string === "{" || ctx.token.string === ":" || ctx.token.string === ";") {
                 ctx.token.string = "";
             }
             
