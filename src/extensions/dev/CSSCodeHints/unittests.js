@@ -21,7 +21,8 @@ define(function (require, exports, module) {
                              " d\n" +
                              " disp\n" +
                              " display: \n" +
-                             " display: in\n" +            
+                             " display: in\n" +
+                             " bordborder: \n" +
                              "} \n";
         
         var testWindow;
@@ -148,13 +149,20 @@ define(function (require, exports, module) {
         });        
         
         
-        xdescribe("CSS attribute handleSelect", function () {
+        describe("CSS attribute handleSelect", function () {
             it("should insert colon followd by whitespace after attribute", function () {
                 testEditor.setCursorPos({ line: 3, ch: 5 });   // cursor after 'bord'
                 selectHint(CSSCodeHints.attrHintProvider, "border");
                 expect(testDocument.getLine(3)).toBe(" border: ");
                 expectCursorAt({ line: 3, ch: 9 });
-            });            
+            });     
+            
+            it("should insert semicolon followd by newline after value added", function () {
+                testEditor.setCursorPos({ line: 9, ch: 10 });   // cursor after 'display: '
+                selectHint(CSSCodeHints.attrHintProvider, "block");
+                expect(testDocument.getLine(9)).toBe(" display: block;");
+                // expectCursorAt({ line: 10, ch: 4 });
+            });           
 
         });
 
@@ -178,7 +186,20 @@ define(function (require, exports, module) {
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "inline");  // filtered after "display: in"
-            });             
+            });
+            
+            it("should NOT list hints for unknown attribute", function () {
+                testEditor.setCursorPos({ line: 11, ch: 12 });    // at borborder:
+                
+                /* expectNoHints doesn't work here, since the input is the empty string, and the attribute is 'borborder' */
+                /* query.queryStr is NOT null, but the search is still empty, so we need to check the result of search instead */
+                var query = CSSCodeHints.attrHintProvider.getQueryInfo(testEditor, testEditor.getCursorPos());
+                expect(query).toBeTruthy();
+                expect(query.queryStr).not.toBeNull();
+                var hintList = CSSCodeHints.attrHintProvider.search(query);
+                expect(hintList).toBeTruthy();
+                expect(hintList.length).toBe(0);
+            });              
             
         });        
         
