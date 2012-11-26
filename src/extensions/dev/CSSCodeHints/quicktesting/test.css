@@ -11,5 +11,12 @@ h1 {
 
 h2 {
     display: block;
+    align-items: baseline;
     
+}
+
+h3 {
+    color: red;
+    border-style: dashed;
+    border-color: transparent;
 }

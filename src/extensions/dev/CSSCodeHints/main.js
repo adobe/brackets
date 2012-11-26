@@ -24,12 +24,12 @@ define(function (require, exports, module) {
             csscontext  = false;
           
         /* first: check overall context - is this a css-valid context */
-        if (editor.getModeForDocument() === "css") {
+        //if (editor.getModeForDocument() === "css") {
+        if (editor.getModeForSelection() === "css") {
             csscontext = true;
-        } else {
-            
+        } // else if (false) {
             /* check whether the cursor is inside any <style> block in the document */
-            if (styleblocks.length > 0) {
+            /*if (styleblocks.length > 0) {
                 var insideStyleBlock = false,
                     item = null,
                     i = null;
@@ -42,7 +42,7 @@ define(function (require, exports, module) {
                     }
                 }
             }
-        }
+        } */
         
         /* second: check if we are actually inside a { } */
         if (csscontext) {
@@ -162,7 +162,9 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     CssAttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return (key === "{" || key === ";"); /* only popup after brackets, else this will always trigger */
+        var alphabet = "abcdefghijklmnopqrstuvwxyz";
+        return (alphabet.indexOf(key) !== -1);
+        // return (key === "{" || key === ";"); /* only popup after brackets, else this will always trigger */
         // return (key === " " || key === "{" );
     };
     
