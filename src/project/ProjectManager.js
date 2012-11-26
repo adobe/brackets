@@ -1329,8 +1329,10 @@ define(function (require, exports, module) {
      */
     function beforeMenuOpen(selectedItem) {
                 
-        //Disable directory delete (not working yet)
-        CommandManager.get(Commands.FILE_DELETE).setEnabled(!selectedItem.isDirectory);
+        //Enable only on mac
+        if (brackets.platform !== 'mac') {
+            CommandManager.get(Commands.FILE_DELETE).setEnabled(!selectedItem.isDirectory);
+        }
         
     }
 
