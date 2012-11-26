@@ -48,12 +48,6 @@ changes:
 At ATC, proposals can be voted on by peers and are eventually accepted by
 moderators.
 
-ATC integrates with the Adobe Localization Framework (ALF) to merge accepted
-translations into Brackets. ALF offers a solution to fully automate the
-localization process for Adobe products. Briefly, ALF scans for changes in
-the root English translation, then manages the workflow for either translation
-through Adobe or through ATC.
-
 ## Community contributed translations
 
 As of sprint 17, the following languages have been contributed by the Brackets
