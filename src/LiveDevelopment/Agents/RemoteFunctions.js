@@ -303,7 +303,7 @@ function RemoteFunctions(experimental) {
             if (this.selector) {
                 highlighted = window.document.querySelectorAll(this.selector);
             } else {
-                this.elements.slice(0);
+                highlighted = this.elements.slice(0);
             }
             
             this.clear();
