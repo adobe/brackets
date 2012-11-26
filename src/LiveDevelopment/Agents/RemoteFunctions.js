@@ -298,6 +298,8 @@ function RemoteFunctions(experimental) {
         redraw: function () {
             var i, highlighted;
             
+            // When redrawing a selector-based highlight, run a new selector
+            // query to ensure we have the latest set of elements to highlight.
             if (this.selector) {
                 highlighted = window.document.querySelectorAll(this.selector);
             } else {
