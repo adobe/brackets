@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window, tinycolor */
+/*global define, brackets, $, window, tinycolor, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,22 +32,29 @@ define(function (require, exports, module) {
         StringUtils = brackets.getModule("utils/StringUtils"),
         Strings     = brackets.getModule("strings");
     
+    /** Mustache template that forms the bare DOM structure of the UI */
+    var InlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
+    
     /** @const @type {number} */
     var STEP_MULTIPLIER = 5;
     
     /**
      * Color picker control; may be used standalone or within an InlineColorEditor inline widget.
-     * @param {!jQuery} $element  DOM node containing ".color_editor" and the other color editor UI elements
+     * @param {!jQuery} $parent  DOM node into which to append the root of the color picker UI
      * @param {!string} color  Initially selected color
      * @param {!function(string)} callback  Called whenever selected color changes
      * @param {!Array.<{value:string, count:number}>} swatches  Quick-access color swatches to include in UI
      */
-    function ColorEditor($element, color, callback, swatches) {
-        this.$element = $element;
+    function ColorEditor($parent, color, callback, swatches) {
+        // Create the DOM structure, filling in localized strings via Mustache
+        this.$element = $(Mustache.render(InlineEditorTemplate, Strings));
+        $parent.append(this.$element);
+        
         this.callback = callback;
 
-        this.handleKeydown = this.handleKeydown.bind(this);
+        this.handleUndoRedoKeys = this.handleUndoRedoKeys.bind(this);
         this.handleOpacityKeydown = this.handleOpacityKeydown.bind(this);
+        this.handleHslKeydown = this.handleHslKeydown.bind(this);
         this.handleHueKeydown = this.handleHueKeydown.bind(this);
         this.handleSelectionKeydown = this.handleSelectionKeydown.bind(this);
         this.handleOpacityDrag = this.handleOpacityDrag.bind(this);
@@ -88,15 +95,14 @@ define(function (require, exports, module) {
 
     /**
      * A string or tinycolor object representing the currently selected color
-     * TODO: type is unpredictable
+     * TODO (#2201): type is unpredictable
      * @type {tinycolor|string}
      */
     ColorEditor.prototype.color = null;
     
     /**
      * An HSV representation of the currently selected color.
-     * TODO: type of hsv.s/.v is unpredictable: it is sometimes passed to tinycolor() which
-     *   changes its fields to strings; synchronize() also does this explicitly.
+     * TODO (#2201): type of hsv.s/.v is unpredictable
      * @type {!{h:number, s:number|string, v:number|string, a:number}}
      */
     ColorEditor.prototype.hsv = tinycolor("rgba(0,0,0,1)").toHsv();
@@ -130,22 +136,10 @@ define(function (require, exports, module) {
         this.bindKeyHandler(this.$selectionBase, this.handleSelectionKeydown);
         this.bindKeyHandler(this.$hueBase, this.handleHueKeydown);
         this.bindKeyHandler(this.$opacitySelector, this.handleOpacityKeydown);
+        this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
         
-        // TODO: why not just make handleKeydown a bubble or capture listener on the whole widget?
-        // Bind the undo/redo key handler to other buttons that take focus but
-        // don't have their own key handlers.
-        this.bindKeyHandler(this.$colorValue, this.handleKeydown);
-        this.bindKeyHandler(this.$rgbaButton, this.handleKeydown);
-        this.bindKeyHandler(this.$hexButton, this.handleKeydown);
-        
-        // Bind tab key handler to HSLa button only if we don't have any color swatches,
-        // making it the last UI element in the tab loop. handleHslKeydown() defers to
-        // handleKeydown() for all other keys.
-        if ($(this.$swatches).children().length === 0) {
-            this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
-        } else {
-            this.bindKeyHandler(this.$hslButton, this.handleKeydown);
-        }
+        // Undo/redo key handler gets bubbling events from any focusable part of widget
+        this.bindKeyHandler(this.$element, this.handleUndoRedoKeys);
     };
 
     /**
@@ -170,7 +164,7 @@ define(function (require, exports, module) {
         // Upate slider thumb positions
         this.$hueSelector.css("bottom", (this.hsv.h / 360 * 100) + "%");
         this.$opacitySelector.css("bottom", (this.hsv.a * 100) + "%");
-        if (!isNaN(this.hsv.s)) {      // TODO: type of hsv.s is unpredictable
+        if (!isNaN(this.hsv.s)) {      // TODO (#2201): type of hsv.s is unpredictable
             this.hsv.s = (this.hsv.s * 100) + "%";
         }
         if (!isNaN(this.hsv.v)) {
@@ -191,11 +185,9 @@ define(function (require, exports, module) {
         return false;
     };
 
-    /** @return {tinycolor|string} The currently selected color (TODO: type is unpredictable) */
+    /** @return {tinycolor|string} The currently selected color (TODO (#2201): type is unpredictable) */
     ColorEditor.prototype.getColor = function () {
-        // TODO: the fallback case here is probably only needed to prevent a crash in unit test window (drag
-        // handlers get called after orphaned, causing NaNs in hsv object, ultimately making this.color undefined)
-        return this.color || "rgba(0,0,0,1)";
+        return this.color;
     };
 
     /** Update the format button bar's selection */
@@ -352,14 +344,14 @@ define(function (require, exports, module) {
             if (event.keyCode === KeyEvent.DOM_VK_RETURN ||
                     event.keyCode === KeyEvent.DOM_VK_ENTER ||
                     event.keyCode === KeyEvent.DOM_VK_SPACE) {
+                // Enter/Space is same as clicking on swatch
                 _this.commitColor($(event.currentTarget).find(".value").html());
             } else if (event.keyCode === KeyEvent.DOM_VK_TAB) {
+                // Tab on last swatch loops back to color square
                 if (!event.shiftKey && $(this).next("li").length === 0) {
                     _this.$selectionBase.focus();
                     return false;
                 }
-            } else {
-                return _this.handleKeydown(event);
             }
         });
 
@@ -508,7 +500,7 @@ define(function (require, exports, module) {
     };
 
     /** Detect undo/redo keyboard shortcuts. Returns false to block them from CodeMirror */
-    ColorEditor.prototype.handleKeydown = function (event) {
+    ColorEditor.prototype.handleUndoRedoKeys = function (event) {
         var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
         if (hasCtrl) {
             switch (event.keyCode) {
@@ -529,14 +521,14 @@ define(function (require, exports, module) {
     ColorEditor.prototype.handleHslKeydown = function (event) {
         switch (event.keyCode) {
         case KeyEvent.DOM_VK_TAB:
-            // If no color swatches, Tab at end of format buttons should wrap around
+            // If we're the last fosuable element (no color swatches), Tab wraps around to color square
             if (!event.shiftKey) {
-                this.$selectionBase.focus();
-                return false;
+                if (this.$swatches.children().length === 0) {
+                    this.$selectionBase.focus();
+                    return false;
+                }
             }
             break;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
@@ -568,17 +560,16 @@ define(function (require, exports, module) {
             this.setColorAsHsv(hsv, false);
             return false;
         case KeyEvent.DOM_VK_TAB:
+            // Shift+Tab loops back to last focusable element: last swatch if any; format button bar if not
             if (event.shiftKey) {
-                if ($(this.$swatches).children().length === 0) {
+                if (this.$swatches.children().length === 0) {
                     this.$hslButton.focus();
                 } else {
-                    $(this.$swatches).find(".value:last").focus();
+                    this.$swatches.find(".value:last").focus();
                 }
                 return false;
             }
             break;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
@@ -603,8 +594,6 @@ define(function (require, exports, module) {
                 this.setColorAsHsv(hsv);
             }
             return false;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
@@ -629,8 +618,6 @@ define(function (require, exports, module) {
                 this.setColorAsHsv(hsv);
             }
             return false;
-        default:
-            return this.handleKeydown(event);
         }
     };
 

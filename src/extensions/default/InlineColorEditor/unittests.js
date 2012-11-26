@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, Mustache, tinycolor, KeyEvent */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent */
 
 define(function (require, exports, module) {
     "use strict";
@@ -38,8 +38,7 @@ define(function (require, exports, module) {
         testContentHTML   = require("text!unittests.html"),
         provider          = require("main").inlineColorEditorProvider,
         InlineColorEditor = require("InlineColorEditor").InlineColorEditor,
-        ColorEditor       = require("ColorEditor").ColorEditor,
-        InlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
+        ColorEditor       = require("ColorEditor").ColorEditor;
 
     require("thirdparty/tinycolor-min");
 
@@ -320,8 +319,7 @@ define(function (require, exports, module) {
         });
         
         describe("Color editor UI", function () {
-            var $container,
-                colorEditor,
+            var colorEditor,
                 defaultSwatches = [{value: "#abcdef", count: 3}, {value: "rgba(100, 200, 250, 0.5)", count: 2}];
             
             /**
@@ -334,16 +332,15 @@ define(function (require, exports, module) {
              *     If none is supplied, a default set of two swatches is passed.
              */
             function makeUI(initialColor, callback, swatches) {
-                $container = $(Mustache.render(InlineEditorTemplate, Strings)).css("display", "none");
-                colorEditor = new ColorEditor($container,
+                colorEditor = new ColorEditor($(document.body),
                                               initialColor,
                                               callback || function () { },
                                               swatches || defaultSwatches);
-                $(document.body).append($container);
+                colorEditor.$element.css("display", "none");
             }
                         
             afterEach(function () {
-                $container.remove();
+                colorEditor.$element.remove();
             });
             
             /**
@@ -500,7 +497,7 @@ define(function (require, exports, module) {
                     makeUI("#0000ff");
                     eventAtRatio("mousedown", colorEditor[opts.item], opts.clickAt);
                     checkNear(tinycolor(colorEditor.color).toHsv()[opts.param], opts.expected, opts.tolerance);
-                    colorEditor[opts.item].trigger("mouseup");
+                    colorEditor[opts.item].trigger("mouseup");  // clean up drag state
                 }
 
                 /**
@@ -520,7 +517,7 @@ define(function (require, exports, module) {
                     eventAtRatio("mousedown", colorEditor[opts.item], opts.clickAt);
                     eventAtRatio("mousemove", colorEditor[opts.item], opts.dragTo);
                     checkNear(tinycolor(colorEditor.color).toHsv()[opts.param], opts.expected, opts.tolerance);
-                    colorEditor[opts.item].trigger("mouseup");
+                    colorEditor[opts.item].trigger("mouseup");  // clean up drag state
                 }
                 
                 it("should set saturation on mousedown", function () {
@@ -1186,6 +1183,7 @@ define(function (require, exports, module) {
                         eventAtRatio("mousedown", colorEditor.$selectionBase, [0.5, 0.5]);
                         triggerCtrlKey(colorEditor.$selectionBase, KeyEvent.DOM_VK_Z);
                         expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                        colorEditor.$selectionBase.trigger("mouseup");  // clean up drag state
                     });
                 });
                 it("should undo a hue change", function () {
@@ -1194,6 +1192,7 @@ define(function (require, exports, module) {
                         eventAtRatio("mousedown", colorEditor.$hueBase, [0, 0.5]);
                         triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
                         expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                        colorEditor.$hueBase.trigger("mouseup");  // clean up drag state
                     });
                 });
                 it("should undo an opacity change", function () {
@@ -1202,6 +1201,7 @@ define(function (require, exports, module) {
                         eventAtRatio("mousedown", colorEditor.$opacitySelector, [0, 0.5]);
                         triggerCtrlKey(colorEditor.$opacitySelector, KeyEvent.DOM_VK_Z);
                         expect(tinycolor(colorEditor.color).toString()).toBe("rgba(100, 150, 200, 0.3)");
+                        colorEditor.$opacitySelector.trigger("mouseup");  // clean up drag state
                     });
                 });
                 

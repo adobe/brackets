@@ -22,15 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, Mustache, brackets, $, window */
+/*global define, brackets, $, window */
 
 define(function (require, exports, module) {
     "use strict";
     
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
-        Strings              = brackets.getModule("strings"),
-        ColorEditor          = require("ColorEditor").ColorEditor,
-        InlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
+        ColorEditor          = require("ColorEditor").ColorEditor;
         
 
     /** @const @type {number} */
@@ -66,7 +64,12 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype = new InlineWidget();
     InlineColorEditor.prototype.constructor = InlineColorEditor;
     InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
-    InlineColorEditor.prototype.$wrapperDiv = null;
+    
+    /** @type {!ColorPicker} ColorPicker instance */
+    InlineColorEditor.prototype.colorEditor = null;
+    
+    /** @type {!jQuery} Root of ColorPicker's UI */
+    InlineColorEditor.prototype.$colorEditorRoot = null;
     
     /** @type {!string} Current value of the color picker control */
     InlineColorEditor.prototype.color = null;
@@ -138,10 +141,10 @@ define(function (require, exports, module) {
         
     /**
      * When the color picker's selected color changes, update text in code editor
-     * @param {!string} colorLabel
+     * @param {!string} colorString
      */
-    InlineColorEditor.prototype.setColor = function (colorLabel) {
-        if (colorLabel !== this.color) {
+    InlineColorEditor.prototype.setColor = function (colorString) {
+        if (colorString !== this.color) {
             var range = this.getCurrentRange();
             if (!range) {
                 return;
@@ -151,15 +154,15 @@ define(function (require, exports, module) {
             if (!this.isHostChange) {
                 // Replace old color in code with the picker's color, and select it
                 this.isOwnChange = true;
-                this.editor.document.replaceRange(colorLabel, range.start, range.end);
+                this.editor.document.replaceRange(colorString, range.start, range.end);
                 this.isOwnChange = false;
                 this.editor.setSelection(range.start, {
                     line: range.start.line,
-                    ch: range.start.ch + colorLabel.length
+                    ch: range.start.ch + colorString.length
                 });
             }
             
-            this.color = colorLabel;
+            this.color = colorString;
         }
     };
 
@@ -171,14 +174,11 @@ define(function (require, exports, module) {
         this.editor = hostEditor;
         this.parentClass.load.call(this, hostEditor);
         
-        // Build the main UI
-        this.$wrapperDiv = $(Mustache.render(InlineEditorTemplate, Strings));
-        
         // Create color picker control
         var allColorsInDoc = this.editor.document.getText().match(InlineColorEditor.COLOR_REGEX);
         var swatchInfo = this.usedColors(allColorsInDoc, MAX_USED_COLORS);
-        this.colorEditor = new ColorEditor(this.$wrapperDiv, this.color, this.setColor, swatchInfo);
-        this.$htmlContent.append(this.$wrapperDiv);
+        this.colorEditor = new ColorEditor(this.$htmlContent, this.color, this.setColor, swatchInfo);
+        this.$colorEditorRoot = this.colorEditor.$element;
     };
 
     /** @override */
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
     };
 
     InlineColorEditor.prototype._sizeEditorToContent = function () {
-        this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.outerHeight(), true);
+        this.hostEditor.setInlineWidgetHeight(this, this.$colorEditorRoot.outerHeight(), true);
     };
 
     /** Sorts by which colors are used the most */
@@ -245,35 +245,28 @@ define(function (require, exports, module) {
      * @return {!Array.<{value:string, count:number}>}
      */
     InlineColorEditor.prototype.usedColors = function (originalArray, maxLength) {
-        var copyArray,
-            compressed = [];
+        // Maps from lowercase color name to swatch info (user-case color name & occurrence count)
+        /* @type {Object.<string, {value:string, count:number}>} */
+        var colorInfo = {};
         
-        copyArray = $.map(originalArray, function (color) {
-            return color.toLowerCase();
-        });
-                          
-        compressed = $.map(originalArray, function (originalColor) {
-            var a = {},
-                lastIndex = 0,
-                colorCount = 0,
-                colorCopy = originalColor.toLowerCase();
-            
-            do {
-                lastIndex = copyArray.indexOf(colorCopy, lastIndex);
-                if (lastIndex !== -1) {
-                    colorCount++;
-                    copyArray.splice(lastIndex, 1);
-                }
-            } while (lastIndex !== -1 && copyArray.length);
-            
-            if (colorCount > 0) {
-                a.value = originalColor;
-                a.count = colorCount;
-                return a;
+        // Count how many times each color is used
+        originalArray.forEach(function (originalColor) {
+            var key = originalColor.toLowerCase();
+            if (colorInfo[key]) {
+                colorInfo[key].count++;
+            } else {
+                colorInfo[key] = { value: originalColor, count: 1 };
             }
-        }).sort(_colorSort);
-
-        return compressed.slice(0, maxLength);
+        });
+        
+        // Convert to an array
+        var uniqueColors = $.map(colorInfo, function (info) {
+            return info;
+        });
+        
+        // Sort by most-used and return the top N
+        uniqueColors.sort(_colorSort);
+        return uniqueColors.slice(0, maxLength);
     };
     
     /**
