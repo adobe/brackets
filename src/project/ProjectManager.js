@@ -1280,6 +1280,41 @@ define(function (require, exports, module) {
             });
         // No fail handler: silently no-op if file doesn't exist in tree
     }
+
+    /**
+     * Delete file or directore from project
+     * @param {!Entry} entry FileEntry or DirectoryEntry to delete
+     */
+    function deleteItem(entry) {
+        var result = new $.Deferred();
+
+        entry.remove(function () {
+            // Notify that one of the project files has changed
+            $(exports).triggerHandler("projectFilesDelete");
+
+            _findTreeNode(entry).done(function ($node) {
+                _projectTree.jstree("delete_node", $node);
+            });
+
+            _redraw(true);
+            result.promise();
+        }, function (err) {
+            // Show and error alert
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_DELETING_FILE_TITLE,
+                StringUtils.format(
+                    Strings.ERROR_DELETING_FILE,
+                    StringUtils.htmlEscape(entry.fullPath),
+                    err === brackets.fs.ERR_FILE_EXISTS ? Strings.FILE_EXISTS_ERR : FileUtils.getFileErrorString(err)
+                )
+            );
+
+            result.reject(err);
+        });
+
+        return result;
+    }
     
     /**
      * Forces createNewItem() to complete by removing focus from the rename field which causes
@@ -1289,6 +1324,17 @@ define(function (require, exports, module) {
         $(".jstree-rename-input").blur();
     }
 
+    /**
+     * Run this method to handle project menu open behaviors
+     */
+    function beforeMenuOpen(selectedItem) {
+                
+        //Enable only on mac
+        if (brackets.platform !== 'mac') {
+            CommandManager.get(Commands.FILE_DELETE).setEnabled(!selectedItem.isDirectory);
+        }
+        
+    }
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
@@ -1296,6 +1342,12 @@ define(function (require, exports, module) {
 
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
+        });
+    });
+
+    AppInit.appReady(function () {
+        $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on('beforeContextMenuOpen', function () {
+            beforeMenuOpen.call(this, getSelectedItem());
         });
     });
 
@@ -1327,6 +1379,7 @@ define(function (require, exports, module) {
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
     exports.createNewItem            = createNewItem;
     exports.renameItemInline         = renameItemInline;
+    exports.deleteItem               = deleteItem;
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
 });
