@@ -44,7 +44,7 @@ define(function (require, exports, module) {
             testEditor.destroy();
             testEditor = null;
             $("#editor").remove();
-            testDocument = null;    
+            testDocument = null;
         });
     
         
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
             var query = provider.getQueryInfo(testEditor, testEditor.getCursorPos());
             expect(query).toBeTruthy();
             expect(query.queryStr).toBeNull();
-        }        
+        }
 
         
         // Expect hintList to contain attribute names, starting with given value
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
             expect(hintList.indexOf("div")).toBe(-1);   // make sure tag names aren't sneaking in there
             
             expect(hintList[0]).toBe(expectedFirstHint);
-        }        
+        }
         
             
         function selectHint(provider, expectedHint) {
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
             var selection = testEditor.getSelection();
             expect(selection.start).toEqual(selection.end);
             expect(selection.start).toEqual(pos);
-        }        
+        }
         
         describe("CSS attributes in general (selection of correct attribute based on input)", function () {
    
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "backface-visibility");  // filtered on "b"
-            });            
+            });
 
             it("should list all hints starting with 'bord' ", function () {
                 testEditor.setCursorPos({ line: 3, ch: 5 });
@@ -147,9 +147,9 @@ define(function (require, exports, module) {
             it("should NOT list hints right before curly bracket", function () {
                 testEditor.setCursorPos({ line: 0, ch: 10 });    // inside .selector, before {
                 expectNoHints(CSSCodeHints.attrHintProvider);
-            });            
+            });
             
-        });        
+        });
         
         
         describe("CSS attribute handleSelect", function () {
@@ -158,21 +158,21 @@ define(function (require, exports, module) {
                 selectHint(CSSCodeHints.attrHintProvider, "border");
                 expect(testDocument.getLine(3)).toBe(" border: ");
                 expectCursorAt({ line: 3, ch: 9 });
-            });     
+            });
             
             it("should insert semicolon followed by newline after value added", function () {
                 testEditor.setCursorPos({ line: 9, ch: 10 });   // cursor after 'display: '
                 selectHint(CSSCodeHints.attrHintProvider, "block");
                 expect(testDocument.getLine(9)).toBe(" display: block;");
                 // expectCursorAt({ line: 10, ch: 4 });
-            });       
+            });
             
             it("should insert attribute directly after semicolon ", function () {
                 testEditor.setCursorPos({ line: 6, ch: 19 });   // cursor after red;
                 selectHint(CSSCodeHints.attrHintProvider, "align-content");
                 expect(testDocument.getLine(6)).toBe(" border-color: red;align-content: ");
                 // expectCursorAt({ line: 10, ch: 4 });
-            });              
+            });
 
         });
 
@@ -182,14 +182,14 @@ define(function (require, exports, module) {
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display:"
-            });          
+            });
 
             it("should list all display-values after colon and whitespace", function () {
                 testEditor.setCursorPos({ line: 9, ch: 10 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display: "
-            });               
+            });
 
             it("should list all display-values after colon and whitespace", function () {
                 testEditor.setCursorPos({ line: 10, ch: 12 });
@@ -209,9 +209,9 @@ define(function (require, exports, module) {
                 var hintList = CSSCodeHints.attrHintProvider.search(query);
                 expect(hintList).toBeTruthy();
                 expect(hintList.length).toBe(0);
-            });              
+            });
             
-        });        
+        });
         
         describe("CSS attribute hint provider inside mixed htmlfiles", function () {
             var defaultContent = "<html> \n" +
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
                                  "<body> <style> \n" +
                                  " body { \n" +
                                  "    background-color: red; \n" +
-                                 " \n" + 
+                                 " \n" +
                                  "} \n" +
                                  "</style>\n" +
                                  "<div class='selector'></div>\n" +
@@ -236,44 +236,44 @@ define(function (require, exports, module) {
             it("should list hints right after curly bracket", function () {
                 testEditor.setCursorPos({ line: 3, ch: 7 });    // inside body-selector, after {
                 expectHints(CSSCodeHints.attrHintProvider);
-            }); 
+            });
 
             it("should list hints inside oneline styletags at start", function () {
                 testEditor.setCursorPos({ line: 1, ch: 23 });    // inside style, after {
                 expectHints(CSSCodeHints.attrHintProvider);
-            });             
+            });
 
             it("should list hints inside oneline styletags after ;", function () {
                 testEditor.setCursorPos({ line: 1, ch: 37 });    // inside style, after ;
                 expectHints(CSSCodeHints.attrHintProvider);
-            });               
+            });
 
             it("should list hints inside multiline styletags with cursor in first line", function () {
                 testEditor.setCursorPos({ line: 9, ch: 18 });    // inside style, after {
                 expectHints(CSSCodeHints.attrHintProvider);
-            });            
+            });
 
             it("should list hints inside multiline styletags with cursor in last line", function () {
                 testEditor.setCursorPos({ line: 10, ch: 5 });    // inside style, after colo
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "color");  // filtered on "colo"
                 expect(hintList.length).toBe(1);
-            });  
+            });
             
             it("should NOT list hints between closed styletag and new opening style tag", function () {
                 testEditor.setCursorPos({ line: 8, ch: 0 });    // right before <div
                 expectNoHints(CSSCodeHints.attrHintProvider);
-            });                        
+            });
             
             it("should NOT list hints right before curly bracket", function () {
                 testEditor.setCursorPos({ line: 3, ch: 6 });    // inside body-selector, before {
                 expectNoHints(CSSCodeHints.attrHintProvider);
-            });             
+            });
 
             it("should NOT list hints inside head-tag", function () {
                 testEditor.setCursorPos({ line: 1, ch: 6 });    // between <head> and </head> {
                 expectNoHints(CSSCodeHints.attrHintProvider);
-            }); 
+            });
             
         });
         
@@ -282,17 +282,17 @@ define(function (require, exports, module) {
             var defaultContent = "function foobar (args) { \n " +
                                  "    /* do sth */ \n" +
                                  "    return 1; \n" +
-                                 "} \n"; 
+                                 "} \n";
             beforeEach(function () {
                 // create dummy Document for the Editor
                 testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
                 testEditor = new Editor(testDocument, true, "javascript", $("#editor").get(0), {});
-            }); 
+            });
             
             it("should NOT list hints after function declaration", function () {
                 testEditor.setCursorPos({ line: 0, ch: 24 });    // after {  after function declaration
                 expectNoHints(CSSCodeHints.attrHintProvider);
-            }); 
+            });
         });
     });
 });
