@@ -623,6 +623,13 @@ define(function LiveDevelopment(require, exports, module) {
             agents.highlight.hide();
         }
     }
+    
+    /** Redraw highlights **/
+    function redrawHighlight() {
+        if (Inspector.connected() && agents.highlight) {
+            agents.highlight.redraw();
+        }
+    }
 
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
@@ -697,5 +704,6 @@ define(function LiveDevelopment(require, exports, module) {
     exports.getLiveDocForPath   = getLiveDocForPath;
     exports.showHighlight       = showHighlight;
     exports.hideHighlight       = hideHighlight;
+    exports.redrawHighlight     = redrawHighlight;
     exports.init                = init;
 });
