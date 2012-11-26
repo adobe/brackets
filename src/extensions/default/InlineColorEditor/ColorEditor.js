@@ -272,7 +272,7 @@ define(function (require, exports, module) {
         var normalizedColor = color;
                     
         // Convert 6-digit hex to 3-digit hex as tinycolor (#ffaacc -> #fac)
-        if (color.match(/^#[0-9a-f]{6}/)) {
+        if (color.match(/^#[0-9a-fA-F]{6}/)) {
             return tinycolor(color).toString();
         }
         if (color.match(/^(rgb|hsl)/)) {
@@ -356,8 +356,6 @@ define(function (require, exports, module) {
         });
 
         this.$swatches.find("li").click(function (event) {
-            // Set focus to the corresponding value label of the swatch.
-            $(event.currentTarget).find(".value").focus();
             _this._commitColor($(event.currentTarget).find(".value").html());
         });
     };
@@ -389,6 +387,16 @@ define(function (require, exports, module) {
             break;
         }
         this._commitColor(colorVal, commitHsv);
+
+        // Some color values (gray-ish colors) may not get updated with the above 
+        // commitColor call since they are different in hsv values, but still exactly
+        // the same when converting to tiny color object. ie. newColor == oldColor.
+        // So we will update this.hsv here since commitColor call does not update it.
+        // This is necessary to prevent the hue slider from getting stuck when using 
+        // up/down arrow keys (issue #2138).
+        if (this.hsv !== commitHsv) {
+            this.hsv = commitHsv;
+        }
     };
 
     /**
@@ -565,7 +573,7 @@ define(function (require, exports, module) {
                 if (this.$swatches.children().length === 0) {
                     this.$hslButton.focus();
                 } else {
-                    this.$swatches.find(".value:last").focus();
+                    this.$swatches.find("li:last").focus();
                 }
                 return false;
             }
