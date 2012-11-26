@@ -6,7 +6,7 @@ define(function (require, exports, module) {
 
     var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),  
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         TokenUtils          = brackets.getModule("utils/TokenUtils"),
         CSSAttributes       = require("text!CSSAttributes.json"),
         attributes          = JSON.parse(CSSAttributes);
@@ -24,23 +24,24 @@ define(function (require, exports, module) {
             csscontext  = false;
           
         /* first: check overall context - is this a css-valid context */
-        if(editor.getModeForDocument() === "css") {
+        if (editor.getModeForDocument() === "css") {
             csscontext = true;
         } else {
             
             /* check whether the cursor is inside any <style> block in the document */
             if (styleblocks.length > 0) {
                 var insideStyleBlock = false,
-                    item = null;
+                    item = null,
+                    i = null;
                 // styleblocks.forEach(function(index, item) {
-                for(var i=0; i < styleblocks.length; i++) {
+                for (i = 0; i < styleblocks.length; i++) {
                     item = styleblocks[i];
                     if (this._cursorInRange(cursor, item.start, item.end)) {
                         csscontext = true;
                         break;
                     }
                 }
-            }      
+            }
         }
         
         /* second: check if we are actually inside a { } */
@@ -50,16 +51,16 @@ define(function (require, exports, module) {
             // we only need to check if we hit a { and return true, or } and return false, if we hit a ; it's okay, but not sufficent
             csscontext = false;
             do {
-                if(ctx.token.string === "{") {
+                if (ctx.token.string === "{") {
                     /* first relevant symbol, everything fine */
                     csscontext = true;
                     ctx = TokenUtils.getInitialContext(editor._codeMirror, cursor);
-                    break;   
+                    break;
                 } else if (ctx.token.string === "}") {
                     /* cursor is outside of set of rules */
                     csscontext = false;
                     break;
-                } 
+                }
             } while (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx));
         }
         
@@ -69,7 +70,7 @@ define(function (require, exports, module) {
             query.queryStr = ctx.token.string;
             if (query.queryStr !== null) {
                 query.queryStr = query.queryStr.trim();
-                if(query.queryStr === "") {
+                if (query.queryStr === "") {
                     TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
                     query.queryStr = ctx.token.string;
                 }
@@ -77,8 +78,8 @@ define(function (require, exports, module) {
                 if (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx)) {
                     query.prevStr = ctx.token.string;
                 }
-            } 
-            /* notes: we need some contextinformation around cursor, 2-3 tokens to determine if we need to show attrs or values */            
+            }
+            /* notes: we need some contextinformation around cursor, 2-3 tokens to determine if we need to show attrs or values */
             
             if (query.queryStr === "{" || query.queryStr === ";") {
                 /* cssattribute context */
@@ -98,29 +99,29 @@ define(function (require, exports, module) {
             }
         }
         return query;
-    }
+    };
     
-    CssAttrHints.prototype.search = function(query) {
+    CssAttrHints.prototype.search = function (query) {
         var result = [],
             filter = query.queryStr,
             attrName = query.attrName;
         
-        if(attrName) {
+        if (attrName) {
             if (!attributes[attrName]) {
                 return result;
             }
-            result = $.map(attributes[attrName].values, function(value, index) {
+            result = $.map(attributes[attrName].values, function (value, index) {
                 if (value.indexOf(filter) === 0) {
                     return value;
                 }
             });
-        } else {     
+        } else {
             if (filter === "") {
                 result = $.map(attributes, function (obj, name) {
                     return name;
                 });
             } else {
-                result = $.map(attributes, function(obj, name) {
+                result = $.map(attributes, function (obj, name) {
                     if (name.indexOf(filter) === 0) {
                         return name;
                     }
@@ -128,7 +129,7 @@ define(function (require, exports, module) {
             }
         }
         return result;
-    }    
+    };
     
     CssAttrHints.prototype.handleSelect = function (completion, editor, cursor) {
         var ctx  = TokenUtils.getInitialContext(editor._codeMirror, cursor),
@@ -142,7 +143,7 @@ define(function (require, exports, module) {
             }
             
             /* if token is special char, 'len' will be wrong, since a wrong token is used, set token directly to be the empty string */
-            if(ctx.token.string === "{" || ctx.token.string === ":" || ctx.token.string === ";") {
+            if (ctx.token.string === "{" || ctx.token.string === ":" || ctx.token.string === ";") {
                 ctx.token.string = "";
             }
             
@@ -153,8 +154,7 @@ define(function (require, exports, module) {
         this.cssMode = "";
 
         return true;
-
-    }
+    };
          
     /**
      * Check whether to show hints on a specific key.
@@ -172,15 +172,15 @@ define(function (require, exports, module) {
         var afterStart = false,
             beforeEnd  = false;
         
-        if( start.line < cursor.line || start.line <= cursor.line && start.ch <= cursor.ch) {
+        if (start.line < cursor.line || (start.line <= cursor.line && start.ch <= cursor.ch)) {
             afterStart = true;
         }
-        if( end.line > cursor.line || end.line >= cursor.line && end.ch >= cursor.ch) {
+        if (end.line > cursor.line || (end.line >= cursor.line && end.ch >= cursor.ch)) {
             beforeEnd = true;
         }
         
         return (afterStart && beforeEnd);
-    }
+    };
                 
                 
                 
