@@ -68,6 +68,7 @@ define(function (require, exports, module) {
         this.$colorValue = this.$element.find(".color-value");
         this.$buttonList = this.$element.find("ul.button-bar");
         this.$rgbaButton = this.$element.find(".rgba");
+        this.$prgbaButton = this.$element.find(".prgba");
         this.$hexButton = this.$element.find(".hex");
         this.$hslButton = this.$element.find(".hsla");
         this.$currentColor = this.$element.find(".current-color");
@@ -128,6 +129,7 @@ define(function (require, exports, module) {
     /** Attach event listeners for main UI elements */
     ColorEditor.prototype._addListeners = function () {
         this._bindColorFormatToRadioButton("rgba");
+        this._bindColorFormatToRadioButton("prgba");
         this._bindColorFormatToRadioButton("hex");
         this._bindColorFormatToRadioButton("hsla");
         
@@ -202,6 +204,9 @@ define(function (require, exports, module) {
         case "rgb":
             this.$buttonList.find(".rgba").parent().addClass("selected");
             break;
+        case "prgb":
+            this.$buttonList.find(".prgba").parent().addClass("selected");
+            break;
         case "hex":
         case "name":
             this.$buttonList.find(".hex").parent().addClass("selected");
@@ -218,7 +223,7 @@ define(function (require, exports, module) {
             _this = this;
         handler = function (event) {
             var colorObject, newColor, newFormat;
-            newFormat = $(event.currentTarget).html().toLowerCase();
+            newFormat = $(event.currentTarget).html().toLowerCase().replace("%", "p");
             newColor = _this.getColor();
             colorObject = tinycolor(newColor);
             switch (newFormat) {
@@ -227,6 +232,9 @@ define(function (require, exports, module) {
                 break;
             case "rgba":
                 newColor = colorObject.toRgbString();
+                break;
+            case "prgba":
+                newColor = colorObject.toPercentageRgbString();
                 break;
             case "hex":
                 newColor = colorObject.toHexString();
@@ -247,29 +255,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Convert percentage values in an RGB color into normal RGB values in the range of 0 - 255.
-     * If the original color is already in non-percentage format, does nothing.
-     * @param {string} color The color to be converted to non-percentage RGB color string.
-     * @return {string} an RGB color string in the normal format using non-percentage values
-     */
-    ColorEditor.prototype._convertToNormalRGB = function (color) {
-        var matches = color.match(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
-        if (matches) {
-            var i, percentStr, value;
-            for (i = 0; i < 3; i++) {
-                percentStr = matches[i + 1];
-                value = Math.round(255 * Number(percentStr) / 100);
-                if (!isNaN(value)) {
-                    color = color.replace(percentStr + "%", value);
-                }
-            }
-        }
-        return color;
-    };
-                    
-    /**
      * Normalize the given color string into the format used by tinycolor, by adding a space 
-     * after commas and converting RGB colors from percentages to integers.
+     * after commas.
      * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
      * @return {string} a normalized color string.
      */
@@ -285,7 +272,7 @@ define(function (require, exports, module) {
             normalizedColor = normalizedColor.replace(/\(\s+/, "(");
             normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        return this._convertToNormalRGB(normalizedColor.toLowerCase());
+        return normalizedColor.toLowerCase();
     };
 
     /** Handle changes in text field */
@@ -384,6 +371,9 @@ define(function (require, exports, module) {
             break;
         case "rgb":
             colorVal = newColor.toRgbString();
+            break;
+        case "prgb":
+            colorVal = newColor.toPercentageRgbString();
             break;
         case "hex":
         case "name":
