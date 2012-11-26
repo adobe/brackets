@@ -387,16 +387,6 @@ define(function (require, exports, module) {
             break;
         }
         this._commitColor(colorVal, commitHsv);
-
-        // Some color values (gray-ish colors) may not get updated with the above 
-        // commitColor call since they are different in hsv values, but still exactly
-        // the same when converting to tiny color object. ie. newColor == oldColor.
-        // So we will update this.hsv here since commitColor call does not update it.
-        // This is necessary to prevent the hue slider from getting stuck when using 
-        // up/down arrow keys (issue #2138).
-        if (this.hsv !== commitHsv) {
-            this.hsv = commitHsv;
-        }
     };
 
     /**
@@ -592,14 +582,14 @@ define(function (require, exports, module) {
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (hue > 0) {
                 hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
-                this.setColorAsHsv(hsv);
+                this.setColorAsHsv(hsv, false);
             }
             return false;
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
             if (hue < 360) {
                 hsv.h = (hue + step) >= 360 ? step : hue + step;
-                this.setColorAsHsv(hsv);
+                this.setColorAsHsv(hsv, false);
             }
             return false;
         }
