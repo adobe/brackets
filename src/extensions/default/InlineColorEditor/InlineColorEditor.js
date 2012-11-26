@@ -42,14 +42,14 @@ define(function (require, exports, module) {
      * @param {!CodeMirror.Bookmark} endBookmark
      */
     function InlineColorEditor(color, startBookmark, endBookmark) {
-        this.color = color;
-        this.startBookmark = startBookmark;
-        this.endBookmark = endBookmark;
-        this.isOwnChange = false;
-        this.isHostChange = false;
+        this._color = color;
+        this._startBookmark = startBookmark;
+        this._endBookmark = endBookmark;
+        this._isOwnChange = false;
+        this._isHostChange = false;
 
-        this.setColor = this.setColor.bind(this);
-        this.handleHostDocumentChange = this.handleHostDocumentChange.bind(this);
+        this._handleColorChange = this._handleColorChange.bind(this);
+        this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
 
         InlineWidget.call(this);
     }
@@ -72,26 +72,26 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype.$colorEditorRoot = null;
     
     /** @type {!string} Current value of the color picker control */
-    InlineColorEditor.prototype.color = null;
+    InlineColorEditor.prototype._color = null;
     
     /**
-     * Start of the range of code we're attached to; startBookmark.find() may by null if sync is lost.
+     * Start of the range of code we're attached to; _startBookmark.find() may by null if sync is lost.
      * @type {!CodeMirror.Bookmark}
      */
-    InlineColorEditor.prototype.startBookmark = null;
+    InlineColorEditor.prototype._startBookmark = null;
     
     /**
-     * End of the range of code we're attached to; endBookmark.find() may by null if sync is lost or even
+     * End of the range of code we're attached to; _endBookmark.find() may by null if sync is lost or even
      * in some cases when it's not. Call getCurrentRange() for the definitive text range we're attached to.
      * @type {!CodeMirror.Bookmark}
      */
-    InlineColorEditor.prototype.endBookmark = null;
+    InlineColorEditor.prototype._endBookmark = null;
     
     /** @type {boolean} True while we're syncing a color picker change into the code editor */
-    InlineColorEditor.prototype.isOwnChange = null;
+    InlineColorEditor.prototype._isOwnChange = null;
     
     /** @type {boolean} True while we're syncing a code editor change into the color picker */
-    InlineColorEditor.prototype.isHostChange = null;
+    InlineColorEditor.prototype._isHostChange = null;
     
     
     /**
@@ -102,12 +102,12 @@ define(function (require, exports, module) {
     InlineColorEditor.prototype.getCurrentRange = function () {
         var start, end;
         
-        start = this.startBookmark.find();
+        start = this._startBookmark.find();
         if (!start) {
             return null;
         }
         
-        end = this.endBookmark.find();
+        end = this._endBookmark.find();
         if (!end) {
             end = { line: start.line };
         }
@@ -127,8 +127,8 @@ define(function (require, exports, module) {
         // the matched length here.
         if (matches && (end.ch === undefined || end.ch - start.ch < matches[0].length)) {
             end.ch = start.ch + matches[0].length;
-            this.endBookmark.clear();
-            this.endBookmark = this.editor._codeMirror.setBookmark(end);
+            this._endBookmark.clear();
+            this._endBookmark = this.editor._codeMirror.setBookmark(end);
         }
         
         if (end.ch === undefined) {
@@ -143,26 +143,26 @@ define(function (require, exports, module) {
      * When the color picker's selected color changes, update text in code editor
      * @param {!string} colorString
      */
-    InlineColorEditor.prototype.setColor = function (colorString) {
-        if (colorString !== this.color) {
+    InlineColorEditor.prototype._handleColorChange = function (colorString) {
+        if (colorString !== this._color) {
             var range = this.getCurrentRange();
             if (!range) {
                 return;
             }
 
             // Don't push the change back into the host editor if it came from the host editor.
-            if (!this.isHostChange) {
+            if (!this._isHostChange) {
                 // Replace old color in code with the picker's color, and select it
-                this.isOwnChange = true;
+                this._isOwnChange = true;
                 this.editor.document.replaceRange(colorString, range.start, range.end);
-                this.isOwnChange = false;
+                this._isOwnChange = false;
                 this.editor.setSelection(range.start, {
                     line: range.start.line,
                     ch: range.start.ch + colorString.length
                 });
             }
             
-            this.color = colorString;
+            this._color = colorString;
         }
     };
 
@@ -176,8 +176,8 @@ define(function (require, exports, module) {
         
         // Create color picker control
         var allColorsInDoc = this.editor.document.getText().match(InlineColorEditor.COLOR_REGEX);
-        var swatchInfo = this.usedColors(allColorsInDoc, MAX_USED_COLORS);
-        this.colorEditor = new ColorEditor(this.$htmlContent, this.color, this.setColor, swatchInfo);
+        var swatchInfo = this._topUsedColors(allColorsInDoc, MAX_USED_COLORS);
+        this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
         this.$colorEditorRoot = this.colorEditor.$element;
     };
 
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
         
         var doc = this.editor.document;
         doc.addRef();
-        $(doc).on("change", this.handleHostDocumentChange);
+        $(doc).on("change", this._handleHostDocumentChange);
         
         window.setTimeout(this._sizeEditorToContent.bind(this), 0);
         this.colorEditor.focus();
@@ -206,15 +206,15 @@ define(function (require, exports, module) {
      * Called whenever the inline widget is closed, whether automatically or explicitly
      */
     InlineColorEditor.prototype.onClosed = function () {
-        if (this.startBookmark) {
-            this.startBookmark.clear();
+        if (this._startBookmark) {
+            this._startBookmark.clear();
         }
-        if (this.endBookmark) {
-            this.endBookmark.clear();
+        if (this._endBookmark) {
+            this._endBookmark.clear();
         }
 
         var doc = this.editor.document;
-        $(doc).off("change", this.handleHostDocumentChange);
+        $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
 
         this.parentClass.onClosed.call(this);
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
      * @param {number} maxLength
      * @return {!Array.<{value:string, count:number}>}
      */
-    InlineColorEditor.prototype.usedColors = function (originalArray, maxLength) {
+    InlineColorEditor.prototype._topUsedColors = function (originalArray, maxLength) {
         // Maps from lowercase color name to swatch info (user-case color name & occurrence count)
         /* @type {Object.<string, {value:string, count:number}>} */
         var colorInfo = {};
@@ -272,19 +272,19 @@ define(function (require, exports, module) {
     /**
      * When text in the code editor changes, update color picker to reflect it
      */
-    InlineColorEditor.prototype.handleHostDocumentChange = function () {
+    InlineColorEditor.prototype._handleHostDocumentChange = function () {
         // Don't push the change into the color editor if it came from the color editor.
-        if (this.isOwnChange) {
+        if (this._isOwnChange) {
             return;
         }
         
         var range = this.getCurrentRange();
         if (range) {
             var newColor = this.editor.document.getRange(range.start, range.end);
-            if (newColor !== this.color) {
-                this.isHostChange = true;
-                this.colorEditor.commitColor(newColor, true);
-                this.isHostChange = false;
+            if (newColor !== this._color) {
+                this._isHostChange = true;
+                this.colorEditor._commitColor(newColor, true);
+                this._isHostChange = false;
             }
         } else {
             // The edit caused our range to become invalid. Close the editor.

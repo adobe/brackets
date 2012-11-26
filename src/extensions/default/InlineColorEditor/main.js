@@ -84,10 +84,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    
     // Initialize extension
     ExtensionUtils.loadStyleSheet(module, "css/main.css");
     
     EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
+    
     
     // for unit tests only
     exports.inlineColorEditorProvider = inlineColorEditorProvider;
