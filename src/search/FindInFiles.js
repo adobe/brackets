@@ -282,11 +282,14 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(esc(item.fullPath))) + "</td>")
+                        .append("<td colspan='3'><span class='disclosure-triangle expanded'></span>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(esc(item.fullPath))) + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
                             $fileHeader.nextUntil(".file-section").toggle();
+                            
+                            var $triangle = $(".disclosure-triangle", $fileHeader);
+                            $triangle.toggleClass("expanded").toggleClass("collapsed");
                         })
                         .appendTo($resultTable);
                     
