@@ -24,32 +24,10 @@ define(function (require, exports, module) {
             csscontext  = false;
           
         /* first: check overall context - is this a css-valid context */
-        //if (editor.getModeForDocument() === "css") {
         if (editor.getModeForSelection() === "css") {
-            csscontext = true;
-        } // else if (false) {
-            /* check whether the cursor is inside any <style> block in the document */
-            /*if (styleblocks.length > 0) {
-                var insideStyleBlock = false,
-                    item = null,
-                    i = null;
-                // styleblocks.forEach(function(index, item) {
-                for (i = 0; i < styleblocks.length; i++) {
-                    item = styleblocks[i];
-                    if (this._cursorInRange(cursor, item.start, item.end)) {
-                        csscontext = true;
-                        break;
-                    }
-                }
-            }
-        } */
-        
-        /* second: check if we are actually inside a { } */
-        if (csscontext) {
             // we know we are dealing with a .css file or the cursor is inside a <style/> tag, but we don't know if we are actually
             // inside a set of rules { } or between two or in a selector
             // we only need to check if we hit a { and return true, or } and return false, if we hit a ; it's okay, but not sufficent
-            csscontext = false;
             do {
                 if (ctx.token.string === "{") {
                     /* first relevant symbol, everything fine */
