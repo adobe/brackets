@@ -211,6 +211,13 @@ define(function main(require, exports, module) {
                 }
             });
         }
+        
+        // Redraw highlights when window gets focus. 
+        $(window).focus(function () {
+            if (Inspector.connected() && config.highlight) {
+                LiveDevelopment.redrawHighlight();
+            }
+        });
     }
     
     // init prefs

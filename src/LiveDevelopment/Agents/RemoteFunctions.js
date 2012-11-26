@@ -192,7 +192,7 @@ function RemoteFunctions(experimental) {
         this.color = color;
         this.trigger = !!trigger;
         this.elements = [];
-        this.orgColors = [];
+        this.selector = "";
     }
 
     Highlight.prototype = {
@@ -296,7 +296,13 @@ function RemoteFunctions(experimental) {
         },
         
         redraw: function () {
-            var i, highlighted = this.elements.slice(0);
+            var i, highlighted;
+            
+            if (this.selector) {
+                highlighted = window.document.querySelectorAll(this.selector);
+            } else {
+                this.elements.slice(0);
+            }
             
             this.clear();
             for (i in highlighted) {
@@ -423,6 +429,7 @@ function RemoteFunctions(experimental) {
         for (i = 0; i < nodes.length; i++) {
             highlight(nodes[i]);
         }
+        _remoteHighlight.selector = rule;
     }
     
     // redraw active highlights
