@@ -42,6 +42,7 @@ define(function DOMAgent(require, exports, module) {
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
+    var EditAgent = require("LiveDevelopment/Agents/EditAgent");
     var DOMNode = require("LiveDevelopment/Agents/DOMNode");
     var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
 
@@ -274,7 +275,10 @@ define(function DOMAgent(require, exports, module) {
             value += text;
             value += node.value.substr(to - node.location);
             node.value = value;
-            Inspector.DOM.setNodeValue(node.nodeId, node.value);
+            if (!EditAgent.isEditing) {
+                // only update the DOM if the change was not caused by the edit agent
+                Inspector.DOM.setNodeValue(node.nodeId, node.value);
+            }
         } else {
             console.warn("Changing non-text nodes not supported.");
         }
@@ -303,7 +307,6 @@ define(function DOMAgent(require, exports, module) {
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
         Inspector.Page.enable();
-        Inspector.Page.reload();
         return _load.promise();
     }
 
