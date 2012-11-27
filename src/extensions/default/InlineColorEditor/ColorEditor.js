@@ -545,10 +545,7 @@ define(function (require, exports, module) {
                     
                 // If the input has no "type" attribute, it defaults to text. So we
                 // have to check for both possibilities.
-                if (!$target.is("input:not([type])") && !$target.is("input[type=text]")) {
-                    // Not a text input control, so we want to prevent default.
-                    preventDefault = true;
-                } else {
+                if ($target.is("input:not([type])") || $target.is("input[type=text]")) {
                     // Text input control. In WebKit, if the cursor gets to the start
                     // or end of a text field and can't move any further, the default 
                     // action doesn't take place in the text field, so the event is handled
@@ -557,7 +554,11 @@ define(function (require, exports, module) {
                             (event.keyCode === KeyEvent.DOM_VK_RIGHT && $target[0].selectionEnd === $target.val().length)) {
                         preventDefault = true;
                     }
+                } else {
+                    // Not a text input control, so we want to prevent default.
+                    preventDefault = true;
                 }
+
                 if (preventDefault) {
                     event.stopPropagation();
                     return false; // equivalent to event.preventDefault()
