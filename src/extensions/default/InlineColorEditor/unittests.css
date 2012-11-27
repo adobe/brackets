@@ -1,0 +1,43 @@
+.hex-rule {
+    background: #abcdef;
+}
+
+.hex-three-rule {
+    background: #abc;
+}
+
+.rgb-rule {
+    background: rgb(100, 200, 150);
+}
+
+.rgba-rule {
+    background: rgba(100, 200, 150, 0.5);
+}
+
+.hsl-rule {
+    background: hsl(180, 50%, 50%);
+}
+
+.hsla-rule {
+    background: hsla(180, 50%, 50%, 0.5);
+}
+
+.invalid-color {
+    background: rgb(150;
+}
+
+.multiple-colors {
+    background: linear-gradient(90deg, #aabbcc, #ddeeff);
+}
+
+.uppercase-hex {
+    background: #DEFCBA;
+}
+
+.missing-percent {
+    background: hsla(180, 50, 50, 0.5);
+}
+
+.in-shorthand {
+    border: 1px solid #0f0f0f;
+}

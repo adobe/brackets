@@ -22,10 +22,26 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $, define, brackets, FileError, InvalidateStateError */
+/*global $, define, brackets, FileError, InvalidateStateError, window */
 
 define(function (require, exports, module) {
     "use strict";
+
+    //define FileError as currently ONLY Chrome implements the File API W3C Working Draft
+    window.FileError = window.FileError || {
+        NOT_FOUND_ERR: 1,
+        SECURITY_ERR: 2,
+        ABORT_ERR: 3,
+        NOT_READABLE_ERR: 4,
+        ENCODING_ERR: 5,
+        NO_MODIFICATION_ALLOWED_ERR: 6,
+        INVALID_STATE_ERR: 7,
+        SYNTAX_ERR: 8,
+        INVALID_MODIFICATION_ERR: 9,
+        QUOTA_EXCEEDED_ERR: 10,
+        TYPE_MISMATCH_ERR: 11,
+        PATH_EXISTS_ERR: 12
+    };
     
     var Async = require("utils/Async");
 

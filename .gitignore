@@ -7,5 +7,7 @@ src/brackets.min.css
 src/extensions/dev/*
 !src/extensions/dev/README
 
+src/extensions/disabled
+
 #OSX .DS_Store files
 .DS_Store

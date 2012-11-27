@@ -33,15 +33,18 @@
 .jstree-brackets .jstree-closed > ins { background-position:-54px 0; }
 .jstree-brackets .jstree-leaf > ins { background-position:-36px 0; }
 
+@jstree-icon-backindent: 12px;
+
 /* Make the links in the JS tree the width of the container
  * by shifting the off the screen by negative margin and moving the
  * content back by pushing the padding. The icons are positioned absolute
- * relative to the containing list item so the sit above the a's background. 
+ * relative to the containing list item so they sit above the a's background.
  * This also means we need to include the size of the sprite in the padding
  * so the text ends up back in the same spot visually
  */
 .jstree-brackets li > a {
-    padding-left: @sprite-size-18 + 10000;
+    @jstree-icon-text-overlap: 2px;
+    padding-left: (@jstree-sprite-size - @jstree-icon-backindent - @jstree-icon-text-overlap) + 10000px;
     margin-left: -10000px;
     display: block;
 }
@@ -79,6 +82,9 @@
 .jstree ins {
     position: absolute;
 }
+ins.jstree-icon {
+    left: -@jstree-icon-backindent !important;
+}
 
 .jstree-brackets a .jstree-icon { background-position:-56px -19px; }
 .jstree-brackets a.jstree-loading .jstree-icon { background:url("images/throbber.gif") center center no-repeat !important; }
@@ -92,6 +98,7 @@
     margin-bottom: 2px;
 }
 
+// These styles control the expand/collapse arrow icons. Most other styles in this file with background-position are unused.
 .jstree-brackets .jstree-no-dots li, 
 .jstree-brackets .jstree-no-dots .jstree-leaf > ins { background:transparent; }
 .jstree-brackets .jstree-no-dots .jstree-open > ins { background-position:-18px 0; }
