@@ -282,6 +282,10 @@ define(function (require, exports, module) {
      * When text in the code editor changes, update color picker to reflect it
      */
     InlineColorEditor.prototype._handleHostDocumentChange = function () {
+        // Any host document change might change the scroll width, so we need to
+        // recalculate our own width.
+        this._handleHostResize();
+        
         // Don't push the change into the color editor if it came from the color editor.
         if (this._isOwnChange) {
             return;
