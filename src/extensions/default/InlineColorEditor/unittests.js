@@ -700,10 +700,25 @@ define(function (require, exports, module) {
                  *     tolerance: The tolerance in variation for the expected value.
                  */
                 function testKey(opts) {
+                    
+                    function getParam() {
+                        if (opts.exact) {
+                            var result = colorEditor._hsv[opts.param];
+                            // Because of #2201, this is sometimes a string with a percentage value.
+                            if (typeof result === "string" && result.charAt(result.length - 1) === "%") {
+                                result = Number(result.substr(0, result.length - 1));
+                            }
+                            return result;
+                        } else {
+                            return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
+                        }
+                    }
+                    
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
-                    var orig = tinycolor(colorEditor.getColor()).toHsv()[opts.param];
+                    var orig = getParam();
                     colorEditor[opts.item].trigger($.Event("keydown", { keyCode: opts.key, shiftKey: !!opts.shift }));
-                    checkNear(tinycolor(colorEditor.getColor()).toHsv()[opts.param], orig + opts.delta, opts.tolerance);
+                    var final = getParam();
+                    checkNear(final, orig + opts.delta, opts.tolerance);
                 }
                 
                 it("should increase saturation by 1.5% on right arrow", function () {
@@ -1028,6 +1043,44 @@ define(function (require, exports, module) {
                     });
                 });
                 
+                // For #2138
+                it("should increase hue by 18 on shift up arrow even if saturation is 0", function () {
+                    testKey({
+                        color:     "hsl(180, 0, 0)",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_UP,
+                        shift:     true,
+                        param:     "h",
+                        delta:     18,
+                        tolerance: 1,
+                        exact:     true
+                    });
+                });
+                it("should increase hue by 18 on shift up arrow for a near-gray hex color", function () {
+                    testKey({
+                        color:     "#5c5b56",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_UP,
+                        shift:     true,
+                        param:     "h",
+                        delta:     18,
+                        tolerance: 1,
+                        exact:     true
+                    });
+                });
+                it("should not change value when hue changes", function () {
+                    testKey({
+                        color:     "#8e8247",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_UP,
+                        shift:     true,
+                        param:     "v",
+                        delta:     0,
+                        tolerance: 0.01,
+                        exact:     true
+                    });
+                });
+
             });
             
             describe("color swatches and original color", function () {
