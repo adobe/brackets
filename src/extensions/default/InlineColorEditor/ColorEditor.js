@@ -52,21 +52,21 @@ define(function (require, exports, module) {
         this.lastColor = color;
         this.redoColor = null;
         this.$element = $(this.element);
-        this.$colorValue = this.$element.find(".color_value");
+        this.$colorValue = this.$element.find(".color-value");
         this.$buttonList = this.$element.find("ul.button-bar");
         this.$rgbaButton = this.$element.find(".rgba");
         this.$hexButton = this.$element.find(".hex");
         this.$hslButton = this.$element.find(".hsla");
-        this.$currentColor = this.$element.find(".current_color");
+        this.$currentColor = this.$element.find(".current-color");
         this.$lastColor = this.$element.find(".last_color");
-        this.$selection = this.$element.find(".color_selection_field");
-        this.$selectionBase = this.$element.find(".color_selection_field .selector_base");
-        this.$hueBase = this.$element.find(".hue_slider .selector_base");
-        this.$opacityGradient = this.$element.find(".opacity_gradient");
-        this.$hueSlider = this.$element.find(".hue_slider");
-        this.$opacitySlider = this.$element.find(".opacity_slider");
-        this.$hueSelector = this.$element.find(".hue_slider .selector_base");
-        this.$opacitySelector = this.$element.find(".opacity_slider .selector_base");
+        this.$selection = this.$element.find(".color-selection-field");
+        this.$selectionBase = this.$element.find(".color-selection-field .selector-base");
+        this.$hueBase = this.$element.find(".hue_slider .selector-base");
+        this.$opacityGradient = this.$element.find(".opacity-gradient");
+        this.$hueSlider = this.$element.find(".hue-slider");
+        this.$opacitySlider = this.$element.find(".opacity-slider");
+        this.$hueSelector = this.$element.find(".hue-slider .selector-base");
+        this.$opacitySelector = this.$element.find(".opacity-slider .selector-base");
         this.$swatches = this.$element.find(".swatches");
         this.addSwatches();
         this.addFieldListeners();
@@ -133,8 +133,8 @@ define(function (require, exports, module) {
     };
 
     ColorEditor.prototype.focus = function () {
-        if (!this.$selection.find(".selector_base").is(":focus")) {
-            this.$selection.find(".selector_base").focus();
+        if (!this.$selection.find(".selector-base").is(":focus")) {
+            this.$selection.find(".selector-base").focus();
             return true;
         }
         return false;
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
         this.swatches.forEach(function (swatch) {
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
-            _this.$swatches.append("<li tabindex='0'><div class='swatch_bg'><div class='swatch' style='background-color: " +
+            _this.$swatches.append("<li tabindex='0'><div class='swatch-bg'><div class='swatch' style='background-color: " +
                     swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
         });
@@ -368,8 +368,8 @@ define(function (require, exports, module) {
         hsv.s = xOffset / width;
         hsv.v = 1 - yOffset / height;
         this.setColorAsHsv(hsv, false);
-        if (!this.$selection.find(".selector_base").is(":focus")) {
-            this.$selection.find(".selector_base").focus();
+        if (!this.$selection.find(".selector-base").is(":focus")) {
+            this.$selection.find(".selector-base").focus();
         }
     };
 
@@ -380,8 +380,8 @@ define(function (require, exports, module) {
         hsv = {};
         hsv.h = (1 - offset / height) * 360;
         this.setColorAsHsv(hsv, false);
-        if (!this.$hueSlider.find(".selector_base").is(":focus")) {
-            this.$hueSlider.find(".selector_base").focus();
+        if (!this.$hueSlider.find(".selector-base").is(":focus")) {
+            this.$hueSlider.find(".selector-base").focus();
         }
     };
 
@@ -392,8 +392,8 @@ define(function (require, exports, module) {
         hsv = {};
         hsv.a = 1 - offset / height;
         this.setColorAsHsv(hsv, false);
-        if (!this.$opacitySlider.find(".selector_base").is(":focus")) {
-            this.$opacitySlider.find(".selector_base").focus();
+        if (!this.$opacitySlider.find(".selector-base").is(":focus")) {
+            this.$opacitySlider.find(".selector-base").focus();
         }
     };
 
@@ -553,7 +553,7 @@ define(function (require, exports, module) {
     };
 
     // Prevent clicks on some UI elements (color selection field, slider and large swatch) from taking focus
-    $(window.document).on("mousedown", ".color_selection_field, .slider, .large_swatch", function (e) {
+    $(window.document).on("mousedown", ".color-selection-field, .slider, .large-swatch", function (e) {
         e.preventDefault();
     });
 
