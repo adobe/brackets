@@ -267,7 +267,7 @@ define({
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TOOLTIP": "Paramètres du projet",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
-	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct",
+	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
 	"PROJECT_SETTING_BASE_URL_HINT": "(Dans le cas d’une URL de fichier, ne rien indiquer)",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
