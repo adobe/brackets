@@ -50,6 +50,10 @@ define(function (require, exports, module) {
 
         this._handleColorChange = this._handleColorChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
+        this._handleHostResize = this._handleHostResize.bind(this);
+        
+        $(window).on("resize", this._handleHostResize);
+        window.setTimeout(this._handleHostResize, 0);
 
         InlineWidget.call(this);
     }
@@ -162,6 +166,13 @@ define(function (require, exports, module) {
             this._color = colorString;
         }
     };
+    
+    /**
+     * Update the width of the inline editor based on the host editor's width.
+     */
+    InlineColorEditor.prototype._handleHostResize = function () {
+        this.$htmlContent.css("min-width", this.hostEditor.getScrollerElement().scrollWidth + "px");
+    };
 
     /**
      * @override
@@ -212,6 +223,8 @@ define(function (require, exports, module) {
         var doc = this.editor.document;
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
+        
+        $(window).off("resize", this._handleHostResize);
 
         this.parentClass.onClosed.call(this);
     };
