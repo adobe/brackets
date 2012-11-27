@@ -78,10 +78,12 @@
 }
 .color_editor aside ul.swatches li {
     -webkit-text-size-adjust: none;
-    cursor: pointer;
     height: 18px;
     margin-bottom: 2px;
     padding: 0 1px 1px 2px;
+}
+.color_editor aside ul.swatches li:hover {
+    box-shadow: 0 0 4px rgba(0,136,255,0.3);
 }
 .color_editor aside ul.swatches li:focus {
     outline: none;
