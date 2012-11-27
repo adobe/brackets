@@ -6,7 +6,7 @@ if [[ ${1} == "" ]]; then
   echo "Setup local server to access Brackets server smoke test files from GitHub"
   echo ""
   echo "Parameters: server-root-path - local file path to server root folder"
-  echo "Example: ./setup_server_smokes.sh \"~/Sites\""
+  echo "Example: ./setup_server_smokes.sh \"/Library/WebServer/Documents\""
   exit;
 fi
 
