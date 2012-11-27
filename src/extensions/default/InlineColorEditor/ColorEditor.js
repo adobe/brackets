@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         
         this._callback = callback;
 
-        this._handleUndoRedoKeys = this._handleUndoRedoKeys.bind(this);
+        this._handleKeydown = this._handleKeydown.bind(this);
         this._handleOpacityKeydown = this._handleOpacityKeydown.bind(this);
         this._handleHslKeydown = this._handleHslKeydown.bind(this);
         this._handleHueKeydown = this._handleHueKeydown.bind(this);
@@ -143,8 +143,8 @@ define(function (require, exports, module) {
         this._bindKeyHandler(this.$opacitySelector, this._handleOpacityKeydown);
         this._bindKeyHandler(this.$hslButton, this._handleHslKeydown);
         
-        // Undo/redo key handler gets bubbling events from any focusable part of widget
-        this._bindKeyHandler(this.$element, this._handleUndoRedoKeys);
+        // General key handler gets bubbling events from any focusable part of widget
+        this._bindKeyHandler(this.$element, this._handleKeydown);
     };
 
     /**
@@ -510,8 +510,11 @@ define(function (require, exports, module) {
         }
     };
 
-    /** Detect undo/redo keyboard shortcuts. Returns false to block them from CodeMirror */
-    ColorEditor.prototype._handleUndoRedoKeys = function (event) {
+    /** 
+     * Global handler for keys in the color editor. Catches undo/redo keys and traps
+     * arrow keys that would be handled by the scroller.
+     */
+    ColorEditor.prototype._handleKeydown = function (event) {
         var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
         if (hasCtrl) {
             switch (event.keyCode) {
@@ -524,6 +527,17 @@ define(function (require, exports, module) {
                 return false;
             case KeyEvent.DOM_VK_Y:
                 this.redo();
+                return false;
+            }
+        } else {
+            switch (event.keyCode) {
+            case KeyEvent.DOM_VK_LEFT:
+            case KeyEvent.DOM_VK_RIGHT:
+            case KeyEvent.DOM_VK_UP:
+            case KeyEvent.DOM_VK_DOWN:
+                // Prevent arrow keys that weren't handled by a child control from bubbling
+                // up to an outer element (e.g. a scroller).
+                event.stopPropagation();
                 return false;
             }
         }
