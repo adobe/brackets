@@ -189,10 +189,8 @@ define(function main(require, exports, module) {
 
     /** Initialize LiveDevelopment */
     function init() {
-        prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY, {highlight: true});
         params.parse();
 
-        config.highlight = prefs.getValue("highlight");
         Inspector.init(config);
         LiveDevelopment.init(config);
         _loadStyles();
@@ -213,9 +211,21 @@ define(function main(require, exports, module) {
                 }
             });
         }
+        
+        // Redraw highlights when window gets focus. This ensures that the highlights
+        // will be in sync with any DOM changes that may have occurred.
+        $(window).focus(function () {
+            if (Inspector.connected() && config.highlight) {
+                LiveDevelopment.redrawHighlight();
+            }
+        });
     }
-    window.setTimeout(init);
+    
+    // init prefs
+    prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY, {highlight: true});
+    config.highlight = prefs.getValue("highlight");
    
+    // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
     CommandManager.register(Strings.CMD_LIVE_HIGHLIGHT, Commands.FILE_LIVE_HIGHLIGHT, _handlePreviewHighlightCommand);
     CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(false);
