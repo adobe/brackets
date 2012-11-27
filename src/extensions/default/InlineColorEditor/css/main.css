@@ -28,6 +28,9 @@
     height: 190px;
     padding: 16px 16px 14px 38px;
 }
+.color_editor:focus {
+    outline: none;
+}
 .color_editor aside {
     display: inline-block;
     position: relative;
