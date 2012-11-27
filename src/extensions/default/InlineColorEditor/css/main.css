@@ -62,11 +62,9 @@
     border-radius: 3px 0px 0px 3px;
     left: 0;
     top: 0;
-    background-color: rgba(0,187,255,0.8);
 }
 .color-editor aside header .last-color {
     border-radius: 0px 3px 3px 0px;
-    background-color: #ccc;
     right: 0;
     top: 0;
 }
