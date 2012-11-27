@@ -739,7 +739,7 @@ define(function (require, exports, module) {
                  *     item: The (string) name of the member of ColorEditor that references the element to test.
                  *     selection: An optional array ([start, end]) specifying the selection to set in the given element.
                  *     key: The KeyEvent key code to simulate.
-                 *     shiftKey: Optional boolean specifying whether to simulate the shift key being down (default false).
+                 *     shift: Optional boolean specifying whether to simulate the shift key being down (default false).
                  *     expected: Whether the default is expected to be prevented.
                  */
                 function testPreventDefault(opts) {
