@@ -96,14 +96,7 @@ define(function (require, exports, module) {
         this.bindKeyHandler(this.$colorValue, this.handleKeydown);
         this.bindKeyHandler(this.$rgbaButton, this.handleKeydown);
         this.bindKeyHandler(this.$hexButton, this.handleKeydown);
-        
-        // Bind key handler to HSLa button only if we don't have any color swatches
-        // and this becomes the last UI element in the tab loop.
-        if ($(this.$swatches).children().length === 0) {
-            this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
-        } else {
-            this.bindKeyHandler(this.$hslButton, this.handleKeydown);
-        }
+        this.bindKeyHandler(this.$hslButton, this.handleKeydown);
     };
 
     ColorEditor.prototype.synchronize = function () {
@@ -224,7 +217,7 @@ define(function (require, exports, module) {
         var normalizedColor = color;
                     
         // Convert 6-digit hex to 3-digit hex as tinycolor (#ffaacc -> #fac)
-        if (color.match(/^#[0-9a-f]{6}/)) {
+        if (color.match(/^#[0-9a-fA-F]{6}/)) {
             return tinycolor(color).toString();
         }
         if (color.match(/^(rgb|hsl)/)) {
@@ -301,8 +294,6 @@ define(function (require, exports, module) {
         });
 
         this.$swatches.find("li").click(function (event) {
-            // Set focus to the corresponding value label of the swatch.
-            $(event.currentTarget).find(".value").focus();
             _this.commitColor($(event.currentTarget).find(".value").html());
         });
     };
@@ -333,6 +324,15 @@ define(function (require, exports, module) {
             break;
         }
         this.commitColor(colorVal, commitHsv);
+        // Some color values (gray-ish colors) may not get updated with the above 
+        // commitColor call since they are different in hsv values, but still exactly
+        // the same when converting to tiny color object. ie. newColor == oldColor.
+        // So we will update this.hsv here since commitColor call does not update it.
+        // This is necessary to prevent the hue slider from getting stuck when using 
+        // up/down arrow keys (issue #2138).
+        if (this.hsv !== newHsv) {
+            this.hsv = newHsv;
+        }
     };
 
     ColorEditor.prototype.commitColor = function (colorVal, resetHsv) {
@@ -441,19 +441,19 @@ define(function (require, exports, module) {
                 this.redo();
                 return false;
             }
-        }
-    };
-
-    ColorEditor.prototype.handleHslKeydown = function (event) {
-        switch (event.keyCode) {
-        case KeyEvent.DOM_VK_TAB:
-            if (!event.shiftKey) {
-                this.$selectionBase.focus();
-                return false;
+        } else {
+            switch (event.keyCode) {
+            case KeyEvent.DOM_VK_TAB:
+                if (!event.shiftKey && $(event.target).hasClass("hsla") &&
+                        $(this.$swatches).children().length === 0) {
+                    
+                    // Set focus to the selection field if there is no used color swatch
+                    // and the user is hitting tab key on HSLa button.
+                    this.$selectionBase.focus();
+                    return false;
+                }
+                break;
             }
-            break;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
@@ -488,7 +488,7 @@ define(function (require, exports, module) {
                 if ($(this.$swatches).children().length === 0) {
                     this.$hslButton.focus();
                 } else {
-                    $(this.$swatches).find(".value:last").focus();
+                    $(this.$swatches).find("li:last").focus();
                 }
                 return false;
             }
