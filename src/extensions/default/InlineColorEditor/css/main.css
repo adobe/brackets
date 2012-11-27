@@ -64,7 +64,7 @@
     top: 0;
     background-color: rgba(0,187,255,0.8);
 }
-.color_editor aside header .last_color {
+.color_editor aside header .original_color {
     border-radius: 0px 3px 3px 0px;
     background-color: #ccc;
     right: 0;
