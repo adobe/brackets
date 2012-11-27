@@ -535,10 +535,36 @@ define(function (require, exports, module) {
             case KeyEvent.DOM_VK_RIGHT:
             case KeyEvent.DOM_VK_UP:
             case KeyEvent.DOM_VK_DOWN:
-                // Prevent arrow keys that weren't handled by a child control from bubbling
-                // up to an outer element (e.g. a scroller).
-                event.stopPropagation();
-                return false;
+                // Prevent arrow keys that weren't handled by a child control 
+                // from being handled by a parent, either through bubbling or 
+                // through default native behavior. There isn't a good general
+                // way to tell if the target would handle this event by default,
+                // so we look to see if the target is a text input control.
+                var preventDefault = false,
+                    $target = $(event.target);
+                    
+                // If the input has no "type" attribute, it defaults to text. So we
+                // have to check for both possibilities.
+                if ($target.is("input:not([type])") || $target.is("input[type=text]")) {
+                    // Text input control. In WebKit, if the cursor gets to the start
+                    // or end of a text field and can't move any further, the default 
+                    // action doesn't take place in the text field, so the event is handled
+                    // by the outer scroller. We have to prevent in that case too.
+                    if ($target[0].selectionStart === $target[0].selectionEnd &&
+                            ((event.keyCode === KeyEvent.DOM_VK_LEFT && $target[0].selectionStart === 0) ||
+                             (event.keyCode === KeyEvent.DOM_VK_RIGHT && $target[0].selectionEnd === $target.val().length))) {
+                        preventDefault = true;
+                    }
+                } else {
+                    // Not a text input control, so we want to prevent default.
+                    preventDefault = true;
+                }
+
+                if (preventDefault) {
+                    event.stopPropagation();
+                    return false; // equivalent to event.preventDefault()
+                }
+                break;
             }
         }
     };
