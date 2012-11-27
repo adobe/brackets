@@ -74,9 +74,9 @@ Brackets bugs are tracked in [the Brackets github issue tracker](https://github.
 When filing a new bug, please remember to include:
 
 * Brackets version/sprint number (or commit SHA if you're pulling directly from the repo)
-* platform/OS version
-* repro steps, actual and expected results
-* link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
+* Platform/OS version
+* Steps to reproduce problem with actual and expected results
+* Link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
   if that's convenient)       
        
 More details on how to file an issue can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
