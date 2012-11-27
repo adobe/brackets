@@ -331,7 +331,7 @@ define(function (require, exports, module) {
              *     none is supplied, a dummy function is passed.
              * @param {?Array.<{value:string, count:number}>} swatches An optional array of swatches to display.
              *     If none is supplied, a default set of two swatches is passed.
-             * @param {boolean} hide Whether to hide the color picker; default is true.
+             * @param {boolean=} hide Whether to hide the color picker; default is true.
              */
             function makeUI(initialColor, callback, swatches, hide) {
                 colorEditor = new ColorEditor($(document.body),
@@ -737,7 +737,7 @@ define(function (require, exports, module) {
                  * @param {object} opts The parameters to test:
                  *     color: An optional initial value to set in the ColorEditor. Defaults to "hsla(50, 25%, 50%, 0.5)".
                  *     item: The (string) name of the member of ColorEditor that references the element to test.
-                 *     selection: An optional initial selection [start, end] to set in the given element.
+                 *     selection: An optional array ([start, end]) specifying the selection to set in the given element.
                  *     key: The KeyEvent key code to simulate.
                  *     shiftKey: Optional boolean specifying whether to simulate the shift key being down (default false).
                  *     expected: Whether the default is expected to be prevented.
@@ -1129,12 +1129,48 @@ define(function (require, exports, module) {
                         expected:  true
                     });
                 });
+                it("should prevent default on left arrow at the start of the text field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [0, 0],
+                        key:       KeyEvent.DOM_VK_LEFT,
+                        expected:  true
+                    });
+                });
                 it("should not prevent default on left arrow in the middle of the text field", function () {
                     testPreventDefault({
                         color:     "#8e8247",
                         item:      "$colorValue",
                         selection: [3, 3],
                         key:       KeyEvent.DOM_VK_LEFT,
+                        expected:  false
+                    });
+                });
+                it("should not prevent default on left arrow at the end of the text field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [7, 7],
+                        key:       KeyEvent.DOM_VK_LEFT,
+                        expected:  false
+                    });
+                });
+                it("should not prevent default on left arrow with a range selection", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [0, 7],
+                        key:       KeyEvent.DOM_VK_LEFT,
+                        expected:  false
+                    });
+                });
+                it("should not prevent default on right arrow at the start of the text field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [0, 0],
+                        key:       KeyEvent.DOM_VK_RIGHT,
                         expected:  false
                     });
                 });
@@ -1147,15 +1183,6 @@ define(function (require, exports, module) {
                         expected:  false
                     });
                 });
-                it("should prevent default on left arrow at the start of the text field", function () {
-                    testPreventDefault({
-                        color:     "#8e8247",
-                        item:      "$colorValue",
-                        selection: [0, 0],
-                        key:       KeyEvent.DOM_VK_LEFT,
-                        expected:  true
-                    });
-                });
                 it("should prevent default on right arrow at the end of the text field", function () {
                     testPreventDefault({
                         color:     "#8e8247",
@@ -1163,6 +1190,15 @@ define(function (require, exports, module) {
                         selection: [7, 7],
                         key:       KeyEvent.DOM_VK_RIGHT,
                         expected:  true
+                    });
+                });
+                it("should not prevent default on right arrow with a range selection", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [0, 7],
+                        key:       KeyEvent.DOM_VK_RIGHT,
+                        expected:  false
                     });
                 });
 

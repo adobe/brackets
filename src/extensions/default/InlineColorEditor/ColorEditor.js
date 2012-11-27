@@ -550,8 +550,9 @@ define(function (require, exports, module) {
                     // or end of a text field and can't move any further, the default 
                     // action doesn't take place in the text field, so the event is handled
                     // by the outer scroller. We have to prevent in that case too.
-                    if ((event.keyCode === KeyEvent.DOM_VK_LEFT && $target[0].selectionStart === 0) ||
-                            (event.keyCode === KeyEvent.DOM_VK_RIGHT && $target[0].selectionEnd === $target.val().length)) {
+                    if ($target[0].selectionStart === $target[0].selectionEnd &&
+                            ((event.keyCode === KeyEvent.DOM_VK_LEFT && $target[0].selectionStart === 0) ||
+                             (event.keyCode === KeyEvent.DOM_VK_RIGHT && $target[0].selectionEnd === $target.val().length))) {
                         preventDefault = true;
                     }
                 } else {
