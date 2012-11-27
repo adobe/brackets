@@ -331,13 +331,16 @@ define(function (require, exports, module) {
              *     none is supplied, a dummy function is passed.
              * @param {?Array.<{value:string, count:number}>} swatches An optional array of swatches to display.
              *     If none is supplied, a default set of two swatches is passed.
+             * @param {boolean} hide Whether to hide the color picker; default is true.
              */
-            function makeUI(initialColor, callback, swatches) {
+            function makeUI(initialColor, callback, swatches, hide) {
                 colorEditor = new ColorEditor($(document.body),
                                               initialColor,
                                               callback || function () { },
                                               swatches || defaultSwatches);
-                colorEditor.getRootElement().css("display", "none");
+                if (hide !== false) {
+                    colorEditor.getRootElement().css("display", "none");
+                }
             }
                         
             afterEach(function () {
@@ -687,6 +690,10 @@ define(function (require, exports, module) {
             });
             
             describe("parameter editing with keyboard", function () {
+                
+                function makeKeyEvent(opts) {
+                    return $.Event("keydown", { keyCode: opts.key, shiftKey: !!opts.shift });
+                }
 
                 /**
                  * Test a key event on the given UI element.
@@ -698,6 +705,8 @@ define(function (require, exports, module) {
                  *     param: The (string) parameter whose value we're testing (h, s, v, or a).
                  *     delta: The expected change in value for the parameter.
                  *     tolerance: The tolerance in variation for the expected value.
+                 *     exact: True to compare the actual values stored in the _hsv object, false (default) to
+                 *          compare tinycolor's normalization of the color value.
                  */
                 function testKey(opts) {
                     
@@ -715,10 +724,41 @@ define(function (require, exports, module) {
                     }
                     
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
+
                     var orig = getParam();
-                    colorEditor[opts.item].trigger($.Event("keydown", { keyCode: opts.key, shiftKey: !!opts.shift }));
+                    colorEditor[opts.item].trigger(makeKeyEvent(opts));
+                    
                     var final = getParam();
                     checkNear(final, orig + opts.delta, opts.tolerance);
+                }
+                
+                /**
+                 * Test whether the given event's default is or isn't prevented on a given key.
+                 * @param {object} opts The parameters to test:
+                 *     color: An optional initial value to set in the ColorEditor. Defaults to "hsla(50, 25%, 50%, 0.5)".
+                 *     item: The (string) name of the member of ColorEditor that references the element to test.
+                 *     selection: An optional initial selection [start, end] to set in the given element.
+                 *     key: The KeyEvent key code to simulate.
+                 *     shiftKey: Optional boolean specifying whether to simulate the shift key being down (default false).
+                 *     expected: Whether the default is expected to be prevented.
+                 */
+                function testPreventDefault(opts) {
+                    var event, $item;
+                    
+                    // The color picker needs to be displayed for this test; otherwise the
+                    // selection won't be properly set, because you can only set the selection
+                    // when the text field has focus.
+                    makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)", function () { }, defaultSwatches, false);
+                    
+                    $item = colorEditor[opts.item];
+                    $item.focus();
+                    if (opts.selection) {
+                        $item[0].setSelectionRange(opts.selection[0], opts.selection[1]);
+                    }
+                    
+                    event = makeKeyEvent(opts);
+                    $item.trigger(event);
+                    expect(event.isDefaultPrevented()).toBe(opts.expected);
                 }
                 
                 it("should increase saturation by 1.5% on right arrow", function () {
@@ -1077,6 +1117,52 @@ define(function (require, exports, module) {
                         delta:     0,
                         tolerance: 0.01,
                         exact:     true
+                    });
+                });
+                
+                // For #2193 and #2229
+                it("should prevent default on the key event for an unhandled arrow key on non-text-field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$hueBase",
+                        key:       KeyEvent.DOM_VK_RIGHT,
+                        expected:  true
+                    });
+                });
+                it("should not prevent default on left arrow in the middle of the text field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [3, 3],
+                        key:       KeyEvent.DOM_VK_LEFT,
+                        expected:  false
+                    });
+                });
+                it("should not prevent default on right arrow in the middle of the text field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [3, 3],
+                        key:       KeyEvent.DOM_VK_RIGHT,
+                        expected:  false
+                    });
+                });
+                it("should prevent default on left arrow at the start of the text field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [0, 0],
+                        key:       KeyEvent.DOM_VK_LEFT,
+                        expected:  true
+                    });
+                });
+                it("should prevent default on right arrow at the end of the text field", function () {
+                    testPreventDefault({
+                        color:     "#8e8247",
+                        item:      "$colorValue",
+                        selection: [7, 7],
+                        key:       KeyEvent.DOM_VK_RIGHT,
+                        expected:  true
                     });
                 });
 
