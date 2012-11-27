@@ -32,6 +32,16 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         InlineColorEditor   = require("InlineColorEditor").InlineColorEditor;
     
+    
+    /**
+     * Registered as an inline editor provider: creates an InlineEditorColor when the cursor
+     * is on a color value (in any flavor of code).
+     *
+     * @param {!Editor} hostEditor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
+     *      no color at pos.
+     */
     function inlineColorEditorProvider(hostEditor, pos) {
         var colorPicker, colorRegEx, cursorLine, inlineColorEditor, match, result,
             sel, start, end, startBookmark, endBookmark;
@@ -41,7 +51,7 @@ define(function (require, exports, module) {
             return null;
         }
         
-        colorRegEx = new RegExp(InlineColorEditor.colorRegEx);
+        colorRegEx = new RegExp(InlineColorEditor.COLOR_REGEX);
         cursorLine = hostEditor.document.getLine(pos.line);
         
         // Loop through each match of colorRegEx and stop when the one that contains pos is found.
@@ -60,6 +70,7 @@ define(function (require, exports, module) {
         // Adjust pos to the beginning of the match so that the inline editor won't get 
         // dismissed while we're updating the color with the new values from user's inline editing.
         pos.ch = start;
+        
         startBookmark = hostEditor._codeMirror.setBookmark(pos);
         endBookmark = hostEditor._codeMirror.setBookmark({ line: pos.line, ch: end });
         
@@ -73,10 +84,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    
     // Initialize extension
     ExtensionUtils.loadStyleSheet(module, "css/main.css");
     
     EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
+    
     
     // for unit tests only
     exports.inlineColorEditorProvider = inlineColorEditorProvider;
