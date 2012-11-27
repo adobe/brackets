@@ -234,13 +234,13 @@ function RemoteFunctions(experimental) {
             var animateStartValues = {
                 "opacity": 0,
                 "background": "rgba(94,167,255, 0.5)",
-                "box-shadow": "0 0 2px 1px rgba(94,167,255, 1), inset 0 0 4px 1px rgba(255,255,255,1)"
+                "box-shadow": "0 0 6px 1px rgba(94,167,255, 0.6), inset 0 0 2px rgba(94,167,255, 0.5), inset 0 0 4px 1px rgba(255,255,255,1)"
             };
             
             var animateEndValues = {
                 "opacity": 1,
                 "background": "rgba(94,167,255, 0.1)",
-                "box-shadow": "0 0 1px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,0.8)"
+                "box-shadow": "0 0 1px 0 rgba(94,167,255, 0), inset 0 0 1px rgba(94,167,255, 0.8), inset 0 0 4px 1px rgba(255,255,255,0.8)"
             };
             
             var transitionValues = {
