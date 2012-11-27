@@ -310,7 +310,7 @@ function RemoteFunctions(experimental) {
             }
             
             this.clear();
-            for (i in highlighted) {
+            for (i = 0; i < highlighted.length; i++) {
                 this.add(highlighted[i], false);
             }
         }
