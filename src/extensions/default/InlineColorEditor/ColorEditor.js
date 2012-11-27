@@ -607,17 +607,13 @@ define(function (require, exports, module) {
         switch (event.keyCode) {
         case KeyEvent.DOM_VK_DOWN:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            if (hue > 0) {
-                hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
-                this.setColorAsHsv(hsv, false);
-            }
+            hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
+            this.setColorAsHsv(hsv, false);
             return false;
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            if (hue < 360) {
-                hsv.h = (hue + step) >= 360 ? step : hue + step;
-                this.setColorAsHsv(hsv, false);
-            }
+            hsv.h = (hue + step) >= 360 ? step : hue + step;
+            this.setColorAsHsv(hsv, false);
             return false;
         }
     };
