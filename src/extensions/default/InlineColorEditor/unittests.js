@@ -190,7 +190,7 @@ define(function (require, exports, module) {
                 it("should update host document when change is committed in color editor", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
-                        inline.colorEditor._commitColor("#c0c0c0", false);
+                        inline.colorEditor.setColorFromString("#c0c0c0");
                         expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#c0c0c0");
                     });
                 });
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
                 it("should update correct range of host document with color format of different length", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
-                        inline.colorEditor._commitColor("rgb(20, 20, 20)", false);
+                        inline.colorEditor.setColorFromString("rgb(20, 20, 20)");
                         expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 31})).toBe("rgb(20, 20, 20)");
                     });
                 });
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
                 it("should not invalidate range when change is committed", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
-                        inline.colorEditor._commitColor("rgb(20, 20, 20)", false);
+                        inline.colorEditor.setColorFromString("rgb(20, 20, 20)");
                         expect(inline.getCurrentRange()).not.toBeNull();
                     });
                 });
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
             
             it("should trim the original array to the given length", function () {
                 var inline = new InlineColorEditor();
-                var result = inline._topUsedColors(["#abcdef", "#fedcba", "#aabbcc", "#bbccdd"], 2);
+                var result = inline._collateColors(["#abcdef", "#fedcba", "#aabbcc", "#bbccdd"], 2);
                 expect(result).toEqual([
                     {value: "#abcdef", count: 1},
                     {value: "#fedcba", count: 1}
@@ -309,7 +309,7 @@ define(function (require, exports, module) {
             
             it("should remove duplicates from the original array and sort it by usage", function () {
                 var inline = new InlineColorEditor();
-                var result = inline._topUsedColors(["#abcdef", "#fedcba", "#123456", "#FEDCBA", "#123456", "#123456", "rgb(100, 100, 100)"], 100);
+                var result = inline._collateColors(["#abcdef", "#fedcba", "#123456", "#FEDCBA", "#123456", "#123456", "rgb(100, 100, 100)"], 100);
                 expect(result).toEqual([
                     {value: "#123456", count: 3},
                     {value: "#fedcba", count: 2},
@@ -337,11 +337,11 @@ define(function (require, exports, module) {
                                               initialColor,
                                               callback || function () { },
                                               swatches || defaultSwatches);
-                colorEditor.$element.css("display", "none");
+                colorEditor.getRootElement().css("display", "none");
             }
                         
             afterEach(function () {
-                colorEditor.$element.remove();
+                colorEditor.getRootElement().remove();
             });
             
             /**
@@ -403,7 +403,7 @@ define(function (require, exports, module) {
                     
                     runs(function () {
                         makeUI("#0a0a0a");
-                        colorEditor._commitColor(colorStr, true);
+                        colorEditor.setColorFromString(colorStr);
                         expect(colorEditor.getColor().toString()).toBe(colorStr);
                         expect(colorEditor.$colorValue.attr("value")).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
                     makeUI("rgba(100, 100, 100, 0.5)", function (color) {
                         lastColor = color;
                     });
-                    colorEditor._commitColor("#a0a0a0", true);
+                    colorEditor.setColorFromString("#a0a0a0");
                     expect(lastColor).toBe("#a0a0a0");
                 });
                 
@@ -1087,8 +1087,8 @@ define(function (require, exports, module) {
                 
                 it("should restore to original color when clicked on", function () {
                     makeUI("#abcdef");
-                    colorEditor._commitColor("#0000ff");
-                    colorEditor.$lastColor.trigger("click");
+                    colorEditor.setColorFromString("#0000ff");
+                    colorEditor.$originalColor.trigger("click");
                     expect(tinycolor(colorEditor.getColor()).toHexString()).toBe("#abcdef");
                 });
                 
@@ -1157,7 +1157,7 @@ define(function (require, exports, module) {
                 it("should undo when Ctrl-Z is pressed on a focused element in the color editor", function () {
                     makeUI("#abcdef");
                     runs(function () {
-                        colorEditor._commitColor("#a0a0a0", true);
+                        colorEditor.setColorFromString("#a0a0a0");
                         colorEditor.$hueBase.focus();
                         triggerCtrlKey(colorEditor.$hueBase, KeyEvent.DOM_VK_Z);
                         expect(getColorString()).toBe("#abcdef");

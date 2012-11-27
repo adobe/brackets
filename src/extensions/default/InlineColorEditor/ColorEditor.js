@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Strings     = brackets.getModule("strings");
     
     /** Mustache template that forms the bare DOM structure of the UI */
-    var InlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
+    var ColorEditorTemplate = require("text!ColorEditorTemplate.html");
     
     /** @const @type {number} */
     var STEP_MULTIPLIER = 5;
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
      */
     function ColorEditor($parent, color, callback, swatches) {
         // Create the DOM structure, filling in localized strings via Mustache
-        this.$element = $(Mustache.render(InlineEditorTemplate, Strings));
+        this.$element = $(Mustache.render(ColorEditorTemplate, Strings));
         $parent.append(this.$element);
         
         this._callback = callback;
@@ -71,14 +71,14 @@ define(function (require, exports, module) {
         this.$hexButton = this.$element.find(".hex");
         this.$hslButton = this.$element.find(".hsla");
         this.$currentColor = this.$element.find(".current_color");
-        this.$lastColor = this.$element.find(".last_color");
+        this.$originalColor = this.$element.find(".original_color");
         this.$selection = this.$element.find(".color_selection_field");
         this.$selectionBase = this.$element.find(".color_selection_field .selector_base");
         this.$hueBase = this.$element.find(".hue_slider .selector_base");
         this.$opacityGradient = this.$element.find(".opacity_gradient");
-        this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$hueSlider = this.$element.find(".hue_slider");
         this.$hueSelector = this.$element.find(".hue_slider .selector_base");
+        this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$opacitySelector = this.$element.find(".opacity_slider .selector_base");
         this.$swatches = this.$element.find(".swatches");
         
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         this._addListeners();
         
         // Initially selected color
-        this.$lastColor.css("background-color", this._originalColor);
+        this.$originalColor.css("background-color", this._originalColor);
         this._commitColor(color);
     }
 
@@ -120,6 +120,11 @@ define(function (require, exports, module) {
     ColorEditor.prototype._originalColor = null;
     
     
+    /** Returns the root DOM node of the ColorPicker UI */
+    ColorEditor.prototype.getRootElement = function () {
+        return this.$element;
+    };
+        
     /** Attach event listeners for main UI elements */
     ColorEditor.prototype._addListeners = function () {
         this._bindColorFormatToRadioButton("rgba");
@@ -161,7 +166,7 @@ define(function (require, exports, module) {
         this.$selectionBase.css("background-color", colorObject.toHexString());
         this.$opacityGradient.css("background-image", "-webkit-gradient(linear, 0% 0%, 0% 100%, from(" + hueColor + "), to(transparent))");
         
-        // Upate slider thumb positions
+        // Update slider thumb positions
         this.$hueSelector.css("bottom", (this._hsv.h / 360 * 100) + "%");
         this.$opacitySelector.css("bottom", (this._hsv.a * 100) + "%");
         if (!isNaN(this._hsv.s)) {      // TODO (#2201): type of _hsv.s/.v is unpredictable
@@ -236,7 +241,7 @@ define(function (require, exports, module) {
     /** Add event listener to the "original color value" swatch */
     ColorEditor.prototype._bindOriginalColorButton = function () {
         var _this = this;
-        this.$lastColor.click(function (event) {
+        this.$originalColor.click(function (event) {
             _this._commitColor(_this._originalColor, true);
         });
     };
@@ -364,9 +369,8 @@ define(function (require, exports, module) {
      * Sets _hsv and _color based on an HSV input, and updates the UI. Attempts to preserve
      * the previous color format.
      * @param {!{h:number=, s:number=, v:number=}} hsv  Any missing values use the previous color's values.
-     * @param {boolean=} commitHsv  Whether to normalize the HSV value via tinycolor. Default: true.
      */
-    ColorEditor.prototype.setColorAsHsv = function (hsv, commitHsv) {
+    ColorEditor.prototype.setColorAsHsv = function (hsv) {
         var colorVal, newColor, oldFormat;
         oldFormat = tinycolor(this.getColor()).format;
         
@@ -386,7 +390,7 @@ define(function (require, exports, module) {
             colorVal = this._hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
             break;
         }
-        this._commitColor(colorVal, commitHsv);
+        this._commitColor(colorVal, false);
     };
 
     /**
@@ -411,6 +415,15 @@ define(function (require, exports, module) {
         this._synchronize();
     };
 
+    /**
+     * Sets _color and _hsv based on a string input, and updates the UI. The string's
+     * format determines the new selected color's format.
+     * @param {!string} colorVal
+     */
+    ColorEditor.prototype.setColorFromString = function (colorVal) {
+        this._commitColor(colorVal, true);  // TODO (#2204): make this less entangled with setColorAsHsv()
+    };
+    
     /** Converts a mouse coordinate to be relative to zeroPos, and clips to [0, maxOffset] */
     function _getNewOffset(pos, zeroPos, maxOffset) {
         var offset = pos - zeroPos;
@@ -519,7 +532,7 @@ define(function (require, exports, module) {
     ColorEditor.prototype._handleHslKeydown = function (event) {
         switch (event.keyCode) {
         case KeyEvent.DOM_VK_TAB:
-            // If we're the last fosuable element (no color swatches), Tab wraps around to color square
+            // If we're the last focusable element (no color swatches), Tab wraps around to color square
             if (!event.shiftKey) {
                 if (this.$swatches.children().length === 0) {
                     this.$selectionBase.focus();

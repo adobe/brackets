@@ -68,9 +68,6 @@ define(function (require, exports, module) {
     /** @type {!ColorPicker} ColorPicker instance */
     InlineColorEditor.prototype.colorEditor = null;
     
-    /** @type {!jQuery} Root of ColorPicker's UI */
-    InlineColorEditor.prototype.$colorEditorRoot = null;
-    
     /** @type {!string} Current value of the color picker control */
     InlineColorEditor.prototype._color = null;
     
@@ -176,9 +173,8 @@ define(function (require, exports, module) {
         
         // Create color picker control
         var allColorsInDoc = this.editor.document.getText().match(InlineColorEditor.COLOR_REGEX);
-        var swatchInfo = this._topUsedColors(allColorsInDoc, MAX_USED_COLORS);
+        var swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
-        this.$colorEditorRoot = this.colorEditor.$element;
     };
 
     /** @override */
@@ -221,10 +217,10 @@ define(function (require, exports, module) {
     };
 
     InlineColorEditor.prototype._sizeEditorToContent = function () {
-        this.hostEditor.setInlineWidgetHeight(this, this.$colorEditorRoot.outerHeight(), true);
+        this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
     };
 
-    /** Sorts by which colors are used the most */
+    /** Comparator to sort by which colors are used the most */
     function _colorSort(a, b) {
         if (a.count === b.count) {
             return 0;
@@ -244,7 +240,7 @@ define(function (require, exports, module) {
      * @param {number} maxLength
      * @return {!Array.<{value:string, count:number}>}
      */
-    InlineColorEditor.prototype._topUsedColors = function (originalArray, maxLength) {
+    InlineColorEditor.prototype._collateColors = function (originalArray, maxLength) {
         // Maps from lowercase color name to swatch info (user-case color name & occurrence count)
         /* @type {Object.<string, {value:string, count:number}>} */
         var colorInfo = {};
@@ -283,7 +279,7 @@ define(function (require, exports, module) {
             var newColor = this.editor.document.getRange(range.start, range.end);
             if (newColor !== this._color) {
                 this._isHostChange = true;
-                this.colorEditor._commitColor(newColor, true);
+                this.colorEditor.setColorFromString(newColor);
                 this._isHostChange = false;
             }
         } else {
