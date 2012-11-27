@@ -216,27 +216,30 @@ function RemoteFunctions(experimental) {
             var stylesToSet = {
                 "left": _screenOffset(element, "offsetLeft") + "px",
                 "top": _screenOffset(element, "offsetTop") + "px",
-                "width": elementBounds.width + "px",
-                "height": elementBounds.height + "px",
+                "width": (elementBounds.width - 2) + "px",
+                "height": (elementBounds.height - 2) + "px",
                 "z-index": 2000000,
                 "position": "absolute",
                 "pointer-events": "none",
                 "border-top-left-radius": styles.borderTopLeftRadius,
                 "border-top-right-radius": styles.borderTopRightRadius,
                 "border-bottom-left-radius": styles.borderBottomLeftRadius,
-                "border-bottom-right-radius": styles.borderBottomRightRadius
+                "border-bottom-right-radius": styles.borderBottomRightRadius,
+                "border-style": "solid",
+                "border-width": "1px",
+                "border-color": "rgb(94,167,255)"
             };
             
             var animateStartValues = {
                 "opacity": 0,
                 "background": "rgba(94,167,255, 0.5)",
-                "box-shadow": "0 0 6px 1px rgba(94,167,255, 0.6), inset 0 0 2px rgba(94,167,255, 0.5), inset 0 0 4px 1px rgba(255,255,255,1)"
+                "box-shadow": "0 0 6px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,1)"
             };
             
             var animateEndValues = {
                 "opacity": 1,
                 "background": "rgba(94,167,255, 0.1)",
-                "box-shadow": "0 0 1px 0 rgba(94,167,255, 0), inset 0 0 1px rgba(94,167,255, 0.8), inset 0 0 4px 1px rgba(255,255,255,0.8)"
+                "box-shadow": "0 0 1px 0 rgba(94,167,255, 0), inset 0 0 4px 1px rgba(255,255,255,0.8)"
             };
             
             var transitionValues = {
