@@ -7,6 +7,7 @@ define(function (require, exports, module) {
     var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
         TokenUtils          = brackets.getModule("utils/TokenUtils"),
         CSSAttributes       = require("text!CSSAttributes.json"),
         attributes          = JSON.parse(CSSAttributes);
@@ -21,6 +22,7 @@ define(function (require, exports, module) {
             pos         = $.extend({}, cursor),
             ctx         = TokenUtils.getInitialContext(editor._codeMirror, pos),
             styleblocks = HTMLUtils.findStyleBlocks(editor),
+            selector    = CSSUtils.findSelectorAtDocumentPos(editor, cursor),
             csscontext  = false;
           
         /* first: check overall context - is this a css-valid context */
@@ -44,7 +46,7 @@ define(function (require, exports, module) {
         
         
         /* third: determine queryStr based on characters around cursor if actually in csscontext */
-        if (csscontext) {
+        if (csscontext && selector !== "") {
             query.queryStr = ctx.token.string;
             if (query.queryStr !== null) {
                 query.queryStr = query.queryStr.trim();
