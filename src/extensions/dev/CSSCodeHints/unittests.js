@@ -24,12 +24,13 @@ define(function (require, exports, module) {
                              " bord\n" +
                              " border-\n" +
                              " border-colo\n" +
-                             " border-color: red;\n" +
+                             " border-color: red;\n" +      // line: 10
                              " d\n" +
                              " disp\n" +
                              " display: \n" +
                              " display: in\n" +
                              " bordborder: \n" +
+                             " color \n" +
                              "} \n";
         
         var testWindow;
@@ -181,6 +182,19 @@ define(function (require, exports, module) {
                 // expectCursorAt({ line: 10, ch: 4 });
             });
 
+            it("should insert nothing but the closure if propertyvalue is already complete", function () {
+                testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
+                selectHint(CSSCodeHints.attrHintProvider, "color");
+                expect(testDocument.getLine(16)).toBe(" color: ");
+                expectCursorAt({ line: 16, ch: 8 });
+            });
+ 
+            it("should insert nothing but the closure if propertyvalue is already complete", function () {
+                testEditor.setCursorPos({ line: 16, ch: 7 });   // cursor one whitespace after color
+                selectHint(CSSCodeHints.attrHintProvider, "color");
+                expect(testDocument.getLine(16)).toBe(" color: ");
+                expectCursorAt({ line: 16, ch: 8 });
+            });
         });
 
         describe("CSS attribute value hints", function () {
