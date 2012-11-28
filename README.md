@@ -9,7 +9,7 @@ What makes Brackets different from other web code editors?
 environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
 context-specific code and tools inline.
 * **Brackets is in sync with your browser.** With Live Development, Brackets
-works directly with your browser to push code edits instantly, and jump
+works directly with your browser to push code edits instantly and jump
 back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
 and JavaScript, you can help build the best code editor for the web.
@@ -18,7 +18,7 @@ You can see some
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
 on the wiki.
 
-Brackets is *early* in development, so many of the features you would
+Brackets is early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be
 incomplete or not as useful as you'd want. But if you like the direction
 it's going, please contribute!
@@ -32,7 +32,7 @@ for info on upcoming things we're planning to contribute to CodeMirror.
 How to run Brackets
 -------------------
 
-**Brackets isn't ready for general use yet.** It's still *early* in
+**Brackets isn't ready for general use yet.** It's still early in
 development, is missing a lot of basic editor features, and *probably*
 has bugs. That said, we've actually been using Brackets to develop Brackets
 for awhile now, so what's there is reasonably stable.
