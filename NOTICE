@@ -5,7 +5,7 @@ differing from that of Brackets itself. You can find the libraries and their
 respective licenses below.
 
 
- - CodeMirrror - ./src/thirdparty/CodeMirror2
+ - CodeMirror - ./src/thirdparty/CodeMirror2
 
     Copyright (C) 2012 by Marijn Haverbeke <marijnh@gmail.com>
 
@@ -163,3 +163,28 @@ respective licenses below.
     Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
     Available via the MIT or new BSD license.
     see: http://github.com/jrburke/requirejs for details
+
+
+ - tinycolor - ./src/extensions/default/InlineColorEditor/thirdparty/tinycolor-min.js
+ 
+    Copyright (c) 2011, Brian Grinstead, http://briangrinstead.com
+    
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+    
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    

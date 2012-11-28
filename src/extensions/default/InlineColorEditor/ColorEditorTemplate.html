@@ -1,0 +1,42 @@
+
+<div tabindex="-1" class="color_editor">
+  <section>
+    <div class="sliders">
+      <div class="color_selection_field">
+        <div class="saturation_gradient gradient_overlay"></div>
+        <div class="luminosity_gradient gradient_overlay"></div>
+        <div tabindex="0" class="selector_base">
+          <div class="selector"></div>
+        </div>
+      </div>
+      <div class="hue_slider slider">
+        <div tabindex="0" class="selector_base">
+          <div class="selector"></div>
+        </div>
+      </div>
+      <div class="opacity_slider slider">
+        <div class="opacity_gradient gradient_overlay"></div>
+        <div tabindex="0" class="selector_base">
+          <div class="selector"></div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <input class="color_value" />
+      <ul class="button-bar">
+        <li class="selected" title="{{COLOR_EDITOR_RGBA_BUTTON_TIP}}"><a href="#" tabindex="0" class="rgba">RGBa</a></li>
+        <li title="{{COLOR_EDITOR_HEX_BUTTON_TIP}}"><a href="#" tabindex="0" class="hex">HEX</a></li>
+        <li title="{{COLOR_EDITOR_HSLA_BUTTON_TIP}}"><a href="#" tabindex="0" class="hsla">HSLa</a></li>
+      </ul>
+    </footer>
+  </section>
+  <aside>
+    <header>
+      <div class="large_swatches">
+        <div class="current_color large_swatch" title="{{COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP}}"></div>
+        <div class="original_color large_swatch" title="{{COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP}}"></div>
+      </div>
+    </header>
+    <ul class="swatches"></ul>
+  </aside>
+</div>

@@ -77,7 +77,7 @@ define({
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS files</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
@@ -107,14 +107,16 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "for \"{4}\" - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "for \"{4}\" {5} - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "More than ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
-    "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
+    "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
@@ -168,6 +170,7 @@ define({
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_QUIT"                            : "Quit",
@@ -178,6 +181,7 @@ define({
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in...",
     "CMD_FIND_NEXT"                       : "Find Next",
     "CMD_FIND_PREVIOUS"                   : "Find Previous",
     "CMD_REPLACE"                         : "Replace",
@@ -269,5 +273,18 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
+    
+    // extensions/default/InlineColorEditor
+    "COLOR_EDITOR_SELECTION_FIELD_TIP"          : "Saturation (x) and Brightness (y)",
+    "COLOR_EDITOR_HUE_SLIDER_TIP"               : "Hue",
+    "COLOR_EDITOR_OPACITY_SLIDER_TIP"           : "Opacity",
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
+    "COLOR_EDITOR_COLOR_INPUT_TIP"              : "Color Value",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)"
 });
