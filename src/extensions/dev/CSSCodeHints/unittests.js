@@ -14,7 +14,11 @@ define(function (require, exports, module) {
     
     describe("CSS Code Hinting", function () {
 
-        var defaultContent = ".selector { \n" +
+        var defaultContent = "@media screen { \n" +
+                             " body { \n" +
+                             " }\n" +
+                             "} \n" +
+                             ".selector { \n" +
                              " \n" +
                              " b\n" +
                              " bord\n" +
@@ -92,41 +96,41 @@ define(function (require, exports, module) {
         describe("CSS attributes in general (selection of correct attribute based on input)", function () {
    
             it("should list all hints right after curly bracket", function () {
-                testEditor.setCursorPos({ line: 0, ch: 11 });    // after {
+                testEditor.setCursorPos({ line: 4, ch: 11 });    // after {
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
             });
             
             it("should list all hints in new line", function () {
-                testEditor.setCursorPos({ line: 1, ch: 1 });
+                testEditor.setCursorPos({ line: 5, ch: 1 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
             });
 
             it("should list all hints starting with 'b' in new line", function () {
-                testEditor.setCursorPos({ line: 2, ch: 2 });
+                testEditor.setCursorPos({ line: 6, ch: 2 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "backface-visibility");  // filtered on "b"
             });
 
             it("should list all hints starting with 'bord' ", function () {
-                testEditor.setCursorPos({ line: 3, ch: 5 });
+                testEditor.setCursorPos({ line: 7, ch: 5 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "border");  // filtered on "bord"
             });
 
             it("should list all hints starting with 'border-' ", function () {
-                testEditor.setCursorPos({ line: 4, ch: 8 });
+                testEditor.setCursorPos({ line: 8, ch: 8 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "border-collapse");  // filtered on "border-"
             });
 
             it("should list only hint border-color", function () {
-                testEditor.setCursorPos({ line: 5, ch: 12 });
+                testEditor.setCursorPos({ line: 9, ch: 12 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"  
@@ -134,43 +138,46 @@ define(function (require, exports, module) {
             });
             
             it("should list hints at end of existing attribute+value finished by ;", function () {
-                testEditor.setCursorPos({ line: 6, ch: 19 });    // after ;
+                testEditor.setCursorPos({ line: 10, ch: 19 });    // after ;
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"    
             });
        
             it("should list hints right after curly bracket", function () {
-                testEditor.setCursorPos({ line: 0, ch: 11 });    // inside .selector, after {
+                testEditor.setCursorPos({ line: 4, ch: 11 });    // inside .selector, after {
                 expectHints(CSSCodeHints.attrHintProvider);
             });
             
             it("should NOT list hints right before curly bracket", function () {
-                testEditor.setCursorPos({ line: 0, ch: 10 });    // inside .selector, before {
+                testEditor.setCursorPos({ line: 4, ch: 10 });    // inside .selector, before {
                 expectNoHints(CSSCodeHints.attrHintProvider);
             });
-            
+            it("should NOT list hints after declaration of mediatype", function () {
+                testEditor.setCursorPos({ line: 0, ch: 15 });    // after {
+                expectNoHints(CSSCodeHints.attrHintProvider);
+            });
         });
         
         
         describe("CSS attribute handleSelect", function () {
             it("should insert colon followd by whitespace after attribute", function () {
-                testEditor.setCursorPos({ line: 3, ch: 5 });   // cursor after 'bord'
+                testEditor.setCursorPos({ line: 7, ch: 5 });   // cursor after 'bord'
                 selectHint(CSSCodeHints.attrHintProvider, "border");
-                expect(testDocument.getLine(3)).toBe(" border: ");
-                expectCursorAt({ line: 3, ch: 9 });
+                expect(testDocument.getLine(7)).toBe(" border: ");
+                expectCursorAt({ line: 7, ch: 9 });
             });
             
             it("should insert semicolon followed by newline after value added", function () {
-                testEditor.setCursorPos({ line: 9, ch: 10 });   // cursor after 'display: '
+                testEditor.setCursorPos({ line: 13, ch: 10 });   // cursor after 'display: '
                 selectHint(CSSCodeHints.attrHintProvider, "block");
-                expect(testDocument.getLine(9)).toBe(" display: block;");
+                expect(testDocument.getLine(13)).toBe(" display: block;");
                 // expectCursorAt({ line: 10, ch: 4 });
             });
             
             it("should insert attribute directly after semicolon ", function () {
-                testEditor.setCursorPos({ line: 6, ch: 19 });   // cursor after red;
+                testEditor.setCursorPos({ line: 10, ch: 19 });   // cursor after red;
                 selectHint(CSSCodeHints.attrHintProvider, "align-content");
-                expect(testDocument.getLine(6)).toBe(" border-color: red;align-content: ");
+                expect(testDocument.getLine(10)).toBe(" border-color: red;align-content: ");
                 // expectCursorAt({ line: 10, ch: 4 });
             });
 
@@ -178,28 +185,28 @@ define(function (require, exports, module) {
 
         describe("CSS attribute value hints", function () {
             it("should list all display-values after colon", function () {
-                testEditor.setCursorPos({ line: 9, ch: 9 });
+                testEditor.setCursorPos({ line: 13, ch: 9 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display:"
             });
 
             it("should list all display-values after colon and whitespace", function () {
-                testEditor.setCursorPos({ line: 9, ch: 10 });
+                testEditor.setCursorPos({ line: 13, ch: 10 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display: "
             });
 
             it("should list all display-values after colon and whitespace", function () {
-                testEditor.setCursorPos({ line: 10, ch: 12 });
+                testEditor.setCursorPos({ line: 14, ch: 12 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "inline");  // filtered after "display: in"
             });
             
             it("should NOT list hints for unknown attribute", function () {
-                testEditor.setCursorPos({ line: 11, ch: 12 });    // at borborder:
+                testEditor.setCursorPos({ line: 15, ch: 12 });    // at borborder:
                 
                 /* expectNoHints doesn't work here, since the input is the empty string, and the attribute is 'borborder' */
                 /* query.queryStr is NOT null, but the search is still empty, so we need to check the result of search instead */
