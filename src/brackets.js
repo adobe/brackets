@@ -27,9 +27,9 @@
 
 require.config({
     paths: {
-        "text"  : "thirdparty/text",
-        "i18n"  : "thirdparty/i18n",
-        "prefs" : "../prefs"
+        "text"      : "thirdparty/text",
+        "i18n"      : "thirdparty/i18n",
+        "defaults"  : "../defaults"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
