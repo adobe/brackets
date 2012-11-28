@@ -548,7 +548,7 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
 
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
-                    url = launcherUrl + '?' + encodeURIComponent(url);
+                    url = launcherUrl + "?" + encodeURIComponent(url);
 
                     // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
                     // is available, but the requested URL is not loaded in the browser. In that
