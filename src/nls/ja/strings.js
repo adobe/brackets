@@ -180,7 +180,7 @@ define({
     "CMD_SELECT_LINE"                     : "行を選択",
     "CMD_FIND"                            : "検索",
     "CMD_FIND_IN_FILES"                   : "ファイルを横断して検索",
-    "CMD_FIND_IN_SUBTREE"                 : "検索...",
+    "CMD_FIND_IN_SUBTREE"                 : "検索\u2026",
     "CMD_FIND_NEXT"                       : "次を検索",
     "CMD_FIND_PREVIOUS"                   : "前を検索",
     "CMD_REPLACE"                         : "置換",

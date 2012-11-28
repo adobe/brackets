@@ -180,7 +180,7 @@ define({
     "CMD_SELECT_LINE"                     : "Satırı Seç",
     "CMD_FIND"                            : "Bul",
     "CMD_FIND_IN_FILES"                   : "Dosyalarda Bul",
-    "CMD_FIND_IN_SUBTREE"                 : "...içinde bul",
+    "CMD_FIND_IN_SUBTREE"                 : "\u2026içinde bul",
     "CMD_FIND_NEXT"                       : "Sonrakini Bul",
     "CMD_FIND_PREVIOUS"                   : "Öncekini Bul",
     "CMD_REPLACE"                         : "Değiştir",

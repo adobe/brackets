@@ -181,7 +181,7 @@ define({
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in...",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
     "CMD_FIND_NEXT"                       : "Find Next",
     "CMD_FIND_PREVIOUS"                   : "Find Previous",
     "CMD_REPLACE"                         : "Replace",
