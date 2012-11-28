@@ -28,6 +28,9 @@
  /**
   * Manages global application commands that can be called from menu items, key bindings, or subparts
   * of the application.
+ *
+ * This module dispatches these event(s):
+ *    - commandRegistered  -- when a new command is registered
   */
 define(function (require, exports, module) {
     "use strict";
@@ -179,6 +182,9 @@ define(function (require, exports, module) {
 
         var command = new Command(name, id, commandFn);
         _commands[id] = command;
+        
+        $(exports).triggerHandler("commandRegistered", [command]);
+        
         return command;
     }
 

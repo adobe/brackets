@@ -412,15 +412,7 @@ define(function (require, exports, module) {
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>} Returns record(s) for valid key binding(s)
      */
     function addBinding(commandID, keyBindings, platform) {
-        if ((commandID === null) || (commandID === undefined)) {
-            return;
-        }
-        
-        var defaultBinding = KeyboardPrefs[commandID];
-        keyBindings = keyBindings || (defaultBinding ? defaultBinding.keyBindings : undefined);
-        platform = platform || ((defaultBinding && !Array.isArray(keyBindings)) ? defaultBinding.platform : undefined);
-
-        if (!keyBindings) {
+        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
             return;
         }
         
@@ -492,6 +484,15 @@ define(function (require, exports, module) {
         var bindings = _commandMap[commandID];
         return bindings || [];
     }
+    
+    function _handleCommandRegistered(event, command) {
+        var commandId   = command.getID(),
+            defaults    = KeyboardPrefs[commandId];
+        
+        if (defaults) {
+            addBinding(commandId, defaults.keyBindings, defaults.platform);
+        }
+    }
 
     /**
      * Install keydown event listener.
@@ -509,6 +510,8 @@ define(function (require, exports, module) {
             true
         );
     }
+    
+    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
     // unit test only
     exports._reset = _reset;
