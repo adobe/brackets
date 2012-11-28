@@ -346,7 +346,9 @@ define(function (require, exports, module) {
                 availableHt -= $elem.outerHeight();
             }
         });
-        return availableHt;
+        
+        // Clip value to 0 (it could be negative if a panel wants more space than we have)
+        return Math.max(availableHt, 0);
     }
     
     /** 

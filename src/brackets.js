@@ -56,9 +56,6 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
-
-    // Load LiveDeveopment
-    require("LiveDevelopment/main");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
@@ -93,7 +90,8 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        Resizer                 = require("utils/Resizer");
+        Resizer                 = require("utils/Resizer"),
+        LiveDevelopmentMain     = require("LiveDevelopment/main");
 
     // Local variables
     var params                  = new UrlParams(),
@@ -244,6 +242,9 @@ define(function (require, exports, module) {
             
             $testDiv.remove();
         }
+        
+        // Initialize LiveDevelopment
+        LiveDevelopmentMain.init();
         
         PerfUtils.addMeasurement("Application Startup");
         

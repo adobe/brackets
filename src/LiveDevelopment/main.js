@@ -56,7 +56,7 @@ define(function main(require, exports, module) {
         experimental: false, // enable experimental features
         debug: true, // enable debug output and helpers
         autoconnect: false, // go live automatically after startup?
-        highlight: false, // enable highlighting?
+        highlight: true, // enable highlighting?
         highlightConfig: { // the highlight configuration for the Inspector
             borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
             contentColor: {r: 111, g: 168, b: 220, a: 0.55},
@@ -161,28 +161,25 @@ define(function main(require, exports, module) {
             // Update the checkmark next to 'Live Preview' menu item
             // Add checkmark when status is STATUS_ACTIVE; otherwise remove it 
             CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);
+            CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(status === LiveDevelopment.STATUS_ACTIVE);
         });
     }
 
-    /** Create the menu item "Highlight" */
-    function _setupHighlightButton() {
-        // TODO: this should be moved into index.html like the Go Live button once it's re-enabled
-        _$btnHighlight = $("<a href=\"#\">Highlight </a>");
-        $(".nav").append($("<li>").append(_$btnHighlight));
-        _$btnHighlight.click(function onClick() {
-            config.highlight = !config.highlight;
-            if (config.highlight) {
-                _setLabel(_$btnHighlight, _checkMark, "success");
-            } else {
-                _setLabel(_$btnHighlight);
-                LiveDevelopment.hideHighlight();
-            }
-        });
+    function _updateHighlightCheckmark() {
+        CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setChecked(config.highlight);
+    }
+    
+    function _handlePreviewHighlightCommand() {
+        config.highlight = !config.highlight;
+        _updateHighlightCheckmark();
         if (config.highlight) {
-            _setLabel(_$btnHighlight, _checkMark, "success");
+            LiveDevelopment.showHighlight();
+        } else {
+            LiveDevelopment.hideHighlight();
         }
+        prefs.setValue("highlight", config.highlight);
     }
-
+    
     /** Setup window references to useful LiveDevelopment modules */
     function _setupDebugHelpers() {
         window.ld = LiveDevelopment;
@@ -192,7 +189,6 @@ define(function main(require, exports, module) {
 
     /** Initialize LiveDevelopment */
     function init() {
-        prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY);
         params.parse();
 
         Inspector.init(config);
@@ -201,7 +197,8 @@ define(function main(require, exports, module) {
         _setupGoLiveButton();
         _setupGoLiveMenu();
 
-        /* _setupHighlightButton(); FUTURE - Highlight button */
+        _updateHighlightCheckmark();
+        
         if (config.debug) {
             _setupDebugHelpers();
         }
@@ -214,10 +211,24 @@ define(function main(require, exports, module) {
                 }
             });
         }
+        
+        // Redraw highlights when window gets focus. This ensures that the highlights
+        // will be in sync with any DOM changes that may have occurred.
+        $(window).focus(function () {
+            if (Inspector.connected() && config.highlight) {
+                LiveDevelopment.redrawHighlight();
+            }
+        });
     }
-    window.setTimeout(init);
+    
+    // init prefs
+    prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY, {highlight: true});
+    config.highlight = prefs.getValue("highlight");
    
+    // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
+    CommandManager.register(Strings.CMD_LIVE_HIGHLIGHT, Commands.FILE_LIVE_HIGHLIGHT, _handlePreviewHighlightCommand);
+    CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(false);
 
     // Export public functions
     exports.init = init;

@@ -34,6 +34,11 @@
             "Ctrl-Alt-P"
         ]
     },
+    "file.previewHighlight": {
+        "keyBindings": [
+            "Ctrl-Alt-Shift-H"
+        ]
+    }, 
     "file.quit": {
         "keyBindings": [
             "Ctrl-Q"
