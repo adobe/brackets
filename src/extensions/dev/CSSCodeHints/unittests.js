@@ -189,7 +189,7 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 16, ch: 8 });
             });
  
-            it("should insert nothing but the closure if propertyvalue is already complete", function () {
+            it("should insert nothing but the closure if propertyvalue is already complete and cursor moved", function () {
                 testEditor.setCursorPos({ line: 16, ch: 7 });   // cursor one whitespace after color
                 selectHint(CSSCodeHints.attrHintProvider, "color");
                 expect(testDocument.getLine(16)).toBe(" color: ");
