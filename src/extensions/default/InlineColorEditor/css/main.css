@@ -28,6 +28,9 @@
     height: 190px;
     padding: 16px 16px 14px 38px;
 }
+.color-editor:focus {
+    outline: none;
+}
 .color-editor aside {
     display: inline-block;
     position: relative;
@@ -63,7 +66,7 @@
     left: 0;
     top: 0;
 }
-.color-editor aside header .last-color {
+.color-editor aside header .original-color {
     border-radius: 0px 3px 3px 0px;
     right: 0;
     top: 0;
