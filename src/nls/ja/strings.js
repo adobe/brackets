@@ -265,7 +265,6 @@ define({
     "UPDATE_AVAILABLE_TITLE"               : "更新が利用できます",
     "UPDATE_MESSAGE"                       : "{APP_NAME} の新しいビルドが利用できます。いくつかの新機能を含みます :",
     "GET_IT_NOW"                           : "すぐに入手する！",
-    "PROJECT_SETTINGS_TOOLTIP"             : "プロジェクト設定",
     "PROJECT_SETTINGS_TITLE"               : "プロジェクト設定 : {0}",
     "PROJECT_SETTING_BASE_URL"             : "ライブプレビューのベースURL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(file URLを使用する場合は空白のまま)",
