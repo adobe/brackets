@@ -452,12 +452,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
-     * Used to track the default directory for the file save dialog
-     */
-    var _defaultSaveDialogFullPath = null;
-
-    /**
      * Saves the given document at a different path.
      * @param {doc: Document} docToSave  Document to save, or null
      * @return {$.Promise} a promise that is resolved after the save completes
@@ -480,14 +474,11 @@ define(function (require, exports, module) {
         if (docToSave) {
             var fileEntry;
             var writeError = false;
-            
+            var path = docToSave.file.fullPath;
+            var saveToFolder = path.substring(0, path.length - docToSave.file.name.length);
 
-            //first time save-as, default to the current project path
-            if (!_defaultSaveDialogFullPath) {
-                _defaultSaveDialogFullPath = docToSave.fullPath;
-            }
             // Prompt the user with a dialog
-            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, _defaultSaveDialogFullPath,
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveToFolder,
                 null, function (path) {
                     var scrollPosition, cursor, openPromise;
                     
