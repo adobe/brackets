@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets, $, window, tinycolor */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,6 +42,12 @@ define(function (require, exports, module) {
      * @param {!CodeMirror.Bookmark} endBookmark
      */
     function InlineColorEditor(color, startBookmark, endBookmark) {
+        if (color && color.match(/hsla?\(([0-9]+),/)) {
+            var hue = RegExp.$1;
+            if (hue > 360) {
+                color = color.replace(hue, String(hue % 360));
+            }
+        }
         this._color = color;
         this._startBookmark = startBookmark;
         this._endBookmark = endBookmark;
@@ -57,6 +63,12 @@ define(function (require, exports, module) {
 
         InlineWidget.call(this);
     }
+
+    InlineColorEditor.colorNameArray = $.map(tinycolor.names, function (value, key) {
+        return key;
+    });
+       
+    InlineColorEditor.colorNameRegEx = new RegExp(InlineColorEditor.colorNameArray.join("|"), "g");
 
     /**
      * Regular expression that matches reasonably well-formed colors in hex format (3 or 6 digits),
@@ -179,12 +191,21 @@ define(function (require, exports, module) {
      * @param {!Editor} hostEditor
      */
     InlineColorEditor.prototype.load = function (hostEditor) {
+        var text = hostEditor.document.getText(),
+            allNamedColors = text.match(InlineColorEditor.colorNameRegEx),
+            allColorsInDoc = text.match(InlineColorEditor.COLOR_REGEX),
+            swatchInfo;
         this.editor = hostEditor;
         this.parentClass.load.call(this, hostEditor);
         
+        if (allColorsInDoc && allNamedColors) {
+            allColorsInDoc = allColorsInDoc.concat(allNamedColors);
+        } else if (allNamedColors) {
+            allColorsInDoc = allNamedColors;
+        }
+
         // Create color picker control
-        var allColorsInDoc = this.editor.document.getText().match(InlineColorEditor.COLOR_REGEX);
-        var swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
+        swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
     };
 

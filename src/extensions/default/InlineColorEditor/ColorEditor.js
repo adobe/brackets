@@ -46,6 +46,8 @@ define(function (require, exports, module) {
      * @param {!Array.<{value:string, count:number}>} swatches  Quick-access color swatches to include in UI
      */
     function ColorEditor($parent, color, callback, swatches) {
+        color = color || "rgba(0,0,0,1)";
+        
         // Create the DOM structure, filling in localized strings via Mustache
         this.$element = $(Mustache.render(ColorEditorTemplate, Strings));
         $parent.append(this.$element);
@@ -282,10 +284,8 @@ define(function (require, exports, module) {
         }
         if (color.match(/^(rgb|hsl)/)) {
             normalizedColor = normalizedColor.replace(/,\s*/g, ", ");
-            normalizedColor = normalizedColor.replace(/\(\s+/, "(");
-            normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        return this._convertToNormalRGB(normalizedColor);
+        return this._convertToNormalRGB(normalizedColor.toLowerCase());
     };
 
     /** Handle changes in text field */
