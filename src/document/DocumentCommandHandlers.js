@@ -474,11 +474,9 @@ define(function (require, exports, module) {
         if (docToSave) {
             var fileEntry;
             var writeError = false;
-            var path = docToSave.file.fullPath;
-            var saveToFolder = path.substring(0, path.length - docToSave.file.name.length);
 
             // Prompt the user with a dialog
-            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveToFolder,
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, docToSave.file.fullPath,
                 null, function (path) {
                     var scrollPosition, cursor, openPromise;
                     
