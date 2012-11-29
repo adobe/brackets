@@ -275,8 +275,6 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
     
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_HUE_SLIDER_TIP"               : "Hue",
-    "COLOR_EDITOR_OPACITY_SLIDER_TIP"           : "Opacity",
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",

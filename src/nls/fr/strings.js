@@ -275,8 +275,6 @@ define({
 	"BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
     // extensions/default/InlineColorEditor
-	"COLOR_EDITOR_HUE_SLIDER_TIP": "Teinte",
-	"COLOR_EDITOR_OPACITY_SLIDER_TIP": "Opacité",
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
 	"COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "Couleur d’origine",
 	"COLOR_EDITOR_RGBA_BUTTON_TIP": "Format RGBa",
