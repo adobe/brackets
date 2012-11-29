@@ -481,6 +481,10 @@ define(function (require, exports, module) {
                     var scrollPosition, cursor, openPromise;
                     
                     if (path !== "") {
+                        // on Windows, we still want forward slashes
+                        if (brackets.platform === "win") {
+                            path = path.split("\\").join("/");
+                        }
                         fileEntry = new NativeFileSystem.FileEntry(path);
                         fileEntry.createWriter(
                             function (writer) {
