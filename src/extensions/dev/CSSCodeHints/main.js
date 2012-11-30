@@ -130,9 +130,14 @@ define(function (require, exports, module) {
             var len  = ctx.token.string.trim().length;
             completion = completion.substr(len) + closure;
         }
+        
         editor.document.replaceRange(completion, cursor);
-        this.cssMode = "";
+        if (this.cssMode === "attr") {
+            this.cssMode = "";
+            return false;
+        }
 
+        this.cssMode = "";
         return true;
     };
          
