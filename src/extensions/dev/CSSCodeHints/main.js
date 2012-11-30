@@ -50,21 +50,21 @@ define(function (require, exports, module) {
             query.queryStr = ctx.token.string;
             if (query.queryStr !== null) {
                 query.queryStr = query.queryStr.trim();
-                if (query.queryStr === "") {
-                    TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
-                    query.queryStr = ctx.token.string;
-                }
+                //if (query.queryStr === "") {
+                    //TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
+                    //query.queryStr = ctx.token.string;
+                //}
                 
                 if (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx)) {
                     query.prevStr = ctx.token.string;
                 }
             }
-            /* notes: we need some contextinformation around cursor, 2-3 tokens to determine if we need to show attrs or values */
             
+            /* notes: we need some contextinformation around cursor, 2-3 tokens to determine if we need to show attrs or values */
+            this.cssMode = "attr";
             if (query.queryStr === "{" || query.queryStr === ";") {
                 /* cssattribute context */
                 query.queryStr = "";
-                this.cssMode = "attr";
             } else if (query.queryStr === ":") {
                 /* cssattrvalue context */
                 /* move token 1 step back to get attibutename */
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
     CssAttrHints.prototype.handleSelect = function (completion, editor, cursor) {
         var ctx  = TokenUtils.getInitialContext(editor._codeMirror, cursor),
             closure = "";
-        
+
         if (ctx.token !== null) {
             if (this.cssMode === "value") {
                 closure = ";";
