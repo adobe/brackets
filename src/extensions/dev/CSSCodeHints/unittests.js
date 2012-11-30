@@ -30,7 +30,7 @@ define(function (require, exports, module) {
                              " display: \n" +
                              " display: in\n" +
                              " bordborder: \n" +
-                             " color \n" +
+                             " color\n" +
                              "} \n";
         
         var testWindow;
@@ -182,18 +182,32 @@ define(function (require, exports, module) {
                 // expectCursorAt({ line: 10, ch: 4 });
             });
 
+            it("should insert nothing if  previous property not closed properly", function () {
+                testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
+                /* expectNoHints doesn't work here, since the input is the empty string, and the attribute is 'borborder' */
+                /* query.queryStr is NOT null, but the search is still empty, so we need to check the result of search instead */
+                var query = CSSCodeHints.attrHintProvider.getQueryInfo(testEditor, testEditor.getCursorPos());
+                expect(query).toBeTruthy();
+                expect(query.queryStr).not.toBeNull();
+                var hintList = CSSCodeHints.attrHintProvider.search(query);
+                expect(hintList).toBeTruthy();
+                expect(hintList.length).toBe(0);
+            });
+            
             it("should insert nothing but the closure if propertyvalue is already complete", function () {
+                testDocument.replaceRange(";", { line: 15, ch: 13 }); // insert text ;
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
                 selectHint(CSSCodeHints.attrHintProvider, "color");
                 expect(testDocument.getLine(16)).toBe(" color: ");
                 expectCursorAt({ line: 16, ch: 8 });
             });
- 
-            it("should insert nothing but the closure if propertyvalue is already complete and cursor moved", function () {
+            
+            it("should start new selection whenever there is a whitespace to last stringliteral", function () {
+                testDocument.replaceRange(" ", { line: 16, ch: 6 }); // insert whitespace after color
                 testEditor.setCursorPos({ line: 16, ch: 7 });   // cursor one whitespace after color
                 selectHint(CSSCodeHints.attrHintProvider, "color");
-                expect(testDocument.getLine(16)).toBe(" color: ");
-                expectCursorAt({ line: 16, ch: 8 });
+                expect(testDocument.getLine(16)).toBe(" color color: ");
+                expectCursorAt({ line: 16, ch: 14 });
             });
         });
 
