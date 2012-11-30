@@ -1,3 +1,9 @@
+@media screen{
+    body {
+    
+    }
+}
+
 body {
     background-color: #CCCCCC;
     width: 300px;
@@ -19,4 +25,5 @@ h3 {
     color: red;
     border-style: dashed;
     border-color: transparent;
+    display:  block;
 }
