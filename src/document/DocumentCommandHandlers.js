@@ -485,6 +485,17 @@ define(function (require, exports, module) {
                         if (brackets.platform === "win") {
                             path = path.split("\\").join("/");
                         }
+                        // trigger normal save if the filename is unchanged
+                        if (path == docToSave.file.fullPath) {
+                            doSave(docToSave)
+                            .done(function () {
+                                result.resolve();
+                            })
+                            .fail(function (error) {
+                                result.reject(error);
+                            });
+                            return result.promise();
+                        }
                         fileEntry = new NativeFileSystem.FileEntry(path);
                         fileEntry.createWriter(
                             function (writer) {
