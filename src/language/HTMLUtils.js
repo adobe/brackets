@@ -113,6 +113,46 @@ define(function (require, exports, module) {
     }
     
     /**
+     *
+     * @param {CodeMirror} editor
+     * @param {ch:{string}, line:{number}} pos
+     * @return {Array.<string>}
+     */
+    function getTagAttributes(editor, pos) {
+        var attrs       = [],
+            backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, pos),
+            forwardCtx  = $.extend({}, backwardCtx);
+        
+        if (backwardCtx.token) {
+            while (backwardCtx.token.className !== "tag") {
+                console.log(backwardCtx.token.className, backwardCtx.token.string);
+                if (backwardCtx.token.className === "attribute") {
+                    attrs.push(backwardCtx.token.string);
+                }
+                TokenUtils.movePrevToken(backwardCtx);
+            }
+            
+            TokenUtils.moveNextToken(forwardCtx);
+            while (forwardCtx.token.className !== "tag") {
+                console.log(forwardCtx.token.className, forwardCtx.token.string);
+                if (forwardCtx.token.className === "attribute") {
+                    attrs.push(forwardCtx.token.string);
+                } else if (forwardCtx.token.className === "error") {
+                    if (forwardCtx.token.string.trim() !== "" &&
+                            forwardCtx.token.string.indexOf("\"") === -1 &&
+                            forwardCtx.token.string.indexOf("'") === -1 &&
+                            forwardCtx.token.string.indexOf("=") === -1) {
+                        attrs.push(forwardCtx.token.string);
+                    }
+                }
+                TokenUtils.moveNextToken(forwardCtx);
+            }
+        }
+        
+        return attrs;
+    }
+    
+    /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
      * @param {string=} tokenType what is getting edited and should be hinted
      * @param {number=} offset where the cursor is for the part getting hinted
@@ -251,7 +291,7 @@ define(function (require, exports, module) {
             offset = TokenUtils.offsetInToken(ctx),
             tagInfo,
             tokenType;
-        
+                
         // check if this is inside a style block.
         if (editor.getModeForSelection() !== "html") {
             return createTagInfo();
@@ -398,7 +438,7 @@ define(function (require, exports, module) {
             tagInfo.position.tokenType = tokenType;
             tagInfo.position.offset = offset;
         }
-        
+                
         return tagInfo;
     }
     
@@ -450,6 +490,7 @@ define(function (require, exports, module) {
     exports.ATTR_VALUE = ATTR_VALUE;
     
     exports.getTagInfo = getTagInfo;
+    exports.getTagAttributes = getTagAttributes;
     //The createTagInfo is really only for the unit tests so they can make the same structure to 
     //compare results with
     exports.createTagInfo = createTagInfo;
