@@ -246,6 +246,92 @@ define(function (require, exports, module) {
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo());
             });
+            
+            it("should not find attributes in an empty editor", function () {
+                var pos = {"ch": 0, "line": 0};
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+        
+            it("should not find attributes before the tag is opened", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '', '<p id="pid" class="pclass" lang="plang" align="palign" title="">test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+                
+            it("should not find attributes if there isn't a valid tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<', ' id="pid" class="pclass" lang="plang" align="palign" title="">test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+            
+            it("should not find attributes after the tag is closed", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p id="pid" class="pclass" lang="plang" align="palign" title="">test</p>', '',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+                
+            it("should find all the tag attributes immediately after the tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p ', 'id="pid" class="pclass" lang="plang" align="palign" title="ptitle">test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+            
+            it("should find all the tag attributes before closing the tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p id="pid" class="pclass" lang="plang" align="palign" title="ptitle" ', '>test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+            
+            it("should find all the tag attributes backward and forward", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p id="pid" class="pclass" lang="plang" ', 'align="palign" title="ptitle">test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+            
+            it("should find valid attributes marked as errors by the tokenizer", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p id="pid" c', ' class="pclass" lang="plang" align="palign" title="ptitle">test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+                
+            it("should not find attributes in nested tags", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p ', 'id="pid" class="pclass" lang="plang" align="palign" title="ptitle"><span style="sstyle"></span></p>',
+                    [ '</div>', '</body>', '</html>']);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
         });
     });
 });
