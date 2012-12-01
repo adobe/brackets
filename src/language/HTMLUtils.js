@@ -113,39 +113,38 @@ define(function (require, exports, module) {
     }
     
     /**
-     *
-     * @param {CodeMirror} editor
-     * @param {ch:{string}, line:{number}} pos
-     * @return {Array.<string>}
+     * Compiles a list of used attributes for a given tag
+     * @param {CodeMirror} editor An instance of a CodeMirror editor
+     * @param {ch:{string}, line:{number}} pos A CodeMirror position
+     * @return {Array.<string>} A list of the used attributes inside the current tag
      */
     function getTagAttributes(editor, pos) {
         var attrs       = [],
             backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             forwardCtx  = $.extend({}, backwardCtx);
         
-        if (backwardCtx.token) {
-            while (backwardCtx.token.className !== "tag") {
-                console.log(backwardCtx.token.className, backwardCtx.token.string);
-                if (backwardCtx.token.className === "attribute") {
-                    attrs.push(backwardCtx.token.string);
-                }
-                TokenUtils.movePrevToken(backwardCtx);
-            }
-            
-            TokenUtils.moveNextToken(forwardCtx);
-            while (forwardCtx.token.className !== "tag") {
-                console.log(forwardCtx.token.className, forwardCtx.token.string);
-                if (forwardCtx.token.className === "attribute") {
-                    attrs.push(forwardCtx.token.string);
-                } else if (forwardCtx.token.className === "error") {
-                    if (forwardCtx.token.string.trim() !== "" &&
-                            forwardCtx.token.string.indexOf("\"") === -1 &&
-                            forwardCtx.token.string.indexOf("'") === -1 &&
-                            forwardCtx.token.string.indexOf("=") === -1) {
-                        attrs.push(forwardCtx.token.string);
+        if (editor.getModeForSelection() === "html") {
+            if (backwardCtx.token) {
+                while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.className !== "tag") {
+                    if (backwardCtx.token.className === "attribute") {
+                        attrs.push(backwardCtx.token.string);
                     }
                 }
-                TokenUtils.moveNextToken(forwardCtx);
+                
+                while (TokenUtils.moveNextToken(forwardCtx) && forwardCtx.token.className !== "tag") {
+                    if (forwardCtx.token.className === "attribute") {
+                        attrs.push(forwardCtx.token.string);
+                    } else if (forwardCtx.token.className === "error") {
+                        // If we type the first letter of the next attribute, it comes as an error
+                        // token. We need to double check for possible invalidated attributes.
+                        if (forwardCtx.token.string.trim() !== "" &&
+                                forwardCtx.token.string.indexOf("\"") === -1 &&
+                                forwardCtx.token.string.indexOf("'") === -1 &&
+                                forwardCtx.token.string.indexOf("=") === -1) {
+                            attrs.push(forwardCtx.token.string);
+                        }
+                    }
+                }
             }
         }
         
@@ -291,7 +290,7 @@ define(function (require, exports, module) {
             offset = TokenUtils.offsetInToken(ctx),
             tagInfo,
             tokenType;
-                
+        
         // check if this is inside a style block.
         if (editor.getModeForSelection() !== "html") {
             return createTagInfo();
@@ -438,7 +437,7 @@ define(function (require, exports, module) {
             tagInfo.position.tokenType = tokenType;
             tagInfo.position.offset = offset;
         }
-                
+        
         return tagInfo;
     }
     

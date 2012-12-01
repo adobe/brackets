@@ -172,8 +172,6 @@ define(function (require, exports, module) {
             endQuote = "",
             shouldReplace = true;
 
-        var tagInfo2 = HTMLUtils.getTagInfo(editor, {ch: 1, line: cursor.line});
-        
         if (tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
             // Append an equal sign and two double quotes if the current attr is not an empty attr
@@ -250,7 +248,7 @@ define(function (require, exports, module) {
         var tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             query = {queryStr: null},
             tokenType = tagInfo.position.tokenType;
-         
+ 
         if (tokenType === HTMLUtils.ATTR_NAME || tokenType === HTMLUtils.ATTR_VALUE) {
             query.tag = tagInfo.tagName;
             
@@ -424,7 +422,6 @@ define(function (require, exports, module) {
 
         if (query.tag && query.queryStr !== null) {
             var tagName = query.tag,
-                self = this,
                 attrName = query.attrName,
                 filter = query.queryStr,
                 unfiltered = [],
@@ -457,12 +454,7 @@ define(function (require, exports, module) {
             } else if (tags && tags[tagName] && tags[tagName].attributes) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
                 filtered = $.grep(unfiltered, function (attr, i) {
-                    if ($.inArray(attr, query.usedAttr) >= 0) {
-                        console.log(attr);
-                        console.log(query.usedAttr);
-                        console.log($.inArray(attr, query.usedAttr));
-                    }
-                    return ($.inArray(attr, query.usedAttr) < 0);
+                    return $.inArray(attr, query.usedAttr) < 0;
                 });
             }
             
