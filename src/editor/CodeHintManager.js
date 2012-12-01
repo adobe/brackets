@@ -39,8 +39,9 @@ define(function (require, exports, module) {
 
 
     var hintProviders = [],
+        enabledHintProviders = [],
+        queryAllProviders,
         hintList,
-        shouldShowHintsOnChange = false,
         keyDownEditor;
 
 
@@ -257,13 +258,19 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     CodeHintList.prototype.open = function (editor) {
-        var self = this;
+        var self = this,
+            providers = enabledHintProviders;
+
         this.editor = editor;
 
         Menus.closeAll();
 
+        if (queryAllProviders) {
+            providers = hintProviders;
+        }
+
         this.currentProvider = null;
-        $.each(hintProviders, function (index, item) {
+        $.each(providers, function (index, item) {
             var query = item.getQueryInfo(self.editor, self.editor.getCursorPos());
             if (query.queryStr !== null) {
                 self.query = query;
@@ -284,7 +291,7 @@ define(function (require, exports, module) {
             var hintPos = this.calcHintListLocation();
             
             this.$hintMenu.addClass("open")
-                       .css({"left": hintPos.left, "top": hintPos.top});
+                .css({"left": hintPos.left, "top": hintPos.top});
             this.opened = true;
             
             PopUpManager.addPopUp(this.$hintMenu,
@@ -311,7 +318,6 @@ define(function (require, exports, module) {
         this.$hintMenu.remove();
         if (hintList === this) {
             hintList = null;
-            shouldShowHintsOnChange = false;
             keyDownEditor = null;
         }
     };
@@ -386,23 +392,25 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
-        var provider = null;
-        
         // Check for Control+Space
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
+            // shouldShowHintsOnKey will not be called in this case,
+            // so the entire list of providers will be queried
+            queryAllProviders = true;
             showHint(editor);
             event.preventDefault();
         } else if (event.type === "keypress") {
-            // Check if any provider wants to show hints on this key.
+            // otherwise, shouldShowHintsOnKey determines which providers
+            // will be queried (from handleChange) for hints
+            queryAllProviders = false;
+            enabledHintProviders = [];
             $.each(hintProviders, function (index, item) {
                 if (item.shouldShowHintsOnKey(String.fromCharCode(event.charCode))) {
-                    provider = item;
-                    return false;
+                    enabledHintProviders.push(item);
                 }
             });
             
-            shouldShowHintsOnChange = !!provider;
-            if (shouldShowHintsOnChange) {
+            if (enabledHintProviders.length > 0) {
                 keyDownEditor = editor;
             }
         }
@@ -417,10 +425,13 @@ define(function (require, exports, module) {
      *
      */
     function handleChange(editor) {
-        if (shouldShowHintsOnChange && keyDownEditor === editor) {
-            shouldShowHintsOnChange = false;
+        if (enabledHintProviders.length > 0 && keyDownEditor === editor) {
             keyDownEditor = null;
             showHint(editor);
+        } else {
+            if (hintList) {
+                hintList.close();
+            }
         }
     }
 
