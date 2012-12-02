@@ -425,7 +425,7 @@ define(function (require, exports, module) {
                 attrName = query.attrName,
                 filter = query.queryStr,
                 unfiltered = [],
-                filtered = [],
+                hints = [],
                 sortFunc = null;
 
             this.closeOnSelect = true;
@@ -441,26 +441,26 @@ define(function (require, exports, module) {
                 
                 if (attrInfo) {
                     if (attrInfo.type === "boolean") {
-                        unfiltered = ["false", "true"];
+                        hints = ["false", "true"];
                     } else if (attrInfo.type === "url") {
                         // Default behavior for url hints is do not close on select.
                         this.closeOnSelect = false;
-                        unfiltered = this._getUrlList(query);
+                        hints = this._getUrlList(query);
                         sortFunc = StringUtils.urlSort;
                     } else if (attrInfo.attribOption) {
-                        unfiltered = attrInfo.attribOption;
+                        hints = attrInfo.attribOption;
                     }
                 }
             } else if (tags && tags[tagName] && tags[tagName].attributes) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
-                filtered = $.grep(unfiltered, function (attr, i) {
+                hints = $.grep(unfiltered, function (attr, i) {
                     return $.inArray(attr, query.usedAttr) < 0;
                 });
             }
             
-            if (filtered.length) {
+            if (hints.length) {
                 console.assert(!result.length);
-                result = $.map(filtered, function (item) {
+                result = $.map(hints, function (item) {
                     if (item.indexOf(filter) === 0) {
                         return item;
                     }
