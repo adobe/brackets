@@ -428,10 +428,6 @@ define(function (require, exports, module) {
         if (enabledHintProviders.length > 0 && keyDownEditor === editor) {
             keyDownEditor = null;
             showHint(editor);
-        } else {
-            if (hintList) {
-                hintList.close();
-            }
         }
     }
 
