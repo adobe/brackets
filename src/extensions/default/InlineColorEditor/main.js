@@ -124,7 +124,7 @@ define(function (require, exports, module) {
                 match = _findMatchAtPos(colorRegEx, cursorLine, pos.ch);
             } else {
                 // Find any invalid or incomplete rgb/hsl/hex color string to edit
-                colorRegEx = new RegExp(/(rgb|hsl)a?\(.*\)|#[0-9a-zA-Z]*/g);
+                colorRegEx = new RegExp(/(rgb|hsl)a?\(.*\)|#[0-9a-zA-Z]+/g);
                 match = _findMatchAtPos(colorRegEx, cursorLine, pos.ch);
                 if (!match) {
                     // Find any incomplete rgb or hsl color string to edit

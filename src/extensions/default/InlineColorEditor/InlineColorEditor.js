@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     }
 
     InlineColorEditor.colorNameArray = $.map(tinycolor.names, function (value, key) {
-        return key;
+        return "\\b" + key + "\\b";
     });
        
     InlineColorEditor.colorNameRegEx = new RegExp(InlineColorEditor.colorNameArray.join("|"), "g");
