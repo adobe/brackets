@@ -377,36 +377,39 @@ define(function (require, exports, module) {
      * 
      * The implementation uses blockCommentPrefixSuffix, with the exception of the case where
      * there is no selection on a uncommented and not empty line. In this case the whole lines gets
-     * commented in a bock-comment.
+     * commented in a block-comment.
      *
      * @param {!Editor} editor
      * @param {!String} prefix
      * @param {!String} suffix
      */
     function lineCommentPrefixSuffix(editor, prefix, suffix) {
-        var sel           = editor.getSelection(),
-            selStart      = sel.start,
-            selEnd        = sel.end,
-            prefixExp     = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
-            lineSelection = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line !== sel.end.line,
-            multipleLine  = sel.start.line !== sel.end.line,
-            lineLength    = editor.document.getLine(sel.start.line).length;
+        var sel             = editor.getSelection(),
+            selStart        = sel.start,
+            selEnd          = sel.end,
+            prefixExp       = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
+            isLineSelection = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line !== sel.end.line,
+            isMultipleLine  = sel.start.line !== sel.end.line,
+            lineLength      = editor.document.getLine(sel.start.line).length;
         
-        // For a multiple line selection transform it to a multiple whole line selection
-        if (!lineSelection && multipleLine) {
-            selStart = {line: sel.start.line, ch: 0};
-            selEnd   = {line: sel.end.line + 1, ch: 0};
-        
-        // For one line selections, just start at column 0 and end at the end of the line
-        } else if (!lineSelection) {
-            selStart = {line: sel.start.line, ch: 0};
-            selEnd   = {line: sel.end.line, ch: lineLength};
+        // Line selections already behave like we want to
+        if (!isLineSelection) {
+            // For a multiple line selection transform it to a multiple whole line selection
+            if (isMultipleLine) {
+                selStart = {line: sel.start.line, ch: 0};
+                selEnd   = {line: sel.end.line + 1, ch: 0};
+            
+            // For one line selections, just start at column 0 and end at the end of the line
+            } else {
+                selStart = {line: sel.start.line, ch: 0};
+                selEnd   = {line: sel.end.line, ch: lineLength};
+            }
         }
         
         // If the selection includes a comment or is already a line selection, delegate to Block-Comment
         var ctx     = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
         var hasNext = _findNextBlockComment(ctx, selEnd, prefixExp);
-        if (ctx.token.className === "comment" || hasNext || lineSelection) {
+        if (ctx.token.className === "comment" || hasNext || isLineSelection) {
             blockCommentPrefixSuffix(editor, prefix, suffix, false);
         
         } else {
@@ -415,7 +418,7 @@ define(function (require, exports, module) {
             blockCommentPrefixSuffix(editor, prefix, suffix, false);
             
             // Restore the old selection taking into account the prefix change
-            if (multipleLine) {
+            if (isMultipleLine) {
                 sel.start.line++;
                 sel.end.line++;
             } else {
