@@ -227,7 +227,7 @@ define(function (require, exports, module) {
         var $jslintResults  = $("#jslint-results"),
             $jslintContent  = $("#jslint-results .table-container");
         
-        StatusBar.addIndicator(module.id, $("#gold-star"), true);
+        StatusBar.addIndicator(module.id, $("#gold-star"), true, "", Strings.JSLINT_DISABLED);
     });
 
     // Define public API
