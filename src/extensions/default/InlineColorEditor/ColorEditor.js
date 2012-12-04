@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window, tinycolor */
+/*global define, brackets, $, window, tinycolor, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,120 +31,172 @@ define(function (require, exports, module) {
     var KeyEvent    = brackets.getModule("utils/KeyEvent"),
         StringUtils = brackets.getModule("utils/StringUtils"),
         Strings     = brackets.getModule("strings");
+    
+    /** Mustache template that forms the bare DOM structure of the UI */
+    var ColorEditorTemplate = require("text!ColorEditorTemplate.html");
+    
+    /** @const @type {number} */
     var STEP_MULTIPLIER = 5;
     
-    function ColorEditor(element, color, callback, swatches) {
-        this.element = element;
-        this.callback = callback;
-        this.swatches = swatches;
-        this.bindKeyHandler = this.bindKeyHandler.bind(this);
+    /**
+     * Color picker control; may be used standalone or within an InlineColorEditor inline widget.
+     * @param {!jQuery} $parent  DOM node into which to append the root of the color picker UI
+     * @param {!string} color  Initially selected color
+     * @param {!function(string)} callback  Called whenever selected color changes
+     * @param {!Array.<{value:string, count:number}>} swatches  Quick-access color swatches to include in UI
+     */
+    function ColorEditor($parent, color, callback, swatches) {
+        // Create the DOM structure, filling in localized strings via Mustache
+        this.$element = $(Mustache.render(ColorEditorTemplate, Strings));
+        $parent.append(this.$element);
+        
+        this._callback = callback;
 
-        this.handleKeydown = this.handleKeydown.bind(this);
-        this.handleOpacityKeydown = this.handleOpacityKeydown.bind(this);
-        this.handleHueKeydown = this.handleHueKeydown.bind(this);
-        this.handleSelectionKeydown = this.handleSelectionKeydown.bind(this);
-        this.registerDragHandler = this.registerDragHandler.bind(this);
-        this.handleOpacityDrag = this.handleOpacityDrag.bind(this);
-        this.handleHueDrag = this.handleHueDrag.bind(this);
-        this.handleSelectionFieldDrag = this.handleSelectionFieldDrag.bind(this);
+        this._handleKeydown = this._handleKeydown.bind(this);
+        this._handleOpacityKeydown = this._handleOpacityKeydown.bind(this);
+        this._handleHslKeydown = this._handleHslKeydown.bind(this);
+        this._handleHueKeydown = this._handleHueKeydown.bind(this);
+        this._handleSelectionKeydown = this._handleSelectionKeydown.bind(this);
+        this._handleOpacityDrag = this._handleOpacityDrag.bind(this);
+        this._handleHueDrag = this._handleHueDrag.bind(this);
+        this._handleSelectionFieldDrag = this._handleSelectionFieldDrag.bind(this);
 
-        this.color = tinycolor(color);
-        this.lastColor = color;
-        this.redoColor = null;
-        this.$element = $(this.element);
+        this._color = tinycolor(color);
+        this._originalColor = color;
+        this._redoColor = null;
+        
         this.$colorValue = this.$element.find(".color_value");
         this.$buttonList = this.$element.find("ul.button-bar");
         this.$rgbaButton = this.$element.find(".rgba");
         this.$hexButton = this.$element.find(".hex");
         this.$hslButton = this.$element.find(".hsla");
         this.$currentColor = this.$element.find(".current_color");
-        this.$lastColor = this.$element.find(".last_color");
+        this.$originalColor = this.$element.find(".original_color");
         this.$selection = this.$element.find(".color_selection_field");
         this.$selectionBase = this.$element.find(".color_selection_field .selector_base");
         this.$hueBase = this.$element.find(".hue_slider .selector_base");
         this.$opacityGradient = this.$element.find(".opacity_gradient");
         this.$hueSlider = this.$element.find(".hue_slider");
-        this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$hueSelector = this.$element.find(".hue_slider .selector_base");
+        this.$opacitySlider = this.$element.find(".opacity_slider");
         this.$opacitySelector = this.$element.find(".opacity_slider .selector_base");
         this.$swatches = this.$element.find(".swatches");
-        this.addSwatches();
-        this.addFieldListeners();
-        this.$lastColor.css("background-color", this.lastColor);
-        this.commitColor(color);
+        
+        // Create quick-access color swatches
+        this._addSwatches(swatches);
+        
+        // Attach event listeners to main UI elements
+        this._addListeners();
+        
+        // Initially selected color
+        this.$originalColor.css("background-color", this._originalColor);
+        this._commitColor(color);
     }
 
-    ColorEditor.prototype.defaultColor = "rgba(0,0,0,1)";
-
-    ColorEditor.prototype.hsv = tinycolor("rgba(0,0,0,1)").toHsv();
-
-    ColorEditor.prototype.addFieldListeners = function () {
-        this.bindColorFormatToRadioButton("rgba");
-        this.bindColorFormatToRadioButton("hex");
-        this.bindColorFormatToRadioButton("hsla");
-        this.bindInputHandlers();
-        this.bindOriginalColorButton();
-        this.registerDragHandler(this.$selection, this.handleSelectionFieldDrag);
-        this.registerDragHandler(this.$hueSlider, this.handleHueDrag);
-        this.registerDragHandler(this.$opacitySlider, this.handleOpacityDrag);
-        this.bindKeyHandler(this.$selectionBase, this.handleSelectionKeydown);
-        this.bindKeyHandler(this.$hueBase, this.handleHueKeydown);
-        this.bindKeyHandler(this.$opacitySelector, this.handleOpacityKeydown);
+    /**
+     * A string or tinycolor object representing the currently selected color
+     * TODO (#2201): type is unpredictable
+     * @type {tinycolor|string}
+     */
+    ColorEditor.prototype._color = null;
+    
+    /**
+     * An HSV representation of the currently selected color.
+     * TODO (#2201): type of _hsv.s/.v is unpredictable
+     * @type {!{h:number, s:number|string, v:number|string, a:number}}
+     */
+    ColorEditor.prototype._hsv = tinycolor("rgba(0,0,0,1)").toHsv();
+    
+    /**
+     * Color that was selected before undo(), if undo was the last change made. Else null.
+     * @type {?string}
+     */
+    ColorEditor.prototype._redoColor = null;
+    
+    /**
+     * Initial value the color picker was opened with
+     * @type {!string}
+     */
+    ColorEditor.prototype._originalColor = null;
+    
+    
+    /** Returns the root DOM node of the ColorPicker UI */
+    ColorEditor.prototype.getRootElement = function () {
+        return this.$element;
+    };
         
-        // Bind the undo/redo key handler to other buttons that take focus but
-        // don't have their own key handlers.
-        this.bindKeyHandler(this.$colorValue, this.handleKeydown);
-        this.bindKeyHandler(this.$rgbaButton, this.handleKeydown);
-        this.bindKeyHandler(this.$hexButton, this.handleKeydown);
+    /** Attach event listeners for main UI elements */
+    ColorEditor.prototype._addListeners = function () {
+        this._bindColorFormatToRadioButton("rgba");
+        this._bindColorFormatToRadioButton("hex");
+        this._bindColorFormatToRadioButton("hsla");
         
-        // Bind key handler to HSLa button only if we don't have any color swatches
-        // and this becomes the last UI element in the tab loop.
-        if ($(this.$swatches).children().length === 0) {
-            this.bindKeyHandler(this.$hslButton, this.handleHslKeydown);
-        } else {
-            this.bindKeyHandler(this.$hslButton, this.handleKeydown);
-        }
+        this._bindInputHandlers();
+        
+        this._bindOriginalColorButton();
+        
+        this._registerDragHandler(this.$selection, this._handleSelectionFieldDrag);
+        this._registerDragHandler(this.$hueSlider, this._handleHueDrag);
+        this._registerDragHandler(this.$opacitySlider, this._handleOpacityDrag);
+        this._bindKeyHandler(this.$selectionBase, this._handleSelectionKeydown);
+        this._bindKeyHandler(this.$hueBase, this._handleHueKeydown);
+        this._bindKeyHandler(this.$opacitySelector, this._handleOpacityKeydown);
+        this._bindKeyHandler(this.$hslButton, this._handleHslKeydown);
+        
+        // General key handler gets bubbling events from any focusable part of widget
+        this._bindKeyHandler(this.$element, this._handleKeydown);
     };
 
-    ColorEditor.prototype.synchronize = function () {
-        var colorObject, colorValue, hueColor;
-        colorValue = this.getColor().toString();
-        colorObject = tinycolor(colorValue);
-        hueColor = "hsl(" + this.hsv.h + ", 100%, 50%)";
-        this.updateColorTypeRadioButtons(colorObject.format);
+    /**
+     * Update all UI elements to reflect the selected color (_color and _hsv). It is usually
+     * incorrect to call this directly; use _commitColor() or setColorAsHsv() instead.
+     */
+    ColorEditor.prototype._synchronize = function () {
+        var colorValue = this.getColor().toString(),
+            colorObject = tinycolor(colorValue),
+            hueColor = "hsl(" + this._hsv.h + ", 100%, 50%)";
+        
+        this._updateColorTypeRadioButtons(colorObject.format);
         this.$colorValue.attr("value", colorValue);
         this.$currentColor.css("background-color", colorValue);
         this.$selection.css("background-color", hueColor);
         this.$hueBase.css("background-color", hueColor);
+        
+        // Update gradients in color square & opacity slider
         this.$selectionBase.css("background-color", colorObject.toHexString());
         this.$opacityGradient.css("background-image", "-webkit-gradient(linear, 0% 0%, 0% 100%, from(" + hueColor + "), to(transparent))");
-        this.$hueSelector.css("bottom", (this.hsv.h / 360 * 100) + "%");
-        this.$opacitySelector.css("bottom", (this.hsv.a * 100) + "%");
-        if (!isNaN(this.hsv.s)) {
-            this.hsv.s = (this.hsv.s * 100) + "%";
+        
+        // Update slider thumb positions
+        this.$hueSelector.css("bottom", (this._hsv.h / 360 * 100) + "%");
+        this.$opacitySelector.css("bottom", (this._hsv.a * 100) + "%");
+        if (!isNaN(this._hsv.s)) {      // TODO (#2201): type of _hsv.s/.v is unpredictable
+            this._hsv.s = (this._hsv.s * 100) + "%";
         }
-        if (!isNaN(this.hsv.v)) {
-            this.hsv.v = (this.hsv.v * 100) + "%";
+        if (!isNaN(this._hsv.v)) {
+            this._hsv.v = (this._hsv.v * 100) + "%";
         }
         this.$selectionBase.css({
-            left: this.hsv.s,
-            bottom: this.hsv.v
+            left: this._hsv.s,
+            bottom: this._hsv.v
         });
     };
 
+    /** Focus the main color square's thumb */
     ColorEditor.prototype.focus = function () {
-        if (!this.$selection.find(".selector_base").is(":focus")) {
-            this.$selection.find(".selector_base").focus();
+        if (!this.$selectionBase.is(":focus")) {
+            this.$selectionBase.focus();
             return true;
         }
         return false;
     };
 
+    /** @return {tinycolor|string} The currently selected color (TODO (#2201): type is unpredictable) */
     ColorEditor.prototype.getColor = function () {
-        return this.color || this.defaultColor;
+        return this._color;
     };
 
-    ColorEditor.prototype.updateColorTypeRadioButtons = function (format) {
+    /** Update the format button bar's selection */
+    ColorEditor.prototype._updateColorTypeRadioButtons = function (format) {
         this.$buttonList.find("li").removeClass("selected");
         switch (format) {
         case "rgb":
@@ -160,7 +212,8 @@ define(function (require, exports, module) {
         }
     };
 
-    ColorEditor.prototype.bindColorFormatToRadioButton = function (buttonClass, propertyName, value) {
+    /** Add event listeners to the format button bar */
+    ColorEditor.prototype._bindColorFormatToRadioButton = function (buttonClass, propertyName, value) {
         var handler,
             _this = this;
         handler = function (event) {
@@ -177,19 +230,19 @@ define(function (require, exports, module) {
                 break;
             case "hex":
                 newColor = colorObject.toHexString();
-                _this.hsv.a = 1;
-                _this.synchronize();
+                _this._hsv.a = 1;
                 break;
             }
-            _this.commitColor(newColor, false);
+            _this._commitColor(newColor, false);
         };
         this.$element.find("." + buttonClass).click(handler);
     };
 
-    ColorEditor.prototype.bindOriginalColorButton = function () {
+    /** Add event listener to the "original color value" swatch */
+    ColorEditor.prototype._bindOriginalColorButton = function () {
         var _this = this;
-        this.$lastColor.click(function (event) {
-            _this.commitColor(_this.lastColor, true);
+        this.$originalColor.click(function (event) {
+            _this._commitColor(_this._originalColor, true);
         });
     };
 
@@ -224,7 +277,7 @@ define(function (require, exports, module) {
         var normalizedColor = color;
                     
         // Convert 6-digit hex to 3-digit hex as tinycolor (#ffaacc -> #fac)
-        if (color.match(/^#[0-9a-f]{6}/)) {
+        if (color.match(/^#[0-9a-fA-F]{6}/)) {
             return tinycolor(color).toString();
         }
         if (color.match(/^(rgb|hsl)/)) {
@@ -235,7 +288,8 @@ define(function (require, exports, module) {
         return this._convertToNormalRGB(normalizedColor);
     };
 
-    ColorEditor.prototype.syncTextFieldInput = function (losingFocus) {
+    /** Handle changes in text field */
+    ColorEditor.prototype._handleTextFieldInput = function (losingFocus) {
         var newColor = $.trim(this.$colorValue.val()),
             newColorObj = tinycolor(newColor),
             newColorOk = newColorObj.ok;
@@ -258,26 +312,31 @@ define(function (require, exports, module) {
         
         // Sync only if we have a valid color or we're restoring the previous valid color.
         if (losingFocus || newColorOk) {
-            this.commitColor(newColor, true);
+            this._commitColor(newColor, true);
         }
     };
                     
-    ColorEditor.prototype.bindInputHandlers = function () {
+    ColorEditor.prototype._bindInputHandlers = function () {
         var _this = this;
                     
         this.$colorValue.bind("input", function (event) {
-            _this.syncTextFieldInput(false);
+            _this._handleTextFieldInput(false);
         });
 
         this.$colorValue.bind("change", function (event) {
-            _this.syncTextFieldInput(true);
+            _this._handleTextFieldInput(true);
         });
     };
 
-    ColorEditor.prototype.addSwatches = function () {
+    /**
+     * Populate the UI with the given color swatches and add listeners so they're selectable.
+     * @param {!Array.<{value:string, count:number}>} swatches
+     */
+    ColorEditor.prototype._addSwatches = function (swatches) {
         var _this = this;
  
-        this.swatches.forEach(function (swatch) {
+        // Create swatches
+        swatches.forEach(function (swatch) {
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
             _this.$swatches.append("<li tabindex='0'><div class='swatch_bg'><div class='swatch' style='background-color: " +
@@ -285,41 +344,40 @@ define(function (require, exports, module) {
                     usedColorTip + "'>" + swatch.value + "</span></li>");
         });
 
+        // Add key & click listeners to each
         this.$swatches.find("li").keydown(function (event) {
             if (event.keyCode === KeyEvent.DOM_VK_RETURN ||
                     event.keyCode === KeyEvent.DOM_VK_ENTER ||
                     event.keyCode === KeyEvent.DOM_VK_SPACE) {
-                _this.commitColor($(event.currentTarget).find(".value").html());
+                // Enter/Space is same as clicking on swatch
+                _this._commitColor($(event.currentTarget).find(".value").html());
             } else if (event.keyCode === KeyEvent.DOM_VK_TAB) {
+                // Tab on last swatch loops back to color square
                 if (!event.shiftKey && $(this).next("li").length === 0) {
                     _this.$selectionBase.focus();
                     return false;
                 }
-            } else {
-                return _this.handleKeydown(event);
             }
         });
 
         this.$swatches.find("li").click(function (event) {
-            // Set focus to the corresponding value label of the swatch.
-            $(event.currentTarget).find(".value").focus();
-            _this.commitColor($(event.currentTarget).find(".value").html());
+            _this._commitColor($(event.currentTarget).find(".value").html());
         });
     };
 
-    ColorEditor.prototype.setColorAsHsv = function (hsv, commitHsv) {
-        var colorVal, k, newColor, newHsv, oldColor, oldFormat, v;
-        newHsv = this.hsv;
-        for (k in hsv) {
-            if (hsv.hasOwnProperty(k)) {
-                v = hsv[k];
-                newHsv[k] = v;
-            }
-        }
-        newColor = tinycolor(newHsv);
-        oldColor = tinycolor(this.getColor());
-        oldFormat = oldColor.format;
-
+    /**
+     * Sets _hsv and _color based on an HSV input, and updates the UI. Attempts to preserve
+     * the previous color format.
+     * @param {!{h:number=, s:number=, v:number=}} hsv  Any missing values use the previous color's values.
+     */
+    ColorEditor.prototype.setColorAsHsv = function (hsv) {
+        var colorVal, newColor, oldFormat;
+        oldFormat = tinycolor(this.getColor()).format;
+        
+        // Set our state to the new color
+        $.extend(this._hsv, hsv);
+        newColor = tinycolor(this._hsv);
+        
         switch (oldFormat) {
         case "hsl":
             colorVal = newColor.toHslString();
@@ -329,36 +387,52 @@ define(function (require, exports, module) {
             break;
         case "hex":
         case "name":
-            colorVal = this.hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
+            colorVal = this._hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
             break;
         }
-        this.commitColor(colorVal, commitHsv);
+        this._commitColor(colorVal, false);
     };
 
-    ColorEditor.prototype.commitColor = function (colorVal, resetHsv) {
+    /**
+     * Sets _color (and optionally _hsv) based on a string input, and updates the UI. The string's
+     * format determines the new selected color's format.
+     * @param {!string} colorVal
+     * @param {boolean=} resetHsv  Pass false ONLY if hsv set already been modified to match colorVal. Default: true.
+     */
+    ColorEditor.prototype._commitColor = function (colorVal, resetHsv) {
         var colorObj;
         if (resetHsv === undefined) {
             resetHsv = true;
         }
-        this.callback(colorVal);
-        this.color = colorVal;
-        this.$colorValue.val(colorVal);
+        this._callback(colorVal);
+        this._color = colorVal;
         if (resetHsv) {
             colorObj = tinycolor(colorVal);
-            this.hsv = colorObj.toHsv();
-            this.color = colorObj;
+            this._hsv = colorObj.toHsv();
+            this._color = colorObj;
         }
-        this.redoColor = null;
-        this.synchronize();
+        this._redoColor = null;  // if we had undone, this new value blows away the redo history
+        this._synchronize();
     };
 
-    function _getNewOffset(newVal, minVal, maxVal) {
-        var offset = newVal - minVal;
-        offset = Math.min(maxVal, Math.max(0, offset));
+    /**
+     * Sets _color and _hsv based on a string input, and updates the UI. The string's
+     * format determines the new selected color's format.
+     * @param {!string} colorVal
+     */
+    ColorEditor.prototype.setColorFromString = function (colorVal) {
+        this._commitColor(colorVal, true);  // TODO (#2204): make this less entangled with setColorAsHsv()
+    };
+    
+    /** Converts a mouse coordinate to be relative to zeroPos, and clips to [0, maxOffset] */
+    function _getNewOffset(pos, zeroPos, maxOffset) {
+        var offset = pos - zeroPos;
+        offset = Math.min(maxOffset, Math.max(0, offset));
         return offset;
     }
     
-    ColorEditor.prototype.handleSelectionFieldDrag = function (event) {
+    /** Dragging color square's thumb */
+    ColorEditor.prototype._handleSelectionFieldDrag = function (event) {
         var height, hsv, width, xOffset, yOffset;
         height = this.$selection.height();
         width = this.$selection.width();
@@ -373,7 +447,8 @@ define(function (require, exports, module) {
         }
     };
 
-    ColorEditor.prototype.handleHueDrag = function (event) {
+    /** Dragging hue slider thumb */
+    ColorEditor.prototype._handleHueDrag = function (event) {
         var height, hsv, offset;
         height = this.$hueSlider.height();
         offset = _getNewOffset(event.clientY, this.$hueSlider.offset().top, height);
@@ -385,7 +460,8 @@ define(function (require, exports, module) {
         }
     };
 
-    ColorEditor.prototype.handleOpacityDrag = function (event) {
+    /** Dragging opacity slider thumb */
+    ColorEditor.prototype._handleOpacityDrag = function (event) {
         var height, hsv, offset;
         height = this.$opacitySlider.height();
         offset = _getNewOffset(event.clientY, this.$opacitySlider.offset().top, height);
@@ -397,36 +473,48 @@ define(function (require, exports, module) {
         }
     };
 
-    ColorEditor.prototype.registerDragHandler = function (selector, handler) {
-        var element, mouseupHandler;
-        element = this.$element.find(selector);
-        element.mousedown(handler);
-        mouseupHandler = function (event) {
+    /**
+     * Helper for attaching drag-related mouse listeners to an element. It's up to
+     * 'handler' to actually move the element as mouse is dragged.
+     * @param {!function(jQuery.event)} handler  Called whenever drag position changes
+     */
+    ColorEditor.prototype._registerDragHandler = function ($element, handler) {
+        var mouseupHandler = function (event) {
             $(window).unbind("mousemove", handler);
             $(window).unbind("mouseup", mouseupHandler);
         };
-        element.mousedown(function (event) {
+        $element.mousedown(function (event) {
             $(window).bind("mousemove", handler);
             $(window).bind("mouseup", mouseupHandler);
         });
+        $element.mousedown(handler);  // run drag-update handler on initial mousedown too
     };
     
+    /**
+     * Handles undo gestures while color picker has focus. We don't want to let CodeMirror's
+     * usual undo logic run since it will destroy our bookmarks.
+     */
     ColorEditor.prototype.undo = function () {
-        if (this.lastColor.toString() !== this.color.toString()) {
-            var curColor = this.color.toString();
-            this.commitColor(this.lastColor, true);
-            this.redoColor = curColor;
+        if (this._originalColor.toString() !== this._color.toString()) {
+            var curColor = this._color.toString();
+            this._commitColor(this._originalColor, true);
+            this._redoColor = curColor;
         }
     };
 
+    /** Similarly, handle redo gestures while color picker has focus. */
     ColorEditor.prototype.redo = function () {
-        if (this.redoColor) {
-            this.commitColor(this.redoColor, true);
-            this.redoColor = null;
+        if (this._redoColor) {
+            this._commitColor(this._redoColor, true);
+            this._redoColor = null;
         }
     };
 
-    ColorEditor.prototype.handleKeydown = function (event) {
+    /** 
+     * Global handler for keys in the color editor. Catches undo/redo keys and traps
+     * arrow keys that would be handled by the scroller.
+     */
+    ColorEditor.prototype._handleKeydown = function (event) {
         var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
         if (hasCtrl) {
             switch (event.keyCode) {
@@ -441,23 +529,62 @@ define(function (require, exports, module) {
                 this.redo();
                 return false;
             }
+        } else {
+            switch (event.keyCode) {
+            case KeyEvent.DOM_VK_LEFT:
+            case KeyEvent.DOM_VK_RIGHT:
+            case KeyEvent.DOM_VK_UP:
+            case KeyEvent.DOM_VK_DOWN:
+                // Prevent arrow keys that weren't handled by a child control 
+                // from being handled by a parent, either through bubbling or 
+                // through default native behavior. There isn't a good general
+                // way to tell if the target would handle this event by default,
+                // so we look to see if the target is a text input control.
+                var preventDefault = false,
+                    $target = $(event.target);
+                    
+                // If the input has no "type" attribute, it defaults to text. So we
+                // have to check for both possibilities.
+                if ($target.is("input:not([type])") || $target.is("input[type=text]")) {
+                    // Text input control. In WebKit, if the cursor gets to the start
+                    // or end of a text field and can't move any further, the default 
+                    // action doesn't take place in the text field, so the event is handled
+                    // by the outer scroller. We have to prevent in that case too.
+                    if ($target[0].selectionStart === $target[0].selectionEnd &&
+                            ((event.keyCode === KeyEvent.DOM_VK_LEFT && $target[0].selectionStart === 0) ||
+                             (event.keyCode === KeyEvent.DOM_VK_RIGHT && $target[0].selectionEnd === $target.val().length))) {
+                        preventDefault = true;
+                    }
+                } else {
+                    // Not a text input control, so we want to prevent default.
+                    preventDefault = true;
+                }
+
+                if (preventDefault) {
+                    event.stopPropagation();
+                    return false; // equivalent to event.preventDefault()
+                }
+                break;
+            }
         }
     };
 
-    ColorEditor.prototype.handleHslKeydown = function (event) {
+    ColorEditor.prototype._handleHslKeydown = function (event) {
         switch (event.keyCode) {
         case KeyEvent.DOM_VK_TAB:
+            // If we're the last focusable element (no color swatches), Tab wraps around to color square
             if (!event.shiftKey) {
-                this.$selectionBase.focus();
-                return false;
+                if (this.$swatches.children().length === 0) {
+                    this.$selectionBase.focus();
+                    return false;
+                }
             }
             break;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
-    ColorEditor.prototype.handleSelectionKeydown = function (event) {
+    /** Key events on the color square's thumb */
+    ColorEditor.prototype._handleSelectionKeydown = function (event) {
         var hsv = {},
             step = 1.5,
             xOffset,
@@ -484,47 +611,42 @@ define(function (require, exports, module) {
             this.setColorAsHsv(hsv, false);
             return false;
         case KeyEvent.DOM_VK_TAB:
+            // Shift+Tab loops back to last focusable element: last swatch if any; format button bar if not
             if (event.shiftKey) {
-                if ($(this.$swatches).children().length === 0) {
+                if (this.$swatches.children().length === 0) {
                     this.$hslButton.focus();
                 } else {
-                    $(this.$swatches).find(".value:last").focus();
+                    this.$swatches.find("li:last").focus();
                 }
                 return false;
             }
             break;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
-    ColorEditor.prototype.handleHueKeydown = function (event) {
+    /** Key events on the hue slider thumb */
+    ColorEditor.prototype._handleHueKeydown = function (event) {
         var hsv = {},
-            hue = Number(this.hsv.h),
+            hue = Number(this._hsv.h),
             step = 3.6;
 
         switch (event.keyCode) {
         case KeyEvent.DOM_VK_DOWN:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            if (hue > 0) {
-                hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
-                this.setColorAsHsv(hsv);
-            }
+            hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
+            this.setColorAsHsv(hsv, false);
             return false;
         case KeyEvent.DOM_VK_UP:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            if (hue < 360) {
-                hsv.h = (hue + step) >= 360 ? step : hue + step;
-                this.setColorAsHsv(hsv);
-            }
+            hsv.h = (hue + step) >= 360 ? step : hue + step;
+            this.setColorAsHsv(hsv, false);
             return false;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
-    ColorEditor.prototype.handleOpacityKeydown = function (event) {
-        var alpha = this.hsv.a,
+    /** Key events on the opacity slider thumb */
+    ColorEditor.prototype._handleOpacityKeydown = function (event) {
+        var alpha = this._hsv.a,
             hsv = {},
             step = 0.01;
 
@@ -543,13 +665,11 @@ define(function (require, exports, module) {
                 this.setColorAsHsv(hsv);
             }
             return false;
-        default:
-            return this.handleKeydown(event);
         }
     };
 
-    ColorEditor.prototype.bindKeyHandler = function (element, handler) {
-        element.bind("keydown", handler);
+    ColorEditor.prototype._bindKeyHandler = function ($element, handler) {
+        $element.bind("keydown", handler);
     };
 
     // Prevent clicks on some UI elements (color selection field, slider and large swatch) from taking focus

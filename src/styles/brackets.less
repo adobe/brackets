@@ -107,6 +107,16 @@ a, img {
 .busyCursor {
     cursor: wait !important;
 }
+#main-toolbar .buttons {
+    vertical-align: middle;
+}
+#main-toolbar .buttons a {
+    margin: 0px 8px 0px 0px !important;
+    padding: 0 !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
+}
 
 #status-bar {
     position: relative;
@@ -500,7 +510,7 @@ a, img {
 }
 
 
-@sprite-size-18: 4px;
+@jstree-sprite-size: 18px;  // this is hardcoded in jsTree's JS code
 
 /** Classes for icons from jsTreeSprites.svg 
 */
@@ -509,27 +519,12 @@ a, img {
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @sprite-size-18;
-    height: @sprite-size-18;
+    width: @jstree-sprite-size;
+    height: @jstree-sprite-size;
 }
 
-.disclosure-arrow-opened {
-    .jstree-sprite;
-    display: inline-block;
-    background-position: -@sprite-size-18 0px;
-}
-
-.disclosure-arrow-closed {
-    .jstree-sprite;
-    display: inline-block;
-    background-position: 0px 0px;
-}
-ins.jstree-icon {
-    left: -12px !important;
-}
 /** Classes for icons from bracketSprites.png 
 */
-
 .bracket-sprite {
     background-image: url("images/close_btn.svg");
     background-repeat: no-repeat;
@@ -708,6 +703,21 @@ ins.jstree-icon {
     .code-font();
 }
 
+
+/* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
+
+#search-results .disclosure-triangle {
+    .jstree-sprite;
+    display: inline-block;
+    &.expanded {
+        // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
+        // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
+        background-position: -(@jstree-sprite-size*1 - 2px) -(@jstree-sprite-size*1 - 1px);
+    }
+    &.collapsed {
+        background-position: -(@jstree-sprite-size*0 - 2px) -@jstree-sprite-size*1;
+    }
+}
 
 /* Find & Replace search bars - temporary UI, to be replaced with a richer search feature later */
 
