@@ -40,7 +40,7 @@ define(function (require, exports, module) {
 
     var hintProviders = [],
         enabledHintProviders = [],
-        queryAllProviders,
+        queryAllProviders = true,
         hintList,
         keyDownEditor;
 
