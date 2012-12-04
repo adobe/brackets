@@ -377,7 +377,11 @@ define(function (require, exports, module) {
         );
     }
     
-    /** Note: if there is an error, the promise is not rejected until the user has dimissed the dialog */
+    /**
+     * Saves the given document.
+     * @param {doc: Document} docToSave  Document to save, or null
+     * @return {$.Promise} a promise that is resolved after the save completes
+     */
     function doSave(docToSave) {
         var result = new $.Deferred();
         
@@ -445,6 +449,126 @@ define(function (require, exports, module) {
         }
         
         return doSave(doc);
+    }
+    
+    /**
+     * Saves the given document at a different path.
+     * @param {doc: Document} docToSave  Document to save, or null
+     * @return {$.Promise} a promise that is resolved after the save completes
+     */
+    /** Note: if there is an error, the promise is not rejected until the user has dimissed the dialog */
+    function doSaveAs(docToSave) {
+        var result = new $.Deferred();
+        
+        function handleError(error, fileEntry) {
+            showSaveFileError(error.code, fileEntry.fullPath)
+                .always(function () {
+                    result.reject(error);
+                });
+        }
+            
+        result.always(function () {
+            EditorManager.focusEditor();
+        });
+
+        if (docToSave) {
+            var fileEntry;
+            var writeError = false;
+
+            // Prompt the user with a dialog
+            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, docToSave.file.fullPath,
+                null, function (path) {
+                    var scrollPosition, cursor, openPromise;
+                    
+                    if (path !== "") {
+                        // on Windows, we still want forward slashes
+                        if (brackets.platform === "win") {
+                            path = path.split("\\").join("/");
+                        }
+                        // trigger normal save if the filename is unchanged
+                        if (path == docToSave.file.fullPath) {
+                            doSave(docToSave)
+                            .done(function () {
+                                result.resolve();
+                            })
+                            .fail(function (error) {
+                                result.reject(error);
+                            });
+                            return result.promise();
+                        }
+                        fileEntry = new NativeFileSystem.FileEntry(path);
+                        fileEntry.createWriter(
+                            function (writer) {
+                                writer.onwriteend = function () {
+                                    // Per spec, onwriteend is called after onerror too
+                                    if (!writeError) {
+                                        docToSave.notifySaved();
+
+                                        scrollPosition = docToSave.getScrollPosition();
+                                        cursor = docToSave.getCursor();
+
+                                        // Close the existing doc
+                                        DocumentManager.closeFullEditor(docToSave.file);
+
+                                        // Open the file and add it to the working set
+                                        openPromise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
+                                        DocumentManager.addToWorkingSet(fileEntry);
+
+                                        openPromise.then(function () {
+                                            DocumentManager.getCurrentDocument().setScrollPosition(scrollPosition);
+                                            DocumentManager.getCurrentDocument().setCursor(cursor);
+                                        });
+
+                                        result.resolve();
+                                    }
+                                };
+                                writer.onerror = function (error) {
+                                    writeError = true;
+                                    handleError(error, fileEntry);
+                                };
+
+                                // We don't want normalized line endings, so it's important to pass true to getText()
+                                writer.write(docToSave.getText(true));
+                            },
+                            function (error) {
+                                handleError(error, fileEntry);
+                            }
+                        );
+                    } else {
+                        // Reject if the user canceled the dialog
+                        result.reject();
+                    }
+                });
+
+        } else {
+            result.resolve();
+        }
+        return result.promise();
+    }
+
+    /**
+     * Saves the given file under a different name. If no file specified, assumes the current document.
+     * @param {?{doc: Document}} commandData  Document to close, or null
+     * @return {$.Promise} a promise that is resolved after the save completes
+     */
+    function handleFileSaveAs(commandData) {
+        // Default to current document if doc is null
+        var doc = null;
+        if (commandData) {
+            doc = commandData.doc;
+        }
+        if (!doc) {
+            var focusedEditor = EditorManager.getFocusedEditor();
+            
+            if (focusedEditor) {
+                doc = focusedEditor.document;
+            }
+            
+            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
+            // doc and makes sure the document is dirty before saving.
+        }
+        
+        return doSaveAs(doc);
     }
     
     /**
@@ -839,6 +963,7 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
         CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+        CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
         CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
         CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
         

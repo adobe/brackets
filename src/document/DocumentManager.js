@@ -806,6 +806,65 @@ define(function (require, exports, module) {
         this._ensureMasterEditor();
         return this._masterEditor._codeMirror.getRange(start, end);
     };
+
+    /**
+     * Gets the current scroll position for the document.
+     * @return {!{x:number, y:number}}
+     */
+    Document.prototype.getScrollPosition = function () {
+        var scrollInfo;
+        this._ensureMasterEditor();
+        scrollInfo = this._masterEditor._codeMirror.getScrollInfo();
+        return {
+            x: scrollInfo.x,
+            y: scrollInfo.y
+        };
+    };
+    
+    /**
+     * Sets the current scroll position for the document.
+     * @param {!{x:number, y:number}}
+     */
+    Document.prototype.setScrollPosition = function (scrollInfo) {
+        this._ensureMasterEditor();
+        scrollInfo = this._masterEditor._codeMirror.scrollTo(scrollInfo.x, scrollInfo.y);
+    };
+
+    /**
+     * Gets the current cursor position and selection end, if there is a selection
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}, isLeft:bool}}
+     */
+    Document.prototype.getCursor = function () {
+        var cursor = {}, cursorLocation;
+        this._ensureMasterEditor();
+        cursor.start = this._masterEditor._codeMirror.getCursor(true);
+        cursor.end = this._masterEditor._codeMirror.getCursor(false);
+        cursorLocation = this._masterEditor._codeMirror.getCursor();
+        cursor.isLeft = 
+            cursorLocation.line === cursor.start.line
+            && cursorLocation.ch === cursor.start.ch;
+        return cursor;
+    };
+    
+    /**
+     * Sets the current cursor position and selection end
+     * @param {!{start:{line:number, ch:number}, end:{line:number, ch:number}, {?{isLeft:bool}}}}
+     * or
+     * @param {!{line:number, ch:number}}
+     */
+    Document.prototype.setCursor = function (cursor) {
+        this._ensureMasterEditor();
+        if (typeof cursor.line !== "undefined") {
+            // no selection, just position
+            this._masterEditor._codeMirror.setCursor(cursor);
+        } else {
+            if (typeof cursor.isLeft === "undefined") {
+                cursor.isLeft = true;
+            }
+            this._masterEditor._codeMirror.setCursor(cursor.isLeft ? cursor.start : cursor.end);
+            this._masterEditor._codeMirror.setSelection(cursor.start, cursor.end);
+        }
+    };
     
     /**
      * Returns the text of the given line (excluding any line ending characters)

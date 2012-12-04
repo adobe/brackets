@@ -102,6 +102,7 @@ define({
 
     "OPEN_FILE"                         : "Open File",
     "CHOOSE_FOLDER"                     : "Choose a folder",
+    "SAVE_FILE_AS"                      : "Save File As",
 
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
@@ -168,6 +169,7 @@ define({
     "CMD_FILE_CLOSE"                      : "Close",
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
     "CMD_FILE_SAVE"                       : "Save",
+    "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
