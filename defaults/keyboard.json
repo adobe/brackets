@@ -36,7 +36,7 @@
     },
     "file.previewHighlight": {
         "keyBindings": [
-            "Ctrl-Alt-Shift-H"
+            "Ctrl-Shift-C"
         ]
     },
     "file.quit": {

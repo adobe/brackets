@@ -261,7 +261,6 @@ define({
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
     "GET_IT_NOW"                           : "¡Consíguelo ahora!",
-    "PROJECT_SETTINGS_TOOLTIP"             : "Configuración del proyecto",
     "PROJECT_SETTINGS_TITLE"               : "Configuración del proyecto para: {0}",
     "PROJECT_SETTING_BASE_URL"             : "URL base para Desarrollo en Vivo",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(deja en blanco para urls de tipo \"file\")",
