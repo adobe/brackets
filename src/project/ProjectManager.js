@@ -1131,25 +1131,36 @@ define(function (require, exports, module) {
         // In the meantime, pass null for node so new item is placed
         // relative to the selection
         node = selection;
-        
-        // Open the node before creating the new child
-        _projectTree.jstree("open_node", node);
+ 
+        function createNode() {
+           // Create the node and open the editor
+            _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
+    
+            if (!skipRename) {
+                var $renameInput = _projectTree.find(".jstree-rename-input");
+    
+                $renameInput.on("keydown", function (event) {
+                    // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+                    if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+    
+                        escapeKeyPressed = true;
+                    }
+                });
+    
+                ViewUtils.scrollElementIntoView(_projectTree, $renameInput, true);
+            }
+        }
 
-        // Create the node and open the editor
-        _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
-
-        if (!skipRename) {
-            var $renameInput = _projectTree.find(".jstree-rename-input");
-
-            $renameInput.on("keydown", function (event) {
-                // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-
-                    escapeKeyPressed = true;
-                }
-            });
-
-            ViewUtils.scrollElementIntoView(_projectTree, $renameInput, true);
+        // There is a race condition in jstree if "open_node" and "create" are called in rapid
+        // succession and the node was not yet loaded. To avoid it, first open the node and wait
+        // for the open_node event before trying to create the new one. See #2085 for more details.
+        if (wasNodeOpen) {
+            createNode();
+        } else {
+            _projectTree.one("open_node.jstree", createNode);
+    
+            // Open the node before creating the new child
+            _projectTree.jstree("open_node", node);
         }
         
         return result.promise();
