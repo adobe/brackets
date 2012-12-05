@@ -134,6 +134,19 @@ define(function (require, exports, module) {
         });
     }
     
+    function setInitialSearchQuery(cm, query, pos) {
+        getDialogTextField()
+            .attr("value", query)
+            .get(0).select();
+        
+        var state = getSearchState(cm);
+        state.query = parseQuery(query);
+        state.posFrom = state.posTo = pos;
+        if (state.query) {
+            findNext(cm);
+        }
+    }
+    
     var queryDialog = Strings.CMD_FIND +
             ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
             Strings.SEARCH_REGEXP_INFO  + ')</span>';
@@ -179,16 +192,7 @@ define(function (require, exports, module) {
             });
         }
         
-        dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
-            // If the dialog is closed and the query string is not empty,
-            // make sure we have called findFirst at least once. This way
-            // if the Find dialog is opened with pre-populated text, pressing
-            // enter will find the next occurance of the text and store
-            // the query for subsequent "Find Next" commands.
-            if (query && !state.query) {
-                findFirst(query);
-            }
-        });
+        dialog(cm, queryDialog, Strings.CMD_FIND, function () {});
         getDialogTextField().on("input", function () {
             findFirst(getDialogTextField().attr("value"));
         });
@@ -257,10 +261,10 @@ define(function (require, exports, module) {
             });
         });
         
-        // Prepopulate the replace field with the current selection, if any
-        getDialogTextField()
-            .attr("value", cm.getSelection())
-            .get(0).select();
+        // Prepopulate the replace field with the current selection, if any.
+        // When replacing, use the selection start pos as the search cursor. This
+        // way the initially selected text will be replaced first.
+        setInitialSearchQuery(cm, cm.getSelection(), cm.getCursor(true));
     }
 
     function _launchFind() {
@@ -273,9 +277,7 @@ define(function (require, exports, module) {
             doSearch(codeMirror);
 
             // Prepopulate the search field with the current selection, if any
-            getDialogTextField()
-                .attr("value", codeMirror.getSelection())
-                .get(0).select();
+            setInitialSearchQuery(codeMirror, codeMirror.getSelection(), codeMirror.getCursor());
         }
     }
 
