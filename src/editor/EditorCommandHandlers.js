@@ -128,24 +128,6 @@ define(function (require, exports, module) {
         });
         
     }
-
-    /**
-     * Invokes a language-specific line-comment/uncomment handler
-     * @param {?Editor} editor If unspecified, applies to the currently focused editor
-     */
-    function lineComment(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        
-        var mode = editor.getModeForSelection();
-        
-        // Currently we only support languages with "//" commenting
-        if (mode === "javascript" || mode === "less") {
-            lineCommentSlashSlash(editor);
-        }
-    }
     
     
     /**
@@ -387,6 +369,66 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    /**
+     * Add or remove block-comment tokens to the selection, preserving selection
+     * and cursor position. Applies to the currently focused Editor.
+     * 
+     * The implementation uses blockCommentPrefixSuffix, with the exception of the case where
+     * there is no selection on a uncommented and not empty line. In this case the whole lines gets
+     * commented in a block-comment.
+     *
+     * @param {!Editor} editor
+     * @param {!String} prefix
+     * @param {!String} suffix
+     */
+    function lineCommentPrefixSuffix(editor, prefix, suffix) {
+        var sel             = editor.getSelection(),
+            selStart        = sel.start,
+            selEnd          = sel.end,
+            prefixExp       = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
+            isLineSelection = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line !== sel.end.line,
+            isMultipleLine  = sel.start.line !== sel.end.line,
+            lineLength      = editor.document.getLine(sel.start.line).length;
+        
+        // Line selections already behave like we want to
+        if (!isLineSelection) {
+            // For a multiple line selection transform it to a multiple whole line selection
+            if (isMultipleLine) {
+                selStart = {line: sel.start.line, ch: 0};
+                selEnd   = {line: sel.end.line + 1, ch: 0};
+            
+            // For one line selections, just start at column 0 and end at the end of the line
+            } else {
+                selStart = {line: sel.start.line, ch: 0};
+                selEnd   = {line: sel.end.line, ch: lineLength};
+            }
+        }
+        
+        // If the selection includes a comment or is already a line selection, delegate to Block-Comment
+        var ctx     = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
+        var hasNext = _findNextBlockComment(ctx, selEnd, prefixExp);
+        if (ctx.token.className === "comment" || hasNext || isLineSelection) {
+            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+        
+        } else {
+            // Set the new selection and comment it
+            editor.setSelection(selStart, selEnd);
+            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+            
+            // Restore the old selection taking into account the prefix change
+            if (isMultipleLine) {
+                sel.start.line++;
+                sel.end.line++;
+            } else {
+                sel.start.ch += prefix.length;
+                sel.end.ch += prefix.length;
+            }
+            editor.setSelection(sel.start, sel.end);
+        }
+    }
+    
+    
     /**
      * Invokes a language-specific block-comment/uncomment handler
      * @param {?Editor} editor If unspecified, applies to the currently focused editor
@@ -405,6 +447,28 @@ define(function (require, exports, module) {
             blockCommentPrefixSuffix(editor, "/*", "*/", false);
         } else if (mode === "html") {
             blockCommentPrefixSuffix(editor, "<!--", "-->", false);
+        }
+    }
+    
+    /**
+     * Invokes a language-specific line-comment/uncomment handler
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function lineComment(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var mode = editor.getModeForSelection();
+        
+        // Currently we only support languages with "//" commenting
+        if (mode === "javascript" || mode === "less") {
+            lineCommentSlashSlash(editor);
+        } else if (mode === "css") {
+            lineCommentPrefixSuffix(editor, "/*", "*/");
+        } else if (mode === "html") {
+            lineCommentPrefixSuffix(editor, "<!--", "-->");
         }
     }
     
