@@ -490,7 +490,7 @@ define(function (require, exports, module) {
             defaults    = KeyboardPrefs[commandId];
         
         if (defaults) {
-            addBinding(commandId, defaults.keyBindings, defaults.platform);
+            addBinding(commandId, defaults);
         }
     }
 
