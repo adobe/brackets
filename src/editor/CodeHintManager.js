@@ -39,23 +39,55 @@ define(function (require, exports, module) {
 
 
     var hintProviders = {},
+        triggeredHintProviders = [],
         hintList,
-        triggeredKey = null,
         keyDownEditor;
 
     /** Comparator to sort providers based on their specificity */
     function _providerSort(a, b) {
-        if (a.specificity === b.specificity) {
-            return 0;
-        }
-        if (a.specificity > b.specificity) {
-            return -1;
-        }
-        if (a.specificity < b.specificity) {
-            return 1;
-        }
+        return b.specificity - a.specificity;
     }
 
+    /** 
+     *  If there is any providers for all modes, then add them to each individual
+     *  mode providers list and re-sort them based on their specificity.
+     */
+    function _mergeAllModeToIndividualMode() {
+        var allModeProviders = [];
+        if (hintProviders.all) {
+            allModeProviders = hintProviders.all;
+            
+            // Remove "all" mode list since we don't need it any more after
+            // merging them to each individual mode provider lists.
+            delete hintProviders.all;
+            
+            $.each(hintProviders, function (key, value) {
+                if (hintProviders[key]) {
+                    hintProviders[key] = hintProviders[key].concat(allModeProviders);
+                    hintProviders[key].sort(_providerSort);
+                }
+            });
+        }
+    }
+    
+    /** 
+     *  Return the array of hint providers for the given mode.
+     *  If this is called for the first time, then we check if any provider wants to show
+     *  hints on all modes. If there is any, then we merge them into each individual
+     *  mode provider list.
+     *
+     * @param {string | Object<name: string>} mode
+     * @return {!Array.<{provider:Object, modes:Array, specificity: number}>}
+     */
+    function _getEnabledHintProviders(mode) {
+        if (hintProviders.all) {
+            _mergeAllModeToIndividualMode();
+        }
+        
+        mode = (typeof mode === "string") ? mode : mode.name;
+        return hintProviders[mode] || [];
+    }
+    
     /**
      * @constructor
      *
@@ -161,7 +193,7 @@ define(function (require, exports, module) {
 
     /**
      * Selects the item in the hint list specified by index
-     * @param {Number} index
+     * @param {number} index
      */
     CodeHintList.prototype.setSelectedIndex = function (index) {
         var items = this.$hintMenu.find("li");
@@ -211,7 +243,6 @@ define(function (require, exports, module) {
         
         // Up arrow, down arrow and enter key are always handled here
         if (event.type !== "keypress") {
-
             if (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB ||
                     keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                     keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
@@ -251,7 +282,7 @@ define(function (require, exports, module) {
 
     /**
      * Return true if the CodeHintList is open.
-     * @return {Boolean}
+     * @return {boolean}
      */
     CodeHintList.prototype.isOpen = function () {
         // We don't get a notification when the dropdown closes. The best
@@ -273,33 +304,21 @@ define(function (require, exports, module) {
             mode = editor.getModeForSelection(),
             enabledProviders = [];
 
-        mode = (typeof mode === "string") ? mode : mode.name;
-        enabledProviders = hintProviders[mode];
-        this.editor = editor;
-        Menus.closeAll();
-
-        // If we have any providers for "all" mode, then append it to enabled 
-        // porviders list and sort them based on their specificity again.
-        if (enabledProviders && hintProviders.all) {
-            enabledProviders = enabledProviders.concat(hintProviders.all);
-            enabledProviders.sort(_providerSort);
-        } else if (hintProviders.all) {
-            enabledProviders = hintProviders.all;
+        if (triggeredHintProviders.length > 0) {
+            enabledProviders = triggeredHintProviders;
+        } else {
+            enabledProviders = _getEnabledHintProviders(mode);
         }
         
-        if (!enabledProviders) {
+        if (enabledProviders.length === 0) {
             return;
         }
         
+        this.editor = editor;
+        Menus.closeAll();
+
         this.currentProvider = null;
         $.each(enabledProviders, function (index, item) {
-            // If we have a triggered key, then skip all the providers that 
-            // do not want to be invoked by the triggered key.
-            if (triggeredKey && item.provider.triggeredKeys &&
-                    item.provider.triggeredKeys.indexOf(triggeredKey) === -1) {
-                return true;
-            }
-            
             var query = item.provider.getQueryInfo(self.editor, self.editor.getCursorPos());
             if (query.queryStr !== null) {
                 self.query = query;
@@ -307,8 +326,6 @@ define(function (require, exports, module) {
                 return false;
             }
         });
-        
-        triggeredKey = null;
         
         if (!this.currentProvider) {
             return;
@@ -350,14 +367,13 @@ define(function (require, exports, module) {
         this.$hintMenu.remove();
         if (hintList === this) {
             hintList = null;
-            triggeredKey = null;
             keyDownEditor = null;
         }
     };
         
     /**
      * Computes top left location for hint list so that the list is not clipped by the window
-     * @return {Object.<left: Number, top: Number> }
+     * @return {Object.<left: number, top: number> }
      */
     CodeHintList.prototype.calcHintListLocation = function () {
         var cursor = this.editor._codeMirror.cursorCoords(),
@@ -425,27 +441,30 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
-        var provider = null,
-            mode;
+        var mode = editor.getModeForSelection(),
+            enabledProviders = [],
+            key;
         
         // Check for Control+Space
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
+            triggeredHintProviders = [];
             showHint(editor);
             event.preventDefault();
         } else if (event.type === "keypress") {
             mode = editor.getModeForSelection();
-            mode = (typeof mode === "string") ? mode : mode.name;
+            enabledProviders = _getEnabledHintProviders(mode);
 
-            if (hintProviders[mode]) {
-                // Check if any provider wants to show hints on this key.
-                $.each(hintProviders[mode], function (index, item) {
-                    if (item.triggerKeys && item.triggerKeys.indexOf(String.fromCharCode(event.charCode)) !== -1) {
-                        triggeredKey = String.fromCharCode(event.charCode);
-                        return false;
+            triggeredHintProviders = [];
+            if (enabledProviders.length > 0) {
+                key = String.fromCharCode(event.charCode);
+                // Check if any provider wants to start showing hints on this key.
+                $.each(enabledProviders, function (index, item) {
+                    if (item.provider.shouldShowHintsOnKey(key)) {
+                        triggeredHintProviders.push(item);
                     }
                 });
       
-                if (triggeredKey) {
+                if (triggeredHintProviders.length > 0) {
                     keyDownEditor = editor;
                 }
             }
@@ -461,7 +480,7 @@ define(function (require, exports, module) {
      *
      */
     function handleChange(editor) {
-        if (triggeredKey && keyDownEditor === editor) {
+        if (triggeredHintProviders.length > 0 && keyDownEditor === editor) {
             keyDownEditor = null;
             showHint(editor);
         }
@@ -477,7 +496,8 @@ define(function (require, exports, module) {
      *
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
-     *                  handleSelect: function(string, Editor, cursor)>}
+     *                  handleSelect: function(string, Editor, cursor),
+     *                  shouldShowHintsOnKey: function(string)>}
      *
      * Parameter Details:
      * - getQueryInfo - examines cursor location of editor and returns an object representing
@@ -488,6 +508,7 @@ define(function (require, exports, module) {
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
      *      position. It should return true by default to close the hint list, but if the code hint provider
      *      can return false if it wants to keep the hint list open and continue with a updated list. 
+     * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
      *
      * @param {Array.<string>} modes  An array of mode strings in which the provider can show code hints or "all" 
      *      if it can show code hints in any mode.
@@ -495,9 +516,8 @@ define(function (require, exports, module) {
      * @param {number} specificity  A positive number to indicate the priority of the provider. The larger the number, 
      *      the higher priority the provider has. Zero if it has the lowest priority in displaying its code hints.
      */
-    function registerHintProvider(providerInfo, modes, triggerKeys, specificity) {
+    function registerHintProvider(providerInfo, modes, specificity) {
         var providerObj = { provider: providerInfo,
-                            triggerKeys: triggerKeys || [],
                             specificity: specificity || 0 };
                 
         if (modes) {
