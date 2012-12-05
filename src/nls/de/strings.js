@@ -185,7 +185,7 @@ define({
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
     "CMD_FIND"                            : "Suchen",
     "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SUBTREE"                 : "Suchen in...",
+    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
     "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
     "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
     "CMD_REPLACE"                         : "Ersetzen",
