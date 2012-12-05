@@ -35,7 +35,7 @@ define({
     "NOT_READABLE_ERR"                  : "The file could not be read.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
-    "FILE_EXISTS_ERR"                   : "The file already exists.",
+    "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -52,6 +52,8 @@ define({
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
+    "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
@@ -173,6 +175,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
+    "CMD_FILE_DELETE"                     : "Delete",
     "CMD_QUIT"                            : "Quit",
 
     // Edit menu commands
