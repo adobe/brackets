@@ -258,7 +258,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Deletes a file or directory. It is an error to attempt to delete a directory that is not empty. It is an error to attempt to delete the root directory of a filesystem.
+     * Deletes a file or directory (to trash). (http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove)
      *
      * @param {function} successCallback A callback that is called on success.
      * @param {function} errorCallback A callback that is called when errors happen.
@@ -266,8 +266,8 @@ define(function (require, exports, module) {
      * @return None. This is an asynchronous call that sends all return information to the callback.
      **/
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
-        brackets.fs.unlink(this.fullPath, function (err) {
-            if(err === brackets.fs.NO_ERROR) {
+        brackets.fs.moveToTrash(this.fullPath, function (err) {
+            if (err === brackets.fs.NO_ERROR) {
                 successCallback();
             } else {
                 errorCallback(err);

@@ -1328,12 +1328,7 @@ define(function (require, exports, module) {
      * Run this method to handle project menu open behaviors
      */
     function beforeMenuOpen(selectedItem) {
-                
-        //Enable only on mac
-        if (brackets.platform !== 'mac') {
-            CommandManager.get(Commands.FILE_DELETE).setEnabled(!selectedItem.isDirectory);
-        }
-        
+     
     }
 
     // Initialize variables and listeners that depend on the HTML DOM

@@ -35,7 +35,7 @@ define({
     "NOT_READABLE_ERR"                  : "The file could not be read.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
-    "FILE_EXISTS_ERR"                   : "The file already exists.",
+    "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
