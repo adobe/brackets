@@ -276,12 +276,8 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base",
     
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_SELECTION_FIELD_TIP"          : "Saturación (x) y Brillo (y)",
-    "COLOR_EDITOR_HUE_SLIDER_TIP"               : "Matiz",
-    "COLOR_EDITOR_OPACITY_SLIDER_TIP"           : "Opacidad",
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Color original",
-    "COLOR_EDITOR_COLOR_INPUT_TIP"              : "Valor de color",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "Formato RGBa",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Formato Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
