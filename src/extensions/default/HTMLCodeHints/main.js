@@ -121,6 +121,15 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Check whether to show hints on a specific key.
+     * @param {string} key -- the character for the key user just presses.
+     * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
+     */
+    TagHints.prototype.shouldShowHintsOnKey = function (key) {
+        return key === "<";
+    };
+
+    /**
      * @constructor
      */
     function AttrHints() {
@@ -460,10 +469,19 @@ define(function (require, exports, module) {
         return result;
     };
 
+    /**
+     * Check whether to show hints on a specific key.
+     * @param {string} key -- the character for the key user just presses.
+     * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
+     */
+    AttrHints.prototype.shouldShowHintsOnKey = function (key) {
+        return (key === " " || key === "'" || key === "\"" || key === "=");
+    };
+
     var tagHints = new TagHints();
     var attrHints = new AttrHints();
-    CodeHintManager.registerHintProvider(tagHints, ["html"], ["<"], 0);
-    CodeHintManager.registerHintProvider(attrHints, ["html"], [" ", "'", "\"", "="], 0);
+    CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
+    CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
     
     // For unit testing
     exports.tagHintProvider = tagHints;
