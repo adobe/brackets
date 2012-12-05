@@ -228,15 +228,24 @@ define(function (require, exports, module) {
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
         if (slashComment && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp))) {
+            var ctxPos      = {line: ctx.pos.line, ch: ctx.pos.ch};
+            var endCtxIndex = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
+            
             // Find if we aren't actually inside a block-comment
             result = true;
             while (result && ctx.token.string.match(lineExp)) {
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
             }
             
+            // If we aren't in a block-comment.
             if (!result || ctx.token.className !== "comment" || ctx.token.string.match(suffixExp)) {
-                // We aren't in an block-comment. Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
+                // If the selection includes all the line-comments, do a block-comment
+                if (editor.posWithinRange(ctxPos, sel.start, sel.end) &&
+                        (!endCtx.token.string.match(lineExp) || editor.indexFromPos(sel.end) >= endCtxIndex)) {
+                    canComment = true;
+                
+                // Find if all the lines are line-commented.
+                } else if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
                     lineUncomment = true;
                 
                 // If can't uncomment then do nothing, since it would create an invalid comment.
