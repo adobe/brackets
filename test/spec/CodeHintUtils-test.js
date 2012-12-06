@@ -103,7 +103,7 @@ define(function (require, exports, module) {
             it("should find an attribute as the value is typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", '<div class="clearfix">'],
+                    ["<html>", "<body>", "<div class='clearfix'>"],
                     "<p id='one", ">test</p>",
                     [ "</div>", "</body>", "</html>"]);
                 
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
             it("should not find attributes after the tag is closed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", '<div class="clearfix">'],
+                    ["<html>", "<body>", "<div class='clearfix'>"],
                     "<p id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>", "test</p>",
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
             it("should find all the tag attributes immediately after the tag", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", '<div class="clearfix">'],
+                    ["<html>", "<body>", "<div class='clearfix'>"],
                     "<p ", "id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>test</p>",
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
             it("should find all the tag attributes before closing the tag", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", '<div class="clearfix">'],
+                    ["<html>", "<body>", "<div class='clearfix'>"],
                     "<p id='pid' class='pclass' lang='plang' align='palign' title='ptitle' ", ">test</p>",
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
@@ -306,7 +306,7 @@ define(function (require, exports, module) {
             it("should find all the tag attributes backward and forward", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", '<div class="clearfix">'],
+                    ["<html>", "<body>", "<div class='clearfix'>"],
                     "<p id='pid' class='pclass' lang='plang' ", "align='palign' title='ptitle'>test</p>",
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
             it("should find valid attributes marked as errors by the tokenizer", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", '<div class="clearfix">'],
+                    ["<html>", "<body>", "<div class='clearfix'>"],
                     "<p id='pid' c", " class='pclass' lang='plang' align='palign' title='ptitle'>test</p>",
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
             it("should not find attributes in nested tags", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", '<div class="clearfix">'],
+                    ["<html>", "<body>", "<div class='clearfix'>"],
                     "<p ", "id='pid' class='pclass' lang='plang' align='palign' title='ptitle'><span style='sstyle'></span></p>",
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
