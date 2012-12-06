@@ -162,8 +162,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         NativeFileSystem.requestNativeFileSystem(directory,
-            function (rootEntry) {
-                rootEntry.createReader().readEntries(
+            function (fs) {
+                fs.root.createReader().readEntries(
                     function (entries) {
                         var i,
                             extensions = [];
