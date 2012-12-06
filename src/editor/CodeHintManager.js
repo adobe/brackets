@@ -184,7 +184,7 @@ define(function (require, exports, module) {
 
         if (count === 0) {
             this.close();
-        } else {
+        } else if (this.currentProvider.wantInitialSelection()) {
             // Select the first item in the list
             this.setSelectedIndex(0);
         }
@@ -243,6 +243,13 @@ define(function (require, exports, module) {
         
         // Up arrow, down arrow and enter key are always handled here
         if (event.type !== "keypress") {
+            // If we don't have a selection in the list, then just update the list and
+            // show it at the new location for Return and Tab keys.
+            if (this.selectedIndex === -1 && (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
+                this.updateQueryAndList();
+                return;
+            }
+            
             if (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB ||
                     keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                     keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
@@ -497,7 +504,8 @@ define(function (require, exports, module) {
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
      *                  handleSelect: function(string, Editor, cursor),
-     *                  shouldShowHintsOnKey: function(string)>}
+     *                  shouldShowHintsOnKey: function(string),
+     *                  wantInitialSelection: function()>}
      *
      * Parameter Details:
      * - getQueryInfo - examines cursor location of editor and returns an object representing
@@ -509,6 +517,7 @@ define(function (require, exports, module) {
      *      position. It should return true by default to close the hint list, but if the code hint provider
      *      can return false if it wants to keep the hint list open and continue with a updated list. 
      * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
+     * - wantInitialSelection - return true if the provider wants to select the first hint item by default.
      *
      * @param {Array.<string>} modes  An array of mode strings in which the provider can show code hints or "all" 
      *      if it can show code hints in any mode.
