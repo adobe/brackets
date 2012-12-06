@@ -391,7 +391,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Get the next or previous file in the working set, in MRU order (relative to currentDocument).
+     * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
+     * return currentDocument itself if working set is length 1.
      * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
      * @return {?FileEntry}  null if working set empty
      */
@@ -489,8 +490,12 @@ define(function (require, exports, module) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            // Get the previows doc from the MRU order
+            // Get next most recent doc in the MRU order
             var nextFile = getNextPrevFile(1);
+            if (nextFile && nextFile.fullPath === _currentDocument.file.fullPath) {
+                // getNextPrevFile() might return the file we're about to close if it's the only one open (due to wraparound)
+                nextFile = null;
+            }
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
