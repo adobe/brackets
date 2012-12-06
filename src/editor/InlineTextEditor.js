@@ -132,8 +132,6 @@ define(function (require, exports, module) {
         this.editors.forEach(function (editor) {
             editor.destroy(); //release ref on Document
         });
-
-        InlineTextEditor.prototype.parentClass.onClosed.call(this);
     };
     
     /**
