@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     }
 
     /** 
-     *  If there is any providers for all modes, then add them to each individual
+     *  If there is any provider for all modes, then add it to each individual
      *  mode providers list and re-sort them based on their specificity.
      */
     function _mergeAllModeToIndividualMode() {
@@ -73,11 +73,11 @@ define(function (require, exports, module) {
     /** 
      *  Return the array of hint providers for the given mode.
      *  If this is called for the first time, then we check if any provider wants to show
-     *  hints on all modes. If there is any, then we merge them into each individual
+     *  hints on all modes. If there is any, then we merge it into each individual
      *  mode provider list.
      *
-     * @param {string | Object<name: string>} mode
-     * @return {!Array.<{provider:Object, modes:Array, specificity: number}>}
+     * @param {(string|Object<name: string>)} mode
+     * @return {Array.<{provider: Object, modes: Array.<string>, specificity: number}>}
      */
     function _getEnabledHintProviders(mode) {
         if (hintProviders.all) {
@@ -512,7 +512,6 @@ define(function (require, exports, module) {
      *
      * @param {Array.<string>} modes  An array of mode strings in which the provider can show code hints or "all" 
      *      if it can show code hints in any mode.
-     * @param {!Array.<string>} triggerKeys  An array of all the keys that the provider can be triggered to show hints.
      * @param {number} specificity  A positive number to indicate the priority of the provider. The larger the number, 
      *      the higher priority the provider has. Zero if it has the lowest priority in displaying its code hints.
      */
