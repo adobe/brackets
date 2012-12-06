@@ -490,7 +490,7 @@ define(function (require, exports, module) {
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
             // Get the previows doc from the MRU order
-            var nextFile = getNextPrevFile(-1);
+            var nextFile = getNextPrevFile(1);
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
