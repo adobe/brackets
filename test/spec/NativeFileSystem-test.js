@@ -214,7 +214,6 @@ define(function (require, exports, module) {
                         // TODO: (issue #241): implement FileEntry.remove()
                         // once NativeFileSystem has a delete/unlink, should use that
                         brackets.fs.unlink(placeholderPath, function (err) {
-                            console.log(err);
                             if (!err) {
                                 placeholderDeleted = true;
                             }
