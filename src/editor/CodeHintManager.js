@@ -84,8 +84,8 @@ define(function (require, exports, module) {
             _mergeAllModeToIndividualMode();
         }
         
-        mode = (typeof mode === "string") ? mode : mode.name;
-        return hintProviders[mode] || [];
+        var modeStr = (typeof mode === "string") ? mode : mode.name;
+        return hintProviders[modeStr] || [];
     }
     
     /**
