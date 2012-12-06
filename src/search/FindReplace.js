@@ -100,16 +100,22 @@ define(function (require, exports, module) {
         cm.operation(function () {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
+            var selCoords, dialogHeight, yoffset;
             if (!cursor.find(rev)) {
                 // If no result found before hitting edge of file, try wrapping around
                 cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
-                
                 // No result found, period: clear selection & bail
                 if (!cursor.find(rev)) {
                     cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
                     found = false;
                     return;
                 }
+
+                // try to scroll the view so the selection isn't hidden by the dialog
+                selCoords = cm.charCoords(cursor.from(), "local");
+                dialogHeight = $(".CodeMirror-dialog > div").height();
+                yoffset = Math.max(0, selCoords.y - dialogHeight);
+                cm.scrollTo(null, yoffset);
             }
             cm.setSelection(cursor.from(), cursor.to());
             state.posFrom = cursor.from();
