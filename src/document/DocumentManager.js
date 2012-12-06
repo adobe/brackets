@@ -391,6 +391,41 @@ define(function (require, exports, module) {
     
     
     /**
+     * Get the next or previous file in the working set, in MRU order (relative to currentDocument).
+     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     * @return {?FileEntry}  null if working set empty
+     */
+    function getNextPrevFile(inc) {
+        if (inc !== -1 && inc !== +1) {
+            throw new Error("Illegal argument: inc = " + inc);
+        }
+        
+        if (_currentDocument) {
+            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
+            if (mruI === -1) {
+                // If doc not in working set, return most recent working set item
+                if (_workingSetMRUOrder.length > 0) {
+                    return _workingSetMRUOrder[0];
+                }
+            } else {
+                // If doc is in working set, return next/prev item with wrap-around
+                var newI = mruI + inc;
+                if (newI >= _workingSetMRUOrder.length) {
+                    newI = 0;
+                } else if (newI < 0) {
+                    newI = _workingSetMRUOrder.length - 1;
+                }
+                
+                return _workingSetMRUOrder[newI];
+            }
+        }
+        
+        // If no doc open or working set empty, there is no "next" file
+        return null;
+    }
+    
+    
+    /**
      * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
      * causes this Document's main editor UI to be shown in the editor pane, updates the selection
      * in the file tree / working set UI, etc. This call may also add the item to the working set.
@@ -454,25 +489,8 @@ define(function (require, exports, module) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            var wsIndex = findInWorkingSet(file.fullPath);
-            
-            // Decide which doc to show in editor after this one
-            var nextFile;
-            if (wsIndex === -1) {
-                // If doc wasn't in working set, use bottommost working set item
-                if (_workingSet.length > 0) {
-                    nextFile = _workingSet[_workingSet.length  - 1];
-                }
-                // else: leave nextDocument null; editor area will be blank
-            } else {
-                // If doc was in working set, use item next to it (below if possible)
-                if (wsIndex < _workingSet.length - 1) {
-                    nextFile = _workingSet[wsIndex + 1];
-                } else if (wsIndex > 0) {
-                    nextFile = _workingSet[wsIndex - 1];
-                }
-                // else: leave nextDocument null; editor area will be blank
-            }
+            // Get the previows doc from the MRU order
+            var nextFile = getNextPrevFile(1);
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
@@ -1007,41 +1025,6 @@ define(function (require, exports, module) {
         if (doc && doc._refCount > 0) {
             console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
-    }
-    
-    
-    /**
-     * Get the next or previous file in the working set, in MRU order (relative to currentDocument).
-     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
-     * @return {?FileEntry}  null if working set empty
-     */
-    function getNextPrevFile(inc) {
-        if (inc !== -1 && inc !== +1) {
-            throw new Error("Illegal argument: inc = " + inc);
-        }
-        
-        if (_currentDocument) {
-            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
-            if (mruI === -1) {
-                // If doc not in working set, return most recent working set item
-                if (_workingSetMRUOrder.length > 0) {
-                    return _workingSetMRUOrder[0];
-                }
-            } else {
-                // If doc is in working set, return next/prev item with wrap-around
-                var newI = mruI + inc;
-                if (newI >= _workingSetMRUOrder.length) {
-                    newI = 0;
-                } else if (newI < 0) {
-                    newI = _workingSetMRUOrder.length - 1;
-                }
-                
-                return _workingSetMRUOrder[newI];
-            }
-        }
-        
-        // If no doc open or working set empty, there is no "next" file
-        return null;
     }
     
     
