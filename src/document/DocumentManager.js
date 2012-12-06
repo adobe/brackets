@@ -489,10 +489,8 @@ define(function (require, exports, module) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            var wsIndex = findInWorkingSet(file.fullPath, _workingSetMRUOrder);
-            
-            // Decide which doc to show in editor after this one using the MRU order
-            var nextFile = getNextPrevFile(wsIndex === -1 ? -1 : 1);
+            // Get the previows doc from the MRU order
+            var nextFile = getNextPrevFile(-1);
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
