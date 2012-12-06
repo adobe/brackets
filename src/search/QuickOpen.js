@@ -79,6 +79,11 @@ define(function (require, exports, module) {
 
     /** @type {boolean} */
     var dialogOpen = false;
+    
+    /**
+     * The currently open quick open dialog.
+     */
+    var _curDialog;
 
     /** Object representing a search result with associated metadata (added as extra ad hoc fields) */
     function SearchResult(label) {
@@ -151,6 +156,8 @@ define(function (require, exports, module) {
      */
     function QuickNavigateDialog() {
         this.$searchField = undefined; // defined when showDialog() is called
+        this._handleFilter = this._handleFilter.bind(this);
+        this._handleResultsFormatter = this._handleResultsFormatter.bind(this);
     }
 
     /**
@@ -699,7 +706,13 @@ define(function (require, exports, module) {
         return filteredList;
     }
 
-    function _handleFilter(query) {
+    /**
+     * Handles changes to the current query in the search field.
+     * @param {string} query The new query.
+     */
+    QuickNavigateDialog.prototype._handleFilter = function (query) {
+        this._updateDialogLabel(query);
+        
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc) {
             var filename = _filenameFromPath(curDoc.file.fullPath, true);
@@ -719,8 +732,7 @@ define(function (require, exports, module) {
         // No plugin: use default file search mode
         currentPlugin = null;
         return searchFileList(query);
-    }
-
+    };
 
     /**
      * Formats item's label as properly escaped HTML text, highlighting sections that match 'query'.
@@ -786,8 +798,12 @@ define(function (require, exports, module) {
         return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
     }
 
-    function _handleResultsFormatter(item) {
-        var query = $("input#quickOpenSearch").val();
+    /**
+     * Formats the entry for the given item to be displayed in the dropdown.
+     * @param {Object} item The item to be displayed.
+     */
+    QuickNavigateDialog.prototype._handleResultsFormatter = function (item) {
+        var query = this.$searchField.val();
         
         var formatter;
 
@@ -799,23 +815,49 @@ define(function (require, exports, module) {
             formatter = _filenameResultsFormatter;
         }
         return formatter(item, query);
-    }
+    };
 
-    function setSearchFieldValue(prefix, initialString) {
+    /**
+     * Sets the value in the search field, updating the current mode and label based on the
+     * given prefix.
+     * @param {string} prefix The prefix that determines which mode we're in: must be empty (for file search),
+     *      "@" for go to definition, or ":" for go to line.
+     * @param {string} initialString The query string to search for (without the prefix).
+     */
+    QuickNavigateDialog.prototype.setSearchFieldValue = function (prefix, initialString) {
         prefix = prefix || "";
         initialString = initialString || "";
         initialString = prefix + initialString;
         
-        var $field = $("input#quickOpenSearch");
-        if ($field) {
-            $field.val(initialString);
-            $field.get(0).setSelectionRange(prefix.length, initialString.length);
-            
-            // Kick smart-autocomplete to update (it only listens for keyboard events)
-            // (due to #1855, this will only pop up results list; it won't auto-"focus" the first result)
-            $field.trigger("keyIn", [initialString]);
+        var $field = this.$searchField;
+        $field.val(initialString);
+        $field.get(0).setSelectionRange(prefix.length, initialString.length);
+        
+        // Kick smart-autocomplete to update (it only listens for keyboard events)
+        // (due to #1855, this will only pop up results list; it won't auto-"focus" the first result)
+        $field.trigger("keyIn", [initialString]);
+        
+        this._updateDialogLabel(initialString);
+    };
+    
+    QuickNavigateDialog.prototype._updateDialogLabel = function (query) {
+        var prefix = (query.length > 0 ? query.charAt(0) : "");
+        
+        // Update the dialog label based on the current prefix.
+        var dialogLabel = "";
+        switch (prefix) {
+        case ":":
+            dialogLabel = Strings.CMD_GOTO_LINE;
+            break;
+        case "@":
+            dialogLabel = Strings.CMD_GOTO_DEFINITION;
+            break;
+        default:
+            dialogLabel = Strings.CMD_QUICK_OPEN;
+            break;
         }
-    }
+        $(".find-dialog-label", this.dialog).text(dialogLabel);
+    };
     
     /**
      * Close the dialog when the user clicks outside of it. Smart-autocomplete listens for this and automatically closes its popup,
@@ -863,25 +905,11 @@ define(function (require, exports, module) {
         } else {
             origSelection = null;
         }
-        
-        // Set dialogLabel depending on which Navigation option is chosen
-        var dialogLabel = "";
-        switch (prefix) {
-        case "":
-            dialogLabel  = Strings.CMD_QUICK_OPEN;
-            break;
-        case ":":
-            dialogLabel = Strings.CMD_GOTO_LINE;
-            break;
-        case "@":
-            dialogLabel = Strings.CMD_GOTO_DEFINITION;
-            break;
-        }
+
         // Show the search bar ("dialog")
-        var dialogHTML = dialogLabel + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
+        var dialogHTML = "<span class='find-dialog-label'></span>: <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
         that._createDialogDiv(dialogHTML);
         that.$searchField = $("input#quickOpenSearch");
-
 
         that.$searchField.smartAutoComplete({
             source: [],
@@ -891,8 +919,8 @@ define(function (require, exports, module) {
             forceSelect: false,
             typeAhead: false,   // won't work right now because smart auto complete 
                                 // using internal raw results instead of filtered results for matching
-            filter: _handleFilter,
-            resultFormatter: _handleResultsFormatter
+            filter: this._handleFilter,
+            resultFormatter: this._handleResultsFormatter
         });
 
         that.$searchField.bind({
@@ -906,7 +934,7 @@ define(function (require, exports, module) {
             // triggers lostFocus
         });
 
-        setSearchFieldValue(prefix, initialString);
+        this.setSearchFieldValue(prefix, initialString);
         
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
@@ -931,10 +959,10 @@ define(function (require, exports, module) {
      */
     function beginSearch(prefix, initialString) {
         if (dialogOpen) {
-            setSearchFieldValue(prefix, initialString);
+            _curDialog.setSearchFieldValue(prefix, initialString);
         } else {
-            var dialog = new QuickNavigateDialog();
-            dialog.showDialog(prefix, initialString);
+            _curDialog = new QuickNavigateDialog();
+            _curDialog.showDialog(prefix, initialString);
         }
     }
 
