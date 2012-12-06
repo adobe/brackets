@@ -124,7 +124,7 @@ define(function (require, exports, module) {
             forwardCtx  = $.extend({}, backwardCtx);
         
         if (editor.getModeForSelection() === "html") {
-            if (backwardCtx.token) {
+            if (backwardCtx.token && backwardCtx.token.className !== "tag") {
                 while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.className !== "tag") {
                     if (backwardCtx.token.className === "attribute") {
                         attrs.push(backwardCtx.token.string);

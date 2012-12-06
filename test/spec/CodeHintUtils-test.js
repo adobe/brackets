@@ -277,7 +277,7 @@ define(function (require, exports, module) {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
                     ["<html>", "<body>", '<div class="clearfix">'],
-                    "<p id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>test</p>", "",
+                    "<p id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>", "test</p>",
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
                 expect(attrs).toEqual([]);
