@@ -110,7 +110,6 @@ define(function (require, exports, module) {
      * focus or measuring content, which require htmlContent to be in the DOM tree.
      */
     InlineWidget.prototype.onAdded = function () {
-        var self = this;
         // Autosize the inline widget to the scrollable width of the main editor.
         $(window).on("resize", this.updateWidth);
         $(this.hostEditor).on("change", this.updateWidth);
