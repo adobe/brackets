@@ -42,7 +42,25 @@ define(function (require, exports, module) {
         CLOSE_TAG               = "}}",
         RE_MARKER               = /[^\\]?\{\{(\d+)[^\\]?\}\}/g,
         _testWindow,
-        _doLoadExtensions;
+        _doLoadExtensions,
+        nfs;
+    
+    function getRoot() {
+        var deferred = new $.Deferred();
+        
+        if (nfs) {
+            deferred.resolve(nfs);
+        }
+        
+        NativeFileSystem.requestNativeFileSystem("/", function success(nativeFileSystem) {
+            nfs = nativeFileSystem;
+            deferred.resolve(nfs);
+        }, function error(err) {
+            deferred.reject();
+        });
+        
+        return deferred.promise();
+    }
     
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
@@ -54,6 +72,10 @@ define(function (require, exports, module) {
     
     function getTestPath(path) {
         return getTestRoot() + path;
+    }
+
+    function getTempDirectory() {
+        return getTestPath("/temp");
     }
     
     function getBracketsSourceRoot() {
@@ -426,78 +448,146 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-    
-    /**
-     * Opens a file path, parses offset markup then saves the results to the original file.
-     * @param {!string} path Project relative file path to open
-     * @return {$.Promise} A promise resolved with the offset information results of parseOffsetsFromFile.
-     */
-    function saveFileWithoutOffsets(path) {
-        var result = new $.Deferred(),
-            fileEntry = new NativeFileSystem.FileEntry(path);
-        
-        parseOffsetsFromFile(fileEntry).done(function (info) {
-            // rewrite file without offset markup
-            FileUtils.writeText(fileEntry, info.text).done(function () {
-                result.resolve(info);
-            }).fail(function () {
-                result.reject();
+
+    function createTextFile(path, text) {
+        var deferred = new $.Deferred();
+
+        getRoot().done(function (nfs) {
+            // create the new FileEntry
+            nfs.getFile(path, { create: true }, function success(entry) {
+                // write text this new FileEntry 
+                FileUtils.writeText(entry, text).done(function () {
+                    deferred.resolve(entry);
+                }).fail(function () {
+                    deferred.reject();
+                });
+            }, function error() {
+                deferred.reject();
             });
-        }).fail(function () {
-            result.reject();
         });
-        
-        return result.promise();
+
+        return deferred.promise();
     }
     
-    
-    /**
-     * Opens an array of file paths, parses offset markup then saves the results to each original file.
-     * @param {!Array.<string>|string} paths Project relative or absolute file paths to open. May pass a single string path or array.
-     * @return {!$.Promise} A promised resolved with a map of offset information indexed by project-relative file path.
-     */
-    function saveFilesWithoutOffsets(paths) {
-        var result = new $.Deferred(),
-            infos  = {},
-            fullpaths = makeArray(makeAbsolute(paths)),
-            keys = makeArray(makeRelative(paths));
+    function copyFile(source, destination, options) {
+        options = options || {};
         
-        var parallel = Async.doSequentially(fullpaths, function (path, i) {
-            var one = new $.Deferred();
+        var deferred = new $.Deferred();
         
-            saveFileWithoutOffsets(path).done(function (info) {
-                infos[keys[i]] = info;
-                one.resolve();
-            }).fail(function () {
-                one.reject();
+        // read the source file
+        FileUtils.readAsText(source).done(function (text, modificationTime) {
+            getRoot().done(function (nfs) {
+                var offsets;
+                
+                // optionally parse offsets
+                if (options.parseOffsets) {
+                    var parseInfo = parseOffsetsFromText(text);
+                    text = parseInfo.text;
+                    offsets = parseInfo.offsets;
+                }
+                
+                // create the new FileEntry
+                createTextFile(destination, text).done(function (entry) {
+                    deferred.resolve(entry, offsets, text);
+                }).fail(function () {
+                    deferred.reject();
+                });
             });
-        
-            return one.promise();
-        }, false);
-        
-        parallel.done(function () {
-            result.resolve(infos);
         }).fail(function () {
-            result.reject();
+            deferred.reject();
         });
         
-        return result.promise();
+        return deferred.promise();
     }
     
-    /**
-     * Restore file content with offset markup. When using saveFileWithoutOffsets(), 
-     * remember to call this function during spec teardown (after()).
-     * @param {$.Promise} A promise resolved when all files are re-written to their original content.
-     */
-    function saveFilesWithOffsets(infos) {
-        var arr = [];
-        $.each(infos, function (index, value) {
-            arr.push(value);
+    function copyDirectory(source, destination, options) {
+        options = options || {};
+        options.infos = options.infos || {};
+        
+        var parseOffsets    = options.parseOffsets || false,
+            deferred        = new $.Deferred();
+        
+        // create the destination folder
+        brackets.fs.makedir(destination, parseInt("644", 8), function callback(err) {
+            if (err) {
+                deferred.reject();
+                return;
+            }
+            
+            source.createReader().readEntries(function handleEntries(entries) {
+                // copy all children of this directory
+                var copyChildrenPromise = Async.doInParallel(
+                    entries,
+                    function copyChild(child) {
+                        var childDestination = destination + "/" + child.name,
+                            promise;
+                        
+                        if (child.isDirectory) {
+                            promise = copyDirectory(child, childDestination, options);
+                        } else {
+                            promise = copyFile(child, childDestination, options);
+                            
+                            if (parseOffsets) {
+                                // save offset data for each file path
+                                promise.done(function (destinationEntry, offsets, text) {
+                                    options.infos[childDestination] = {
+                                        offsets     : offsets,
+                                        fileEntry   : destinationEntry,
+                                        text        : text
+                                    };
+                                });
+                            }
+                        }
+                        
+                        return promise;
+                    },
+                    true
+                );
+                
+                copyChildrenPromise.pipe(deferred.resolve, deferred.reject);
+            });
         });
         
-        return Async.doInParallel(arr, function (info) {
-            return FileUtils.writeText(info.fileEntry, info.original);
-        }, false);
+        return deferred.promise();
+    }
+    
+    function copyPath(source, destination, options) {
+        var deferred        = new $.Deferred(),
+            options         = options || {},
+            removePrefix    = options.removePrefix || true;
+        
+        NativeFileSystem.resolveNativeFileSystemPath(
+            source,
+            function success(entry) {
+                var promise;
+                
+                if (entry.isDirectory) {
+                    promise = copyDirectory(entry, destination, options);
+                } else {
+                    promise = copyFile(entry, destination, options);
+                }
+                
+                promise.done(function () {
+                    // remove destination path prefix
+                    if (removePrefix && options.infos) {
+                        var shortKey;
+                        Object.keys(options.infos).forEach(function (key) {
+                            shortKey = key.substr(destination.length + 1);
+                            options.infos[shortKey] = options.infos[key];
+                        });
+                    }
+
+                    deferred.resolve();
+                }).fail(function () {
+                    deferred.reject();
+                });
+            },
+            function error(domError) {
+                deferred.reject();
+            }
+        );
+        
+        return deferred.promise();
     }
     
     /**
@@ -608,6 +698,7 @@ define(function (require, exports, module) {
     
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
+    exports.getTempDirectory                = getTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.createMockDocument              = createMockDocument;
@@ -619,9 +710,8 @@ define(function (require, exports, module) {
     exports.loadProjectInTestWindow         = loadProjectInTestWindow;
     exports.openProjectFiles                = openProjectFiles;
     exports.toggleQuickEditAtOffset         = toggleQuickEditAtOffset;
-    exports.saveFilesWithOffsets            = saveFilesWithOffsets;
-    exports.saveFilesWithoutOffsets         = saveFilesWithoutOffsets;
-    exports.saveFileWithoutOffsets          = saveFileWithoutOffsets;
+    exports.createTextFile                  = createTextFile;
+    exports.copyPath                        = copyPath;
     exports.deleteFile                      = deleteFile;
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
