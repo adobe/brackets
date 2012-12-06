@@ -95,7 +95,8 @@ define(function (require, exports, module) {
     }
 
     function findNext(cm, rev) {
-        var found = true;
+        var found = true,
+            prevVis;
         cm.operation(function () {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
@@ -113,7 +114,24 @@ define(function (require, exports, module) {
             cm.setSelection(cursor.from(), cursor.to());
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
+            prevVis = cm.getVisibleLines(null);
         });
+        
+        // if the find changed the view, center the selection
+        if (found) {
+            cm.operation(function () {
+                var cursor = cm.getCursor(),
+                    vis    = cm.getVisibleLines(null),
+                    midline,
+                    midlinepos;
+                
+                if (prevVis.to !== vis.to) {
+                    midline = cursor.line - Math.round((vis.to - vis.from) / 2);
+                    midlinepos = cm.charCoords({line: midline, ch: 0}, "local");
+                    cm.scrollTo(null, midlinepos.y);
+                }
+            });
+        }
         return found;
     }
 
