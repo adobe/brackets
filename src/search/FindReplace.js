@@ -158,10 +158,15 @@ define(function (require, exports, module) {
     function doSearch(cm, rev) {
         var state = getSearchState(cm);
         if (state.query) {
+            state.findNextCalled = true;
             return findNext(cm, rev);
         }
         
-        var searchStartPos = cm.getCursor();
+        // Use the selection start as the searchStartPos. This way if you
+        // start with a pre-populated search and enter an additional character,
+        // it will extend the initial selection instead of jumping to the next
+        // occurrence.
+        var searchStartPos = cm.getCursor(true);
         
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
@@ -175,6 +180,7 @@ define(function (require, exports, module) {
                     clearSearch(cm);  // clear highlights from previous query
                 }
                 state.query = parseQuery(query);
+                state.findNextCalled = true;
                 
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
@@ -192,7 +198,16 @@ define(function (require, exports, module) {
             });
         }
         
-        dialog(cm, queryDialog, Strings.CMD_FIND, function () {});
+        dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
+            if (!state.findNextCalled) {
+                // If findNextCalled is false, this means the user has *not*
+                // entered any search text *or* pressed Cmd-G/F3 to find the
+                // next occurrence. In this case we want to start searching
+                // *after* the current selection so we find the next occurrence.
+                searchStartPos = cm.getCursor();
+                findFirst(query);
+            }
+        });
         getDialogTextField().on("input", function () {
             findFirst(getDialogTextField().attr("value"));
         });
@@ -273,11 +288,12 @@ define(function (require, exports, module) {
             var codeMirror = editor._codeMirror;
 
             // Bring up CodeMirror's existing search bar UI
+            getSearchState(codeMirror).findNextCalled = false;
             clearSearch(codeMirror);
             doSearch(codeMirror);
 
             // Prepopulate the search field with the current selection, if any
-            setInitialSearchQuery(codeMirror, codeMirror.getSelection(), codeMirror.getCursor());
+            setInitialSearchQuery(codeMirror, codeMirror.getSelection(), codeMirror.getCursor(true));
         }
     }
 
