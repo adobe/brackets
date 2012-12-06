@@ -34,9 +34,10 @@
 define(function HighlightAgent(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
+    var DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        RemoteAgent     = require("LiveDevelopment/Agents/RemoteAgent");
 
     var _highlight; // active highlight
 
@@ -46,7 +47,7 @@ define(function HighlightAgent(require, exports, module) {
         if (res.value === "1") {
             node = DOMAgent.nodeWithId(res.nodeId);
         }
-        $(exports).triggerHandler("highlight", node);
+        $(exports).triggerHandler("highlight", [node]);
     }
 
     /** Hide in-browser highlighting */
@@ -66,6 +67,10 @@ define(function HighlightAgent(require, exports, module) {
      * @param {DOMNode} node
      */
     function node(n) {
+        if (!LiveDevelopment.config.experimental) {
+            return;
+        }
+        
         if (!Inspector.config.highlight) {
             return;
         }
@@ -94,29 +99,41 @@ define(function HighlightAgent(require, exports, module) {
      * @param {string} rule selector
      */
     function rule(name) {
-        if (_highlight.rule === name) {
+        if (_highlight.ref === name) {
             return;
         }
         hide();
         _highlight = {type: "css", ref: name};
         RemoteAgent.call("highlightRule", name);
     }
+    
+    /**
+     * Redraw active highlights
+     */
+    function redraw() {
+        RemoteAgent.call("redrawHighlights");
+    }
 
     /** Initialize the agent */
     function load() {
         _highlight = {};
-        $(RemoteAgent).on("highlight.HighlightAgent", _onRemoteHighlight);
+        if (LiveDevelopment.config.experimental) {
+            $(RemoteAgent).on("highlight.HighlightAgent", _onRemoteHighlight);
+        }
     }
 
     /** Clean up */
     function unload() {
-        $(RemoteAgent).off(".HighlightAgent");
+        if (LiveDevelopment.config.experimental) {
+            $(RemoteAgent).off(".HighlightAgent");
+        }
     }
 
     // Export public functions
     exports.hide = hide;
     exports.node = node;
     exports.rule = rule;
+    exports.redraw = redraw;
     exports.load = load;
     exports.unload = unload;
 });

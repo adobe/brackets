@@ -822,7 +822,11 @@ define(function (require, exports, module) {
      */
     Document.prototype.batchOperation = function (doOperation) {
         this._ensureMasterEditor();
-        this._masterEditor._codeMirror.operation(doOperation);
+        
+        var self = this;
+        this._masterEditor._codeMirror.compoundChange(function () {
+            self._masterEditor._codeMirror.operation(doOperation);
+        });
     };
     
     /**

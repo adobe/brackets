@@ -1,0 +1,349 @@
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+.color_editor {
+    -webkit-text-size-adjust: none;
+    font-size: 12px;
+    min-width: 450px;
+    height: 190px;
+    padding: 16px 16px 14px 38px;
+}
+.color_editor:focus {
+    outline: none;
+}
+.color_editor aside {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    overflow: visible;
+    margin-left: 6px;
+    vertical-align: top;
+}
+.color_editor aside header {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.color_editor aside header .large_swatches {
+    border-radius: 3px;
+    background-image: url("../img/color_thumb_back.png");
+    background-size: 8px;
+    height: 35px;
+    width: 88px;
+    margin-right: 9px;
+    display: inline-block;
+    box-shadow: 0 1px 0 #fff;
+    position: relative;
+}
+.color_editor aside header .large_swatch {
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.2);
+}
+.color_editor aside header .current_color {
+    border-radius: 3px 0px 0px 3px;
+    left: 0;
+    top: 0;
+    background-color: rgba(0,187,255,0.8);
+}
+.color_editor aside header .original_color {
+    border-radius: 0px 3px 3px 0px;
+    background-color: #ccc;
+    right: 0;
+    top: 0;
+}
+.color_editor aside ul.swatches {
+    list-style: none;
+}
+.color_editor aside ul.swatches li {
+    -webkit-text-size-adjust: none;
+    cursor: pointer;
+    height: 18px;
+    margin-bottom: 2px;
+    padding: 0 1px 1px 2px;
+}
+.color_editor aside ul.swatches li:focus {
+    outline: none;
+    box-shadow: 0 0 4px rgba(0,136,255,0.8);
+    border-radius: 2px;
+}
+.color_editor aside ul.swatches li .swatch_bg {
+    background-image: url("../img/color_thumb_back.png");
+    background-size: 8px;
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    position: relative;
+    top: 2px;
+    display: inline-block;
+}
+.color_editor aside ul.swatches li .swatch_bg .swatch {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    box-shadow: 0 -1px 0 rgba(0,0,0,0.2), 0 1px 0 #fff;
+    top: 0;
+}
+.color_editor aside ul.swatches li .value {
+    position: relative;
+    top: -2px;
+}
+.color_editor section {
+    display: inline-block;
+    position: relative;
+    vertical-align: top;
+}
+.color_editor section .sliders {
+    position: relative;
+    clear: both;
+}
+.color_editor section .gradient_overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+}
+.color_editor section .color_selection_field {
+    width: 181px;
+    height: 156px;
+    margin-right: 13px;
+    display: block;
+    border-radius: 5px 3px 3px 3px;
+    position: relative;
+    box-shadow: 0 1px 0 #fff, inset 0 1px 0 rgba(0,0,0,0.2);
+    float: left;
+}
+.color_editor section .color_selection_field .saturation_gradient {
+    background-image: -webkit-gradient(linear, 0% 50%, 100% 50%, from(#fff), to(rgba(255,255,255,0)));
+}
+.color_editor section .color_selection_field .luminosity_gradient {
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(transparent), to(#000));
+}
+.color_editor section .color_selection_field .selector_base {
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    position: absolute;
+    margin-bottom: -8px;
+    margin-left: -5px;
+}
+.color_editor section .color_selection_field .selector_base:focus {
+    outline: none;
+    box-shadow: 0 0 4px 4px rgba(0,136,255,0.8);
+    border-radius: 6px;
+}
+.color_editor section .color_selection_field .selector {
+    width: 19px;
+    height: 19px;
+    position: absolute;
+    left: -4px;
+    top: -4px;
+    background-image: url("../img/grabber_color-well.png");
+}
+.color_editor section .slider {
+    border-radius: 3px;
+    width: 12px;
+    height: 156px;
+    margin-right: 13px;
+    background-color: #ccc;
+    display: block;
+    box-shadow: 0 1px 0 #fff, inset 0 1px 0 rgba(0,0,0,0.2);
+    float: left;
+    position: relative;
+}
+.color_editor section .slider .selector_base {
+    width: 14px;
+    height: 6px;
+    background-color: transparent;
+    position: absolute;
+    margin: -1px -6px -4px -1px;
+}
+.color_editor section .slider .selector_base:focus {
+    outline: none;
+    box-shadow: 0 0 4px 4px rgba(0,136,255,0.8);
+    border-radius: 3px;
+}
+.color_editor section .slider .selector {
+    width: 20px;
+    height: 12px;
+    left: -3px;
+    top: -3px;
+    position: absolute;
+    background-image: url("../img/grabber_color-slider.png");
+}
+.color_editor section .slider.opacity_slider {
+    background-image: url("../img/color_thumb_back.png");
+    background-size: 8px;
+    margin-right: 0px;
+}
+.color_editor section .hue_slider {
+    background-image: -webkit-linear-gradient(top, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
+}
+.color_editor section footer {
+    font-size: 100%;
+    clear: both;
+    line-height: normal;
+    padding-top: 9px;
+}
+.color_editor section footer .color_value {
+    width: 114px;
+    height: 23px;
+    margin-right: 6px;
+    border-color: #aaa;
+    box-sizing: border-box;
+    display: inline-block;
+    color: #222;
+}
+.color_editor section footer input {
+    display: inline-block;
+    height: 23px;
+    padding: 0 0 0 4px;
+    border: 1px solid rgba(0,0,0,0.53);
+    box-shadow: inset 0px 1px 0px rgba(0,0,0,0.15);
+    background: #fff;
+    font-family: "SourceSans";
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    border-radius: 3px;
+    margin: 1px 0 0 0;
+    vertical-align: center;
+}
+.color_editor section footer input:focus {
+    background: #fff;
+    outline: none;
+    outline: none;
+    box-shadow: 0 0 4px 0 rgba(0,136,255,0.8), inset 0 2px 4px rgba(0,0,0,0.15);
+    border: 1px solid #1b1d1d;
+    z-index: 911;
+}
+@media all and (-webkit-min-device-pixel-ratio : 2), (min-device-pixel-ratio : 2) {
+    .color_editor aside header .large_swatches {
+        background-image: url("../img/color_thumb_back@2x.png");
+    }
+    .color_editor aside ul.swatches li .swatch_bg {
+        background-image: url("../img/color_thumb_back@2x.png");
+    }
+    .color_editor section .color_selection_field .selector {
+        background-image: url("../img/grabber_color-well@2x.png");
+        background-size: 100% 100%;
+    }
+    .color_editor section .slider .selector {
+        background-image: url("../img/grabber_color-slider@2x.png");
+        background-size: 200% 100%;
+    }
+    .color_editor section .slider.opacity_slider {
+        background-image: url("../img/color_thumb_back@2x.png");
+    }
+}
+.color_editor ul, .color_editor li {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+    -webkit-font-smoothing: subpixel-antialiased;
+}
+.color_editor ul.button-bar {
+    list-style: none;
+    border: 1px solid rgba(0,0,0,0.3);
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    display: inline-block;
+    font-size: 12px;
+    margin-left: -3px;
+}
+.color_editor .button-bar li {
+    display: inline-block;
+    margin-left: -3px;
+}
+.color_editor .button-bar a {
+    text-decoration: none;
+    color: #454545;
+    display: block;
+    padding: 2px 4px 4px;
+    height: 15px;
+    font-size: 12px;
+    text-shadow: 0 1px #fff;
+    background-color: #f5f9fa;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#f5f9fa), to(#e3e5e6));
+    background-image: -webkit-linear-gradient(top, #f5f9fa, #e3e5e6);
+    background-image: linear-gradient(top, #f5f9fa, #e3e5e6);
+    border-right: 1px solid #bcbcbc;
+    margin-left: -3px;
+    -moz-box-shadow: inset 0 1px 1px #fff;
+    -webkit-box-shadow: inset 0 1px 1px #fff;
+    box-shadow: inset 0 1px 1px #fff;
+}
+.color_editor .button-bar a:hover {
+    background-color: #fff;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f4f6f7));
+    background-image: -webkit-linear-gradient(top, #fff, #f4f6f7);
+    background-image: linear-gradient(top, #fff, #f4f6f7);
+}
+.color_editor .button-bar a:focus, .color_editor .button-bar li.selected a:focus{
+    outline: none;
+    box-shadow: 0 0 4px rgba(0,136,255,0.8);
+}
+.color_editor .button-bar li:first-child {
+    margin-left: 0;
+}
+.color_editor .button-bar li:first-child a {
+    margin-left: 0;
+    -webkit-border-top-left-radius: 3px;
+    -webkit-border-bottom-left-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+.color_editor .button-bar li:last-child a {
+    border-right: none;
+    -webkit-border-top-right-radius: 3px;
+    -webkit-border-bottom-right-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    -moz-border-radius-bottomright: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+.color_editor .button-bar li.selected a {
+    background-color: #d7d7d7;
+    box-shadow: none;
+    cursor: default;
+    background-image: none;
+}
+.color_editor .button-bar li.disabled a {
+    cursor: default;
+    color: rgba(69,69,69,0.4);
+    background-color: rgba(245,249,250,0.4);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(245,249,250,0.4)), to(rgba(227,229,230,0.4)));
+    background-image: -webkit-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
+    background-image: -moz-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
+    background-image: -o-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
+    background-image: -ms-linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
+    background-image: linear-gradient(top, rgba(245,249,250,0.4), rgba(227,229,230,0.4));
+}

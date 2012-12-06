@@ -74,9 +74,7 @@ define(function (require, exports, module) {
         if (isNaN(pid)) {
             pid = 0;
         }
-        console.log("calling to close: " + pid);
         brackets.app.closeLiveBrowser(function (err) {
-            console.log("called closing: " + pid + " with err: " + err);
             if (!err) {
                 var i = liveBrowserOpenedPIDs.indexOf(pid);
                 if (i !== -1) {
