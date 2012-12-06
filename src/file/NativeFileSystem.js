@@ -301,7 +301,7 @@ define(function (require, exports, module) {
     NativeFileSystem.FileEntry = function (name) {
         NativeFileSystem.Entry.call(this, name, false);
     };
-    NativeFileSystem.FileEntry.prototype = new NativeFileSystem.Entry();
+    NativeFileSystem.FileEntry.prototype = Object.create(NativeFileSystem.Entry.prototype);
 
     NativeFileSystem.FileEntry.prototype.toString = function () {
         return "[FileEntry " + this.fullPath + "]";
@@ -535,7 +535,7 @@ define(function (require, exports, module) {
 
         // TODO (issue #241): void removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
     };
-    NativeFileSystem.DirectoryEntry.prototype = new NativeFileSystem.Entry();
+    NativeFileSystem.DirectoryEntry.prototype = Object.create(NativeFileSystem.Entry.prototype);
     
     NativeFileSystem.DirectoryEntry.prototype.toString = function () {
         return "[DirectoryEntry " + this.fullPath + "]";
@@ -849,7 +849,7 @@ define(function (require, exports, module) {
         this.onloadend = null;
     };
     // TODO (issue #241): extend EventTarget (draft status, not implememnted in webkit)
-    // NativeFileSystem.FileReader.prototype = new NativeFileSystem.EventTarget()
+    // NativeFileSystem.FileReader.prototype = Object.create(NativeFileSystem.EventTarget.prototype);
     
     NativeFileSystem.FileReader.prototype.readAsArrayBuffer = function (blob) {
         // TODO (issue #241): implement

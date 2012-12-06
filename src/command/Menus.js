@@ -748,7 +748,7 @@ define(function (require, exports, module) {
             },
             false);
     }
-    ContextMenu.prototype = new Menu();
+    ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;
     ContextMenu.prototype.parentClass = Menu.prototype;
 

@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         this.fullPath = fullPath;
         InlineWidget.call(this);
     }
-    InlineImageViewer.prototype = new InlineWidget();
+    InlineImageViewer.prototype = Object.create(InlineWidget.prototype);
     InlineImageViewer.prototype.constructor = InlineImageViewer;
     InlineImageViewer.prototype.parentClass = InlineWidget.prototype;
     
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     InlineImageViewer.prototype.$image = null;
     
     InlineImageViewer.prototype.load = function (hostEditor) {
-        this.parentClass.load.call(this, hostEditor);
+        InlineImageViewer.prototype.parentClass.load.call(this, hostEditor);
         
         this.$wrapperDiv = $(inlineEditorTemplate);
         

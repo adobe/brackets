@@ -81,7 +81,7 @@ define(function (require, exports, module) {
         /* @type {Array.<{Editor}>}*/
         this.editors = [];
     }
-    InlineTextEditor.prototype = new InlineWidget();
+    InlineTextEditor.prototype = Object.create(InlineWidget.prototype);
     InlineTextEditor.prototype.constructor = InlineTextEditor;
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     
@@ -125,11 +125,15 @@ define(function (require, exports, module) {
      * Called any time inline was closed, whether manually (via close()) or automatically
      */
     InlineTextEditor.prototype.onClosed = function () {
+        InlineTextEditor.prototype.parentClass.onClosed.call(this);
+            
         _syncGutterWidths(this.hostEditor);
         
         this.editors.forEach(function (editor) {
             editor.destroy(); //release ref on Document
         });
+
+        InlineTextEditor.prototype.parentClass.onClosed.call(this);
     };
     
     /**
@@ -170,6 +174,8 @@ define(function (require, exports, module) {
      *  editor is constructed and added to the DOM
      */
     InlineTextEditor.prototype.onAdded = function () {
+        InlineTextEditor.prototype.parentClass.onAdded.call(this);
+        
         this.editors.forEach(function (editor) {
             editor.refresh();
         });
@@ -260,7 +266,7 @@ define(function (require, exports, module) {
      * @param {Editor} hostEditor
      */
     InlineTextEditor.prototype.load = function (hostEditor) {
-        this.hostEditor = hostEditor;
+        InlineTextEditor.prototype.parentClass.load.call(this, hostEditor);
 
         // TODO: incomplete impelementation. It's not clear yet if InlineTextEditor
         // will fuction as an abstract class or as generic inline editor implementation
@@ -271,6 +277,7 @@ define(function (require, exports, module) {
      * Called when the editor containing the inline is made visible.
      */
     InlineTextEditor.prototype.onParentShown = function () {
+        InlineTextEditor.prototype.parentClass.onParentShown.call(this);
         // We need to call this explicitly whenever the host editor is reshown, since
         // we don't actually resize the inline editor while its host is invisible (see
         // isFullyVisible() check in sizeInlineWidgetToContents()).
