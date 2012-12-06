@@ -122,7 +122,7 @@ define(function (require, exports, module) {
             
             // Explicitly recenter the editor if the highlighted term is hidden
             // by the search dialog. This would be unnecessary if, e.g., the dialog
-            // were inserted between the editor and the main toolbar.
+            // were inserted between the editor and the main toolbar. (Issue #2095)
             selCoords = cm.charCoords(cursor.from(), "page");
             menuHeight = $("#main-toolbar").outerHeight();
             dialogHeight = $(".CodeMirror-dialog > div").outerHeight();
