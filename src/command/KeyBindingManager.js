@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings");
 
-    var KeyboardPrefs = JSON.parse(require("text!defaults/keyboard.json"));
+    var KeyboardPrefs = JSON.parse(require("text!command/keyboard.json"));
     
     /**
      * Maps normalized shortcut descriptor to key binding info.
