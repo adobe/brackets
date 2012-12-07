@@ -449,6 +449,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Create or overwrite a text file
+     * @param {!string} path
+     * @param {!string} text
+     * @return {$.Promise}
+     */
     function createTextFile(path, text) {
         var deferred = new $.Deferred();
 
@@ -469,6 +475,13 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Copy a file source path to a destination
+     * @param {!string} path
+     * @param {!string} destination
+     * @param {?{parseOffsets:boolean}} options
+     * @return {$.Promise}
+     */
     function copyFile(source, destination, options) {
         options = options || {};
         
@@ -500,6 +513,13 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Copy a directory source path to a destination
+     * @param {!string} source
+     * @param {!string} destination
+     * @param {?{parseOffsets:boolean, infos:Object}} options
+     * @return {$.Promise}
+     */
     function copyDirectory(source, destination, options) {
         options = options || {};
         options.infos = options.infos || {};
@@ -515,6 +535,11 @@ define(function (require, exports, module) {
             }
             
             source.createReader().readEntries(function handleEntries(entries) {
+                if (entries.length === 0) {
+                    deferred.resolve();
+                    return;
+                }
+
                 // copy all children of this directory
                 var copyChildrenPromise = Async.doInParallel(
                     entries,
@@ -551,9 +576,17 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Copy a file or directory source path to a destination
+     * @param {!string} source
+     * @param {!string} destination
+     * @param {?{parseOffsets:boolean, removePrefix:boolean, infos:Object}} options
+     * @return {$.Promise}
+     */
     function copyPath(source, destination, options) {
+        options         = options || {};
+        
         var deferred        = new $.Deferred(),
-            options         = options || {},
             removePrefix    = options.removePrefix || true;
         
         NativeFileSystem.resolveNativeFileSystemPath(
@@ -607,7 +640,7 @@ define(function (require, exports, module) {
      * @param {string} fullPath
      * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
      */
-    function deleteFile(fullPath) {
+    function deletePath(fullPath) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
@@ -616,6 +649,7 @@ define(function (require, exports, module) {
                 result.resolve();
             }
         });
+
         return result.promise();
     }
 
@@ -694,8 +728,29 @@ define(function (require, exports, module) {
         return message;
     }
 
+    /**
+     * Set permissions on a path
+     * @param {!string} path
+     * @param {!string} mode
+     * @return {$.Promise} Resolved when permissions are set or rejected if an error occurs
+     */
+    function chmod(path, mode) {
+        var deferred = new $.Deferred();
+
+        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
+            if (err) {
+                deferred.reject(err);
+            } else {
+                deferred.resolve();
+            }
+        });
+
+        return deferred.promise();
+    }
+
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
+    exports.chmod                           = chmod;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
@@ -712,7 +767,7 @@ define(function (require, exports, module) {
     exports.toggleQuickEditAtOffset         = toggleQuickEditAtOffset;
     exports.createTextFile                  = createTextFile;
     exports.copyPath                        = copyPath;
-    exports.deleteFile                      = deleteFile;
+    exports.deletePath                      = deletePath;
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;

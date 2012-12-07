@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                 //debug visual confirmation of inline editor
                 //waits(1000);
                 runs(function () {
-                    SpecRunnerUtils.deleteFile(tempPath);
+                    SpecRunnerUtils.deletePath(tempPath);
                 });
                 
                 // revert files to original content with offset markup
@@ -564,7 +564,7 @@ define(function (require, exports, module) {
                     
                     // Delete the file
                     runs(function () {
-                        waitsForDone(SpecRunnerUtils.deleteFile(fileToWrite.fullPath));
+                        waitsForDone(SpecRunnerUtils.deletePath(fileToWrite.fullPath));
                     });
                     
                     // Ping FileSyncManager to recognize the deletion

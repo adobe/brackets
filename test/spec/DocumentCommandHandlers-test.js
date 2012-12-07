@@ -207,11 +207,11 @@ define(function (require, exports, module) {
                 
                 // clean up
                 runs(function () {
-                    promise = SpecRunnerUtils.deleteFile(crlfPath);
+                    promise = SpecRunnerUtils.deletePath(crlfPath);
                     waitsForDone(promise, "Remove CRLF test file");
                 });
                 runs(function () {
-                    promise = SpecRunnerUtils.deleteFile(lfPath);
+                    promise = SpecRunnerUtils.deletePath(lfPath);
                     waitsForDone(promise, "Remove LF test file");
                 });
             });

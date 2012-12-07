@@ -783,6 +783,12 @@ define(function (require, exports, module) {
                 var entries = [];
                 var lastError = null;
 
+                // call success immediately if this directory has no files
+                if (filelist.length === 0) {
+                    successCallback(entries);
+                    return;
+                }
+
                 // stat() to determine type of each entry, then populare entries array with objects
                 var masterPromise = Async.doInParallel(filelist, function (filename, index) {
                     
