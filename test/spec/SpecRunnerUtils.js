@@ -49,12 +49,12 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
         
         if (nfs) {
-            deferred.resolve(nfs);
+            deferred.resolve(nfs.root);
         }
         
         NativeFileSystem.requestNativeFileSystem("/", function success(nativeFileSystem) {
             nfs = nativeFileSystem;
-            deferred.resolve(nfs);
+            deferred.resolve(nfs.root);
         }, function error(err) {
             deferred.reject();
         });
