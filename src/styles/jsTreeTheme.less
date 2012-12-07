@@ -25,13 +25,27 @@
 /* Styles for jsTree control */
 /* (these are based on jsTree's default theme .css file, so they are not very LESS-like) */
 
-.jstree-brackets li, 
-.jstree-brackets ins { background-image:url("images/jsTreeSprites.svg"); background-repeat:no-repeat; background-color:transparent; }
-.jstree-brackets li { background-position:-90px 0; background-repeat:repeat-y; }
-.jstree-brackets li.jstree-last { background:transparent; }
-.jstree-brackets .jstree-open > ins { background-position:-72px 0; }
-.jstree-brackets .jstree-closed > ins { background-position:-54px 0; }
-.jstree-brackets .jstree-leaf > ins { background-position:-36px 0; }
+.jstree-brackets li > ins::before {
+    content: "\25bc"; /* down-pointing triangle */
+    font-size: .9em;
+}
+.jstree-brackets li > ins {
+    -webkit-transform: rotate(0deg);
+    -webkit-transform-origin: .25em;
+    -webkit-transition: -webkit-transform .1s linear;
+    /* also specify unprefixed properties, we might be running in the browser soon */
+    transform: rotate(0deg);
+    transform-origin: .25em;
+    transition: transform .1s linear;
+}
+.jstree-brackets .jstree-open > ins {
+    text-shadow: -1px 0px 2px rgba(0, 0, 0, 0.5); /* fix shadow for rotated triangle */
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+}
+.jstree-brackets .jstree-leaf > ins {
+    visibility: hidden;
+}
 
 @jstree-icon-backindent: 12px;
 
