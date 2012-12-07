@@ -305,6 +305,13 @@ define(function (require, exports, module) {
         }
     });
     
+    // The .no-focus style is added to clickable elements that should
+    // not steal focus. Calling preventDefault() on mousedown prevents
+    // focus from going to the click target.
+    $("html").on("mousedown", ".no-focus", function (e) {
+        e.preventDefault();
+    });
+    
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({
         ABOUT_ICON          : brackets.config.about_icon,
