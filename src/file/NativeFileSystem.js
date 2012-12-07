@@ -107,15 +107,13 @@ define(function (require, exports, module) {
         /** requestNativeFileSystem
          *
          * @param {!string} path
-         * @param {!function(DirectoryEntry)} successCallback
+         * @param {!function(FileSystem)} successCallback
          * @param {!function(FileError)} errorCallback (TODO #2057: should pass a DOMError)
          */
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, data) {
                 if (!err) {
-                    // FIXME (issue #247): return a NativeFileSystem object
-                    var root = new NativeFileSystem.DirectoryEntry(path);
-                    successCallback(root);
+                    successCallback(new NativeFileSystem.FileSystem(path));
                 } else if (errorCallback) {
                     errorCallback(NativeFileSystem._nativeToFileError(err));
                 }
@@ -235,11 +233,12 @@ define(function (require, exports, module) {
     
     /** class: Entry
      *
-     * @param {string} name
-     * @param {string} isFile
+     * @param {string} fullPath
+     * @param {boolean} isDirectory
+     * @param {FileSystem} fs
      * @constructor
      */
-    NativeFileSystem.Entry = function (fullPath, isDirectory) {
+    NativeFileSystem.Entry = function (fullPath, isDirectory, fs) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
         
@@ -262,9 +261,7 @@ define(function (require, exports, module) {
             }
         }
 
-        // TODO (issue #241)
-        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-filesystem
-        this.filesystem = null;
+        this.filesystem = fs;
     };
     
     NativeFileSystem.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
@@ -320,11 +317,12 @@ define(function (require, exports, module) {
      * This interface represents a file on a file system.
      *
      * @param {string} name
+     * @param {FileSystem} fs
      * @constructor
      * @extends {Entry}
      */
-    NativeFileSystem.FileEntry = function (name) {
-        NativeFileSystem.Entry.call(this, name, false);
+    NativeFileSystem.FileEntry = function (name, fs) {
+        NativeFileSystem.Entry.call(this, name, false, fs);
     };
     NativeFileSystem.FileEntry.prototype = new NativeFileSystem.Entry();
 
@@ -553,10 +551,11 @@ define(function (require, exports, module) {
      *
      * @constructor
      * @param {string} name
+     * @param {FileSystem} fs
      * @extends {Entry}
      */
-    NativeFileSystem.DirectoryEntry = function (name) {
-        NativeFileSystem.Entry.call(this, name, true);
+    NativeFileSystem.DirectoryEntry = function (name, fs) {
+        NativeFileSystem.Entry.call(this, name, true, fs);
 
         // TODO (issue #241): void removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
     };
@@ -573,7 +572,8 @@ define(function (require, exports, module) {
      * @param {!function(FileError|number)} errorCallback (TODO #2057: should consistently pass a FileError)
      */
     NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-        var directoryFullPath = path;
+        var directoryFullPath = path,
+            filesystem = this.filesystem;
         
         function isRelativePath(path) {
             // If the path contains a colons it must be a full path on Windows (colons are
@@ -593,7 +593,7 @@ define(function (require, exports, module) {
 
         var createDirectoryEntry = function () {
             if (successCallback) {
-                successCallback(new NativeFileSystem.DirectoryEntry(directoryFullPath));
+                successCallback(new NativeFileSystem.DirectoryEntry(directoryFullPath, filesystem));
             }
         };
 
@@ -681,7 +681,8 @@ define(function (require, exports, module) {
      * @param {!function(FileError|number)} errorCallback  (TODO #2057: should consistently pass a FileError)
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
-        var fileFullPath = path;
+        var fileFullPath = path,
+            filesystem = this.filesystem;
         
         function isRelativePath(path) {
             // If the path contains a colons it must be a full path on Windows (colons are
@@ -701,7 +702,7 @@ define(function (require, exports, module) {
 
         var createFileEntry = function () {
             if (successCallback) {
-                successCallback(new NativeFileSystem.FileEntry(fileFullPath));
+                successCallback(new NativeFileSystem.FileEntry(fileFullPath, filesystem));
             }
         };
 
@@ -777,7 +778,9 @@ define(function (require, exports, module) {
      * @returns {Array.<Entry>}
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-        var rootPath = this._directory.fullPath;
+        var rootPath = this._directory.fullPath,
+            filesystem = this.filesystem;
+        
         brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
                 var entries = [];
@@ -798,9 +801,9 @@ define(function (require, exports, module) {
                     brackets.fs.stat(itemFullPath, function (statErr, statData) {
                         if (!statErr) {
                             if (statData.isDirectory()) {
-                                entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath);
+                                entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath, filesystem);
                             } else if (statData.isFile()) {
-                                entries[index] = new NativeFileSystem.FileEntry(itemFullPath);
+                                entries[index] = new NativeFileSystem.FileEntry(itemFullPath, filesystem);
                             } else {
                                 entries[index] = null;  // neither a file nor a dir, so don't include it
                             }
@@ -1006,6 +1009,36 @@ define(function (require, exports, module) {
         
         // TODO (issue #241): implement, readonly
         this.lastModifiedDate = null;
+    };
+    
+    /**
+     * Implementation of w3 FileSystem interface
+     *  http://www.w3.org/TR/file-system-api/#the-filesystem-interface
+     *
+     * FileSystem represents a file system
+     */
+    NativeFileSystem.FileSystem = function (path) {
+
+        /**
+         * This is the name of the file system and must be unique across the list
+         * of exposed file systems.
+         * @const
+         * @type {string}
+         */
+        Object.defineProperty(this, "name", {
+            value: path,
+            writable: false
+        });
+        
+        /**
+         * The root directory of the file system.
+         * @const
+         * @type {DirectoryEntry}
+         */
+        Object.defineProperty(this, "root", {
+            value: new NativeFileSystem.DirectoryEntry(path, this),
+            writable: false
+        });
     };
 
     /** class: FileError

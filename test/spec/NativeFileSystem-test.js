@@ -62,7 +62,7 @@ define(function (require, exports, module) {
                     deferred = new $.Deferred();
                 
                 function requestNativeFileSystemSuccessCB(nfs) {
-                    var reader = nfs.createReader();
+                    var reader = nfs.root.createReader();
 
                     var successCallback = function (e) { entries = e; deferred.resolve(); };
                     var errorCallback = function () { deferred.reject(); };
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
                     deferred = new $.Deferred();
                 
                 function requestNativeFileSystemSuccessCB(nfs) {
-                    var reader = nfs.createReader();
+                    var reader = nfs.root.createReader();
 
                     var successCallback = function (e) { entries = e; deferred.resolve(); };
                     var errorCallback = function () { deferred.reject(); };
@@ -199,14 +199,14 @@ define(function (require, exports, module) {
                     accessedFolder = true;
                 
                     function recreatePlaceholder(deferred) {
-                        nfs.getFile("placeholder",
+                        nfs.root.getFile("placeholder",
                                     { create: true, exclusive: true },
                                     function () { placeholderRecreated = true; deferred.resolve(); },
                                     function () { placeholderRecreated = false; deferred.reject(); });
                     }
 
                     function readDirectory() {
-                        var reader = nfs.createReader();
+                        var reader = nfs.root.createReader();
                         var successCallback = function (e) {
                             entries = e;
                             recreatePlaceholder(deferred);
@@ -263,7 +263,7 @@ define(function (require, exports, module) {
                 this.after(function () { brackets.fs.stat = oldStat; });
                 
                 function requestNativeFileSystemSuccessCB(nfs) {
-                    var reader = nfs.createReader();
+                    var reader = nfs.root.createReader();
                     
                     var successCallback = function (e) { readComplete = true; };
                     var errorCallback = function (error) { readComplete = true; gotError = true; theError = error; };
@@ -468,8 +468,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (issue #247): NativeFileSystem.root is missing
-                    this.nfs.getFile("new-zero-length-file.txt", { create: true, exclusive: true }, successCallback, errorCallback);
+                    this.nfs.root.getFile("new-zero-length-file.txt", { create: true, exclusive: true }, successCallback, errorCallback);
                 });
 
                 waitsFor(function () { return writeComplete; }, 1000);
@@ -522,8 +521,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (issue #247): NativeFileSystem.root is missing
-                    this.nfs.getFile("does-not-exist.txt", { create: false }, successCallback, errorCallback);
+                    this.nfs.root.getFile("does-not-exist.txt", { create: false }, successCallback, errorCallback);
                 });
 
                 waitsFor(function () { return writeComplete; }, 1000);
@@ -551,8 +549,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (issue #247): NativeFileSystem.root is missing
-                    this.nfs.getFile("file1", { create: true, exclusive: true }, successCallback, errorCallback);
+                    this.nfs.root.getFile("file1", { create: true, exclusive: true }, successCallback, errorCallback);
                 });
 
                 // wait for success or error to return
@@ -583,8 +580,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (issue #247): NativeFileSystem.root is missing
-                    this.nfs.getFile("dir1", { create: false }, successCallback, errorCallback);
+                    this.nfs.root.getFile("dir1", { create: false }, successCallback, errorCallback);
                 });
 
                 // wait for success or error to return
@@ -624,7 +620,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    this.nfs.getFile("file1", { create: false }, successCallback, errorCallback);
+                    this.nfs.root.getFile("file1", { create: false }, successCallback, errorCallback);
                 });
 
                 waitsFor(function () { return writeComplete && fileEntry; }, 1000);
@@ -681,7 +677,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    this.nfs.getFile("file1", { create: false }, successCallback, errorCallback);
+                    this.nfs.root.getFile("file1", { create: false }, successCallback, errorCallback);
                 });
 
                 waitsFor(function () { return writeComplete && fileEntry; }, 1000);
@@ -722,7 +718,7 @@ define(function (require, exports, module) {
 
                 // createWriter() should return an error for files it can't read
                 runs(function () {
-                    this.nfs.getFile(
+                    this.nfs.root.getFile(
                         "cant_read_here.txt",
                         { create: false },
                         function (entry) {
@@ -764,7 +760,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    this.nfs.getFile("cant_write_here.txt", { create: false }, successCallback, errorCallback);
+                    this.nfs.root.getFile("cant_write_here.txt", { create: false }, successCallback, errorCallback);
                 });
 
                 // fileWriter.onerror handler should be invoked for read only files

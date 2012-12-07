@@ -739,7 +739,8 @@ define(function (require, exports, module) {
         if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
-                function (rootEntry) {
+                function (fs) {
+                    var rootEntry = fs.root;
                     var projectRootChanged = (!_projectRoot || !rootEntry)
                         || _projectRoot.fullPath !== rootEntry.fullPath;
 
