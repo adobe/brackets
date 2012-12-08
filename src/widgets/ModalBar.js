@@ -53,6 +53,7 @@ define(function (require, exports, module) {
             .appendTo("#main-toolbar");
         
         if (autoClose) {
+            this._autoClose = true;
             var $firstInput = $("input[type='text']", this.$root).first()
                 .on("keydown", this._handleInputKeydown);
             window.document.body.addEventListener("focusin", this._handleFocusChange, true);
@@ -84,12 +85,20 @@ define(function (require, exports, module) {
     ModalBar.prototype._$root = null;
     
     /**
+     * True if this ModalBar is set to autoclose.
+     */
+    ModalBar.prototype._autoClose = false;
+    
+    /**
      * Closes the modal bar and returns focus to the active editor.
      */
     ModalBar.prototype.close = function () {
         var barHeight = this.$root.outerHeight();
 
-        window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
+        if (this._autoClose) {
+            window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
+        }
+        
         this.$root.remove();
 
         // Preserve scroll position across the editor refresh, adjusting for the height of the modal bar

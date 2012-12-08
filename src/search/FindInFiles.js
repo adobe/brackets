@@ -53,7 +53,8 @@ define(function (require, exports, module) {
         FileIndexManager    = require("project/FileIndexManager"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
-        StatusBar           = require("widgets/StatusBar");
+        StatusBar           = require("widgets/StatusBar"),
+        ModalBar            = require("widgets/ModalBar").ModalBar;
 
     var searchResults = [];
     
@@ -116,16 +117,6 @@ define(function (require, exports, module) {
     }
 
     /**
-    * Creates a dialog div floating on top of the current code mirror editor
-    */
-    FindInFilesDialog.prototype._createDialogDiv = function (template) {
-        this.dialog = $("<div />")
-                          .attr("class", "CodeMirror-dialog")
-                          .html("<div>" + template + "</div>")
-                          .prependTo($("#editor-holder"));
-    };
-    
-    /**
     * Closes the search dialog and resolves the promise that showDialog returned
     */
     FindInFilesDialog.prototype._close = function (value) {
@@ -134,7 +125,7 @@ define(function (require, exports, module) {
         }
         
         this.closed = true;
-        this.dialog.remove();
+        this.modalBar.close();
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
@@ -151,7 +142,7 @@ define(function (require, exports, module) {
             ": <input type='text' id='findInFilesInput' style='width: 10em'> <span id='findInFilesScope'></span> &nbsp;" +
             "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>";
         this.result = new $.Deferred();
-        this._createDialogDiv(dialogHTML);
+        this.modalBar = new ModalBar(dialogHTML, false);
         var $searchField = $("input#findInFilesInput");
         var that = this;
         

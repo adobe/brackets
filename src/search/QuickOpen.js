@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        ModalBar            = require("widgets/ModalBar").ModalBar;
     
 
     /** @type Array.<QuickOpenPlugin> */
@@ -152,16 +153,6 @@ define(function (require, exports, module) {
     function QuickNavigateDialog() {
         this.$searchField = undefined; // defined when showDialog() is called
     }
-
-    /**
-     * Creates a dialog div floating on top of the current code mirror editor
-     */
-    QuickNavigateDialog.prototype._createDialogDiv = function (template) {
-        this.dialog = $("<div />")
-                          .attr("class", "CodeMirror-dialog")
-                          .html("<div align='right'>" + template + "</div>")
-                          .prependTo($("#editor-holder"));
-    };
 
     function _filenameFromPath(path, includeExtension) {
         var end;
@@ -390,11 +381,11 @@ define(function (require, exports, module) {
         // (because it's a later handler of the event that just triggered _close()), and that code expects to
         // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
         // So, to hide the dialog immediately it's only safe to remove using raw DOM APIs:
-        this.dialog[0].parentNode.removeChild(this.dialog[0]);
+        this.modalBar.getRoot()[0].parentNode.removeChild(this.modalBar.getRoot()[0]);
         var self = this;
         setTimeout(function () {
             // Now that it's safe, call the real jQuery API to clear the metadata & prevent a memory leak
-            self.dialog.remove();
+            self.modalBar.close();
         }, 0);
         
         $(".smart_autocomplete_container").remove();
@@ -823,7 +814,7 @@ define(function (require, exports, module) {
      * where the popup closes that we want the dialog to remain open (e.g. deleting search term via backspace).
      */
     QuickNavigateDialog.prototype.handleDocumentMouseDown = function (e) {
-        if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
+        if (this.modalBar.getRoot().find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
         } else {
             // Allow clicks in the search field to propagate. Clicks in the menu should be 
@@ -865,8 +856,8 @@ define(function (require, exports, module) {
         }
         
         // Show the search bar ("dialog")
-        var dialogHTML = Strings.CMD_QUICK_OPEN + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
-        that._createDialogDiv(dialogHTML);
+        var dialogHTML = "<div align='right'>" + Strings.CMD_QUICK_OPEN + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
+        that.modalBar = new ModalBar(dialogHTML, false);
         that.$searchField = $("input#quickOpenSearch");
 
 
