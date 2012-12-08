@@ -48,13 +48,13 @@ define(function (require, exports, module) {
         this._handleInputKeydown = this._handleInputKeydown.bind(this);
         this._handleFocusChange = this._handleFocusChange.bind(this);
         
-        this.$root = $("<div class='modal-bar'/>")
+        this._$root = $("<div class='modal-bar'/>")
             .html(template)
             .appendTo("#main-toolbar");
         
         if (autoClose) {
             this._autoClose = true;
-            var $firstInput = $("input[type='text']", this.$root).first()
+            var $firstInput = this._getFirstInput()
                 .on("keydown", this._handleInputKeydown);
             window.document.body.addEventListener("focusin", this._handleFocusChange, true);
                 
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
             if ($firstInput.length > 0) {
                 $firstInput.focus();
             } else {
-                $("button", this.$root).first().focus();
+                $("button", this._$root).first().focus();
             }
         }
         
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
         }
         EditorManager.resizeEditor();
         if (activeEditor) {
-            activeEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this.$root.outerHeight());
+            activeEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this._$root.outerHeight());
         }
     }
     
@@ -90,16 +90,23 @@ define(function (require, exports, module) {
     ModalBar.prototype._autoClose = false;
     
     /**
+     * Returns a jQuery object for the first input field in the dialog. Will be 0-length if there is none.
+     */
+    ModalBar.prototype._getFirstInput = function () {
+        return $("input[type='text']", this._$root).first();
+    };
+    
+    /**
      * Closes the modal bar and returns focus to the active editor.
      */
     ModalBar.prototype.close = function () {
-        var barHeight = this.$root.outerHeight();
+        var barHeight = this._$root.outerHeight();
 
         if (this._autoClose) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
         
-        this.$root.remove();
+        this._$root.remove();
 
         // Preserve scroll position across the editor refresh, adjusting for the height of the modal bar
         // so the code doesn't appear to shift if possible.
@@ -122,8 +129,10 @@ define(function (require, exports, module) {
         if (e.keyCode === 13 || e.keyCode === 27) {
             e.stopPropagation();
             e.preventDefault();
+            
+            var value = this._getFirstInput().val();
             this.close();
-            $(this).triggerHandler(e.keyCode === 13 ? "closeOk" : "closeCancel");
+            $(this).triggerHandler(e.keyCode === 13 ? "closeOk" : "closeCancel", [value]);
         }
     };
     
@@ -132,9 +141,10 @@ define(function (require, exports, module) {
      * dismisses the modal bar.
      */
     ModalBar.prototype._handleFocusChange = function (e) {
-        if (!$.contains(this.$root.get(0), e.target)) {
+        if (!$.contains(this._$root.get(0), e.target)) {
+            var value = this._getFirstInput().val();
             this.close();
-            $(this).triggerHandler("closeBlur");
+            $(this).triggerHandler("closeBlur", [value]);
         }
     };
     
@@ -142,7 +152,7 @@ define(function (require, exports, module) {
      * @return {jQueryObject} A jQuery object representing the root of the ModalBar.
      */
     ModalBar.prototype.getRoot = function () {
-        return this.$root;
+        return this._$root;
     };
     
     exports.ModalBar = ModalBar;

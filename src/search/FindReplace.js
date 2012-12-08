@@ -162,14 +162,14 @@ define(function (require, exports, module) {
         }
         
         var modalBar = new ModalBar(queryDialog, true);
-        $(modalBar).on("closeOk", function () {
+        $(modalBar).on("closeOk", function (e, query) {
             if (!state.findNextCalled) {
                 // If findNextCalled is false, this means the user has *not*
                 // entered any search text *or* pressed Cmd-G/F3 to find the
                 // next occurrence. In this case we want to start searching
                 // *after* the current selection so we find the next occurrence.
                 searchStartPos = cm.getCursor(false);
-                findFirst(getDialogTextField(modalBar).attr("value"));
+                findFirst(query, modalBar);
             }
         });
         
@@ -203,16 +203,15 @@ define(function (require, exports, module) {
 
     function replace(cm, all) {
         var modalBar = new ModalBar(replaceQueryDialog, true);
-        $(modalBar).on("closeOk", function () {
-            var query = getDialogTextField(modalBar).attr("value");
+        $(modalBar).on("closeOk", function (e, query) {
             if (!query) {
                 return;
             }
             
             query = parseQuery(query);
             modalBar = new ModalBar(replacementQueryDialog, true);
-            $(modalBar).on("closeOk", function () {
-                var text = getDialogTextField(modalBar).attr("value") || "";
+            $(modalBar).on("closeOk", function (e, text) {
+                text = text || "";
                 var match,
                     fnMatch = function (w, i) { return match[i]; };
                 if (all) {
