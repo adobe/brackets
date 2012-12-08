@@ -29,14 +29,6 @@
  * Adds Find and Replace commands
  *
  * Originally based on the code in CodeMirror2/lib/util/search.js.
- * 
- * Define search commands. Depends on dialog.js or another
- * implementation of the openDialog method.
- *
- * Replace works a little oddly -- it will do the replace on the next findNext press.
- * You prevent a replace by making sure the match is no longer selected when hitting
- * findNext.
- *
  */
 define(function (require, exports, module) {
     "use strict";
@@ -70,11 +62,11 @@ define(function (require, exports, module) {
 
     function parseQuery(query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        $(".CodeMirror-dialog .alert-message").remove();
+        $(".modal-bar .alert-message").remove();
         try {
             return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
         } catch (e) {
-            $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+            $(".modal-bar").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
             return "";
         }
     }

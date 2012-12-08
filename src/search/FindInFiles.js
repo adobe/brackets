@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
-        $(".CodeMirror-dialog .alert-message").remove();
+        $(".modal-bar .alert-message").remove();
         
         // If query is a regular expression, use it directly
         var isRE = query.match(/^\/(.*)\/(g|i)*$/);
@@ -76,7 +76,7 @@ define(function (require, exports, module) {
             try {
                 return new RegExp(isRE[1], flags);
             } catch (e) {
-                $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                $(".modal-bar").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
