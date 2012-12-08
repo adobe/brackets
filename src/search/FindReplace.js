@@ -113,6 +113,7 @@ define(function (require, exports, module) {
             cm.setSelection(cursor.from(), cursor.to());
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
+            state.findNextCalled = true;
         });
         return found;
     }
@@ -134,19 +135,6 @@ define(function (require, exports, module) {
         });
     }
     
-    function setInitialSearchQuery(cm, query, pos) {
-        getDialogTextField()
-            .attr("value", query)
-            .get(0).select();
-        
-        var state = getSearchState(cm);
-        state.query = parseQuery(query);
-        state.posFrom = state.posTo = pos;
-        if (state.query) {
-            findNext(cm);
-        }
-    }
-    
     var queryDialog = Strings.CMD_FIND +
             ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
             Strings.SEARCH_REGEXP_INFO  + ')</span>';
@@ -155,10 +143,9 @@ define(function (require, exports, module) {
      * If no search pending, opens the search dialog. If search is already open, moves to
      * next/prev result (depending on 'rev')
      */
-    function doSearch(cm, rev) {
+    function doSearch(cm, rev, initialQuery) {
         var state = getSearchState(cm);
         if (state.query) {
-            state.findNextCalled = true;
             return findNext(cm, rev);
         }
         
@@ -180,7 +167,6 @@ define(function (require, exports, module) {
                     clearSearch(cm);  // clear highlights from previous query
                 }
                 state.query = parseQuery(query);
-                state.findNextCalled = true;
                 
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
@@ -204,10 +190,21 @@ define(function (require, exports, module) {
                 // entered any search text *or* pressed Cmd-G/F3 to find the
                 // next occurrence. In this case we want to start searching
                 // *after* the current selection so we find the next occurrence.
-                searchStartPos = cm.getCursor();
+                searchStartPos = cm.getCursor(false);
                 findFirst(query);
             }
         });
+        
+        // Prepopulate the search field with the current selection, if any.
+        if (initialQuery !== undefined) {
+            getDialogTextField()
+                .attr("value", initialQuery)
+                .get(0).select();
+            findFirst(initialQuery);
+            // Clear the "findNextCalled" flag here so we have a clean start
+            state.findNextCalled = false;
+        }
+
         getDialogTextField().on("input", function () {
             findFirst(getDialogTextField().attr("value"));
         });
@@ -277,9 +274,9 @@ define(function (require, exports, module) {
         });
         
         // Prepopulate the replace field with the current selection, if any.
-        // When replacing, use the selection start pos as the search cursor. This
-        // way the initially selected text will be replaced first.
-        setInitialSearchQuery(cm, cm.getSelection(), cm.getCursor(true));
+        getDialogTextField()
+            .attr("value", cm.getSelection())
+            .get(0).select();
     }
 
     function _launchFind() {
@@ -288,12 +285,8 @@ define(function (require, exports, module) {
             var codeMirror = editor._codeMirror;
 
             // Bring up CodeMirror's existing search bar UI
-            getSearchState(codeMirror).findNextCalled = false;
             clearSearch(codeMirror);
-            doSearch(codeMirror);
-
-            // Prepopulate the search field with the current selection, if any
-            setInitialSearchQuery(codeMirror, codeMirror.getSelection(), codeMirror.getCursor(true));
+            doSearch(codeMirror, false, codeMirror.getSelection());
         }
     }
 
