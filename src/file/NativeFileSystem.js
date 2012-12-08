@@ -27,22 +27,6 @@
 define(function (require, exports, module) {
     "use strict";
 
-    //define FileError as currently ONLY Chrome implements the File API W3C Working Draft
-    window.FileError = window.FileError || {
-        NOT_FOUND_ERR: 1,
-        SECURITY_ERR: 2,
-        ABORT_ERR: 3,
-        NOT_READABLE_ERR: 4,
-        ENCODING_ERR: 5,
-        NO_MODIFICATION_ALLOWED_ERR: 6,
-        INVALID_STATE_ERR: 7,
-        SYNTAX_ERR: 8,
-        INVALID_MODIFICATION_ERR: 9,
-        QUOTA_EXCEEDED_ERR: 10,
-        TYPE_MISMATCH_ERR: 11,
-        PATH_EXISTS_ERR: 12
-    };
-    
     var Async = require("utils/Async");
 
     /*
@@ -133,33 +117,34 @@ define(function (require, exports, module) {
                 // since there aren't specific mappings for these.
             case brackets.fs.ERR_UNKNOWN:
             case brackets.fs.ERR_INVALID_PARAMS:
-                error = FileError.SECURITY_ERR;
+                error = NativeFileSystem.FileError.SECURITY_ERR;
                 break;
             case brackets.fs.ERR_NOT_FOUND:
-                error = FileError.NOT_FOUND_ERR;
+                error = NativeFileSystem.FileError.NOT_FOUND_ERR;
                 break;
             case brackets.fs.ERR_CANT_READ:
-                error = FileError.NOT_READABLE_ERR;
+                error = NativeFileSystem.FileError.NOT_READABLE_ERR;
                 break;
             // It might seem like you should use FileError.ENCODING_ERR for this,
             // but according to the spec that's for malformed URLs.
             case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                error = FileError.SECURITY_ERR;
+                error = NativeFileSystem.FileError.SECURITY_ERR;
                 break;
             case brackets.fs.ERR_CANT_WRITE:
-                error = FileError.NO_MODIFICATION_ALLOWED_ERR;
+                error = NativeFileSystem.FileError.NO_MODIFICATION_ALLOWED_ERR;
                 break;
             case brackets.fs.ERR_OUT_OF_SPACE:
-                error = FileError.QUOTA_EXCEEDED_ERR;
+                error = NativeFileSystem.FileError.QUOTA_EXCEEDED_ERR;
                 break;
             case brackets.fs.PATH_EXISTS_ERR:
-                error = FileError.PATH_EXISTS_ERR;
+                error = NativeFileSystem.FileError.PATH_EXISTS_ERR;
                 break;
             default:
                 // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
                 // not covered by other error codes. 
-                error = FileError.SECURITY_ERR;
+                error = NativeFileSystem.FileError.SECURITY_ERR;
             }
+            console.log(error);
             return new NativeFileSystem.FileError(error);
         }
     };
@@ -507,7 +492,7 @@ define(function (require, exports, module) {
         // TODO (issue #241): Terminate any steps having to do with writing a file.
 
         // Set the error attribute to a FileError object with the code ABORT_ERR.
-        this._error = new NativeFileSystem.FileError(FileError.ABORT_ERR);
+        this._error = new NativeFileSystem.FileError(NativeFileSystem.FileError.ABORT_ERR);
 
         // Set readyState to DONE.
         this._readyState = NativeFileSystem.FileSaver.DONE;
@@ -586,7 +571,7 @@ define(function (require, exports, module) {
                 // throw error if the file the path is not a directory
                 if (!stats.isDirectory()) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.TYPE_MISMATCH_ERR));
+                        errorCallback(new NativeFileSystem.FileError(NativeFileSystem.FileError.TYPE_MISMATCH_ERR));
                     }
 
                     return;
@@ -595,7 +580,7 @@ define(function (require, exports, module) {
                 // throw error if the file exists but create is exclusive
                 if (options.create && options.exclusive) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.PATH_EXISTS_ERR));
+                        errorCallback(new NativeFileSystem.FileError(NativeFileSystem.FileError.PATH_EXISTS_ERR));
                     }
 
                     return;
@@ -623,7 +608,7 @@ define(function (require, exports, module) {
 
                 // throw error if file not found and the create == false
                 if (errorCallback) {
-                    errorCallback(new NativeFileSystem.FileError(FileError.NOT_FOUND_ERR));
+                    errorCallback(new NativeFileSystem.FileError(NativeFileSystem.FileError.NOT_FOUND_ERR));
                 }
             } else {
                 // all other brackets.fs.stat() errors
@@ -695,7 +680,7 @@ define(function (require, exports, module) {
                 // throw error if the file the path is a directory
                 if (stats.isDirectory()) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.TYPE_MISMATCH_ERR));
+                        errorCallback(new NativeFileSystem.FileError(NativeFileSystem.FileError.TYPE_MISMATCH_ERR));
                     }
 
                     return;
@@ -704,7 +689,7 @@ define(function (require, exports, module) {
                 // throw error if the file exists but create is exclusive
                 if (options.create && options.exclusive) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.PATH_EXISTS_ERR));
+                        errorCallback(new NativeFileSystem.FileError(NativeFileSystem.FileError.PATH_EXISTS_ERR));
                     }
 
                     return;
@@ -731,7 +716,7 @@ define(function (require, exports, module) {
 
                 // throw error if file not found and the create == false
                 if (errorCallback) {
-                    errorCallback(new NativeFileSystem.FileError(FileError.NOT_FOUND_ERR));
+                    errorCallback(new NativeFileSystem.FileError(NativeFileSystem.FileError.NOT_FOUND_ERR));
                 }
             } else {
                 // all other brackets.fs.stat() errors
@@ -807,7 +792,7 @@ define(function (require, exports, module) {
                         if (err === Async.ERROR_TIMEOUT) {
                             // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
                             // more fitting for a timeout.
-                            err = new NativeFileSystem.FileError(FileError.SECURITY_ERR);
+                            err = new NativeFileSystem.FileError(NativeFileSystem.FileError.SECURITY_ERR);
                         } else {
                             err = lastError;
                         }
@@ -1009,21 +994,44 @@ define(function (require, exports, module) {
             writable: false
         });
     };
-
-    /** class: FileError
+    
+    /**
+     * Implementation of w3 DOMError interface
+     *  http://www.w3.org/TR/2012/WD-dom-20120105/#interface-domerror
      *
-     * Implementation of HTML file API error code return class. Note that we don't
-     * actually define the error codes here--we rely on the browser's built-in FileError
-     * class's constants. In other words, external clients of this API should always
-     * use FileError.<constant-name>, not NativeFileSystem.FileError.<constant-name>.
-     *
-     * @constructor
-     * @param {number} code The error code to return with this FileError. Must be
-     * one of the codes defined in the FileError class.
+     * A DOMError is intended for other specifications that want to 
+     * introduce error handling through other means than exceptions.
      */
-    NativeFileSystem.FileError = function (code) {
-        this.code = code || 0;
+    NativeFileSystem.FileError = function (name) {
+
+        /**
+         * The name of the error. A type DOMError means a DOMError 
+         * object whose name attribute is initialized to type
+         * @const
+         * @type {string}
+         */
+        Object.defineProperty(this, "name", {
+            value: name,
+            writable: false
+        });
     };
+    
+    /**
+     * Possible error name constants for NativeFileSystem operations. For details check:
+     *   http://www.w3.org/TR/file-system-api/#definitions
+     *   http://dev.w3.org/2009/dap/file-system/file-writer.html#definitions
+     */
+    NativeFileSystem.FileError.NOT_FOUND_ERR = "NotFoundError";
+    NativeFileSystem.FileError.SECURITY_ERR = "SecurityError";
+    NativeFileSystem.FileError.ABORT_ERR = "AbortError";
+    NativeFileSystem.FileError.NOT_READABLE_ERR = "NotReadableError";
+    NativeFileSystem.FileError.NO_MODIFICATION_ALLOWED_ERR = "NoModificationAllowedError";
+    NativeFileSystem.FileError.INVALID_STATE_ERR = "InvalidStateError";
+    NativeFileSystem.FileError.SYNTAX_ERR = "SyntaxError";
+    NativeFileSystem.FileError.INVALID_MODIFICATION_ERR = "InvalidModificationError";
+    NativeFileSystem.FileError.QUOTA_EXCEEDED_ERR = "QuotaExceededError";
+    NativeFileSystem.FileError.TYPE_MISMATCH_ERR = "TypeMismatchError";
+    NativeFileSystem.FileError.PATH_EXISTS_ERR = "PathExistsError";
 
     // Define public API
     exports.NativeFileSystem    = NativeFileSystem;

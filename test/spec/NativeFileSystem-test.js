@@ -122,7 +122,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(error.code).toBe(FileError.NOT_FOUND_ERR);
+                    expect(error.name).toBe(NativeFileSystem.FileError.NOT_FOUND_ERR);
                 });
             });
 
@@ -146,7 +146,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(error.code).toBe(FileError.SECURITY_ERR);
+                    expect(error.name).toBe(NativeFileSystem.FileError.SECURITY_ERR);
                 });
             });
 
@@ -277,7 +277,7 @@ define(function (require, exports, module) {
                     expect(readComplete).toBe(true);
                     expect(statCalled).toBe(true);
                     expect(gotError).toBe(true);
-                    expect(theError.code).toBe(FileError.SECURITY_ERR);
+                    expect(theError.name).toBe(NativeFileSystem.FileError.SECURITY_ERR);
                 });
             });
         });
@@ -318,7 +318,7 @@ define(function (require, exports, module) {
 
             it("should return an error if the file is not found", function () {
                 var deferred = new $.Deferred(),
-                    errorCode;
+                    errorName;
                 
                 runs(function () {
                     var fileEntry = new NativeFileSystem.FileEntry(this.path + "/idontexist");
@@ -328,7 +328,7 @@ define(function (require, exports, module) {
                             deferred.resolve();
                         };
                         reader.onerror = function (event) {
-                            errorCode = event.target.error.code;
+                            errorName = event.target.error.name;
                             deferred.reject();
                         };
                         reader.readAsText(file, Encodings.UTF8);
@@ -338,7 +338,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(errorCode).toBe(FileError.NOT_FOUND_ERR);
+                    expect(errorName).toBe(NativeFileSystem.FileError.NOT_FOUND_ERR);
                 });
             });
             
@@ -533,7 +533,7 @@ define(function (require, exports, module) {
                 // fileEntry is null on error
                 runs(function () {
                     expect(fileEntry).toBe(null);
-                    expect(error.code).toBe(FileError.NOT_FOUND_ERR);
+                    expect(error.name).toBe(NativeFileSystem.FileError.NOT_FOUND_ERR);
                 });
             });
 
@@ -564,7 +564,7 @@ define(function (require, exports, module) {
                     expect(fileEntry).toBe(null);
 
                     // errorCallback should be called with PATH_EXISTS_ERR
-                    expect(error.code).toEqual(FileError.PATH_EXISTS_ERR);
+                    expect(error.name).toEqual(NativeFileSystem.FileError.PATH_EXISTS_ERR);
                 });
             });
 
@@ -595,7 +595,7 @@ define(function (require, exports, module) {
                     expect(fileEntry).toBe(null);
 
                     // errorCallback should be called with TYPE_MISMATCH_ERR
-                    expect(error.code).toEqual(FileError.TYPE_MISMATCH_ERR);
+                    expect(error.name).toEqual(NativeFileSystem.FileError.TYPE_MISMATCH_ERR);
                 });
             });
 
@@ -737,7 +737,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(complete).toBeFalsy();
-                    expect(error.code).toBe(FileError.NOT_READABLE_ERR);
+                    expect(error.name).toBe(NativeFileSystem.FileError.NOT_READABLE_ERR);
                 });
             });
 
@@ -772,7 +772,7 @@ define(function (require, exports, module) {
                     function () {
                         return writeComplete
                             && error
-                            && (error.code === FileError.NO_MODIFICATION_ALLOWED_ERR);
+                            && (error.name === NativeFileSystem.FileError.NO_MODIFICATION_ALLOWED_ERR);
                     },
                     1000
                 );
