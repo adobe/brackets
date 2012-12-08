@@ -113,6 +113,7 @@ define(function (require, exports, module) {
             cm.setSelection(cursor.from(), cursor.to());
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
+            state.findNextCalled = true;
         });
         return found;
     }
@@ -142,13 +143,17 @@ define(function (require, exports, module) {
      * If no search pending, opens the search dialog. If search is already open, moves to
      * next/prev result (depending on 'rev')
      */
-    function doSearch(cm, rev) {
+    function doSearch(cm, rev, initialQuery) {
         var state = getSearchState(cm);
         if (state.query) {
             return findNext(cm, rev);
         }
         
-        var searchStartPos = cm.getCursor();
+        // Use the selection start as the searchStartPos. This way if you
+        // start with a pre-populated search and enter an additional character,
+        // it will extend the initial selection instead of jumping to the next
+        // occurrence.
+        var searchStartPos = cm.getCursor(true);
         
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
@@ -180,15 +185,26 @@ define(function (require, exports, module) {
         }
         
         dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
-            // If the dialog is closed and the query string is not empty,
-            // make sure we have called findFirst at least once. This way
-            // if the Find dialog is opened with pre-populated text, pressing
-            // enter will find the next occurance of the text and store
-            // the query for subsequent "Find Next" commands.
-            if (query && !state.query) {
+            if (!state.findNextCalled) {
+                // If findNextCalled is false, this means the user has *not*
+                // entered any search text *or* pressed Cmd-G/F3 to find the
+                // next occurrence. In this case we want to start searching
+                // *after* the current selection so we find the next occurrence.
+                searchStartPos = cm.getCursor(false);
                 findFirst(query);
             }
         });
+        
+        // Prepopulate the search field with the current selection, if any.
+        if (initialQuery !== undefined) {
+            getDialogTextField()
+                .attr("value", initialQuery)
+                .get(0).select();
+            findFirst(initialQuery);
+            // Clear the "findNextCalled" flag here so we have a clean start
+            state.findNextCalled = false;
+        }
+
         getDialogTextField().on("input", function () {
             findFirst(getDialogTextField().attr("value"));
         });
@@ -257,7 +273,7 @@ define(function (require, exports, module) {
             });
         });
         
-        // Prepopulate the replace field with the current selection, if any
+        // Prepopulate the replace field with the current selection, if any.
         getDialogTextField()
             .attr("value", cm.getSelection())
             .get(0).select();
@@ -270,12 +286,7 @@ define(function (require, exports, module) {
 
             // Bring up CodeMirror's existing search bar UI
             clearSearch(codeMirror);
-            doSearch(codeMirror);
-
-            // Prepopulate the search field with the current selection, if any
-            getDialogTextField()
-                .attr("value", codeMirror.getSelection())
-                .get(0).select();
+            doSearch(codeMirror, false, codeMirror.getSelection());
         }
     }
 
