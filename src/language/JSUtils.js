@@ -400,19 +400,24 @@ define(function (require, exports, module) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
         var lines = text.split("\n");
+        var key;
         
-        $.each(allFunctions, function (index, functions) {
-            if (index === functionName || functionName === "*") {
-                functions.forEach(function (funcEntry) {
-                    var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
-                    result.push({
-                        name: index,
-                        lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
-                        lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
-                    });
-                });
+        function addFunctionEntry(funcEntry) {
+            var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
+            result.push({
+                name: key,
+                lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
+                lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+            });
+        }
+        
+        for (key in allFunctions) {
+            if (allFunctions.hasOwnProperty(key)) {
+                if (key === functionName || functionName === "*") {
+                    allFunctions[key].forEach(addFunctionEntry);
+                }
             }
-        });
+        }
          
         return result;
     }
