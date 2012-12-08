@@ -34,8 +34,8 @@ define(function (require, exports, module) {
         DocumentManager   = brackets.getModule("document/DocumentManager"),
         Strings           = brackets.getModule("strings"),
         KeyEvent          = brackets.getModule("utils/KeyEvent"),
-        testContentCSS    = require("text!unittests.css"),
-        testContentHTML   = require("text!unittests.html"),
+        testContentCSS    = require("text!unittest-files/unittests.css"),
+        testContentHTML   = require("text!unittest-files/unittests.html"),
         provider          = require("main").inlineColorEditorProvider,
         InlineColorEditor = require("InlineColorEditor").InlineColorEditor,
         ColorEditor       = require("ColorEditor").ColorEditor;
