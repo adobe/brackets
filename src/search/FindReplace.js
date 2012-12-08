@@ -44,8 +44,9 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
-        EditorManager       = require("editor/EditorManager");
-
+        EditorManager       = require("editor/EditorManager"),
+        ModalBar            = require("widgets/ModalBar").ModalBar;
+    
     function SearchState() {
         this.posFrom = this.posTo = this.query = null;
         this.marked = [];
@@ -62,25 +63,9 @@ define(function (require, exports, module) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         return cm.getSearchCursor(query, pos, typeof query === "string" && query === query.toLowerCase());
     }
-
-    function dialog(cm, text, shortText, f) {
-        if (cm.openDialog) {
-            cm.openDialog(text, f);
-        } else {
-            f(prompt(shortText, ""));
-        }
-    }
-
-    function confirmDialog(cm, text, shortText, fs) {
-        if (cm.openConfirm) {
-            cm.openConfirm(text, fs);
-        } else if (confirm(shortText)) {
-            fs[0]();
-        }
-    }
     
-    function getDialogTextField() {
-        return $(".CodeMirror-dialog input[type='text']");
+    function getDialogTextField(modalBar) {
+        return $("input[type='text']", modalBar.getRoot());
     }
 
     function parseQuery(query) {
@@ -157,7 +142,7 @@ define(function (require, exports, module) {
         
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
-        function findFirst(query) {
+        function findFirst(query, modalBar) {
             cm.operation(function () {
                 if (!query) {
                     return;
@@ -180,34 +165,36 @@ define(function (require, exports, module) {
                 state.posFrom = state.posTo = searchStartPos;
                 var foundAny = findNext(cm, rev);
                 
-                getDialogTextField().toggleClass("no-results", !foundAny);
+                getDialogTextField(modalBar).toggleClass("no-results", !foundAny);
             });
         }
         
-        dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
+        var modalBar = new ModalBar(queryDialog, true);
+        $(modalBar).on("closeOk", function () {
             if (!state.findNextCalled) {
                 // If findNextCalled is false, this means the user has *not*
                 // entered any search text *or* pressed Cmd-G/F3 to find the
                 // next occurrence. In this case we want to start searching
                 // *after* the current selection so we find the next occurrence.
                 searchStartPos = cm.getCursor(false);
-                findFirst(query);
+                findFirst(getDialogTextField(modalBar).attr("value"));
             }
         });
         
+        var $input = getDialogTextField(modalBar);
+        $input.on("input", function () {
+            findFirst($input.attr("value"), modalBar);
+        });
+
         // Prepopulate the search field with the current selection, if any.
         if (initialQuery !== undefined) {
-            getDialogTextField()
+            $input
                 .attr("value", initialQuery)
                 .get(0).select();
-            findFirst(initialQuery);
+            findFirst(initialQuery, modalBar);
             // Clear the "findNextCalled" flag here so we have a clean start
             state.findNextCalled = false;
         }
-
-        getDialogTextField().on("input", function () {
-            findFirst(getDialogTextField().attr("value"));
-        });
     }
 
     var replaceQueryDialog = Strings.CMD_REPLACE +
@@ -218,17 +205,22 @@ define(function (require, exports, module) {
     // style buttons to match height/margins/border-radius of text input boxes
     var style = ' style="padding:5px 15px;border:1px #999 solid;border-radius:3px;margin:2px 2px 5px;"';
     var doReplaceConfirm = Strings.CMD_REPLACE +
-            '? <button' + style + '>' + Strings.BUTTON_YES +
-            '</button> <button' + style + '>' + Strings.BUTTON_NO +
+            '? <button id="replace-yes"' + style + '>' + Strings.BUTTON_YES +
+            '</button> <button id="replace-no"' + style + '>' + Strings.BUTTON_NO +
             '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
     function replace(cm, all) {
-        dialog(cm, replaceQueryDialog, Strings.CMD_REPLACE, function (query) {
+        var modalBar = new ModalBar(replaceQueryDialog, true);
+        $(modalBar).on("closeOk", function () {
+            var query = getDialogTextField(modalBar).attr("value");
             if (!query) {
                 return;
             }
+            
             query = parseQuery(query);
-            dialog(cm, replacementQueryDialog, Strings.WITH, function (text) {
+            modalBar = new ModalBar(replacementQueryDialog, true);
+            $(modalBar).on("closeOk", function () {
+                var text = getDialogTextField(modalBar).attr("value") || "";
                 var match,
                     fnMatch = function (w, i) { return match[i]; };
                 if (all) {
@@ -260,8 +252,15 @@ define(function (require, exports, module) {
                             }
                         }
                         cm.setSelection(cursor.from(), cursor.to());
-                        confirmDialog(cm, doReplaceConfirm, Strings.CMD_REPLACE + "?",
-                                                    [function () { doReplace(match); }, advance]);
+                        modalBar = new ModalBar(doReplaceConfirm, true);
+                        modalBar.getRoot().on("click", function (e) {
+                            modalBar.close();
+                            if (e.target.id === "replace-yes") {
+                                doReplace(match);
+                            } else if (e.target.id === "replace-no") {
+                                advance();
+                            }
+                        });
                     };
                     var doReplace = function (match) {
                         cursor.replace(typeof query === "string" ? text :
@@ -273,8 +272,8 @@ define(function (require, exports, module) {
             });
         });
         
-        // Prepopulate the replace field with the current selection, if any.
-        getDialogTextField()
+        // Prepopulate the replace field with the current selection, if any
+        getDialogTextField(modalBar)
             .attr("value", cm.getSelection())
             .get(0).select();
     }
