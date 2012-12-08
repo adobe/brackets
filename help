@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Hello User!</title>  
+  	<!-- Place cursor after this and select a
+    JavaScript library from the menu above -->
+    
+
+        
+    <!-- Supports context-sensitive CSS3 auto-completion -->
+    <!-- Style starts here. Try adding new CSS tags. -->
+    <style type="text/css">    
+		body {
+			background: #8eacd3;
+		}
+.login {
+	position: relative;
+	float: right;
+	color: #fff;
+	font-size: 9pt;
+}
+.login input {
+	width: 110px;
+	border-radius: 5px;
+	border: solid 1px #55a1bf;
+}
+input {
+	width: 240px;
+	height: 20px;
+	border-radius: 5px;
+	border: solid 1px #55a1bf;
+}
+.submit {
+	width: 60px  !important;
+	height: 20px  !important;
+	background: #c4007a;
+	color: #fff;
+}
+.forget {
+	text-decoration: underline;
+	margin-left: 60px;
+}
+.forget a {
+	text-decoration: underline;
+	margin-left: 60px;
+	color: #fff;
+	font-size: 11pt;
+}
+.reg {
+	text-decoration: underline;
+}
+.reg a {
+	text-decoration: underline;
+	color: #fff;
+	font-size: 10pt;
+}
+.regestration {
+	margin-left: 30px;
+}
+.remember {
+	position: absolute;
+	margin: 0 -30px 0 -30px;
+	width: 10px;
+}
+.rem {
+	margin-left: 40px;
+	color: #000;
+}
+
+  </style>
+  	<!-- Style ends here -->  
+</head>  
+  
+<body>
+		<table class="login">
+			<tr>
+				<td style="position: relative; top: 15px;">Логин:</td><td style="position: relative; left: -110px; top: 15px">Пароль:</td>
+			</tr>
+			<tr>			
+				<td><br/><input style="margin-right: 15px;"/><input /></td>
+			</tr>
+			<tr>
+				<td><input type="submit" value="Войти" class="submit" /><input type="checkbox" class="remember" /><span class="rem">Запомнить меня</span></td>
+			</tr>
+			<tr>
+				<td><span class="reg"><a href="regestration.html">Регистрация</a></span><span class="forget">Забыли пароль?</span></td>
+			</tr>
+		</table>
+    
+</body>
+
+</html>
+
+
+
+
+
+
