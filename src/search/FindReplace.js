@@ -94,15 +94,21 @@ define(function (require, exports, module) {
         }
     }
 
-    function findNext(cm, rev) {
-        var found = true;
+    function findNext(editor, rev) {
+        var cm = editor._codeMirror,
+            found = true,
+            selCoords,
+            menuHeight,
+            dialogHeight;
+        
         cm.operation(function () {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
+            
             if (!cursor.find(rev)) {
                 // If no result found before hitting edge of file, try wrapping around
                 cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
-                
+
                 // No result found, period: clear selection & bail
                 if (!cursor.find(rev)) {
                     cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
@@ -110,9 +116,19 @@ define(function (require, exports, module) {
                     return;
                 }
             }
-            cm.setSelection(cursor.from(), cursor.to());
+            editor.setSelection(cursor.from(), cursor.to());
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
+            
+            // Explicitly recenter the editor if the highlighted term is hidden
+            // by the search dialog. This would be unnecessary if, e.g., the dialog
+            // were inserted between the editor and the main toolbar. (Issue #2095)
+            selCoords = cm.charCoords(cursor.from(), "page");
+            menuHeight = $("#main-toolbar").outerHeight();
+            dialogHeight = $(".CodeMirror-dialog > div").outerHeight();
+            if (selCoords.y < menuHeight + dialogHeight) {
+                editor.recenter();
+            }
         });
         return found;
     }
@@ -142,10 +158,11 @@ define(function (require, exports, module) {
      * If no search pending, opens the search dialog. If search is already open, moves to
      * next/prev result (depending on 'rev')
      */
-    function doSearch(cm, rev) {
-        var state = getSearchState(cm);
+    function doSearch(editor, rev) {
+        var cm    = editor._codeMirror,
+            state = getSearchState(cm);
         if (state.query) {
-            return findNext(cm, rev);
+            return findNext(editor, rev);
         }
         
         var searchStartPos = cm.getCursor();
@@ -173,7 +190,7 @@ define(function (require, exports, module) {
                 }
                 
                 state.posFrom = state.posTo = searchStartPos;
-                var foundAny = findNext(cm, rev);
+                var foundAny = findNext(editor, rev);
                 
                 getDialogTextField().toggleClass("no-results", !foundAny);
             });
@@ -206,7 +223,8 @@ define(function (require, exports, module) {
             '</button> <button' + style + '>' + Strings.BUTTON_NO +
             '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
-    function replace(cm, all) {
+    function replace(editor, all) {
+        var cm = editor._codeMirror;
         dialog(cm, replaceQueryDialog, Strings.CMD_REPLACE, function (query) {
             if (!query) {
                 return;
@@ -243,7 +261,7 @@ define(function (require, exports, module) {
                                 return;
                             }
                         }
-                        cm.setSelection(cursor.from(), cursor.to());
+                        editor.setSelection(cursor.from(), cursor.to());
                         confirmDialog(cm, doReplaceConfirm, Strings.CMD_REPLACE + "?",
                                                     [function () { doReplace(match); }, advance]);
                     };
@@ -270,7 +288,7 @@ define(function (require, exports, module) {
 
             // Bring up CodeMirror's existing search bar UI
             clearSearch(codeMirror);
-            doSearch(codeMirror);
+            doSearch(editor);
 
             // Prepopulate the search field with the current selection, if any
             getDialogTextField()
@@ -282,21 +300,21 @@ define(function (require, exports, module) {
     function _findNext() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            doSearch(editor._codeMirror);
+            doSearch(editor);
         }
     }
 
     function _findPrevious() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            doSearch(editor._codeMirror, true);
+            doSearch(editor, true);
         }
     }
 
     function _replace() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            replace(editor._codeMirror);
+            replace(editor);
         }
     }
 

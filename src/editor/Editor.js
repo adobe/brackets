@@ -240,6 +240,32 @@ define(function (require, exports, module) {
     }
     
     /**
+     * After performing a code mirror method, recenter the editor if the editor
+     * had to scroll anyway.
+     *
+     * @param {!Editor} editor
+     * @param {!function} method CodeMirror method
+     * @param {!array} args Arguments to which the method is applied
+     */
+    function _applyAndRecenter(editor, method, args) {
+        var cm = editor._codeMirror,
+            prevLines,
+            currLines;
+        
+        prevLines = cm.getVisibleLines(null);
+        method.apply(cm, args);
+        
+        // ensure that the method's changes have committed before querying
+        // the visible lines again
+        cm.flush();
+        currLines = cm.getVisibleLines(null);
+        
+        if (prevLines.to !== currLines.to) {
+            editor.recenter();
+        }
+    }
+    
+    /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
      * that affect all editors, e.g. tabbing or color scheme settings.
      * @type {Array.<Editor>}
@@ -647,6 +673,18 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     };
     
+    /**
+     * Center the cursor vertically in the editor. 
+     */
+    Editor.prototype.recenter = function () {
+        var cm          = this._codeMirror,
+            vis         = cm.getVisibleLines(null),
+            cursor      = cm.getCursor(),
+            midline     = cursor.line - Math.round((vis.to - vis.from) / 2),
+            midlinepos  = cm.charCoords({line: midline, ch: 0}, "local");
+        
+        cm.scrollTo(null, midlinepos.y);
+    };
     
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
@@ -684,7 +722,8 @@ define(function (require, exports, module) {
      * @param {number=} ch  The 0 based character position; treated as 0 if unspecified.
      */
     Editor.prototype.setCursorPos = function (line, ch) {
-        this._codeMirror.setCursor(line, ch);
+        var cm = this._codeMirror;
+        _applyAndRecenter(this, cm.setCursor, arguments);
     };
 
     /**
@@ -745,7 +784,8 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} end
      */
     Editor.prototype.setSelection = function (start, end) {
-        this._codeMirror.setSelection(start, end);
+        var cm = this._codeMirror;
+        _applyAndRecenter(this, cm.setSelection, arguments);
     };
 
     /**
