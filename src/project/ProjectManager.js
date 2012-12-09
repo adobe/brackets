@@ -63,6 +63,7 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
+        NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent");
     
@@ -655,7 +656,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_LOADING_PROJECT,
                     StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
                         StringUtils.htmlEscape(dirEntry.fullPath),
-                        error.code)
+                        error.name)
                 );
             }
         );
@@ -789,7 +790,7 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.htmlEscape(rootPath),
-                            error.code
+                            error.name
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default 
@@ -928,7 +929,7 @@ define(function (require, exports, module) {
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.code)
+                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
                             result.reject();
                         }
@@ -1079,8 +1080,8 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error) {
-                    if ((error.code === FileError.PATH_EXISTS_ERR)
-                            || (error.code === FileError.TYPE_MISMATCH_ERR)) {
+                    if ((error.name === NativeFileError.PATH_EXISTS_ERR)
+                            || (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,
@@ -1088,9 +1089,9 @@ define(function (require, exports, module) {
                                 StringUtils.htmlEscape(data.rslt.name))
                         );
                     } else {
-                        var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
+                        var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                         StringUtils.format(Strings.GENERIC_ERROR, error.code);
+                                         StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
                         var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
                                         StringUtils.htmlEscape(data.rslt.name),
