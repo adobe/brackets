@@ -104,7 +104,7 @@ define({
     "CHOOSE_FOLDER"                     : "Выбрать папку",
 
     "RELEASE_NOTES"                     : "Примечания к выпуску",
-    "NO_UPDATE_TITLE"                   : "обновлен",
+    "NO_UPDATE_TITLE"                   : "Обновления отсутствуют",
     "NO_UPDATE_MESSAGE"                 : "Вы используете последнюю версию {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "Для \"{4}\" {5} - {0} {1} в {2} {3}",
