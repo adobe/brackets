@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        NativeFileError         = require("file/NativeFileError"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
     
     var Encodings               = NativeFileSystem.Encodings;
@@ -122,7 +123,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(error.name).toBe(NativeFileSystem.FileError.NOT_FOUND_ERR);
+                    expect(error.name).toBe(NativeFileError.NOT_FOUND_ERR);
                 });
             });
 
@@ -146,7 +147,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(error.name).toBe(NativeFileSystem.FileError.SECURITY_ERR);
+                    expect(error.name).toBe(NativeFileError.SECURITY_ERR);
                 });
             });
 
@@ -277,7 +278,7 @@ define(function (require, exports, module) {
                     expect(readComplete).toBe(true);
                     expect(statCalled).toBe(true);
                     expect(gotError).toBe(true);
-                    expect(theError.name).toBe(NativeFileSystem.FileError.SECURITY_ERR);
+                    expect(theError.name).toBe(NativeFileError.SECURITY_ERR);
                 });
             });
         });
@@ -338,7 +339,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(errorName).toBe(NativeFileSystem.FileError.NOT_FOUND_ERR);
+                    expect(errorName).toBe(NativeFileError.NOT_FOUND_ERR);
                 });
             });
             
@@ -533,7 +534,7 @@ define(function (require, exports, module) {
                 // fileEntry is null on error
                 runs(function () {
                     expect(fileEntry).toBe(null);
-                    expect(error.name).toBe(NativeFileSystem.FileError.NOT_FOUND_ERR);
+                    expect(error.name).toBe(NativeFileError.NOT_FOUND_ERR);
                 });
             });
 
@@ -564,7 +565,7 @@ define(function (require, exports, module) {
                     expect(fileEntry).toBe(null);
 
                     // errorCallback should be called with PATH_EXISTS_ERR
-                    expect(error.name).toEqual(NativeFileSystem.FileError.PATH_EXISTS_ERR);
+                    expect(error.name).toEqual(NativeFileError.PATH_EXISTS_ERR);
                 });
             });
 
@@ -595,7 +596,7 @@ define(function (require, exports, module) {
                     expect(fileEntry).toBe(null);
 
                     // errorCallback should be called with TYPE_MISMATCH_ERR
-                    expect(error.name).toEqual(NativeFileSystem.FileError.TYPE_MISMATCH_ERR);
+                    expect(error.name).toEqual(NativeFileError.TYPE_MISMATCH_ERR);
                 });
             });
 
@@ -737,7 +738,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(complete).toBeFalsy();
-                    expect(error.name).toBe(NativeFileSystem.FileError.NOT_READABLE_ERR);
+                    expect(error.name).toBe(NativeFileError.NOT_READABLE_ERR);
                 });
             });
 
@@ -772,7 +773,7 @@ define(function (require, exports, module) {
                     function () {
                         return writeComplete
                             && error
-                            && (error.name === NativeFileSystem.FileError.NO_MODIFICATION_ALLOWED_ERR);
+                            && (error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR);
                     },
                     1000
                 );
