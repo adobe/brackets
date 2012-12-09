@@ -101,10 +101,10 @@ define({
     "BUTTON_STOP"                       : "Остановить",
 
     "OPEN_FILE"                         : "Открыть файл",
-    "CHOOSE_FOLDER"                     : "Выбрать каталог",
+    "CHOOSE_FOLDER"                     : "Выбрать папку",
 
     "RELEASE_NOTES"                     : "Примечания к выпуску",
-    "NO_UPDATE_TITLE"                   : "Обновления",
+    "NO_UPDATE_TITLE"                   : "обновлен",
     "NO_UPDATE_MESSAGE"                 : "Вы используете последнюю версию {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "Для \"{4}\" {5} - {0} {1} в {2} {3}",
@@ -264,7 +264,7 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Щелкните здесь для подробностей.",
     "UPDATE_AVAILABLE_TITLE"               : "Доступно обновление",
     "UPDATE_MESSAGE"                       : "Эй, новая сборка {APP_NAME} доступна. Вот некоторые из новых функций:",
-    "GET_IT_NOW"                           : "Получить его сейчас!",
+    "GET_IT_NOW"                           : "Получить сейчас!",
     "PROJECT_SETTINGS_TOOLTIP"             : "Настройки проекта",
     "PROJECT_SETTINGS_TITLE"               : "Настройки проекта для: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Основной URL Интерактивного Предпросмотра",
