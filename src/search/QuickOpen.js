@@ -380,11 +380,9 @@ define(function (require, exports, module) {
         // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
         // (because it's a later handler of the event that just triggered _close()), and that code expects to
         // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
-        // So, to hide the dialog immediately it's only safe to remove using raw DOM APIs:
-        this.modalBar.getRoot()[0].parentNode.removeChild(this.modalBar.getRoot()[0]);
+        // So we wait until after this call chain is complete before actually closing the dialog.
         var self = this;
         setTimeout(function () {
-            // Now that it's safe, call the real jQuery API to clear the metadata & prevent a memory leak
             self.modalBar.close();
         }, 0);
         
