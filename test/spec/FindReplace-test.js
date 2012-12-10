@@ -160,7 +160,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
             });
             
-            it("should Find Next after search bar closed", function () {
+            it("should Find Next after search bar closed, including wraparound", function () {
                 myEditor.setCursorPos(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
@@ -171,8 +171,41 @@ define(function (require, exports, module) {
                 
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
                 
+                // Simple linear Find Next
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
+                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
+                
+                // Wrap around to first result
+                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+            });
+            
+            it("should Find Previous after search bar closed, including wraparound", function () {
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_FIND);
+                
+                enterSearchText("foo");
+                pressEnter();
+                expectSearchBarClosed();
+                
+                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                
+                // Wrap around to last result
+                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
+                
+                // Simple linear Find Previous
+                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
+                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
             });
             
             it("shouldn't Find Next after search bar reopened", function () {
@@ -203,6 +236,7 @@ define(function (require, exports, module) {
                 expectSearchBarOpen();
                 expectCursorAt({line: 0, ch: 0});
             });
+            
         });
         
         
