@@ -83,7 +83,7 @@ define(function (require, exports, module) {
                     if (!err) {
                         successCallback(data);
                     } else if (errorCallback) {
-                        errorCallback(new NativeFileError(NativeFileSystem._nativeToFileError(err)));
+                        errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
                     }
                 }
             );
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
                 if (!err) {
                     successCallback(new NativeFileSystem.FileSystem(path));
                 } else if (errorCallback) {
-                    errorCallback(new NativeFileError(NativeFileSystem._nativeToFileError(err)));
+                    errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
                 }
             });
         },
@@ -110,10 +110,10 @@ define(function (require, exports, module) {
          * @param {!number} nativeErr A brackets.fs error code
          * @return {string} An error name out of the possible NativeFileError.* names
          */
-        _nativeToFileError: function (nativeErr) {
+        _fsErrorToDOMErrorName: function (fsErr) {
             var error;
 
-            switch (nativeErr) {
+            switch (fsErr) {
                 // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
                 // since there aren't specific mappings for these.
             case brackets.fs.ERR_UNKNOWN:
@@ -259,7 +259,7 @@ define(function (require, exports, module) {
                 var metadata = new NativeFileSystem.Metadata(stat.mtime);
                 successCallBack(metadata);
             } else {
-                errorCallback(new NativeFileError(NativeFileSystem._nativeToFileError(err)));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         });
     };
@@ -339,7 +339,7 @@ define(function (require, exports, module) {
             brackets.fs.writeFile(fileEntry.fullPath, data, _FSEncodings.UTF8, function (err) {
 
                 if ((err !== brackets.fs.NO_ERROR) && self.onerror) {
-                    var fileError = new NativeFileError(NativeFileSystem._nativeToFileError(err));
+                    var fileError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err));
 
                     // TODO (issue #241): set readonly FileSaver.error attribute
                     // self._error = fileError;
@@ -396,7 +396,7 @@ define(function (require, exports, module) {
 
         result.done(function () {
             if (fileWriter._err && (errorCallback !== undefined)) {
-                errorCallback(new NativeFileError(NativeFileSystem._nativeToFileError(fileWriter._err)));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(fileWriter._err)));
             } else if (successCallback !== undefined) {
                 successCallback(fileWriter);
             }
@@ -559,7 +559,7 @@ define(function (require, exports, module) {
 
         var createDirectoryError = function (err) {
             if (errorCallback) {
-                errorCallback(new NativeFileError(NativeFileSystem._nativeToFileError(err)));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         };
 
@@ -668,7 +668,7 @@ define(function (require, exports, module) {
 
         var createFileError = function (err) {
             if (errorCallback) {
-                errorCallback(new NativeFileError(NativeFileSystem._nativeToFileError(err)));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         };
 
@@ -763,7 +763,7 @@ define(function (require, exports, module) {
                             }
                             deferred.resolve();
                         } else {
-                            lastError = new NativeFileError(NativeFileSystem._nativeToFileError(statErr));
+                            lastError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(statErr));
                             deferred.reject(lastError);
                         }
                     });
@@ -804,7 +804,7 @@ define(function (require, exports, module) {
                 );
 
             } else { // There was an error reading the initial directory.
-                errorCallback(new NativeFileError(NativeFileSystem._nativeToFileError(err)));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         });
     };
@@ -894,7 +894,7 @@ define(function (require, exports, module) {
             // The target for this event is the FileReader and the data/err result is stored in the FileReader
             fakeEvent.target = self;
             self.result = data;
-            self.error = new NativeFileError(NativeFileSystem._nativeToFileError(err));
+            self.error = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err));
 
             if (err) {
                 self.readyState = self.DONE;
