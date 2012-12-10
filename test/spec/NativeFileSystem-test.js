@@ -63,7 +63,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);
-                    waitsForDone(deferred, "requestNativeFileSystem");
+                    waitsForDone(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     NativeFileSystem.requestNativeFileSystem(drivePath, requestNativeFileSystemSuccessCB);
-                    waitsForDone(deferred, "requestNativeFileSystem");
+                    waitsForDone(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
                         deferred.reject();
                     });
                     
-                    waitsForFail(deferred, "requestNativeFileSystem");
+                    waitsForFail(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
@@ -236,7 +236,7 @@ define(function (require, exports, module) {
                         function () { deferred.reject(); }
                     );
                     
-                    waitsForDone(deferred, "requestNativeFileSystem");
+                    waitsForDone(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
