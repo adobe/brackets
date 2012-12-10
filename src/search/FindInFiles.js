@@ -63,8 +63,9 @@ define(function (require, exports, module) {
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
-        $(".modal-bar .alert-message").remove();
-        
+        $(".modal-bar .message").css("display", "inline-block");
+        $(".modal-bar .error").css("display", "none");
+
         // If query is a regular expression, use it directly
         var isRE = query.match(/^\/(.*)\/(g|i)*$/);
         if (isRE) {
@@ -76,7 +77,10 @@ define(function (require, exports, module) {
             try {
                 return new RegExp(isRE[1], flags);
             } catch (e) {
-                $(".modal-bar").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                $(".modal-bar .message").css("display", "none");
+                $(".modal-bar .error")
+                    .css("display", "inline-block")
+                    .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
@@ -140,7 +144,7 @@ define(function (require, exports, module) {
         // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
         var dialogHTML = Strings.CMD_FIND +
             ": <input type='text' id='findInFilesInput' style='width: 10em'> <span id='findInFilesScope'></span> &nbsp;" +
-            "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>";
+            "<div class='message'><span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
         this.result = new $.Deferred();
         this.modalBar = new ModalBar(dialogHTML, false);
         var $searchField = $("input#findInFilesInput");

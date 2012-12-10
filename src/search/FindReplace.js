@@ -62,11 +62,15 @@ define(function (require, exports, module) {
 
     function parseQuery(query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        $(".modal-bar .alert-message").remove();
+        $(".modal-bar .message").css("display", "inline-block");
+        $(".modal-bar .error").css("display", "none");
         try {
             return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
         } catch (e) {
-            $(".modal-bar").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+            $(".modal-bar .message").css("display", "none");
+            $(".modal-bar .error")
+                .css("display", "inline-block")
+                .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
             return "";
         }
     }
@@ -113,8 +117,8 @@ define(function (require, exports, module) {
     }
     
     var queryDialog = Strings.CMD_FIND +
-            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span>';
+            ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
+            Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -190,8 +194,8 @@ define(function (require, exports, module) {
     }
 
     var replaceQueryDialog = Strings.CMD_REPLACE +
-            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span>';
+            ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
+            Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
     var replacementQueryDialog = Strings.WITH +
             ': <input type="text" style="width: 10em"/>';
     // style buttons to match height/margins/border-radius of text input boxes
