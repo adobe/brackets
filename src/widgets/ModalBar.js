@@ -32,7 +32,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager = require("editor/EditorManager");
+    var EditorManager = require("editor/EditorManager"),
+        KeyEvent      = require("utils/KeyEvent");
 
     /**
      * @constructor
@@ -66,16 +67,16 @@ define(function (require, exports, module) {
             }
         }
         
-        // Preserve scroll position across the editor refresh, adjusting for the height of the modal bar
-        // so the code doesn't appear to shift if possible.
-        var activeEditor = EditorManager.getActiveEditor(),
+        // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
+        // height of the modal bar so the code doesn't appear to shift if possible.
+        var fullEditor = EditorManager.getCurrentFullEditor(),
             scrollPos;
-        if (activeEditor) {
-            scrollPos = activeEditor.getScrollPos();
+        if (fullEditor) {
+            scrollPos = fullEditor.getScrollPos();
         }
         EditorManager.resizeEditor();
-        if (activeEditor) {
-            activeEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this._$root.outerHeight());
+        if (fullEditor) {
+            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + this._$root.outerHeight());
         }
     }
     
@@ -108,16 +109,16 @@ define(function (require, exports, module) {
         
         this._$root.remove();
 
-        // Preserve scroll position across the editor refresh, adjusting for the height of the modal bar
-        // so the code doesn't appear to shift if possible.
-        var activeEditor = EditorManager.getActiveEditor(),
+        // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
+        // height of the modal bar so the code doesn't appear to shift if possible.
+        var fullEditor = EditorManager.getCurrentFullEditor(),
             scrollPos;
-        if (activeEditor) {
-            scrollPos = activeEditor.getScrollPos();
+        if (fullEditor) {
+            scrollPos = fullEditor.getScrollPos();
         }
         EditorManager.resizeEditor();
-        if (activeEditor) {
-            activeEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
+        if (fullEditor) {
+            fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y - barHeight);
         }
         EditorManager.focusEditor();
     };
@@ -126,13 +127,13 @@ define(function (require, exports, module) {
      * If autoClose is set, handles the RETURN/ESC keys in the input field.
      */
     ModalBar.prototype._handleInputKeydown = function (e) {
-        if (e.keyCode === 13 || e.keyCode === 27) {
+        if (e.keyCode === KeyEvent.DOM_VK_RETURN || e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             e.stopPropagation();
             e.preventDefault();
             
             var value = this._getFirstInput().val();
             this.close();
-            $(this).triggerHandler(e.keyCode === 13 ? "closeOk" : "closeCancel", [value]);
+            $(this).triggerHandler(e.keyCode === KeyEvent.DOM_VK_RETURN ? "closeOk" : "closeCancel", [value]);
         }
     };
     
