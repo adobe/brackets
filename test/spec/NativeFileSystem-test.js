@@ -47,7 +47,7 @@ define(function (require, exports, module) {
             runs(function () {
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
                 self.path = SpecRunnerUtils.getTempDirectory();
-                waitsForDone(SpecRunnerUtils.copyPath(testFiles, self.path));
+                waitsForDone(SpecRunnerUtils.copyDirectory(testFiles, self.path));
             });
 
             runs(function () {

@@ -54,7 +54,7 @@ define(function (require, exports, module) {
                 removePrefix    : true
             };
         
-        SpecRunnerUtils.copyPath(testPath, tempPath, options).done(function () {
+        SpecRunnerUtils.copyDirectory(testPath, tempPath, options).done(function () {
             spec.infos = infos;
             result.resolve();
         }).fail(function () {
