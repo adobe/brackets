@@ -40,26 +40,17 @@ define(function (require, exports, module) {
         StringUtils             = require("utils/StringUtils");
     
     var buildInfo;
-    
-    function _handleShowExtensionsFolder() {
-        brackets.app.showExtensionsFolder(
-            FileUtils.convertToNativePath(decodeURI(window.location.href)),
-            function (err) {
-                // Ignore errors
-            }
-        );
-    }
-    
+
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
-
-    function _handleAboutDialog() {
-        if (buildInfo) {
-            $("#about-build-number").text(" (" + buildInfo + ")");
+    
+    function _handleHowToUseBrackets() {
+        if (!brackets.config.how_to_use_url) {
+            return;
         }
         
-        Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+        NativeApp.openURLInDefaultBrowser(brackets.config.how_to_use_url);
     }
 
     function _handleForum() {
@@ -69,7 +60,48 @@ define(function (require, exports, module) {
 
         NativeApp.openURLInDefaultBrowser(brackets.config.forum_url);
     }
+
+    function _handleReleaseNotes() {
+        if (!brackets.config.release_notes_url) {
+            return;
+        }
+
+        NativeApp.openURLInDefaultBrowser(brackets.config.release_notes_url);
+    }
+
+    function _handleReportAnIssue() {
+        if (!brackets.config.report_issue_url) {
+            return;
+        }
+
+        NativeApp.openURLInDefaultBrowser(brackets.config.report_issue_url);
+    }
     
+    function _handleShowExtensionsFolder() {
+        brackets.app.showExtensionsFolder(
+            FileUtils.convertToNativePath(decodeURI(window.location.href)),
+            function (err) {
+                // Ignore errors
+            }
+        );
+    }
+
+    function _handleTwitter() {
+        if (!brackets.config.twitter_url) {
+            return;
+        }
+
+        NativeApp.openURLInDefaultBrowser(brackets.config.twitter_url);
+    }
+
+    function _handleAboutDialog() {
+        if (buildInfo) {
+            $("#about-build-number").text(" (" + buildInfo + ")");
+        }
+
+        Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+    }
+
     // Read "build number" SHAs off disk immediately at load time, instead
     // of later, when they may have been updated to a different version
     BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
@@ -77,9 +109,13 @@ define(function (require, exports, module) {
         sha = sha ? sha.substr(0, 9) : "";
         buildInfo = StringUtils.format("{0} {1}", branch, sha).trim();
     });
-    
-    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
+
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
+    CommandManager.register(Strings.CMD_HOW_TO_USE_BRACKETS,    Commands.HELP_HOW_TO_USE_BRACKETS,  _handleHowToUseBrackets);
     CommandManager.register(Strings.CMD_FORUM,                  Commands.HELP_FORUM,                _handleForum);
+    CommandManager.register(Strings.CMD_RELEASE_NOTES,          Commands.HELP_RELEASE_NOTES,        _handleReleaseNotes);
+    CommandManager.register(Strings.CMD_REPORT_AN_ISSUE,        Commands.HELP_REPORT_AN_ISSUE,      _handleReportAnIssue);
+    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
+    CommandManager.register(Strings.CMD_TWITTER,                Commands.HELP_TWITTER,              _handleTwitter);
     CommandManager.register(Strings.CMD_ABOUT,                  Commands.HELP_ABOUT,                _handleAboutDialog);
 });

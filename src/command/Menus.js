@@ -960,15 +960,28 @@ define(function (require, exports, module) {
          * Help menu
          */
         menu = addMenu(Strings.HELP_MENU, AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
         menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
-
+        if (brackets.config.how_to_use_url) {
+            menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
+        }
         if (brackets.config.forum_url) {
-            menu.addMenuDivider();
             menu.addMenuItem(Commands.HELP_FORUM);
+        }
+        if (brackets.config.release_notes_url) {
+            menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
+        }
+        if (brackets.config.report_issue_url) {
+            menu.addMenuItem(Commands.HELP_REPORT_AN_ISSUE);
         }
 
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
+
+
+        menu.addMenuDivider();
+        if (brackets.config.twitter_url) {
+            menu.addMenuItem(Commands.HELP_TWITTER);
+        }
         menu.addMenuItem(Commands.HELP_ABOUT);
 
 
