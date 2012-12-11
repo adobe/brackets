@@ -424,16 +424,18 @@ define(function (require, exports, module) {
             var keyBinding;
             results = [];
             
-            keyBindings.forEach(function (keyBindingRequest) {
-                                            
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
                 }
-                if(keyBindingRequest.platform && keyBindingRequest.platform == "win") {
-                    keyBindingRequest.platform = "linux";
+                
+                // if running on linux, map windows-specific keybindings to linux
+                if (brackets.platform === "linux" &&
+                        keyBindingRequest.platform &&
+                        keyBindingRequest.platform === "win") {
+                    keyBindingRequest.platform = brackets.platform;
                     addSingleBinding(keyBindingRequest);
                 }
             });
