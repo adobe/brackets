@@ -40,6 +40,40 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils");
     
     
+    var modeSettings = {
+        css: {
+            blockComment: {
+                prefix: "/*",
+                suffix: "*/"
+            }
+        },
+        html: {
+            blockComment: {
+                prefix: "<!--",
+                suffix: "-->"
+            }
+        },
+        less: {
+            blockComment: {
+                prefix: "/*",
+                suffix: "*/"
+            },
+            lineComment: {
+                prefix: "//",
+            }
+        },
+        javascript: {
+            blockComment: {
+                prefix: "/*",
+                suffix: "*/"
+            },
+            lineComment: {
+                prefix: "//"
+            }
+        }
+    };
+
+    
     /**
      * List of constants
      */
@@ -55,14 +89,15 @@ define(function (require, exports, module) {
      * @param {!number} endLine - valid line inside the document
      * @return {boolean} true if there is at least one uncommented line
      */
-    function _containsUncommented(editor, startLine, endLine) {
+    function _containsUncommented(editor, startLine, endLine, prefix) {
+        var lineExp = new RegExp("^\\s*" + StringUtils.regexEscape(prefix));
         var containsUncommented = false;
         var i;
         var line;
         for (i = startLine; i <= endLine; i++) {
             line = editor.document.getLine(i);
             // A line is commented out if it starts with 0-N whitespace chars, then "//"
-            if (!line.match(/^\s*\/\//) && line.match(/\S/)) {
+            if (!line.match(lineExp) && line.match(/\S/)) {
                 containsUncommented = true;
                 break;
             }
@@ -75,11 +110,10 @@ define(function (require, exports, module) {
      * and cursor position. Applies to currently focused Editor.
      * 
      * If all non-whitespace lines are already commented out, then we uncomment; otherwise we comment
-     * out. Commenting out adds "//" to at column 0 of every line. Uncommenting removes the first "//"
+     * out. Commenting out adds prefix to at column 0 of every line. Uncommenting removes the first prefix
      * on each line (if any - empty lines might not have one).
      */
-    function lineCommentSlashSlash(editor) {
-        
+    function lineCommentPrefix(editor, prefix) {
         var doc = editor.document;
         var sel = editor.getSelection();
         var startLine = sel.start.line;
@@ -96,7 +130,7 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var containsUncommented = _containsUncommented(editor, startLine, endLine);
+        var containsUncommented = _containsUncommented(editor, startLine, endLine, prefix);
         var i;
         var line;
         var updateSelection = false;
@@ -107,7 +141,7 @@ define(function (require, exports, module) {
             if (containsUncommented) {
                 // Comment out - prepend "//" to each line
                 for (i = startLine; i <= endLine; i++) {
-                    doc.replaceRange("//", {line: i, ch: 0});
+                    doc.replaceRange(prefix, {line: i, ch: 0});
                 }
                 
                 // Make sure selection includes "//" that was added at start of range
@@ -119,9 +153,9 @@ define(function (require, exports, module) {
                 // Uncomment - remove first "//" on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
                     line = doc.getLine(i);
-                    var commentI = line.indexOf("//");
+                    var commentI = line.indexOf(prefix);
                     if (commentI !== -1) {
-                        doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + 2});
+                        doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefix.length});
                     }
                 }
             }
@@ -209,7 +243,7 @@ define(function (require, exports, module) {
      * @param {!String} suffix
      * @param {boolean=} slashComment - true if the mode also supports "//" comments
      */
-    function blockCommentPrefixSuffix(editor, prefix, suffix, slashComment) {
+    function blockCommentPrefixSuffix(editor, prefix, suffix, linePrefix) {
         
         var doc            = editor.document,
             sel            = editor.getSelection(),
@@ -218,7 +252,7 @@ define(function (require, exports, module) {
             endCtx         = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
             prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
             suffixExp      = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
-            lineExp        = new RegExp("^\/\/"),
+            lineExp        = linePrefix ? new RegExp("^" + StringUtils.regexEscape(linePrefix)) : null,
             prefixPos      = null,
             suffixPos      = null,
             canComment     = false,
@@ -234,7 +268,7 @@ define(function (require, exports, module) {
         }
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
-        if (slashComment && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp))) {
+        if (lineExp && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp))) {
             var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
             var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
             
@@ -256,7 +290,7 @@ define(function (require, exports, module) {
                 }
                 
                 // Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, endLine)) {
+                if (!_containsUncommented(editor, sel.start.line, endLine, linePrefix)) {
                     lineUncomment = true;
                 
                 // Block-comment in all the other cases
@@ -328,7 +362,7 @@ define(function (require, exports, module) {
             return;
         
         } else if (lineUncomment) {
-            lineCommentSlashSlash(editor);
+            lineCommentPrefix(editor, linePrefix);
         
         } else {
             doc.batchOperation(function () {
@@ -438,12 +472,11 @@ define(function (require, exports, module) {
         result        = result && _findNextBlockComment(ctx, selEnd, prefixExp);
         
         if (className === "comment" || result || isLineSelection) {
-            blockCommentPrefixSuffix(editor, prefix, suffix, false);
-        
+            blockCommentPrefixSuffix(editor, prefix, suffix);
         } else {
             // Set the new selection and comment it
             editor.setSelection(selStart, selEnd);
-            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+            blockCommentPrefixSuffix(editor, prefix, suffix);
             
             // Restore the old selection taking into account the prefix change
             if (isMultipleLine) {
@@ -468,15 +501,13 @@ define(function (require, exports, module) {
             return;
         }
         
-        var mode = editor.getModeForSelection();
-        
-        if (mode === "javascript" || mode === "less") {
-            blockCommentPrefixSuffix(editor, "/*", "*/", true);
-        } else if (mode === "css") {
-            blockCommentPrefixSuffix(editor, "/*", "*/", false);
-        } else if (mode === "html") {
-            blockCommentPrefixSuffix(editor, "<!--", "-->", false);
+        var mode     = editor.getModeForSelection(),
+            settings = modeSettings[mode];
+        if (!settings || !settings.blockComment) {
+            return;
         }
+        
+        blockCommentPrefixSuffix(editor, settings.blockComment.prefix, settings.blockComment.suffix, settings.lineComment ? settings.lineComment.prefix : null);
     }
     
     /**
@@ -489,15 +520,17 @@ define(function (require, exports, module) {
             return;
         }
         
-        var mode = editor.getModeForSelection();
+        var mode     = editor.getModeForSelection(),
+            settings = modeSettings[mode];
         
-        // Currently we only support languages with "//" commenting
-        if (mode === "javascript" || mode === "less") {
-            lineCommentSlashSlash(editor);
-        } else if (mode === "css") {
-            lineCommentPrefixSuffix(editor, "/*", "*/");
-        } else if (mode === "html") {
-            lineCommentPrefixSuffix(editor, "<!--", "-->");
+        if (!settings) {
+            return;
+        }
+        
+        if (settings.lineComment) {
+            lineCommentPrefix(editor, settings.lineComment.prefix);
+        } else if (settings.blockComment) {
+            lineCommentPrefixSuffix(editor, settings.blockComment.prefix, settings.blockComment.suffix);
         }
     }
     
@@ -733,10 +766,11 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
     CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
-
     CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             handleUndo);
     CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             handleRedo);
     CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
     CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
     CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
+    
+    exports.modeSettings = modeSettings;
 });
