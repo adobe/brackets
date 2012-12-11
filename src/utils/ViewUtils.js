@@ -302,13 +302,18 @@ define(function (require, exports, module) {
             elementOffset = $element.offset();
 
         // scroll minimum amount
-        var bottomDelta = (elementOffset.top + $element.height()) - (viewOffset.top + $view.height());
-        if (bottomDelta > 0) {
+        var delta = (elementOffset.top + $element.height()) - (viewOffset.top + $view.height());
+        
+        if (delta > 0) {
             // below viewport
-            $view.scrollTop($view.scrollTop() + bottomDelta);
-        } else if (elementOffset.top <= viewOffset.top) {
-            // above viewport
-            $view.scrollTop($view.scrollTop() - (viewOffset.top - elementOffset.top));
+            $view.scrollTop($view.scrollTop() + delta);
+        } else {
+            delta = viewOffset.top - elementOffset.top;
+            
+            if (delta > 0) {
+                // above viewport
+                $view.scrollTop($view.scrollTop() - delta);
+            }
         }
 
         if (scrollHorizontal) {
