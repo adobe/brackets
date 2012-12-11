@@ -168,7 +168,7 @@ define(function (require, exports, module) {
      * @param {!Editor} hostEditor
      */
     InlineColorEditor.prototype.load = function (hostEditor) {
-        InlineColorEditor.prototype.parentClass.load.call(this, hostEditor);
+        InlineColorEditor.prototype.parentClass.load.apply(this, arguments);
         
         // Create color picker control
         var allColorsInDoc = this.hostEditor.document.getText().match(InlineColorEditor.COLOR_REGEX);
@@ -186,7 +186,7 @@ define(function (require, exports, module) {
      * Perform sizing & focus once we've been added to Editor's DOM
      */
     InlineColorEditor.prototype.onAdded = function () {
-        InlineColorEditor.prototype.parentClass.onAdded.call(this);
+        InlineColorEditor.prototype.parentClass.onAdded.apply(this, arguments);
         
         var doc = this.hostEditor.document;
         doc.addRef();
@@ -201,7 +201,7 @@ define(function (require, exports, module) {
      * Called whenever the inline widget is closed, whether automatically or explicitly
      */
     InlineColorEditor.prototype.onClosed = function () {
-        InlineColorEditor.prototype.parentClass.onClosed.call(this);
+        InlineColorEditor.prototype.parentClass.onClosed.apply(this, arguments);
 
         if (this._startBookmark) {
             this._startBookmark.clear();

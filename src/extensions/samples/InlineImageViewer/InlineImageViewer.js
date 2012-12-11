@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     InlineImageViewer.prototype.$image = null;
     
     InlineImageViewer.prototype.load = function (hostEditor) {
-        InlineImageViewer.prototype.parentClass.load.call(this, hostEditor);
+        InlineImageViewer.prototype.parentClass.load.apply(this, arguments);
         
         this.$wrapperDiv = $(inlineEditorTemplate);
         
@@ -70,6 +70,7 @@ define(function (require, exports, module) {
     };
     
     InlineImageViewer.prototype.onAdded = function () {
+        InlineImageViewer.prototype.parentClass.onAdded.apply(this, arguments);
         window.setTimeout(this._sizeEditorToContent.bind(this));
     };
     

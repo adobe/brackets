@@ -113,7 +113,7 @@ define(function (require, exports, module) {
      * 
      */
     MultiRangeInlineEditor.prototype.load = function (hostEditor) {
-        MultiRangeInlineEditor.prototype.parentClass.load.call(this, hostEditor);
+        MultiRangeInlineEditor.prototype.parentClass.load.apply(this, arguments);
         
         // Container to hold all editors
         var self = this;
@@ -320,7 +320,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype.onClosed = function () {
         // Superclass onClosed() destroys editor
-        MultiRangeInlineEditor.prototype.parentClass.onClosed.call(this);
+        MultiRangeInlineEditor.prototype.parentClass.onClosed.apply(this, arguments);
         
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
@@ -504,6 +504,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
         // Size the code mirror editors height to the editor content
+        // We use "call" rather than "apply" here since ensureVisibility was an argument added just for this override.
         MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related ranges list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
@@ -519,7 +520,7 @@ define(function (require, exports, module) {
      * @override
      */
     MultiRangeInlineEditor.prototype.refresh = function () {
-        MultiRangeInlineEditor.prototype.parentClass.refresh.call(this);
+        MultiRangeInlineEditor.prototype.parentClass.refresh.apply(this, arguments);
         this.sizeInlineWidgetToContents(true);
         this._updateRelatedContainer();
         this.editors.forEach(function (editor, j, arr) {
