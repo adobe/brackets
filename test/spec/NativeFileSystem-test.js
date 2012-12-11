@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     NativeFileSystem.requestNativeFileSystem(drivePath, requestNativeFileSystemSuccessCB);
-                    waitsForDone(deferred, "requestNativeFileSystem", 2000);
+                    waitsForDone(deferred, "requestNativeFileSystem", 10000);
                 });
 
                 runs(function () {
