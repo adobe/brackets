@@ -43,8 +43,17 @@ define(function (require, exports, module) {
         var _err;
 
         beforeEach(function () {
-            this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
-            this.file1content = "Here is file1";
+            var self = this;
+
+            runs(function () {
+                var testFiles = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
+                self.path = SpecRunnerUtils.getTempDirectory();
+                waitsForDone(SpecRunnerUtils.copyPath(testFiles, self.path));
+            });
+
+            runs(function () {
+                self.file1content = "Here is file1";
+            });
         });
 
         describe("Reading a directory", function () {
@@ -64,7 +73,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);
-                    waitsForDone(deferred, "requestNativeFileSystem");
+                    waitsForDone(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
@@ -99,7 +108,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     NativeFileSystem.requestNativeFileSystem(drivePath, requestNativeFileSystemSuccessCB);
-                    waitsForDone(deferred, "requestNativeFileSystem");
+                    waitsForDone(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
@@ -119,7 +128,7 @@ define(function (require, exports, module) {
                         deferred.reject();
                     });
                     
-                    waitsForFail(deferred, "requestNativeFileSystem");
+                    waitsForFail(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
@@ -237,7 +246,7 @@ define(function (require, exports, module) {
                         function () { deferred.reject(); }
                     );
                     
-                    waitsForDone(deferred, "requestNativeFileSystem");
+                    waitsForDone(deferred, "requestNativeFileSystem", 2000);
                 });
 
                 runs(function () {
@@ -419,7 +428,6 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 var nfs = null;
-                var chmodDone = false;
 
                 runs(function () {
                     NativeFileSystem.requestNativeFileSystem(this.path, function (fs) {
@@ -432,31 +440,19 @@ define(function (require, exports, module) {
                     this.nfs = nfs;
                 });
 
-                // set read-only permissions
+                // set permissions
                 runs(function () {
-                    brackets.fs.chmod(this.path + "/cant_read_here.txt", parseInt("222", 8), function (err) {
-                        _err = err;
-                        chmodDone = true;
-                    });
-                    brackets.fs.chmod(this.path + "/cant_write_here.txt", parseInt("444", 8), function (err) {
-                        _err = err;
-                        chmodDone = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.chmod(this.path + "/cant_read_here.txt", "222"));
+                    waitsForDone(SpecRunnerUtils.chmod(this.path + "/cant_write_here.txt", "444"));
                 });
-                waitsFor(function () { return chmodDone && (_err === brackets.fs.NO_ERROR); }, 1000);
             });
 
             afterEach(function () {
-                var chmodDone = false;
-
-                // restore permissions for git
+                // restore permissions
                 runs(function () {
-                    brackets.fs.chmod(this.path + "/cant_read_here.txt", parseInt("777", 8), function (err) {
-                        _err = err;
-                        chmodDone = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.chmod(this.path + "/cant_read_here.txt", "644"));
+                    waitsForDone(SpecRunnerUtils.chmod(this.path + "/cant_write_here.txt", "644"));
                 });
-                waitsFor(function () { return chmodDone && (_err === brackets.fs.NO_ERROR); }, 1000);
             });
 
             it("should create new, zero-length files", function () {

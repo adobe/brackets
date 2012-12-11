@@ -181,7 +181,7 @@ define(function (require, exports, module) {
      * is followed by a colon. Callers should explicitly test result with isNaN()
      * 
      * @param {string} query string to extract line number from
-     * @returns {number} line number. Returns NaN to indicate no line numbeer was found
+     * @returns {number} line number. Returns NaN to indicate no line number was found
      */
     function extractLineNumber(query) {
         // only match : at beginning of query for now
@@ -351,12 +351,30 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Checks if the given query string is a line number query that is either empty (the number hasn't been typed yet)
+     * or is a valid line number within the visible range of the current full editor.
+     * @param {string} query The query to check.
+     * @return {boolean} true if the given query is a valid line number query.
+     */
+    QuickNavigateDialog.prototype._isValidLineNumberQuery = function (query) {
+        // Empty query returns NaN from extractLineNumber, but we want to treat it as valid for UI purposes.
+        if (query === ":") {
+            return true;
+        }
+        
+        var lineNum = extractLineNumber(query),
+            editor = EditorManager.getCurrentFullEditor();
+        
+        // We could just use 0 and lineCount() here, but in future we might want this logic to work for inline editors as well.
+        return (!isNaN(lineNum) && editor && lineNum >= editor.getFirstVisibleLine() && lineNum <= editor.getLastVisibleLine());
+    };
     
     /**
      * Give visual clue when there are no results
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (results) {
-        var isNoResults = (results.length === 0 && isNaN(extractLineNumber(this.$searchField.val())));
+        var isNoResults = (results.length === 0 && !this._isValidLineNumberQuery(this.$searchField.val()));
         this.$searchField.toggleClass("no-results", isNoResults);
     };
 
