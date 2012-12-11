@@ -95,7 +95,7 @@ define(function (require, exports, module) {
         
         this._selectedRangeIndex = -1;
     }
-    MultiRangeInlineEditor.prototype = new InlineTextEditor();
+    MultiRangeInlineEditor.prototype = Object.create(InlineTextEditor.prototype);
     MultiRangeInlineEditor.prototype.constructor = MultiRangeInlineEditor;
     MultiRangeInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
     
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
      * 
      */
     MultiRangeInlineEditor.prototype.load = function (hostEditor) {
-        this.parentClass.load.call(this, hostEditor);
+        MultiRangeInlineEditor.prototype.parentClass.load.apply(this, arguments);
         
         // Container to hold all editors
         var self = this;
@@ -320,7 +320,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype.onClosed = function () {
         // Superclass onClosed() destroys editor
-        this.parentClass.onClosed.call(this);
+        MultiRangeInlineEditor.prototype.parentClass.onClosed.apply(this, arguments);
         
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
@@ -416,17 +416,6 @@ define(function (require, exports, module) {
 
         // Add extra padding to the right edge of the widget to account for the range list.
         this.$htmlContent.css("padding-right", this.$relatedContainer.outerWidth() + "px");
-        
-        // Set the minimum width of the widget (which doesn't include the padding) to the width
-        // of CodeMirror's linespace, so that the total width will be at least as large as the
-        // width of the host editor's code plus the padding for the range list. We need to do this
-        // rather than just setting min-width to 100% because adding padding for the range list
-        // actually pushes out the width of the container, so we would end up continuously
-        // growing the overall width.
-        // This is a bit of a hack since it relies on knowing some detail about the innards of CodeMirror.
-        var lineSpace = this.hostEditor._getLineSpaceElement(),
-            minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + lineSpace.scrollWidth;
-        this.$htmlContent.css("min-width", minWidth + "px");
     };
     
     /**
@@ -476,7 +465,7 @@ define(function (require, exports, module) {
         // Ignore when the editor's content got lost due to a deleted file
         if (cause && cause.type === "deleted") { return; }
         // Else yield to the parent's implementation
-        return this.parentClass._onLostContent.apply(this, arguments);
+        return MultiRangeInlineEditor.prototype.parentClass._onLostContent.apply(this, arguments);
     };
 
     /**
@@ -515,7 +504,8 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
         // Size the code mirror editors height to the editor content
-        this.parentClass.sizeInlineWidgetToContents.call(this, force);
+        // We use "call" rather than "apply" here since ensureVisibility was an argument added just for this override.
+        MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related ranges list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
         this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
@@ -530,6 +520,7 @@ define(function (require, exports, module) {
      * @override
      */
     MultiRangeInlineEditor.prototype.refresh = function () {
+        MultiRangeInlineEditor.prototype.parentClass.refresh.apply(this, arguments);
         this.sizeInlineWidgetToContents(true);
         this._updateRelatedContainer();
         this.editors.forEach(function (editor, j, arr) {
@@ -542,7 +533,6 @@ define(function (require, exports, module) {
      * @returns {MultiRangeInlineEditor}
      */
     function _getFocusedMultiRangeInlineEditor() {
-        
         var focusedMultiRangeInlineEditor = null,
             result = EditorManager.getFocusedInlineWidget();
         
