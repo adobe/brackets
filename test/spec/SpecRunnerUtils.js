@@ -46,6 +46,28 @@ define(function (require, exports, module) {
         nfs;
     
     /**
+     * Resolves a path string to a FileEntry or DirectoryEntry
+     * @param {!string} path Path to a file or directory
+     * @return {$.Promise} A promise resolved when the file/directory is found or
+     *     rejected when any error occurs.
+     */
+    function resolveNativeFileSystemPath(path) {
+        var deferred = new $.Deferred();
+        
+        NativeFileSystem.resolveNativeFileSystemPath(
+            path,
+            function success(entry) {
+                deferred.resolve(entry);
+            },
+            function error(domError) {
+                deferred.reject();
+            }
+        );
+        
+        return deferred.promise();
+    }
+    
+    /**
      * Get or create a NativeFileSystem rooted at the system root.
      * @return {$.Promise} A promise resolved when the native file system is found or rejected when an error occurs.
      */
@@ -56,12 +78,7 @@ define(function (require, exports, module) {
             deferred.resolve(nfs.root);
         }
         
-        NativeFileSystem.requestNativeFileSystem("/", function success(nativeFileSystem) {
-            nfs = nativeFileSystem;
-            deferred.resolve(nfs.root);
-        }, function error(err) {
-            deferred.reject();
-        });
+        resolveNativeFileSystemPath("/").pipe(deferred.resolve, deferred.reject);
         
         return deferred.promise();
     }
@@ -485,7 +502,7 @@ define(function (require, exports, module) {
     
     /**
      * Copy a file source path to a destination
-     * @param {!string} source Path for the source file to copy
+     * @param {!FileEntry} source Entry for the source file to copy
      * @param {!string} destination Destination path to copy the source file
      * @param {?{parseOffsets:boolean}} options parseOffsets allows optional
      *     offset markup parsing. File is written to the destination path
@@ -494,7 +511,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise resolved when the file is copied to the
      *     destination.
      */
-    function copyFile(source, destination, options) {
+    function copyFileEntry(source, destination, options) {
         options = options || {};
         
         var deferred = new $.Deferred();
@@ -526,8 +543,31 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Copy a directory source path to a destination
-     * @param {!string} source Path for the source directory to copy
+     * Copy a file source path to a destination
+     * @param {!string} source Path for the source file to copy
+     * @param {!string} destination Destination path to copy the source file
+     * @param {?{parseOffsets:boolean}} options parseOffsets allows optional
+     *     offset markup parsing. File is written to the destination path
+     *     without offsets. Offset data is passed to the doneCallbacks of the
+     *     promise.
+     * @return {$.Promise} A promise resolved when the file is copied to the
+     *     destination.
+     */
+    function copyFilePath(source, destination, options) {
+        var deferred = new $.Deferred();
+        
+        resolveNativeFileSystemPath(source).done(function (entry) {
+            copyFileEntry(entry, destination, options).pipe(deferred.resolve, deferred.reject);
+        }).fail(function () {
+            deferred.reject();
+        });
+        
+        return deferred.promise();
+    }
+    
+    /**
+     * Copy a directory source to a destination
+     * @param {!DirectoryEntry} source Entry for the source directory to copy
      * @param {!string} destination Destination path to copy the source directory
      * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
      *     parseOffsets - allows optional offset markup parsing. File is written to the
@@ -542,7 +582,7 @@ define(function (require, exports, module) {
      *     contents are copied to the destination or rejected immediately
      *     upon the first error.
      */
-    function copyDirectory(source, destination, options) {
+    function copyDirectoryEntry(source, destination, options) {
         options = options || {};
         options.infos = options.infos || {};
         
@@ -552,7 +592,7 @@ define(function (require, exports, module) {
         
         // create the destination folder
         brackets.fs.makedir(destination, parseInt("644", 8), function callback(err) {
-            if (err) {
+            if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
                 deferred.reject();
                 return;
             }
@@ -571,9 +611,9 @@ define(function (require, exports, module) {
                             promise;
                         
                         if (child.isDirectory) {
-                            promise = copyDirectory(child, childDestination, options);
+                            promise = copyDirectoryEntry(child, childDestination, options);
                         } else {
-                            promise = copyFile(child, childDestination, options);
+                            promise = copyFileEntry(child, childDestination, options);
                             
                             if (parseOffsets) {
                                 // save offset data for each file path
@@ -586,15 +626,6 @@ define(function (require, exports, module) {
                                 });
                             }
                         }
-                            
-                        // remove destination path prefix
-                        if (removePrefix && options.infos) {
-                            var shortKey;
-                            Object.keys(options.infos).forEach(function (key) {
-                                shortKey = key.substr(destination.length + 1);
-                                options.infos[shortKey] = options.infos[key];
-                            });
-                        }
                         
                         return promise;
                     },
@@ -603,6 +634,46 @@ define(function (require, exports, module) {
                 
                 copyChildrenPromise.pipe(deferred.resolve, deferred.reject);
             });
+        });
+
+        deferred.always(function () {               
+            // remove destination path prefix
+            if (removePrefix && options.infos) {
+                var shortKey;
+                Object.keys(options.infos).forEach(function (key) {
+                    shortKey = key.substr(destination.length + 1);
+                    options.infos[shortKey] = options.infos[key];
+                });
+            }
+        })
+        
+        return deferred.promise();
+    }
+    
+    /**
+     * Copy a directory source path to a destination
+     * @param {!string} source Path for the source directory to copy
+     * @param {!string} destination Destination path to copy the source directory
+     * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
+     *     parseOffsets - allows optional offset markup parsing. File is written to the
+     *       destination path without offsets. Offset data is passed to the
+     *       doneCallbacks of the promise.
+     *     infos - an optional Object used when parseOffsets is true. Offset
+     *       information is attached here, indexed by the file destination path.
+     *     removePrefix - When parseOffsets is true, set removePrefix true
+     *       to add a new key to the infos array that drops the destination
+     *       path root.
+     * @return {$.Promise} A promise resolved when the directory and all it's
+     *     contents are copied to the destination or rejected immediately
+     *     upon the first error.
+     */
+    function copyDirectoryPath(source, destination, options) {
+        var deferred = new $.Deferred();
+        
+        resolveNativeFileSystemPath(source).done(function (entry) {
+            copyDirectoryEntry(entry, destination, options).pipe(deferred.resolve, deferred.reject);
+        }).fail(function () {
+            deferred.reject();
         });
         
         return deferred.promise();
@@ -751,8 +822,10 @@ define(function (require, exports, module) {
     exports.openProjectFiles                = openProjectFiles;
     exports.toggleQuickEditAtOffset         = toggleQuickEditAtOffset;
     exports.createTextFile                  = createTextFile;
-    exports.copyDirectory                   = copyDirectory;
-    exports.copyFile                        = copyFile;
+    exports.copyDirectoryEntry              = copyDirectoryEntry;
+    exports.copyDirectoryPath               = copyDirectoryPath;
+    exports.copyFileEntry                   = copyFileEntry;
+    exports.copyFilePath                    = copyFilePath;
     exports.deletePath                      = deletePath;
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
