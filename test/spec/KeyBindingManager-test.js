@@ -60,11 +60,11 @@ define(function (require, exports, module) {
         var platform = brackets.platform;
         
         beforeEach(function () {
+            KeyBindingManager._reset();
             brackets.platform = "test";
         });
         
         afterEach(function () {
-            KeyBindingManager._reset();
             brackets.platform = platform;
         });
 

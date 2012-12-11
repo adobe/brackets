@@ -211,6 +211,14 @@ define(function main(require, exports, module) {
                 }
             });
         }
+        
+        // Redraw highlights when window gets focus. This ensures that the highlights
+        // will be in sync with any DOM changes that may have occurred.
+        $(window).focus(function () {
+            if (Inspector.connected() && config.highlight) {
+                LiveDevelopment.redrawHighlight();
+            }
+        });
     }
     
     // init prefs

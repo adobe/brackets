@@ -32,8 +32,7 @@ define(function (require, exports, module) {
         KeyBindingManager,
         Menus,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        StringsUtils        = require("utils/StringUtils"),
-        Strings             = require("strings");
+        KeyEvent            = require("utils/KeyEvent");
 
 
 
@@ -696,7 +695,7 @@ define(function (require, exports, module) {
                 expect($menus.length).toBe(1);
 
                 // close the context menu by simulating Esc key
-                var key = 27,   // Esc key
+                var key = KeyEvent.DOM_VK_ESCAPE,
                     element = $menus[0];
                 SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 

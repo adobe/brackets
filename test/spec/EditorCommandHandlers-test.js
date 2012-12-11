@@ -29,11 +29,9 @@ define(function (require, exports, module) {
     
     var Editor                = require("editor/Editor").Editor,
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
-        EditorManager         = require("editor/EditorManager"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        EditorUtils           = require("editor/EditorUtils");
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils");
 
     describe("EditorCommandHandlers", function () {
         

@@ -128,8 +128,8 @@ define(function (require, exports, module) {
 
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
-        NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
-            dirEntry.createReader().readEntries(function (entries) {
+        NativeFileSystem.requestNativeFileSystem(stringsPath, function (fs) {
+            fs.root.createReader().readEntries(function (entries) {
 
                 var $activeLanguage,
                     $submit,
