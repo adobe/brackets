@@ -425,10 +425,16 @@ define(function (require, exports, module) {
             results = [];
             
             keyBindings.forEach(function (keyBindingRequest) {
+                                            
+            keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
+                }
+                if(keyBindingRequest.platform && keyBindingRequest.platform == "win") {
+                    keyBindingRequest.platform = "linux";
+                    addSingleBinding(keyBindingRequest);
                 }
             });
         } else {
