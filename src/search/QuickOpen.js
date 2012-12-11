@@ -93,8 +93,7 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter) {
-        
+    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter) {        
         this.name = name;
         this.fileTypes = fileTypes;
         this.done = done;
@@ -156,8 +155,19 @@ define(function (require, exports, module) {
      */
     function QuickNavigateDialog() {
         this.$searchField = undefined; // defined when showDialog() is called
-        this._handleFilter = this._handleFilter.bind(this);
-        this._handleResultsFormatter = this._handleResultsFormatter.bind(this);
+        
+        // Bind event handlers
+        this._handleItemSelect = this._handleItemSelect.bind(this);
+        this._handleItemFocus = this._handleItemFocus.bind(this);
+        this._handleKeyUp = this._handleKeyUp.bind(this);
+        this._handleKeyDown = this._handleKeyDown.bind(this);
+        this._handleResultsReady = this._handleResultsReady.bind(this);
+        this._handleBlur = this._handleBlur.bind(this);
+        this._handleDocumentMouseDown = this._handleDocumentMouseDown.bind(this);
+        
+        // Bind callbacks from smart-autocomplete
+        this._filterCallback = this._filterCallback.bind(this);
+        this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
     }
 
     /**
@@ -218,10 +228,10 @@ define(function (require, exports, module) {
         }
         
         // Smart Autocomplete uses this assumption internally: index of DOM node in results list container
-        // exactly matches index of search result in list returned by _handleFilter()
+        // exactly matches index of search result in list returned by _filterCallback()
         var index = $(domItem).index();
         
-        // This is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
+        // This is just the last return value of _filterCallback(), which smart autocomplete helpfully caches
         var lastFilterResult = $("input#quickOpenSearch").data("smart-autocomplete").rawResults;
         return lastFilterResult[index];
     }
@@ -234,7 +244,7 @@ define(function (require, exports, module) {
      * that may have not matched anything in in the list, but may have information
      * for carrying out an action (e.g. go to line).
      */
-    QuickNavigateDialog.prototype._handleItemSelect = function (selectedDOMItem) {
+    QuickNavigateDialog.prototype._handleItemSelect = function (e, selectedDOMItem) {
 
         // This is a work-around to select first item when a selection event occurs
         // (usually from pressing the enter key) and no item is selected in the list.
@@ -281,7 +291,7 @@ define(function (require, exports, module) {
      * Opens the file specified by selected item if there is no current plug-in, otherwise defers handling
      * to the currentPlugin
      */
-    QuickNavigateDialog.prototype._handleItemFocus = function (selectedDOMItem) {
+    QuickNavigateDialog.prototype._handleItemFocus = function (e, selectedDOMItem) {
         var selectedItem = domItemToSearchResult(selectedDOMItem);
         
         if (currentPlugin) {
@@ -362,7 +372,7 @@ define(function (require, exports, module) {
     /**
      * Give visual clue when there are no results
      */
-    QuickNavigateDialog.prototype._handleResultsReady = function (results) {
+    QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
         var isNoResults = (results.length === 0 && isNaN(extractLineNumber(this.$searchField.val())));
         this.$searchField.toggleClass("no-results", isNoResults);
     };
@@ -372,7 +382,6 @@ define(function (require, exports, module) {
      * searching is done.
      */
     QuickNavigateDialog.prototype._close = function () {
-
         if (!dialogOpen) {
             return;
         }
@@ -406,7 +415,7 @@ define(function (require, exports, module) {
         
         $(".smart_autocomplete_container").remove();
 
-        $(window.document).off("mousedown", this.handleDocumentMouseDown);
+        $(window.document).off("mousedown", this._handleDocumentMouseDown);
     };
     
     /**
@@ -709,8 +718,9 @@ define(function (require, exports, module) {
     /**
      * Handles changes to the current query in the search field.
      * @param {string} query The new query.
+     * @return {Array} The filtered list of results.
      */
-    QuickNavigateDialog.prototype._handleFilter = function (query) {
+    QuickNavigateDialog.prototype._filterCallback = function (query) {
         this._updateDialogLabel(query);
         
         var curDoc = DocumentManager.getCurrentDocument();
@@ -801,8 +811,9 @@ define(function (require, exports, module) {
     /**
      * Formats the entry for the given item to be displayed in the dropdown.
      * @param {Object} item The item to be displayed.
+     * @return {string} The HTML to be displayed.
      */
-    QuickNavigateDialog.prototype._handleResultsFormatter = function (item) {
+    QuickNavigateDialog.prototype._resultsFormatterCallback = function (item) {
         var query = this.$searchField.val();
         
         var formatter;
@@ -840,6 +851,10 @@ define(function (require, exports, module) {
         this._updateDialogLabel(initialString);
     };
     
+    /**
+     * Sets the dialog label based on the type of the given query.
+     * @param {string} query The user's current query.
+     */
     QuickNavigateDialog.prototype._updateDialogLabel = function (query) {
         var prefix = (query.length > 0 ? query.charAt(0) : "");
         
@@ -864,7 +879,7 @@ define(function (require, exports, module) {
      * but we want to close the whole search "dialog." (And we can't just piggyback on the popup closing event, since there are cases
      * where the popup closes that we want the dialog to remain open (e.g. deleting search term via backspace).
      */
-    QuickNavigateDialog.prototype.handleDocumentMouseDown = function (e) {
+    QuickNavigateDialog.prototype._handleDocumentMouseDown = function (e) {
         if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
         } else {
@@ -876,21 +891,25 @@ define(function (require, exports, module) {
             }
         }
     };
+    
+    /**
+     * Close the dialog when it loses focus.
+     */
+    QuickNavigateDialog.prototype._handleBlur = function (e) {
+        this._close();
+    };
 
     /**
      * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
      */
     QuickNavigateDialog.prototype.showDialog = function (prefix, initialString) {
-        var that = this;
-
         if (dialogOpen) {
             return;
         }
         dialogOpen = true;
 
         // Global listener to hide search bar & popup
-        this.handleDocumentMouseDown = this.handleDocumentMouseDown.bind(this);
-        $(window.document).on("mousedown", this.handleDocumentMouseDown);
+        $(window.document).on("mousedown", this._handleDocumentMouseDown);
 
 
         // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
@@ -908,10 +927,10 @@ define(function (require, exports, module) {
 
         // Show the search bar ("dialog")
         var dialogHTML = "<span class='find-dialog-label'></span>: <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
-        that._createDialogDiv(dialogHTML);
-        that.$searchField = $("input#quickOpenSearch");
+        this._createDialogDiv(dialogHTML);
+        this.$searchField = $("input#quickOpenSearch");
 
-        that.$searchField.smartAutoComplete({
+        this.$searchField.smartAutoComplete({
             source: [],
             maxResults: 20,
             minCharLimit: 0,
@@ -919,17 +938,17 @@ define(function (require, exports, module) {
             forceSelect: false,
             typeAhead: false,   // won't work right now because smart auto complete 
                                 // using internal raw results instead of filtered results for matching
-            filter: this._handleFilter,
-            resultFormatter: this._handleResultsFormatter
+            filter: this._filterCallback,
+            resultFormatter: this._resultsFormatterCallback
         });
 
-        that.$searchField.bind({
-            resultsReady: function (e, results) { that._handleResultsReady(results); },
-            itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
-            itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
-            keydown: function (e) { that._handleKeyDown(e); },
-            keyup: function (e, query) { that._handleKeyUp(e); },
-            blur: function (e) { that._close(); }
+        this.$searchField.bind({
+            resultsReady: this._handleResultsReady,
+            itemSelect: this._handleItemSelect,
+            itemFocus: this._handleItemFocus,
+            keydown: this._handleKeyDown,
+            keyup: this._handleKeyUp,
+            blur: this._handleBlur
             // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
             // triggers lostFocus
         });
