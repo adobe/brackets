@@ -636,7 +636,7 @@ define(function (require, exports, module) {
             });
         });
 
-        deferred.always(function () {               
+        deferred.always(function () {
             // remove destination path prefix
             if (removePrefix && options.infos) {
                 var shortKey;
@@ -645,7 +645,7 @@ define(function (require, exports, module) {
                     options.infos[shortKey] = options.infos[key];
                 });
             }
-        })
+        });
         
         return deferred.promise();
     }
