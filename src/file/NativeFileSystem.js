@@ -107,7 +107,7 @@ define(function (require, exports, module) {
 
         /**
          * Converts a brackets.fs.ERR_* error code to a NativeFileError.* error name
-         * @param {!number} nativeErr A brackets.fs error code
+         * @param {!number} fsErr A brackets.fs error code
          * @return {string} An error name out of the possible NativeFileError.* names
          */
         _fsErrorToDOMErrorName: function (fsErr) {
