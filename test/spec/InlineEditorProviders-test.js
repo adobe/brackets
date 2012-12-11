@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         FileViewController, // loaded from brackets.test
         Dialogs          = require("widgets/Dialogs"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
+        KeyEvent         = require("utils/KeyEvent"),
         FileUtils        = require("file/FileUtils"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
@@ -323,7 +324,7 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
 
                     // close the editor by simulating Esc key
-                    var key = 27,   // Esc key
+                    var key = KeyEvent.DOM_VK_ESCAPE,
                         doc = testWindow.document,
                         element = doc.getElementsByClassName("inline-widget")[0];
                     SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
