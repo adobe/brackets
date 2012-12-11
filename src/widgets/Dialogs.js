@@ -50,9 +50,7 @@ define(function (require, exports, module) {
         DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
-        DIALOG_ID_UPDATE = "update-dialog",
-        DIALOG_ID_PROJECT_SETTINGS = "project-settings-dialog";
+        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -130,7 +128,6 @@ define(function (require, exports, module) {
             promise = result.promise();
         
         var $dlg = $(template)
-            .removeClass("template")
             .addClass("instance")
             .appendTo(window.document.body);
         
@@ -222,7 +219,9 @@ define(function (require, exports, module) {
         // type happen to show up, they can appear at the same time. (This is an edge case that
         // shouldn't happen often, but we can't prevent it from happening since everything is
         // asynchronous.)
-        var $template = $("." + dlgClass + ".template").clone();
+        var $template = $("." + dlgClass + ".template")
+            .clone()
+            .removeClass("template");
         if ($template.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
         }
@@ -253,8 +252,6 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_EXT_CHANGED       = DIALOG_ID_EXT_CHANGED;
     exports.DIALOG_ID_EXT_DELETED       = DIALOG_ID_EXT_DELETED;
     exports.DIALOG_ID_LIVE_DEVELOPMENT  = DIALOG_ID_LIVE_DEVELOPMENT;
-    exports.DIALOG_ID_UPDATE            = DIALOG_ID_UPDATE;
-    exports.DIALOG_ID_PROJECT_SETTINGS  = DIALOG_ID_PROJECT_SETTINGS;
     
     exports.showModalDialog              = showModalDialog;
     exports.showModalDialogUsingTemplate = showModalDialogUsingTemplate;

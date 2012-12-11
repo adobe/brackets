@@ -61,7 +61,7 @@ define(function (require, exports, module) {
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about
         }, Strings);
 
-        var $template = Mustache.render(AboutDialogTemplate, templateVars);
+        var $template = $(Mustache.render(AboutDialogTemplate, templateVars));
         if (buildInfo) {
             $("#about-build-number", $template).text(" (" + buildInfo + ")");
         }
