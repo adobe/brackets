@@ -728,8 +728,7 @@ define(function (require, exports, module) {
      *
      */
     function ContextMenu(id) {
-        this.id = id;
-        this.menu = new Menu(id);
+        Menu.apply(this, arguments);
 
         var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),

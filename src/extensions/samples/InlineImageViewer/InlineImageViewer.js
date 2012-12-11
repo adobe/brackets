@@ -75,6 +75,7 @@ define(function (require, exports, module) {
     };
     
     InlineImageViewer.prototype._sizeEditorToContent = function () {
+        // TODO: image might not be loaded yet--need to listen for load event and update then.
         this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.height() + 20, true);
         this.$image.css("opacity", 1);
     };

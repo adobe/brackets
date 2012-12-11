@@ -302,8 +302,8 @@ define(function (require, exports, module) {
         NativeFileSystem.Entry.call(this, name, false);
     };
     NativeFileSystem.FileEntry.prototype = Object.create(NativeFileSystem.Entry.prototype);
-    NativeFileSystem.FileEntry.constructor = NativeFileSystem.FileEntry;
-    NativeFileSystem.FileEntry.parentClass = NativeFileSystem.Entry.prototype;
+    NativeFileSystem.FileEntry.prototype.constructor = NativeFileSystem.FileEntry;
+    NativeFileSystem.FileEntry.prototype.parentClass = NativeFileSystem.Entry.prototype;
 
     NativeFileSystem.FileEntry.prototype.toString = function () {
         return "[FileEntry " + this.fullPath + "]";
@@ -538,8 +538,8 @@ define(function (require, exports, module) {
         // TODO (issue #241): void removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
     };
     NativeFileSystem.DirectoryEntry.prototype = Object.create(NativeFileSystem.Entry.prototype);
-    NativeFileSystem.DirectoryEntry.constructor = NativeFileSystem.DirectoryEntry;
-    NativeFileSystem.DirectoryEntry.parentClass = NativeFileSystem.Entry.prototype;
+    NativeFileSystem.DirectoryEntry.prototype.constructor = NativeFileSystem.DirectoryEntry;
+    NativeFileSystem.DirectoryEntry.prototype.parentClass = NativeFileSystem.Entry.prototype;
     
     NativeFileSystem.DirectoryEntry.prototype.toString = function () {
         return "[DirectoryEntry " + this.fullPath + "]";
