@@ -11,3 +11,6 @@ src/extensions/disabled
 
 #OSX .DS_Store files
 .DS_Store
+
+# unit test working directory
+test/temp

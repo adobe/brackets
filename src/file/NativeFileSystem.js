@@ -108,12 +108,37 @@ define(function (require, exports, module) {
          *
          * @param {!string} path
          * @param {!function(FileSystem)} successCallback
-         * @param {!function(number)} errorCallback (TODO #2057: should pass a FileError)
+         * @param {!function(FileError)} errorCallback (TODO #2057: should pass a DOMError)
          */
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, data) {
                 if (!err) {
                     successCallback(new NativeFileSystem.FileSystem(path));
+                } else if (errorCallback) {
+                    errorCallback(NativeFileSystem._nativeToFileError(err));
+                }
+            });
+        },
+        
+        /**
+         * NativeFileSystem implementation of LocalFileSystem.resolveLocalFileSystemURL()
+         *
+         * @param {!string} url
+         * @param {!function(Entry)} successCallback
+         * @param {!function(FileError)} errorCallback (TODO #2057: should pass a DOMError)
+         */
+        resolveNativeFileSystemPath: function (path, successCallback, errorCallback) {
+            brackets.fs.stat(path, function (err, stats) {
+                if (!err) {
+                    var entry;
+                    
+                    if (stats.isDirectory()) {
+                        entry = new NativeFileSystem.DirectoryEntry(path);
+                    } else {
+                        entry = new NativeFileSystem.FileEntry(path);
+                    }
+                    
+                    successCallback(entry);
                 } else if (errorCallback) {
                     errorCallback(NativeFileSystem._nativeToFileError(err));
                 }
@@ -760,6 +785,12 @@ define(function (require, exports, module) {
             if (!err) {
                 var entries = [];
                 var lastError = null;
+
+                // call success immediately if this directory has no files
+                if (filelist.length === 0) {
+                    successCallback(entries);
+                    return;
+                }
 
                 // stat() to determine type of each entry, then populare entries array with objects
                 var masterPromise = Async.doInParallel(filelist, function (filename, index) {
