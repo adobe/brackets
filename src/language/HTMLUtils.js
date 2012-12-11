@@ -113,6 +113,45 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Compiles a list of used attributes for a given tag
+     * @param {CodeMirror} editor An instance of a CodeMirror editor
+     * @param {ch:{string}, line:{number}} pos A CodeMirror position
+     * @return {Array.<string>} A list of the used attributes inside the current tag
+     */
+    function getTagAttributes(editor, pos) {
+        var attrs       = [],
+            backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, pos),
+            forwardCtx  = $.extend({}, backwardCtx);
+        
+        if (editor.getModeForSelection() === "html") {
+            if (backwardCtx.token && backwardCtx.token.className !== "tag") {
+                while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.className !== "tag") {
+                    if (backwardCtx.token.className === "attribute") {
+                        attrs.push(backwardCtx.token.string);
+                    }
+                }
+                
+                while (TokenUtils.moveNextToken(forwardCtx) && forwardCtx.token.className !== "tag") {
+                    if (forwardCtx.token.className === "attribute") {
+                        attrs.push(forwardCtx.token.string);
+                    } else if (forwardCtx.token.className === "error") {
+                        // If we type the first letter of the next attribute, it comes as an error
+                        // token. We need to double check for possible invalidated attributes.
+                        if (forwardCtx.token.string.trim() !== "" &&
+                                forwardCtx.token.string.indexOf("\"") === -1 &&
+                                forwardCtx.token.string.indexOf("'") === -1 &&
+                                forwardCtx.token.string.indexOf("=") === -1) {
+                            attrs.push(forwardCtx.token.string);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return attrs;
+    }
+    
+    /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
      * @param {string=} tokenType what is getting edited and should be hinted
      * @param {number=} offset where the cursor is for the part getting hinted
@@ -450,6 +489,7 @@ define(function (require, exports, module) {
     exports.ATTR_VALUE = ATTR_VALUE;
     
     exports.getTagInfo = getTagInfo;
+    exports.getTagAttributes = getTagAttributes;
     //The createTagInfo is really only for the unit tests so they can make the same structure to 
     //compare results with
     exports.createTagInfo = createTagInfo;

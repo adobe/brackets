@@ -28,8 +28,7 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n",
-        "defaults"  : "../defaults"
+        "i18n"      : "thirdparty/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -304,6 +303,13 @@ define(function (require, exports, module) {
         if (e.button === 1) {
             e.preventDefault();
         }
+    });
+    
+    // The .no-focus style is added to clickable elements that should
+    // not steal focus. Calling preventDefault() on mousedown prevents
+    // focus from going to the click target.
+    $("html").on("mousedown", ".no-focus", function (e) {
+        e.preventDefault();
     });
     
     // Localize MainViewHTML and inject into <BODY> tag
