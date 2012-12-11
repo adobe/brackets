@@ -157,16 +157,16 @@ define(function (require, exports, module) {
         this.$searchField = undefined; // defined when showDialog() is called
         
         // Bind event handlers
-        this._handleItemSelect = this._handleItemSelect.bind(this);
-        this._handleItemFocus = this._handleItemFocus.bind(this);
-        this._handleKeyUp = this._handleKeyUp.bind(this);
-        this._handleKeyDown = this._handleKeyDown.bind(this);
-        this._handleResultsReady = this._handleResultsReady.bind(this);
-        this._handleBlur = this._handleBlur.bind(this);
-        this._handleDocumentMouseDown = this._handleDocumentMouseDown.bind(this);
+        this._handleItemSelect         = this._handleItemSelect.bind(this);
+        this._handleItemFocus          = this._handleItemFocus.bind(this);
+        this._handleKeyUp              = this._handleKeyUp.bind(this);
+        this._handleKeyDown            = this._handleKeyDown.bind(this);
+        this._handleResultsReady       = this._handleResultsReady.bind(this);
+        this._handleBlur               = this._handleBlur.bind(this);
+        this._handleDocumentMouseDown  = this._handleDocumentMouseDown.bind(this);
         
         // Bind callbacks from smart-autocomplete
-        this._filterCallback = this._filterCallback.bind(this);
+        this._filterCallback           = this._filterCallback.bind(this);
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
     }
 
