@@ -220,14 +220,16 @@ define(function (require, exports, module) {
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-    _setEnabled(_prefs.getValue("enabled"));
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var $jslintResults  = $("#jslint-results"),
             $jslintContent  = $("#jslint-results .table-container");
         
-        StatusBar.addIndicator(module.id, $("#gold-star"), true);
+        StatusBar.addIndicator(module.id, $("#gold-star"));
+        
+        // Called on HTML ready to trigger the initial UI state
+        _setEnabled(_prefs.getValue("enabled"));
     });
 
     // Define public API
