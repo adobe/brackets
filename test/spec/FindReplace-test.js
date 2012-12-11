@@ -419,7 +419,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
             });
             
-            it("should support case-insenseitive regexps via /.../i", function () {
+            it("should support case-insensitive regexps via /.../i", function () {
                 myEditor.setCursorPos(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
@@ -436,6 +436,17 @@ define(function (require, exports, module) {
                 // This should be interpreted as a non-RegExp search, which actually does have a result thanks to "modules/Bar"
                 enterSearchText("/Ba");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 30}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 33}});
+            });
+            
+            it("shouldn't choke on invalid regexp", function () {
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_FIND);
+                
+                // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
+                enterSearchText("/+/");
+                expect($(".CodeMirror-dialog .alert-message").length).toBe(1);
+                expectCursorAt({line: 0, ch: 0}); // no change
             });
             
             it("shouldn't choke on empty regexp", function () {
