@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         beforeEach(function () {
             runs(function () {
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");
-                waitsForDone(SpecRunnerUtils.copyDirectoryPath(testFiles, baseDir));
+                waitsForDone(SpecRunnerUtils.copyPath(testFiles, baseDir));
             });
 
             runs(function () {

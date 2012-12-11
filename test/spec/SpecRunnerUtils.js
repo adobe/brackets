@@ -543,29 +543,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Copy a file source path to a destination
-     * @param {!string} source Path for the source file to copy
-     * @param {!string} destination Destination path to copy the source file
-     * @param {?{parseOffsets:boolean}} options parseOffsets allows optional
-     *     offset markup parsing. File is written to the destination path
-     *     without offsets. Offset data is passed to the doneCallbacks of the
-     *     promise.
-     * @return {$.Promise} A promise resolved when the file is copied to the
-     *     destination.
-     */
-    function copyFilePath(source, destination, options) {
-        var deferred = new $.Deferred();
-        
-        resolveNativeFileSystemPath(source).done(function (entry) {
-            copyFileEntry(entry, destination, options).pipe(deferred.resolve, deferred.reject);
-        }).fail(function () {
-            deferred.reject();
-        });
-        
-        return deferred.promise();
-    }
-    
-    /**
      * Copy a directory source to a destination
      * @param {!DirectoryEntry} source Entry for the source directory to copy
      * @param {!string} destination Destination path to copy the source directory
@@ -651,9 +628,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Copy a directory source path to a destination
-     * @param {!string} source Path for the source directory to copy
-     * @param {!string} destination Destination path to copy the source directory
+     * Copy a file or directory source path to a destination
+     * @param {!string} source Path for the source file or directory to copy
+     * @param {!string} destination Destination path to copy the source file or directory
      * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
      *     parseOffsets - allows optional offset markup parsing. File is written to the
      *       destination path without offsets. Offset data is passed to the
@@ -667,11 +644,19 @@ define(function (require, exports, module) {
      *     contents are copied to the destination or rejected immediately
      *     upon the first error.
      */
-    function copyDirectoryPath(source, destination, options) {
+    function copyPath(source, destination, options) {
         var deferred = new $.Deferred();
         
         resolveNativeFileSystemPath(source).done(function (entry) {
-            copyDirectoryEntry(entry, destination, options).pipe(deferred.resolve, deferred.reject);
+            var promise;
+            
+            if (entry.isDirectory) {
+                promise = copyDirectoryEntry(entry, destination, options);
+            } else {
+                promise = copyFileEntry(entry, destination, options);
+            }
+            
+            promise.pipe(deferred.resolve, deferred.reject);
         }).fail(function () {
             deferred.reject();
         });
@@ -823,9 +808,8 @@ define(function (require, exports, module) {
     exports.toggleQuickEditAtOffset         = toggleQuickEditAtOffset;
     exports.createTextFile                  = createTextFile;
     exports.copyDirectoryEntry              = copyDirectoryEntry;
-    exports.copyDirectoryPath               = copyDirectoryPath;
     exports.copyFileEntry                   = copyFileEntry;
-    exports.copyFilePath                    = copyFilePath;
+    exports.copyPath                        = copyPath;
     exports.deletePath                      = deletePath;
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
