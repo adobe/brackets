@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
@@ -44,7 +45,7 @@ define(function (require, exports, module) {
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @return {$.Promise} a jQuery promise that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileError if
+     *  file's text content plus its timestamp, or rejected with a NativeFileError if
      *  the file can not be read.
      */
     function readAsText(fileEntry) {
@@ -88,7 +89,7 @@ define(function (require, exports, module) {
      * @param {!FileEntry} fileEntry
      * @param {!string} text
      * @return {$.Promise} a jQuery promise that will be resolved when
-     * file writing completes, or rejected with a FileError.
+     * file writing completes, or rejected with a NativeFileError.
      */
     function writeText(fileEntry, text) {
         var result = new $.Deferred();
@@ -156,32 +157,32 @@ define(function (require, exports, module) {
         return text.replace(findAnyEol, eolStr);
     }
 
-    function getFileErrorString(code) {
+    function getFileErrorString(name) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
         var result;
 
-        if (code === FileError.NOT_FOUND_ERR) {
+        if (name === NativeFileError.NOT_FOUND_ERR) {
             result = Strings.NOT_FOUND_ERR;
-        } else if (code === FileError.NOT_READABLE_ERR) {
+        } else if (name === NativeFileError.NOT_READABLE_ERR) {
             result = Strings.NOT_READABLE_ERR;
-        } else if (code === FileError.NO_MODIFICATION_ALLOWED_ERR) {
+        } else if (name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else {
-            result = StringUtils.format(Strings.GENERIC_ERROR, code);
+            result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
 
         return result;
     }
     
-    function showFileOpenError(code, path) {
+    function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
                 StringUtils.htmlEscape(path),
-                getFileErrorString(code)
+                getFileErrorString(name)
             )
         );
     }

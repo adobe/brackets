@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, FileError, brackets, window */
+/*global define, $, brackets, window */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -68,6 +68,7 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
+        NativeFileError     = require("file/NativeFileError"),
         NativeApp           = require("utils/NativeApp"),
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         ProjectManager      = require("project/ProjectManager"),
@@ -558,7 +559,7 @@ define(function LiveDevelopment(require, exports, module) {
                     // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
                         url,
-                        err !== FileError.ERR_NOT_FOUND
+                        err !== NativeFileError.ERR_NOT_FOUND
                     )
                         .done(function () {
                             browserStarted = true;
@@ -567,7 +568,7 @@ define(function LiveDevelopment(require, exports, module) {
                             var message;
 
                             _setStatus(STATUS_ERROR);
-                            if (err === FileError.NOT_FOUND_ERR) {
+                            if (err === NativeFileError.NOT_FOUND_ERR) {
                                 message = Strings.ERROR_CANT_FIND_CHROME;
                             } else {
                                 message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
