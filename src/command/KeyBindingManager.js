@@ -304,7 +304,9 @@ define(function (require, exports, module) {
      * @param {string} commandID
      * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
      * @param {?string} platform - undefined indicates all platforms
-     * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings
+     * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings.
+     *     Returns null when key binding platform does not match, binding does not normalize,
+     *     or is already assigned.
      */
     function _addBinding(commandID, keyBinding, platform) {
         var key,
@@ -425,16 +427,15 @@ define(function (require, exports, module) {
             results = [];
             
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
+                // attempt to add keybinding
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
-                }
-                
-                // if running on linux, map windows-specific keybindings to linux
-                if (brackets.platform === "linux" &&
+                } else if (brackets.platform === "linux" &&
                         keyBindingRequest.platform &&
                         keyBindingRequest.platform === "win") {
+                    // if running on linux, map windows-specific keybindings to linux
                     keyBindingRequest.platform = brackets.platform;
                     addSingleBinding(keyBindingRequest);
                 }
