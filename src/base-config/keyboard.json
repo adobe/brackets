@@ -145,6 +145,18 @@
     "view.restoreFontSize":  [
         "Ctrl-0"
     ],
+    "view.scrollLineUp":  [
+        {
+            "key": "Ctrl-Up",
+            "displayKey": "Ctrl-\u2191"
+        }
+    ],
+    "view.scrollLineDown":  [
+        {
+            "key": "Ctrl-Down",
+            "displayKey": "Ctrl-\u2193"
+        }
+    ],
     "navigate.quickOpen":  [
         "Ctrl-Shift-O"
     ],

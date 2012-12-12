@@ -850,6 +850,14 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns the current text height of the editor.
+     * @returns {number} Height of the text in pixels
+     */
+    Editor.prototype.getTextHeight = function () {
+        return this._codeMirror.defaultTextHeight();
+    };
+    
+    /**
      * Returns the current scroll position of the editor.
      * @returns {{x:number, y:number}} The x,y scroll position in pixels
      */
