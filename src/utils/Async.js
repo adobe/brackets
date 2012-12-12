@@ -200,13 +200,13 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Executes a series of tasks sequentially in time-slices less than maxBlockingTime.
+     * Executes a series of synchronous tasks sequentially spread over time-slices less than maxBlockingTime.
      * Processing yields by idleTime between time-slices.
      * 
      * @param {!Array.<*>} items
-     * @param {!function(*, number):Promise} fnProcessItem
-     * @param {!number} maxBlockingTime
-     * @param {!number} idleTime
+     * @param {!function(*, number)} fnProcessItem  Function that synchronously processes one item
+     * @param {number=} maxBlockingTime
+     * @param {number=} idleTime
      * @return {$.Promise}
      */
     function doSequentiallyInBackground(items, fnProcessItem, maxBlockingTime, idleTime) {

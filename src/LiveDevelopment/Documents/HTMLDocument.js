@@ -104,7 +104,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
-    HTMLDocument.prototype.onHighlight = function onHighlight(node) {
+    HTMLDocument.prototype.onHighlight = function onHighlight(event, node) {
         if (!node || !node.location) {
             if (this._highlight) {
                 this._highlight.clear();

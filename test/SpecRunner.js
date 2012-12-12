@@ -28,11 +28,11 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test": "../test",
-        "perf": "../test/perf",
-        "spec": "../test/spec",
-        "text": "thirdparty/text",
-        "i18n" : "thirdparty/i18n"
+        "test"      : "../test",
+        "perf"      : "../test/perf",
+        "spec"      : "../test/spec",
+        "text"      : "thirdparty/text",
+        "i18n"      : "thirdparty/i18n"
     }
 });
 
@@ -53,6 +53,10 @@ define(function (require, exports, module) {
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
+    
+    // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
+    // extensions need these to be required up front. We need a better solution for this eventually.
+    require("utils/ExtensionUtils");
     
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");

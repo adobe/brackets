@@ -27,8 +27,8 @@
 
 require.config({
     paths: {
-        "text" : "thirdparty/text",
-        "i18n" : "thirdparty/i18n"
+        "text"      : "thirdparty/text",
+        "i18n"      : "thirdparty/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -55,9 +55,6 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
-
-    // Load LiveDeveopment
-    require("LiveDevelopment/main");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
@@ -68,6 +65,7 @@ define(function (require, exports, module) {
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
         WorkingSetView          = require("project/WorkingSetView"),
+        WorkingSetSort          = require("project/WorkingSetSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
@@ -91,7 +89,8 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        Resizer                 = require("utils/Resizer");
+        Resizer                 = require("utils/Resizer"),
+        LiveDevelopmentMain     = require("LiveDevelopment/main");
 
     // Local variables
     var params                  = new UrlParams(),
@@ -243,6 +242,9 @@ define(function (require, exports, module) {
             $testDiv.remove();
         }
         
+        // Initialize LiveDevelopment
+        LiveDevelopmentMain.init();
+        
         PerfUtils.addMeasurement("Application Startup");
         
         // finish UI initialization before loading extensions
@@ -303,14 +305,15 @@ define(function (require, exports, module) {
         }
     });
     
-    // Localize MainViewHTML and inject into <BODY> tag
-    var templateVars    = $.extend({
-        ABOUT_ICON          : brackets.config.about_icon,
-        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-        VERSION             : brackets.metadata.version
-    }, Strings);
+    // The .no-focus style is added to clickable elements that should
+    // not steal focus. Calling preventDefault() on mousedown prevents
+    // focus from going to the click target.
+    $("html").on("mousedown", ".no-focus", function (e) {
+        e.preventDefault();
+    });
     
-    $("body").html(Mustache.render(MainViewHTML, templateVars));
+    // Localize MainViewHTML and inject into <BODY> tag
+    $("body").html(Mustache.render(MainViewHTML, Strings));
     
     // Update title
     $("title").text(brackets.config.app_title);

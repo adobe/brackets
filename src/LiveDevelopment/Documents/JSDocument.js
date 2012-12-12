@@ -99,7 +99,7 @@ define(function JSDocumentModule(require, exports, module) {
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
-    JSDocument.prototype.onHighlight = function onHighlight(node) {
+    JSDocument.prototype.onHighlight = function onHighlight(event, node) {
         // clear an existing highlight
         var codeMirror = this.editor._codeMirror;
         var i;

@@ -33,17 +33,16 @@
  * "bottom-resizer", "left-resizer" and "right-resizer" classes control the 
  * position of the resizer on the element.
  *
- * An element can be made resizable at any time using the `makeResizable` API
+ * An element can be made resizable at any time using the `makeResizable()` API.
+ * Panel sizes are saved via preferences and restored when the DOM node becomes resizable
+ * again in a subsequent launch.
  *
  * The resizable elements trigger a panelResizeStart, panelResizeUpdate and panelResizeEnd
  * event that can be used to create performance optimizations (such as hiding/showing elements 
- * while resizing), custom or internal resizes and save the final resized value into local 
- * storage for example.
+ * while resizing), custom layout logic, etc. See makeResizable() for details on the events.
  *
- * A resizable element can be collapsed/expanded using the `show`, `hide` and `toggle` APIs
- *
- * The resizable elements trigger a panelCollapsed and panelExpanded event when the panel toggles
- * between visible and invisible
+ * A resizable element can be collapsed/expanded using the `show`, `hide` and `toggle` APIs or
+ * via user action. This triggers panelCollapsed/panelExpanded events - see makeResizable().
  */
 define(function (require, exports, module) {
     "use strict";
@@ -122,20 +121,23 @@ define(function (require, exports, module) {
      *  - Left ("left") or right ("right") for horizontal resizing
      *
      * A resizable element triggers the following events while resizing:
-     *  - panelResizeStart: When the resize starts
-     *  - panelResizeUpdate: When the resize gets updated
-     *  - panelResizeEnds: When the resize ends
-     *  - panelCollapsed: When the panel gets collapsed (or hidden)
-     *  - panelExpanded: When the panel gets expanded (or shown)     
+     *  - panelResizeStart: When the resize starts. Passed the new size.
+     *  - panelResizeUpdate: When the resize gets updated. Passed the new size.
+     *  - panelResizeEnd: When the resize ends. Passed the final size.
+     *  - panelCollapsed: When the panel gets collapsed (or hidden). Passed the last size
+     *      before collapse. May occur without any resize events.
+     *  - panelExpanded: When the panel gets expanded (or shown). Passed the initial size.
+     *      May occur without any resize events.
      *
-     * @param {DOMNode} element Html element which should be made resizable.
-     * @param {string} direction The direction of the resize action. Must be "horz" or "vert".
-     * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
-     *                          for vertical resizing and "left" or "right" for horizontal resizing.
-     * @param {int} minSize Minimum size (width or height) of the element.
-     * @param {boolean} collapsible True indicates the panel is collapsible on double click
-     *                              on the resizer.
-     * @param {string} forcemargin Classes which margins need to be pushed when the element resizes
+     * @param {!DOMNode} element DOM element which should be made resizable.
+     * @param {!string} direction Direction of the resize action: one of the DIRECTION_* constants.
+     * @param {!string} position Which side of the element can be dragged: one of the POSITION_* constants
+     *                          (TOP/BOTTOM for vertical resizing or LEFT/RIGHT for horizontal).
+     * @param {?number} minSize Minimum size (width or height) of the element. Defaults to 0.
+     * @param {?boolean} collapsible Indicates the panel is collapsible on double click on the
+     *                          resizer. Defaults to false.
+     * @param {?string} forcemargin CSS selector indicating element whose margin-left should be locked to
+     *                          the resizable elemnt's size.
      */
     function makeResizable(element, direction, position, minSize, collapsible, forcemargin) {
         
@@ -163,11 +165,24 @@ define(function (require, exports, module) {
             }
         }
         
+        function resizeElement(elementSize, contentSize) {
+            elementSizeFunction.apply($element, [elementSize]);
+            
+            if ($resizableElement.length) {
+                contentSizeFunction.apply($resizableElement, [contentSize]);
+            }
+        }
+        
         $element.data("show", function () {
             var elementOffset   = $element.offset(),
-                elementSize     = elementSizeFunction.apply($element),
+                elementSize     = elementSizeFunction.apply($element) || elementPrefs.size,
+                contentSize     = contentSizeFunction.apply($resizableElement) || elementPrefs.contentSize,
                 resizerSize     = elementSizeFunction.apply($resizer);
-			
+            
+            // Resize the element before showing it again. If the panel was collapsed by dragging
+            // the resizer, the size of the element should be 0, so we restore size in preferences
+            resizeElement(elementSize, contentSize);
+            
             $element.show();
             elementPrefs.visible = true;
             
@@ -182,7 +197,10 @@ define(function (require, exports, module) {
             }
             
             forceMargins(elementSize);
+            
+            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
             EditorManager.resizeEditor();
+            
             $element.trigger("panelExpanded", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
@@ -204,7 +222,10 @@ define(function (require, exports, module) {
             }
             
             forceMargins(0);
+            
+            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
             EditorManager.resizeEditor();
+            
             $element.trigger("panelCollapsed", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
@@ -219,18 +240,18 @@ define(function (require, exports, module) {
         }
     
         $resizer.on("mousedown", function (e) {
-            var $resizeCont     = $("<div class='resizing-container " + direction + "-resizing' />"),
+            var $resizeShield   = $("<div class='resizing-container " + direction + "-resizing' />"),
                 startPosition   = e[directionProperty],
                 startSize       = $element.is(":visible") ? elementSizeFunction.apply($element) : 0,
                 newSize         = startSize,
+                previousSize    = startSize,
                 baseSize        = 0,
-                doResize        = false,
                 isMouseDown     = true,
                 resizeStarted   = false;
             
-            $body.append($resizeCont);
+            $body.append($resizeShield);
                         
-            if ($resizableElement !== undefined) {
+            if ($resizableElement.length) {
                 $element.children().not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
                         baseSize += $(child).outerWidth();
@@ -240,93 +261,109 @@ define(function (require, exports, module) {
                 });
             }
                         
-            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+            function doRedraw() {
                 // only run this if the mouse is down so we don't constantly loop even 
                 // after we're done resizing.
                 if (!isMouseDown) {
                     return;
                 }
                 
-                if (doResize) {
-                    // resize the main element to the new size
-                    if ($element.is(":visible")) {
-                        elementSizeFunction.apply($element, [newSize]);
-                        
-                        // if there is a content element, its size is the new size
-                        // minus the size of the non-resizable elements
-                        if ($resizableElement !== undefined) {
-                            contentSizeFunction.apply($resizableElement, [newSize - baseSize]);
-                        }
+                // Check for real size changes to avoid unnecessary resizing and events
+                if (newSize !== previousSize) {
+                    previousSize = newSize;
                     
+                    if ($element.is(":visible")) {
                         if (newSize < 10) {
                             toggle($element);
+                            elementSizeFunction.apply($element, [0]);
                         } else {
+                            // Trigger resizeStarted just before the first successful resize update
+                            if (!resizeStarted) {
+                                resizeStarted = true;
+                                $element.trigger("panelResizeStart", newSize);
+                            }
+                            
+                            // Resize the main element to the new size. If there is a content element, 
+                            // its size is the new size minus the size of the non-resizable elements
+                            resizeElement(newSize, (newSize - baseSize));
                             forceMargins(newSize);
+                            
+                            $element.trigger("panelResizeUpdate", [newSize]);
                         }
                     } else if (newSize > 10) {
                         elementSizeFunction.apply($element, [newSize]);
                         toggle($element);
-                        $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
+                        
+                        // Trigger resizeStarted after expanding the element if it was previously collapsed
+                        if (!resizeStarted) {
+                            resizeStarted = true;
+                            $element.trigger("panelResizeStart", newSize);
+                        }
                     }
     
+                    // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
                     EditorManager.resizeEditor();
                 }
                 
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
-            });
+            }
             
-            $resizeCont.on("mousemove", function (e) {
-                
-                // Trigger resizeStarted only if we move the mouse to avoid a resizeStarted event
-                // when double clicking for collapse/expand functionality
-                if (!resizeStarted) {
-                    resizeStarted = true;
-                    $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
-                }
-                
-                doResize = true;
+            function onMouseMove(e) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
-                $element.trigger("panelResizeUpdate", [newSize]);
                 e.preventDefault();
-            });
+                
+                if (animationRequest === null) {
+                    animationRequest = window.webkitRequestAnimationFrame(doRedraw);
+                }
+            }
+            
+            $(window.document).on("mousemove", onMouseMove);
             
             // If the element is marked as collapsible, check for double click
             // to toggle the element visibility
             if (collapsible) {
-                $resizeCont.on("mousedown", function (e) {
+                $resizeShield.on("mousedown", function (e) {
+                    $(window.document).off("mousemove", onMouseMove);
+                    $resizeShield.off("mousedown");
+                    $resizeShield.remove();
+                    animationRequest = null;
                     toggle($element);
                 });
             }
             
             function endResize(e) {
-                var elementSize		= elementSizeFunction.apply($element);
-                
-                elementPrefs.size = elementSize;
-                
-                if (contentSizeFunction) {
-                    elementPrefs.contentSize = contentSizeFunction.apply($resizableElement);
-                }
-                
                 if (isMouseDown) {
-                    isMouseDown = false;
-                    repositionResizer(elementSize);
-                    $element.trigger("panelResizeEnd", [elementSize]);
-                    _prefs.setValue(elementID, elementPrefs);
                     
-                    // We wait 100ms to remove the resizer container to capture a mousedown
+                    var elementSize	= elementSizeFunction.apply($element);
+                    if ($element.is(":visible")) {
+                        elementPrefs.size = elementSize;
+                        if ($resizableElement.length) {
+                            elementPrefs.contentSize = contentSizeFunction.apply($resizableElement);
+                        }
+                        _prefs.setValue(elementID, elementPrefs);
+                        repositionResizer(elementSize);
+                    }
+
+                    isMouseDown = false;
+                    
+                    if (resizeStarted) {
+                        $element.trigger("panelResizeEnd", [elementSize]);
+                    }
+                    
+                    // We wait 300ms to remove the resizer container to capture a mousedown
                     // on the container that would account for double click
                     window.setTimeout(function () {
-                        $resizeCont.off("mousemove");
-                        $resizeCont.off("mousedown");
-                        $resizeCont.remove();
-                    }, 100);
+                        $(window.document).off("mousemove", onMouseMove);
+                        $resizeShield.off("mousedown");
+                        $resizeShield.remove();
+                        animationRequest = null;
+                    }, 300);
                 }
             }
             
-            $resizeCont.one("mouseup", endResize);
-            $resizeCont.mouseleave(endResize);
+            $(window.document).one("mouseup", endResize);
             
             e.preventDefault();
         });
@@ -335,11 +372,11 @@ define(function (require, exports, module) {
         if (elementPrefs) {
             
             if (elementPrefs.size !== undefined) {
-                elementSizeFunction.apply($element, [Math.max(elementPrefs.size, minSize)]);
+                elementSizeFunction.apply($element, [elementPrefs.size]);
             }
             
             if (elementPrefs.contentSize !== undefined) {
-                contentSizeFunction.apply($resizableElement, [Math.max(elementPrefs.contentSize, minSize)]);
+                contentSizeFunction.apply($resizableElement, [elementPrefs.contentSize]);
             }
             
             if (elementPrefs.visible !== undefined && !elementPrefs.visible) {

@@ -320,9 +320,6 @@ define(function (require, exports, module) {
             "Esc": function (instance) {
                 self.removeAllInlineWidgets();
             },
-            "Shift-Delete": "cut",
-            "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste",
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
@@ -613,10 +610,10 @@ define(function (require, exports, module) {
             self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
 
-        // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
+        // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            EditorManager._notifyFocusedEditorChanged(self);
+            EditorManager._notifyActiveEditorChanged(self);
         });
         
         this._codeMirror.on("blur", function () {
@@ -836,7 +833,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the root DOM node of the editor.
-     * @returns {Object} The editor's root DOM node.
+     * @returns {!HTMLDivElement} The editor's root DOM node.
      */
     Editor.prototype.getRootElement = function () {
         return this._codeMirror.getWrapperElement();
@@ -846,7 +843,7 @@ define(function (require, exports, module) {
      * Gets the lineSpace element within the editor (the container around the individual lines of code).
      * FUTURE: This is fairly CodeMirror-specific. Logic that depends on this may break if we switch
      * editors.
-     * @returns {Object} The editor's lineSpace element.
+     * @returns {!HTMLDivElement} The editor's lineSpace element.
      */
     Editor.prototype._getLineSpaceElement = function () {
         return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
@@ -1003,8 +1000,13 @@ define(function (require, exports, module) {
     /**
      * Re-renders the editor UI
      */
-    Editor.prototype.refresh = function () {
+    Editor.prototype.refresh = function (handleResize) {
         this._codeMirror.refresh();
+        if (handleResize) {
+            // If the editor has been resized, the position of inline widgets relative to the
+            // browser window might have changed.
+            this._fireWidgetOffsetTopChanged(0);
+        }
     };
     
     /**
@@ -1012,12 +1014,8 @@ define(function (require, exports, module) {
      */
     Editor.prototype.refreshAll = function () {
         this.refresh();
-        this.getInlineWidgets().forEach(function (multilineEditor, i, arr) {
-            multilineEditor.sizeInlineWidgetToContents(true);
-            multilineEditor._updateRelatedContainer();
-            multilineEditor.editors.forEach(function (editor, j, arr) {
-                editor.refresh();
-            });
+        this.getInlineWidgets().forEach(function (inlineWidget) {
+            inlineWidget.refresh();
         });
     };
     

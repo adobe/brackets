@@ -63,6 +63,7 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
+        NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent");
     
@@ -119,6 +120,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Encoded URL
      * @ see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
@@ -233,8 +235,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns the Base URL of the currently loaded project, or empty string if no project is open
-     * (during startup, or running outside of app shell).
+     * Returns the encoded Base URL of the currently loaded project, or empty string if no project
+     * is open (during startup, or running outside of app shell).
      * @return {String}
      */
     function getBaseUrl() {
@@ -242,7 +244,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Sets the Base URL of the currently loaded project.
+     * Sets the encoded Base URL of the currently loaded project.
      * @param {String}
      */
     function setBaseUrl(projectBaseUrl) {
@@ -268,6 +270,8 @@ define(function (require, exports, module) {
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
      * Does not support paths containing ".."
+     * @param {!string} absPath
+     * @return {!string}
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
@@ -652,7 +656,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_LOADING_PROJECT,
                     StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
                         StringUtils.htmlEscape(dirEntry.fullPath),
-                        error.code)
+                        error.name)
                 );
             }
         );
@@ -736,7 +740,8 @@ define(function (require, exports, module) {
         if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
-                function (rootEntry) {
+                function (fs) {
+                    var rootEntry = fs.root;
                     var projectRootChanged = (!_projectRoot || !rootEntry)
                         || _projectRoot.fullPath !== rootEntry.fullPath;
 
@@ -785,7 +790,7 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.htmlEscape(rootPath),
-                            error.code
+                            error.name
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default 
@@ -924,7 +929,7 @@ define(function (require, exports, module) {
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.code)
+                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
                             result.reject();
                         }
@@ -937,6 +942,13 @@ define(function (require, exports, module) {
 
         // if fail, don't open new project: user canceled (or we failed to save its unsaved changes)
         return result.promise();
+    }
+
+    /**
+     * Invoke project settings dialog.
+     */
+    function _projectSettings() {
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
     }
 
     /**
@@ -1068,8 +1080,8 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error) {
-                    if ((error.code === FileError.PATH_EXISTS_ERR)
-                            || (error.code === FileError.TYPE_MISMATCH_ERR)) {
+                    if ((error.name === NativeFileError.PATH_EXISTS_ERR)
+                            || (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,
@@ -1077,9 +1089,9 @@ define(function (require, exports, module) {
                                 StringUtils.htmlEscape(data.rslt.name))
                         );
                     } else {
-                        var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
+                        var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                         StringUtils.format(Strings.GENERIC_ERROR, error.code);
+                                         StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
                         var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
                                         StringUtils.htmlEscape(data.rslt.name),
@@ -1121,25 +1133,36 @@ define(function (require, exports, module) {
         // In the meantime, pass null for node so new item is placed
         // relative to the selection
         node = selection;
-        
-        // Open the node before creating the new child
-        _projectTree.jstree("open_node", node);
+ 
+        function createNode() {
+           // Create the node and open the editor
+            _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
+    
+            if (!skipRename) {
+                var $renameInput = _projectTree.find(".jstree-rename-input");
+    
+                $renameInput.on("keydown", function (event) {
+                    // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+                    if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+    
+                        escapeKeyPressed = true;
+                    }
+                });
+    
+                ViewUtils.scrollElementIntoView(_projectTree, $renameInput, true);
+            }
+        }
 
-        // Create the node and open the editor
-        _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
-
-        if (!skipRename) {
-            var $renameInput = _projectTree.find(".jstree-rename-input");
-
-            $renameInput.on("keydown", function (event) {
-                // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-
-                    escapeKeyPressed = true;
-                }
-            });
-
-            ViewUtils.scrollElementIntoView(_projectTree, $renameInput, true);
+        // There is a race condition in jstree if "open_node" and "create" are called in rapid
+        // succession and the node was not yet loaded. To avoid it, first open the node and wait
+        // for the open_node event before trying to create the new one. See #2085 for more details.
+        if (wasNodeOpen) {
+            createNode();
+        } else {
+            _projectTree.one("open_node.jstree", createNode);
+    
+            // Open the node before creating the new child
+            _projectTree.jstree("open_node", node);
         }
         
         return result.promise();
@@ -1287,10 +1310,6 @@ define(function (require, exports, module) {
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });
-
-        $("#project-files-header .settings").on("click", function () {
-            PreferencesDialogs.showProjectPreferencesDialog(_prefs, _projectBaseUrl);
-        });
     });
 
     // Init PreferenceStorage
@@ -1304,7 +1323,8 @@ define(function (require, exports, module) {
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
 
     // Commands
-    CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
+    CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
+    CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;

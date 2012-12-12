@@ -22,19 +22,33 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs*/
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine*/
 
 define(function (require, exports, module) {
     'use strict';
 
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         CommandManager,
         Commands,
         NativeApp,      //The following are all loaded from the test window
         LiveDevelopment,
         DOMAgent,
         Inspector,
-        DocumentManager;
+        DocumentManager,
+        ProjectManager;
+    
+    // Used as mocks
+    require("LiveDevelopment/main");
+    var CommandsModule          = require("command/Commands"),
+        CommandsManagerModule   = require("command/CommandManager"),
+        LiveDevelopmentModule   = require("LiveDevelopment/LiveDevelopment"),
+        InspectorModule         = require("LiveDevelopment/Inspector/Inspector"),
+        CSSDocumentModule       = require("LiveDevelopment/documents/CSSDocument"),
+        CSSAgentModule          = require("LiveDevelopment/Agents/CSSAgent"),
+        HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -105,36 +119,36 @@ define(function (require, exports, module) {
 
     describe("Live Development", function () {
         
-        beforeEach(function () {
-            runs(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow          = w;
-                    LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
-                    DOMAgent            = testWindow.brackets.test.DOMAgent;
-                    Inspector           = testWindow.brackets.test.Inspector;
-                    DocumentManager     = testWindow.brackets.test.DocumentManager;
-                    CommandManager      = testWindow.brackets.test.CommandManager;
-                    Commands            = testWindow.brackets.test.Commands;
-                    NativeApp           = testWindow.brackets.test.NativeApp;
-                });
-                
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-        });
-    
-    
-        afterEach(function () {
-            runs(function () {
-                LiveDevelopment.close();
-            });
-            
-            waitsFor(function () { return !Inspector.connected(); }, "Waiting for to close inspector", 10000);
-            
-            SpecRunnerUtils.closeTestWindow();
-        });
-        
         describe("CSS Editing", function () {
 
+            beforeEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                        testWindow          = w;
+                        LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
+                        DOMAgent            = testWindow.brackets.test.DOMAgent;
+                        Inspector           = testWindow.brackets.test.Inspector;
+                        DocumentManager     = testWindow.brackets.test.DocumentManager;
+                        CommandManager      = testWindow.brackets.test.CommandManager;
+                        Commands            = testWindow.brackets.test.Commands;
+                        NativeApp           = testWindow.brackets.test.NativeApp;
+                        ProjectManager      = testWindow.brackets.test.ProjectManager;
+                    });
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            afterEach(function () {
+                runs(function () {
+                    LiveDevelopment.close();
+                });
+
+                waitsFor(function () { return !Inspector.connected(); }, "Waiting to close inspector", 10000);
+
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
             it("should establish a browser connection for an opened html file", function () {
                 //verify we aren't currently connected
                 expect(Inspector.connected()).toBeFalsy();
@@ -356,6 +370,165 @@ define(function (require, exports, module) {
                     var promise = CommandManager.execute(Commands.FILE_SAVE, {doc: htmlDoc});
                     waitsForDone(promise, "Restoring the original html content");
                 });
+            });
+
+            // This tests url mapping -- files do not need to exist on disk
+            it("should translate urls to/from local paths", function () {
+                // Define testing parameters
+                var projectPath     = testPath + "/",
+                    outsidePath     = testPath.substr(0, testPath.lastIndexOf("/") + 1),
+                    fileProtocol    = (testWindow.brackets.platform === "win") ? "file:///" : "file://",
+                    baseUrl         = "http://localhost/",
+                    fileRelPath     = "subdir/index.html";
+
+                // File paths used in tests:
+                //  * file1 - file inside  project
+                //  * file2 - file outside project
+                // Encode the URLs
+                var file1Path       = projectPath + fileRelPath,
+                    file2Path       = outsidePath + fileRelPath,
+                    file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
+                    file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
+                    file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
+
+                // Should use file url when no base url
+                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1FileUrl);
+                expect(LiveDevelopment._urlToPath(file1FileUrl)).toBe(file1Path);
+                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+
+                // Set base url
+                ProjectManager.setBaseUrl(baseUrl);
+
+                // Should use server url with base url
+                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
+                expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
+
+                // File outside project should still use file url
+                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+
+                // Clear base url
+                ProjectManager.setBaseUrl("");
+            });
+        });
+
+        describe("URL Mapping", function () {
+
+            it("should validate base urls", function () {
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
+                    .toBe("");
+
+                expect(PreferencesDialogs._validateBaseUrl("https://localhost:8080/sub%20folder"))
+                    .toBe("");
+
+                expect(PreferencesDialogs._validateBaseUrl("ftp://localhost"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, "ftp:"));
+
+                expect(PreferencesDialogs._validateBaseUrl("localhost"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, ""));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/?id=123"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_SEARCH_DISALLOWED, "?id=123"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/#anchor1"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_HASH_DISALLOWED, "#anchor1"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/abc<123"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, "<"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/?"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, "?"));
+
+                expect(PreferencesDialogs._validateBaseUrl("http://localhost/sub dir"))
+                    .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, " "));
+            });
+        });
+        
+        describe("Highlighting elements in browser from a CSS rule", function () {
+            
+            var testDocument,
+                testEditor,
+                testCSSDoc,
+                liveDevelopmentConfig,
+                inspectorConfig;
+            
+            beforeEach(function () {
+                // save original configs
+                liveDevelopmentConfig = LiveDevelopmentModule.config;
+                inspectorConfig = InspectorModule.config;
+                
+                // force init
+                LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
+                HighlightAgentModule.load();
+                
+                // module spies
+                spyOn(CSSAgentModule, "styleForURL").andReturn("");
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
+                InspectorModule.CSS = {
+                    getStyleSheet   : jasmine.createSpy("getStyleSheet")
+                };
+                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
+                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                
+                // document spies
+                var deferred = new $.Deferred();
+                spyOn(CSSDocumentModule.prototype, "getStyleSheetFromBrowser").andCallFake(function () {
+                    return deferred.promise();
+                });
+                
+                var mock = SpecRunnerUtils.createMockEditor("p {}\n\ndiv {}", "css");
+                testDocument = mock.doc;
+                testEditor = mock.editor;
+                testCSSDoc = new CSSDocumentModule(testDocument, testEditor);
+                
+                // resolve reloadRules()
+                deferred.resolve({rules: [
+                    {
+                        selectorText    : "p",
+                        selectorRange   : {start: 0},
+                        style           : {range: {end: 3}}
+                    },
+                    {
+                        selectorText    : "div",
+                        selectorRange   : {start: 6},
+                        style           : {range: {end: 11}}
+                    }
+                ]});
+            });
+            
+            afterEach(function () {
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
+            });
+            
+            it("should toggle the highlight via a command", function () {
+                // force command to be enabled (see LiveDevelopment/main::_setupGoLiveMenu())
+                var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                cmd.setEnabled(true);
+                
+                CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
+                
+                CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+            });
+            
+            it("should redraw highlights when the document changes", function () {
+                testDocument.setText("body {}");
+                expect(HighlightAgentModule.redraw).toHaveBeenCalled();
+            });
+            
+            it("should redraw highlights when the cursor moves", function () {
+                testEditor.setCursorPos(0, 3);
+                expect(HighlightAgentModule.rule).toHaveBeenCalled();
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("p");
+                
+                testEditor.setCursorPos(2, 0);
+                expect(HighlightAgentModule.rule.calls.length).toEqual(3);
+                expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div");
             });
         });
     });

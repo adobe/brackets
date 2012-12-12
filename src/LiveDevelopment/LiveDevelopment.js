@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, FileError, brackets, window */
+/*global define, $, brackets, window */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -45,11 +45,11 @@
  * codes are:
  *
  * -1: Error
- * 0: Inactive
- * 1: Connecting to the remote debugger
- * 2: Loading agents
- * 3: Active
- * 4: Out of sync
+ *  0: Inactive
+ *  1: Connecting to the remote debugger
+ *  2: Loading agents
+ *  3: Active
+ *  4: Out of sync
  */
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
@@ -58,103 +58,142 @@ define(function LiveDevelopment(require, exports, module) {
 
     // Status Codes
     var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       = 0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     = 1;
-    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS = 2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         = 3;
-    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    = 4;
+    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
+    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     =  1;
+    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS =  2;
+    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
+    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
 
-    var DocumentManager = require("document/DocumentManager");
-    var EditorManager = require("editor/EditorManager");
-    var NativeApp = require("utils/NativeApp");
-    var Dialogs = require("widgets/Dialogs");
-    var Strings = require("strings");
-    var StringUtils = require("utils/StringUtils");
-    var ProjectManager = require("project/ProjectManager");
+    var Dialogs             = require("widgets/Dialogs"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
+        NativeFileError     = require("file/NativeFileError"),
+        NativeApp           = require("utils/NativeApp"),
+        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
+        ProjectManager      = require("project/ProjectManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils");
 
     // Inspector
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
     // Documents
-    var HTMLDocument = require("LiveDevelopment/Documents/HTMLDocument");
-    var CSSDocument = require("LiveDevelopment/Documents/CSSDocument");
-    var JSDocument = require("LiveDevelopment/Documents/JSDocument");
+    var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
+        HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
+        JSDocument      = require("LiveDevelopment/Documents/JSDocument");
 
     // Agents
     var agents = {
-        "console": require("LiveDevelopment/Agents/ConsoleAgent"),
-        "remote": require("LiveDevelopment/Agents/RemoteAgent"),
-        "network": require("LiveDevelopment/Agents/NetworkAgent"),
-        "dom": require("LiveDevelopment/Agents/DOMAgent"),
-        "css": require("LiveDevelopment/Agents/CSSAgent"),
-        "script": require("LiveDevelopment/Agents/ScriptAgent"),
-        "highlight": require("LiveDevelopment/Agents/HighlightAgent"),
-        "goto": require("LiveDevelopment/Agents/GotoAgent"),
-        "edit": require("LiveDevelopment/Agents/EditAgent")
+        "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
+        "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
+        "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
+        "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
+        "css"       : require("LiveDevelopment/Agents/CSSAgent"),
+        "script"    : require("LiveDevelopment/Agents/ScriptAgent"),
+        "highlight" : require("LiveDevelopment/Agents/HighlightAgent"),
+        "goto"      : require("LiveDevelopment/Agents/GotoAgent"),
+        "edit"      : require("LiveDevelopment/Agents/EditAgent")
     };
+
+    var launcherUrl = window.location.href.replace(/\/index.html.*/, "") + "/LiveDevelopment/launch.html";
 
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().
     // This object is used as a set (thus all properties have the value 'true').
     // Property names should match property names in the 'agents' object.
     var _enabledAgentNames = {
-        "console": true,
-        "remote": true,
-        "network": true,
-        "dom": true,
-        "css": true
+        "console"   : true,
+        "remote"    : true,
+        "network"   : true,
+        "dom"       : true,
+        "css"       : true,
+        "highlight" : true
     };
+
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
     var _liveDocument; // the document open for live editing.
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
 
+    function _isHtmlFileExt(ext) {
+        return (FileUtils.isStaticHtmlFileExt(ext) ||
+                (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
+    }
+
+    /** Convert a URL to a local full file path */
+    function _urlToPath(url) {
+        var path,
+            baseUrl = ProjectManager.getBaseUrl();
+
+        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
+            // Use base url to translate to local file path.
+            // Need to use encoded project path because it's decoded below.
+            path = url.replace(baseUrl, encodeURI(ProjectManager.getProjectRoot().fullPath));
+
+        } else if (url.indexOf("file://") === 0) {
+            // Convert a file URL to local file path
+            path = url.slice(7);
+            if (path && brackets.platform === "win" && path.charAt(0) === "/") {
+                path = path.slice(1);
+            }
+        }
+        return decodeURI(path);
+    }
+
+    /** Convert a local full file path to a URL */
+    function _pathToUrl(path) {
+        var url,
+            baseUrl = ProjectManager.getBaseUrl();
+
+        // See if base url has been specified and path is within project
+        if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
+            // Map to server url. Base url is already encoded, so don't encode again.
+            var encodedDocPath = encodeURI(path);
+            var encodedProjectPath = encodeURI(ProjectManager.getProjectRoot().fullPath);
+            url = encodedDocPath.replace(encodedProjectPath, baseUrl);
+
+        } else {
+            var prefix = "file://";
+    
+            if (brackets.platform === "win") {
+                // The path on Windows starts with a drive letter (e.g. "C:").
+                // In order to make it a valid file: URL we need to add an
+                // additional slash to the prefix.
+                prefix += "/";
+            }
+    
+            url = encodeURI(prefix + path);
+        }
+
+        return url;
+    }
+
     /** Augments the given Brackets document with information that's useful for live development. */
     function _setDocInfo(doc) {
+
+        var parentUrl,
+            rootUrl,
+            matches;
+
         // FUTURE: some of these things should just be moved into core Document; others should
         // be in a LiveDevelopment-specific object attached to the doc.
-        var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
+        matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
         if (!matches) {
             return;
         }
 
         doc.extension = matches[3];
 
-        // Check if doc is in current project
-        if (ProjectManager.isWithinProject(doc.file.fullPath)) {
-
-            // See if base url has been specified
-            var baseUrl = ProjectManager.getBaseUrl();
-            if (baseUrl !== "") {
-
-                // Map to server url
-                var serverUrl = doc.file.fullPath.replace(ProjectManager.getProjectRoot().fullPath, baseUrl);
-                doc.url = encodeURI(serverUrl);
-
-                if (!/^html?$/.test(matches[3])) {
-                    serverUrl = serverUrl.replace(matches[2], "index.html");
-                }
-                doc.root = {url: encodeURI(serverUrl)};
-                return;
-            }
-        }
-
-        var prefix = "file://";
-
-        // The file.fullPath on Windows starts with a drive letter ("C:").
-        // In order to make it a valid file: URL we need to add an
-        // additional slash to the prefix.
-        if (brackets.platform === "win") {
-            prefix += "/";
-        }
-
-        doc.url = encodeURI(prefix + doc.file.fullPath);
+        parentUrl = _pathToUrl(matches[1]);
+        doc.url = parentUrl + encodeURI(matches[2]);
 
         // the root represents the document that should be displayed in the browser
         // for live development (the file for HTML files, index.html for others)
-        var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-        doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
+        // TODO: Issue #2033 Improve how default page is determined
+        rootUrl = (_isHtmlFileExt(matches[3]) ? doc.url : parentUrl + "index.html");
+        doc.root = { url: rootUrl };
     }
 
     /** Get the current document from the document manager
@@ -177,14 +216,42 @@ define(function LiveDevelopment(require, exports, module) {
             return CSSDocument;
         case "js":
             return exports.config.experimental ? JSDocument : null;
-        case "html":
-        case "htm":
-            return exports.config.experimental ? HTMLDocument : null;
-        default:
-            return null;
         }
+
+        if (exports.config.experimental && _isHtmlFileExt(doc.extension)) {
+            return HTMLDocument;
+        }
+
+        return null;
     }
 
+    function getLiveDocForPath(path) {
+        var docsToSearch = [];
+        if (_relatedDocuments) {
+            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        }
+        if (_liveDocument) {
+            docsToSearch = docsToSearch.concat(_liveDocument);
+        }
+        var foundDoc;
+        docsToSearch.some(function matchesPath(ele) {
+            if (ele.doc.file.fullPath === path) {
+                foundDoc = ele;
+                return true;
+            }
+            return false;
+        });
+
+        return foundDoc;
+    }
+    
+    function getLiveDocForEditor(editor) {
+        if (!editor) {
+            return null;
+        }
+        return getLiveDocForPath(editor.document.file.fullPath);
+    }
+    
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -223,25 +290,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Convert a file: URL to a local full file path */
-    function _urlToPath(url) {
-        var path,
-            baseUrl = ProjectManager.getBaseUrl();
-
-        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
-            // Use base url to translte to local file path
-            path = url.replace(baseUrl, ProjectManager.getProjectRoot().fullPath);
-
-        } else if (url.indexOf("file://") === 0) {
-            // Convert a file URL to local file path
-            path = url.slice(7);
-            if (path && brackets.platform === "win" && path.charAt(0) === "/") {
-                path = path.slice(1);
-            }
-        }
-        return decodeURI(path);
-    }
-
     /** Open a live document
      * @param {Document} source document to open
      */
@@ -257,11 +305,13 @@ define(function LiveDevelopment(require, exports, module) {
             // stuff from happening while we wait to add these listeners
             DocumentManager.getDocumentForPath(_urlToPath(url))
                 .done(function (doc) {
-                    _setDocInfo(doc);
-                    var liveDoc = _createDocument(doc);
-                    if (liveDoc) {
-                        _relatedDocuments.push(liveDoc);
-                        $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                    if (!_liveDocument || (doc !== _liveDocument.doc)) {
+                        _setDocInfo(doc);
+                        var liveDoc = _createDocument(doc);
+                        if (liveDoc) {
+                            _relatedDocuments.push(liveDoc);
+                            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                        }
                     }
                 });
         });
@@ -327,10 +377,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.error */
     function _onError(event, error) {
-        var message = error.message;
+        var message;
+        
+        // Sometimes error.message is undefined
+        if (!error.message) {
+            console.warn("Expected a non-empty string in error.message, got this instead:", error.message);
+            message = JSON.stringify(error);
+        } else {
+            message = error.message;
+        }
 
         // Remove "Uncaught" from the beginning to avoid the inspector popping up
-        if (message.substr(0, 8) === "Uncaught") {
+        if (message && message.substr(0, 8) === "Uncaught") {
             message = message.substr(9);
         }
 
@@ -342,32 +400,54 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error);
+        _setStatus(STATUS_ERROR);
     }
 
     /** Run when all agents are loaded */
     function _onLoad() {
         var doc = _getCurrentDocument();
-        if (doc) {
-            var editor = EditorManager.getCurrentFullEditor(),
-                status = STATUS_ACTIVE;
-
-            _openDocument(doc, editor);
-            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-                status = STATUS_OUT_OF_SYNC;
-            }
-            _setStatus(status);
+        if (!doc) {
+            return;
         }
+
+        var editor = EditorManager.getCurrentFullEditor(),
+            status = STATUS_ACTIVE;
+
+        _openDocument(doc, editor);
+        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+            status = STATUS_OUT_OF_SYNC;
+        }
+        _setStatus(status);
+    }
+
+    /** Triggered by Inspector.detached */
+    function _onDetached(event, res) {
+        // res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
+        // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
+        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
     }
 
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
-        var promises = loadAgents();
+        $(Inspector.Inspector).on("detached", _onDetached);
+        
+        // Load agents
         _setStatus(STATUS_LOADING_AGENTS);
+        var promises = loadAgents();
         $.when.apply(undefined, promises).then(_onLoad, _onError);
+        
+        // Load the right document (some agents are waiting for the page's load event)
+        var doc = _getCurrentDocument();
+        if (doc) {
+            Inspector.Page.navigate(doc.root.url);
+        } else {
+            Inspector.Page.reload();
+        }
     }
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
+        $(Inspector.Inspector).off("detached", _onDetached);
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
@@ -394,24 +474,45 @@ define(function LiveDevelopment(require, exports, module) {
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_NEED_HTML_MESSAGE
             );
-            result.reject("WRONG_DOC");
+            result.reject();
+        }
+
+        function showNeedBaseUrlError() {
+            PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
+                        // If base url is specifed, then re-invoke open() to continue
+                        open();
+                        result.resolve();
+                    } else {
+                        result.reject();
+                    }
+                })
+                .fail(function () {
+                    result.reject();
+                });
         }
 
         if (!doc || !doc.root) {
             showWrongDocError();
 
         } else {
-            // For Sprint 6, we only open live development connections for HTML files
-            // FUTURE: Remove this test when we support opening connections for different
-            // file types.
-
-            if (!exports.config.experimental && (!doc.extension || doc.extension.indexOf('htm') !== 0)) {
-                showWrongDocError();
-                return promise;
+            if (!exports.config.experimental) {
+                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
+                    if (!ProjectManager.getBaseUrl()) {
+                        showNeedBaseUrlError();
+                        return promise;
+                    }
+                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
+                    showWrongDocError();
+                    return promise;
+                }
             }
 
+            var url = doc.root.url;
+
             _setStatus(STATUS_CONNECTING);
-            Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
+            Inspector.connectToURL(url).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -448,6 +549,8 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
 
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
+                    url = launcherUrl + "?" + encodeURIComponent(url);
+
                     // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
                     // is available, but the requested URL is not loaded in the browser. In that
                     // case we want to launch the live browser (to open the url in a new tab)
@@ -455,8 +558,8 @@ define(function LiveDevelopment(require, exports, module) {
                     // on Windows where Chrome can't be opened more than once with the
                     // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url,
-                        err !== FileError.ERR_NOT_FOUND
+                        url,
+                        err !== NativeFileError.ERR_NOT_FOUND
                     )
                         .done(function () {
                             browserStarted = true;
@@ -465,7 +568,7 @@ define(function LiveDevelopment(require, exports, module) {
                             var message;
 
                             _setStatus(STATUS_ERROR);
-                            if (err === FileError.NOT_FOUND_ERR) {
+                            if (err === NativeFileError.NOT_FOUND_ERR) {
                                 message = Strings.ERROR_CANT_FIND_CHROME;
                             } else {
                                 message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
@@ -485,10 +588,10 @@ define(function LiveDevelopment(require, exports, module) {
                             result.reject("OPEN_LIVE_BROWSER");
                         });
                 }
-
+                    
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
+                        Inspector.connectToURL(url).then(result.resolve, onConnectFail);
                     }, 500);
                 }
             });
@@ -500,10 +603,33 @@ define(function LiveDevelopment(require, exports, module) {
     /** Close the Connection */
     function close() {
         if (Inspector.connected()) {
-            Inspector.Runtime.evaluate("window.close()");
+            Inspector.Runtime.evaluate("window.open('', '_self').close();");
         }
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
+    }
+    
+    /** Enable highlighting */
+    function showHighlight() {
+        var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
+        
+        if (doc instanceof CSSDocument) {
+            doc.updateHighlight();
+        }
+    }
+
+    /** Hide any active highlighting */
+    function hideHighlight() {
+        if (Inspector.connected() && agents.highlight) {
+            agents.highlight.hide();
+        }
+    }
+    
+    /** Redraw highlights **/
+    function redrawHighlight() {
+        if (Inspector.connected() && agents.highlight) {
+            agents.highlight.redraw();
+        }
     }
 
     /** Triggered by a document change from the DocumentManager */
@@ -515,13 +641,13 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         if (Inspector.connected()) {
+            hideHighlight();
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
             } else {
-                /* FUTURE: support live connections for docments other than html */
-                if (exports.config.experimental || (doc.extension && doc.extension.indexOf('htm') === 0)) {
+                if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
                     close();
                     window.setTimeout(open);
                 }
@@ -555,33 +681,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    function getLiveDocForPath(path) {
-        var docsToSearch = [];
-        if (_relatedDocuments) {
-            docsToSearch = docsToSearch.concat(_relatedDocuments);
-        }
-        if (_liveDocument) {
-            docsToSearch = docsToSearch.concat(_liveDocument);
-        }
-        var foundDoc;
-        docsToSearch.some(function matchesPath(ele) {
-            if (ele.doc.file.fullPath === path) {
-                foundDoc = ele;
-                return true;
-            }
-            return false;
-        });
-
-        return foundDoc;
-    }
-
-    /** Hide any active highlighting */
-    function hideHighlight() {
-        if (Inspector.connected() && agents.highlight) {
-            agents.highlight.hide();
-        }
-    }
-
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -593,13 +692,19 @@ define(function LiveDevelopment(require, exports, module) {
             .on("dirtyFlagChange", _onDirtyFlagChange);
     }
 
+    // For unit testing
+    exports._pathToUrl          = _pathToUrl;
+    exports._urlToPath          = _urlToPath;
+
     // Export public functions
-    exports.agents = agents;
-    exports.open = open;
-    exports.close = close;
-    exports.enableAgent = enableAgent;
-    exports.disableAgent = disableAgent;
-    exports.getLiveDocForPath = getLiveDocForPath;
-    exports.hideHighlight = hideHighlight;
-    exports.init = init;
+    exports.agents              = agents;
+    exports.open                = open;
+    exports.close               = close;
+    exports.enableAgent         = enableAgent;
+    exports.disableAgent        = disableAgent;
+    exports.getLiveDocForPath   = getLiveDocForPath;
+    exports.showHighlight       = showHighlight;
+    exports.hideHighlight       = hideHighlight;
+    exports.redrawHighlight     = redrawHighlight;
+    exports.init                = init;
 });

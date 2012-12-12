@@ -37,6 +37,8 @@ define(function (require, exports, module) {
         KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings");
 
+    var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+    
     /**
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
@@ -421,7 +423,7 @@ define(function (require, exports, module) {
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
-                                            
+            
             keyBindings.forEach(function (keyBindingRequest) {
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
@@ -482,6 +484,15 @@ define(function (require, exports, module) {
         var bindings = _commandMap[commandID];
         return bindings || [];
     }
+    
+    function _handleCommandRegistered(event, command) {
+        var commandId   = command.getID(),
+            defaults    = KeyboardPrefs[commandId];
+        
+        if (defaults) {
+            addBinding(commandId, defaults);
+        }
+    }
 
     /**
      * Install keydown event listener.
@@ -499,6 +510,8 @@ define(function (require, exports, module) {
             true
         );
     }
+    
+    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
     // unit test only
     exports._reset = _reset;

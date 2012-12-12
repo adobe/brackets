@@ -154,7 +154,7 @@ define(function (require, exports, module) {
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
-                    FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
+                    FileUtils.showFileOpenError(fileError.name, fullPath).done(function () {
                         // For performance, we do lazy checking of file existence, so it may be in working set
                         DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
                         EditorManager.focusEditor();
@@ -365,14 +365,14 @@ define(function (require, exports, module) {
         _handleNewItemInProject(true);
     }
 
-    function showSaveFileError(code, path) {
+    function showSaveFileError(name, path) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
                 StringUtils.htmlEscape(path),
-                FileUtils.getFileErrorString(code)
+                FileUtils.getFileErrorString(name)
             )
         );
     }
@@ -382,7 +382,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            showSaveFileError(error.code, fileEntry.fullPath)
+            showSaveFileError(error.name, fileEntry.fullPath)
                 .always(function () {
                     result.reject(error);
                 });
@@ -486,7 +486,7 @@ define(function (require, exports, module) {
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileError if the
+     * @return {$.Promise} a Promise that's resolved when done, or rejected with a NativeFileError if the
      *      file cannot be read (after showing an error dialog to the user).
      */
     function doRevert(doc) {
@@ -498,7 +498,7 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error.code, doc.file.fullPath)
+                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
                     .always(function () {
                         result.reject(error);
                     });
@@ -611,7 +611,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            promptOnly = commandData && commandData.promptOnly;
         
         var unsavedDocs = [];
         DocumentManager.getWorkingSet().forEach(function (file) {
@@ -627,7 +628,7 @@ define(function (require, exports, module) {
             
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: commandData.promptOnly };
+            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
 
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents
@@ -673,7 +674,7 @@ define(function (require, exports, module) {
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
         result.done(function () {
-            if (!commandData || !commandData.promptOnly) {
+            if (!promptOnly) {
                 DocumentManager.closeAll();
             }
         });

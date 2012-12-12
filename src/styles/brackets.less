@@ -95,6 +95,7 @@ a, img {
 
     .content {
         height: 100%;
+        position: relative;
     }
 }
 
@@ -105,6 +106,16 @@ a, img {
 
 .busyCursor {
     cursor: wait !important;
+}
+#main-toolbar .buttons {
+    vertical-align: middle;
+}
+#main-toolbar .buttons a {
+    margin: 0px 8px 0px 0px !important;
+    padding: 0 !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
 }
 
 #status-bar {
@@ -374,24 +385,9 @@ a, img {
     position: relative;
     
     .project-file-header-area {
-        padding: 6px 26px 2px 10px;
+        padding: 6px 6px 2px 10px;
         font-size: 13px;
         color: #929292;
-
-        // extra right padding is for this icon
-        .settings {
-            position: absolute;
-            right: 8px;
-            margin-top: 3px;
-            .sprite-icon(0, 0, 14px, 14px, "images/settings_small.svg");
-
-            &:hover {
-                .sprite-swap(0, 14px);
-            }
-            &:active {
-                .sprite-swap(0, 28px);
-            }
-        }
     }
 
     .file-list-divider {
@@ -514,7 +510,7 @@ a, img {
 }
 
 
-@sprite-size-18: 4px;
+@jstree-sprite-size: 18px;  // this is hardcoded in jsTree's JS code
 
 /** Classes for icons from jsTreeSprites.svg 
 */
@@ -523,27 +519,12 @@ a, img {
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @sprite-size-18;
-    height: @sprite-size-18;
+    width: @jstree-sprite-size;
+    height: @jstree-sprite-size;
 }
 
-.disclosure-arrow-opened {
-    .jstree-sprite;
-    display: inline-block;
-    background-position: -@sprite-size-18 0px;
-}
-
-.disclosure-arrow-closed {
-    .jstree-sprite;
-    display: inline-block;
-    background-position: 0px 0px;
-}
-ins.jstree-icon {
-    left: -12px !important;
-}
 /** Classes for icons from bracketSprites.png 
 */
-
 .bracket-sprite {
     background-image: url("images/close_btn.svg");
     background-repeat: no-repeat;
@@ -726,27 +707,39 @@ ins.jstree-icon {
 }
 
 
-/* Find & Replace search bars - temporary UI, to be replaced with a richer search feature later */
+/* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
-.CodeMirror-dialog {
-    position: relative;
-    z-index: @z-index-cm-dialog-override;
+#search-results .disclosure-triangle {
+    .jstree-sprite;
+    display: inline-block;
+    &.expanded {
+        // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
+        // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
+        background-position: -(@jstree-sprite-size*1 - 2px) -(@jstree-sprite-size*1 - 1px);
+    }
+    &.collapsed {
+        background-position: -(@jstree-sprite-size*0 - 2px) -@jstree-sprite-size*1;
+    }
 }
 
-.CodeMirror-dialog > div {
+/* Modal bar for Find/Quick Open */
+
+.modal-bar {
+    text-align: left;
+    width: 100%;
     font-family: @fontstack-sans-serif;
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    background: @background-color-2;
+    font-size: 13px;
     color: @content-color;
-    border-bottom: 1px solid @bc-gray;
-    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
-    z-index: 1;
-    padding: .5em .8em;
+    border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
+    background: #eee;
+    margin-left: -8px;
+    margin-top: 4px;
+    margin-bottom: -4px; // bleed into toolbar padding
+    padding: 6px 14px 4px;
     overflow: hidden;
 }
 
-.CodeMirror-dialog input {
+.modal-bar input {
     font-family: @fontstack-sans-serif;
     border: 1px solid @content-color-weaker;
     outline: none;
@@ -756,6 +749,18 @@ ins.jstree-icon {
     color: inherit;
     &.no-results {
         background-color: mix(@background-color-3, #FF0000, 70%);
+    }
+}
+
+.modal-bar .message {
+    display: inline-block;
+}
+.modal-bar .error {
+    display: none;
+    
+    .alert-message {
+        padding-top: 4px;
+        padding-bottom: 4px;
     }
 }
 
@@ -793,4 +798,13 @@ ins.jstree-icon {
 
 li.smart_autocomplete_highlight {
     background-color: #e0f0fa;
+}
+
+.quicksearch-pathmatch {
+    font-weight: bold;
+    color: #555;
+}
+
+.quicksearch-namematch {
+    font-weight: bold;
 }

@@ -48,26 +48,22 @@
 define(function CSSDocumentModule(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
-    var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var CSSAgent        = require("LiveDevelopment/Agents/CSSAgent"),
+        CSSUtils        = require("language/CSSUtils"),
+        EditorManager   = require("editor/EditorManager"),
+        HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
     /** Constructor
      *
      * @param Document the source document from Brackets
      */
-    var CSSDocument = function CSSDocument(doc, editor, inspector) {
+    var CSSDocument = function CSSDocument(doc, editor) {
         this.doc = doc;
 
-        // FUTURE: Highlighting is currently disabled, since this code doesn't yet know
-        // how to deal with different editors pointing at the same document.
-/*
-        this.editor = editor;
         this._highlight = [];
         this.onHighlight = this.onHighlight.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(HighlightAgent).on("highlight", this.onHighlight);
-*/
 
         // Add a ref to the doc since we're listening for change events
         this.doc.addRef();
@@ -76,23 +72,20 @@ define(function CSSDocumentModule(require, exports, module) {
         $(this.doc).on("change", this.onChange);
         $(this.doc).on("deleted", this.onDeleted);
 
-/*
-        $(this.editor).on("cursorActivity", this.onCursorActivity);
-        this.onCursorActivity();
-*/
-
         // get the style sheet
         this.styleSheet = CSSAgent.styleForURL(this.doc.url);
-
-        // WebInspector Command: CSS.getStyleSheet
-        Inspector.CSS.getStyleSheet(this.styleSheet.styleSheetId, function callback(res) {
-            // res = {styleSheet}
-            this.rules = res.styleSheet.rules;
-        }.bind(this));
 
         // If the CSS document is dirty, push the changes into the browser now
         if (doc.isDirty) {
             CSSAgent.reloadCSSForDocument(this.doc);
+        }
+        
+        this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
+        $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
+        
+        if (editor) {
+            // Attach now
+            this.attachToEditor(editor);
         }
     };
 
@@ -125,52 +118,61 @@ define(function CSSDocumentModule(require, exports, module) {
 
         return deferred.promise();
     };
-
+ 
     /** Close the document */
     CSSDocument.prototype.close = function close() {
         $(this.doc).off("change", this.onChange);
         $(this.doc).off("deleted", this.onDeleted);
         this.doc.releaseRef();
-/*
-        $(HighlightAgent).off("highlight", this.onHighlight);
-        $(this.editor).off("cursorActivity", this.onCursorActivity);
-        this.onHighlight();
-*/
+        this.detachFromEditor();
     };
 
-    // find a rule in the given rules
-    CSSDocument.prototype.ruleAtLocation = function ruleAtLocation(location) {
-        var i, rule;
-        for (i in this.rules) {
-            rule = this.rules[i];
-            if (rule.selectorRange.start <= location && location <= rule.style.range.end) {
-                return rule;
-            }
+    CSSDocument.prototype.attachToEditor = function (editor) {
+        this.editor = editor;
+        
+        if (this.editor) {
+            $(HighlightAgent).on("highlight", this.onHighlight);
+            $(this.editor).on("cursorActivity", this.onCursorActivity);
+            this.updateHighlight();
         }
-        return null;
+    };
+    
+    CSSDocument.prototype.detachFromEditor = function () {
+        if (this.editor) {
+            HighlightAgent.hide();
+            $(HighlightAgent).off("highlight", this.onHighlight);
+            $(this.editor).off("cursorActivity", this.onCursorActivity);
+            this.onHighlight();
+            this.editor = null;
+        }
     };
 
-
-    /** Event Handlers *******************************************************/
-
-    /** Triggered on cursor activity of the editor */
-    CSSDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
-        if (Inspector.config.highlight) {
+    CSSDocument.prototype.updateHighlight = function () {
+        if (Inspector.config.highlight && this.editor) {
             var codeMirror = this.editor._codeMirror;
-            var location = codeMirror.indexFromPos(codeMirror.getCursor());
-            var rule = this.ruleAtLocation(location);
-            if (rule) {
-                HighlightAgent.rule(rule.selectorText);
+            var selector = CSSUtils.findSelectorAtDocumentPos(this.editor, codeMirror.getCursor());
+            if (selector) {
+                HighlightAgent.rule(selector);
             } else {
                 HighlightAgent.hide();
             }
         }
     };
 
+    /** Event Handlers *******************************************************/
+
+    /** Triggered on cursor activity of the editor */
+    CSSDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+        this.updateHighlight();
+    };
+
     /** Triggered whenever the Document is edited */
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
         CSSAgent.reloadCSSForDocument(this.doc);
+        if (Inspector.config.highlight) {
+            HighlightAgent.redraw();
+        }
     };
     /** Triggered if the Document's file is deleted */
     CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
@@ -182,8 +184,17 @@ define(function CSSDocumentModule(require, exports, module) {
         $(this).triggerHandler("deleted", [this]);
     };
 
+    /** Triggered when the active editor changes */
+    CSSDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
+        this.detachFromEditor();
+        
+        if (newActive && newActive.document === this.doc) {
+            this.attachToEditor(newActive);
+        }
+    };
+    
     /** Triggered by the HighlightAgent to highlight a node in the editor */
-    CSSDocument.prototype.onHighlight = function onHighlight(node) {
+    CSSDocument.prototype.onHighlight = function onHighlight(event, node) {
         // clear an existing highlight
         var i;
         for (i in this._highlight) {

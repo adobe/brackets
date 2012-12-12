@@ -50,10 +50,7 @@ define(function (require, exports, module) {
         DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
-        DIALOG_ID_ABOUT = "about-dialog",
-        DIALOG_ID_UPDATE = "update-dialog",
-        DIALOG_ID_PROJECT_SETTINGS = "project-settings-dialog";
+        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -114,13 +111,11 @@ define(function (require, exports, module) {
     };
     
     /**
-     * General purpose modal dialog. Assumes that:
-     * -- the root tag of the dialog is marked with a unique class name (passed as dlgClass), as well as the
-     *    classes "template modal hide".
-     * -- the HTML for the dialog contains elements with "title" and "message" classes, as well as a number 
-     *    of elements with "dialog-button" class, each of which has a "data-button-id".
+     * Like showModalDialog(), but takes a template as a parameter rather than assuming the template is embedded
+     * in the current DOM. The template can either be a string or a jQuery object representing a DOM node that is
+     * *not* in the current DOM.
      *
-     * @param {string} dlgClass The class of the dialog node in the HTML.
+     * @param {string} template A string template or jQuery object to use as the dialog HTML.
      * @param {string=} title The title of the error dialog. Can contain HTML markup. If unspecified, title in
      *      the HTML template is used unchanged.
      * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
@@ -128,24 +123,14 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
-    function showModalDialog(dlgClass, title, message) {
+    function showModalDialogUsingTemplate(template, title, message) {
         var result = $.Deferred(),
             promise = result.promise();
         
-        // We clone the HTML rather than using it directly so that if two dialogs of the same
-        // type happen to show up, they can appear at the same time. (This is an edge case that
-        // shouldn't happen often, but we can't prevent it from happening since everything is
-        // asynchronous.)
-        var $dlg = $("." + dlgClass + ".template")
-            .clone()
-            .removeClass("template")
+        var $dlg = $(template)
             .addClass("instance")
             .appendTo(window.document.body);
         
-        if ($dlg.length === 0) {
-            throw new Error("Dialog id " + dlgClass + " does not exist");
-        }
-
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
 
@@ -215,6 +200,35 @@ define(function (require, exports, module) {
     }
     
     /**
+     * General purpose modal dialog. Assumes that:
+     * -- the root tag of the dialog is marked with a unique class name (passed as dlgClass), as well as the
+     *    classes "template modal hide".
+     * -- the HTML for the dialog contains elements with "title" and "message" classes, as well as a number 
+     *    of elements with "dialog-button" class, each of which has a "data-button-id".
+     *
+     * @param {string} dlgClass The class of the dialog node in the HTML.
+     * @param {string=} title The title of the error dialog. Can contain HTML markup. If unspecified, title in
+     *      the HTML template is used unchanged.
+     * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
+     *      unspecified, body in the HTML template is used unchanged.
+     * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
+     *     is dismissed. Never rejected.
+     */
+    function showModalDialog(dlgClass, title, message) {
+        // We clone the HTML rather than using it directly so that if two dialogs of the same
+        // type happen to show up, they can appear at the same time. (This is an edge case that
+        // shouldn't happen often, but we can't prevent it from happening since everything is
+        // asynchronous.)
+        var $template = $("." + dlgClass + ".template")
+            .clone()
+            .removeClass("template");
+        if ($template.length === 0) {
+            throw new Error("Dialog id " + dlgClass + " does not exist");
+        }
+        return showModalDialogUsingTemplate($template, title, message);
+    }
+    
+    /**
      * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
      */
@@ -238,10 +252,8 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_EXT_CHANGED       = DIALOG_ID_EXT_CHANGED;
     exports.DIALOG_ID_EXT_DELETED       = DIALOG_ID_EXT_DELETED;
     exports.DIALOG_ID_LIVE_DEVELOPMENT  = DIALOG_ID_LIVE_DEVELOPMENT;
-    exports.DIALOG_ID_ABOUT             = DIALOG_ID_ABOUT;
-    exports.DIALOG_ID_UPDATE            = DIALOG_ID_UPDATE;
-    exports.DIALOG_ID_PROJECT_SETTINGS  = DIALOG_ID_PROJECT_SETTINGS;
     
-    exports.showModalDialog             = showModalDialog;
-    exports.cancelModalDialogIfOpen     = cancelModalDialogIfOpen;
+    exports.showModalDialog              = showModalDialog;
+    exports.showModalDialogUsingTemplate = showModalDialogUsingTemplate;
+    exports.cancelModalDialogIfOpen      = cancelModalDialogIfOpen;
 });

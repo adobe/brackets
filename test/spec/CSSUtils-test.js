@@ -253,38 +253,38 @@ define(function (require, exports, module) {
         });
         
         
-        describe("escapes", function() {
+        describe("escapes", function () {
             
             beforeEach(function () {
                 init(this, escapesCssFileEntry);
             });
             
-            it("should remove simple backslashes for simple characters", function() { 
+            it("should remove simple backslashes for simple characters", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[0].selector).toEqual(".simple");
             });
             
-            it("should remove simple backslashes with escaped characters", function() { 
+            it("should remove simple backslashes with escaped characters", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[1].selector).toEqual(".not\\so|simple?");
             });
             
-            it("should parse '\\XX ' as a single character", function() {
+            it("should parse '\\XX ' as a single character", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[2].selector).toEqual(".twodigits");
             });
             
-            it("should parse '\\XXXX ' as a single character", function() {
+            it("should parse '\\XXXX ' as a single character", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[3].selector).toEqual(".fourdigits");
             });
             
-            it("should parse '\\XXXXXX' as a single character", function() {
+            it("should parse '\\XXXXXX' as a single character", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[4].selector).toEqual(".sixdigits");
             });
             
-            it("should not trim end spaces", function() {
+            it("should not trim end spaces", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[5].selector).toEqual(".two-digit-endspace");
                 
@@ -292,30 +292,30 @@ define(function (require, exports, module) {
                 expect(selectors[6].selector).toEqual(".four-digit-endspace");
                 
                 selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
-                expect(selectors[7].selector).toEqual(".six-digit-endspace");                
+                expect(selectors[7].selector).toEqual(".six-digit-endspace");
             });
             
-            it("should detect all combinations", function() {
+            it("should detect all combinations", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[8].selector).toEqual(".mixin-it-all");
             });
             
-            it("should parse '\\AX' as AX", function() {
+            it("should parse '\\AX' as AX", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[9].selector).toEqual(".two-wi74out-space");
             });
             
-            it("should parse '\\AXXX' as AXXX", function() {
+            it("should parse '\\AXXX' as AXXX", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[10].selector).toEqual(".four-n0085-space");
             });
             
-            it("should replace out of range characters with �", function() {
+            it("should replace out of range characters with U+FFFD", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
-                expect(selectors[11].selector).toEqual(".�ut�frange");
+                expect(selectors[11].selector).toEqual(".\uFFFDut\uFFFDfrange");
             });
             
-            it("should parse everything less does", function() {
+            it("should parse everything less does", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[12].selector).toEqual(".escape|random|char");
                 expect(selectors[13].selector).toEqual(".mixin!tUp");
@@ -324,6 +324,165 @@ define(function (require, exports, module) {
                 expect(selectors[16].selector).toEqual(".trailingTest+");
                 expect(selectors[17].selector).toEqual("blockquote");
             });
+        });
+        
+        describe("findSelectorAtDocumentPos selector groups", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, groupsFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+            
+            it("should find the selector at a document pos", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 9, ch: 0});
+                expect(selector).toEqual("h1");
+            });
+            
+            it("should return empty string if selection is not in a style rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual("");
+            });
+            
+            it("should return a comma separated string of all selectors for the rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 13, ch: 0});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should support multiple rules on the same line", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 31, ch: 24});
+                expect(selector).toEqual(".g,.h");
+            });
+            
+            it("should support multiple rules on multiple lines", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 28, ch: 0});
+                expect(selector).toEqual(".a,.b, .c,.d");
+            });
+        });
+        
+        describe("findSelectorAtDocumentPos comments", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, offsetsCssFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+            
+            it("should ignore rules inside comments", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 45, ch: 22});
+                expect(selector).toEqual("");
+            });
+            
+            it("should find rules adjacent to comments", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 47, ch: 4});
+                expect(selector).toEqual("div");
+            });
+            
+            it("should find rules when the position is inside a nested comment", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 49, ch: 14});
+                expect(selector).toEqual("div");
+            });
+            
+        });
+        
+        describe("findSelectorAtDocumentPos pseudo-classes and at-rules", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, offsetsCssFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+            
+            it("should find a simple pseudo selector", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 8, ch: 11});
+                expect(selector).toEqual("a:visited");
+            });
+            
+            it("should find a selector with a preceding at-rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 18, ch: 0});
+                expect(selector).toEqual("a");
+            });
+            
+            it("should not find a selector when inside an at-rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 15, ch: 12});
+                expect(selector).toEqual("");
+                
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 28, ch: 31});
+                expect(selector).toEqual("");
+                
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 22, ch: 16});
+                expect(selector).toEqual("");
+            });
+        });
+        
+        describe("findSelectorAtDocumentPos complex selectors", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, bootstrapCssFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+            
+            it("should find pseudo selectors", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 72, ch: 0});
+                expect(selector).toEqual("button::-moz-focus-inner, input::-moz-focus-inner");
+            });
+            
+            it("should find attribute selectors", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 83, ch: 0});
+                expect(selector).toEqual('input[type="search"]');
+            });
+            
+            it("should find structural pseudo-classes", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 1053, ch: 0});
+                expect(selector).toEqual(".table-striped tbody tr:nth-child(odd) td, .table-striped tbody tr:nth-child(odd) th");
+            });
+            
+            it("should find combinators", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 2073, ch: 0});
+                expect(selector).toEqual(".alert-block p + p");
+            });
+            
+        });
+        
+        describe("findSelectorAtDocumentPos beginning, middle and end of selector", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, groupsFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+            
+            it("should find selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 0});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should find selector when pos is in the middle of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 3});
+                expect(selector).toEqual('h3, h2, h1');
+            });
+            
+            it("should find selector when pos is at the end of a selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 10});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should not find selector when pos is before a selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual("");
+            });
+            
         });
         
     }); // describe("CSSUtils")
