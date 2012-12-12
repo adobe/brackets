@@ -81,8 +81,8 @@ define(function (require, exports, module) {
                 }, "loadStyleSheet() cssRules defined timeout", 1000);
             }
 
-            // putting everything in 1 test so it runs faster
-            it("should attach style sheets", function () {
+            // putting everything CSS related in 1 test so it runs faster
+            it("should attach CSS style sheets", function () {
 
                 runs(function () {
                     loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.css");
@@ -111,6 +111,10 @@ define(function (require, exports, module) {
                     var fontVariant = $projectTitle.css("font-variant");
                     expect(fontVariant).toEqual("small-caps");
                 });
+            });
+            
+            // putting everything LESS related in 1 test so it runs faster
+            it("should attach LESS style sheets", function () {
                 
                 runs(function () {
                     loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.less");
