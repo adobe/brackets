@@ -93,7 +93,7 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter) {        
+    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter) {
         this.name = name;
         this.fileTypes = fileTypes;
         this.done = done;
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
         }
 
         if ($(".smart_autocomplete_highlight").length === 0) {
-            this._handleItemFocus($(".smart_autocomplete_container > li:first-child").get(0));
+            this._handleItemFocus(null, $(".smart_autocomplete_container > li:first-child").get(0));
         }
     };
 
@@ -362,7 +362,7 @@ define(function (require, exports, module) {
                 this._close();
                 
             } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-                this._handleItemSelect($(".smart_autocomplete_highlight").get(0));
+                this._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));
             }
             
         }
