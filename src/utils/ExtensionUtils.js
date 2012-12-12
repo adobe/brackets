@@ -37,7 +37,7 @@ define(function (require, exports, module) {
      * @param {!string} css CSS code to use as the tag's content
      * @return {!HTMLStyleElement} The generated HTML node
      **/
-    function addInlineStyleSheet(css) {
+    function addEmbeddedStyleSheet(css) {
         return $("<style>").text(css).appendTo("head")[0];
     }
     
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
      * @param {!string} url URL to a style sheet
      * @return {!HTMLLinkElement} The generated HTML node
      **/
-    function addStyleSheetReference(url) {
+    function addLinkedStyleSheet(url) {
         var attributes = {
             type: "text/css",
             rel:  "stylesheet",
@@ -131,16 +131,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Performs a GET request using a URL.
-     *
-     * @param {!string} url URL of a resource
-     * @return {!$.Promise} A promise object that is resolved with the contents of the requested resource
-     **/
-    function loadUrl(url) {
-        return $.get(url);
-    }
-    
-    /**
      * Performs a GET request using a path relative to an extension module.
      *
      * The resulting URL can be retrieved in the resolve callback by accessing
@@ -151,7 +141,7 @@ define(function (require, exports, module) {
      **/
     function loadFile(module, path) {
         var url     = getModuleUrl(module, path),
-            promise = loadUrl(url);
+            promise = $.get(url);
 
         return promise;
     }
@@ -166,27 +156,30 @@ define(function (require, exports, module) {
     function loadStyleSheet(module, path) {
         var result = new $.Deferred();
 
-        loadFile(module, path).done(function (content) {
-            var url = this.url;
-            
-            if (url.slice(-5) === ".less") {
-                parseLessCode(content, url).done(function (css) {
-                    result.resolve(addInlineStyleSheet(css));
-                }).fail(result.reject);
-            } else {
-                result.resolve(addStyleSheetReference(url));
-            }
-        }).fail(result.reject);
+        loadFile(module, path)
+            .done(function (content) {
+                var url = this.url;
+                
+                if (url.slice(-5) === ".less") {
+                    parseLessCode(content, url)
+                        .done(function (css) {
+                            result.resolve(addEmbeddedStyleSheet(css));
+                        })
+                        .fail(result.reject);
+                } else {
+                    result.resolve(addLinkedStyleSheet(url));
+                }
+            })
+            .fail(result.reject);
         
         return result.promise();
     }
     
-    exports.addInlineStyleSheet    = addInlineStyleSheet;
-    exports.addStyleSheetReference = addStyleSheetReference;
-    exports.parseLessCode          = parseLessCode;
-    exports.getModulePath          = getModulePath;
-    exports.getModuleUrl           = getModuleUrl;
-    exports.loadUrl                = loadUrl;
-    exports.loadFile               = loadFile;
-    exports.loadStyleSheet         = loadStyleSheet;
+    exports.addEmbeddedStyleSheet = addEmbeddedStyleSheet;
+    exports.addLinkedStyleSheet   = addLinkedStyleSheet;
+    exports.parseLessCode         = parseLessCode;
+    exports.getModulePath         = getModulePath;
+    exports.getModuleUrl          = getModuleUrl;
+    exports.loadFile              = loadFile;
+    exports.loadStyleSheet        = loadStyleSheet;
 });

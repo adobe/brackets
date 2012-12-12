@@ -111,6 +111,32 @@ define(function (require, exports, module) {
                     var fontVariant = $projectTitle.css("font-variant");
                     expect(fontVariant).toEqual("small-caps");
                 });
+                
+                runs(function () {
+                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.less");
+                });
+                
+                runs(function () {
+                    // basic.less
+                    var $projectTitle = testWindow.$("#project-title");
+                    var fontSize = $projectTitle.css("font-size");
+                    expect(fontSize).toEqual("66px");
+
+                    // fourth.less is imported in basic.less
+                    var fontWeight = $projectTitle.css("font-weight");
+                    expect(fontWeight).toEqual("800");
+                });
+                
+                runs(function () {
+                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/sub dir/fifth.less");
+                });
+                
+                runs(function () {
+                    // fifth.less
+                    var $projectTitle = testWindow.$("#project-title");
+                    var fontVariant = $projectTitle.css("letter-spacing");
+                    expect(fontVariant).toEqual("9px");
+                });
             });
         });
     });
