@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
-        StringUtils             = require("utils/StringUtils");
+        StringUtils             = require("utils/StringUtils"),
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html");
     
     var buildInfo;
     
@@ -55,11 +56,12 @@ define(function (require, exports, module) {
     }
 
     function _handleAboutDialog() {
-        if (buildInfo) {
-            $("#about-build-number").text(" (" + buildInfo + ")");
-        }
-        
-        Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+        var templateVars = $.extend({
+            ABOUT_ICON          : brackets.config.about_icon,
+            APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+            BUILD_INFO          : buildInfo
+        }, Strings);
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
     }
 
     function _handleForum() {
