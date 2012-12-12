@@ -58,15 +58,10 @@ define(function (require, exports, module) {
     function _handleAboutDialog() {
         var templateVars = $.extend({
             ABOUT_ICON          : brackets.config.about_icon,
-            APP_NAME_ABOUT_BOX  : brackets.config.app_name_about
+            APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+            BUILD_INFO          : buildInfo
         }, Strings);
-
-        var $template = $(Mustache.render(AboutDialogTemplate, templateVars));
-        if (buildInfo) {
-            $("#about-build-number", $template).text(" (" + buildInfo + ")");
-        }
-
-        Dialogs.showModalDialogUsingTemplate($template);
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
     }
 
     function _handleForum() {
