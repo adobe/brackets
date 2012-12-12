@@ -74,7 +74,7 @@
                 // Chrome will print it to the console anyway
                 if (!testCrossOriginError(message, url, line)) {
                     if (previousErrorHandler) {
-                        previousErrorHandler(message, url, line);
+                        return previousErrorHandler(message, url, line);
                     }
                     return;
                 }
