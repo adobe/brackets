@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils */
+/*global define, $, PathUtils, Mustache */
 
 /**
  * PreferencesDialogs
@@ -34,11 +34,12 @@ define(function (require, exports, module) {
     
     require("thirdparty/path-utils/path-utils.min");
 
-    var Dialogs             = require("widgets/Dialogs"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
-        ProjectManager      = require("project/ProjectManager"),
-        StringUtils         = require("utils/StringUtils"),
-        Strings             = require("strings");
+    var Dialogs                = require("widgets/Dialogs"),
+        PreferencesManager     = require("preferences/PreferencesManager"),
+        ProjectManager         = require("project/ProjectManager"),
+        StringUtils            = require("utils/StringUtils"),
+        Strings                = require("strings"),
+        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html");
 
     /**
      * Validate that text string is a valid base url which should map to a server folder
@@ -85,7 +86,7 @@ define(function (require, exports, module) {
             $baseUrlControl,
             promise;
 
-        promise = Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
+        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     var baseUrlValue = $baseUrlControl.val();

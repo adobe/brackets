@@ -313,13 +313,7 @@ define(function (require, exports, module) {
     });
     
     // Localize MainViewHTML and inject into <BODY> tag
-    var templateVars    = $.extend({
-        ABOUT_ICON          : brackets.config.about_icon,
-        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-        VERSION             : brackets.metadata.version
-    }, Strings);
-    
-    $("body").html(Mustache.render(MainViewHTML, templateVars));
+    $("body").html(Mustache.render(MainViewHTML, Strings));
     
     // Update title
     $("title").text(brackets.config.app_title);
