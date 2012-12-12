@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $ */
 
 define(function (require, exports, module) {
     'use strict';
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
         var CH_REQUIRE_PAREN = CH_REQUIRE_START + "require".length;
         
 
-        var myDocument, myEditor;
+        var myDocument, myEditor, $myToolbar;
         
         function setupFullEditor() {
             // create dummy Document and Editor
@@ -67,8 +67,14 @@ define(function (require, exports, module) {
             myEditor.focus();
         }
         
+        beforeEach(function () {
+            $myToolbar = $("<div id='main-toolbar'/>").appendTo(window.document.body);
+        });
+        
         afterEach(function () {
             SpecRunnerUtils.destroyMockEditor(myDocument);
+            $myToolbar.remove();
+            $myToolbar = null;
             myEditor = null;
             myDocument = null;
         });
@@ -87,10 +93,10 @@ define(function (require, exports, module) {
         
         
         function getSearchBar() {
-            return $(".CodeMirror-dialog");
+            return $(".modal-bar");
         }
         function getSearchField() {
-            return $(".CodeMirror-dialog input[type='text']");
+            return $(".modal-bar input[type='text']");
         }
         
         function expectSearchBarOpen() {
@@ -370,7 +376,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_PAREN}});
             });
             
-            it("should no-op on Enter with blank search", function () {
+            it("should no-op on Find Next with blank search", function () {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
@@ -379,6 +385,14 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0}); // no change
                 
+            });
+            
+            it("should no-op on Enter with blank search", function () {
+                myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
+                
+                CommandManager.execute(Commands.EDIT_FIND);
+                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+
                 pressEnter();
                 
                 expectSearchBarClosed();
@@ -445,7 +459,7 @@ define(function (require, exports, module) {
                 
                 // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
                 enterSearchText("/+/");
-                expect($(".CodeMirror-dialog .alert-message").length).toBe(1);
+                expect($(".modal-bar .error").length).toBe(1);
                 expectCursorAt({line: 0, ch: 0}); // no change
             });
             
