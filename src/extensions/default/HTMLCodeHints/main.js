@@ -267,7 +267,7 @@ define(function (require, exports, module) {
                 query.attrName = tagInfo.attr.name;
             }
 
-            // TODO: get existing attributes for the current tag and add them to query.usedAttr
+            query.usedAttr = HTMLUtils.getTagAttributes(editor, cursor);
         }
 
         return query;
@@ -337,7 +337,8 @@ define(function (require, exports, module) {
             if (!this.cachedHints.query ||
                     this.cachedHints.query.tag !== query.tag ||
                     this.cachedHints.query.attrName !== query.attrName ||
-                    this.cachedHints.queryDir !== queryDir) {
+                    this.cachedHints.queryDir !== queryDir ||
+                    this.cachedHints.docDir !== docDir) {
 
                 // delete stale cache
                 this.cachedHints = null;
@@ -356,8 +357,8 @@ define(function (require, exports, module) {
             self.cachedHints = {};
             self.cachedHints.unfiltered = [];
 
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (dirEntry) {
-                dirEntry.createReader().readEntries(function (entries) {
+            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
+                fs.root.createReader().readEntries(function (entries) {
 
                     entries.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
@@ -373,6 +374,7 @@ define(function (require, exports, module) {
                     self.cachedHints.unfiltered = unfiltered;
                     self.cachedHints.query      = query;
                     self.cachedHints.queryDir   = queryDir;
+                    self.cachedHints.docDir     = docDir;
 
                     // If the editor has not changed, then re-initiate code hints. Cached data
                     // is still valid for folder even if we're not going to show it now.
@@ -423,6 +425,7 @@ define(function (require, exports, module) {
                 attrName = query.attrName,
                 filter = query.queryStr,
                 unfiltered = [],
+                hints = [],
                 sortFunc = null;
 
             this.closeOnSelect = true;
@@ -438,25 +441,26 @@ define(function (require, exports, module) {
                 
                 if (attrInfo) {
                     if (attrInfo.type === "boolean") {
-                        unfiltered = ["false", "true"];
+                        hints = ["false", "true"];
                     } else if (attrInfo.type === "url") {
                         // Default behavior for url hints is do not close on select.
                         this.closeOnSelect = false;
-                        unfiltered = this._getUrlList(query);
+                        hints = this._getUrlList(query);
                         sortFunc = StringUtils.urlSort;
                     } else if (attrInfo.attribOption) {
-                        unfiltered = attrInfo.attribOption;
+                        hints = attrInfo.attribOption;
                     }
                 }
             } else if (tags && tags[tagName] && tags[tagName].attributes) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
-
-                // TODO: exclude existing attributes from unfiltered array
+                hints = $.grep(unfiltered, function (attr, i) {
+                    return $.inArray(attr, query.usedAttr) < 0;
+                });
             }
-
-            if (unfiltered.length) {
+            
+            if (hints.length) {
                 console.assert(!result.length);
-                result = $.map(unfiltered, function (item) {
+                result = $.map(hints, function (item) {
                     if (item.indexOf(filter) === 0) {
                         return item;
                     }

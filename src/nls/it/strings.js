@@ -35,6 +35,7 @@ define({
     "NOT_READABLE_ERR"                  : "Il file non può essere letto.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
+    "FILE_EXISTS_ERR"                   : "Il file è già presente.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Errore durante il caricamento del progetto",
@@ -49,6 +50,8 @@ define({
     "ERROR_RELOADING_FILE"              : "Errore durante il tentativo di ricaricare il file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Errore durante il salvataggio del file",
     "ERROR_SAVING_FILE"                 : "Errore durante il tentativo di salvare il file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Errore durante il tentativo di rinominare il file",
+    "ERROR_RENAMING_FILE"               : "Errore durante il tentativo di rinominare il file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Il nome del file non è valido",
     "INVALID_FILENAME_MESSAGE"          : "Il nome del file non può contenere i seguenti caratteri: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "Il file <span class='dialog-filename'>{0}</span> esiste già.",
@@ -72,13 +75,16 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connessione al Browser in corso",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Per effettuare una connessione con Anteprima Live, Chrome deve essere rilanciato con il debugging remoto abilitato.<br /><br />Vuoi rilanciare Chrome e abilitare il debugging remoto?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Apri un file HTML per lanciare l'Anteprima Live.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Benvenuto nell'Anteprima Live!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Anteprima Live connette {APP_NAME} al tuo browser. Lancia una anteprima del tuo file HTML nel browser e dopo ogni tua modifica l'anteprima verrà aggiornata istantaneamente per riflettere le modifiche del tuo codice.<br /><br />In questa versione preliminare di {APP_NAME}, Anteprima Live funziona solo per le modifiche su <strong>file CSS</strong> e solo con <strong>Google Chrome</strong>. Verrà implementata presto anche per HTML e JavaScript!<br /><br />(Vedrai questo messaggio una sola volta.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Per magiorni informazioni leggi <a class=\"clickable-link\" data-href=\"{0}\">Risoluzione dei problemi di connessione a Anteprima Live</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Anteprima Live",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Anteprima Live: Connessione\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Anteprima Live: Inizializzazione\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnetti Anteprima Live",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Anteprima Live: clicca per disconnettere (Salva il file per aggiornare)",
     
     "SAVE_CLOSE_TITLE"                  : "Salva le modifiche",
     "SAVE_CLOSE_MESSAGE"                : "Vuoi cambiare le modifiche apportate al file <span class='dialog-filename'>{0}</span>?",
@@ -97,7 +103,7 @@ define({
     "OPEN_FILE"                         : "Apri File",
     "CHOOSE_FOLDER"                     : "Scegli una cartella",
 
-    "RELEASE_NOTES"                     : "Release Notes",
+    "RELEASE_NOTES"                     : "Note di rilascio",
     "NO_UPDATE_TITLE"                   : "Aggiornato!",
     "NO_UPDATE_MESSAGE"                 : "Hai installata l'ultima versione di {APP_NAME}.",
     
@@ -106,6 +112,7 @@ define({
     "FIND_IN_FILES_FILES"               : "file",
     "FIND_IN_FILES_MATCH"               : "corrispondenza",
     "FIND_IN_FILES_MATCHES"             : "corrispondenze",
+    "FIND_IN_FILES_MORE_THAN"           : "Più di  ",
     "FIND_IN_FILES_MAX"                 : " (mostra le prime {0} corrispondenze)",
     "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "linea:&nbsp;{0}",
@@ -126,12 +133,33 @@ define({
     "UNTITLED" : "Senza nome",
 
     /**
+     * Keyboard modifier names
+     */
+
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SPACE"  : "Space",
+    
+    /**
+     * StatusBar strings
+     */
+    "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l'indentazione",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Clicca per cambiare la ampiezza della tabulazione",
+    "STATUSBAR_SPACES"                      : "Spazi",
+    "STATUSBAR_TAB_SIZE"                    : "Ampiezza tabulazione",
+    "STATUSBAR_LINE_COUNT"                  : "{0} Linee",
+
+    /**
      * Command Name Constants
      */
 
     // File menu commands
     "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW"                        : "Nuovo",
+    "CMD_FILE_NEW"                        : "Nuovo file",
+    "CMD_FILE_NEW_FOLDER"                 : "Nuova cartella",
     "CMD_FILE_OPEN"                       : "Apri\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Aggiungi all'area di lavoro",
     "CMD_OPEN_FOLDER"                     : "Apri cartella\u2026",
@@ -140,11 +168,14 @@ define({
     "CMD_FILE_SAVE"                       : "Salva",
     "CMD_FILE_SAVE_ALL"                   : "Salva tutto",
     "CMD_LIVE_FILE_PREVIEW"               : "Anteprima Live",
+    "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
+    "CMD_FILE_RENAME"                     : "Rinomina",
     "CMD_QUIT"                            : "Esci",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Modifica",
     "CMD_SELECT_ALL"                      : "Seleziona tutto",
+    "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_FIND"                            : "Cerca",
     "CMD_FIND_IN_FILES"                   : "Cerca nei file",
     "CMD_FIND_NEXT"                       : "Cerca il successivo",
@@ -153,6 +184,7 @@ define({
     "CMD_INDENT"                          : "Aumenta indentazione",
     "CMD_UNINDENT"                        : "Riduci indentazione",
     "CMD_DUPLICATE"                       : "Duplica",
+    "CMD_DELETE_LINES"                    : "Elimina linea",
     "CMD_COMMENT"                         : "Commenta/De-commenta linee",
     "CMD_LINE_UP"                         : "Sposta la linea in alto",
     "CMD_LINE_DOWN"                       : "Sposta la linea in basso",
@@ -164,6 +196,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Aumenta la dimensione del testo",
     "CMD_DECREASE_FONT_SIZE"              : "Diminuisci la dimensione del testo",
     "CMD_RESTORE_FONT_SIZE"               : "Ripristina la dimensione del testo",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordina per data di aggiunta",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordina per nome",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordina per tipo",
+    "CMD_SORT_WORKINGSET_AUTO"            : "Ordinamento automatico",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Naviga",
@@ -175,6 +211,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Corrispondenza successiva",
     "CMD_NEXT_DOC"                        : "Documenti successivo",
     "CMD_PREV_DOC"                        : "Documento precedente",
+    "CMD_SHOW_IN_TREE"                    : "Mostra nell'albero dei file",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
@@ -185,7 +222,6 @@ define({
     "CMD_SHOW_PERF_DATA"                  : "Mostra dati sulle prestazioni",
     "CMD_NEW_BRACKETS_WINDOW"             : "Nuova finestra {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostra cartella estensioni",
-    "CMD_USE_TAB_CHARS"                   : "Usa caratteri di tabulazione",
     "CMD_SWITCH_LANGUAGE"                 : "Cambia lingua",
     "CMD_CHECK_FOR_UPDATE"                : "Controlla aggiornamenti",
 
@@ -201,6 +237,10 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Build sperimentale",
     "JSLINT_ERRORS"                        : "Errori di JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "JSLint: 1 errore",
+    "JSLINT_ERRORS_INFORMATION"            : "JSLint: {0} errori",
+    "JSLINT_NO_ERRORS"                     : "JSLint: Nessun errore - complimenti!",
+    "JSLINT_DISABLED"                      : "JSLint disabilitato o non funzionante per il file corrente",
     "SEARCH_RESULTS"                       : "Risultati della ricerca",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Non salvare",
@@ -219,5 +259,13 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "E' disponibile una nuova versione di {APP_NAME}! Clicca qui per i dettagli.",
     "UPDATE_AVAILABLE_TITLE"               : "Aggiornamento disponibile",
     "UPDATE_MESSAGE"                       : "Hey, è disponibile una nuova versione di {APP_NAME}. Nuove caratteristiche:",
-    "GET_IT_NOW"                           : "Installalo ora!"
+    "GET_IT_NOW"                           : "Installalo ora!",
+    "PROJECT_SETTINGS_TITLE"               : "Impostazioni del progetto per: {0}",
+    "PROJECT_SETTING_BASE_URL"             : "URL di base per Anteprima Live",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(lasciare vuoto per utilizzare l'URL del file)",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Il protocollo {0} non è supportato da Anteprima Lice&mdash;utilizzare http: o https: .",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "L'URL di base non può contenere parametri di ricerca come \"{0}\".",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "L'URL di base non può contenere hash come \"{0}\".",
+    "BASEURL_ERROR_INVALID_CHAR"           : "I caratteri speciali come '{0}' devono essere %-encodate.",
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Trovato un carattere sconosciuto durante il parsing della URL di base"
 });

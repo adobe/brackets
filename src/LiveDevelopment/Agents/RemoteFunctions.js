@@ -33,6 +33,8 @@
 function RemoteFunctions(experimental) {
     "use strict";
 
+    var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight";
+    
     // determine the color for a type
     function _typeColor(type, highlight) {
         switch (type) {
@@ -49,12 +51,12 @@ function RemoteFunctions(experimental) {
 
     // compute the screen offset of an element
     function _screenOffset(element, key) {
-        var value = 0;
-        while (element) {
-            value += element[key];
-            element = element.offsetParent;
+        var bounds = element.getBoundingClientRect();
+        if (key === "offsetLeft") {
+            return bounds.left + window.pageXOffset;
+        } else {
+            return bounds.top + window.pageYOffset;
         }
-        return value;
     }
 
     // set an event on a element
@@ -190,7 +192,7 @@ function RemoteFunctions(experimental) {
         this.color = color;
         this.trigger = !!trigger;
         this.elements = [];
-        this.orgColors = [];
+        this.selector = "";
     }
 
     Highlight.prototype = {
@@ -204,7 +206,76 @@ function RemoteFunctions(experimental) {
             return false;
         },
 
-        add: function (element) {
+        _makeHighlightDiv: function (element, doAnimation) {
+            var elementBounds = element.getBoundingClientRect(),
+                highlight = window.document.createElement("div"),
+                styles = window.getComputedStyle(element);
+                
+            highlight.className = HIGHLIGHT_CLASSNAME;
+            
+            var stylesToSet = {
+                "left": _screenOffset(element, "offsetLeft") + "px",
+                "top": _screenOffset(element, "offsetTop") + "px",
+                "width": (elementBounds.width - 2) + "px",
+                "height": (elementBounds.height - 2) + "px",
+                "z-index": 2000000,
+                "position": "absolute",
+                "pointer-events": "none",
+                "border-top-left-radius": styles.borderTopLeftRadius,
+                "border-top-right-radius": styles.borderTopRightRadius,
+                "border-bottom-left-radius": styles.borderBottomLeftRadius,
+                "border-bottom-right-radius": styles.borderBottomRightRadius,
+                "border-style": "solid",
+                "border-width": "1px",
+                "border-color": "rgb(94,167,255)"
+            };
+            
+            var animateStartValues = {
+                "opacity": 0,
+                "background": "rgba(94,167,255, 0.5)",
+                "box-shadow": "0 0 6px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,1)"
+            };
+            
+            var animateEndValues = {
+                "opacity": 1,
+                "background": "rgba(94,167,255, 0.1)",
+                "box-shadow": "0 0 1px 0 rgba(94,167,255, 0), inset 0 0 4px 1px rgba(255,255,255,0.8)"
+            };
+            
+            var transitionValues = {
+                "-webkit-transition-property": "opacity, box-shadow, background",
+                "-webkit-transition-duration": "0.3s, 0.4s, 0.4s",
+                "transition-property": "opacity, box-shadow, background",
+                "transition-duration": "0.3s, 0.4s, 0.4s"
+            };
+            
+            function _setStyleValues(styleValues, obj) {
+                var prop;
+                
+                for (prop in styleValues) {
+                    obj.setProperty(prop, styleValues[prop]);
+                }
+            }
+
+            _setStyleValues(stylesToSet, highlight.style);
+            _setStyleValues(
+                doAnimation ? animateStartValues : animateEndValues,
+                highlight.style
+            );
+            
+            
+            if (doAnimation) {
+                _setStyleValues(transitionValues, highlight.style);
+                
+                window.setTimeout(function () {
+                    _setStyleValues(animateEndValues, highlight.style);
+                }, 0);
+            }
+        
+            window.document.body.appendChild(highlight);
+        },
+        
+        add: function (element, doAnimation) {
             if (this._elementExists(element) || element === document) {
                 return;
             }
@@ -212,19 +283,36 @@ function RemoteFunctions(experimental) {
                 _trigger(element, "highlight", 1);
             }
             this.elements.push(element);
-            this.orgColors.push(element.style.getPropertyValue("background-color"));
-            element.style.setProperty("background-color", this.color);
+            
+            this._makeHighlightDiv(element, doAnimation);
         },
 
         clear: function () {
-            var i;
-            for (i in this.elements) {
-                var e = this.elements[i];
-                e.style.setProperty("background-color", this.orgColors[i]);
-                _trigger(e, "highlight", 0, true);
+            var i, highlights = window.document.querySelectorAll("." + HIGHLIGHT_CLASSNAME),
+                body = window.document.body;
+        
+            for (i = 0; i < highlights.length; i++) {
+                body.removeChild(highlights[i]);
             }
+            
             this.elements = [];
-            this.orgColors = [];
+        },
+        
+        redraw: function () {
+            var i, highlighted;
+            
+            // When redrawing a selector-based highlight, run a new selector
+            // query to ensure we have the latest set of elements to highlight.
+            if (this.selector) {
+                highlighted = window.document.querySelectorAll(this.selector);
+            } else {
+                highlighted = this.elements.slice(0);
+            }
+            
+            this.clear();
+            for (i = 0; i < highlighted.length; i++) {
+                this.add(highlighted[i], false);
+            }
         }
     };
 
@@ -252,7 +340,7 @@ function RemoteFunctions(experimental) {
         if (!event.metaKey) {
             return;
         }
-        _localHighlight.add(event.target);
+        _localHighlight.add(event.target, true);
     }
 
     function onMouseOut(event) {
@@ -305,7 +393,6 @@ function RemoteFunctions(experimental) {
         }
     }
 
-
     /** Public Commands **********************************************************/
 
     // show goto
@@ -325,6 +412,7 @@ function RemoteFunctions(experimental) {
     function hideHighlight() {
         if (_remoteHighlight) {
             _remoteHighlight.clear();
+            _remoteHighlight = null;
         }
     }
 
@@ -336,7 +424,7 @@ function RemoteFunctions(experimental) {
         if (clear) {
             _remoteHighlight.clear();
         }
-        _remoteHighlight.add(node);
+        _remoteHighlight.add(node, true);
     }
 
     // highlight a rule
@@ -346,17 +434,41 @@ function RemoteFunctions(experimental) {
         for (i = 0; i < nodes.length; i++) {
             highlight(nodes[i]);
         }
+        _remoteHighlight.selector = rule;
+    }
+    
+    // redraw active highlights
+    function redrawHighlights() {
+        if (_remoteHighlight) {
+            _remoteHighlight.redraw();
+        }
     }
 
     // init
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
+    
+    window.addEventListener("resize", redrawHighlights);
+    // Add a capture-phase scroll listener to update highlights when
+    // any element scrolls.
+    window.addEventListener("scroll", function (e) {
+        // Document scrolls can be updated immediately. Any other scrolls
+        // need to be updated on a timer to ensure the layout is correct.
+        if (e.target === document) {
+            redrawHighlights();
+        } else {
+            if (_remoteHighlight || _localHighlight) {
+                window.setTimeout(redrawHighlights, 0);
+            }
+        }
+    }, true);
 
     return {
         "showGoto": showGoto,
         "hideHighlight": hideHighlight,
         "highlight": highlight,
-        "highlightRule": highlightRule
+        "highlightRule": highlightRule,
+        "redrawHighlights": redrawHighlights
     };
 }

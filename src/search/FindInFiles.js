@@ -53,7 +53,8 @@ define(function (require, exports, module) {
         FileIndexManager    = require("project/FileIndexManager"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
-        StatusBar           = require("widgets/StatusBar");
+        StatusBar           = require("widgets/StatusBar"),
+        ModalBar            = require("widgets/ModalBar").ModalBar;
 
     var searchResults = [];
     
@@ -62,8 +63,9 @@ define(function (require, exports, module) {
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
-        $(".CodeMirror-dialog .alert-message").remove();
-        
+        $(".modal-bar .message").css("display", "inline-block");
+        $(".modal-bar .error").css("display", "none");
+
         // If query is a regular expression, use it directly
         var isRE = query.match(/^\/(.*)\/(g|i)*$/);
         if (isRE) {
@@ -75,7 +77,10 @@ define(function (require, exports, module) {
             try {
                 return new RegExp(isRE[1], flags);
             } catch (e) {
-                $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                $(".modal-bar .message").css("display", "none");
+                $(".modal-bar .error")
+                    .css("display", "inline-block")
+                    .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
@@ -116,16 +121,6 @@ define(function (require, exports, module) {
     }
 
     /**
-    * Creates a dialog div floating on top of the current code mirror editor
-    */
-    FindInFilesDialog.prototype._createDialogDiv = function (template) {
-        this.dialog = $("<div />")
-                          .attr("class", "CodeMirror-dialog")
-                          .html("<div>" + template + "</div>")
-                          .prependTo($("#editor-holder"));
-    };
-    
-    /**
     * Closes the search dialog and resolves the promise that showDialog returned
     */
     FindInFilesDialog.prototype._close = function (value) {
@@ -134,7 +129,7 @@ define(function (require, exports, module) {
         }
         
         this.closed = true;
-        this.dialog.remove();
+        this.modalBar.close();
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
@@ -149,9 +144,9 @@ define(function (require, exports, module) {
         // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
         var dialogHTML = Strings.CMD_FIND +
             ": <input type='text' id='findInFilesInput' style='width: 10em'> <span id='findInFilesScope'></span> &nbsp;" +
-            "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>";
+            "<div class='message'><span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
         this.result = new $.Deferred();
-        this._createDialogDiv(dialogHTML);
+        this.modalBar = new ModalBar(dialogHTML, false);
         var $searchField = $("input#findInFilesInput");
         var that = this;
         
@@ -281,12 +276,17 @@ define(function (require, exports, module) {
                     };
                     
                     // Add row for file name
+                    var displayFileName = StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH,
+                                                             StringUtils.breakableUrl(esc(item.fullPath)));
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(esc(item.fullPath))) + "</td>")
+                        .append("<td colspan='3'><span class='disclosure-triangle expanded'></span>" + displayFileName + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
                             $fileHeader.nextUntil(".file-section").toggle();
+                            
+                            var $triangle = $(".disclosure-triangle", $fileHeader);
+                            $triangle.toggleClass("expanded").toggleClass("collapsed");
                         })
                         .appendTo($resultTable);
                     

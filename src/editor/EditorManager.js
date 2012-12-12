@@ -346,7 +346,9 @@ define(function (require, exports, module) {
                 availableHt -= $elem.outerHeight();
             }
         });
-        return availableHt;
+        
+        // Clip value to 0 (it could be negative if a panel wants more space than we have)
+        return Math.max(availableHt, 0);
     }
     
     /** 
@@ -368,7 +370,7 @@ define(function (require, exports, module) {
         if (_currentEditor) {
             $(_currentEditor.getScrollerElement()).height(editorAreaHt);
             if (!skipRefresh) {
-                _currentEditor.refresh();
+                _currentEditor.refresh(true);
             }
         }
     }

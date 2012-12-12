@@ -88,11 +88,11 @@ define(function (require, exports, module) {
      */
     function checkHovers(pageX, pageY) {
         $dropdown.children().each(function () {
-            var offset = $(this).offset(), 
+            var offset = $(this).offset(),
                 width = $(this).outerWidth(),
                 height = $(this).outerHeight();
             if (pageX >= offset.left && pageX <= offset.left + width &&
-                pageY >= offset.top && pageY <= offset.top + height) {
+                    pageY >= offset.top && pageY <= offset.top + height) {
                 $(".recent-folder-link", this).triggerHandler("mouseenter");
             }
         });
@@ -131,7 +131,9 @@ define(function (require, exports, module) {
         // Since we passed "true" for autoRemove to addPopUp(), this will
         // automatically remove the dropdown from the DOM. Also, PopUpManager
         // will call cleanupDropdown().
-        PopUpManager.removePopUp($dropdown);
+        if ($dropdown) {
+            PopUpManager.removePopUp($dropdown);
+        }
     }
     
     /**

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global define, brackets, window */
 
 /**
  * This file provides the interface to user visible strings in Brackets. Code that needs
@@ -46,6 +46,9 @@ define(function (require, exports, module) {
     additionalGlobals.VERSION_MAJOR = parsedVersion[1];
     additionalGlobals.VERSION_MINOR = parsedVersion[2];
     additionalGlobals.VERSION_PATCH = parsedVersion[3];
+
+    var isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
+    additionalGlobals.BUILD_TYPE    = (isDevBuild ? strings.DEVELOPMENT_BUILD : strings.EXPERIMENTAL_BUILD);
     
     // Insert application strings
     Object.keys(strings).forEach(function (key) {
