@@ -1,7 +1,7 @@
 Welcome to Brackets!
 -------------------
 
-Installers for the latest build can be [downloaded here](https://github.com/adobe/brackets/download).
+Installers for the latest build can be [downloaded here](https://github.com/adobe/brackets/downloads).
 
 This is an early version of Brackets, a code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
