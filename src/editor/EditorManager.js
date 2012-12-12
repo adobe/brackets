@@ -370,7 +370,7 @@ define(function (require, exports, module) {
         if (_currentEditor) {
             $(_currentEditor.getScrollerElement()).height(editorAreaHt);
             if (!skipRefresh) {
-                _currentEditor.refresh();
+                _currentEditor.refresh(true);
             }
         }
     }

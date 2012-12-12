@@ -992,8 +992,13 @@ define(function (require, exports, module) {
     /**
      * Re-renders the editor UI
      */
-    Editor.prototype.refresh = function () {
+    Editor.prototype.refresh = function (handleResize) {
         this._codeMirror.refresh();
+        if (handleResize) {
+            // If the editor has been resized, the position of inline widgets relative to the
+            // browser window might have changed.
+            this._fireWidgetOffsetTopChanged(0);
+        }
     };
     
     /**
