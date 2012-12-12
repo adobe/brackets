@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
         // If we've successfully determined a "build number" via .git metadata, add it to dialog
         sha = sha ? sha.substr(0, 9) : "";
-        buildInfo = StringUtils.format("{0} {1}", branch, sha).trim();
+        buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
     });
     
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
