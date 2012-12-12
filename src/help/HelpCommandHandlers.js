@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         var templateVars = $.extend({
             ABOUT_ICON          : brackets.config.about_icon,
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-            BUILD_INFO          : buildInfo
+            BUILD_INFO          : buildInfo || ""
         }, Strings);
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
     }
@@ -77,7 +77,9 @@ define(function (require, exports, module) {
     BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
         // If we've successfully determined a "build number" via .git metadata, add it to dialog
         sha = sha ? sha.substr(0, 9) : "";
-        buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
+        if (branch || sha) {
+            buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
+        }
     });
     
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
