@@ -130,17 +130,18 @@ define(function (require, exports, module) {
      * @return {string} the property name of the current rule.
      */
     function _getPropNameStartingFromPropValue(ctx) {
+        var ctxClone = $.extend({}, ctx);
         do {
             // If we get a property name or "{" or ";" before getting a colon, then we don't 
             // have a valid property name. Just return an empty string.
-            if (ctx.token.className === "variable" || ctx.token.string === "{" || ctx.token.string === ";") {
+            if (ctxClone.token.className === "variable" || ctxClone.token.string === "{" || ctxClone.token.string === ";") {
                 return "";
             }
-        } while (ctx.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx));
+        } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
         
-        if (ctx.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) &&
-                ctx.token.className === "variable") {
-            return ctx.token.string;
+        if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
+                ctxClone.token.className === "variable") {
+            return ctxClone.token.string;
         }
         
         return "";
@@ -167,7 +168,7 @@ define(function (require, exports, module) {
             if (lastValue !== "") {
                 curValue += lastValue;
             }
-            if ((ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) ||
+            if ((ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) ||
                     ctx.token.string === ",") {
                 lastValue = curValue;
             } else {
@@ -210,7 +211,7 @@ define(function (require, exports, module) {
             if (lastValue === "") {
                 lastValue = ctx.token.string.trim();
             } else if (lastValue.length > 0) {
-                if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
+                if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
                     lastValue += ctx.token.string;
                     propValues.push(lastValue);
                     lastValue = "";
@@ -254,7 +255,7 @@ define(function (require, exports, module) {
         
         // Get property name first. If we don't have a valid property name, then 
         // return a default rule info.
-        propName = _getPropNameStartingFromPropValue($.extend({}, ctx));
+        propName = _getPropNameStartingFromPropValue(ctx);
         if (!propName) {
             return createInfo();
         }
@@ -283,7 +284,7 @@ define(function (require, exports, module) {
         
         if (canAddNewOne) {
             offset = 0;
-            if (testToken.string.length > 0 && testToken.string.trim().length === 0) {
+            if (testToken.string.length > 0 && !testToken.string.match(/\S/)) {
                 propValues.push("");
             }
         }
@@ -325,12 +326,8 @@ define(function (require, exports, module) {
             return createInfo();
         }
 
-        if (_isInPropValue(ctx)) {
-            return _getRuleInfoStartingFromPropValue(ctx, editor);
-        }
-        
         if (_isInPropName(ctx)) {
-            if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
+            if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                     testToken = editor._codeMirror.getTokenAt(testPos);
                 
@@ -343,7 +340,11 @@ define(function (require, exports, module) {
             }
             return createInfo(PROP_NAME, offset, propName);
         }
-            
+        
+        if (_isInPropValue(ctx)) {
+            return _getRuleInfoStartingFromPropValue(ctx, editor);
+        }
+                    
         return createInfo();
     }
     
