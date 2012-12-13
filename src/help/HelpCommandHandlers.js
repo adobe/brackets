@@ -96,20 +96,12 @@ define(function (require, exports, module) {
     }
 
     function _handleAboutDialog() {
-<<<<<<< HEAD
-        if (buildInfo) {
-            $("#about-build-number").text(" (" + buildInfo + ")");
-        }
-
-        Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
-=======
         var templateVars = $.extend({
             ABOUT_ICON          : brackets.config.about_icon,
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
             BUILD_INFO          : buildInfo || ""
         }, Strings);
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
->>>>>>> upstream/master
     }
 
     // Read "build number" SHAs off disk immediately at load time, instead
