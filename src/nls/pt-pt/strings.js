@@ -175,7 +175,7 @@ define({
     // Edit menu commands
     "EDIT_MENU"                           : "Editar",
     "CMD_SELECT_ALL"                      : "Selecionar tudo",
-	"CMD_SELECT_LINE"                     : "Selecionar linha",
+    "CMD_SELECT_LINE"                     : "Selecionar linha",
     "CMD_FIND"                            : "Encontrar",
     "CMD_FIND_IN_FILES"                   : "Encontrar nos ficheiros",
     "CMD_FIND_IN_SUBTREE"                 : "Encontrar em...",
@@ -187,7 +187,7 @@ define({
     "CMD_DUPLICATE"                       : "Duplicar",
     "CMD_DELETE_LINES"                    : "Apagar linha(s) selecionadas",
     "CMD_COMMENT"                         : "Alternar comentário linhas",
-	"CMD_BLOCK_COMMENT"                   : "Alternar comentário bloco",
+    "CMD_BLOCK_COMMENT"                   : "Alternar comentário bloco",
     "CMD_LINE_UP"                         : "Mover linha(s) para cima",
     "CMD_LINE_DOWN"                       : "Mover linha(s) para baixo",
 
@@ -213,7 +213,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Resultado seguinte",
     "CMD_NEXT_DOC"                        : "Ficheiro seguinte",
     "CMD_PREV_DOC"                        : "Ficheiro anterior",
-	"CMD_SHOW_IN_TREE"                    : "Mostrar na lista de pastas",
+    "CMD_SHOW_IN_TREE"                    : "Mostrar na lista de pastas",
 
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
@@ -263,7 +263,7 @@ define({
     "UPDATE_AVAILABLE_TITLE"               : "Atualização disponível",
     "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} {VERSION} disponível. Aqui estão alguns dos novos recursos:",
     "GET_IT_NOW"                           : "Obter agora!",
-	"PROJECT_SETTINGS_TOOLTIP"             : "Definições do projeto",
+    "PROJECT_SETTINGS_TOOLTIP"             : "Definições do projeto",
     "PROJECT_SETTINGS_TITLE"               : "Definições do projeto para: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview URL base",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(deixe em branco para url do ficheiro)",
