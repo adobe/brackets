@@ -719,27 +719,24 @@ a, img {
     }
 }
 
-/* Find & Replace search bars - temporary UI, to be replaced with a richer search feature later */
+/* Modal bar for Find/Quick Open */
 
-.CodeMirror-dialog {
-    position: relative;
-    z-index: @z-index-cm-dialog-override;
-}
-
-.CodeMirror-dialog > div {
+.modal-bar {
+    text-align: left;
+    width: 100%;
     font-family: @fontstack-sans-serif;
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    background: @background-color-2;
+    font-size: 13px;
     color: @content-color;
-    border-bottom: 1px solid @bc-gray;
-    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
-    z-index: 1;
-    padding: .5em .8em;
+    border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
+    background: #eee;
+    margin-left: -8px;
+    margin-top: 4px;
+    margin-bottom: -4px; // bleed into toolbar padding
+    padding: 6px 14px 4px;
     overflow: hidden;
 }
 
-.CodeMirror-dialog input {
+.modal-bar input {
     font-family: @fontstack-sans-serif;
     border: 1px solid @content-color-weaker;
     outline: none;
@@ -749,6 +746,18 @@ a, img {
     color: inherit;
     &.no-results {
         background-color: mix(@background-color-3, #FF0000, 70%);
+    }
+}
+
+.modal-bar .message {
+    display: inline-block;
+}
+.modal-bar .error {
+    display: none;
+    
+    .alert-message {
+        padding-top: 4px;
+        padding-bottom: 4px;
     }
 }
 

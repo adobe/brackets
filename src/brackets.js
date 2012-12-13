@@ -28,8 +28,7 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n",
-        "defaults"  : "../defaults"
+        "i18n"      : "thirdparty/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -306,14 +305,15 @@ define(function (require, exports, module) {
         }
     });
     
-    // Localize MainViewHTML and inject into <BODY> tag
-    var templateVars    = $.extend({
-        ABOUT_ICON          : brackets.config.about_icon,
-        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-        VERSION             : brackets.metadata.version
-    }, Strings);
+    // The .no-focus style is added to clickable elements that should
+    // not steal focus. Calling preventDefault() on mousedown prevents
+    // focus from going to the click target.
+    $("html").on("mousedown", ".no-focus", function (e) {
+        e.preventDefault();
+    });
     
-    $("body").html(Mustache.render(MainViewHTML, templateVars));
+    // Localize MainViewHTML and inject into <BODY> tag
+    $("body").html(Mustache.render(MainViewHTML, Strings));
     
     // Update title
     $("title").text(brackets.config.app_title);

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
-        StringUtils             = require("utils/StringUtils");
+        StringUtils             = require("utils/StringUtils"),
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html");
     
     var buildInfo;
 
@@ -95,11 +96,20 @@ define(function (require, exports, module) {
     }
 
     function _handleAboutDialog() {
+<<<<<<< HEAD
         if (buildInfo) {
             $("#about-build-number").text(" (" + buildInfo + ")");
         }
 
         Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+=======
+        var templateVars = $.extend({
+            ABOUT_ICON          : brackets.config.about_icon,
+            APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+            BUILD_INFO          : buildInfo || ""
+        }, Strings);
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+>>>>>>> upstream/master
     }
 
     // Read "build number" SHAs off disk immediately at load time, instead
@@ -107,7 +117,9 @@ define(function (require, exports, module) {
     BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
         // If we've successfully determined a "build number" via .git metadata, add it to dialog
         sha = sha ? sha.substr(0, 9) : "";
-        buildInfo = StringUtils.format("{0} {1}", branch, sha).trim();
+        if (branch || sha) {
+            buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
+        }
     });
 
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);

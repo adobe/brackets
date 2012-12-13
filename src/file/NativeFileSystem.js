@@ -22,29 +22,14 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $, define, brackets, FileError, InvalidateStateError, window */
+/*global $, define, brackets, InvalidateStateError, window */
 
 define(function (require, exports, module) {
     "use strict";
 
-    //define FileError as currently ONLY Chrome implements the File API W3C Working Draft
-    window.FileError = window.FileError || {
-        NOT_FOUND_ERR: 1,
-        SECURITY_ERR: 2,
-        ABORT_ERR: 3,
-        NOT_READABLE_ERR: 4,
-        ENCODING_ERR: 5,
-        NO_MODIFICATION_ALLOWED_ERR: 6,
-        INVALID_STATE_ERR: 7,
-        SYNTAX_ERR: 8,
-        INVALID_MODIFICATION_ERR: 9,
-        QUOTA_EXCEEDED_ERR: 10,
-        TYPE_MISMATCH_ERR: 11,
-        PATH_EXISTS_ERR: 12
-    };
-    
-    var Async = require("utils/Async");
-
+    var Async           = require("utils/Async"),
+        NativeFileError = require("file/NativeFileError");
+                
     /*
      * Generally NativeFileSystem mimics the File API working draft
      * http://www.w3.org/TR/file-system-api/. The w3 entry point
@@ -74,7 +59,7 @@ define(function (require, exports, module) {
          * @param {string} initialPath
          * @param {Array.<string>} fileTypes
          * @param {!function(Array.<string>)} successCallback
-         * @param {!function(number)} errorCallback (TODO #2057: should this pass a FileError?)
+         * @param {!function(DOMError)} errorCallback
          * @constructor
          */
         showOpenDialog: function (allowMultipleSelection,
@@ -98,7 +83,7 @@ define(function (require, exports, module) {
                     if (!err) {
                         successCallback(data);
                     } else if (errorCallback) {
-                        errorCallback(NativeFileSystem._nativeToFileError(err));
+                        errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
                     }
                 }
             );
@@ -107,15 +92,38 @@ define(function (require, exports, module) {
         /** requestNativeFileSystem
          *
          * @param {!string} path
-         * @param {!function(DirectoryEntry)} successCallback
-         * @param {!function(number)} errorCallback (TODO #2057: should pass a FileError)
+         * @param {!function(FileSystem)} successCallback
+         * @param {!function(DOMError)} errorCallback
          */
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, data) {
                 if (!err) {
-                    // FIXME (issue #247): return a NativeFileSystem object
-                    var root = new NativeFileSystem.DirectoryEntry(path);
-                    successCallback(root);
+                    successCallback(new NativeFileSystem.FileSystem(path));
+                } else if (errorCallback) {
+                    errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
+                }
+            });
+        },
+        
+        /**
+         * NativeFileSystem implementation of LocalFileSystem.resolveLocalFileSystemURL()
+         *
+         * @param {!string} url
+         * @param {!function(Entry)} successCallback
+         * @param {!function(FileError)} errorCallback (TODO #2057: should pass a DOMError)
+         */
+        resolveNativeFileSystemPath: function (path, successCallback, errorCallback) {
+            brackets.fs.stat(path, function (err, stats) {
+                if (!err) {
+                    var entry;
+                    
+                    if (stats.isDirectory()) {
+                        entry = new NativeFileSystem.DirectoryEntry(path);
+                    } else {
+                        entry = new NativeFileSystem.FileEntry(path);
+                    }
+                    
+                    successCallback(entry);
                 } else if (errorCallback) {
                     errorCallback(NativeFileSystem._nativeToFileError(err));
                 }
@@ -123,46 +131,46 @@ define(function (require, exports, module) {
         },
 
         /**
-         * Converts a brackets.fs.ERR_* error code to a FileError.* error code
-         * @param {number} nativeErr
-         * @return {number}
+         * Converts a brackets.fs.ERR_* error code to a NativeFileError.* error name
+         * @param {!number} fsErr A brackets.fs error code
+         * @return {string} An error name out of the possible NativeFileError.* names
          */
-        _nativeToFileError: function (nativeErr) {
+        _fsErrorToDOMErrorName: function (fsErr) {
             var error;
 
-            switch (nativeErr) {
+            switch (fsErr) {
                 // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
                 // since there aren't specific mappings for these.
             case brackets.fs.ERR_UNKNOWN:
             case brackets.fs.ERR_INVALID_PARAMS:
-                error = FileError.SECURITY_ERR;
+                error = NativeFileError.SECURITY_ERR;
                 break;
             case brackets.fs.ERR_NOT_FOUND:
-                error = FileError.NOT_FOUND_ERR;
+                error = NativeFileError.NOT_FOUND_ERR;
                 break;
             case brackets.fs.ERR_CANT_READ:
-                error = FileError.NOT_READABLE_ERR;
+                error = NativeFileError.NOT_READABLE_ERR;
                 break;
-            // It might seem like you should use FileError.ENCODING_ERR for this,
+            // It might seem like you should use NativeFileError.ENCODING_ERR for this,
             // but according to the spec that's for malformed URLs.
             case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                error = FileError.SECURITY_ERR;
+                error = NativeFileError.SECURITY_ERR;
                 break;
             case brackets.fs.ERR_CANT_WRITE:
-                error = FileError.NO_MODIFICATION_ALLOWED_ERR;
+                error = NativeFileError.NO_MODIFICATION_ALLOWED_ERR;
                 break;
             case brackets.fs.ERR_OUT_OF_SPACE:
-                error = FileError.QUOTA_EXCEEDED_ERR;
+                error = NativeFileError.QUOTA_EXCEEDED_ERR;
                 break;
             case brackets.fs.PATH_EXISTS_ERR:
-                error = FileError.PATH_EXISTS_ERR;
+                error = NativeFileError.PATH_EXISTS_ERR;
                 break;
             default:
                 // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
                 // not covered by other error codes. 
-                error = FileError.SECURITY_ERR;
+                error = NativeFileError.SECURITY_ERR;
             }
-            return new NativeFileSystem.FileError(error);
+            return error;
         }
     };
     
@@ -210,11 +218,12 @@ define(function (require, exports, module) {
     
     /** class: Entry
      *
-     * @param {string} name
-     * @param {string} isFile
+     * @param {string} fullPath
+     * @param {boolean} isDirectory
+     * @param {FileSystem} fs
      * @constructor
      */
-    NativeFileSystem.Entry = function (fullPath, isDirectory) {
+    NativeFileSystem.Entry = function (fullPath, isDirectory, fs) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
         
@@ -237,9 +246,7 @@ define(function (require, exports, module) {
             }
         }
 
-        // TODO (issue #241)
-        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-filesystem
-        this.filesystem = null;
+        this.filesystem = fs;
     };
     
     NativeFileSystem.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
@@ -269,7 +276,7 @@ define(function (require, exports, module) {
     
     /**
      * @param {!function(Metadata)} successCallBack
-     * @param {!function(number)} errorCallback (TODO #2057: should pass a FileError)
+     * @param {!function(DOMError)} errorCallback
      */
     NativeFileSystem.Entry.prototype.getMetadata = function (successCallBack, errorCallback) {
         brackets.fs.stat(this.fullPath, function (err, stat) {
@@ -277,7 +284,7 @@ define(function (require, exports, module) {
                 var metadata = new NativeFileSystem.Metadata(stat.mtime);
                 successCallBack(metadata);
             } else {
-                errorCallback(NativeFileSystem._nativeToFileError(err));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         });
     };
@@ -295,13 +302,16 @@ define(function (require, exports, module) {
      * This interface represents a file on a file system.
      *
      * @param {string} name
+     * @param {FileSystem} fs
      * @constructor
      * @extends {Entry}
      */
-    NativeFileSystem.FileEntry = function (name) {
-        NativeFileSystem.Entry.call(this, name, false);
+    NativeFileSystem.FileEntry = function (name, fs) {
+        NativeFileSystem.Entry.call(this, name, false, fs);
     };
-    NativeFileSystem.FileEntry.prototype = new NativeFileSystem.Entry();
+    NativeFileSystem.FileEntry.prototype = Object.create(NativeFileSystem.Entry.prototype);
+    NativeFileSystem.FileEntry.prototype.constructor = NativeFileSystem.FileEntry;
+    NativeFileSystem.FileEntry.prototype.parentClass = NativeFileSystem.Entry.prototype;
 
     NativeFileSystem.FileEntry.prototype.toString = function () {
         return "[FileEntry " + this.fullPath + "]";
@@ -311,7 +321,7 @@ define(function (require, exports, module) {
      * Creates a new FileWriter associated with the file that this FileEntry represents.
      *
      * @param {!function(FileWriter)} successCallback
-     * @param {!function(number)} errorCallback (TODO #2057: should pass a FileError)
+     * @param {!function(DOMError)} errorCallback
      */
     NativeFileSystem.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
         var fileEntry = this;
@@ -356,7 +366,7 @@ define(function (require, exports, module) {
             brackets.fs.writeFile(fileEntry.fullPath, data, _FSEncodings.UTF8, function (err) {
 
                 if ((err !== brackets.fs.NO_ERROR) && self.onerror) {
-                    var fileError = NativeFileSystem._nativeToFileError(err);
+                    var fileError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err));
 
                     // TODO (issue #241): set readonly FileSaver.error attribute
                     // self._error = fileError;
@@ -413,7 +423,7 @@ define(function (require, exports, module) {
 
         result.done(function () {
             if (fileWriter._err && (errorCallback !== undefined)) {
-                errorCallback(NativeFileSystem._nativeToFileError(fileWriter._err));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(fileWriter._err)));
             } else if (successCallback !== undefined) {
                 successCallback(fileWriter);
             }
@@ -421,10 +431,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Obtains the File objecte for a FileEntry object
+     * Obtains the File object for a FileEntry object
      *
      * @param {!function(File)} successCallback
-     * @param {!function(FileError)} errorCallback
+     * @param {!function(DOMError)} errorCallback
      */
     NativeFileSystem.FileEntry.prototype.file = function (successCallback, errorCallback) {
         var newFile = new NativeFileSystem.File(this);
@@ -509,7 +519,7 @@ define(function (require, exports, module) {
         // TODO (issue #241): Terminate any steps having to do with writing a file.
 
         // Set the error attribute to a FileError object with the code ABORT_ERR.
-        this._error = new NativeFileSystem.FileError(FileError.ABORT_ERR);
+        this._error = new NativeFileError(NativeFileError.ABORT_ERR);
 
         // Set readyState to DONE.
         this._readyState = NativeFileSystem.FileSaver.DONE;
@@ -528,14 +538,17 @@ define(function (require, exports, module) {
      *
      * @constructor
      * @param {string} name
+     * @param {FileSystem} fs
      * @extends {Entry}
      */
-    NativeFileSystem.DirectoryEntry = function (name) {
-        NativeFileSystem.Entry.call(this, name, true);
+    NativeFileSystem.DirectoryEntry = function (name, fs) {
+        NativeFileSystem.Entry.call(this, name, true, fs);
 
         // TODO (issue #241): void removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
     };
-    NativeFileSystem.DirectoryEntry.prototype = new NativeFileSystem.Entry();
+    NativeFileSystem.DirectoryEntry.prototype = Object.create(NativeFileSystem.Entry.prototype);
+    NativeFileSystem.DirectoryEntry.prototype.constructor = NativeFileSystem.DirectoryEntry;
+    NativeFileSystem.DirectoryEntry.prototype.parentClass = NativeFileSystem.Entry.prototype;
     
     NativeFileSystem.DirectoryEntry.prototype.toString = function () {
         return "[DirectoryEntry " + this.fullPath + "]";
@@ -545,10 +558,11 @@ define(function (require, exports, module) {
      * @param {!string} path
      * @param {!{create:?boolean, exclusive:?boolean}} options
      * @param {!function(DirectoryEntry)} successCallback
-     * @param {!function(FileError|number)} errorCallback (TODO #2057: should consistently pass a FileError)
+     * @param {!function(DOMError)} errorCallback
      */
     NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-        var directoryFullPath = path;
+        var directoryFullPath = path,
+            filesystem = this.filesystem;
         
         function isRelativePath(path) {
             // If the path contains a colons it must be a full path on Windows (colons are
@@ -568,13 +582,13 @@ define(function (require, exports, module) {
 
         var createDirectoryEntry = function () {
             if (successCallback) {
-                successCallback(new NativeFileSystem.DirectoryEntry(directoryFullPath));
+                successCallback(new NativeFileSystem.DirectoryEntry(directoryFullPath, filesystem));
             }
         };
 
         var createDirectoryError = function (err) {
             if (errorCallback) {
-                errorCallback(NativeFileSystem._nativeToFileError(err));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         };
 
@@ -586,7 +600,7 @@ define(function (require, exports, module) {
                 // throw error if the file the path is not a directory
                 if (!stats.isDirectory()) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.TYPE_MISMATCH_ERR));
+                        errorCallback(new NativeFileError(NativeFileError.TYPE_MISMATCH_ERR));
                     }
 
                     return;
@@ -595,7 +609,7 @@ define(function (require, exports, module) {
                 // throw error if the file exists but create is exclusive
                 if (options.create && options.exclusive) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.PATH_EXISTS_ERR));
+                        errorCallback(new NativeFileError(NativeFileError.PATH_EXISTS_ERR));
                     }
 
                     return;
@@ -623,7 +637,7 @@ define(function (require, exports, module) {
 
                 // throw error if file not found and the create == false
                 if (errorCallback) {
-                    errorCallback(new NativeFileSystem.FileError(FileError.NOT_FOUND_ERR));
+                    errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
                 }
             } else {
                 // all other brackets.fs.stat() errors
@@ -653,10 +667,11 @@ define(function (require, exports, module) {
      *        exist.
      * @param {!{create:?boolean, exclusive:?boolean}} options
      * @param {!function(FileEntry)} successCallback
-     * @param {!function(FileError|number)} errorCallback  (TODO #2057: should consistently pass a FileError)
+     * @param {!function(DOMError} errorCallback
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
-        var fileFullPath = path;
+        var fileFullPath = path,
+            filesystem = this.filesystem;
         
         function isRelativePath(path) {
             // If the path contains a colons it must be a full path on Windows (colons are
@@ -676,13 +691,13 @@ define(function (require, exports, module) {
 
         var createFileEntry = function () {
             if (successCallback) {
-                successCallback(new NativeFileSystem.FileEntry(fileFullPath));
+                successCallback(new NativeFileSystem.FileEntry(fileFullPath, filesystem));
             }
         };
 
         var createFileError = function (err) {
             if (errorCallback) {
-                errorCallback(NativeFileSystem._nativeToFileError(err));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         };
 
@@ -694,7 +709,7 @@ define(function (require, exports, module) {
                 // throw error if the file the path is a directory
                 if (stats.isDirectory()) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.TYPE_MISMATCH_ERR));
+                        errorCallback(new NativeFileError(NativeFileError.TYPE_MISMATCH_ERR));
                     }
 
                     return;
@@ -703,7 +718,7 @@ define(function (require, exports, module) {
                 // throw error if the file exists but create is exclusive
                 if (options.create && options.exclusive) {
                     if (errorCallback) {
-                        errorCallback(new NativeFileSystem.FileError(FileError.PATH_EXISTS_ERR));
+                        errorCallback(new NativeFileError(NativeFileError.PATH_EXISTS_ERR));
                     }
 
                     return;
@@ -730,7 +745,7 @@ define(function (require, exports, module) {
 
                 // throw error if file not found and the create == false
                 if (errorCallback) {
-                    errorCallback(new NativeFileSystem.FileError(FileError.NOT_FOUND_ERR));
+                    errorCallback(new NativeFileError(NativeFileError.NOT_FOUND_ERR));
                 }
             } else {
                 // all other brackets.fs.stat() errors
@@ -748,15 +763,23 @@ define(function (require, exports, module) {
     /** readEntries
      *
      * @param {!function(Array.<Entry>)} successCallback
-     * @param {!function(FileError|number)} errorCallback (TODO #2057: should consistently pass a FileError)
+     * @param {!function(DOMError} errorCallback
      * @returns {Array.<Entry>}
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-        var rootPath = this._directory.fullPath;
+        var rootPath = this._directory.fullPath,
+            filesystem = this.filesystem;
+        
         brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
                 var entries = [];
                 var lastError = null;
+
+                // call success immediately if this directory has no files
+                if (filelist.length === 0) {
+                    successCallback(entries);
+                    return;
+                }
 
                 // stat() to determine type of each entry, then populare entries array with objects
                 var masterPromise = Async.doInParallel(filelist, function (filename, index) {
@@ -767,15 +790,15 @@ define(function (require, exports, module) {
                     brackets.fs.stat(itemFullPath, function (statErr, statData) {
                         if (!statErr) {
                             if (statData.isDirectory()) {
-                                entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath);
+                                entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath, filesystem);
                             } else if (statData.isFile()) {
-                                entries[index] = new NativeFileSystem.FileEntry(itemFullPath);
+                                entries[index] = new NativeFileSystem.FileEntry(itemFullPath, filesystem);
                             } else {
                                 entries[index] = null;  // neither a file nor a dir, so don't include it
                             }
                             deferred.resolve();
                         } else {
-                            lastError = NativeFileSystem._nativeToFileError(statErr);
+                            lastError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(statErr));
                             deferred.reject(lastError);
                         }
                     });
@@ -804,7 +827,7 @@ define(function (require, exports, module) {
                         if (err === Async.ERROR_TIMEOUT) {
                             // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
                             // more fitting for a timeout.
-                            err = new NativeFileSystem.FileError(FileError.SECURITY_ERR);
+                            err = new NativeFileError(NativeFileError.SECURITY_ERR);
                         } else {
                             err = lastError;
                         }
@@ -816,7 +839,7 @@ define(function (require, exports, module) {
                 );
 
             } else { // There was an error reading the initial directory.
-                errorCallback(NativeFileSystem._nativeToFileError(err));
+                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
             }
         });
     };
@@ -849,7 +872,7 @@ define(function (require, exports, module) {
         this.onloadend = null;
     };
     // TODO (issue #241): extend EventTarget (draft status, not implememnted in webkit)
-    // NativeFileSystem.FileReader.prototype = new NativeFileSystem.EventTarget()
+    // NativeFileSystem.FileReader.prototype = Object.create(NativeFileSystem.EventTarget.prototype);
     
     NativeFileSystem.FileReader.prototype.readAsArrayBuffer = function (blob) {
         // TODO (issue #241): implement
@@ -906,7 +929,7 @@ define(function (require, exports, module) {
             // The target for this event is the FileReader and the data/err result is stored in the FileReader
             fakeEvent.target = self;
             self.result = data;
-            self.error = NativeFileSystem._nativeToFileError(err);
+            self.error = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err));
 
             if (err) {
                 self.readyState = self.DONE;
@@ -976,20 +999,35 @@ define(function (require, exports, module) {
         // TODO (issue #241): implement, readonly
         this.lastModifiedDate = null;
     };
-
-    /** class: FileError
+    
+    /**
+     * Implementation of w3 FileSystem interface
+     *  http://www.w3.org/TR/file-system-api/#the-filesystem-interface
      *
-     * Implementation of HTML file API error code return class. Note that we don't
-     * actually define the error codes here--we rely on the browser's built-in FileError
-     * class's constants. In other words, external clients of this API should always
-     * use FileError.<constant-name>, not NativeFileSystem.FileError.<constant-name>.
-     *
-     * @constructor
-     * @param {number} code The error code to return with this FileError. Must be
-     * one of the codes defined in the FileError class.
+     * FileSystem represents a file system
      */
-    NativeFileSystem.FileError = function (code) {
-        this.code = code || 0;
+    NativeFileSystem.FileSystem = function (path) {
+
+        /**
+         * This is the name of the file system and must be unique across the list
+         * of exposed file systems.
+         * @const
+         * @type {string}
+         */
+        Object.defineProperty(this, "name", {
+            value: path,
+            writable: false
+        });
+        
+        /**
+         * The root directory of the file system.
+         * @const
+         * @type {DirectoryEntry}
+         */
+        Object.defineProperty(this, "root", {
+            value: new NativeFileSystem.DirectoryEntry(path, this),
+            writable: false
+        });
     };
 
     // Define public API

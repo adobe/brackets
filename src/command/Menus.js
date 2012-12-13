@@ -728,8 +728,7 @@ define(function (require, exports, module) {
      *
      */
     function ContextMenu(id) {
-        this.id = id;
-        this.menu = new Menu(id);
+        Menu.apply(this, arguments);
 
         var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
@@ -748,7 +747,7 @@ define(function (require, exports, module) {
             },
             false);
     }
-    ContextMenu.prototype = new Menu();
+    ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;
     ContextMenu.prototype.parentClass = Menu.prototype;
 
