@@ -17,9 +17,9 @@ Brackets is developed using Agile development methodologies, features are tracke
 
 1. To get started, please see the following wiki page on GitHub: https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets.
 
-1. When coding, make sure to follow our [coding conventions](Brackets Coding Conventions).
+1. When coding, make sure to follow our [coding conventions](https://github.com/adobe/brackets/wiki/Brackets%20Coding%20Conventions).
 
-1. Please collaborate with others in the community in providing and receiving guidance, the Brackets team made it a priority to look at pull requests daily, however depending on the feature priority, the complexity of a contribution and bandwidth we may not be able to work on it right away.
+1. Please collaborate with others in providing and receiving guidance, the Brackets team made it a priority to look at pull requests daily, however depending on the feature priority, the complexity of a contribution and bandwidth we may not be able to work on it right away.
 
 
 ## Making Changes
