@@ -30,7 +30,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+        
     // Load dependent modules
     var Commands           = require("command/Commands"),
         Strings            = require("strings"),
@@ -239,18 +239,14 @@ define(function (require, exports, module) {
             
             // If we aren't in a block-comment.
             if (!result || ctx.token.className !== "comment" || ctx.token.string.match(suffixExp)) {
-                // If the selection includes all the line-comments, do a block-comment
-                if (editor.indexFromPos(sel.start) <= startCtxIndex &&
-                        (!endCtx.token.string.match(lineExp) || editor.indexFromPos(sel.end) >= endCtxIndex)) {
-                    canComment = true;
-                
+                console.log(1);
                 // Find if all the lines are line-commented.
-                } else if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
+                if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
                     lineUncomment = true;
                 
-                // If can't uncomment then do nothing, since it would create an invalid comment.
+                // Block-comment in all the other cases
                 } else {
-                    invalidComment = true;
+                    canComment = true;
                 }
             } else {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
