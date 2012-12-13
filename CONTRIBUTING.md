@@ -2,7 +2,7 @@ Curious to start contributing to Brackets?
 
 ### !!!THIS IS A DRAFT!!!
 
-With this file we want to provide some general guidance how to contribute to Brackets - your feedback is welcome. 
+With this file we want to provide some general guidance how to contribute to Brackets - your feedback is very welcome. Please provide it [here](https://groups.google.com/forum/?fromgroups=#!topic/brackets-dev/yEsaied7Fq8).
 
 1. Please sign the [Brackets Contributor License Agreement](http://dev.brackets.io/brackets-contributor-license-agreement.html). You must agree to and submit this before you can contribute to Brackets.
 
