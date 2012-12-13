@@ -47,6 +47,12 @@ define(function (require, exports, module) {
         PROP_NAME  = "prop.name",
         PROP_VALUE = "prop.value";
 
+    /**
+     * @private
+     * Checks if the current cursor position is inside the property name context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {boolean} true if the context is in property name
+     */
     function _isInPropName(ctx) {
         if (!ctx || !ctx.token || !ctx.token.state ||
                 !ctx.token.state.stack || ctx.token.state.stack.length < 1) {
@@ -59,6 +65,12 @@ define(function (require, exports, module) {
                 (ctx.token.className === "variable" || ctx.token.className === "tag"));
     }
     
+    /**
+     * @private
+     * Checks if the current cursor position is inside the property value context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {boolean} true if the context is in property value
+     */
     function _isInPropValue(ctx) {
         if (!ctx || !ctx.token || !ctx.token.state || !ctx.token.state.stack ||
                 ctx.token.className === "variable" || ctx.token.className === "tag" ||
@@ -69,6 +81,20 @@ define(function (require, exports, module) {
         return (ctx.token.state.stack[ctx.token.state.stack.length - 1] === "rule");
     }
     
+    /**
+     * @private
+     * Creates a context info object
+     * @param {string} context A constant string 
+     * @param {number} offset The offset of the token for a given cursor position
+     * @param {string} name Property name of the context 
+     * @param {number} index The index of the property value for a given cursor position
+     * @param {Array.<string>} values An array of property values 
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>}} A CSS context info object.
+     */
     function createInfo(context, offset, name, index, values) {
         var ruleInfo = { context: context || "",
                          offset: offset || 0,
@@ -84,6 +110,13 @@ define(function (require, exports, module) {
         return ruleInfo;
     }
 
+    /**
+     * @private
+     * Scans backwards from the current context and returns the name of the property if there is 
+     * a valid one. 
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {string} the property name of the current rule.
+     */
     function _getPropNameStartingFromPropValue(ctx) {
         do {
             // If we get a property name or "{" or ";" before getting a colon, then we don't 
@@ -101,6 +134,13 @@ define(function (require, exports, module) {
         return "";
     }
     
+    /**
+     * @private
+     * Gets all of the space/comma seperated tokens before the the current cursor position.
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {?Array.<string>} An array of all the space/comma seperated tokens before the
+     *    current cursor position
+     */
     function _getPrecedingPropValues(ctx) {
         var lastValue = "",
             curValue,
@@ -130,6 +170,14 @@ define(function (require, exports, module) {
         return propValues;
     }
     
+    /**
+     * @private
+     * Gets all of the space/comma seperated tokens after the the current cursor position.
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {string} currentValue The token string at the current cursor position
+     * @return {?Array.<string>} An array of all the space/comma seperated tokens after the
+     *    current cursor position
+     */
     function _getSucceedingPropValues(ctx, currentValue) {
         var lastValue = currentValue,
             curValue,
@@ -169,9 +217,19 @@ define(function (require, exports, module) {
         return propValues;
     }
     
-    function _getRuleInfoStartingFromPropValue(editor, pos) {
-        var ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            backwardCtx = $.extend({}, ctx),
+    /**
+     * @private
+     * Returns a context info object for the current CSS rule
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {!Editor} editor
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>}} A CSS context info object.
+     */
+    function _getRuleInfoStartingFromPropValue(ctx, editor) {
+        var backwardCtx = $.extend({}, ctx),
             forwardCtx = $.extend({}, ctx),
             lastValue = "",
             propValues = [],
@@ -231,6 +289,16 @@ define(function (require, exports, module) {
         return createInfo(PROP_VALUE, offset, propName, index, propValues);
     }
     
+    /**
+     * Returns a context info object for the given cursor position
+     * @param {!Editor} editor
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>}} A CSS context info object.
+     */
     function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.	
@@ -246,7 +314,7 @@ define(function (require, exports, module) {
         }
 
         if (_isInPropValue(ctx)) {
-            return _getRuleInfoStartingFromPropValue(editor, pos);
+            return _getRuleInfoStartingFromPropValue(ctx, editor);
         }
         
         if (_isInPropName(ctx)) {
