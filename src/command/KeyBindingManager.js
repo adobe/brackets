@@ -299,6 +299,42 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Remove a key binding from _keymap
+     *
+     * @param {!string} key - a key-description string that may or may not be normalized.
+     * @param {?string} platform - OS from which to remove the binding (all platforms if unspecified)
+     */
+    function removeBinding(key, platform) {
+        if (!key || ((platform !== null) && (platform !== undefined) && (platform !== brackets.platform))) {
+            return;
+        }
+
+        var normalizedKey = normalizeKeyDescriptorString(key);
+        
+        if (!normalizedKey) {
+            console.log("Fail to nomalize " + key);
+        } else if (_isKeyAssigned(normalizedKey)) {
+            var binding = _keyMap[normalizedKey],
+                command = CommandManager.get(binding.commandID),
+                bindings = _commandMap[binding.commandID];
+            
+            // delete key binding record
+            delete _keyMap[normalizedKey];
+            
+            if (bindings) {
+                // delete mapping from command to key binding
+                _commandMap[binding.commandID] = bindings.filter(function (b) {
+                    return (b.key !== normalizedKey);
+                });
+    
+                if (command) {
+                    $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+                }
+            }
+        }
+    }
+
+    /**
      * @private
      *
      * @param {string} commandID
@@ -316,11 +352,6 @@ define(function (require, exports, module) {
             explicitPlatform = keyBinding.platform || platform,
             targetPlatform = explicitPlatform || brackets.platform,
             command;
-        
-        // skip if this binding doesn't match the current platform
-        if (targetPlatform !== brackets.platform) {
-            return null;
-        }
         
         key = (keyBinding.key) || keyBinding;
         if (brackets.platform === "mac" && explicitPlatform === undefined) {
@@ -344,6 +375,50 @@ define(function (require, exports, module) {
             return null;
         }
         
+        // for cross-platform compatibility
+        if (brackets.platform !== "mac" &&
+                brackets.platform !== "win") {
+            if (explicitPlatform === "win") {
+                // windows-only key bindings are used as the default binding
+                // only if a default binding wasn't already defined
+                var existing = _keyMap[normalized];
+                
+                // search for a generic or platform-specific binding if it
+                // already exists
+                if (existing &&
+                        (!existing.explicitPlatform || existing.explicitPlatform === brackets.platform)) {
+                    // do not clobber existing binding with windows-only binding
+                    return null;
+                }
+                
+                // target this windows binding for the current platform
+                targetPlatform = brackets.platform;
+            } else if (!explicitPlatform || (explicitPlatform === brackets.platform)) {
+                // if adding a generic binding or a binding for the current
+                // platform, clobber any windows bindings that may have been
+                // installed
+                var existingBindings = _commandMap[commandID] || [],
+                    bindingsToDelete = [];
+                
+                // filter out windows-only bindings in _commandMap
+                existingBindings.forEach(function (binding) {
+                    if (binding.explicitPlatform === "win") {
+                        bindingsToDelete.push(binding);
+                    }
+                });
+                
+                // delete windows-only bindings in _keyMap
+                bindingsToDelete.forEach(function (binding) {
+                    removeBinding(binding.key);
+                });
+            }
+        }
+        
+        // skip if this binding doesn't match the current platform
+        if (targetPlatform !== brackets.platform) {
+            return null;
+        }
+        
         // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
         normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
         
@@ -352,11 +427,21 @@ define(function (require, exports, module) {
             _commandMap[commandID] = [];
         }
         
-        result = {key: normalized, displayKey: normalizedDisplay};
+        result = {
+            key                 : normalized,
+            displayKey          : normalizedDisplay,
+            explicitPlatform    : explicitPlatform
+        };
+        
         _commandMap[commandID].push(result);
         
         // 1-to-1 key binding to commandID
-        _keyMap[normalized] = {commandID: commandID, key: normalized, displayKey: normalizedDisplay};
+        _keyMap[normalized] = {
+            commandID           : commandID,
+            key                 : normalized,
+            displayKey          : normalizedDisplay,
+            explicitPlatform    : explicitPlatform
+        };
         
         // notify listeners
         command = CommandManager.get(commandID);
@@ -406,12 +491,16 @@ define(function (require, exports, module) {
      * Add one or more key bindings to a particular Command.
      * 
      * @param {!string} commandID
-     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)}  keyBindings - a single key binding
-     *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
-     *      mapped to each other. Use displayKey property to display a different string (e.g. "CMD+" instead of "CMD=").
-     * @param {?string} platform - the target OS of the keyBindings either "mac", "win" or "linux". If undefined, all platforms will use
-     *      the key binding. Ignored if keyBindings is passed an Array.
-     * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>} Returns record(s) for valid key binding(s)
+     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
+     *     a single key binding or an array of keybindings. Example:
+     *     "Shift-Cmd-F". Mac and Win key equivalents are automatically
+     *     mapped to each other. Use displayKey property to display a different
+     *     string (e.g. "CMD+" instead of "CMD=").
+     * @param {?string} platform - the target OS of the keyBindings either
+     *     "mac", "win" or "linux". If undefined, all platforms not explicitly
+     *     defined will use the key binding.
+     * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
+     *     Returns record(s) for valid key binding(s)
      */
     function addBinding(commandID, keyBindings, platform) {
         if ((commandID === null) || (commandID === undefined) || !keyBindings) {
@@ -439,42 +528,6 @@ define(function (require, exports, module) {
         }
         
         return results;
-    }
-
-    /**
-     * Remove a key binding from _keymap
-     *
-     * @param {!string} key - a key-description string that may or may not be normalized.
-     * @param {?string} platform - OS from which to remove the binding (all platforms if unspecified)
-     */
-    function removeBinding(key, platform) {
-        if (!key || ((platform !== null) && (platform !== undefined) && (platform !== brackets.platform))) {
-            return;
-        }
-
-        var normalizedKey = normalizeKeyDescriptorString(key);
-        
-        if (!normalizedKey) {
-            console.log("Fail to nomalize " + key);
-        } else if (_isKeyAssigned(normalizedKey)) {
-            var binding = _keyMap[normalizedKey],
-                command = CommandManager.get(binding.commandID),
-                bindings = _commandMap[binding.commandID];
-            
-            // delete key binding record
-            delete _keyMap[normalizedKey];
-            
-            if (bindings) {
-                // delete mapping from command to key binding
-                _commandMap[binding.commandID] = bindings.filter(function (b) {
-                    return (b.key !== normalizedKey);
-                });
-    
-                if (command) {
-                    $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
-                }
-            }
-        }
     }
     
     /**
