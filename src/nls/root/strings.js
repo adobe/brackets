@@ -232,11 +232,11 @@ define({
     // Help menu commands
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
-    "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_TITLE}",
+    "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
-    "CMD_TWITTER"                         : "Twitter",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
 
 

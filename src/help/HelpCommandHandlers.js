@@ -46,36 +46,13 @@ define(function (require, exports, module) {
         UpdateNotification.checkForUpdate(true);
     }
     
-    function _handleHowToUseBrackets() {
-        if (!brackets.config.how_to_use_url) {
-            return;
-        }
-        
-        NativeApp.openURLInDefaultBrowser(brackets.config.how_to_use_url);
-    }
-
-    function _handleForum() {
-        if (!brackets.config.forum_url) {
-            return;
-        }
-
-        NativeApp.openURLInDefaultBrowser(brackets.config.forum_url);
-    }
-
-    function _handleReleaseNotes() {
-        if (!brackets.config.release_notes_url) {
-            return;
-        }
-
-        NativeApp.openURLInDefaultBrowser(brackets.config.release_notes_url);
-    }
-
-    function _handleReportAnIssue() {
-        if (!brackets.config.report_issue_url) {
-            return;
-        }
-
-        NativeApp.openURLInDefaultBrowser(brackets.config.report_issue_url);
+    function _handleLinkMenuItem(url) {
+        return function () {
+            if (!url) {
+                return;
+            }
+            NativeApp.openURLInDefaultBrowser(url);
+        };
     }
     
     function _handleShowExtensionsFolder() {
@@ -85,14 +62,6 @@ define(function (require, exports, module) {
                 // Ignore errors
             }
         );
-    }
-
-    function _handleTwitter() {
-        if (!brackets.config.twitter_url) {
-            return;
-        }
-
-        NativeApp.openURLInDefaultBrowser(brackets.config.twitter_url);
     }
 
     function _handleAboutDialog() {
@@ -115,11 +84,11 @@ define(function (require, exports, module) {
     });
 
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
-    CommandManager.register(Strings.CMD_HOW_TO_USE_BRACKETS,    Commands.HELP_HOW_TO_USE_BRACKETS,  _handleHowToUseBrackets);
-    CommandManager.register(Strings.CMD_FORUM,                  Commands.HELP_FORUM,                _handleForum);
-    CommandManager.register(Strings.CMD_RELEASE_NOTES,          Commands.HELP_RELEASE_NOTES,        _handleReleaseNotes);
-    CommandManager.register(Strings.CMD_REPORT_AN_ISSUE,        Commands.HELP_REPORT_AN_ISSUE,      _handleReportAnIssue);
+    CommandManager.register(Strings.CMD_HOW_TO_USE_BRACKETS,    Commands.HELP_HOW_TO_USE_BRACKETS,  _handleLinkMenuItem(brackets.config.how_to_use_url));
+    CommandManager.register(Strings.CMD_FORUM,                  Commands.HELP_FORUM,                _handleLinkMenuItem(brackets.config.forum_url));
+    CommandManager.register(Strings.CMD_RELEASE_NOTES,          Commands.HELP_RELEASE_NOTES,        _handleLinkMenuItem(brackets.config.release_notes_url));
+    CommandManager.register(Strings.CMD_REPORT_AN_ISSUE,        Commands.HELP_REPORT_AN_ISSUE,      _handleLinkMenuItem(brackets.config.report_issue_url));
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
-    CommandManager.register(Strings.CMD_TWITTER,                Commands.HELP_TWITTER,              _handleTwitter);
+    CommandManager.register(Strings.CMD_TWITTER,                Commands.HELP_TWITTER,              _handleLinkMenuItem(brackets.config.twitter_url));
     CommandManager.register(Strings.CMD_ABOUT,                  Commands.HELP_ABOUT,                _handleAboutDialog);
 });

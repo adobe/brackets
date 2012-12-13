@@ -960,6 +960,8 @@ define(function (require, exports, module) {
          */
         menu = addMenu(Strings.HELP_MENU, AppMenuBar.HELP_MENU);
         menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
+
+        menu.addMenuDivider();
         if (brackets.config.how_to_use_url) {
             menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
         }
