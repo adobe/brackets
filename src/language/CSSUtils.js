@@ -54,12 +54,19 @@ define(function (require, exports, module) {
      * @return {boolean} true if the context is in property name
      */
     function _isInPropName(ctx) {
-        if (!ctx || !ctx.token || !ctx.token.state ||
-                !ctx.token.state.stack || ctx.token.state.stack.length < 1) {
+        var state,
+            lastToken;
+        if (!ctx || !ctx.token || !ctx.token.state) {
+            return false;
+        }
+
+        state = ctx.token.state.localState || ctx.token.state;
+        
+        if (!state.stack || state.stack.length < 1) {
             return false;
         }
         
-        var lastToken = ctx.token.state.stack[ctx.token.state.stack.length - 1];
+        lastToken = state.stack[state.stack.length - 1];
         return (lastToken === "{") ||
                 (lastToken === "rule" &&
                 (ctx.token.className === "variable" || ctx.token.className === "tag"));
@@ -72,13 +79,18 @@ define(function (require, exports, module) {
      * @return {boolean} true if the context is in property value
      */
     function _isInPropValue(ctx) {
-        if (!ctx || !ctx.token || !ctx.token.state || !ctx.token.state.stack ||
-                ctx.token.className === "variable" || ctx.token.className === "tag" ||
-                ctx.token.state.stack.length < 2) {
+        var state;
+        if (!ctx || !ctx.token || !ctx.token.state ||
+                ctx.token.className === "variable" || ctx.token.className === "tag") {
             return false;
         }
+
+        state = ctx.token.state.localState || ctx.token.state;
         
-        return (ctx.token.state.stack[ctx.token.state.stack.length - 1] === "rule");
+        if (!state.stack || state.stack.length < 2) {
+            return false;
+        }
+        return (state.stack[state.stack.length - 1] === "rule");
     }
     
     /**
