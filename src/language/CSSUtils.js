@@ -42,6 +42,239 @@ define(function (require, exports, module) {
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         TokenUtils          = require("utils/TokenUtils");
 
+    // Constants
+    var SELECTOR = "selector",
+        PROP_NAME = "prop.name",
+        PROP_VALUE = "prop.value";
+
+    function _isInPropName(ctx) {
+        if (!ctx || !ctx.token || !ctx.token.state ||
+                !ctx.token.state.stack || ctx.token.state.stack.length < 1) {
+            return false;
+        }
+        
+        var lastToken = ctx.token.state.stack[ctx.token.state.stack.length - 1];
+        return (lastToken === "{") ||
+                (lastToken === "rule" &&
+                (ctx.token.className === "variable" || ctx.token.className === "tag"));
+    }
+    
+    function _isInPropValue(ctx) {
+        if (!ctx || !ctx.token || !ctx.token.state || !ctx.token.state.stack ||
+                ctx.token.className === "variable" || ctx.token.className === "tag" ||
+                ctx.token.state.stack.length < 2) {
+            return false;
+        }
+        
+        return (ctx.token.state.stack[ctx.token.state.stack.length - 1] === "rule");
+    }
+    
+    function createRuleInfo(tokenType, offset, propName, index, values) {
+        var ruleInfo = { selector:
+                            { index: -1,
+                              values: [] },
+                         prop:
+                            { name: propName || "",
+                              index: -1,
+                              values: [] },
+                         position:
+                            { tokenType: tokenType || "",
+                              offset: offset || 0 } };
+        
+        if (tokenType === PROP_VALUE) {
+            ruleInfo.prop.index = index;
+            ruleInfo.prop.values = values;
+        } else if (tokenType === SELECTOR) {
+            ruleInfo.selector.index = index;
+            ruleInfo.selector.values = values;
+        }
+        
+        return ruleInfo;
+    }
+
+    function _getPropNameStartingFromPropValue(ctx) {
+        do {
+            // If we get a property name or "{" or ";" before getting a colon, then we don't 
+            // have a valid property name. Just return an empty string.
+            if (ctx.token.className === "variable" || ctx.token.string === "{" || ctx.token.string === ";") {
+                return "";
+            }
+        } while (ctx.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx));
+        
+        if (ctx.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) &&
+                ctx.token.className === "variable") {
+            return ctx.token.string;
+        }
+        
+        return "";
+    }
+    
+    function _getPrecedingPropValues(ctx) {
+        var lastValue = "",
+            curValue,
+            propValues = [];
+        while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
+            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+                    ctx.token.string === ":" || ctx.token.string === "{" ||
+                    ctx.token.string === ";") {
+                break;
+            }
+            curValue = ctx.token.string;
+            if (lastValue !== "") {
+                curValue += lastValue;
+            }
+            if ((ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) ||
+                    ctx.token.string === ",") {
+                lastValue = curValue;
+            } else {
+                lastValue = "";
+                propValues.push(curValue);
+            }
+        }
+        if (propValues.length > 0) {
+            propValues.reverse();
+        }
+        
+        return propValues;
+    }
+    
+    function _getSucceedingPropValues(ctx, currentValue) {
+        var lastValue = currentValue,
+            curValue,
+            propValues = [];
+        
+        while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
+            if (ctx.token.string === ";" || ctx.token.string === "}") {
+                break;
+            }
+            // If we're already in the next rule, then we don't want to add the last value
+            // since it is the property name of the next rule.
+            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+                    ctx.token.string === ":") {
+                lastValue = "";
+                break;
+            }
+            
+            if (lastValue === "") {
+                lastValue = ctx.token.string.trim();
+            } else if (lastValue.length > 0) {
+                if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
+                    lastValue += ctx.token.string;
+                    propValues.push(lastValue);
+                    lastValue = "";
+                } else if (ctx.token.string === ",") {
+                    lastValue += ctx.token.string;
+                } else if (lastValue && lastValue.match(/,$/)) {
+                    propValues.push(lastValue);
+                    lastValue = "";
+                }
+            }
+        }
+        if (lastValue.length > 0) {
+            propValues.push(lastValue);
+        }
+
+        return propValues;
+    }
+    
+    function _getRuleInfoStartingFromPropValue(editor, pos) {
+        var ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
+            backwardCtx = $.extend({}, ctx),
+            forwardCtx = $.extend({}, ctx),
+            lastValue = "",
+            propValues = [],
+            index = -1,
+            offset = TokenUtils.offsetInToken(ctx),
+            canAddNewOne = false,
+            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+            testToken = editor._codeMirror.getTokenAt(testPos),
+            propName;
+        
+        // Get property name first. If we don't have a valid property name, then 
+        // return a default rule info.
+        propName = _getPropNameStartingFromPropValue($.extend({}, ctx));
+        if (!propName) {
+            return createRuleInfo();
+        }
+        
+        // Scan backward to collect all preceding property values
+        propValues = _getPrecedingPropValues(backwardCtx);
+
+        lastValue = "";
+        if (ctx.token.string === ":") {
+            index = 0;
+            canAddNewOne = true;
+        } else {
+            index = propValues.length - 1;
+            if (ctx.token.string === ",") {
+                propValues[index] += ctx.token.string;
+                index++;
+                canAddNewOne = true;
+            } else {
+                index = (index < 0) ? 0 : index + 1;
+                lastValue = ctx.token.string.trim();
+                if (lastValue.length === 0) {
+                    canAddNewOne = true;
+                }
+            }
+        }
+        
+        if (canAddNewOne) {
+            offset = 0;
+            if (testToken.string.length > 0 && testToken.string.trim().length === 0) {
+                propValues.push("");
+            }
+        }
+        
+        // Scan forward to collect all succeeding property values and append to all propValues.
+        propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
+
+        // If current index is more than the propValues size, then the cursor is 
+        // at the end of the existing property values and ready for adding another one.
+        // So add a new empty string for the new one in propValues.
+        if (index === propValues.length) {
+            propValues.push("");
+        }
+               
+        return createRuleInfo(PROP_VALUE, offset, propName, index, propValues);
+    }
+    
+    function getRuleInfo(editor, constPos) {
+        // We're going to be changing pos a lot, but we don't want to mess up
+        // the pos the caller passed in so we use extend to make a safe copy of it.	
+        var pos = $.extend({}, constPos),
+            ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
+            offset = TokenUtils.offsetInToken(ctx),
+            propName = "",
+            mode = editor.getModeForSelection();
+        
+        // Check if this is inside a style block or in a css/less document.
+        if (mode !== "css" && mode !== "less") {
+            return createRuleInfo();
+        }
+
+        if (_isInPropValue(ctx)) {
+            return _getRuleInfoStartingFromPropValue(editor, pos);
+        }
+        
+        if (_isInPropName(ctx)) {
+            if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
+                var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+                    testToken = editor._codeMirror.getTokenAt(testPos);
+                
+                if (testToken.className === "variable" || testToken.className === "tag") {
+                    propName = testToken.string;
+                    offset = 0;
+                }
+            } else if (ctx.token.className === "variable" || ctx.token.className === "tag") {
+                propName = ctx.token.string;
+            }
+            return createRuleInfo(PROP_NAME, offset, propName);
+        }
+            
+        return createRuleInfo();
+    }
+    
     /**
      * Extracts all CSS selectors from the given text
      * Returns an array of selectors. Each selector is an object with the following properties:
@@ -677,4 +910,14 @@ define(function (require, exports, module) {
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
+
+    exports.SELECTOR = SELECTOR;
+    exports.PROP_NAME = PROP_NAME;
+    exports.PROP_VALUE = PROP_VALUE;
+    
+    exports.getRuleInfo = getRuleInfo;
+
+    // The createRuleInfo is reallyonly for the unit tests so they can make the same  
+    // structure to compare results with.
+    exports.createRuleInfo = createRuleInfo;
 });
