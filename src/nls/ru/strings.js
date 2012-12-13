@@ -221,10 +221,10 @@ define({
     // Debug menu commands
     "DEBUG_MENU"                          : "Отладка",
     "CMD_REFRESH_WINDOW"                  : "Перезагрузить {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Показать инструмент разработчика",
+    "CMD_SHOW_DEV_TOOLS"                  : "Показать инструменты разработчика",
     "CMD_RUN_UNIT_TESTS"                  : "Запустить тесты",
     "CMD_JSLINT"                          : "Включить JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Показать данных о производительности",
+    "CMD_SHOW_PERF_DATA"                  : "Показать данные о производительности",
     "CMD_NEW_BRACKETS_WINDOW"             : "Новое окно {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать папку расширений",
     "CMD_SWITCH_LANGUAGE"                 : "Переключить язык",
