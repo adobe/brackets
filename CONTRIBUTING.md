@@ -38,3 +38,5 @@ With this file we want to provide some general guidance how to contribute to Bra
 ***Avoid Common pitfalls*** 
 (make sure these have been thought about):
 * Text manipulation commands: should consider what happens when in an inline editor at boundaries
+* Inline editors: does this collide with any other providers?
+* Code hinting: does this collide with any other providers?
