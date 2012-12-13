@@ -9,7 +9,8 @@ With this file we want to provide some general guidance how to contribute to Bra
 1. To get started, please see the following wiki page on GitHub: https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets.
 
 ### The following is under construction...
-Some more thoughts to be discussed... ( what should be our intention with this document )
+Some more thoughts to be discussed... ( what should be our intention with this document? )      
+
 1. Provide the the community good insight into our sprint-centered process
 
 1. Raise awareness that we all have to manage our time, each person needs to prioritize, so we shouldn't feel bad if we have to tell someone that we don't have time (immediately) to work on their issue.
