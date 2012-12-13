@@ -43,8 +43,8 @@ define(function (require, exports, module) {
         TokenUtils          = require("utils/TokenUtils");
 
     // Constants
-    var SELECTOR = "selector",
-        PROP_NAME = "prop.name",
+    var SELECTOR   = "selector",
+        PROP_NAME  = "prop.name",
         PROP_VALUE = "prop.value";
 
     function _isInPropName(ctx) {
@@ -69,24 +69,16 @@ define(function (require, exports, module) {
         return (ctx.token.state.stack[ctx.token.state.stack.length - 1] === "rule");
     }
     
-    function createRuleInfo(tokenType, offset, propName, index, values) {
-        var ruleInfo = { selector:
-                            { index: -1,
-                              values: [] },
-                         prop:
-                            { name: propName || "",
-                              index: -1,
-                              values: [] },
-                         position:
-                            { tokenType: tokenType || "",
-                              offset: offset || 0 } };
+    function createInfo(context, offset, name, index, values) {
+        var ruleInfo = { context: context || "",
+                         offset: offset || 0,
+                         name: name || "",
+                         index: -1,
+                         values: [] };
         
-        if (tokenType === PROP_VALUE) {
-            ruleInfo.prop.index = index;
-            ruleInfo.prop.values = values;
-        } else if (tokenType === SELECTOR) {
-            ruleInfo.selector.index = index;
-            ruleInfo.selector.values = values;
+        if (context === PROP_VALUE || context === SELECTOR) {
+            ruleInfo.index = index;
+            ruleInfo.values = values;
         }
         
         return ruleInfo;
@@ -194,7 +186,7 @@ define(function (require, exports, module) {
         // return a default rule info.
         propName = _getPropNameStartingFromPropValue($.extend({}, ctx));
         if (!propName) {
-            return createRuleInfo();
+            return createInfo();
         }
         
         // Scan backward to collect all preceding property values
@@ -236,10 +228,10 @@ define(function (require, exports, module) {
             propValues.push("");
         }
                
-        return createRuleInfo(PROP_VALUE, offset, propName, index, propValues);
+        return createInfo(PROP_VALUE, offset, propName, index, propValues);
     }
     
-    function getRuleInfo(editor, constPos) {
+    function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.	
         var pos = $.extend({}, constPos),
@@ -250,7 +242,7 @@ define(function (require, exports, module) {
         
         // Check if this is inside a style block or in a css/less document.
         if (mode !== "css" && mode !== "less") {
-            return createRuleInfo();
+            return createInfo();
         }
 
         if (_isInPropValue(ctx)) {
@@ -269,10 +261,10 @@ define(function (require, exports, module) {
             } else if (ctx.token.className === "variable" || ctx.token.className === "tag") {
                 propName = ctx.token.string;
             }
-            return createRuleInfo(PROP_NAME, offset, propName);
+            return createInfo(PROP_NAME, offset, propName);
         }
             
-        return createRuleInfo();
+        return createInfo();
     }
     
     /**
@@ -915,9 +907,9 @@ define(function (require, exports, module) {
     exports.PROP_NAME = PROP_NAME;
     exports.PROP_VALUE = PROP_VALUE;
     
-    exports.getRuleInfo = getRuleInfo;
+    exports.getInfoAtPos = getInfoAtPos;
 
-    // The createRuleInfo is reallyonly for the unit tests so they can make the same  
+    // The createInfo is reallyonly for the unit tests so they can make the same  
     // structure to compare results with.
-    exports.createRuleInfo = createRuleInfo;
+    exports.createInfo = createInfo;
 });
