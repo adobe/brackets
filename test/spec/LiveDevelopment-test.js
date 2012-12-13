@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         CommandsManagerModule   = require("command/CommandManager"),
         LiveDevelopmentModule   = require("LiveDevelopment/LiveDevelopment"),
         InspectorModule         = require("LiveDevelopment/Inspector/Inspector"),
-        CSSDocumentModule       = require("LiveDevelopment/documents/CSSDocument"),
+        CSSDocumentModule       = require("LiveDevelopment/Documents/CSSDocument"),
         CSSAgentModule          = require("LiveDevelopment/Agents/CSSAgent"),
         HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent");
     
