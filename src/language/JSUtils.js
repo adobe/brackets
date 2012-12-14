@@ -396,25 +396,28 @@ define(function (require, exports, module) {
      * @return {Array.<{offset:number, functionName:string}>}
      *      Array of objects containing the start offset for each matched function name.
      */
-    function findAllMatchingFunctionsInText(text, functionName) {
+    function findAllMatchingFunctionsInText(text, searchName) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
         var lines = text.split("\n");
-        var key;
+        var functionName;
         
-        function addFunctionEntry(funcEntry) {
-            var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
-            result.push({
-                name: key,
-                lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
-                lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
-            });
+        function makeAddFunction(functionName) {
+            return function (funcEntry) {
+                var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
+                result.push({
+                    name: functionName,
+                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
+                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+                });
+            };
         }
         
-        for (key in allFunctions) {
-            if (allFunctions.hasOwnProperty(key)) {
-                if (key === functionName || functionName === "*") {
-                    allFunctions[key].forEach(addFunctionEntry);
+        for (functionName in allFunctions) {
+            if (allFunctions.hasOwnProperty(functionName)) {
+                if (functionName === searchName || searchName === "*") {
+                    var addFunctionEntry = makeAddFunction(functionName);
+                    allFunctions[functionName].forEach(addFunctionEntry);
                 }
             }
         }
