@@ -71,21 +71,15 @@ define(function (require, exports, module) {
         
         // Ask provider for hints at current cursor position; expect it to return some
         function expectHints(provider) {
-            var query = provider.getQueryInfo(testEditor, testEditor.getCursorPos());
-            expect(query).toBeTruthy();
-            expect(query.queryStr).not.toBeNull();
-            
-            var hintList = provider.search(query);
-            expect(hintList).toBeTruthy();
-            
-            return hintList;
+            expect(provider.hasHints(testEditor, null)).toBe(true);
+            var hintsObj = provider.getHints();
+            expect(hintsObj).not.toBeNull();
+            return hintsObj.hints; // return just the array of hints
         }
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
         function expectNoHints(provider) {
-            var query = provider.getQueryInfo(testEditor, testEditor.getCursorPos());
-            expect(query).toBeTruthy();
-            expect(query.queryStr).toBeNull();
+            expect(provider.hasHints(testEditor, null)).toBe(false);
         }
         
         // Expect hintList to contain tag names, starting with given value (if unspecified, expects the default unfilered list)
@@ -190,7 +184,7 @@ define(function (require, exports, module) {
             });
             
             it("should list hints to right of '=' sign", function () {
-                testEditor.setCursorPos({ line: 5, ch: 9 });
+                testEditor.setCursorPos({ line: 2, ch: 12 });
                 expectHints(HTMLCodeHints.attrHintProvider);
             });
             
@@ -202,9 +196,10 @@ define(function (require, exports, module) {
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
             it("should list hints to right of '=' sign with whitespace", function () {
-                testEditor.setCursorPos({ line: 6, ch: 11 });   // cursor between = and space
+                testDocument.setText('<style type = "text/css">');
+                testEditor.setCursorPos({ line: 0, ch: 13 });   // cursor between = and space
                 expectHints(HTMLCodeHints.attrHintProvider);
-                testEditor.setCursorPos({ line: 6, ch: 12 });   // cursor between space and '
+                testEditor.setCursorPos({ line: 0, ch: 14 });   // cursor between space and "
                 expectHints(HTMLCodeHints.attrHintProvider);
             });
             it("should NOT list hints to right of attribute value with no separating space", function () {
@@ -412,15 +407,13 @@ define(function (require, exports, module) {
                 // Replace div on line 9 with embed type=' ("<div " --> "<embed type='")
                 testDocument.replaceRange("embed type='", { line: 9, ch: 3 }, { line: 9, ch: 7 });
                 testEditor.setCursorPos({ line: 9, ch: 15 });
-                var hintList = expectHints(HTMLCodeHints.attrHintProvider);
-                expect(hintList.length).toBe(0);
+                expectNoHints(HTMLCodeHints.attrHintProvider);
             });
 
             it("should NOT list any attribute value for an unknown attribute name", function () {
                 testDocument.replaceRange("foo='", { line: 9, ch: 7 });  // insert foo=' after <div tag
                 testEditor.setCursorPos({ line: 9, ch: 12 });
-                var hintList = expectHints(HTMLCodeHints.attrHintProvider);
-                expect(hintList.length).toBe(0);
+                expectNoHints(HTMLCodeHints.attrHintProvider);
             });
         });
         
@@ -459,7 +452,7 @@ define(function (require, exports, module) {
             function selectHint(provider, expectedHint) {
                 var hintList = expectHints(provider);
                 expect(hintList.indexOf(expectedHint)).not.toBe(-1);
-                provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos(), true);
+                return provider.insertHint(expectedHint);
             }
             
             // Helper function for testing cursor position
@@ -476,12 +469,10 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 6, ch: 25 });            // cursor between the two "s
             });
             
-            it("should pop up attribute value hints after attribute name has been inserted", function () {
+            it("should make explicit request for new hints after attribute name has been inserted", function () {
                 testEditor.setCursorPos({ line: 6, ch: 18 });   // cursor between space and >
-                selectHint(HTMLCodeHints.attrHintProvider, "dir");
+                expect(selectHint(HTMLCodeHints.attrHintProvider, "dir")).toBe(true); // returning 'true' from insertHint (which is called by selectHint helper) initiates a new explicit hint request
                 expect(testDocument.getLine(6)).toBe("  <h3 id  = 'bar' dir=\"\">Subheading</h3>");
-                expect(CodeHintManager._getCodeHintList()).toBeTruthy();
-                expect(CodeHintManager._getCodeHintList().isOpen()).toBe(true);
             });
             
             it("should NOT insert =\"\" after valueless attribute", function () {
