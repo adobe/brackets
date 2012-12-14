@@ -183,7 +183,7 @@ define({
     "CMD_FIND_PREVIOUS"                   : "Encontrar anterior",
     "CMD_REPLACE"                         : "Substituir",
     "CMD_INDENT"                          : "Indentar",
-    "CMD_UNINDENT"                        : "Desfazer indentação (recuar)",
+    "CMD_UNINDENT"                        : "Recuar indentação",
     "CMD_DUPLICATE"                       : "Duplicar",
     "CMD_DELETE_LINES"                    : "Apagar linha(s) selecionadas",
     "CMD_COMMENT"                         : "Alternar comentário linhas",
