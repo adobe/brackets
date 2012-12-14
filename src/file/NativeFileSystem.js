@@ -47,42 +47,61 @@
  * Basic usage examples:
  *
  *  - CREATE A DIRECTORY
- *      NativeFileSystem.DirectoryEntry().getDirectory(path, {create: true});
+ *      var directoryEntry = ... // NativeFileSystem.DirectoryEntry
+ *      directoryEntry.getDirectory(path, {create: true});
+ *
  *
  *  - CHECK IF A FILE OR FOLDER EXISTS
- *      NativeFileSystem.requestNativeFileSystem(path 
- *                                              , function() { console.log("Entry exists"); }
- *                                              , function() { console.log("Entry does not exist"); });
+ *      NativeFileSystem.resolveNativeFileSystemPath(path 
+ *                                  , function(entry) { console.log("Path for " + entry.name + " resolved"); }
+ *                                  , function(err) { console.log("Error resolving path: " + err.name); });
+ *
  *
  *  - READ A FILE
- *      reader = new NativeFileSystem.FileReader();
- *      fileEntry.file(function (file) {
- *          reader.onload = function (event) {
- *              var text = event.target.result;
- *          };
  *
- *          reader.onerror = function (event) {
- *          };
- *          
- *          reader.readAsText(file, Encodings.UTF8);
- *      });
+ *      (Using file/NativeFileSystem)
+ *          reader = new NativeFileSystem.FileReader();
+ *          fileEntry.file(function (file) {
+ *              reader.onload = function (event) {
+ *                  var text = event.target.result;
+ *              };
+ *              
+ *              reader.onerror = function (event) {
+ *              };
+ *              
+ *              reader.readAsText(file, Encodings.UTF8);
+ *          });
  *
- *  - WRITE TO A FILE
- *      writer = fileEntry.createWriter(function (fileWriter) {
- *          fileWriter.onwriteend = function (e) {
- *          };
+ *      (Using file/FileUtils)
+ *          FileUtils.readAsText(fileEntry).done(function (rawText, readTimestamp) {
+ *              console.log(rawText);
+ *          }).fail(function (err) {
+ *              console.log("Error reading text: " + err.name);
+ *          });
  *
- *          fileWriter.onerror = function (err) {
- *          };
- *          
- *          fileWriter.write(text);
- *      });
- *      
- *  - GET THE METADATA OF A FILE
- *      var fileEntry = new NativeFileSystem.FileEntry(path);
- *      fileEntry.getMetadata(function(metadata) {}, function(error) {});
  *
- *  - LET THE USER SELECT FILES OR FOLDERS FROM THE FILE SYSTEM
+ *  - WRITE TO A FILE 
+ *
+ *      (Using file/NativeFileSystem)
+ *          writer = fileEntry.createWriter(function (fileWriter) {
+ *              fileWriter.onwriteend = function (e) {
+ *              };
+ *              
+ *              fileWriter.onerror = function (err) {
+ *              };
+ *              
+ *              fileWriter.write(text);
+ *          });
+ *
+ *      (Using file/FileUtils)
+ *          FileUtils.writeText(text, fileEntry).done(function () {
+ *              console.log("Text successfully updated");
+ *          }).fail(function (err) {
+ *              console.log("Error writing text: " + err.name);
+ *          ]);
+ *
+ *
+ *  - PROMPT THE USER TO SELECT FILES OR FOLDERS WITH OPERATING SYSTEM'S FILE OPEN DIALOG
  *      NativeFileSystem.showOpenDialog(true, true, "Choose a file...", null, function(files) {}, function(err) {});
  */
 
@@ -106,17 +125,17 @@ define(function (require, exports, module) {
         /**
          * Shows a modal dialog for selecting and opening files
          *
-         * @param {bool} allowMultipleSelection Allows selecting more than one file at a time
-         * @param {bool} chooseDirectories Allows directories to be opened
-         * @param {string} title The title of the window
+         * @param {boolean} allowMultipleSelection Allows selecting more than one file at a time
+         * @param {boolean} chooseDirectories Allows directories to be opened
+         * @param {string} title The title of the dialog
          * @param {string} initialPath The folder opened inside the window initially. If initialPath
          *                          is not set, or it doesn't exist, the window would show the last
          *                          browsed folder depending on the OS preferences
          * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
          *                          allows any extension to be selected.
-         * @param {!function(Array.<string>)} successCallback Callback function for successful operations.
+         * @param {function(Array.<string>)} successCallback Callback function for successful operations.
                                     Receives an array with the selected paths as first parameter.
-         * @param {!function(DOMError)} errorCallback Callback function for error operations. 
+         * @param {function(DOMError)=} errorCallback Callback function for error operations. 
          */
         showOpenDialog: function (allowMultipleSelection,
                                   chooseDirectories,
@@ -147,10 +166,11 @@ define(function (require, exports, module) {
 
         /**
          * Implementation of w3 requestFileSystem entry point
-         * @param {!string} path Path of the file in the system
-         * @param {!function(DirectoryEntry)} successCallback Callback function for successful operations.
+         * @param {string} path Path to a directory. This directory will serve as the root of the 
+         *                          FileSystem instance.
+         * @param {function(DirectoryEntry)} successCallback Callback function for successful operations.
          *                          Receives a DirectoryEntry pointing to the path
-         * @param {!function(DOMError)} errorCallback Callback function for errors, including permission errors.
+         * @param {function(DOMError)=} errorCallback Callback function for errors, including permission errors.
          */
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, data) {
@@ -165,9 +185,9 @@ define(function (require, exports, module) {
         /**
          * NativeFileSystem implementation of LocalFileSystem.resolveLocalFileSystemURL()
          *
-         * @param {!string} path A URL referring to a local file in a filesystem accessable via this API.
-         * @param {!function(Entry)} successCallback Callback function for successful operations.
-         * @param {!function(DOMError)=} errorCallback Callback function for error operations.
+         * @param {string} path A URL referring to a local file in a filesystem accessable via this API.
+         * @param {function(Entry)} successCallback Callback function for successful operations.
+         * @param {function(DOMError)=} errorCallback Callback function for error operations.
          */
         resolveNativeFileSystemPath: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, stats) {
@@ -189,7 +209,7 @@ define(function (require, exports, module) {
 
         /**
          * Converts a brackets.fs.ERR_* error code to a NativeFileError.* error name
-         * @param {!number} fsErr A brackets.fs error code
+         * @param {number} fsErr A brackets.fs error code
          * @return {string} An error name out of the possible NativeFileError.* names
          */
         _fsErrorToDOMErrorName: function (fsErr) {
@@ -252,7 +272,7 @@ define(function (require, exports, module) {
      * Converts an IANA encoding name to internal encoding name.
      * http://www.iana.org/assignments/character-sets
      *
-     * @param {String} encoding The IANA encoding string.
+     * @param {string} encoding The IANA encoding string.
      */
     NativeFileSystem.Encodings._IANAToFS = function (encoding) {
         //IANA names are case-insensitive
@@ -311,9 +331,9 @@ define(function (require, exports, module) {
     /**
      * Moves this Entry to a different location on the file system.
      * @param {!DirectoryEntry} parent The directory to move the entry to
-     * @param {!string=} newName The new name of the entry. If not specified, defaults to the current name
-     * @param {!function(Array.<Entry>)=} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {string=} newName The new name of the entry. If not specified, defaults to the current name
+     * @param {function(Array.<Entry>)=} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
         // TODO (issue #241)
@@ -323,9 +343,9 @@ define(function (require, exports, module) {
     /**
      * Copies this Entry to a different location on the file system.
      * @param {!DirectoryEntry} parent The directory to copy the entry to
-     * @param {!string=} newName The new name of the entry. If not specified, defaults to the current name
-     * @param {!function(Array.<Entry>)=} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {string=} newName The new name of the entry. If not specified, defaults to the current name
+     * @param {function(Array.<Entry>)=} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
         // TODO (issue #241)
@@ -334,7 +354,7 @@ define(function (require, exports, module) {
     
     /**
      * Generates a URL that can be used to identify this Entry
-     * @param {!string=} mimeType The mime type to be used to interpret the file for a FileEntry
+     * @param {string=} mimeType The mime type to be used to interpret the file for a FileEntry
      * @returns {string} A usable URL to identify this Entry in the current filesystem
      */
     NativeFileSystem.Entry.prototype.toURL = function (mimeType) {
@@ -347,8 +367,8 @@ define(function (require, exports, module) {
     
     /**
      * Deletes a file or directory
-     * @param {!function()} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function()} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
         // TODO (issue #241)
@@ -357,8 +377,8 @@ define(function (require, exports, module) {
     
     /**
      * Look up the parent DirectoryEntry that contains this Entry
-     * @param {!function(Array.<Entry>)} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(Array.<Entry>)} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.getParent = function (successCallback, errorCallback) {
         // TODO (issue #241)
@@ -367,8 +387,8 @@ define(function (require, exports, module) {
     
     /**
      * Look up metadata about this Entry
-     * @param {!function(Metadata)} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(Metadata)} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.getMetadata = function (successCallBack, errorCallback) {
         brackets.fs.stat(this.fullPath, function (err, stat) {
@@ -402,7 +422,7 @@ define(function (require, exports, module) {
      * A FileEntry represents a file on a file system.
      *
      * @constructor
-     * @param {!string} name Full path of the file in the file system
+     * @param {string} name Full path of the file in the file system
      * @param {FileSystem} fs File system that contains this entry
      * @extends {Entry}
      */
@@ -419,8 +439,8 @@ define(function (require, exports, module) {
     
     /**
      * Creates a new FileWriter associated with the file that this FileEntry represents.
-     * @param {!function(FileWriter)} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(FileWriter)} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
         var fileEntry = this;
@@ -520,7 +540,7 @@ define(function (require, exports, module) {
 
         /**
          * Seek sets the file position at which the next write will occur
-         * @param {!number} offset An absolute byte offset into the file. If offset is greater than
+         * @param {number} offset An absolute byte offset into the file. If offset is greater than
          *                      length, length is used instead. If offset is less than zero, length
          *                      is added to it, so that it is treated as an offset back from the end 
          *                      of the file. If it is still less than zero, zero is used
@@ -532,7 +552,7 @@ define(function (require, exports, module) {
 
         /**
          * Changes the length of the file to that specified
-         * @param {!number} size The size to which the length of the file is to be adjusted, 
+         * @param {number} size The size to which the length of the file is to be adjusted, 
          *                      measured in bytes
          */
         FileWriter.prototype.truncate = function (size) {
@@ -568,8 +588,8 @@ define(function (require, exports, module) {
 
     /**
      * Returns a File that represents the current state of the file that this FileEntry represents
-     * @param {!function(File)} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(File)} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.FileEntry.prototype.file = function (successCallback, errorCallback) {
         var newFile = new NativeFileSystem.File(this);
@@ -584,7 +604,7 @@ define(function (require, exports, module) {
      * including all that occur during use of the synchronous filesystem methods,
      * are reported using the FileException exception.
      *
-     * @param {number} code The code attribute, on getting, must return one of the
+     * @param {?number=} code The code attribute, on getting, must return one of the
      * constants of the FileException exception, which must be the most appropriate
      * code from the table below.
      */
@@ -696,13 +716,13 @@ define(function (require, exports, module) {
     
     /**
      * Creates or looks up a directory
-     * @param {!string} path Either an absolute path or a relative path from this DirectoryEntry
+     * @param {string} path Either an absolute path or a relative path from this DirectoryEntry
      *                      to the directory to be looked up or created
-     * @param {{!{create:?boolean, exclusive:?boolean}}} options Object with the flags "create" 
+     * @param {{create:?boolean, exclusive:?boolean}=} options Object with the flags "create" 
      *                      and "exclusive" to modify the method behavior based on 
      *                      http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-DirectoryEntry-getDirectory
-     * @param {!function(Entry)} successCallback Callback function for successful operations
-     * @param {!function(DOMError)} errorCallback Callback function for error operations
+     * @param {function(Entry)=} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
         var directoryFullPath = path,
@@ -792,8 +812,8 @@ define(function (require, exports, module) {
     
     /**
      * Deletes a directory and all of its contents, if any
-     * @param {!function()} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function()} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
         // TODO (issue #241)
@@ -814,15 +834,15 @@ define(function (require, exports, module) {
     /**
      * Creates or looks up a file.
      *
-     * @param {!string} path Either an absolute path or a relative path from this
+     * @param {string} path Either an absolute path or a relative path from this
      *                      DirectoryEntry to the file to be looked up or created. It is an error
      *                      to attempt to create a file whose immediate parent does not yet
      *                      exist.
-     * @param {!{create:?boolean, exclusive:?boolean}=} options Object with the flags "create" 
+     * @param {{create:?boolean, exclusive:?boolean}=} options Object with the flags "create" 
      *                      and "exclusive" to modify the method behavior based on 
      *                      http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-DirectoryEntry-getFile
-     * @param {!function(FileEntry)=} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(FileEntry)=} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
         var fileFullPath = path,
@@ -923,8 +943,8 @@ define(function (require, exports, module) {
 
     /**
      * Read the next block of entries from this directory
-     * @param {!function(Array.<Entry>)} successCallback Callback function for successful operations
-     * @param {!function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(Array.<Entry>)} successCallback Callback function for successful operations
+     * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
         var rootPath = this._directory.fullPath,
@@ -1077,7 +1097,7 @@ define(function (require, exports, module) {
     /**
      * Reads a Blob as text
      * @param {Blob} blob The data to read
-     * @param {string} encoding (IANA Encoding Name)
+     * @param {string=} encoding (IANA Encoding Name)
      */
     NativeFileSystem.FileReader.prototype.readAsText = function (blob, encoding) {
         var self = this;
@@ -1166,11 +1186,11 @@ define(function (require, exports, module) {
     /**
      * Returns a new Blob object with bytes ranging from the optional start parameter 
      * up to but not including the optional end parameter
-     * @param {!number=} start Start point of a slice treated as a byte-order position
-     * @param {!number=} end End point of a slice. If end is undefined, size will be used. If 
+     * @param {number=} start Start point of a slice treated as a byte-order position
+     * @param {number=} end End point of a slice. If end is undefined, size will be used. If 
      *                      end is negative, max(size+end, 0) will be used. In any other case,
      *                      the slice will finish at min(end, size)
-     * @param {!string=} contentType HTTP/1.1 Content-Type header on the Blob
+     * @param {string=} contentType HTTP/1.1 Content-Type header on the Blob
      * @returns {Blob} 
      */
     NativeFileSystem.Blob.prototype.slice = function (start, end, contentType) {
