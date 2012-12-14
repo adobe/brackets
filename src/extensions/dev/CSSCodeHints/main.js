@@ -140,7 +140,15 @@ define(function (require, exports, module) {
         this.cssMode = "";
         return true;
     };
-         
+
+    /**
+     * Check whether to select the first item in the list by default
+     * @return {boolean} return true to highlight the first item.
+     */
+    CssAttrHints.prototype.wantInitialSelection = function () {
+        return true;
+    };    
+    
     /**
      * Check whether to show hints on a specific key.
      * @param {string} key -- the character for the key user just presses.
@@ -172,7 +180,8 @@ define(function (require, exports, module) {
                 
                 
     var cssAttrHints = new CssAttrHints();
-    CodeHintManager.registerHintProvider(cssAttrHints);
+    // CodeHintManager.registerHintProvider(cssAttrHints);
+    CodeHintManager.registerHintProvider(cssAttrHints, ["css"], 0);
     
     // For unit testing
     exports.attrHintProvider = cssAttrHints;
