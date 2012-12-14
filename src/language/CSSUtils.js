@@ -338,6 +338,13 @@ define(function (require, exports, module) {
             } else if (ctx.token.className === "variable" || ctx.token.className === "tag") {
                 propName = ctx.token.string;
             }
+            
+            // If we're in property name context but not in an existing property name, 
+            // then reset offset to zero.
+            if (propName === "") {
+                offset = 0;
+            }
+            
             return createInfo(PROP_NAME, offset, propName);
         }
         
