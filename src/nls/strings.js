@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         "it": true,
         "pt-br": true,
         "ja": true,
-        "tr": true
+        "tr": true,
+		"sv": true
     };
 });
