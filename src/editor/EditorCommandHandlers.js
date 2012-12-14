@@ -30,7 +30,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-        
+    
     // Load dependent modules
     var Commands           = require("command/Commands"),
         Strings            = require("strings"),
@@ -423,7 +423,7 @@ define(function (require, exports, module) {
         var result    = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         var className = ctx.token.className;
         var hasNext   = !result || _findNextBlockComment(ctx, selEnd, prefixExp);
-        console.log(className);
+        
         if (className === "comment" || (hasNext && result) || isLineSelection) {
             blockCommentPrefixSuffix(editor, prefix, suffix, false);
         
