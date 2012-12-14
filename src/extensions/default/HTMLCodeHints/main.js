@@ -130,6 +130,14 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Check whether to select the first item in the list by default
+     * @return {boolean} return true to highlight the first item.
+     */
+    TagHints.prototype.wantInitialSelection = function () {
+        return true;
+    };
+
+    /**
      * @constructor
      */
     function AttrHints() {
@@ -478,10 +486,18 @@ define(function (require, exports, module) {
         return (key === " " || key === "'" || key === "\"" || key === "=");
     };
 
+    /**
+     * Check whether to select the first item in the list by default
+     * @return {boolean} return true to highlight the first item.
+     */
+    AttrHints.prototype.wantInitialSelection = function () {
+        return true;
+    };
+
     var tagHints = new TagHints();
     var attrHints = new AttrHints();
-    CodeHintManager.registerHintProvider(tagHints);
-    CodeHintManager.registerHintProvider(attrHints);
+    CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
+    CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
     
     // For unit testing
     exports.tagHintProvider = tagHints;
