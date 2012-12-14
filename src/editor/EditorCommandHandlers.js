@@ -239,9 +239,17 @@ define(function (require, exports, module) {
             
             // If we aren't in a block-comment.
             if (!result || ctx.token.className !== "comment" || ctx.token.string.match(suffixExp)) {
-                console.log(1);
+                // Is a range of text selected? (vs just an insertion pt)
+                var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+                
+                // In full-line selection, cursor pos is start of next line - but don't want to modify that line
+                var endLine = sel.end.line;
+                if (sel.end.ch === 0 && hasSelection) {
+                    endLine--;
+                }
+                
                 // Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
+                if (!_containsUncommented(editor, sel.start.line, endLine)) {
                     lineUncomment = true;
                 
                 // Block-comment in all the other cases
@@ -411,10 +419,12 @@ define(function (require, exports, module) {
         }
         
         // If the selection includes a comment or is already a line selection, delegate to Block-Comment
-        var ctx     = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
-        var result  = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-        var hasNext = !result || _findNextBlockComment(ctx, selEnd, prefixExp);
-        if (ctx.token.className === "comment" || (hasNext && result) || isLineSelection) {
+        var ctx       = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
+        var result    = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+        var className = ctx.token.className;
+        var hasNext   = !result || _findNextBlockComment(ctx, selEnd, prefixExp);
+        console.log(className);
+        if (className === "comment" || (hasNext && result) || isLineSelection) {
             blockCommentPrefixSuffix(editor, prefix, suffix, false);
         
         } else {
