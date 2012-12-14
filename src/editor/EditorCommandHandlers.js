@@ -219,10 +219,10 @@ define(function (require, exports, module) {
             invalidComment = false,
             lineUncomment  = false;
         
-        var result, found, text, line;
+        var result, text, line;
         
         // Move the context to the first non-empty token.
-        if (ctx.token.className === null) {
+        if (!ctx.token.className && ctx.token.string.trim().length === 0) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
         
@@ -286,10 +286,10 @@ define(function (require, exports, module) {
             
         // If not try to find the first comment inside the selection.
         } else {
-            found = _findNextBlockComment(ctx, sel.end, prefixExp);
+            result = _findNextBlockComment(ctx, sel.end, prefixExp);
             
             // If nothing was found is ok to comment.
-            if (!found) {
+            if (!result) {
                 canComment = true;
             } else {
                 if (!ctx.token.string.match(prefixExp)) {
@@ -306,10 +306,10 @@ define(function (require, exports, module) {
             var start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
             if (editor.posWithinRange(start, sel.start, sel.end)) {
                 // Start searching at the next token, if there is one.
-                result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-                found  = !result || _findNextBlockComment(ctx, sel.end, prefixExp);
+                result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
+                         _findNextBlockComment(ctx, sel.end, prefixExp);
                 
-                if (result && found) {
+                if (result) {
                     invalidComment = true;
                 }
             }
@@ -422,9 +422,9 @@ define(function (require, exports, module) {
         var ctx       = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
         var result    = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         var className = ctx.token.className;
-        var hasNext   = !result || _findNextBlockComment(ctx, selEnd, prefixExp);
+        result        = result && _findNextBlockComment(ctx, selEnd, prefixExp);
         
-        if (className === "comment" || (hasNext && result) || isLineSelection) {
+        if (className === "comment" || result || isLineSelection) {
             blockCommentPrefixSuffix(editor, prefix, suffix, false);
         
         } else {
