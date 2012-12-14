@@ -469,8 +469,11 @@ define(function (require, exports, module) {
      */
     function handleKey(key) {
         if (_enabled && _keyMap[key]) {
-            CommandManager.execute(_keyMap[key].commandID);
-            return true;
+            // The execute() function returns a promise because some commands are async.
+            // Generally, commands decide whether they can run or not synchronously,
+            // and reject immediately, so we can test for that synchronously.
+            var promise = CommandManager.execute(_keyMap[key].commandID);
+            return (promise.state() === "rejected") ? false : true;
         }
         return false;
     }
