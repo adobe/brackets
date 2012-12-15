@@ -304,13 +304,6 @@ define(function (require, exports, module) {
         
         // Scan forward to collect all succeeding property values and append to all propValues.
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
-
-        // If current index is more than the propValues size, then the cursor is 
-        // at the end of the existing property values and ready for adding another one.
-        // So add a new empty string for the new one in propValues.
-        if (index === propValues.length) {
-            propValues.push("");
-        }
                
         return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne);
     }
