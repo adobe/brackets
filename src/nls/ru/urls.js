@@ -1,4 +1,4 @@
-/*
+п»ї/*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -26,5 +26,5 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"   : "ru/Начало работы"
+    "GETTING_STARTED"   : "ru/РќР°С‡Р°Р»Рѕ СЂР°Р±РѕС‚С‹"
 });
