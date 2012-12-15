@@ -232,12 +232,16 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
-    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
-    "CMD_ABOUT"                           : "Über {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
+    "CMD_HOW_TO_USE_BRACKETS"             : "So verwendet man {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
+    "CMD_RELEASE_NOTES"                   : "Versionshinweise",
+    "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
+    "CMD_ABOUT"                           : "Über {APP_TITLE}",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
