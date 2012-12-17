@@ -177,7 +177,16 @@ define(function (require, exports, module) {
                 lastValue = curValue;
             } else {
                 lastValue = "";
-                propValues.push(curValue);
+                if (propValues.length === 0 || curValue.match(/,\s*$/)) {
+                    // stack is empty, or current value ends with a comma
+                    // (and optional whitespace), so push it on the stack
+                    propValues.push(curValue);
+                }
+                else {
+                    // current value does not end with a comma (and optional ws) so prepend
+                    // to last stack item (e.g. "rgba(50" get broken into 2 tokens)
+                    propValues[propValues.length-1] = curValue + propValues[propValues.length-1];
+                }
             }
         }
         if (propValues.length > 0) {
@@ -224,6 +233,9 @@ define(function (require, exports, module) {
                 } else if (lastValue && lastValue.match(/,$/)) {
                     propValues.push(lastValue);
                     lastValue = "";
+                } else {
+                    // e.g. "rgba(50" gets broken into 2 tokens
+                    lastValue += ctx.token.string;
                 }
             }
         }
