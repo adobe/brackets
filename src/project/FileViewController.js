@@ -138,8 +138,7 @@ define(function (require, exports, module) {
      * @returns {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
-        var rename = _fileSelectionFocus === fileSelectionFocus && fileSelectionFocus === WORKING_SET_VIEW,
-            result;
+        var result;
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
@@ -157,12 +156,8 @@ define(function (require, exports, module) {
         // in this case to signify the selection focus has changed even though the current document has not.
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && curDoc.file.fullPath === fullPath) {
-            if (rename) {
-                result = CommandManager.execute(Commands.FILE_RENAME);
-            } else {
-                _selectCurrentDocument();
-                result = (new $.Deferred()).resolve().promise();
-            }
+            _selectCurrentDocument();
+            result = (new $.Deferred()).resolve().promise();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
         }
