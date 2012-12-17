@@ -359,6 +359,11 @@ define(function (require, exports, module) {
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
 
+        $newItem.dblclick(function (e) {
+            CommandManager.execute(Commands.FILE_RENAME);
+            _redraw();
+        });
+
         $newItem.mousedown(function (e) {
             _reorderListItem(e, $(this));
             e.preventDefault();
