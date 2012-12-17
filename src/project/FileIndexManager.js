@@ -39,8 +39,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        PerfUtils           = require("utils/PerfUtils"),
+    var PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings");

@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/coffeescript/coffeescript");
     require("thirdparty/CodeMirror2/mode/clojure/clojure");
     require("thirdparty/CodeMirror2/mode/perl/perl");
+    require("thirdparty/CodeMirror2/mode/python/python");
     require("thirdparty/CodeMirror2/mode/ruby/ruby");
     require("thirdparty/CodeMirror2/mode/lua/lua");
     require("thirdparty/CodeMirror2/mode/mysql/mysql");
@@ -140,6 +141,9 @@ define(function (require, exports, module) {
 
         case "rb":
             return "ruby";
+
+        case "py":
+            return "python";
         
         case "lua":
             return "lua";

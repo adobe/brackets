@@ -20,8 +20,13 @@
         "about_icon"        : "styles/images/brackets_icon.svg",
         "show_debug_menu"   : true,
         "enable_jslint"     : true,
-        "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",
         "update_info_url"   : "http://dev.brackets.io/updates/stable/",
-        "troubleshoot_url"  : "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev"
+        "how_to_use_url"    : "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
+        "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",
+        "release_notes_url" : "https://github.com/adobe/brackets/wiki/Release-Notes",
+        "report_issue_url"  : "https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue",
+        "twitter_url"       : "https://twitter.com/brackets",
+        "troubleshoot_url"  : "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
+        "twitter_name"      : "@brackets"
     }
 }

@@ -245,6 +245,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
+    "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
     "JSLINT_ERRORS"                        : "JSLint-Fehler",
     "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
     "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
@@ -262,7 +263,7 @@ define({
     "ABOUT"                                : "Über",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} experimenteller Build {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
