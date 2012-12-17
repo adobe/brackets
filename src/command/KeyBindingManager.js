@@ -55,6 +55,11 @@ define(function (require, exports, module) {
      * Allow clients to toggle key binding
      */
     var _enabled = true;
+    
+    /**
+     * Use windows-specific bindings if no other are found (e.g. linux)
+     */
+    var _useWindowsCompatibleBindings = false;
 
     /**
      * @private
@@ -351,7 +356,8 @@ define(function (require, exports, module) {
             normalizedDisplay,
             explicitPlatform = keyBinding.platform || platform,
             targetPlatform = explicitPlatform || brackets.platform,
-            command;
+            command,
+            bindingsToDelete = [];
         
         key = (keyBinding.key) || keyBinding;
         if (brackets.platform === "mac" && explicitPlatform === undefined) {
@@ -376,8 +382,7 @@ define(function (require, exports, module) {
         }
         
         // for cross-platform compatibility
-        if (brackets.platform !== "mac" &&
-                brackets.platform !== "win") {
+        if (_useWindowsCompatibleBindings) {
             if (explicitPlatform === "win") {
                 // windows-only key bindings are used as the default binding
                 // only if a default binding wasn't already defined
@@ -393,24 +398,6 @@ define(function (require, exports, module) {
                 
                 // target this windows binding for the current platform
                 targetPlatform = brackets.platform;
-            } else if (!explicitPlatform || (explicitPlatform === brackets.platform)) {
-                // if adding a generic binding or a binding for the current
-                // platform, clobber any windows bindings that may have been
-                // installed
-                var existingBindings = _commandMap[commandID] || [],
-                    bindingsToDelete = [];
-                
-                // filter out windows-only bindings in _commandMap
-                existingBindings.forEach(function (binding) {
-                    if (binding.explicitPlatform === "win") {
-                        bindingsToDelete.push(binding);
-                    }
-                });
-                
-                // delete windows-only bindings in _keyMap
-                bindingsToDelete.forEach(function (binding) {
-                    removeBinding(binding.key);
-                });
             }
         }
         
@@ -418,6 +405,33 @@ define(function (require, exports, module) {
         if (targetPlatform !== brackets.platform) {
             return null;
         }
+        
+        // delete existing bindings when
+        // (1) replacing a windows-compatible binding with a generic or
+        //     platform-specific binding
+        // (2) replacing a generic binding with a platform-specific binding
+        var existingBindings = _commandMap[commandID] || [],
+            isWindowsCompatible,
+            isReplaceGeneric;
+        
+        existingBindings.forEach(function (binding) {
+            // remove out windows-only bindings in _commandMap
+            isWindowsCompatible = _useWindowsCompatibleBindings &&
+                binding.explicitPlatform === "win";
+            
+            // remove existing generic binding
+            isReplaceGeneric = !binding.explicitPlatform &&
+                explicitPlatform;
+            
+            if (isWindowsCompatible || isReplaceGeneric) {
+                bindingsToDelete.push(binding);
+            }
+        });
+                
+        // remove generic or windows-compatible bindigns
+        bindingsToDelete.forEach(function (binding) {
+            removeBinding(binding.key);
+        });
         
         // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
         normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
@@ -570,6 +584,9 @@ define(function (require, exports, module) {
             },
             true
         );
+        
+        _useWindowsCompatibleBindings = (brackets.platform !== "mac")
+            && (brackets.platform !== "win");
     }
     
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
