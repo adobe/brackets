@@ -96,23 +96,27 @@ define(function (require, exports, module) {
     /**
      * @private
      * Creates a context info object
-     * @param {string} context A constant string 
-     * @param {number} offset The offset of the token for a given cursor position
-     * @param {string} name Property name of the context 
-     * @param {number} index The index of the property value for a given cursor position
-     * @param {Array.<string>} values An array of property values 
+     * @param {string=} context A constant string 
+     * @param {number=} offset The offset of the token for a given cursor position
+     * @param {string=} name Property name of the context 
+     * @param {number=} index The index of the property value for a given cursor position
+     * @param {Array.<string>=} values An array of property values 
+     * @param {boolean=} isNewItem If this is true, then the value in index refers to the index at which a new item  
+     *     is going to be inserted and should not be used for accessing an existing value in values array. 
      * @return {{context: string,
      *           offset: number,
      *           name: string,
      *           index: number,
-     *           values: Array.<string>}} A CSS context info object.
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
      */
-    function createInfo(context, offset, name, index, values) {
+    function createInfo(context, offset, name, index, values, isNewItem) {
         var ruleInfo = { context: context || "",
                          offset: offset || 0,
                          name: name || "",
                          index: -1,
-                         values: [] };
+                         values: [],
+                         isNewItem: (isNewItem) ? true : false };
         
         if (context === PROP_VALUE || context === SELECTOR) {
             ruleInfo.index = index;
@@ -239,7 +243,8 @@ define(function (require, exports, module) {
      *           offset: number,
      *           name: string,
      *           index: number,
-     *           values: Array.<string>}} A CSS context info object.
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
      */
     function _getRuleInfoStartingFromPropValue(ctx, editor) {
         var backwardCtx = $.extend({}, ctx),
@@ -278,28 +283,31 @@ define(function (require, exports, module) {
                 lastValue = ctx.token.string.trim();
                 if (lastValue.length === 0) {
                     canAddNewOne = true;
+                    if (index > 0) {
+                        // Append all spaces before the cursor to the previous value in values array
+                        propValues[index - 1] += ctx.token.string.substr(0, offset);
+                    }
                 }
             }
         }
         
         if (canAddNewOne) {
             offset = 0;
-            if (testToken.string.length > 0 && !testToken.string.match(/\S/)) {
-                propValues.push("");
+            if (testToken.string.length === 0 || testToken.string.match(/\S/)) {
+                canAddNewOne = false;
             }
         }
         
         // Scan forward to collect all succeeding property values and append to all propValues.
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
-
+        
         // If current index is more than the propValues size, then the cursor is 
-        // at the end of the existing property values and ready for adding another one.
-        // So add a new empty string for the new one in propValues.
+        // at the end of the existing property values and is ready for adding another one.
         if (index === propValues.length) {
-            propValues.push("");
+            canAddNewOne = true;
         }
-               
-        return createInfo(PROP_VALUE, offset, propName, index, propValues);
+        
+        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne);
     }
     
     /**
@@ -310,7 +318,8 @@ define(function (require, exports, module) {
      *           offset: number,
      *           name: string,
      *           index: number,
-     *           values: Array.<string>}} A CSS context info object.
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
      */
     function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
