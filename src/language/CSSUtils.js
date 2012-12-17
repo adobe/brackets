@@ -96,12 +96,12 @@ define(function (require, exports, module) {
     /**
      * @private
      * Creates a context info object
-     * @param {string} context A constant string 
-     * @param {number} offset The offset of the token for a given cursor position
-     * @param {string} name Property name of the context 
-     * @param {number} index The index of the property value for a given cursor position
-     * @param {Array.<string>} values An array of property values 
-     * @param {boolean} isNewItem If this is true, then the value in index refers to the index at which a new item  
+     * @param {string=} context A constant string 
+     * @param {number=} offset The offset of the token for a given cursor position
+     * @param {string=} name Property name of the context 
+     * @param {number=} index The index of the property value for a given cursor position
+     * @param {Array.<string>=} values An array of property values 
+     * @param {boolean=} isNewItem If this is true, then the value in index refers to the index at which a new item  
      *     is going to be inserted and should not be used for accessing an existing value in values array. 
      * @return {{context: string,
      *           offset: number,
@@ -116,11 +116,7 @@ define(function (require, exports, module) {
                          name: name || "",
                          index: -1,
                          values: [],
-                         isNewItem: false };
-        
-        if (isNewItem !== undefined) {
-            ruleInfo.isNewItem = isNewItem;
-        }
+                         isNewItem: (isNewItem) ? true : false };
         
         if (context === PROP_VALUE || context === SELECTOR) {
             ruleInfo.index = index;
@@ -304,7 +300,13 @@ define(function (require, exports, module) {
         
         // Scan forward to collect all succeeding property values and append to all propValues.
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
-               
+        
+        // If current index is more than the propValues size, then the cursor is 
+        // at the end of the existing property values and is ready for adding another one.
+        if (index === propValues.length) {
+            canAddNewOne = true;
+        }
+        
         return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne);
     }
     
