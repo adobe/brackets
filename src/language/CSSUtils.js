@@ -116,11 +116,7 @@ define(function (require, exports, module) {
                          name: name || "",
                          index: -1,
                          values: [],
-                         isNewItem: false };
-        
-        if (isNewItem !== undefined) {
-            ruleInfo.isNewItem = isNewItem;
-        }
+                         isNewItem: (isNewItem) ? true : false };
         
         if (context === PROP_VALUE || context === SELECTOR) {
             ruleInfo.index = index;
