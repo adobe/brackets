@@ -600,7 +600,12 @@ define(function (require, exports, module) {
     exports.getKeyBindings = getKeyBindings;
     
     /**
-     * Use windows-specific bindings if no other are found (e.g. linux)
+     * Use windows-specific bindings if no other are found (e.g. Linux). 
+     * Core Brackets modules that use key bindings should always define at
+     * least a generic keybinding that is applied for all platforms. This 
+     * setting effectively creates a compatibility mode for third party
+     * extensions that define explicit key bindings for Windows and Mac, but
+     * not Linux.
      */
     exports.useWindowsCompatibleBindings = false;
 });
