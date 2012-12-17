@@ -556,12 +556,17 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    /** @param {Entry} entry File or directory to filter */
+    /**
+     * Returns false for files and directories that are not commonly useful to display.
+     *
+     * @param {Entry} entry File or directory to filter
+     * @return boolean true if the file should be displayed
+     */
     function shouldShow(entry) {
         if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) > -1) {
             return false;
         }
-        var extension = entry.name.split('.').slice(-1);
+        var extension = entry.name.split('.').pop();
         if (["pyc"].indexOf(extension) > -1) {
             return false;
         }
