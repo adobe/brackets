@@ -81,8 +81,8 @@ define(function (require, exports, module) {
                 }, "loadStyleSheet() cssRules defined timeout", 1000);
             }
 
-            // putting everything in 1 test so it runs faster
-            it("should attach style sheets", function () {
+            // putting everything CSS related in 1 test so it runs faster
+            it("should attach CSS style sheets", function () {
 
                 runs(function () {
                     loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.css");
@@ -110,6 +110,36 @@ define(function (require, exports, module) {
                     var $projectTitle = testWindow.$("#project-title");
                     var fontVariant = $projectTitle.css("font-variant");
                     expect(fontVariant).toEqual("small-caps");
+                });
+            });
+            
+            // putting everything LESS related in 1 test so it runs faster
+            it("should attach LESS style sheets", function () {
+                
+                runs(function () {
+                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.less");
+                });
+                
+                runs(function () {
+                    // basic.less
+                    var $projectTitle = testWindow.$("#project-title");
+                    var fontSize = $projectTitle.css("font-size");
+                    expect(fontSize).toEqual("66px");
+
+                    // fourth.less is imported in basic.less
+                    var fontWeight = $projectTitle.css("font-weight");
+                    expect(fontWeight).toEqual("800");
+                });
+                
+                runs(function () {
+                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/sub dir/fifth.less");
+                });
+                
+                runs(function () {
+                    // fifth.less
+                    var $projectTitle = testWindow.$("#project-title");
+                    var fontVariant = $projectTitle.css("letter-spacing");
+                    expect(fontVariant).toEqual("9px");
                 });
             });
         });

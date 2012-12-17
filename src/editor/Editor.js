@@ -233,10 +233,17 @@ define(function (require, exports, module) {
     }
 
     function _handleSelectAll() {
-        var editor = EditorManager.getFocusedEditor();
+        var result = new $.Deferred(),
+            editor = EditorManager.getFocusedEditor();
+
         if (editor) {
             editor._selectAllVisible();
+            result.resolve();
+        } else {
+            result.reject();    // command not handled
         }
+
+        return result.promise();
     }
     
     /**

@@ -285,7 +285,7 @@ define(function (require, exports, module) {
             normalizedColor = normalizedColor.replace(/\(\s+/, "(");
             normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        return this._convertToNormalRGB(normalizedColor);
+        return this._convertToNormalRGB(normalizedColor.toLowerCase());
     };
 
     /** Handle changes in text field */

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils */
+/*global define, $, JSLINT, PathUtils, brackets */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         StatusBar               = require("widgets/StatusBar");
         
     var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { enabled: true };
+        defaultPrefs = { enabled: !!brackets.config.enable_jslint };
     
     /**
      * @private
