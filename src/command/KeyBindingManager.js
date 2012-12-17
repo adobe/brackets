@@ -410,7 +410,7 @@ define(function (require, exports, module) {
             isReplaceGeneric;
         
         existingBindings.forEach(function (binding) {
-            // remove out windows-only bindings in _commandMap
+            // remove windows-only bindings in _commandMap
             isWindowsCompatible = exports.useWindowsCompatibleBindings &&
                 binding.explicitPlatform === "win";
             
