@@ -1496,7 +1496,7 @@ define(function (require, exports, module) {
                 });
             });
                 
-            it("should return PROP_VALUE with existing value immediately after colon", function () {
+            it("should return PROP_VALUE with 'new value' flag set immediately after colon", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[9]);
                 expect(result).toEqual({
                     context: CSSUtils.PROP_VALUE,
@@ -1508,7 +1508,7 @@ define(function (require, exports, module) {
                 });
             });
                 
-            it("should return PROP_VALUE at beginning/middle/end of a simple property value", function () {
+            it("should return PROP_VALUE without 'new value' flag set at beginning/middle/end of a simple property value", function () {
                 checkInfoAtOffsets(10, 12, {
                     context: CSSUtils.PROP_VALUE,
                     name: "width",
