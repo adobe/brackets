@@ -228,12 +228,17 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "New {APP_NAME} Window",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
-    "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
 
     // Help menu commands
     "HELP_MENU"                           : "Help",
-    "CMD_ABOUT"                           : "About {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
+    "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_RELEASE_NOTES"                   : "Release Notes",
+    "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
+    "CMD_ABOUT"                           : "About {APP_TITLE}",
+
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Close Window",
