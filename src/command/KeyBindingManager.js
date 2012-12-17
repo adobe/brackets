@@ -55,11 +55,6 @@ define(function (require, exports, module) {
      * Allow clients to toggle key binding
      */
     var _enabled = true;
-    
-    /**
-     * Use windows-specific bindings if no other are found (e.g. linux)
-     */
-    var _useWindowsCompatibleBindings = false;
 
     /**
      * @private
@@ -382,7 +377,7 @@ define(function (require, exports, module) {
         }
         
         // for cross-platform compatibility
-        if (_useWindowsCompatibleBindings) {
+        if (exports.useWindowsCompatibleBindings) {
             if (explicitPlatform === "win") {
                 // windows-only key bindings are used as the default binding
                 // only if a default binding wasn't already defined
@@ -416,7 +411,7 @@ define(function (require, exports, module) {
         
         existingBindings.forEach(function (binding) {
             // remove out windows-only bindings in _commandMap
-            isWindowsCompatible = _useWindowsCompatibleBindings &&
+            isWindowsCompatible = exports.useWindowsCompatibleBindings &&
                 binding.explicitPlatform === "win";
             
             // remove existing generic binding
@@ -585,7 +580,7 @@ define(function (require, exports, module) {
             true
         );
         
-        _useWindowsCompatibleBindings = (brackets.platform !== "mac")
+        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
             && (brackets.platform !== "win");
     }
     
@@ -603,4 +598,9 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    
+    /**
+     * Use windows-specific bindings if no other are found (e.g. linux)
+     */
+    exports.useWindowsCompatibleBindings = false;
 });
