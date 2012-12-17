@@ -228,11 +228,11 @@ define(function (require, exports, module) {
             // If file wasnt moved open or close it
             if (!moved) {
                 if (!fromClose) {
-					if (selected) {
+                    if (selected) {
                         CommandManager.execute(Commands.FILE_RENAME);
-					} else {
+                    } else {
                         FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-					}
+                    }
                 } else {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 }
