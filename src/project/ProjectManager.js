@@ -558,7 +558,14 @@ define(function (require, exports, module) {
     
     /** @param {Entry} entry File or directory to filter */
     function shouldShow(entry) {
-        return [".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) === -1;
+        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) > -1) {
+            return false;
+        }
+        var extension = entry.name.split('.').slice(-1);
+        if (["pyc"].indexOf(extension) > -1) {
+            return false;
+        }
+        return true;
     }
 
     /**
