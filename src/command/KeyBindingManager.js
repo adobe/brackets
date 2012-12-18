@@ -351,7 +351,8 @@ define(function (require, exports, module) {
             normalizedDisplay,
             explicitPlatform = keyBinding.platform || platform,
             targetPlatform = explicitPlatform || brackets.platform,
-            command;
+            command,
+            bindingsToDelete = [];
         
         key = (keyBinding.key) || keyBinding;
         if (brackets.platform === "mac" && explicitPlatform === undefined) {
@@ -376,8 +377,7 @@ define(function (require, exports, module) {
         }
         
         // for cross-platform compatibility
-        if (brackets.platform !== "mac" &&
-                brackets.platform !== "win") {
+        if (exports.useWindowsCompatibleBindings) {
             if (explicitPlatform === "win") {
                 // windows-only key bindings are used as the default binding
                 // only if a default binding wasn't already defined
@@ -393,24 +393,6 @@ define(function (require, exports, module) {
                 
                 // target this windows binding for the current platform
                 targetPlatform = brackets.platform;
-            } else if (!explicitPlatform || (explicitPlatform === brackets.platform)) {
-                // if adding a generic binding or a binding for the current
-                // platform, clobber any windows bindings that may have been
-                // installed
-                var existingBindings = _commandMap[commandID] || [],
-                    bindingsToDelete = [];
-                
-                // filter out windows-only bindings in _commandMap
-                existingBindings.forEach(function (binding) {
-                    if (binding.explicitPlatform === "win") {
-                        bindingsToDelete.push(binding);
-                    }
-                });
-                
-                // delete windows-only bindings in _keyMap
-                bindingsToDelete.forEach(function (binding) {
-                    removeBinding(binding.key);
-                });
             }
         }
         
@@ -418,6 +400,33 @@ define(function (require, exports, module) {
         if (targetPlatform !== brackets.platform) {
             return null;
         }
+        
+        // delete existing bindings when
+        // (1) replacing a windows-compatible binding with a generic or
+        //     platform-specific binding
+        // (2) replacing a generic binding with a platform-specific binding
+        var existingBindings = _commandMap[commandID] || [],
+            isWindowsCompatible,
+            isReplaceGeneric;
+        
+        existingBindings.forEach(function (binding) {
+            // remove windows-only bindings in _commandMap
+            isWindowsCompatible = exports.useWindowsCompatibleBindings &&
+                binding.explicitPlatform === "win";
+            
+            // remove existing generic binding
+            isReplaceGeneric = !binding.explicitPlatform &&
+                explicitPlatform;
+            
+            if (isWindowsCompatible || isReplaceGeneric) {
+                bindingsToDelete.push(binding);
+            }
+        });
+                
+        // remove generic or windows-compatible bindigns
+        bindingsToDelete.forEach(function (binding) {
+            removeBinding(binding.key);
+        });
         
         // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
         normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
@@ -573,6 +582,9 @@ define(function (require, exports, module) {
             },
             true
         );
+        
+        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
+            && (brackets.platform !== "win");
     }
     
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
@@ -589,4 +601,14 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    
+    /**
+     * Use windows-specific bindings if no other are found (e.g. Linux). 
+     * Core Brackets modules that use key bindings should always define at
+     * least a generic keybinding that is applied for all platforms. This 
+     * setting effectively creates a compatibility mode for third party
+     * extensions that define explicit key bindings for Windows and Mac, but
+     * not Linux.
+     */
+    exports.useWindowsCompatibleBindings = false;
 });
