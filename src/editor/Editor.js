@@ -959,8 +959,17 @@ define(function (require, exports, module) {
         var node = inlineWidget.htmlContent,
             oldHeight = (node && $(node).height()) || 0;
         
-        // TODO: handle ensureVisible
         $(node).height(height);
+        if (ensureVisible) {
+            var offset = $(node).offset(),
+                lineSpaceOffset = $(this._getLineSpaceElement()).offset();
+            this._codeMirror.scrollIntoView({
+                left: offset.left - lineSpaceOffset.left,
+                top: offset.top - lineSpaceOffset.top,
+                right: offset.left - lineSpaceOffset.left, // don't try to make the right edge visible
+                bottom: offset.top + height - lineSpaceOffset.top
+            });
+        }
         
         // update position for all following inline editors
         if (oldHeight !== height) {
