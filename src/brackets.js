@@ -246,49 +246,60 @@ define(function (require, exports, module) {
         LiveDevelopmentMain.init();
         
         PerfUtils.addMeasurement("Application Startup");
-        
-        // finish UI initialization before loading extensions
-        var initialProjectPath = ProjectManager.getInitialProjectPath();
-        ProjectManager.openProject(initialProjectPath).always(function () {
-            _initTest();
 
-            // Create a new DirectoryEntry and call getDirectory() on the user extension
-            // directory. If the directory doesn't exist, it will be created.
-            // Note that this is an async call and there are no success or failure functions passed
-            // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
-            // before the directory is finished being created, but that is okay, since the extension
-            // loading will work correctly without this directory.
-            // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
-            // during extension loading.
-            var extensionPath = ExtensionLoader.getUserExtensionPath();
-            new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
-                                                               {create: true});
-            
-            // Create the extensions/disabled directory, too.
-            var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
-            new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
-                                                               {create: true});
-            
-            // Load all extensions, and when done fire APP_READY (even if some extensions failed
-            // to load or initialize)
-            _initExtensions().always(function () {
-                AppInit._dispatchReady(AppInit.APP_READY);
-            });
-            
-            // If this is the first launch, and we have an index.html file in the project folder (which should be
-            // the samples folder on first launch), open it automatically. (We explicitly check for the
-            // samples folder in case this is the first time we're launching Brackets after upgrading from
-            // an old version that might not have set the "afterFirstLaunch" pref.)
-            var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-            if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
-                prefs.setValue("afterFirstLaunch", "true");
-                if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                    var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
-                    dirEntry.getFile("index.html", {}, function (fileEntry) {
-                        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                    });
+        // Load extensions before restoring the project
+        
+        // Create a new DirectoryEntry and call getDirectory() on the user extension
+        // directory. If the directory doesn't exist, it will be created.
+        // Note that this is an async call and there are no success or failure functions passed
+        // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
+        // before the directory is finished being created, but that is okay, since the extension
+        // loading will work correctly without this directory.
+        // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
+        // during extension loading.
+        var extensionPath = ExtensionLoader.getUserExtensionPath();
+        new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
+                                                           {create: true});
+        
+        // Create the extensions/disabled directory, too.
+        var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
+        new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
+                                                           {create: true});
+        
+        // Load all extensions
+        _initExtensions().always(function () {
+            // Finish UI initialization
+            var initialProjectPath = ProjectManager.getInitialProjectPath();
+            ProjectManager.openProject(initialProjectPath).always(function () {
+                _initTest();
+                
+                // If this is the first launch, and we have an index.html file in the project folder (which should be
+                // the samples folder on first launch), open it automatically. (We explicitly check for the
+                // samples folder in case this is the first time we're launching Brackets after upgrading from
+                // an old version that might not have set the "afterFirstLaunch" pref.)
+                var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
+                    deferred = new $.Deferred();
+                if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
+                    prefs.setValue("afterFirstLaunch", "true");
+                    if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
+                        var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
+                        
+                        dirEntry.getFile("index.html", {}, function (fileEntry) {
+                            var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
+                            promise.pipe(deferred.resolve, deferred.reject);
+                        }, deferred.reject);
+                    } else {
+                        deferred.resolve();
+                    }
+                } else {
+                    deferred.resolve();
                 }
-            }
+                
+                deferred.always(function () {
+                    // Signal that Brackets is loaded
+                    AppInit._dispatchReady(AppInit.APP_READY);
+                });
+            });
         });
         
         // Check for updates
