@@ -1641,6 +1641,20 @@ define(function (require, exports, module) {
                         values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
                     });
                 });
+                
+                it("should return PROP_VALUE with 'new value' flag and existing values at beginning of whitespace before value in multi-line property", function () {
+                    for (i = 0; i <= 2; i++) {
+                        result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[92 + (i * 5)]);
+                        expect(result).toEqual({
+                            context: CSSUtils.PROP_VALUE,
+                            name: "font-family",
+                            offset: 0,
+                            isNewItem: true,
+                            index: i,
+                            values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                        });
+                    }
+                });
             }); // multi-line cases
     
             it("should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value property", function () {
