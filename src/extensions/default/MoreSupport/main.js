@@ -64,22 +64,6 @@ define(function (require, exports, module) {
         return previousGetModeFromFileExtension.apply(EditorUtils, arguments);
     }
     
-    // Update mode of editors that are already open
-    var editors = [EditorManager.getCurrentFullEditor()];
-    if (editors[0]) {
-        editors = editors.concat(EditorManager.getInlineEditors(editors[0]));
-    }
-    for (var i = 0; i < editors.length; i++) {
-        var editor = editors[0];
-        var doc = editor.document;
-    
-        var currentMode  = editor.getModeForDocument();
-        var expectedMode = EditorUtils.getModeFromFileExtension(doc.url);
-        if (expectedMode !== currentMode) {
-            editor.setModeForDocument(expectedMode);
-        }
-    }
-    
     EditorCommandHandlers.modeSettings.more = {
         blockComment: {
             prefix: "/*",
