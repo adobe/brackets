@@ -149,8 +149,10 @@ define(function GotoAgent(require, exports, module) {
         editor.focus();
 
         if (!noFlash) {
-            codeMirror.setLineClass(location.line, "flash");
-            window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
+            codeMirror.addLineClass(location.line, "wrap", "flash");
+            window.setTimeout(function () {
+                codeMirror.removeLineClass(location.line, "wrap", "flash");
+            }, 1000);
         }
     }
 

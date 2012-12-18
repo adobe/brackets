@@ -431,8 +431,8 @@ define(function (require, exports, module) {
             // if we're underneath the range list on the right, we want to ask the host editor to 
             // scroll far enough that the current cursor position is visible to the left of the range 
             // list. (Because we always add extra padding for the range list, this is always possible.)
-            if (cursorCoords.x >= rangeListOffset.left) {
-                cursorCoords.x += this.$relatedContainer.outerWidth();
+            if (cursorCoords.left >= rangeListOffset.left) {
+                cursorCoords.left += this.$relatedContainer.outerWidth();
             }
             
             // Vertically, we want to set the scroll position relative to the overall host editor, not
@@ -441,10 +441,11 @@ define(function (require, exports, module) {
             // we need to figure out our position relative to the top of the virtual scroll area, which is
             // the top of the actual scroller minus the scroll position.
             var scrollerTop = $(this.hostEditor.getScrollerElement()).offset().top - this.hostEditor.getScrollPos().y;
-            this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
-                                                       cursorCoords.y - scrollerTop,
-                                                       cursorCoords.x - lineSpaceOffset.left,
-                                                       cursorCoords.yBot - scrollerTop);
+            // TODO: [cmv3] scrollIntoView isn't implemented yet
+//            this.hostEditor._codeMirror.scrollIntoView(cursorCoords.left - lineSpaceOffset.left,
+//                                                       cursorCoords.top - scrollerTop,
+//                                                       cursorCoords.left - lineSpaceOffset.left,
+//                                                       cursorCoords.bottom - scrollerTop);
         }
     };
     
