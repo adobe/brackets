@@ -79,5 +79,9 @@
 }
 */
 
+.comment-in-rule {
+    font-family: serif /*, sans{{80}}-serif*/;
+}
+
 .rule-at-eof {
     width:{{74}}

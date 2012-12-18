@@ -1578,7 +1578,6 @@ define(function (require, exports, module) {
                 });
             });
             it("should return PROP_VALUE with 'new value' flag and existing values at end of line after comma (possibly with whitespace)", function () {
-                var i;
                 for (i = 46; i <= 47; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
                     expect(result).toEqual({
@@ -1604,7 +1603,6 @@ define(function (require, exports, module) {
             });
             
             it("should return PROP_VALUE with 'new value' flag at end of line when there are no existing values", function () {
-                var i;
                 for (i = 70; i <= 74; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
                     expect(result).toEqual({
@@ -1620,7 +1618,6 @@ define(function (require, exports, module) {
             
             // This isn't ideal, but it's as spec'ed.
             it("should treat a value like rgba(0, 0, 0, 0) as separate tokens", function () {
-                var i;
                 for (i = 0; i <= 1; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[75 + i]);
                     expect(result).toEqual({
@@ -1641,14 +1638,13 @@ define(function (require, exports, module) {
                 checkInfoAtOffsets(50, 54, {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
-                    offset: 0,
                     index: 0,
                     values: ["'Helvetica Neue', ", "Arial"],
                     isNewItem: false
                 });
             });
             it("should properly parse values with special characters", function () {
-                var i, values = ['"my:font"', '"my,font"', '"my, font"', '"my\'font"', "'my\"font'", '"my;font"', '"my{font"', '"my}font"'];
+                var values = ['"my:font"', '"my,font"', '"my, font"', '"my\'font"', "'my\"font'", '"my;font"', '"my{font"', '"my}font"'];
                 for (i = 0; i < values.length; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i + 55]);
                     expect(result).toEqual({
@@ -1689,7 +1685,6 @@ define(function (require, exports, module) {
             
             // Selector context is currently unsupported. This unit test should fail once we implement selectors.
             it("should return empty context for unsupported context", function () {
-                var i;
                 for (i = 63; i < 68; i++) {
                     expectEmptyInfo(i);
                 }
@@ -1697,6 +1692,7 @@ define(function (require, exports, module) {
 
             it("should return empty context for comment", function () {
                 expectEmptyInfo(69);
+                expectEmptyInfo(80);
             });
             
         });
