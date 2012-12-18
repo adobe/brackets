@@ -425,7 +425,7 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype._ensureCursorVisible = function () {
         if ($.contains(this.editors[0].getRootElement(), window.document.activeElement)) {
             var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
-                lineSpaceOffset = $(this.editors[0]._getLineSpaceElement()).offset(),
+                inlineLineSpaceOffset = $(this.editors[0]._getLineSpaceElement()).offset(),
                 rangeListOffset = this.$relatedContainer.offset();
             // If we're off the left-hand side, we just want to scroll it into view normally. But
             // if we're underneath the range list on the right, we want to ask the host editor to 
@@ -436,16 +436,14 @@ define(function (require, exports, module) {
             }
             
             // Vertically, we want to set the scroll position relative to the overall host editor, not
-            // the lineSpace of the widget itself. Also, we can't use the lineSpace here, because its top
-            // position just corresponds to whatever CodeMirror happens to have rendered at the top. So
-            // we need to figure out our position relative to the top of the virtual scroll area, which is
-            // the top of the actual scroller minus the scroll position.
-            var scrollerTop = $(this.hostEditor.getScrollerElement()).offset().top - this.hostEditor.getScrollPos().y;
-            // TODO: [cmv3] scrollIntoView isn't implemented yet
-//            this.hostEditor._codeMirror.scrollIntoView(cursorCoords.left - lineSpaceOffset.left,
-//                                                       cursorCoords.top - scrollerTop,
-//                                                       cursorCoords.left - lineSpaceOffset.left,
-//                                                       cursorCoords.bottom - scrollerTop);
+            // the lineSpace of the widget itself.
+            var hostLineSpaceTop = $(this.hostEditor._getLineSpaceElement()).offset().top;
+            this.hostEditor._codeMirror.scrollIntoView({
+                left: cursorCoords.left - inlineLineSpaceOffset.left,
+                top: cursorCoords.top - hostLineSpaceTop,
+                right: cursorCoords.left - inlineLineSpaceOffset.left,
+                bottom: cursorCoords.bottom - hostLineSpaceTop
+            });
         }
     };
     
