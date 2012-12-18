@@ -40,7 +40,7 @@ define(function (require, exports, module) {
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
-        RE_MARKER               = /[^\\]?\{\{(\d+)[^\\]?\}\}/g,
+        RE_MARKER               = /\{\{(\d+)\}\}/g,
         _testWindow,
         _doLoadExtensions,
         nfs;
@@ -334,7 +334,7 @@ define(function (require, exports, module) {
                 // find "{{[0-9]+}}"
                 RE_MARKER.lastIndex = i;
                 exec = RE_MARKER.exec(text);
-                found = (exec !== null);
+                found = (exec !== null && exec.index === i);
                 
                 if (found) {
                     // record offset info
@@ -815,4 +815,5 @@ define(function (require, exports, module) {
     exports.simulateKeyEvent                = simulateKeyEvent;
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
     exports.getResultMessage                = getResultMessage;
+    exports.parseOffsetsFromText            = parseOffsetsFromText;
 });
