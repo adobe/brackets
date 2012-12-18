@@ -205,6 +205,13 @@ define(function (require, exports, module) {
             });
             
             it("should use windows key bindings on linux", function () {
+                var original = KeyBindingManager.useWindowsCompatibleBindings;
+                
+                this.after(function () {
+                    KeyBindingManager.useWindowsCompatibleBindings = original;
+                });
+                
+                KeyBindingManager.useWindowsCompatibleBindings = true;
                 brackets.platform = "linux";
                 
                 // create a windows-specific binding
@@ -221,6 +228,35 @@ define(function (require, exports, module) {
                 
                 expected = keyMap([
                     keyBinding("Ctrl-B", "test.cmd", null)
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should use replace generic key bindings with platform-specific", function () {
+                var original = KeyBindingManager.useWindowsCompatibleBindings;
+                
+                this.after(function () {
+                    KeyBindingManager.useWindowsCompatibleBindings = original;
+                });
+                
+                KeyBindingManager.useWindowsCompatibleBindings = true;
+                brackets.platform = "linux";
+                
+                // create a generic binding
+                KeyBindingManager.addBinding("test.cmd", "Ctrl-A");
+                
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.cmd")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+                
+                // create a linux-only binding to replace the windows binding
+                KeyBindingManager.addBinding("test.cmd", "Ctrl-B", "linux");
+                
+                expected = keyMap([
+                    keyBinding("Ctrl-B", "test.cmd", null, "linux")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
