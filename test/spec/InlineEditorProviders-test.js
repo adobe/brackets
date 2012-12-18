@@ -153,7 +153,18 @@ define(function (require, exports, module) {
          * These tests are primarily focused on the InlineEditorProvider module.
          */
         describe("htmlToCSSProvider", function () {
-
+            
+            function isLineHidden(cm, lineNum) {
+                var markers = cm.findMarksAt({line: lineNum, pos: 0}),
+                    i;
+                for (i = 0; i < markers.length; i++) {
+                    if (markers[i].collapsed) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
             beforeEach(function () {
                 initInlineTest = _initInlineTest.bind(this);
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -179,7 +190,7 @@ define(function (require, exports, module) {
                             visibleRangeCheck;
                         
                         for (i = 0; i < lineCount; i++) {
-                            hidden = editor._codeMirror.getLineHandle(i).hidden || false;
+                            hidden = isLineHidden(editor._codeMirror, i);
                             
                             if (i < startLine) {
                                 if (!hidden) {
@@ -406,7 +417,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should save changes in the inline editor ", function () {
+            it("should save changes in the inline editor", function () {
                 initInlineTest("test1.html", 1);
                 
                 var saved = false,
@@ -496,6 +507,9 @@ define(function (require, exports, module) {
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeTruthy();
                     expect(hostEditor.document.isDirty).toBeTruthy();
+                    
+                    // verify focus is in inline editor
+                    expect(inlineEditor.hasFocus()).toBeTruthy();
                     
                     // execute file save command
                     testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
