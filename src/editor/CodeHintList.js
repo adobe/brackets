@@ -244,7 +244,7 @@ define(function (require, exports, module) {
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
             } else {
-                // only prevent default handler wshen the list handles the event
+                // only prevent default handler when the list handles the event
                 return;
             }
             
