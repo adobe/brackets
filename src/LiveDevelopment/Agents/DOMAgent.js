@@ -188,7 +188,8 @@ define(function DOMAgent(require, exports, module) {
             }
         };
         request.onerror = function onError() {
-            _load.reject("Could not load source file at " + exports.url);
+            var msg = "Could not load source file at " + exports.url;
+            _load.reject(msg, { message: msg });
         };
         request.send(null);
     }
