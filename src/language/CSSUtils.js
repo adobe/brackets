@@ -313,7 +313,7 @@ define(function (require, exports, module) {
             offset = 0;
 
             // If pos is at EOL, then there's implied whitespace (newline).
-            if (editor._codeMirror.getLine(ctx.pos.line).length > ctx.pos.ch  &&
+            if (editor.document.getLine(ctx.pos.line).length > ctx.pos.ch  &&
                     (testToken.string.length === 0 || testToken.string.match(/\S/))) {
                 canAddNewOne = false;
             }
