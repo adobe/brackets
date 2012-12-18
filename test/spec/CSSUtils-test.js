@@ -1785,7 +1785,7 @@ define(function (require, exports, module) {
                 expectEmptyInfo(69);
             });
 
-            xit("should return empty context for comment in declaration", function () {
+            it("should return empty context for comment in declaration", function () {
                 expectEmptyInfo(80);
             });
         });

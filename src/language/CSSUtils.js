@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     function _isInPropName(ctx) {
         var state,
             lastToken;
-        if (!ctx || !ctx.token || !ctx.token.state) {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment") {
             return false;
         }
 
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
      */
     function _isInPropValue(ctx) {
         var state;
-        if (!ctx || !ctx.token || !ctx.token.state ||
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment" ||
                 ctx.token.className === "variable" || ctx.token.className === "tag") {
             return false;
         }
