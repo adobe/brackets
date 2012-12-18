@@ -119,7 +119,7 @@ define(function (require, exports, module) {
      * whether it is appropriate to do so.
      * 
      * 
-     * # CodeHintProvider.getHints()
+     * # CodeHintProvider.getHints(implicitChar)
      * 
      * The method by which a provider provides hints for the editor context
      * associated with the current session. The getHints method is called only
@@ -164,6 +164,10 @@ define(function (require, exports, module) {
      * once for each such editor change. Consequently, the provider may also
      * assume that the document will not be changed outside of the editor
      * during a session.
+     *
+     * param {String} implicitChar
+     * Either null, if the request to update the hint list was a result of
+     * navigation, or a single character that represents the last insertion.
      *
      * return {(Object + jQuery.Deferred)<hints: Array<(String + jQuery.Obj)>, 
      *     match: String, selectInitial: Boolean>}
