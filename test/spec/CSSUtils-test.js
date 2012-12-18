@@ -1439,7 +1439,7 @@ define(function (require, exports, module) {
             expect(result.context).toBe(expected.context === undefined ? "" : expected.context);
             expect(result.name).toBe(expected.name === undefined ? "" : expected.name);
             expect(result.offset).toBe(expected.offset === undefined ? 0 : expected.offset);
-            expect(result.isNewItem).toBe(expect.isNewItem === undefined ? false : true);
+            expect(result.isNewItem).toBe(expected.isNewItem === undefined ? false : expected.isNewItem);
             expect(result.index).toBe(expected.index === undefined ? -1 : expected.index);
             expect(result.values).toEqual(expected.values === undefined ? [] : expected.values);
         }
