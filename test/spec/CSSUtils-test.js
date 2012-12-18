@@ -1590,7 +1590,7 @@ define(function (require, exports, module) {
                         values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
                     });
                 });
-                xit("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
+                it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[96]);
                     expect(result).toEqual({
                         context: CSSUtils.PROP_VALUE,
@@ -1609,7 +1609,7 @@ define(function (require, exports, module) {
                         values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
                     });
                 });
-                xit("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
+                it("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[101]);
                     expect(result).toEqual({
                         context: CSSUtils.PROP_VALUE,
@@ -1630,7 +1630,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                xit("should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value multi-line property", function () {
+                it("should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value multi-line property", function () {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[91]);
                     expect(result).toEqual({
                         context: CSSUtils.PROP_VALUE,
@@ -1642,8 +1642,8 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                xit("should return PROP_VALUE with 'new value' flag and existing values at beginning of whitespace before value in multi-line property", function () {
-                    for (i = 0; i <= 2; i++) {
+                it("should return PROP_VALUE with 'new value' flag and existing values at beginning of whitespace before value in multi-line property", function () {
+                    for (i = 0; i <= 1; i++) {
                         result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[92 + (i * 5)]);
                         expect(result).toEqual({
                             context: CSSUtils.PROP_VALUE,
@@ -1654,6 +1654,17 @@ define(function (require, exports, module) {
                             values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
                         });
                     }
+
+                    // Note this test was split out of the previous loop because whitespace differed across cases
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[102]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 2,
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                    });
                 });
             }); // multi-line cases
     

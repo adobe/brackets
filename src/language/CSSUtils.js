@@ -311,7 +311,10 @@ define(function (require, exports, module) {
         
         if (canAddNewOne) {
             offset = 0;
-            if (testToken.string.length === 0 || testToken.string.match(/\S/)) {
+
+            // If pos is at EOL, then there's implied whitespace (newline).
+            if (editor._codeMirror.getLine(ctx.pos.line).length > ctx.pos.ch  &&
+                    (testToken.string.length === 0 || testToken.string.match(/\S/))) {
                 canAddNewOne = false;
             }
         }
