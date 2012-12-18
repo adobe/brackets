@@ -807,10 +807,14 @@ define(function (require, exports, module) {
      * @param {!to} line to end hiding at (exclusive)
      */
     Editor.prototype._hideLines = function (from, to) {
+        if (to <= from) {
+            return;
+        }
+        
         var value = this._codeMirror.markText(
             {line: from, ch: 0},
             {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
-            {collapsed: true}
+            {collapsed: true, inclusiveLeft: true, inclusiveRight: true}
         );
         
         // when this line is hidden, notify all following inline widgets of a position change
@@ -889,7 +893,7 @@ define(function (require, exports, module) {
         });
         this._inlineWidgets.push(inlineWidget);
         inlineWidget.onAdded();
-        this._codeMirror.refresh();
+        this.refresh();
         
         // once this widget is added, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(pos.line);
@@ -914,8 +918,8 @@ define(function (require, exports, module) {
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
         var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
         
-        // _removeInlineWidgetInternal will get called from the destroy callback in CodeMirror.
         this._codeMirror.removeLineWidget(inlineWidget.info);
+        this._removeInlineWidgetInternal(inlineWidget);
         
         // once this widget is removed, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(lineNum);
@@ -1008,7 +1012,15 @@ define(function (require, exports, module) {
      * Re-renders the editor UI
      */
     Editor.prototype.refresh = function (handleResize) {
+        // If focus is currently in a child of the CodeMirror editor (e.g. in an inline widget), but not in
+        // the CodeMirror input field itself, remember the focused item so we can restore focus after the 
+        // refresh (which might cause the widget to be removed from the display list temporarily).
+        var focusedItem = window.document.activeElement,
+            restoreFocus = $.contains(this._codeMirror.getScrollerElement(), focusedItem);
         this._codeMirror.refresh();
+        if (restoreFocus) {
+            focusedItem.focus();
+        }
         if (handleResize) {
             // If the editor has been resized, the position of inline widgets relative to the
             // browser window might have changed.
@@ -1033,7 +1045,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.setVisible = function (show) {
         $(this.getRootElement()).css("display", (show ? "" : "none"));
-        this._codeMirror.refresh();
+        this.refresh();
         if (show) {
             this._inlineWidgets.forEach(function (inlineWidget) {
                 inlineWidget.onParentShown();
