@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
 
@@ -400,27 +401,19 @@ define(function (require, exports, module) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
         var lines = text.split("\n");
-        var functionName;
         
-        function makeAddFunction(functionName) {
-            return function (funcEntry) {
-                var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
-                result.push({
-                    name: functionName,
-                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
-                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+        CollectionUtils.forEach(allFunctions, function (functionName, functions) {
+            if (functionName === searchName || searchName === "*") {
+                functions.forEach(function (funcEntry) {
+                    var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
+                    result.push({
+                        name: functionName,
+                        lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
+                        lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+                    });
                 });
-            };
-        }
-        
-        for (functionName in allFunctions) {
-            if (allFunctions.hasOwnProperty(functionName)) {
-                if (functionName === searchName || searchName === "*") {
-                    var addFunctionEntry = makeAddFunction(functionName);
-                    allFunctions[functionName].forEach(addFunctionEntry);
-                }
             }
-        }
+        });
          
         return result;
     }
