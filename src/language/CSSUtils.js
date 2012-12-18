@@ -168,10 +168,12 @@ define(function (require, exports, module) {
                     ctx.token.string === ";") {
                 break;
             }
+
             curValue = ctx.token.string;
             if (lastValue !== "") {
                 curValue += lastValue;
             }
+
             if ((ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) ||
                     ctx.token.string === ",") {
                 lastValue = curValue;
@@ -181,11 +183,10 @@ define(function (require, exports, module) {
                     // stack is empty, or current value ends with a comma
                     // (and optional whitespace), so push it on the stack
                     propValues.push(curValue);
-                }
-                else {
+                } else {
                     // current value does not end with a comma (and optional ws) so prepend
                     // to last stack item (e.g. "rgba(50" get broken into 2 tokens)
-                    propValues[propValues.length-1] = curValue + propValues[propValues.length-1];
+                    propValues[propValues.length - 1] = curValue + propValues[propValues.length - 1];
                 }
             }
         }
@@ -259,8 +260,12 @@ define(function (require, exports, module) {
      *           isNewItem: boolean}} A CSS context info object.
      */
     function _getRuleInfoStartingFromPropValue(ctx, editor) {
-        var backwardCtx = $.extend({}, ctx),
-            forwardCtx = $.extend({}, ctx),
+        var propNamePos = $.extend({}, ctx.pos),
+            backwardPos = $.extend({}, ctx.pos),
+            forwardPos  = $.extend({}, ctx.pos),
+            propNameCtx = TokenUtils.getInitialContext(editor._codeMirror, propNamePos),
+            backwardCtx,
+            forwardCtx,
             lastValue = "",
             propValues = [],
             index = -1,
@@ -272,12 +277,13 @@ define(function (require, exports, module) {
         
         // Get property name first. If we don't have a valid property name, then 
         // return a default rule info.
-        propName = _getPropNameStartingFromPropValue(ctx);
+        propName = _getPropNameStartingFromPropValue(propNameCtx);
         if (!propName) {
             return createInfo();
         }
         
         // Scan backward to collect all preceding property values
+        backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, backwardPos);
         propValues = _getPrecedingPropValues(backwardCtx);
 
         lastValue = "";
@@ -305,12 +311,16 @@ define(function (require, exports, module) {
         
         if (canAddNewOne) {
             offset = 0;
-            if (testToken.string.length === 0 || testToken.string.match(/\S/)) {
+
+            // If pos is at EOL, then there's implied whitespace (newline).
+            if (editor.document.getLine(ctx.pos.line).length > ctx.pos.ch  &&
+                    (testToken.string.length === 0 || testToken.string.match(/\S/))) {
                 canAddNewOne = false;
             }
         }
         
         // Scan forward to collect all succeeding property values and append to all propValues.
+        forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
         
         // If current index is more than the propValues size, then the cursor is 

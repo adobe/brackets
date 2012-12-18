@@ -1439,7 +1439,7 @@ define(function (require, exports, module) {
             expect(result.context).toBe(expected.context === undefined ? "" : expected.context);
             expect(result.name).toBe(expected.name === undefined ? "" : expected.name);
             expect(result.offset).toBe(expected.offset === undefined ? 0 : expected.offset);
-            expect(result.isNewItem).toBe(expect.isNewItem === undefined ? false : true);
+            expect(result.isNewItem).toBe(expected.isNewItem === undefined ? false : expected.isNewItem);
             expect(result.index).toBe(expected.index === undefined ? -1 : expected.index);
             expect(result.values).toEqual(expected.values === undefined ? [] : expected.values);
         }
@@ -1581,13 +1581,13 @@ define(function (require, exports, module) {
                 });
             });
             
-            xdescribe("multi-line cases", function () {
+            describe("multi-line cases", function () {
                 it("should return PROP_VALUE with correct values at beginning/middle of first multi-value multi-line property", function () {
                     checkInfoAtOffsets(93, 95, {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 0,
-                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
@@ -1598,7 +1598,7 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ['"Helvetica Neue",', 'Arial,\n        ', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property", function () {
@@ -1606,7 +1606,7 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 1,
-                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
@@ -1617,7 +1617,7 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",\n        ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property", function () {
@@ -1626,7 +1626,7 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 2,
-                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif']
                     });
                 });
                 
@@ -1638,12 +1638,12 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 0,
-                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
                     });
                 });
                 
                 it("should return PROP_VALUE with 'new value' flag and existing values at beginning of whitespace before value in multi-line property", function () {
-                    for (i = 0; i <= 2; i++) {
+                    for (i = 0; i <= 1; i++) {
                         result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[92 + (i * 5)]);
                         expect(result).toEqual({
                             context: CSSUtils.PROP_VALUE,
@@ -1651,9 +1651,20 @@ define(function (require, exports, module) {
                             offset: 0,
                             isNewItem: true,
                             index: i,
-                            values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
                         });
                     }
+
+                    // Note this test was split out of the previous loop because whitespace differed across cases
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[102]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 2,
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                    });
                 });
             }); // multi-line cases
     
