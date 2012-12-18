@@ -1462,10 +1462,10 @@ define(function (require, exports, module) {
         describe("property names and values", function () {
 
             it("should return PROP_NAME with empty name immediately after rule start brace", function () {
-                expectEmptyPropName([4, 22, 23, 25]);
+                expectEmptyPropName([4, 22, 23, 25, 81]);
             });
             it("should return PROP_NAME with empty name immediately before end brace", function () {
-                expectEmptyPropName([14, 24, 28]);
+                expectEmptyPropName([14, 24, 28, 90]);
             });
             it("should return PROP_NAME with empty name before whitespace before property name", function () {
                 expectEmptyPropName([5, 17, 26]);
@@ -1477,11 +1477,17 @@ define(function (require, exports, module) {
                 expectEmptyPropName([27]);
             });
             it("should return PROP_NAME with empty name immediately after semicolon", function () {
-                expectEmptyPropName([13]);
+                expectEmptyPropName([13, 89, 106]);
             });
             
             it("should return PROP_NAME at beginning/middle/end of a simple property name", function () {
                 checkInfoAtOffsets(6, 8, {
+                    context: CSSUtils.PROP_NAME,
+                    name: "width",
+                    index: -1,
+                    values: []
+                });
+                checkInfoAtOffsets(82, 84, {
                     context: CSSUtils.PROP_NAME,
                     name: "width",
                     index: -1,
@@ -1497,19 +1503,28 @@ define(function (require, exports, module) {
             });
                 
             it("should return PROP_VALUE with 'new value' flag set immediately after colon", function () {
-                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[9]);
-                expect(result).toEqual({
-                    context: CSSUtils.PROP_VALUE,
-                    offset: 0,
-                    name: "width",
-                    index: 0,
-                    values: ["100%"],
-                    isNewItem: true
+                [9, 85].forEach(function (offset) {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[offset]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        offset: 0,
+                        name: "width",
+                        index: 0,
+                        values: ["100%"],
+                        isNewItem: true
+                    });
                 });
             });
                 
             it("should return PROP_VALUE without 'new value' flag set at beginning/middle/end of a simple property value", function () {
                 checkInfoAtOffsets(10, 12, {
+                    context: CSSUtils.PROP_VALUE,
+                    name: "width",
+                    index: 0,
+                    values: ["100%"],
+                    isNewItem: false
+                });
+                checkInfoAtOffsets(86, 88, {
                     context: CSSUtils.PROP_VALUE,
                     name: "width",
                     index: 0,
@@ -1565,6 +1580,68 @@ define(function (require, exports, module) {
                     values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
                 });
             });
+            
+            describe("multi-line cases", function () {
+                it("should return PROP_VALUE with correct values at beginning/middle of first multi-value multi-line property", function () {
+                    checkInfoAtOffsets(93, 95, {
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        index: 0,
+                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                    });
+                });
+                it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[96]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 1,
+                        values: ['"Helvetica Neue",', 'Arial,\n        ', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    });
+                });
+                it("should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property", function () {
+                    checkInfoAtOffsets(98, 100, {
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        index: 1,
+                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                    });
+                });
+                it("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[101]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 2,
+                        values: ['"Helvetica Neue",\n        ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    });
+                });
+                it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property", function () {
+                    // No "isNew" in case 105 because we're right before the semicolon.
+                    checkInfoAtOffsets(103, 105, {
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        index: 2,
+                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                    });
+                });
+                
+                it("should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value multi-line property", function () {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[91]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 0,
+                        values: ['"Helvetica Neue",\n        ', 'Arial,\n        ', 'sans-serif']
+                    });
+                });
+            }); // multi-line cases
     
             it("should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value property", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[45]);
