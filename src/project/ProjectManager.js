@@ -782,10 +782,13 @@ define(function (require, exports, module) {
 
                     resultRenderTree.done(function () {
                         if (projectRootChanged) {
-                            $(exports).triggerHandler("projectOpen", _projectRoot);
+                            // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
+                            var promises = [];
+                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot, promises]);
+                            $.when.apply($, promises).pipe(result.resolve, result.reject);
+                        } else {
+                            result.resolve();
                         }
-                        
-                        result.resolve();
                     });
                     resultRenderTree.fail(function () {
                         PerfUtils.terminateMeasurement(perfTimerName);
