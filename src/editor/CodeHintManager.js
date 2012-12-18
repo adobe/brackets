@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         lastChar        = null,
         sessionProvider = null,
         sessionEditor   = null,
-        hintList        = null;
+        hintList        = null,
+        deferredHints   = null;
 
     /**
      * Comparator to sort providers based on their priority
@@ -135,7 +136,7 @@ define(function (require, exports, module) {
      * hinting session will remain open and the value of the selectInitial
      * property is irrelevant.
      *
-     * TODO: Alternatively, the provider may return a jQuery.Deferred object
+     * Alternatively, the provider may return a jQuery.Deferred object
      * that resolves with an object with the structure described above. In
      * this case, the manager will initially render the hint list window with
      * a throbber and will render the actual list once the deferred object
@@ -175,14 +176,14 @@ define(function (require, exports, module) {
      * by default in the hint list window. If match is non-null, then the
      * hints should be strings. 
      * 
-     * TODO: If the match is null, the manager will not attempt to emphasize
-     * any parts of the hints when rendering the hint list; instead the
-     * provider may return strings or jQuery objects for which emphasis is
-     * self-contained. For example, the strings may contain substrings that
-     * wrapped in bold tags. In this way, the provider can choose to let the
-     * manager handle emphasis for the simple and common case of prefix
-     * matching, or can provide its own emphasis if it wishes to use a more
-     * sophisticated matching algorithm.
+     * TODO - NOT YET IMPLEMENTED: If the match is null, the manager will not 
+     * attempt to emphasize any parts of the hints when rendering the hint 
+     * list; instead the provider may return strings or jQuery objects for 
+     * which emphasis is self-contained. For example, the strings may contain
+     * substrings that wrapped in bold tags. In this way, the provider can 
+     * choose to let the manager handle emphasis for the simple and common case
+     * of prefix matching, or can provide its own emphasis if it wishes to use 
+     * a more sophisticated matching algorithm.
      * 
      *
      * # CodeHintProvider.insertHint(hint)
@@ -268,6 +269,10 @@ define(function (require, exports, module) {
         hintList = null;
         sessionProvider = null;
         sessionEditor = null;
+        if (deferredHints) {
+            deferredHints.reject();
+            deferredHints = null;
+        }
     }
    
     /** 
@@ -277,7 +282,9 @@ define(function (require, exports, module) {
      */
     function _inSession(editor) {
         if (sessionEditor !== null) {
-            if (sessionEditor === editor && hintList.isOpen()) {
+            if (sessionEditor === editor &&
+                    (hintList.isOpen() ||
+                     (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
                 return true;
             } else {
                 // the editor has changed
@@ -294,17 +301,34 @@ define(function (require, exports, module) {
      * Assumes that it is called when a session is active (i.e. sessionProvider is not null).
      */
     function _updateHintList() {
+        if (deferredHints) {
+            deferredHints.reject();
+            deferredHints = null;
+        }
+        
         var response = sessionProvider.getHints(lastChar);
         lastChar = null;
         
         if (!response) {
             // the provider wishes to close the session
             _endSession();
-        } else if (hintList.isOpen()) {
-            // the session is open 
-            hintList.update(response);
-        } else {
-            hintList.open(response);
+        } else if (response.hasOwnProperty("hints")) { // a synchronous response
+            if (hintList.isOpen()) {
+                // the session is open 
+                hintList.update(response);
+            } else {
+                hintList.open(response);
+            }
+        } else { // response is a deferred
+            deferredHints = response;
+            response.done(function (hints) {
+                if (hintList.isOpen()) {
+                    // the session is open 
+                    hintList.update(hints);
+                } else {
+                    hintList.open(hints);
+                }
+            });
         }
     }
     

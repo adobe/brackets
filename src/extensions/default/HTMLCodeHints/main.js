@@ -190,7 +190,7 @@ define(function (require, exports, module) {
     AttrHints.prototype._getUrlList = function (query) {
         var doc,
             result = [];
-
+        
         // site-root relative links are not yet supported, so filter them out
         if (query.queryStr.length > 0 && query.queryStr[0] === "/") {
             return result;
@@ -261,8 +261,12 @@ define(function (require, exports, module) {
             var self = this,
                 origEditor = EditorManager.getFocusedEditor();
 
+            if (self.cachedHints && self.cachedHints.deferred) {
+                self.cachedHints.deferred.reject();
+            }
             // create empty object so we can detect "waiting" state
             self.cachedHints = {};
+            self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
             NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
@@ -283,10 +287,32 @@ define(function (require, exports, module) {
                     self.cachedHints.query      = query;
                     self.cachedHints.queryDir   = queryDir;
                     self.cachedHints.docDir     = docDir;
+                    
+                    if (!self.cachedHints.deferred.isRejected()) {
+                        var currentDeferred = self.cachedHints.deferred;
+                        // Since we've cached the results, the next call to _getUrlList should be synchronous.
+                        // If it isn't, we've got a problem and should reject both the current deferred
+                        // and any new deferred that got created on the call.
+                        var syncResults = self._getUrlList(query);
+                        if (syncResults instanceof Array) {
+                            currentDeferred.resolveWith(self, [syncResults]);
+                        } else {
+                            if (currentDeferred && !currentDeferred.isResolved() && !currentDeferred.isRejected()) {
+                                currentDeferred.reject();
+                            }
+                            
+                            if (self.cachedHints.deferred &&
+                                    !self.cachedHints.deferred.isResolved() &&
+                                    !self.cachedHints.deferred.isRejected()) {
+                                self.cachedHints.deferred.reject();
+                                self.cachedHints.deferred = null;
+                            }
+                        }
+                    }
                 });
             });
 
-            return result;
+            return self.cachedHints.deferred;
         }
 
         // build list
@@ -324,8 +350,8 @@ define(function (require, exports, module) {
      * @param {String} attrName 
      * HTML attribute name
      *
-     * @return {Object<hints: Array[String], sortFunc: ?Function>} 
-     * The possible hints and the sort function to use on thise hints.
+     * @return {Object<hints: (Array[String]|$.Deferred<Array[String]>), sortFunc: ?Function>} 
+     * The (possibly deferred) hints and the sort function to use on thise hints.
      */
     AttrHints.prototype._getValueHintsForAttr = function (query, tagName, attrName) {
         // We look up attribute values with tagName plus a slash and attrName first.  
@@ -402,15 +428,18 @@ define(function (require, exports, module) {
             if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name) {
                 var hintsAndSortFunc = this._getValueHintsForAttr({queryStr: query}, tagInfo.tagName, tagInfo.attr.name);
                 var hints = hintsAndSortFunc.hints;
-                var i, foundPrefix = false;
-                for (i = 0; i < hints.length; i++) {
-                    if (hints[i].indexOf(query) === 0) {
-                        foundPrefix = true;
-                        break;
+                if (hints instanceof Array) {
+                    // If we got synchronous hints, check if we have something we'll actually use
+                    var i, foundPrefix = false;
+                    for (i = 0; i < hints.length; i++) {
+                        if (hints[i].indexOf(query) === 0) {
+                            foundPrefix = true;
+                            break;
+                        }
                     }
-                }
-                if (!foundPrefix) {
-                    query = null;
+                    if (!foundPrefix) {
+                        query = null;
+                    }
                 }
             }
             return query !== null;
@@ -483,7 +512,7 @@ define(function (require, exports, module) {
                 });
             }
             
-            if (hints.length) {
+            if (hints instanceof Array && hints.length) {
                 console.assert(!result.length);
                 result = $.map(hints, function (item) {
                     if (item.indexOf(filter) === 0) {
@@ -495,6 +524,12 @@ define(function (require, exports, module) {
                     match: query.queryStr,
                     selectInitial: true
                 };
+            } else if (hints instanceof Object && hints.hasOwnProperty("done")) { // Deferred hints
+                var deferred = $.Deferred();
+                hints.done(function (asyncHints) {
+                    deferred.resolveWith(this, [{ hints : asyncHints, match: query.queryStr, selectInitial: true }]);
+                });
+                return deferred;
             } else {
                 return null;
             }
