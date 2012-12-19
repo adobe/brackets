@@ -60,9 +60,9 @@ define(function (require, exports, module) {
             expect(CommandManager.register("test command", commandID, testCommandFn)).toBeFalsy();
 
             // missing arguments
-            expect(function () { CommandManager.register(null, "test-command-id2", testCommandFn); }).toThrow();
-            expect(function () { CommandManager.register("test command", null, testCommandFn); }).toThrow();
-            expect(function () { CommandManager.register("test command", "test-command-id2", null); }).toThrow();
+            expect(CommandManager.register(null, "test-command-id2", testCommandFn)).toBe(null);
+            expect(CommandManager.register("test command", null, testCommandFn)).toBe(null);
+            expect(CommandManager.register("test command", "test-command-id2", null)).toBe(null);
 
         });
 
