@@ -181,7 +181,7 @@ define({
     "CMD_SELECT_LINE"                     : "Seleccionar línea",
     "CMD_FIND"                            : "Buscar",
     "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
-    "CMD_FIND_IN_SUBTREE"                 : "Buscar en...",
+    "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
     "CMD_FIND_NEXT"                       : "Buscar siguiente",
     "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
     "CMD_REPLACE"                         : "Reemplazar",
@@ -228,19 +228,24 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Nueva ventana de {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
     "CMD_SWITCH_LANGUAGE"                 : "Cambiar idioma",
-    "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
 
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
-    "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Cómo utilizar {APP_NAME}",
     "CMD_FORUM"                           : "Foro de {APP_NAME}",
+    "CMD_RELEASE_NOTES"                   : "Notas de la versión",
+    "CMD_REPORT_AN_ISSUE"                 : "Informar de un error",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
+    "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Versión Experimental",
+    "EXPERIMENTAL_BUILD"                   : "versión experimental",
+    "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
     "JSLINT_ERRORS"                        : "Errores de JSLint",
     "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
     "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
@@ -258,7 +263,7 @@ define({
     "ABOUT"                                : "Acerca de...",
     "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versión experimental {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
