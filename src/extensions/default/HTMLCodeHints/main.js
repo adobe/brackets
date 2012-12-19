@@ -107,7 +107,6 @@ define(function (require, exports, module) {
                         return key;
                     }
                 }).sort();
-                // TODO: better sorting. Should rank tags based on portion of query that is present in tag
                 
                 return {
                     hints: result,
@@ -409,39 +408,40 @@ define(function (require, exports, module) {
             query = null;
             tokenType = tagInfo.position.tokenType;
              
-            if (tokenType === HTMLUtils.ATTR_NAME || tokenType === HTMLUtils.ATTR_VALUE) {
+            if (tokenType === HTMLUtils.ATTR_NAME) {
                 if (tagInfo.position.offset >= 0) {
-                    if (tokenType === HTMLUtils.ATTR_NAME) {
-                        query = tagInfo.attr.name.slice(0, tagInfo.position.offset);
-                    } else {
-                        query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
-                    }
-                } else if (tokenType === HTMLUtils.ATTR_VALUE) {
+                    query = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+                }
+            } else if (tokenType === HTMLUtils.ATTR_VALUE) {
+                if (tagInfo.position.offset >= 0) {
+                    query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
+                } else {
                     // We get negative offset for a quoted attribute value with some leading whitespaces 
                     // as in <a rel= "rtl" where the cursor is just to the right of the "=".
                     // So just set the queryStr to an empty string. 
                     query = "";
                 }
-            }
-
-            // If we're at an attribute value, check if it's an attribute name that has hintable values.
-            if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name) {
-                var hintsAndSortFunc = this._getValueHintsForAttr({queryStr: query}, tagInfo.tagName, tagInfo.attr.name);
-                var hints = hintsAndSortFunc.hints;
-                if (hints instanceof Array) {
-                    // If we got synchronous hints, check if we have something we'll actually use
-                    var i, foundPrefix = false;
-                    for (i = 0; i < hints.length; i++) {
-                        if (hints[i].indexOf(query) === 0) {
-                            foundPrefix = true;
-                            break;
+                
+                // If we're at an attribute value, check if it's an attribute name that has hintable values.
+                if (tagInfo.attr.name) {
+                    var hintsAndSortFunc = this._getValueHintsForAttr({queryStr: query}, tagInfo.tagName, tagInfo.attr.name);
+                    var hints = hintsAndSortFunc.hints;
+                    if (hints instanceof Array) {
+                        // If we got synchronous hints, check if we have something we'll actually use
+                        var i, foundPrefix = false;
+                        for (i = 0; i < hints.length; i++) {
+                            if (hints[i].indexOf(query) === 0) {
+                                foundPrefix = true;
+                                break;
+                            }
                         }
-                    }
-                    if (!foundPrefix) {
-                        query = null;
+                        if (!foundPrefix) {
+                            query = null;
+                        }
                     }
                 }
             }
+
             return query !== null;
         } else {
             return (implicitChar === " " || implicitChar === "'" ||
