@@ -198,33 +198,26 @@ define(function (require, exports, module) {
     CodeHintList.prototype.handleKeyEvent = function (event) {
         var keyCode,
             self = this;
-        
-        function _upSelection() {
-            if (self.selectedIndex > 0) {
-                self._setSelectedIndex(self.selectedIndex - 1);
+
+        // positive distance rotates down; negative distance rotates up
+        function _rotateSelection(distance) {
+            var len = Math.min(self.displayList.length, self.options.maxResults),
+                pos;
+
+            // set the initial selection position if necessary
+            if (self.selectedIndex < 0) {
+                pos = (distance > 0) ? len - 1 : 0;
+                self._setSelectedIndex(pos);
+            } else {
+                pos = self.selectedIndex;
             }
-        }
-        
-        function _downSelection() {
-            if (self.selectedIndex < (self.displayList.length - 1)) {
-                self._setSelectedIndex(self.selectedIndex + 1);
+
+            // rotate the selection
+            if (distance < 0) {
+                distance %= len;
+                distance += len;
             }
-        }
-        
-        function _pageUpSelection() {
-            var index;
-            if (self.selectedIndex > 0) {
-                index = self.selectedIndex - self._getItemsPerPage();
-                self._setSelectedIndex(Math.max(index, 0));
-            }
-        }
-        
-        function _pageDownSelection() {
-            var index;
-            if (self.selectedIndex < (self.displayList.length - 1)) {
-                index = self.selectedIndex + self._getItemsPerPage();
-                self._setSelectedIndex(Math.min(index, (self.displayList.length - 1)));
-            }
+            self._setSelectedIndex((pos + distance) % len);
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
@@ -232,13 +225,13 @@ define(function (require, exports, module) {
             keyCode = event.keyCode;
 
             if (keyCode === KeyEvent.DOM_VK_UP) {
-                _upSelection.call(this);
+                _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
-                _downSelection.call(this);
+                _rotateSelection.call(this, 1);
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
-                _pageUpSelection.call(this);
+                _rotateSelection.call(this, -this._getItemsPerPage());
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
-                _pageDownSelection.call(this);
+                _rotateSelection.call(this, this._getItemsPerPage());
             } else if (this.selectedIndex !== -1 &&
                     (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
                 // Trigger a click handler to commmit the selected item
