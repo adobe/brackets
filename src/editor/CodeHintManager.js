@@ -168,8 +168,11 @@
  * Either null, if the request to update the hint list was a result of
  * navigation, or a single character that represents the last insertion.
  *
- * return {(Object + jQuery.Deferred)<hints: Array<(String + jQuery.Obj)>, 
- *     match: String, selectInitial: Boolean>}
+ * return {(Object + jQuery.Deferred)<
+ *      hints: Array<(String + jQuery.Obj)>,
+ *      match: String,
+ *      selectInitial: Boolean>}
+ * 
  * Null if the provider wishes to end the hinting session. Otherwise, a
  * response object, possibly deferred, that provides 1. a sorted array
  * hints that consists either of strings or jQuery objects; 2. a string
@@ -325,11 +328,15 @@ define(function (require, exports, module) {
    
     /** 
      * Is there a hinting session active for a given editor?
+     * 
+     * NOTE: the sessionEditor, sessionProvider and hintList objects are
+     * only guaranteed to be initialized during an active session. 
+     * 
      * @param {Editor} editor
      * @return boolean 
      */
     function _inSession(editor) {
-        if (sessionEditor !== null) {
+        if (sessionEditor) {
             if (sessionEditor === editor &&
                     (hintList.isOpen() ||
                      (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
@@ -480,10 +487,10 @@ define(function (require, exports, module) {
     function _getCodeHintList() {
         return hintList;
     }
+    exports._getCodeHintList        = _getCodeHintList;
     
     // Define public API
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
-    exports._getCodeHintList        = _getCodeHintList;
     exports.registerHintProvider    = registerHintProvider;
 });
