@@ -183,6 +183,10 @@ define(function (require, exports, module) {
                 verifyAttrHints(hintList);  // expect no filtering
             });
             
+            it("should NOT list hints to right of '=' sign on id attr", function () {
+                testEditor.setCursorPos({ line: 5, ch: 9 });
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
             it("should list hints to right of '=' sign", function () {
                 testEditor.setCursorPos({ line: 2, ch: 12 });
                 expectHints(HTMLCodeHints.attrHintProvider);
