@@ -440,12 +440,12 @@ define(function (require, exports, module) {
             
             // Vertically, we want to set the scroll position relative to the overall host editor, not
             // the lineSpace of the widget itself.
-            var hostLineSpaceTop = $(this.hostEditor._getLineSpaceElement()).offset().top;
+            var scrollerTop = this.hostEditor.getVirtualScrollAreaTop();
             this.hostEditor._codeMirror.scrollIntoView({
                 left: cursorCoords.left - inlineLineSpaceOffset.left,
-                top: cursorCoords.top - hostLineSpaceTop,
+                top: cursorCoords.top - scrollerTop,
                 right: cursorCoords.left - inlineLineSpaceOffset.left,
-                bottom: cursorCoords.bottom - hostLineSpaceTop
+                bottom: cursorCoords.bottom - scrollerTop
             });
         }
     };
