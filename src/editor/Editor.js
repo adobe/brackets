@@ -950,6 +950,19 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Returns the offset of the top of the virtual scroll area relative to the browser window (not the editor
+     * itself). Mainly useful for calculations related to scrollIntoView(), where you're starting with the
+     * offset() of a child widget (relative to the browser window) and need to figure out how far down it is from
+     * the top of the virtual scroll area (excluding the top padding).
+     * @return {number}
+     */
+    Editor.prototype.getVirtualScrollAreaTop = function () {
+        var topPadding = this._getLineSpaceElement().offsetTop, // padding within mover
+            scroller = this.getScrollerElement();
+        return $(scroller).offset().top - scroller.scrollTop + topPadding;
+    };
+
+    /**
      * Sets the height of an inline widget in this editor. 
      * @param {!InlineWidget} inlineWidget The widget whose height should be set.
      * @param {!number} height The height of the widget.
@@ -961,13 +974,14 @@ define(function (require, exports, module) {
         
         $(node).height(height);
         if (ensureVisible) {
-            var offset = $(node).offset(),
-                lineSpaceOffset = $(this._getLineSpaceElement()).offset();
+            var offset = $(node).offset(), // offset relative to document
+                position = $(node).position(), // position within parent linespace
+                scrollerTop = this.getVirtualScrollAreaTop();
             this._codeMirror.scrollIntoView({
-                left: offset.left - lineSpaceOffset.left,
-                top: offset.top - lineSpaceOffset.top,
-                right: offset.left - lineSpaceOffset.left, // don't try to make the right edge visible
-                bottom: offset.top + height - lineSpaceOffset.top
+                left: position.left,
+                top: offset.top - scrollerTop,
+                right: position.left, // don't try to make the right edge visible
+                bottom: offset.top + height - scrollerTop
             });
         }
         
