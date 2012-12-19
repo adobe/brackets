@@ -29,48 +29,26 @@ define(function (require, exports, module) {
 
     console.log("Loading MORE support");
 
-    brackets.libRequire("thirdparty/path-utils/path-utils.min");
-    var Commands              = brackets.getModule("command/Commands"),
-        CommandManager        = brackets.getModule("command/CommandManager"),
-        EditorCommandHandlers = brackets.getModule("editor/EditorCommandHandlers"),
-        EditorManager         = brackets.getModule("editor/EditorManager"),
-        EditorUtils           = brackets.getModule("editor/EditorUtils"),
-        Strings               = brackets.getModule("strings");
+    var Languages = brackets.getModule("language/Languages");
     
     // Adding CodeMirror mode "more"
     require("thirdparty/CodeMirror2/mode/more/more");
     
-    // Monkey-patch EditorUtils.getModeFromFileExtension to use the file extension as the mode name if there is such a mode
-    var previousGetModeFromFileExtension = EditorUtils.getModeFromFileExtension;
-    EditorUtils.getModeFromFileExtension = function getModeFromFileExtension(fileUrl) {
-        // ---8<--- The following is copied from EditorUtils.js ---8<--- //
-        var ext = PathUtils.filenameExtension(fileUrl);
-        //incase the arg is just the ext
-        if (!ext) {
-            ext = fileUrl;
-        }
-        if (ext.charAt(0) === ".") {
-            ext = ext.substr(1);
-        }
-        
-        // Make checks below case-INsensitive
-        ext = ext.toLowerCase();
-        
-        // -------- The following is new -------- //
-        if (CodeMirror.modes[ext]) {
-            return ext;
-        }
-        
-        return previousGetModeFromFileExtension.apply(EditorUtils, arguments);
-    }
-    
-    EditorCommandHandlers.modeSettings.more = {
-        blockComment: {
-            prefix: "/*",
-            suffix: "*/"
+    var more = Languages.defineLanguage("more", {
+        name: "MORE",
+        type: "text/x-more",
+        extensions: ["more"],
+        mode: {
+            CodeMirror: "more",
         },
-        lineComment: {
-            prefix: "//"
+        syntax: {
+            blockComment: {
+                prefix: "/*",
+                suffix: "*/"
+            },
+            lineComment: {
+                prefix: "//"
+            }
         }
-    };
+    });
 });

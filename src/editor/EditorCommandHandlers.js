@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
-        TokenUtils         = require("utils/TokenUtils");
+        TokenUtils         = require("utils/TokenUtils"),
+        Languages          = require("language/Languages");
     
     
     var modeSettings = {
@@ -59,7 +60,7 @@ define(function (require, exports, module) {
                 suffix: "*/"
             },
             lineComment: {
-                prefix: "//",
+                prefix: "//"
             }
         },
         javascript: {
@@ -491,6 +492,20 @@ define(function (require, exports, module) {
     }
     
     
+    function _settingsForMode(mode) {
+        var settings = modeSettings[mode];
+        
+        if (!settings) {
+            var language = Languages.getLanguageForCodeMirrorMode(mode);
+            if (language && language.syntax) {
+                settings = language.syntax;
+            }
+        }
+        
+        return settings;
+    }
+    
+    
     /**
      * Invokes a language-specific block-comment/uncomment handler
      * @param {?Editor} editor If unspecified, applies to the currently focused editor
@@ -502,12 +517,15 @@ define(function (require, exports, module) {
         }
         
         var mode     = editor.getModeForSelection(),
-            settings = modeSettings[mode];
-        if (!settings || !settings.blockComment) {
+            settings = _settingsForMode(mode);
+        
+        if (!settings) {
             return;
         }
         
-        blockCommentPrefixSuffix(editor, settings.blockComment.prefix, settings.blockComment.suffix, settings.lineComment ? settings.lineComment.prefix : null);
+        if (settings.blockComment) {
+            blockCommentPrefixSuffix(editor, settings.blockComment.prefix, settings.blockComment.suffix, settings.lineComment ? settings.lineComment.prefix : null);
+        }
     }
     
     /**
@@ -521,7 +539,7 @@ define(function (require, exports, module) {
         }
         
         var mode     = editor.getModeForSelection(),
-            settings = modeSettings[mode];
+            settings = _settingsForMode(mode);
         
         if (!settings) {
             return;
