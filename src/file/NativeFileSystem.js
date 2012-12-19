@@ -487,7 +487,7 @@ define(function (require, exports, module) {
             // http://www.w3.org/TR/2011/WD-file-writer-api-20110419/#widl-FileWriter-write
             
             if (data === null || data === undefined) {
-                throw new Error();
+                console.error("FileWriter.write() called with null or undefined data.");
             }
 
             if (this.readyState === NativeFileSystem.FileSaver.WRITING) {

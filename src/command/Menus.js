@@ -391,13 +391,14 @@ define(function (require, exports, module) {
         var menuItemID;
 
         if (!command) {
-            throw new Error("removeMenuItem(): missing required parameters: command");
+            console.error("removeMenuItem(): missing required parameters: command");
+            return;
         }
 
         if (typeof (command) === "string") {
             var commandObj = CommandManager.get(command);
             if (!commandObj) {
-                throw new Error("removeMenuItem(): command not found: " + command);
+                console.error("removeMenuItem(): command not found: " + command);
             }
 
             menuItemID = this._getMenuItemId(command);
@@ -446,7 +447,8 @@ define(function (require, exports, module) {
             commandID;
 
         if (!command) {
-            throw new Error("addMenuItem(): missing required parameters: command");
+            console.error("addMenuItem(): missing required parameters: command");
+            return null;
         }
 
         if (typeof (command) === "string") {
@@ -457,7 +459,8 @@ define(function (require, exports, module) {
                 commandID = command;
                 command = CommandManager.get(commandID);
                 if (!command) {
-                    throw new Error("addMenuItem(): commandID not found: " + commandID);
+                    console.error("addMenuItem(): commandID not found: " + commandID);
+                    return null;
                 }
                 name = command.getName();
             }
@@ -681,7 +684,8 @@ define(function (require, exports, module) {
             menu;
 
         if (!name || !id) {
-            throw new Error("call to addMenu() is missing required parameters");
+            console.error("call to addMenu() is missing required parameters");
+            return null;
         }
         
         // Guard against duplicate menu ids
@@ -765,7 +769,7 @@ define(function (require, exports, module) {
     ContextMenu.prototype.open = function (mouseOrLocation) {
 
         if (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY")) {
-            throw new Error("ContextMenu open(): missing required parameter");
+            console.error("ContextMenu open(): missing required parameter");
         }
 
         var $window = $(window),
@@ -839,7 +843,7 @@ define(function (require, exports, module) {
      */
     function registerContextMenu(id) {
         if (!id) {
-            throw new Error("call to registerContextMenu() is missing required parameters");
+            console.error("call to registerContextMenu() is missing required parameters");
         }
         
         // Guard against duplicate menu ids
