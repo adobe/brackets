@@ -389,7 +389,10 @@ define(function (require, exports, module) {
             rcBottom = rcTop + rcHeight,
             scrollerOffset = $(hostScroller).offset(),
             scrollerTop = scrollerOffset.top,
-            scrollerBottom = scrollerTop + hostScroller.clientHeight,
+            // To calculate the actual visible height of the hostScroller, we have to take the margin into
+            // account. This is because CodeMirror sets a negative margin on the scroller as a hack to
+            // push the "real" scrollbar offscreen.
+            scrollerBottom = scrollerTop + $(hostScroller).outerHeight(true),
             scrollerLeft = scrollerOffset.left,
             rightOffset = $(window.document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
         if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
