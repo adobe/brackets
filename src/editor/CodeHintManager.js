@@ -474,10 +474,12 @@ define(function (require, exports, module) {
      * the lastChar.
      */
     function handleChange(editor) {
-        if (!_inSession(editor) && lastChar) {
-            _beginSession(editor);
-        } else if (_inSession(editor)) {
+        if (_inSession(editor)) {
             _updateHintList();
+        } else {
+            if (lastChar) {
+                _beginSession(editor);
+            }
         }
     }
 
