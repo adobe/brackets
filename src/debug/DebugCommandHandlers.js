@@ -44,7 +44,7 @@ define(function (require, exports, module) {
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
     function _runUnitTests(spec) {
-        var queryString = spec !== undefined && spec !== "" ? "?spec=" + spec : "";
+        var queryString = spec ? "?spec=" + spec : "";
         if (_testWindow) {
             try {
                 _testWindow.location.reload(true);
