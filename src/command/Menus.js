@@ -325,7 +325,7 @@ define(function (require, exports, module) {
         if (relativeID) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
                 if (!relativeID.hasOwnProperty("sectionMarker")) {
-                    console.log("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                    console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
                     return null;
                 }
 
@@ -334,8 +334,8 @@ define(function (require, exports, module) {
                 // TODO: simplify using nextUntil()/prevUntil()
                 var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(relativeID.sectionMarker));
                 if (!$sectionMarker) {
-                    console.log("_getRelativeMenuItem(): MenuSection " + relativeID.sectionMarker +
-                                " not found in Menu " + this.id);
+                    console.error("_getRelativeMenuItem(): MenuSection " + relativeID.sectionMarker +
+                                  " not found in Menu " + this.id);
                     return null;
                 }
                 var $listElem = $sectionMarker;
@@ -353,7 +353,7 @@ define(function (require, exports, module) {
                 
             } else {
                 if (relativeID.hasOwnProperty("sectionMarker")) {
-                    console.log("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
+                    console.error("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
                     return null;
                 }
                 
@@ -365,8 +365,8 @@ define(function (require, exports, module) {
                     $relativeElement = this._getMenuItemForCommand(command);
                 }
                 if (!$relativeElement) {
-                    console.log("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
-                                " not found in Menu " + this.id);
+                    console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
+                                  " not found in Menu " + this.id);
                     return null;
                 }
             }
@@ -374,7 +374,7 @@ define(function (require, exports, module) {
             return $relativeElement;
             
         } else if (position && position !== FIRST && position !== LAST) {
-            console.log("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
+            console.error("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
             return null;
         }
         
