@@ -22,14 +22,19 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, less */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*global define, $, brackets, less, window */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var Async = require("utils/Async");
+    
+    // naïve match for import statements in CSS
+    var RE_IMPORT = /@import\s+(?:url\()?('|")([^'"]+)\1(?:\))?;/g;
     
     /**
      * Appends a <style> tag to the document's head.
@@ -167,7 +172,42 @@ define(function (require, exports, module) {
                         })
                         .fail(result.reject);
                 } else {
-                    result.resolve(addLinkedStyleSheet(url));
+                    // scan for @import statements
+                    var imports = [],
+                        exec,
+                        importsPromise;
+                    
+                    while ((exec = RE_IMPORT.exec(content)) !== null) {
+                        imports.push(exec[2]);
+                    }
+
+                    if (imports.length > 0) {
+                        // load all dependencies before resolving this import
+                        var rootPath = path.substr(0, path.lastIndexOf("/") + 1);
+                        importsPromise = Async.doInParallel(
+                            imports,
+                            function (oneImport) {
+                                return loadStyleSheet(module, rootPath + oneImport);
+                            },
+                            true
+                        );
+                    }
+                    
+                    // HACK: use img.src to detect a load event for the stylesheet
+                    // http://www.backalleycoder.com/2011/03/20/link-tag-css-stylesheet-load-event/
+                    var link = addLinkedStyleSheet(url),
+                        img = window.document.createElement("img");
+                    
+                    img.onerror = function () {
+                        if (importsPromise) {
+                            importsPromise.done(function () {
+                                result.resolve(link);
+                            });
+                        } else {
+                            result.resolve(link);
+                        }
+                    };
+                    img.src = url;
                 }
             })
             .fail(result.reject);
