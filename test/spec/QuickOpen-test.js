@@ -32,6 +32,38 @@ define(function (require, exports, module) {
     var QuickOpen = require("search/QuickOpen");
     
     describe("QuickOpen", function () {
+        describe("longestCommonSubstring", function () {
+            var lcs = QuickOpen._longestCommonSubstring;
+            
+            it("should find the right substrings", function () {
+                expect(lcs("Sub", "longestCommonSubstring")).toEqual({
+                    length: 3,
+                    position1: 0,
+                    position2: 13
+                });
+            });
+            
+            it("should work the other way around", function () {
+                expect(lcs("longestCommonSubstring", "Sub")).toEqual({
+                    length: 3,
+                    position1: 13,
+                    position2: 0
+                });
+            });
+            
+            it("should handle substrings properly", function () {
+                expect(lcs("longestCommonSubstring", "randomjunkSubmorejunk")).toEqual({
+                    length: 3,
+                    position1: 13,
+                    position2: 10
+                });
+            });
+            
+            it("should handle no matches at all", function () {
+                expect(lcs("longestCommonSubstring", "zzz")).toBeUndefined();
+            });
+        });
+        
         describe("stringMatch", function () {
             var stringMatch = QuickOpen.stringMatch;
             
@@ -56,6 +88,36 @@ define(function (require, exports, module) {
                 range = ranges.shift();
                 expect(range.text).toBe("b");
                 expect(range.matched).toBe(true);
+            });
+            
+            var goodRelativeOrdering = function (query, testStrings) {
+                var lastScore = -20000;
+                var goodOrdering = true;
+                testStrings.forEach(function (str) {
+                    var result = stringMatch(str, query);
+                    
+                    // note that matchGoodness is expressed in negative numbers
+                    if (result.matchGoodness < lastScore) {
+                        goodOrdering = false;
+                    }
+                    lastScore = result.matchGoodness;
+                });
+                return goodOrdering;
+            };
+            
+            it("should place QuickOpen well relative to other quicks", function () {
+                expect(goodRelativeOrdering("quick", [
+                    "src/search/QuickOpen.js",
+                    "test/spec/QuickOpen-test.js",
+                    "samples/root/Getting Started/screenshots/brackets-quick-edit.png",
+                    "src/extensions/default/QuickOpenCSS/main.js"
+                ])).toBe(true);
+            });
+            it("should find the right spec/live", function () {
+                expect(goodRelativeOrdering("spec/live", [
+                    "test/spec/LiveDevelopment-test.js",
+                    "test/spec/LiveDevelopment-chrome-user-data/Default/VisitedLinks"
+                ])).toBe(true);
             });
         });
     });

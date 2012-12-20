@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, setTimeout */
+/*global define, $, window, setTimeout, ArrayBuffer, Int8Array */
 /*unittests: QuickOpen */
 
 /*
@@ -468,6 +468,45 @@ define(function (require, exports, module) {
     function _boostForUpperCase(c) {
         return c.toUpperCase() === c ? 50 : 0;
     }
+    
+    // based on the dynamic programming algorithm here:
+    // http://en.wikipedia.org/wiki/Longest_common_substring_problem
+    function _longestCommonSubstring(str1, str2) {
+        var lengths = new Int8Array(new ArrayBuffer(str1.length * str2.length));
+        var maxlength = 0;
+        var substring = "";
+        var jlength = str2.length;
+        var i, j, index, pos1, pos2;
+        for (i = 0; i < str1.length; i++) {
+            for (j = 0; j < str2.length; j++) {
+                if (str1[i] === str2[j]) {
+                    index = i * jlength + j;
+                    if (i === 0 || j === 0) {
+                        lengths[index] = 1;
+                    } else {
+                        lengths[index] = lengths[(i - 1) * jlength + j - 1] + 1;
+                    }
+                    
+                    if (lengths[index] > maxlength) {
+                        maxlength = lengths[index];
+                        substring += str1[i];
+                        pos1 = i - maxlength + 1;
+                        pos2 = j - maxlength + 1;
+                    }
+                }
+            }
+        }
+        
+        if (maxlength === 0) {
+            return undefined;
+        } else {
+            return {
+                length: maxlength,
+                position1: pos1,
+                position2: pos2
+            };
+        }
+    }
 
    /**
     * Performs matching of a string based on a query, and scores
@@ -512,7 +551,7 @@ define(function (require, exports, module) {
         // Keeps track of the most specific segment that the current stringRange
         // is associated with.
         var rangeSegment = 0;
-        
+                
         // addToStringRanges is used when we transition between matched and unmatched
         // parts of the string.
         function addToStringRanges(numberOfCharacters, matched) {
@@ -1020,11 +1059,12 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
-    exports.beginSearch         = beginSearch;
-    exports.addQuickOpenPlugin  = addQuickOpenPlugin;
-    exports.SearchResult        = SearchResult;
-    exports.stringMatch         = stringMatch;
-    exports.basicMatchSort      = basicMatchSort;
-    exports.multiFieldSort      = multiFieldSort;
-    exports.highlightMatch      = highlightMatch;
+    exports.beginSearch             = beginSearch;
+    exports.addQuickOpenPlugin      = addQuickOpenPlugin;
+    exports.SearchResult            = SearchResult;
+    exports.stringMatch             = stringMatch;
+    exports.basicMatchSort          = basicMatchSort;
+    exports.multiFieldSort          = multiFieldSort;
+    exports.highlightMatch          = highlightMatch;
+    exports._longestCommonSubstring = _longestCommonSubstring;
 });
