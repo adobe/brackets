@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
     'use strict';
@@ -59,14 +59,11 @@ define(function (require, exports, module) {
                 });
             }
 
-            // putting everything CSS related in 1 test so it runs faster
-            it("should attach CSS style sheets", function () {
-
+            it("should load CSS style sheets with imports", function () {
                 runs(function () {
                     loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.css");
                 });
 
-                // placing this code in a separate closure forces styles to update
                 runs(function () {
                     // basic.css
                     var $projectTitle = testWindow.$("#project-title");
@@ -84,6 +81,24 @@ define(function (require, exports, module) {
                     // fourth.css is imported in basic.css
                     var fontFamily = $projectTitle.css("font-family");
                     expect(fontFamily).toEqual("serif");
+                });
+            });
+            
+            it("should detect errors loading the initial path", function () {
+                runs(function () {
+                    var path    = "ExtensionUtils-test-files/does-not-exist.css",
+                        promise = ExtensionUtils.loadStyleSheet(module, path);
+                    
+                    waitsForFail(promise, "loadStyleSheet: " + path);
+                });
+            });
+            
+            it("should detect errors loading imports", function () {
+                runs(function () {
+                    var path    = "ExtensionUtils-test-files/bad-import.css",
+                        promise = ExtensionUtils.loadStyleSheet(module, path);
+                    
+                    waitsForFail(promise, "loadStyleSheet: " + path);
                 });
             });
             
