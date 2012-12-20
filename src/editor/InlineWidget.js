@@ -100,7 +100,7 @@ define(function (require, exports, module) {
     InlineWidget.prototype.hasFocus = function () {
         // True if anything in widget's DOM tree has focus (find() excludes root node, hence the extra check)
         return this.$htmlContent.find(":focus").length > 0 || this.$htmlContent.is(":focus");
-    }
+    };
     
     /**
      * Called any time inline is closed, whether manually or automatically
