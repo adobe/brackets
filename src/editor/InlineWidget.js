@@ -98,8 +98,9 @@ define(function (require, exports, module) {
     
     /** @return {boolean} True if any part of the inline widget is focused */
     InlineWidget.prototype.hasFocus = function () {
-        // True if anything in widget's DOM tree has focus (find() excludes root node, hence the extra check)
-        return this.$htmlContent.find(":focus").length > 0 || this.$htmlContent.is(":focus");
+        var focusedItem = window.document.activeElement,
+            htmlContent = this.$htmlContent[0];
+        return $.contains(htmlContent, focusedItem) || htmlContent === focusedItem;
     };
     
     /**
