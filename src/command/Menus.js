@@ -1058,6 +1058,8 @@ define(function (require, exports, module) {
                     //e.pageY += 6;
                 }
                 
+                // Inline text editors have a different context menu (safe to assume it's not some other
+                // type of inline widget since we already know an Editor has focus)
                 if (inlineWidget) {
                     inline_editor_cmenu.open(e);
                 } else {

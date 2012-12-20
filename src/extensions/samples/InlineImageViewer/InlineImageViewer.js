@@ -65,10 +65,6 @@ define(function (require, exports, module) {
         this.$htmlContent.click(this.close.bind(this));
     };
 
-    InlineImageViewer.prototype.close = function () {
-        this.hostEditor.removeInlineWidget(this);
-    };
-    
     InlineImageViewer.prototype.onAdded = function () {
         InlineImageViewer.prototype.parentClass.onAdded.apply(this, arguments);
         window.setTimeout(this._sizeEditorToContent.bind(this));

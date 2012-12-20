@@ -533,17 +533,12 @@ define(function (require, exports, module) {
      * @returns {MultiRangeInlineEditor}
      */
     function _getFocusedMultiRangeInlineEditor() {
-        var focusedMultiRangeInlineEditor = null,
-            result = EditorManager.getFocusedInlineWidget();
-        
-        if (result) {
-            var focusedWidget = result.widget;
-            if (focusedWidget && focusedWidget instanceof MultiRangeInlineEditor) {
-                focusedMultiRangeInlineEditor = focusedWidget;
-            }
+        var focusedWidget = EditorManager.getFocusedInlineWidget();
+        if (focusedWidget instanceof MultiRangeInlineEditor) {
+            return focusedWidget;
+        } else {
+            return null;
         }
-        
-        return focusedMultiRangeInlineEditor;
     }
 
     /**
