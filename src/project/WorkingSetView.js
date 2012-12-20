@@ -213,7 +213,7 @@ define(function (require, exports, module) {
             }
         }
         
-        function drop() {
+        function drop(event) {
             // Enable Mousewheel
             window.onmousewheel = window.document.onmousewheel = null;
             
@@ -226,17 +226,7 @@ define(function (require, exports, module) {
             }
             
             // If file wasnt moved open or close it
-            if (!moved) {
-                if (!fromClose) {
-                    if (selected) {
-                        CommandManager.execute(Commands.FILE_RENAME);
-                    } else {
-                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                    }
-                } else {
-                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
-                }
-            } else if (moved) {
+            if (moved) {
                 if (selected) {
                     // Update the file selection
                     _fireSelectionChanged();
@@ -246,13 +236,26 @@ define(function (require, exports, module) {
                     // Restore the shadows
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
+            } else {
+                if (fromClose) {
+                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                } else {
+                    if (selected) {
+                        // Only rename on left click
+                        if (event.which === 1) {
+                            CommandManager.execute(Commands.FILE_RENAME);
+                        }
+                    } else {
+                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                    }
+                }
             }
         }
         
         
         // Only drag with the left mouse button, end the drop in other cases
         if (event.which !== 1) {
-            drop();
+            drop(event);
             return;
         }
         
@@ -273,7 +276,7 @@ define(function (require, exports, module) {
         });
         $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
             $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
-            drop();
+            drop(event);
         });
     }
     
