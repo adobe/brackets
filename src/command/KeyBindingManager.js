@@ -145,7 +145,6 @@ define(function (require, exports, module) {
             } else if (_compareModifierString("alt", ele, hasAlt, origDescriptor)) {
                 hasAlt = true;
             } else if (_compareModifierString("opt", ele, hasAlt, origDescriptor)) {
-                console.log("KeyBindingManager normalizeKeyDescriptorString() - Opt getting mapped to Alt from: " + origDescriptor);
                 hasAlt = true;
             } else if (_compareModifierString("shift", ele, hasShift, origDescriptor)) {
                 hasShift = true;
@@ -352,7 +351,8 @@ define(function (require, exports, module) {
             explicitPlatform = keyBinding.platform || platform,
             targetPlatform = explicitPlatform || brackets.platform,
             command,
-            bindingsToDelete = [];
+            bindingsToDelete = [],
+            existing = _keyMap[key];
         
         key = (keyBinding.key) || keyBinding;
         if (brackets.platform === "mac" && explicitPlatform === undefined) {
@@ -369,20 +369,11 @@ define(function (require, exports, module) {
             return null;
         }
         
-        // skip if the key is already assigned
-        if (_isKeyAssigned(normalized)) {
-            console.log("Cannot assign " + normalized + " to " + commandID +
-                        ". It is already assigned to " + _keyMap[normalized].commandID);
-            return null;
-        }
-        
         // for cross-platform compatibility
         if (exports.useWindowsCompatibleBindings) {
+            // windows-only key bindings are used as the default binding
+            // only if a default binding wasn't already defined
             if (explicitPlatform === "win") {
-                // windows-only key bindings are used as the default binding
-                // only if a default binding wasn't already defined
-                var existing = _keyMap[normalized];
-                
                 // search for a generic or platform-specific binding if it
                 // already exists
                 if (existing &&
@@ -399,6 +390,20 @@ define(function (require, exports, module) {
         // skip if this binding doesn't match the current platform
         if (targetPlatform !== brackets.platform) {
             return null;
+        }
+        
+        // skip if the key is already assigned explicitly for this platform
+        if (existing) {
+            if (!existing.platform) {
+                // remove existing generic bindings, then re-map this binding
+                // to the new command
+                removeBinding(normalized);
+            } else {
+                // do not re-assign a platform-specific key binding
+                console.log("Cannot assign " + normalized + " to " + commandID +
+                            ". It is already assigned to " + _keyMap[normalized].commandID);
+                return null;
+            }
         }
         
         // delete existing bindings when
@@ -520,7 +525,6 @@ define(function (require, exports, module) {
         }
         
         var normalizedBindings = [],
-            targetPlatform,
             results;
 
         if (Array.isArray(keyBindings)) {
