@@ -162,12 +162,34 @@ define(function (require, exports, module) {
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
             });
             
-            it("should prevent a key binding from mapping to multiple commands", function () {
+            it("should allow a generic key binding to be replaced", function () {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A");
                 KeyBindingManager.addBinding("test.bar", "Ctrl-A");
                 
                 var expected = keyMap([
-                    keyBinding("Ctrl-A", "test.foo")
+                    keyBinding("Ctrl-A", "test.bar")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should allow a platform-specific key binding to override a generic binding", function () {
+                KeyBindingManager.addBinding("test.foo", "Ctrl-A");
+                KeyBindingManager.addBinding("test.bar", "Ctrl-A", "test");
+                
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.bar", null, "test")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should keep a platform-specific key binding if a generic binding is added later", function () {
+                KeyBindingManager.addBinding("test.foo", "Ctrl-A", "test");
+                KeyBindingManager.addBinding("test.bar", "Ctrl-A");
+                
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo", null, "test")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
@@ -233,7 +255,7 @@ define(function (require, exports, module) {
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
             });
             
-            it("should use replace generic key bindings with platform-specific", function () {
+            it("should support windows compatible bindings", function () {
                 var original = KeyBindingManager.useWindowsCompatibleBindings;
                 
                 this.after(function () {
