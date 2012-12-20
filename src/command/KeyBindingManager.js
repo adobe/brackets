@@ -120,7 +120,7 @@ define(function (require, exports, module) {
             key = "",
             error = false;
 
-        function _compareModifierString(left, right, origDescriptor) {
+        function _compareModifierString(left, right) {
             if (!left || !right) {
                 return false;
             }
@@ -130,21 +130,20 @@ define(function (require, exports, module) {
             return (left.length > 0 && left === right);
         }
         
-        var ctrlAlreadyFound = false;
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
-            if (_compareModifierString("ctrl", ele, origDescriptor)) {
+            if (_compareModifierString("ctrl", ele)) {
                 if (brackets.platform === "mac") {
                     hasMacCtrl = true;
                 } else {
                     hasCtrl = true;
                 }
-            } else if (_compareModifierString("cmd", ele, origDescriptor)) {
+            } else if (_compareModifierString("cmd", ele)) {
                 hasCtrl = true;
-            } else if (_compareModifierString("alt", ele, origDescriptor)) {
+            } else if (_compareModifierString("alt", ele)) {
                 hasAlt = true;
-            } else if (_compareModifierString("opt", ele, origDescriptor)) {
+            } else if (_compareModifierString("opt", ele)) {
                 hasAlt = true;
-            } else if (_compareModifierString("shift", ele, origDescriptor)) {
+            } else if (_compareModifierString("shift", ele)) {
                 hasShift = true;
             } else if (key.length > 0) {
                 console.log("KeyBindingManager normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
