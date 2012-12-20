@@ -427,245 +427,505 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Helper functions for stringMatch score calculation.
+     * Helper functions for stringMatch at the heart of the QuickOpen
+     * matching.
      */
     
-    /**
-     * The current scoring gives a boost for matches in the "most specific" (generally farthest right) 
-     * segment of the string being tested against the query.
+    /*
+     * Identifies the "special" characters in the given string.
+     * Special characters for matching purposes are:
+     *
+     * * the first character
+     * * "/" and the character following the "/"
+     * * "." and "-"
+     * * an uppercase character that follows a lowercase one (think camelCase)
+     *
+     * The returned object contains an array called "specials". This array is
+     * a list of indexes into the original string where all of the special
+     * characters are. It also has a property "lastSegmentSpecialsIndex" which
+     * is an index into the specials array that denotes which location is the
+     * beginning of the last path segment. (This is used to allow scanning of
+     * the last segment's specials separately.)
+     * 
+     * @param {string} input string to break apart (e.g. filename that is being searched)
+     * @return {Object}
      */
-    function _adjustScoreForSegment(segmentCounter, score) {
-        if (segmentCounter === 0) {
-            // Multiplier used for matches within the most-specific part of the name (filename, for example)
-            return score * 3;
-        } else {
-            return score;
-        }
-    }
-    
-    /**
-     * Additional points are added when multiple characters in the string
-     * being tested match against query characters.
-     */
-    function _boostForMatches(sequentialMatches) {
-        // Multiplier for the number of sequential matched characters
-        return sequentialMatches * sequentialMatches * 5;
-    }
-    
-    /**
-     * The score is boosted for matches that occur at the beginning
-     * of a segment of string that is being tested against the query.
-     */
-    function _boostForPathSegmentStart(sequentialMatches) {
-        // Multiplier for sequential matched characters at the beginning
-        // of a delimited section (after a '/' in a path, for example)
-        return sequentialMatches * sequentialMatches * 5;
-    }
-    
-    /**
-    * Upper case characters are boosted to help match MixedCase strings better.
-    */
-    function _boostForUpperCase(c) {
-        return c.toUpperCase() === c ? 50 : 0;
-    }
-    
-    // based on the dynamic programming algorithm here:
-    // http://en.wikipedia.org/wiki/Longest_common_substring_problem
-    function _longestCommonSubstring(str1, str2) {
-        var lengths = new Int8Array(new ArrayBuffer(str1.length * str2.length));
-        var maxlength = 0;
-        var substring = "";
-        var jlength = str2.length;
-        var i, j, index, pos1, pos2;
-        for (i = 0; i < str1.length; i++) {
-            for (j = 0; j < str2.length; j++) {
-                if (str1[i] === str2[j]) {
-                    index = i * jlength + j;
-                    if (i === 0 || j === 0) {
-                        lengths[index] = 1;
-                    } else {
-                        lengths[index] = lengths[(i - 1) * jlength + j - 1] + 1;
+    function findSpecialCharacters(str) {
+        var i, c;
+        
+        // the beginning of the string is always special
+        var specials = [0];
+        
+        // lastSegmentSpecialsIndex starts off with the assumption that
+        // there are no segments
+        var lastSegmentSpecialsIndex = 0;
+        
+        // used to track down the camelCase changeovers
+        var lastWasLowerCase = false;
+        
+        for (i = 0; i < str.length; i++) {
+            c = str[i];
+            if (c === "/") {
+                // new segment means this character and the next are special
+                specials.push(i++);
+                specials.push(i);
+                lastSegmentSpecialsIndex = specials.length - 1;
+                lastWasLowerCase = false;
+            } else {
+                // . and - are separators so they are
+                // special and so is the next character
+                if (c === "." || c === "-") {
+                    specials.push(i++);
+                    specials.push(i);
+                    lastWasLowerCase = false;
+                } else if (c.toUpperCase() === c) {
+                    // this is the check for camelCase changeovers
+                    if (lastWasLowerCase) {
+                        specials.push(i);
                     }
-                    
-                    if (lengths[index] > maxlength) {
-                        maxlength = lengths[index];
-                        substring += str1[i];
-                        pos1 = i - maxlength + 1;
-                        pos2 = j - maxlength + 1;
+                    lastWasLowerCase = false;
+                } else {
+                    lastWasLowerCase = true;
+                }
+            }
+        }
+        return {
+            specials: specials,
+            lastSegmentSpecialsIndex: lastSegmentSpecialsIndex
+        };
+    }
+    
+    // states used during the scanning of the string
+    var SPECIALS_COMPARE = 0;
+    var CONTIGUOUS_COMPARE = 1;
+    var SPECIALS_EXHAUSTED = 2;
+    
+    // Scores can be hard to make sense of. The DEBUG_SCORES flag
+    // provides a way to peek into the parts that made up a score.
+    // This flag is also used in the unit tests.
+    var DEBUG_SCORES = false;
+    function _setDebugScores(ds) {
+        DEBUG_SCORES = ds;
+    }
+    
+    // Constants for scoring
+    var SPECIAL_POINTS = 25;
+    var MATCH_POINTS = 10;
+    var LAST_SEGMENT_BOOST = 1;
+    var BEGINNING_OF_NAME_POINTS = 25;
+    var DEDUCTION_FOR_LENGTH = 0.2;
+    var CONSECUTIVE_MATCHES_POINTS = 25;
+    
+    /*
+     * Finds the best matches between the query and the string. The query is
+     * compared with compareStr (generally a lower case string with a lower case
+     * query), but the results are returned based on str.
+     *
+     * Generally speaking, this function tries to find a "special" character
+     * (see findSpecialCharacters above) for the first character of the query.
+     * When it finds one, it then tries to look for consecutive characters that
+     * match. Once the characters stop matching, it tries to find a special
+     * character for the next query character. If a special character isn't found, 
+     * it starts scanning sequentially.
+     *
+     * The returned object contains the following fields:
+     * * {Array} ranges: the scanned regions of the string, in order. For each range:
+     *     * {string} text: the text for the string range
+     *     * {boolean} matched: was this range part of the match?
+     *     * {boolean} lastSegment: is this range part of the last segment of str
+     * * {int} matchGoodness: the score computed for this match
+     * * (optional) {Object} scoreDebug: if DEBUG_SCORES is true, an object with the score broken down
+     *
+     * @param {string} query the search string (generally lower cased)
+     * @param {string} str the original string to search
+     * @param {string} compareStr the string to compare with (generally lower cased)
+     * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
+     * @param {int} startingSpecial optional index into specials array to start scanning with
+     * @param {boolean} lastSegmentStart optional which character does the last segment start at
+     * @return {Object} matched ranges and score
+     */
+    function getMatchRanges(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
+        var ranges = [];
+        
+        var score = 0;
+        var scoreDebug;
+        if (DEBUG_SCORES) {
+            scoreDebug = {
+                special: 0,
+                match: 0,
+                lastSegment: 0,
+                beginning: 0,
+                lengthDeduction: 0,
+                consecutive: 0
+            };
+        }
+        
+        // normalize the optional parameters
+        if (!lastSegmentStart) {
+            lastSegmentStart = 0;
+        }
+        
+        if (startingSpecial === undefined) {
+            startingSpecial = 0;
+        }
+        
+        var specialsCounter = startingSpecial;
+        
+        // strCounter and queryCounter are the indexes used for pulling characters
+        // off of the str/compareStr and query.
+        var strCounter = specials[startingSpecial];
+        var queryCounter = 0;
+        
+        // initial state is to scan through the special characters
+        var state = SPECIALS_COMPARE;
+        
+        // currentRange keeps track of the range we are adding characters to now
+        var currentRange = null;
+        var lastSegmentScore = 0;
+        
+        // the character index (against str) that was last in a matched range. this is used for
+        // adding unmatched ranges in between
+        var lastRangeCharacter = strCounter - 1;
+        
+        // variable to award bonus points for consecutive matching characters. We keep track of the
+        // last matched character.
+        var lastMatchedIndex = -2;
+        
+        // Records the current range and adds any additional ranges required to
+        // get to character index c. This function is called before starting a new range
+        // or returning from the function.
+        function closeRangeGap(c) {
+            // close the current range
+            if (currentRange) {
+                currentRange.lastSegment = lastRangeCharacter >= lastSegmentStart;
+                if (currentRange.matched && currentRange.lastSegment) {
+                    if (DEBUG_SCORES) {
+                        scoreDebug.lastSegment += lastSegmentScore * LAST_SEGMENT_BOOST;
+                    }
+                    score += lastSegmentScore * LAST_SEGMENT_BOOST;
+                }
+                ranges.push(currentRange);
+            }
+            
+            // if there was space between the new range and the last,
+            // add a new unmatched range before the new range can be added.
+            if (lastRangeCharacter + 1 < c) {
+                ranges.push({
+                    text: str.substring(lastRangeCharacter + 1, c),
+                    matched: false,
+                    lastSegment: c > lastSegmentStart
+                });
+            }
+            currentRange = null;
+            lastSegmentScore = 0;
+        }
+        
+        // records that the character at index c (of str) matches, adding
+        // that character to the current range or starting a new one.
+        function addMatch(c) {
+            var newPoints = 0;
+            
+            // A match means that we need to do some scoring bookkeeping.
+            if (DEBUG_SCORES) {
+                scoreDebug.match += MATCH_POINTS;
+            }
+            newPoints += MATCH_POINTS;
+            
+            // a bonus is given for characters that match at the beginning
+            // of the filename
+            if (c === 0 && (strCounter > lastSegmentStart)) {
+                if (DEBUG_SCORES) {
+                    scoreDebug.beginning += BEGINNING_OF_NAME_POINTS;
+                }
+                newPoints += BEGINNING_OF_NAME_POINTS;
+            }
+            
+            // If the new character immediately follows the last matched character,
+            // we award the consecutive matches bonus.
+            if (lastMatchedIndex + 1 === c) {
+                if (DEBUG_SCORES) {
+                    scoreDebug.consecutive += CONSECUTIVE_MATCHES_POINTS;
+                }
+                newPoints += CONSECUTIVE_MATCHES_POINTS;
+            }
+            
+            score += newPoints;
+            if (c > lastSegmentStart) {
+                lastSegmentScore += newPoints;
+            }
+            lastMatchedIndex = c;
+            
+            // if the last range wasn't a match or there's a gap, we need to close off
+            // the range to start a new one.
+            if ((currentRange && !currentRange.matched) || c > lastRangeCharacter + 1) {
+                closeRangeGap(c);
+            }
+            
+            // set up a new match range or add to the current one
+            if (!currentRange) {
+                currentRange = {
+                    text: str[c],
+                    matched: true
+                };
+            } else {
+                currentRange.text += str[c];
+            }
+            lastRangeCharacter = c;
+        }
+        
+        // Compares the current character from the query string against the
+        // special characters in compareStr.
+        function compareSpecials() {
+            // used to loop through the specials
+            var i;
+            
+            // used to keep track of where we are in compareStr
+            // without overriding strCounter until we have a match
+            var tempsc;
+            var foundMatch = false;
+            for (i = specialsCounter; i < specials.length; i++) {
+                tempsc = specials[i];
+                // first, check to see if strCounter has moved beyond
+                // the current special character. This is possible
+                // if the contiguous comparison continued on through
+                // the next special
+                if (tempsc < strCounter) {
+                    specialsCounter = i;
+                } else if (query[queryCounter] === compareStr[tempsc]) {
+                    // we have a match! do the required tracking
+                    specialsCounter++;
+                    queryCounter++;
+                    strCounter = tempsc;
+                    if (DEBUG_SCORES) {
+                        scoreDebug.special += SPECIAL_POINTS;
+                    }
+                    score += SPECIAL_POINTS;
+                    addMatch(strCounter++);
+                    foundMatch = true;
+                    break;
+                }
+            }
+            
+            // when we find a match, we switch to looking for consecutive matching characters
+            if (foundMatch) {
+                state = CONTIGUOUS_COMPARE;
+            } else {
+                // we didn't find a match among the specials
+                state = SPECIALS_EXHAUSTED;
+            }
+        }
+        
+        // keep looping until we've either exhausted the query or the string
+        while (queryCounter < query.length && strCounter < str.length) {
+            if (state === SPECIALS_COMPARE) {
+                compareSpecials();
+            } else if (state === CONTIGUOUS_COMPARE || state === SPECIALS_EXHAUSTED) {
+                // for both of these states, we're looking character by character 
+                // for matches
+                if (query[queryCounter] === compareStr[strCounter]) {
+                    // got a match! record it, and switch to CONTIGUOUS_COMPARE
+                    // in case we had been in SPECIALS_EXHAUSTED state
+                    queryCounter++;
+                    addMatch(strCounter++);
+                    state = CONTIGUOUS_COMPARE;
+                } else {
+                    // no match. If we were in CONTIGUOUS_COMPARE mode, we
+                    // we switch to looking for specials again. If we've
+                    // already exhaused the specials, we're just going to keep
+                    // stepping through compareStr.
+                    if (state !== SPECIALS_EXHAUSTED) {
+                        compareSpecials();
+                    } else {
+                        strCounter++;
                     }
                 }
             }
         }
         
-        if (maxlength === 0) {
-            return undefined;
+        var result;
+        // Add the rest of the string ranges
+        closeRangeGap(str.length);
+        
+        // It's not a match if we still have query string left.
+        if (queryCounter < query.length) {
+            result = null;
         } else {
-            return {
-                length: maxlength,
-                position1: pos1,
-                position2: pos2
+            result = {
+                matchGoodness: score,
+                ranges: ranges
             };
+            if (DEBUG_SCORES) {
+                result.scoreDebug = scoreDebug;
+            }
+        }
+        return result;
+    }
+    
+    /*
+     * Seek out the best match in the last segment (generally the filename). 
+     * Matches in the filename are preferred, but the query entered could match
+     * any part of the path. So, we find the best match we can get in the filename
+     * and then allow for searching the rest of the string with any characters that
+     * are left from the beginning of the query.
+     *
+     * The parameters and return value are the same as for getMatchRanges,
+     * except this function is always working on the last segment and the
+     * result can optionally include a remainder, which is the characters
+     * at the beginning of the query which did not match in the last segment.
+     */
+    function lastSegmentSearch(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
+        var queryCounter, matchRanges;
+        
+        // It's possible that the query is longer than the last segment.
+        // If so, we can chop off the bit that we know couldn't possibly be there.
+        var remainder = "";
+        var extraCharacters = specials[startingSpecial] + query.length - str.length;
+
+        if (extraCharacters > 0) {
+            remainder = query.substring(0, extraCharacters);
+            query = query.substring(extraCharacters);
+        }
+        
+        for (queryCounter = 0; queryCounter < query.length; queryCounter++) {
+            matchRanges = getMatchRanges(query.substring(queryCounter),
+                                     str, compareStr, specials, startingSpecial, lastSegmentStart);
+            
+            // if we've got a match *or* there are no segments in this string, we're done
+            if (matchRanges !== null || !startingSpecial) {
+                break;
+            }
+        }
+        
+        if (queryCounter === query.length || !matchRanges) {
+            return null;
+        } else {
+            matchRanges.remainder = remainder + query.substring(0, queryCounter);
+            return matchRanges;
         }
     }
-
-   /**
-    * Performs matching of a string based on a query, and scores
-    * the result based on specificity (assuming that the rightmost
-    * side of the input is the most specific) and how clustered the
-    * query characters are in the input string. The matching is
-    * case-insensitive, but case is taken into account in the scoring.
-    *
-    * If the query characters cannot be found in order (but not necessarily all together), 
-    * undefined is returned.
-    *
-    * The returned SearchResult has a matchGoodness score that can be used
-    * for sorting. It also has a stringRanges array, each entry with
-    * "text", "matched" and "segment". If you string the "text" properties together, you will
-    * get the original str. Using the matched property, you can highlight
-    * the string matches. The segment property tells you the most specific (rightmost)
-    * segment covered by the range, though there may be more than one segment covered.
-    * Segments are currently determined by "/"s.
-    *
-    * Use basicMatchSort() to sort the filtered results taking this ranking into account.
-    * The label of the SearchResult is set to 'str'.
-    * @param {!string} str
-    * @param {!string} query
-    * @return {?SearchResult}
-    */
-    function stringMatch(str, query) {
+    
+    /*
+     * Implements the top-level search algorithm. Search the last segment first,
+     * then search the rest of the string with the remainder.
+     *
+     * The parameters and return value are the same as for getMatchRanges.
+     */
+    function orderedCompare(query, str, compareStr, specials, lastSegmentSpecialsIndex) {
+        var lastSegmentStart = specials[lastSegmentSpecialsIndex];
         var result;
         
-        // start at the end and work backward, because we give preference
-        // to matches in the name (last) segment
-        var strCounter = str.length - 1;
-        
-        // stringRanges are used to keep track of which parts of
-        // the input str matched the query
-        var stringRanges = [];
-        
-        // segmentCounter tracks which "segment" (delimited section) of the
-        // str we are in so that we can treat certain (generally most-specific) segments
-        // specially.
-        var segmentCounter = 0;
-        
-        // Keeps track of the most specific segment that the current stringRange
-        // is associated with.
-        var rangeSegment = 0;
-                
-        // addToStringRanges is used when we transition between matched and unmatched
-        // parts of the string.
-        function addToStringRanges(numberOfCharacters, matched) {
-            var segment = rangeSegment;
-            rangeSegment = segmentCounter;
-            stringRanges.unshift({
-                text: str.substr(strCounter + 1, numberOfCharacters),
-                matched: matched,
-                segment: segment
-            });
+        if (lastSegmentStart + query.length < str.length) {
+            result = lastSegmentSearch(query, str, compareStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
         }
+        
+        if (result) {
+            // Do we have more query characters that did not fit?
+            if (result.remainder) {
+                // Scan with the remainder only through the beginning of the last segment
+                var result2 = getMatchRanges(result.remainder, str.substring(0, lastSegmentStart),
+                                              compareStr.substring(0, lastSegmentStart),
+                                              specials.slice(0, lastSegmentSpecialsIndex), 0, lastSegmentStart);
+                
+                if (result2) {
+                    // We have a match
+                    // This next part deals with scoring for the case where
+                    // there are consecutive matched characters at the border of the
+                    // last segment.
+                    var lastRange = result2.ranges[result2.ranges.length - 1];
+                    if (result.ranges[0].matched && lastRange.matched) {
+                        result.matchGoodness += lastRange.text.length * CONSECUTIVE_MATCHES_POINTS;
+                        if (DEBUG_SCORES) {
+                            result.scoreDebug.consecutive += lastRange.text.length * CONSECUTIVE_MATCHES_POINTS;
+                        }
+                    }
+                    
+                    // add the new matched ranges to the beginning of the set of ranges we had
+                    result.ranges.unshift.apply(result.ranges, result2.ranges);
+                } else {
+                    // no match
+                    return null;
+                }
+            } else {
+                // There was no remainder, which means that the whole match is in the
+                // last segment. We need to add a range at the beginning for everything
+                // that came before the last segment.
+                result.ranges.unshift({
+                    text: str.substring(0, lastSegmentStart),
+                    matched: false,
+                    lastSegment: false
+                });
+            }
+            delete result.remainder;
+        } else {
+            // No match in the last segment, so we start over searching the whole
+            // string
+            result = getMatchRanges(query, str, compareStr, specials, 0, lastSegmentStart);
+        }
+        
+        if (result) {
+            var lengthPenalty = -1 * Math.round(str.length * DEDUCTION_FOR_LENGTH);
+            if (DEBUG_SCORES) {
+                result.scoreDebug.lengthDeduction = lengthPenalty;
+            }
+            result.matchGoodness = result.matchGoodness + lengthPenalty;
+        }
+        return result;
+    }
+    
+    /*
+     * Match str against the query using the QuickOpen algorithm provided by
+     * the functions above. The general idea is to prefer matches in the last
+     * segment (the filename) and matches of "special" characters. stringMatch
+     * will try to provide the best match and produces a "matchGoodness" score
+     * to allow for relative ranking.
+     *
+     * The result object returned includes "stringRanges" which can be used to highlight
+     * the matched portions of the string, in addition to the "matchGoodness"
+     * mentioned above. If DEBUG_SCORES is true, scoreDebug is set on the result
+     * to provide insight into the score.
+     *
+     * The matching is done in a case-insensitive manner.
+     * 
+     * @param {string} str  The string to search
+     * @param {string} query  The query string to find in string
+     */
+    function stringMatch(str, query) {
+        var result;
 
         // No query? Short circuit the normal work done and just
         // return a single range that covers the whole string.
         if (!query) {
             result = new SearchResult(str);
             result.matchGoodness = 0;
-            strCounter = -1;
-            addToStringRanges(str.length, false);
-            result.stringRanges = stringRanges;
+            if (DEBUG_SCORES) {
+                result.scoreDebug = {};
+            }
+            result.stringRanges = [{
+                text: str,
+                matched: false,
+                lastSegment: true
+            }];
             return result;
         }
         
-        var queryChars = query.toLowerCase().split("");
+        // Locate the special characters and then use orderedCompare to do the real
+        // work.
+        var special = findSpecialCharacters(str);
+        var compareData = orderedCompare(query.toLowerCase(), str, str.toLowerCase(), special.specials,
+                              special.lastSegmentSpecialsIndex);
         
-        // start at the end of the query
-        var queryCounter = queryChars.length - 1;
-
-        var score = 0;
-        
-        // sequentialMatches is positive when we are stepping through matched
-        // characters and negative when stepping through unmatched characters
-        var sequentialMatches = 0;
-        
-        while (strCounter >= 0 && queryCounter >= 0) {
-            var curChar = str.charAt(strCounter);
-            
-            // Ideally, this function will work with different delimiters used in
-            // different contexts. For now, this is used for paths delimited by '/'.
-            if (curChar === '/') {
-                // Beginning of segment, apply boost for a matching
-                // string of characters, if there is one
-                if (sequentialMatches > 0) {
-                    score += _boostForPathSegmentStart(sequentialMatches);
-                }
-                
-                score = _adjustScoreForSegment(segmentCounter, score);
-                segmentCounter++;
+        // If we get a match, turn this into a SearchResult as expected by the consumers
+        // of this API.
+        if (compareData) {
+            result = new SearchResult(str);
+            result.stringRanges = compareData.ranges;
+            result.matchGoodness = -1 * compareData.matchGoodness;
+            if (DEBUG_SCORES) {
+                result.scoreDebug = compareData.scoreDebug;
             }
-            
-            if (queryChars[queryCounter] === curChar.toLowerCase()) {
-                
-                score += _boostForUpperCase(curChar);
-                
-                // are we ending a string of unmatched characters?
-                if (sequentialMatches < 0) {
-                    addToStringRanges(-sequentialMatches, false);
-                    sequentialMatches = 0;
-                }
-                
-                // matched character, chalk up another match
-                // and move both counters back a character
-                sequentialMatches++;
-                queryCounter--;
-                strCounter--;
-            } else {
-                // are we ending a string of matched characters?
-                if (sequentialMatches > 0) {
-                    addToStringRanges(sequentialMatches, true);
-                    score += _boostForMatches(sequentialMatches);
-                    sequentialMatches = 0;
-                }
-                // character didn't match, apply sequential matches
-                // to score and keep looking
-                strCounter--;
-                sequentialMatches--;
-            }
+        } else {
+            result = undefined;
         }
-        
-        // if there are still query characters left, we don't
-        // have a match
-        if (queryCounter >= 0) {
-            return undefined;
-        }
-        
-        if (sequentialMatches) {
-            addToStringRanges(Math.abs(sequentialMatches), sequentialMatches > 0);
-        }
-        
-        if (strCounter >= 0) {
-            stringRanges.unshift({
-                text: str.substring(0, strCounter + 1),
-                matched: false,
-                segment: rangeSegment
-            });
-        }
-        
-        // now, we need to apply any score we've accumulated
-        // before we ran out of query characters
-        score += _boostForMatches(sequentialMatches);
-        
-        if (sequentialMatches && strCounter >= 0) {
-            if (str.charAt(strCounter) === '/') {
-                score += _boostForPathSegmentStart(sequentialMatches);
-            }
-        }
-        score = _adjustScoreForSegment(segmentCounter, score);
-        
-        // Produce a SearchResult that is augmented with matchGoodness
-        // (used for sorting) and stringRanges (used for highlighting
-        // matched areas of the string)
-        result = new SearchResult(str);
-        result.matchGoodness = -1 * score;
-        result.stringRanges = stringRanges;
         return result;
     }
     
@@ -810,11 +1070,17 @@ define(function (require, exports, module) {
             stringRanges = [{
                 text: label,
                 matched: false,
-                segment: 0
+                lastSegment: true
             }];
         }
         
         var displayName = "";
+        if (DEBUG_SCORES) {
+            var sd = item.scoreDebug;
+            displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
+                ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
+                ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + '">(' + item.matchGoodness + ') </span>';
+        }
         
         // Put the path pieces together, highlighting the matched parts
         stringRanges.forEach(function (range) {
@@ -822,7 +1088,7 @@ define(function (require, exports, module) {
                 displayName += "<span class='" + matchClass + "'>";
             }
             
-            var rangeText = rangeFilter ? rangeFilter(range.segment, range.text) : range.text;
+            var rangeText = rangeFilter ? rangeFilter(range.lastSegment, range.text) : range.text;
             displayName += StringUtils.breakableUrl(StringUtils.htmlEscape(rangeText));
             
             if (range.matched) {
@@ -841,8 +1107,8 @@ define(function (require, exports, module) {
     
     function _filenameResultsFormatter(item, query) {
         // For main label, we just want filename: drop most of the string
-        function fileNameFilter(segment, rangeText) {
-            if (segment === 0) {
+        function fileNameFilter(lastSegment, rangeText) {
+            if (lastSegment) {
                 var rightmostSlash = rangeText.lastIndexOf('/');
                 return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
             } else {
@@ -1066,5 +1332,8 @@ define(function (require, exports, module) {
     exports.basicMatchSort          = basicMatchSort;
     exports.multiFieldSort          = multiFieldSort;
     exports.highlightMatch          = highlightMatch;
-    exports._longestCommonSubstring = _longestCommonSubstring;
+    exports._findSpecialCharacters  = findSpecialCharacters;
+    exports._orderedCompare         = orderedCompare;
+    exports._lastSegmentSearch      = lastSegmentSearch;
+    exports._setDebugScores         = _setDebugScores;
 });

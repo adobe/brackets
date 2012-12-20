@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, require: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
+/*global define: false, require: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, jasmine: false */
 /*unittests: QuickOpen */
 
 define(function (require, exports, module) {
@@ -32,35 +32,209 @@ define(function (require, exports, module) {
     var QuickOpen = require("search/QuickOpen");
     
     describe("QuickOpen", function () {
-        describe("longestCommonSubstring", function () {
-            var lcs = QuickOpen._longestCommonSubstring;
-            
-            it("should find the right substrings", function () {
-                expect(lcs("Sub", "longestCommonSubstring")).toEqual({
-                    length: 3,
-                    position1: 0,
-                    position2: 13
+        QuickOpen._setDebugScores(false);
+        describe("findSpecialCharacters", function () {
+            it("should find the important match characters in the string", function () {
+                var fSC = QuickOpen._findSpecialCharacters;
+                expect(fSC("src/document/DocumentCommandHandler.js")).toEqual({
+                    lastSegmentSpecialsIndex: 4,
+                    specials: [0, 3, 4, 12, 13, 21, 28, 35, 36]
+                });
+                
+                expect(fSC("foobar.js")).toEqual({
+                    lastSegmentSpecialsIndex: 0,
+                    specials: [0, 6, 7]
+                });
+            });
+        });
+        
+        describe("_lastSegmentSearch", function () {
+            it("should compare results in the final segment properly", function () {
+                var path = "src/document/DocumentCommandHandler.js";
+                var comparePath = path.toLowerCase();
+                var _lastSegmentSearch = QuickOpen._lastSegmentSearch;
+                var sc = QuickOpen._findSpecialCharacters(path);
+                expect(_lastSegmentSearch("d", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "D", matched: true, lastSegment: true },
+                        { text: "ocumentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(_lastSegmentSearch("do", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "Do", matched: true, lastSegment: true },
+                        { text: "cumentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(_lastSegmentSearch("doc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(_lastSegmentSearch("docc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "ument", matched: false, lastSegment: true },
+                        { text: "C", matched: true, lastSegment: true },
+                        { text: "ommandHandler.js", matched: false, lastSegment: true }
+                    ]
+                });
+
+                expect(_lastSegmentSearch("docch", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "ument", matched: false, lastSegment: true },
+                        { text: "C", matched: true, lastSegment: true },
+                        { text: "ommand", matched: false, lastSegment: true },
+                        { text: "H", matched: true, lastSegment: true },
+                        { text: "andler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(_lastSegmentSearch("docch.js", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "ument", matched: false, lastSegment: true },
+                        { text: "C", matched: true, lastSegment: true },
+                        { text: "ommand", matched: false, lastSegment: true },
+                        { text: "H", matched: true, lastSegment: true },
+                        { text: "andler", matched: false, lastSegment: true },
+                        { text: ".js", matched: true, lastSegment: true }
+                    ]
+                });
+                
+                expect(_lastSegmentSearch("ocu", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "D", matched: false, lastSegment: true },
+                        { text: "ocu", matched: true, lastSegment: true },
+                        { text: "mentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(_lastSegmentSearch("ocuha", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    remainder: "",
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "D", matched: false, lastSegment: true },
+                        { text: "ocu", matched: true, lastSegment: true },
+                        { text: "mentCommand", matched: false, lastSegment: true },
+                        { text: "Ha", matched: true, lastSegment: true },
+                        { text: "ndler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(_lastSegmentSearch("z", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(_lastSegmentSearch("ocuz", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                
+                expect(_lastSegmentSearch("sdoc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    remainder: "s",
+                    ranges: [
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
                 });
             });
             
-            it("should work the other way around", function () {
-                expect(lcs("longestCommonSubstring", "Sub")).toEqual({
-                    length: 3,
-                    position1: 13,
-                    position2: 0
+            it("should handle weird comparisons as well", function () {
+                // this is a special case, to ensure that a "special" character following
+                // other matched characters doesn't become a match
+                // note that the d's in Command and Handler have been removed
+                var path = "DocumentCommanHanler.js";
+                var comparePath = path.toLowerCase();
+                var _lastSegmentSearch = QuickOpen._lastSegmentSearch;
+                var sc = QuickOpen._findSpecialCharacters(path);
+                expect(_lastSegmentSearch("ocud", path, comparePath, sc.specials)).toEqual(null);
+            });
+            
+            it("should compare matches that don't fit in just the final segment", function () {
+                var path = "src/document/DocumentCommandHandler.js";
+                var comparePath = path.toLowerCase();
+                var orderedCompare = QuickOpen._orderedCompare;
+                var sc = QuickOpen._findSpecialCharacters(path);
+                expect(orderedCompare("sdoc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "s", matched: true, lastSegment: false },
+                        { text: "rc/document/", matched: false, lastSegment: false },
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(orderedCompare("doc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "src/document/", matched: false, lastSegment: false },
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
+                });
+                expect(orderedCompare("z", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                
+                expect(orderedCompare("docdoc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "src/", matched: false, lastSegment: false },
+                        { text: "doc", matched: true, lastSegment: false },
+                        { text: "ument/", matched: false, lastSegment: false },
+                        { text: "Doc", matched: true, lastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                    ]
                 });
             });
             
-            it("should handle substrings properly", function () {
-                expect(lcs("longestCommonSubstring", "randomjunkSubmorejunk")).toEqual({
-                    length: 3,
-                    position1: 13,
-                    position2: 10
+            it("should handle matches that don't fit at all in the final segment", function () {
+                var path = "src/extensions/default/QuickOpenCSS/main.js";
+                var comparePath = path.toLowerCase();
+                var orderedCompare = QuickOpen._orderedCompare;
+                var sc = QuickOpen._findSpecialCharacters(path);
+                expect(orderedCompare("quick", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "src/extensions/default/", matched: false, lastSegment: false },
+                        { text: "Quick", matched: true, lastSegment: false },
+                        { text: "OpenCSS/main.js", matched: false, lastSegment: true }
+                    ]
                 });
-            });
-            
-            it("should handle no matches at all", function () {
-                expect(lcs("longestCommonSubstring", "zzz")).toBeUndefined();
+                
+                expect(orderedCompare("quickopen", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "src/extensions/default/", matched: false, lastSegment: false },
+                        { text: "QuickOpen", matched: true, lastSegment: false },
+                        { text: "CSS/main.js", matched: false, lastSegment: true }
+                    ]
+                });
+                
+                expect(orderedCompare("quickopenain", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    ranges: [
+                        { text: "src/extensions/default/", matched: false, lastSegment: false },
+                        { text: "QuickOpen", matched: true, lastSegment: false },
+                        { text: "CSS/m", matched: false, lastSegment: true },
+                        { text: "ain", matched: true, lastSegment: true },
+                        { text: ".js", matched: false, lastSegment: true }
+                    ]
+                });
             });
         });
         
@@ -88,6 +262,22 @@ define(function (require, exports, module) {
                 range = ranges.shift();
                 expect(range.text).toBe("b");
                 expect(range.matched).toBe(true);
+                
+                result = stringMatch("src/extensions/default/QuickOpenCSS/main.js", "quick");
+                ranges = result.stringRanges;
+                expect(ranges.length).toBe(3);
+                
+                expect(stringMatch("src/search/QuickOpen.js", "qo")).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "src/search/QuickOpen.js",
+                    stringRanges: [
+                        { text: "src/search/", matched: false, lastSegment: false },
+                        { text: "Q", matched: true, lastSegment: true },
+                        { text: "uick", matched: false, lastSegment: true },
+                        { text: "O", matched: true, lastSegment: true },
+                        { text: "pen.js", matched: false, lastSegment: true }
+                    ]
+                });
             });
             
             var goodRelativeOrdering = function (query, testStrings) {
@@ -118,6 +308,52 @@ define(function (require, exports, module) {
                     "test/spec/LiveDevelopment-test.js",
                     "test/spec/LiveDevelopment-chrome-user-data/Default/VisitedLinks"
                 ])).toBe(true);
+            });
+            it("should find the right samples/index", function () {
+                expect(goodRelativeOrdering("samples/index", [
+                    "samples/de/Erste Schritte/index.html",
+                    "src/thirdparty/CodeMirror2/mode/ntriples/index.html"
+                ])).toBe(true);
+            });
+            it("should find the right Commands", function () {
+                expect(goodRelativeOrdering("Commands", [
+                    "src/command/Commands.js",
+                    "src/command/CommandManager.js"
+                ])).toBe(true);
+            });
+            it("should find the right extensions", function () {
+                expect(goodRelativeOrdering("extensions", [
+                    "src/utils/ExtensionLoader.js",
+                    "src/extensions/default/RecentProjects/styles.css"
+                ])).toBe(true);
+            });
+            it("should find the right EUtil", function () {
+                expect(goodRelativeOrdering("EUtil", [
+                    "src/editor/EditorUtils.js",
+                    "src/utils/ExtensionUtils.js",
+                    "src/file/FileUtils.js"
+                ]));
+            });
+        });
+        
+        describe("scoring", function () {
+            beforeEach(function () {
+                QuickOpen._setDebugScores(true);
+            });
+            
+            afterEach(function () {
+                QuickOpen._setDebugScores(false);
+            });
+            
+            it("should score consecutive matches across the last segment", function () {
+                var result1 = QuickOpen.stringMatch("test/spec/LiveDevelopment-test.js", "spec/live");
+                var result2 = QuickOpen.stringMatch("test/spec/live/foobar.js", "spec/live");
+                expect(result2.scoreDebug.consecutive).toEqual(result1.scoreDebug.consecutive);
+            });
+            
+            it("should boost last segment matches, even when searching the whole string", function () {
+                var result = QuickOpen.stringMatch("src/extensions/default/QuickOpenCSS/main.js", "quickopenain");
+                expect(result.scoreDebug.lastSegment).toBeGreaterThan(0);
             });
         });
     });
