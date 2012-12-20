@@ -120,36 +120,31 @@ define(function (require, exports, module) {
             key = "",
             error = false;
 
-        function _compareModifierString(left, right, previouslyFound, origDescriptor) {
+        function _compareModifierString(left, right, origDescriptor) {
             if (!left || !right) {
                 return false;
             }
             left = left.trim().toLowerCase();
             right = right.trim().toLowerCase();
-            var matched = (left.length > 0 && left === right);
-            if (matched && previouslyFound) {
-                console.log("KeyBindingManager normalizeKeyDescriptorString() - Modifier " + left + " defined twice: " + origDescriptor);
-            }
-            return matched;
+            
+            return (left.length > 0 && left === right);
         }
         
         var ctrlAlreadyFound = false;
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
-            ctrlAlreadyFound = (brackets.platform === "mac") ? hasMacCtrl : hasCtrl;
-            
-            if (_compareModifierString("ctrl", ele, ctrlAlreadyFound, origDescriptor)) {
+            if (_compareModifierString("ctrl", ele, origDescriptor)) {
                 if (brackets.platform === "mac") {
                     hasMacCtrl = true;
                 } else {
                     hasCtrl = true;
                 }
-            } else if (_compareModifierString("cmd", ele, hasCtrl, origDescriptor)) {
+            } else if (_compareModifierString("cmd", ele, origDescriptor)) {
                 hasCtrl = true;
-            } else if (_compareModifierString("alt", ele, hasAlt, origDescriptor)) {
+            } else if (_compareModifierString("alt", ele, origDescriptor)) {
                 hasAlt = true;
-            } else if (_compareModifierString("opt", ele, hasAlt, origDescriptor)) {
+            } else if (_compareModifierString("opt", ele, origDescriptor)) {
                 hasAlt = true;
-            } else if (_compareModifierString("shift", ele, hasShift, origDescriptor)) {
+            } else if (_compareModifierString("shift", ele, origDescriptor)) {
                 hasShift = true;
             } else if (key.length > 0) {
                 console.log("KeyBindingManager normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
