@@ -337,27 +337,27 @@ a, img {
     
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .sprite-icon(0,0, 22px,11px, "images/live_development_sprites.svg");
+    .sprite-icon(0,0, 22px,16px, "images/live_development_sprites.svg");
     &:hover {
-        .sprite-swap(0,11px);
+        .sprite-swap(0,16px);
     }
     // 'Connected' state
     &.success {
-        .sprite-swap(0,22px);
+        .sprite-swap(0,32px);
     }
     &.success:hover {
-        .sprite-swap(0,33px);
+        .sprite-swap(0,48px);
     }
     // 'Connection in progress' state
     &.info {
-        .sprite-swap(0,44px);
+        .sprite-swap(0,64px);
     }
     // 'Out-of-sync' state
     &.out-of-sync {
-        .sprite-swap(0,55px);
+        .sprite-swap(0,80px);
     }
     &.out-of-sync:hover {
-        .sprite-swap(0,66px);
+        .sprite-swap(0,96px);
     }
 }
 
