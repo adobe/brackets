@@ -1,8 +1,0 @@
-.git/
-doc/
-node_modules/
-tmp/
-support/
-demo/
-js-yaml.js
-js-yaml.min.js
