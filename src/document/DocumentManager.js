@@ -398,7 +398,8 @@ define(function (require, exports, module) {
      */
     function getNextPrevFile(inc) {
         if (inc !== -1 && inc !== +1) {
-            throw new Error("Illegal argument: inc = " + inc);
+            console.error("Illegal argument: inc = " + inc);
+            return null;
         }
         
         if (_currentDocument) {
@@ -659,7 +660,8 @@ define(function (require, exports, module) {
         if (this._refCount === 0) {
             //console.log("+++ adding to open list");
             if (_openDocuments[this.file.fullPath]) {
-                throw new Error("Document for this path already in _openDocuments!");
+                console.error("Document for this path already in _openDocuments!");
+                return;
             }
 
             _openDocuments[this.file.fullPath] = this;
@@ -673,12 +675,14 @@ define(function (require, exports, module) {
 
         this._refCount--;
         if (this._refCount < 0) {
-            throw new Error("Document ref count has fallen below zero!");
+            console.error("Document ref count has fallen below zero!");
+            return;
         }
         if (this._refCount === 0) {
             //console.log("--- removing from open list");
             if (!_openDocuments[this.file.fullPath]) {
-                throw new Error("Document with references was not in _openDocuments!");
+                console.error("Document with references was not in _openDocuments!");
+                return;
             }
 
             $(exports).triggerHandler("beforeDocumentDelete", this);
@@ -694,7 +698,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
-            throw new Error("Document is already editable");
+            console.error("Document is already editable");
         } else {
             this._text = null;
             this._masterEditor = masterEditor;
@@ -709,7 +713,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._makeNonEditable = function () {
         if (!this._masterEditor) {
-            throw new Error("Document is already non-editable");
+            console.error("Document is already non-editable");
         } else {
             // _text represents the raw text, so fetch without normalized line endings
             this._text = this.getText(true);

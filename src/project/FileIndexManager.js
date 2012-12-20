@@ -100,10 +100,12 @@ define(function (require, exports, module) {
     */
     function _addIndex(indexName, filterFunction) {
         if (_indexList.hasOwnProperty(indexName)) {
-            throw new Error("Duplicate index name");
+            console.error("Duplicate index name");
+            return;
         }
         if (typeof filterFunction !== "function") {
-            throw new Error("Invalid arguments");
+            console.error("Invalid arguments");
+            return;
         }
 
         _indexList[indexName] = new FileIndex(indexName, filterFunction);
@@ -158,7 +160,8 @@ define(function (require, exports, module) {
     */
     function _scanDirectorySubTree(dirEntry) {
         if (!dirEntry) {
-            throw new Error("Bad dirEntry passed to _scanDirectorySubTree");
+            console.error("Bad dirEntry passed to _scanDirectorySubTree");
+            return;
         }
 
         // keep track of directories as they are asynchronously read. We know we are done
@@ -287,7 +290,8 @@ define(function (require, exports, module) {
 
         // TODO (issue 330) - allow multiple calls to syncFileIndex to be batched up so that this code isn't necessary
         if (_syncFileIndexReentracyGuard) {
-            throw new Error("syncFileIndex cannot be called Recursively");
+            console.error("syncFileIndex cannot be called Recursively");
+            return;
         }
 
         _syncFileIndexReentracyGuard = true;
@@ -322,7 +326,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         if (!_indexList.hasOwnProperty(indexName)) {
-            throw new Error("indexName not found");
+            console.error("indexName not found");
+            return;
         }
 
         syncFileIndex()
@@ -344,7 +349,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
 
         if (!_indexList.hasOwnProperty(indexName)) {
-            throw new Error("indexName not found");
+            console.error("indexName not found");
+            return;
         }
 
         syncFileIndex()
