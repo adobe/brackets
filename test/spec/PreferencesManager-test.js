@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         });
         
         it("should throw errors for invalid values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo":42});
+            var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
             var error = null;
             
             expect(store.getValue("foo")).toBe(42);
