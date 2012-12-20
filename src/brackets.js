@@ -293,6 +293,9 @@ define(function (require, exports, module) {
         
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
+            // check once a day, plus 2 minutes, 
+            // as the check will skip if the last check was not -24h ago
+            window.setInterval(UpdateNotification.checkForUpdate, 86520000);
             UpdateNotification.checkForUpdate();
         }
     }
