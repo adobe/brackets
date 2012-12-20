@@ -199,6 +199,12 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 6, ch: 10 });    // cursor between space and =
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
+            it("should NOT list hints to right of '=' sign with whitespace on id attr", function () {
+                testEditor.setCursorPos({ line: 6, ch: 11 });   // cursor between = and space
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+                testEditor.setCursorPos({ line: 6, ch: 12 });   // cursor between space and '
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
             it("should list hints to right of '=' sign with whitespace", function () {
                 testDocument.setText('<style type = "text/css">');
                 testEditor.setCursorPos({ line: 0, ch: 13 });   // cursor between = and space
