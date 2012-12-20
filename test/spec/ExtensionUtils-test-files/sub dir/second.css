@@ -1,5 +1,5 @@
 /* second.css - 2.7MB of text */
-@import url("third.css");
+@import url(third.css); /* optional quotes */
 
 #project-title {
     font-weight: 500;

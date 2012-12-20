@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     var Async = require("utils/Async");
     
     // naïve match for import statements in CSS
-    var RE_IMPORT = /@import\s+(?:url\()?\s*('|")([^'"]+)\1\s*(?:\))?;/g;
+    var RE_IMPORT = /@import\s+(?:url\()?\s*('|")?([^'")]+)(?:\1)?\s*(?:\))?;/g;
     
     /**
      * Appends a <style> tag to the document's head.
