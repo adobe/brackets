@@ -1,0 +1,1 @@
+- !!js/function function foo() { return 'bar'; }

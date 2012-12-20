@@ -180,7 +180,11 @@ define(function (require, exports, module) {
                     var deferred = new $.Deferred(),
                         link = addLinkedStyleSheet(url, deferred);
                     
-                    deferred.pipe(result.resolve, result.reject);
+                    deferred
+                        .done(function () {
+                            result.resolve(link);
+                        })
+                        .fail(result.reject);
                 }
             })
             .fail(result.reject);

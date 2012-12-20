@@ -1,0 +1,1 @@
+{%= s.multi_task %}
