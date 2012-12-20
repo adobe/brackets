@@ -520,6 +520,7 @@ define(function (require, exports, module) {
     function setEditorHolder(holder) {
         if (_currentEditor) {
             console.error("Cannot change editor area after an editor has already been created!");
+            return;
         }
         
         _editorHolder = holder;

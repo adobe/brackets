@@ -399,6 +399,7 @@ define(function (require, exports, module) {
             var commandObj = CommandManager.get(command);
             if (!commandObj) {
                 console.error("removeMenuItem(): command not found: " + command);
+                return;
             }
 
             menuItemID = this._getMenuItemId(command);
@@ -770,6 +771,7 @@ define(function (require, exports, module) {
 
         if (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY")) {
             console.error("ContextMenu open(): missing required parameter");
+            return;
         }
 
         var $window = $(window),
@@ -844,6 +846,7 @@ define(function (require, exports, module) {
     function registerContextMenu(id) {
         if (!id) {
             console.error("call to registerContextMenu() is missing required parameters");
+            return null;
         }
         
         // Guard against duplicate menu ids
