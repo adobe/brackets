@@ -123,7 +123,8 @@ define(function (require, exports, module) {
      */
     function setFileViewFocus(fileSelectionFocus) {
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
-            throw new Error("Bad parameter passed to FileViewController.setFileViewFocus");
+            console.error("Bad parameter passed to FileViewController.setFileViewFocus");
+            return;
         }
 
         _fileSelectionFocus = fileSelectionFocus;
@@ -141,7 +142,8 @@ define(function (require, exports, module) {
         var result;
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
-            throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
+            console.error("Bad parameter passed to FileViewController.openAndSelectDocument");
+            return;
         }
 
         // Opening files are asynchronous and we want to know when this function caused a file
