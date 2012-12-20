@@ -92,9 +92,14 @@ define(function (require, exports, module) {
      * Closes this inline widget and all its contained Editors
      */
     InlineWidget.prototype.close = function () {
-        var shouldMoveFocus = this._editorHasFocus();
-        EditorManager.closeInlineWidget(this.hostEditor, this, shouldMoveFocus);
+        EditorManager.closeInlineWidget(this.hostEditor, this);
         // closeInlineWidget() causes our onClosed() handler to be called
+    };
+    
+    /** @return {boolean} True if any part of the inline widget is focused */
+    InlineWidget.prototype.hasFocus = function () {
+        // True if anything in widget's DOM tree has focus (find() excludes root node, hence the extra check)
+        return this.$htmlContent.find(":focus").length > 0 || this.$htmlContent.is(":focus");
     };
     
     /**

@@ -176,11 +176,6 @@ define(function (require, exports, module) {
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
     };
 
-    /** @override */
-    InlineColorEditor.prototype._editorHasFocus = function () {
-        return true;
-    };
-        
     /**
      * @override
      * Perform sizing & focus once we've been added to Editor's DOM

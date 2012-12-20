@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        InlineWidget        = require("editor/InlineWidget").InlineWidget;
+        InlineWidget        = require("editor/InlineWidget").InlineWidget,
+        CollectionUtils     = require("utils/CollectionUtils");
 
     /**
      * Returns editor holder width (not CodeMirror's width).
@@ -187,6 +188,17 @@ define(function (require, exports, module) {
         
         this.editors[0].focus();
     };
+    
+    /**
+     * @return {?Editor} If an Editor within this inline editor has focus, returns it. Otherwise returns null.
+     */
+    InlineTextEditor.prototype.getFocusedEditor = function () {
+        var focusedI = CollectionUtils.indexOf(this.editors, function (editor) {
+            return editor.hasFocus();
+        });
+        return this.editors[focusedI];  // returns undefined if -1, which works
+    };
+
 
     /**
      *
@@ -280,12 +292,6 @@ define(function (require, exports, module) {
         // we don't actually resize the inline editor while its host is invisible (see
         // isFullyVisible() check in sizeInlineWidgetToContents()).
         this.sizeInlineWidgetToContents(true);
-    };
-    
-    InlineTextEditor.prototype._editorHasFocus = function () {
-        return this.editors.some(function (editor) {
-            return editor.hasFocus();
-        });
     };
         
     /**
