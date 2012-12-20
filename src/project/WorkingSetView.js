@@ -229,7 +229,8 @@ define(function (require, exports, module) {
             if (!moved) {
                 if (!fromClose) {
                     if (selected) {
-                        CommandManager.execute(Commands.FILE_RENAME);
+                        // Disabling for Sprint 18 due to issues described in #2394, #2411
+                        //CommandManager.execute(Commands.FILE_RENAME);
                     } else {
                         FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
                     }
