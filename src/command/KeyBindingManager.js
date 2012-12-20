@@ -133,8 +133,11 @@ define(function (require, exports, module) {
             return matched;
         }
         
+        var ctrlAlreadyFound = false;
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
-            if (_compareModifierString("ctrl", ele, hasCtrl, origDescriptor)) {
+            ctrlAlreadyFound = (brackets.platform === "mac") ? hasMacCtrl : hasCtrl;
+            
+            if (_compareModifierString("ctrl", ele, ctrlAlreadyFound, origDescriptor)) {
                 if (brackets.platform === "mac") {
                     hasMacCtrl = true;
                 } else {
@@ -352,8 +355,10 @@ define(function (require, exports, module) {
             targetPlatform = explicitPlatform || brackets.platform,
             command,
             bindingsToDelete = [],
-            existing = _keyMap[key];
+            existing;
         
+        // if the request does not specify an explicit platform, and we're
+        // currently on a mac, then replace Ctrl with Cmd.
         key = (keyBinding.key) || keyBinding;
         if (brackets.platform === "mac" && explicitPlatform === undefined) {
             key = key.replace("Ctrl", "Cmd");
@@ -368,6 +373,9 @@ define(function (require, exports, module) {
             console.log("Failed to normalize " + key);
             return null;
         }
+        
+        // check for duplicate key bindings
+        existing = _keyMap[normalized];
         
         // for cross-platform compatibility
         if (exports.useWindowsCompatibleBindings) {
@@ -394,7 +402,7 @@ define(function (require, exports, module) {
         
         // skip if the key is already assigned explicitly for this platform
         if (existing) {
-            if (!existing.platform) {
+            if (!existing.explicitPlatform) {
                 // remove existing generic bindings, then re-map this binding
                 // to the new command
                 removeBinding(normalized);
