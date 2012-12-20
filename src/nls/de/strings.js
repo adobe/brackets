@@ -185,7 +185,7 @@ define({
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
     "CMD_FIND"                            : "Suchen",
     "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SUBTREE"                 : "Suchen in...",
+    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
     "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
     "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
     "CMD_REPLACE"                         : "Ersetzen",
@@ -232,12 +232,16 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
-    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
-    "CMD_ABOUT"                           : "Über {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
+    "CMD_HOW_TO_USE_BRACKETS"             : "So verwendet man {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
+    "CMD_RELEASE_NOTES"                   : "Versionshinweise",
+    "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
+    "CMD_ABOUT"                           : "Über {APP_TITLE}",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
@@ -245,6 +249,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
+    "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
     "JSLINT_ERRORS"                        : "JSLint-Fehler",
     "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
     "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
@@ -262,14 +267,13 @@ define({
     "ABOUT"                                : "Über",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} experimenteller Build {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
     "GET_IT_NOW"                           : "Jetzt updaten!",
-    "PROJECT_SETTINGS_TOOLTIP"             : "Einstellungen für dieses Projekt",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leer lassen für Datei-URL)",

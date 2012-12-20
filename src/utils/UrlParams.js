@@ -41,7 +41,7 @@ define(function (require, exports, module) {
      */
     UrlParams.prototype.parse = function (url) {
         if (url) {
-            url = url.substring(indexOf("?") + 1);
+            url = url.substring(url.indexOf("?") + 1);
         } else {
             url = window.document.location.search.substring(1);
         }

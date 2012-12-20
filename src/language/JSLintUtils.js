@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils */
+/*global define, $, JSLINT, PathUtils, brackets */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         StatusBar               = require("widgets/StatusBar");
         
     var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { enabled: true };
+        defaultPrefs = { enabled: !!brackets.config.enable_jslint };
     
     /**
      * @private
@@ -220,14 +220,16 @@ define(function (require, exports, module) {
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-    _setEnabled(_prefs.getValue("enabled"));
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var $jslintResults  = $("#jslint-results"),
             $jslintContent  = $("#jslint-results .table-container");
         
-        StatusBar.addIndicator(module.id, $("#gold-star"), true);
+        StatusBar.addIndicator(module.id, $("#gold-star"));
+        
+        // Called on HTML ready to trigger the initial UI state
+        _setEnabled(_prefs.getValue("enabled"));
     });
 
     // Define public API

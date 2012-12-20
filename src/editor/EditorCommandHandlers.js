@@ -128,24 +128,6 @@ define(function (require, exports, module) {
         });
         
     }
-
-    /**
-     * Invokes a language-specific line-comment/uncomment handler
-     * @param {?Editor} editor If unspecified, applies to the currently focused editor
-     */
-    function lineComment(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        
-        var mode = editor.getModeForSelection();
-        
-        // Currently we only support languages with "//" commenting
-        if (mode === "javascript" || mode === "less") {
-            lineCommentSlashSlash(editor);
-        }
-    }
     
     
     /**
@@ -240,26 +222,39 @@ define(function (require, exports, module) {
         var result, text, line;
         
         // Move the context to the first non-empty token.
-        if (ctx.token.className === null) {
+        if (!ctx.token.className && ctx.token.string.trim().length === 0) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
         if (slashComment && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp))) {
+            var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
+            var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
+            
             // Find if we aren't actually inside a block-comment
             result = true;
             while (result && ctx.token.string.match(lineExp)) {
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
             }
             
+            // If we aren't in a block-comment.
             if (!result || ctx.token.className !== "comment" || ctx.token.string.match(suffixExp)) {
-                // We aren't in an block-comment. Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, sel.end.line)) {
+                // Is a range of text selected? (vs just an insertion pt)
+                var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+                
+                // In full-line selection, cursor pos is start of next line - but don't want to modify that line
+                var endLine = sel.end.line;
+                if (sel.end.ch === 0 && hasSelection) {
+                    endLine--;
+                }
+                
+                // Find if all the lines are line-commented.
+                if (!_containsUncommented(editor, sel.start.line, endLine)) {
                     lineUncomment = true;
                 
-                // If can't uncomment then do nothing, since it would create an invalid comment.
+                // Block-comment in all the other cases
                 } else {
-                    invalidComment = true;
+                    canComment = true;
                 }
             } else {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
@@ -311,8 +306,8 @@ define(function (require, exports, module) {
             var start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
             if (editor.posWithinRange(start, sel.start, sel.end)) {
                 // Start searching at the next token, if there is one.
-                result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-                result = !result || _findNextBlockComment(ctx, sel.end, prefixExp);
+                result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
+                         _findNextBlockComment(ctx, sel.end, prefixExp);
                 
                 if (result) {
                     invalidComment = true;
@@ -387,6 +382,69 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    /**
+     * Add or remove block-comment tokens to the selection, preserving selection
+     * and cursor position. Applies to the currently focused Editor.
+     * 
+     * The implementation uses blockCommentPrefixSuffix, with the exception of the case where
+     * there is no selection on a uncommented and not empty line. In this case the whole lines gets
+     * commented in a block-comment.
+     *
+     * @param {!Editor} editor
+     * @param {!String} prefix
+     * @param {!String} suffix
+     */
+    function lineCommentPrefixSuffix(editor, prefix, suffix) {
+        var sel             = editor.getSelection(),
+            selStart        = sel.start,
+            selEnd          = sel.end,
+            prefixExp       = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
+            isLineSelection = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line !== sel.end.line,
+            isMultipleLine  = sel.start.line !== sel.end.line,
+            lineLength      = editor.document.getLine(sel.start.line).length;
+        
+        // Line selections already behave like we want to
+        if (!isLineSelection) {
+            // For a multiple line selection transform it to a multiple whole line selection
+            if (isMultipleLine) {
+                selStart = {line: sel.start.line, ch: 0};
+                selEnd   = {line: sel.end.line + 1, ch: 0};
+            
+            // For one line selections, just start at column 0 and end at the end of the line
+            } else {
+                selStart = {line: sel.start.line, ch: 0};
+                selEnd   = {line: sel.end.line, ch: lineLength};
+            }
+        }
+        
+        // If the selection includes a comment or is already a line selection, delegate to Block-Comment
+        var ctx       = TokenUtils.getInitialContext(editor._codeMirror, {line: selStart.line, ch: selStart.ch});
+        var result    = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+        var className = ctx.token.className;
+        result        = result && _findNextBlockComment(ctx, selEnd, prefixExp);
+        
+        if (className === "comment" || result || isLineSelection) {
+            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+        
+        } else {
+            // Set the new selection and comment it
+            editor.setSelection(selStart, selEnd);
+            blockCommentPrefixSuffix(editor, prefix, suffix, false);
+            
+            // Restore the old selection taking into account the prefix change
+            if (isMultipleLine) {
+                sel.start.line++;
+                sel.end.line++;
+            } else {
+                sel.start.ch += prefix.length;
+                sel.end.ch += prefix.length;
+            }
+            editor.setSelection(sel.start, sel.end);
+        }
+    }
+    
+    
     /**
      * Invokes a language-specific block-comment/uncomment handler
      * @param {?Editor} editor If unspecified, applies to the currently focused editor
@@ -405,6 +463,28 @@ define(function (require, exports, module) {
             blockCommentPrefixSuffix(editor, "/*", "*/", false);
         } else if (mode === "html") {
             blockCommentPrefixSuffix(editor, "<!--", "-->", false);
+        }
+    }
+    
+    /**
+     * Invokes a language-specific line-comment/uncomment handler
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function lineComment(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var mode = editor.getModeForSelection();
+        
+        // Currently we only support languages with "//" commenting
+        if (mode === "javascript" || mode === "less") {
+            lineCommentSlashSlash(editor);
+        } else if (mode === "css") {
+            lineCommentPrefixSuffix(editor, "/*", "*/");
+        } else if (mode === "html") {
+            lineCommentPrefixSuffix(editor, "<!--", "-->");
         }
     }
     

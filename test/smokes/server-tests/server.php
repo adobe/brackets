@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Citrus Cafe</title>
+<link href="/server-tests/css/citrus_mq.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div id="container">
+  <header id="logo">
+    <h1>Citrus Cafe</h1>
+    <h2>Sustainable, organic and natural</h2>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Menus</a></li>
+        <li><a href="#">Reservations</a></li>
+        <li><a href="#">Gallery</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  <div id="maincontent">
+    <article id="vision">A new neighborhood kitchen using only organic and sustainable ingredients all locally sourced.</article>
+    <section class="pod"> 
+      <a href="#" class="block"><h1>Today's specials</h1></a>
+      <figure class="podContent"><img src="/server-tests/images/specials.jpg" width="302" height="180" alt="Soup and salad"></figure>
+    </section>
+    <section class="pod" id="events">
+      <a href="#" class="block"><h1>Events</h1></a>
+      <figure class="podContent"><img src="/server-tests/images/events.jpg" width="302" height="180" alt="Cafe interior"></figure>
+    </section>
+    <section class="pod" id="news">
+      <a href="#" class="block"><h1>News</h1></a>
+      <article class="podContent">
+        <p>
+          <time datetime="2010-09-01">9/1</time>
+          Celebrity Guest Chef Night</p>
+        <p>
+          <time datetime="2010-09-03">9/3</time>
+          New Menu Samplers!</p>
+        <p>
+          <time datetime="2010-09-04">9/4</time>
+          Chef Citrus Style</p>
+        <p>
+          <time datetime="2010-09-23">9/23</time>
+          Pork Pork and More Pork</p>
+        <p>
+          <time datetime="2010-10-01">10/1</time>
+          Celebrity Guest Chef Night</p>
+        <p>
+          <time datetime="2010-1003">10/3</time>
+          New Menu Samplers!</p>
+        <p>
+          <time datetime="2010-10-04">10/4</time>
+          Iron Chef Citrus Style</p>
+      </article>
+    </section>
+  </div>
+  <footer>
+    <div id="facebookTwitter"><img src="/server-tests/images/icon_facebook.png" width="24" height="25" alt="Facebook icon"><img src="/server-tests/images/icon_twitter.png" width="24" height="25" alt="Twitter icon"></div>
+    <p><strong>Citrus Cafe</strong> 601 Townsend St, San Francisco, CA, 94117</p>
+    <p id="phone">415-555-5555</p>
+  </footer>
+</div>
+</body>
+</html>

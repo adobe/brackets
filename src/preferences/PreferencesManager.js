@@ -51,7 +51,8 @@ define(function (require, exports, module) {
      */
     function getPreferenceStorage(clientID, defaults) {
         if ((clientID === undefined) || (clientID === null)) {
-            throw new Error("Invalid clientID");
+            console.error("Invalid clientID");
+            return;
         }
 
         var prefs = prefStorage[clientID];

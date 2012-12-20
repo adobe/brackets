@@ -50,7 +50,7 @@ define(function (require, exports, module) {
 
         this._handleColorChange = this._handleColorChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
-
+        
         InlineWidget.call(this);
     }
 
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
      */
     InlineColorEditor.COLOR_REGEX = /#[a-f0-9]{6}|#[a-f0-9]{3}|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b(1|0|0\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b(1|0|0\.[0-9]{1,3}) ?\)/gi;
     
-    InlineColorEditor.prototype = new InlineWidget();
+    InlineColorEditor.prototype = Object.create(InlineWidget.prototype);
     InlineColorEditor.prototype.constructor = InlineColorEditor;
     InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
     
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
         
-        var line = this.editor.document.getLine(start.line),
+        var line = this.hostEditor.document.getLine(start.line),
             matches = line.substr(start.ch).match(InlineColorEditor.COLOR_REGEX);
         
         // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
         if (matches && (end.ch === undefined || end.ch - start.ch < matches[0].length)) {
             end.ch = start.ch + matches[0].length;
             this._endBookmark.clear();
-            this._endBookmark = this.editor._codeMirror.setBookmark(end);
+            this._endBookmark = this.hostEditor._codeMirror.setBookmark(end);
         }
         
         if (end.ch === undefined) {
@@ -151,9 +151,9 @@ define(function (require, exports, module) {
             if (!this._isHostChange) {
                 // Replace old color in code with the picker's color, and select it
                 this._isOwnChange = true;
-                this.editor.document.replaceRange(colorString, range.start, range.end);
+                this.hostEditor.document.replaceRange(colorString, range.start, range.end);
                 this._isOwnChange = false;
-                this.editor.setSelection(range.start, {
+                this.hostEditor.setSelection(range.start, {
                     line: range.start.line,
                     ch: range.start.ch + colorString.length
                 });
@@ -162,17 +162,16 @@ define(function (require, exports, module) {
             this._color = colorString;
         }
     };
-
+    
     /**
      * @override
      * @param {!Editor} hostEditor
      */
     InlineColorEditor.prototype.load = function (hostEditor) {
-        this.editor = hostEditor;
-        this.parentClass.load.call(this, hostEditor);
+        InlineColorEditor.prototype.parentClass.load.apply(this, arguments);
         
         // Create color picker control
-        var allColorsInDoc = this.editor.document.getText().match(InlineColorEditor.COLOR_REGEX);
+        var allColorsInDoc = this.hostEditor.document.getText().match(InlineColorEditor.COLOR_REGEX);
         var swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
     };
@@ -187,9 +186,9 @@ define(function (require, exports, module) {
      * Perform sizing & focus once we've been added to Editor's DOM
      */
     InlineColorEditor.prototype.onAdded = function () {
-        this.parentClass.onAdded.call(this);
+        InlineColorEditor.prototype.parentClass.onAdded.apply(this, arguments);
         
-        var doc = this.editor.document;
+        var doc = this.hostEditor.document;
         doc.addRef();
         $(doc).on("change", this._handleHostDocumentChange);
         
@@ -202,6 +201,8 @@ define(function (require, exports, module) {
      * Called whenever the inline widget is closed, whether automatically or explicitly
      */
     InlineColorEditor.prototype.onClosed = function () {
+        InlineColorEditor.prototype.parentClass.onClosed.apply(this, arguments);
+
         if (this._startBookmark) {
             this._startBookmark.clear();
         }
@@ -209,11 +210,9 @@ define(function (require, exports, module) {
             this._endBookmark.clear();
         }
 
-        var doc = this.editor.document;
+        var doc = this.hostEditor.document;
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
-
-        this.parentClass.onClosed.call(this);
     };
 
     InlineColorEditor.prototype._sizeEditorToContent = function () {
@@ -276,7 +275,7 @@ define(function (require, exports, module) {
         
         var range = this.getCurrentRange();
         if (range) {
-            var newColor = this.editor.document.getRange(range.start, range.end);
+            var newColor = this.hostEditor.document.getRange(range.start, range.end);
             if (newColor !== this._color) {
                 this._isHostChange = true;
                 this.colorEditor.setColorFromString(newColor);

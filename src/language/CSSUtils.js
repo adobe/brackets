@@ -42,6 +42,350 @@ define(function (require, exports, module) {
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         TokenUtils          = require("utils/TokenUtils");
 
+    // Constants
+    var SELECTOR   = "selector",
+        PROP_NAME  = "prop.name",
+        PROP_VALUE = "prop.value";
+
+    /**
+     * @private
+     * Checks if the current cursor position is inside the property name context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {boolean} true if the context is in property name
+     */
+    function _isInPropName(ctx) {
+        var state,
+            lastToken;
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment") {
+            return false;
+        }
+
+        state = ctx.token.state.localState || ctx.token.state;
+        
+        if (!state.stack || state.stack.length < 1) {
+            return false;
+        }
+        
+        lastToken = state.stack[state.stack.length - 1];
+        return (lastToken === "{") ||
+                (lastToken === "rule" &&
+                (ctx.token.className === "variable" || ctx.token.className === "tag"));
+    }
+    
+    /**
+     * @private
+     * Checks if the current cursor position is inside the property value context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {boolean} true if the context is in property value
+     */
+    function _isInPropValue(ctx) {
+        var state;
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment" ||
+                ctx.token.className === "variable" || ctx.token.className === "tag") {
+            return false;
+        }
+
+        state = ctx.token.state.localState || ctx.token.state;
+        
+        if (!state.stack || state.stack.length < 2) {
+            return false;
+        }
+        return (state.stack[state.stack.length - 1] === "rule");
+    }
+    
+    /**
+     * @private
+     * Creates a context info object
+     * @param {string=} context A constant string 
+     * @param {number=} offset The offset of the token for a given cursor position
+     * @param {string=} name Property name of the context 
+     * @param {number=} index The index of the property value for a given cursor position
+     * @param {Array.<string>=} values An array of property values 
+     * @param {boolean=} isNewItem If this is true, then the value in index refers to the index at which a new item  
+     *     is going to be inserted and should not be used for accessing an existing value in values array. 
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
+     */
+    function createInfo(context, offset, name, index, values, isNewItem) {
+        var ruleInfo = { context: context || "",
+                         offset: offset || 0,
+                         name: name || "",
+                         index: -1,
+                         values: [],
+                         isNewItem: (isNewItem) ? true : false };
+        
+        if (context === PROP_VALUE || context === SELECTOR) {
+            ruleInfo.index = index;
+            ruleInfo.values = values;
+        }
+        
+        return ruleInfo;
+    }
+
+    /**
+     * @private
+     * Scans backwards from the current context and returns the name of the property if there is 
+     * a valid one. 
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {string} the property name of the current rule.
+     */
+    function _getPropNameStartingFromPropValue(ctx) {
+        var ctxClone = $.extend({}, ctx);
+        do {
+            // If we get a property name or "{" or ";" before getting a colon, then we don't 
+            // have a valid property name. Just return an empty string.
+            if (ctxClone.token.className === "variable" || ctxClone.token.string === "{" || ctxClone.token.string === ";") {
+                return "";
+            }
+        } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
+        
+        if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
+                ctxClone.token.className === "variable") {
+            return ctxClone.token.string;
+        }
+        
+        return "";
+    }
+    
+    /**
+     * @private
+     * Gets all of the space/comma seperated tokens before the the current cursor position.
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {?Array.<string>} An array of all the space/comma seperated tokens before the
+     *    current cursor position
+     */
+    function _getPrecedingPropValues(ctx) {
+        var lastValue = "",
+            curValue,
+            propValues = [];
+        while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
+            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+                    ctx.token.string === ":" || ctx.token.string === "{" ||
+                    ctx.token.string === ";") {
+                break;
+            }
+
+            curValue = ctx.token.string;
+            if (lastValue !== "") {
+                curValue += lastValue;
+            }
+
+            if ((ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) ||
+                    ctx.token.string === ",") {
+                lastValue = curValue;
+            } else {
+                lastValue = "";
+                if (propValues.length === 0 || curValue.match(/,\s*$/)) {
+                    // stack is empty, or current value ends with a comma
+                    // (and optional whitespace), so push it on the stack
+                    propValues.push(curValue);
+                } else {
+                    // current value does not end with a comma (and optional ws) so prepend
+                    // to last stack item (e.g. "rgba(50" get broken into 2 tokens)
+                    propValues[propValues.length - 1] = curValue + propValues[propValues.length - 1];
+                }
+            }
+        }
+        if (propValues.length > 0) {
+            propValues.reverse();
+        }
+        
+        return propValues;
+    }
+    
+    /**
+     * @private
+     * Gets all of the space/comma seperated tokens after the the current cursor position.
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {string} currentValue The token string at the current cursor position
+     * @return {?Array.<string>} An array of all the space/comma seperated tokens after the
+     *    current cursor position
+     */
+    function _getSucceedingPropValues(ctx, currentValue) {
+        var lastValue = currentValue,
+            curValue,
+            propValues = [];
+        
+        while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
+            if (ctx.token.string === ";" || ctx.token.string === "}") {
+                break;
+            }
+            // If we're already in the next rule, then we don't want to add the last value
+            // since it is the property name of the next rule.
+            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+                    ctx.token.string === ":") {
+                lastValue = "";
+                break;
+            }
+            
+            if (lastValue === "") {
+                lastValue = ctx.token.string.trim();
+            } else if (lastValue.length > 0) {
+                if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+                    lastValue += ctx.token.string;
+                    propValues.push(lastValue);
+                    lastValue = "";
+                } else if (ctx.token.string === ",") {
+                    lastValue += ctx.token.string;
+                } else if (lastValue && lastValue.match(/,$/)) {
+                    propValues.push(lastValue);
+                    lastValue = "";
+                } else {
+                    // e.g. "rgba(50" gets broken into 2 tokens
+                    lastValue += ctx.token.string;
+                }
+            }
+        }
+        if (lastValue.length > 0) {
+            propValues.push(lastValue);
+        }
+
+        return propValues;
+    }
+    
+    /**
+     * @private
+     * Returns a context info object for the current CSS rule
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {!Editor} editor
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
+     */
+    function _getRuleInfoStartingFromPropValue(ctx, editor) {
+        var propNamePos = $.extend({}, ctx.pos),
+            backwardPos = $.extend({}, ctx.pos),
+            forwardPos  = $.extend({}, ctx.pos),
+            propNameCtx = TokenUtils.getInitialContext(editor._codeMirror, propNamePos),
+            backwardCtx,
+            forwardCtx,
+            lastValue = "",
+            propValues = [],
+            index = -1,
+            offset = TokenUtils.offsetInToken(ctx),
+            canAddNewOne = false,
+            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+            testToken = editor._codeMirror.getTokenAt(testPos),
+            propName;
+        
+        // Get property name first. If we don't have a valid property name, then 
+        // return a default rule info.
+        propName = _getPropNameStartingFromPropValue(propNameCtx);
+        if (!propName) {
+            return createInfo();
+        }
+        
+        // Scan backward to collect all preceding property values
+        backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, backwardPos);
+        propValues = _getPrecedingPropValues(backwardCtx);
+
+        lastValue = "";
+        if (ctx.token.string === ":") {
+            index = 0;
+            canAddNewOne = true;
+        } else {
+            index = propValues.length - 1;
+            if (ctx.token.string === ",") {
+                propValues[index] += ctx.token.string;
+                index++;
+                canAddNewOne = true;
+            } else {
+                index = (index < 0) ? 0 : index + 1;
+                lastValue = ctx.token.string.trim();
+                if (lastValue.length === 0) {
+                    canAddNewOne = true;
+                    if (index > 0) {
+                        // Append all spaces before the cursor to the previous value in values array
+                        propValues[index - 1] += ctx.token.string.substr(0, offset);
+                    }
+                }
+            }
+        }
+        
+        if (canAddNewOne) {
+            offset = 0;
+
+            // If pos is at EOL, then there's implied whitespace (newline).
+            if (editor.document.getLine(ctx.pos.line).length > ctx.pos.ch  &&
+                    (testToken.string.length === 0 || testToken.string.match(/\S/))) {
+                canAddNewOne = false;
+            }
+        }
+        
+        // Scan forward to collect all succeeding property values and append to all propValues.
+        forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
+        propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
+        
+        // If current index is more than the propValues size, then the cursor is 
+        // at the end of the existing property values and is ready for adding another one.
+        if (index === propValues.length) {
+            canAddNewOne = true;
+        }
+        
+        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne);
+    }
+    
+    /**
+     * Returns a context info object for the given cursor position
+     * @param {!Editor} editor
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
+     */
+    function getInfoAtPos(editor, constPos) {
+        // We're going to be changing pos a lot, but we don't want to mess up
+        // the pos the caller passed in so we use extend to make a safe copy of it.	
+        var pos = $.extend({}, constPos),
+            ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
+            offset = TokenUtils.offsetInToken(ctx),
+            propName = "",
+            mode = editor.getModeForSelection();
+        
+        // Check if this is inside a style block or in a css/less document.
+        if (mode !== "css" && mode !== "less") {
+            return createInfo();
+        }
+
+        if (_isInPropName(ctx)) {
+            if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+                var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+                    testToken = editor._codeMirror.getTokenAt(testPos);
+                
+                if (testToken.className === "variable" || testToken.className === "tag") {
+                    propName = testToken.string;
+                    offset = 0;
+                }
+            } else if (ctx.token.className === "variable" || ctx.token.className === "tag") {
+                propName = ctx.token.string;
+            }
+            
+            // If we're in property name context but not in an existing property name, 
+            // then reset offset to zero.
+            if (propName === "") {
+                offset = 0;
+            }
+            
+            return createInfo(PROP_NAME, offset, propName);
+        }
+        
+        if (_isInPropValue(ctx)) {
+            return _getRuleInfoStartingFromPropValue(ctx, editor);
+        }
+                    
+        return createInfo();
+    }
+    
     /**
      * Extracts all CSS selectors from the given text
      * Returns an array of selectors. Each selector is an object with the following properties:
@@ -677,4 +1021,14 @@ define(function (require, exports, module) {
     exports.findMatchingRules = findMatchingRules;
     exports.extractAllSelectors = extractAllSelectors;
     exports.findSelectorAtDocumentPos = findSelectorAtDocumentPos;
+
+    exports.SELECTOR = SELECTOR;
+    exports.PROP_NAME = PROP_NAME;
+    exports.PROP_VALUE = PROP_VALUE;
+    
+    exports.getInfoAtPos = getInfoAtPos;
+
+    // The createInfo is reallyonly for the unit tests so they can make the same  
+    // structure to compare results with.
+    exports.createInfo = createInfo;
 });

@@ -31,17 +31,18 @@ define(function (require, exports, module) {
     var Commands,           // loaded from brackets.test
         EditorManager,      // loaded from brackets.test
         FileSyncManager,    // loaded from brackets.test
-        FileIndexManager,   // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
         Dialogs          = require("widgets/Dialogs"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
+        KeyEvent         = require("utils/KeyEvent"),
         FileUtils        = require("file/FileUtils"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("InlineEditorProviders", function () {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
+            tempPath = SpecRunnerUtils.getTempDirectory(),
             testWindow,
             initInlineTest;
         
@@ -50,42 +51,26 @@ define(function (require, exports, module) {
         }
         
         function rewriteProject(spec) {
-            var result = new $.Deferred();
-        
-            FileIndexManager.getFileInfoList("all").done(function (allFiles) {
-                // convert fileInfos to fullPaths
-                allFiles = allFiles.map(function (fileInfo) {
-                    return fileInfo.fullPath;
-                });
-                
-                // parse offsets and save
-                SpecRunnerUtils.saveFilesWithoutOffsets(allFiles).done(function (offsetInfos) {
-                    spec.infos = offsetInfos;
+            var result = new $.Deferred(),
+                infos = {},
+                options = {
+                    parseOffsets    : true,
+                    infos           : infos,
+                    removePrefix    : true
+                };
             
-                    // install after function to restore file content
-                    spec.after(function () {
-                        var done = false;
-                        
-                        runs(function () {
-                            SpecRunnerUtils.saveFilesWithOffsets(spec.infos).done(function () {
-                                done = true;
-                            });
-                        });
-                        
-                        waitsFor(function () { return done; }, "saveFilesWithOffsets timeout", 1000);
-                    });
-                    
-                    result.resolve();
-                }).fail(function () {
-                    result.reject();
-                });
+            SpecRunnerUtils.copyPath(testPath, tempPath, options).done(function () {
+                spec.infos = infos;
+                result.resolve();
+            }).fail(function () {
+                result.reject();
             });
             
             return result.promise();
         }
         
         /**
-         * Performs setup for an inline editor test. Parses offsets (saved to Spec.offsets) for all files in
+         * Performs setup for an inline editor test. Parses offsets (saved to Spec.infos) for all files in
          * the test project (testPath) and saves files back to disk without offset markup.
          * When finished, open an editor for the specified project relative file path
          * then attempts opens an inline editor at the given offset. Installs an after()
@@ -108,8 +93,6 @@ define(function (require, exports, module) {
             
             expectInline = (expectInline !== undefined) ? expectInline : true;
             
-            SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            
             // load project to set CSSUtils scope
             runs(function () {
                 rewriteProject(spec)
@@ -118,6 +101,8 @@ define(function (require, exports, module) {
             });
             
             waitsFor(function () { return rewriteDone && !rewriteErr; }, "rewriteProject timeout", 1000);
+            
+            SpecRunnerUtils.loadProjectInTestWindow(tempPath);
             
             runs(function () {
                 workingSet.push(openFile);
@@ -176,7 +161,6 @@ define(function (require, exports, module) {
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
-                    FileIndexManager    = testWindow.brackets.test.FileIndexManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
                 });
@@ -246,6 +230,9 @@ define(function (require, exports, module) {
             afterEach(function () {
                 //debug visual confirmation of inline editor
                 //waits(1000);
+                runs(function () {
+                    SpecRunnerUtils.deletePath(tempPath);
+                });
                 
                 // revert files to original content with offset markup
                 SpecRunnerUtils.closeTestWindow();
@@ -337,7 +324,7 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
 
                     // close the editor by simulating Esc key
-                    var key = 27,   // Esc key
+                    var key = KeyEvent.DOM_VK_ESCAPE,
                         doc = testWindow.document,
                         element = doc.getElementsByClassName("inline-widget")[0];
                     SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
@@ -553,11 +540,13 @@ define(function (require, exports, module) {
                 
                 it("should close inline editor when file deleted on disk", function () {
                     // Create an expendable CSS file
-                    var fileToWrite = new NativeFileSystem.FileEntry(testPath + "/tempCSS.css");
-                    var savedTempCSSFile = false;
+                    var fileToWrite,
+                        savedTempCSSFile = false;
+
                     runs(function () {
-                        FileUtils.writeText(fileToWrite, "#anotherDiv {}")
-                            .done(function () {
+                        SpecRunnerUtils.createTextFile(tempPath + "/tempCSS.css", "#anotherDiv {}")
+                            .done(function (entry) {
+                                fileToWrite = entry;
                                 savedTempCSSFile = true;
                             });
                     });
@@ -569,19 +558,15 @@ define(function (require, exports, module) {
                     });
                     // initInlineTest() inserts a waitsFor() automatically, so must end runs() block here
                     
-                    // Delete the file
-                    var fileDeleted = false;
                     runs(function () {
                         var hostEditor = EditorManager.getCurrentFullEditor();
                         expect(hostEditor.getInlineWidgets().length).toBe(1);
-                        
-                        brackets.fs.unlink(fileToWrite.fullPath, function (err) {
-                            if (!err) {
-                                fileDeleted = true;
-                            }
-                        });
                     });
-                    waitsFor(function () { return fileDeleted; }, 1000);
+                    
+                    // Delete the file
+                    runs(function () {
+                        waitsForDone(SpecRunnerUtils.deletePath(fileToWrite.fullPath));
+                    });
                     
                     // Ping FileSyncManager to recognize the deletion
                     runs(function () {

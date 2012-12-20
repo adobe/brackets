@@ -32,8 +32,7 @@ define(function (require, exports, module) {
         KeyBindingManager,
         Menus,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        StringsUtils        = require("utils/StringUtils"),
-        Strings             = require("strings");
+        KeyEvent            = require("utils/KeyEvent");
 
 
 
@@ -371,14 +370,8 @@ define(function (require, exports, module) {
 
 
                     // unregistered command
-                    menuItem = null;
-                    var exceptionThrown = false;
-                    try {
-                        menuItem = menu.addMenuItem("UNREGISTERED_COMMAND");
-                    } catch (e) {
-                        exceptionThrown = true;
-                    }
-                    expect(exceptionThrown).toBeTruthy();
+                    menuItem = menu.addMenuItem("UNREGISTERED_COMMAND");
+                    expect(menuItem).toBe(null);
 
                     $listItems = testWindow.$(listSelector).children();
                     expect($listItems.length).toBe(1);
@@ -451,13 +444,8 @@ define(function (require, exports, module) {
                     var menuItemId = "menu-test-removeMenuItem2";
                     var menu = Menus.addMenu("Custom", menuItemId);
 
-                    var exceptionThrown = false;
-                    try {
-                        menu.removeMenuItem(commandId);
-                    } catch (e) {
-                        exceptionThrown = true;
-                    }
-                    expect(exceptionThrown).toBeTruthy();
+                    menu.removeMenuItem(commandId);
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
                 });
             });
 
@@ -466,13 +454,8 @@ define(function (require, exports, module) {
                     var menuItemId = "menu-test-removeMenuItem3";
                     var menu = Menus.addMenu("Custom", menuItemId);
 
-                    var exceptionThrown = false;
-                    try {
-                        menu.removeMenuItem();
-                    } catch (e) {
-                        exceptionThrown = true;
-                    }
-                    expect(exceptionThrown).toBeTruthy();
+                    menu.removeMenuItem();
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
                 });
             });
         });
@@ -696,7 +679,7 @@ define(function (require, exports, module) {
                 expect($menus.length).toBe(1);
 
                 // close the context menu by simulating Esc key
-                var key = 27,   // Esc key
+                var key = KeyEvent.DOM_VK_ESCAPE,
                     element = $menus[0];
                 SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -37,9 +37,23 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
-        StringUtils             = require("utils/StringUtils");
+        StringUtils             = require("utils/StringUtils"),
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html");
     
     var buildInfo;
+
+    function _handleCheckForUpdates() {
+        UpdateNotification.checkForUpdate(true);
+    }
+    
+    function _handleLinkMenuItem(url) {
+        return function () {
+            if (!url) {
+                return;
+            }
+            NativeApp.openURLInDefaultBrowser(url);
+        };
+    }
     
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
@@ -49,37 +63,32 @@ define(function (require, exports, module) {
             }
         );
     }
-    
-    function _handleCheckForUpdates() {
-        UpdateNotification.checkForUpdate(true);
-    }
 
     function _handleAboutDialog() {
-        if (buildInfo) {
-            $("#about-build-number").text(" (" + buildInfo + ")");
-        }
-        
-        Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+        var templateVars = $.extend({
+            ABOUT_ICON          : brackets.config.about_icon,
+            APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+            BUILD_INFO          : buildInfo || ""
+        }, Strings);
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
     }
 
-    function _handleForum() {
-        if (!brackets.config.forum_url) {
-            return;
-        }
-
-        NativeApp.openURLInDefaultBrowser(brackets.config.forum_url);
-    }
-    
     // Read "build number" SHAs off disk immediately at load time, instead
     // of later, when they may have been updated to a different version
     BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
         // If we've successfully determined a "build number" via .git metadata, add it to dialog
         sha = sha ? sha.substr(0, 9) : "";
-        buildInfo = StringUtils.format("{0} {1}", branch, sha).trim();
+        if (branch || sha) {
+            buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
+        }
     });
-    
-    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
+
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
-    CommandManager.register(Strings.CMD_FORUM,                  Commands.HELP_FORUM,                _handleForum);
+    CommandManager.register(Strings.CMD_HOW_TO_USE_BRACKETS,    Commands.HELP_HOW_TO_USE_BRACKETS,  _handleLinkMenuItem(brackets.config.how_to_use_url));
+    CommandManager.register(Strings.CMD_FORUM,                  Commands.HELP_FORUM,                _handleLinkMenuItem(brackets.config.forum_url));
+    CommandManager.register(Strings.CMD_RELEASE_NOTES,          Commands.HELP_RELEASE_NOTES,        _handleLinkMenuItem(brackets.config.release_notes_url));
+    CommandManager.register(Strings.CMD_REPORT_AN_ISSUE,        Commands.HELP_REPORT_AN_ISSUE,      _handleLinkMenuItem(brackets.config.report_issue_url));
+    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
+    CommandManager.register(Strings.CMD_TWITTER,                Commands.HELP_TWITTER,              _handleLinkMenuItem(brackets.config.twitter_url));
     CommandManager.register(Strings.CMD_ABOUT,                  Commands.HELP_ABOUT,                _handleAboutDialog);
 });

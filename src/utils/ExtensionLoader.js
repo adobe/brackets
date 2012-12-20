@@ -92,11 +92,11 @@ define(function (require, exports, module) {
             });
         contexts[name] = extensionRequire;
 
-        console.log("[Extension] starting to load " + config.baseUrl);
+        // console.log("[Extension] starting to load " + config.baseUrl);
         
         extensionRequire([entryPoint],
             function () {
-                console.log("[Extension] finished loading " + config.baseUrl);
+                // console.log("[Extension] finished loading " + config.baseUrl);
                 result.resolve();
             },
             function errback(err) {
@@ -134,9 +134,9 @@ define(function (require, exports, module) {
                     paths: $.extend({}, config.paths, globalConfig)
                 });
     
-                console.log("[Extension] loading unit test " + config.baseUrl);
+                // console.log("[Extension] loading unit test " + config.baseUrl);
                 extensionRequire([entryPoint], function () {
-                    console.log("[Extension] loaded unit tests " + config.baseUrl);
+                    // console.log("[Extension] loaded unit tests " + config.baseUrl);
                     result.resolve();
                 });
             } else {
@@ -162,8 +162,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         NativeFileSystem.requestNativeFileSystem(directory,
-            function (rootEntry) {
-                rootEntry.createReader().readEntries(
+            function (fs) {
+                fs.root.createReader().readEntries(
                     function (entries) {
                         var i,
                             extensions = [];

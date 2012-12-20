@@ -82,41 +82,41 @@ define(function (require, exports, module) {
             it("should find an attribute as a tag is getting typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<p class="');
+                    ["<html>", "<body>"],
+                    "<p class='");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "", true, '"', false));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "", true, "'", false));
             });
             
             it("should find an attribute as it's added to a tag", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>', '<div class="clearfix">'],
-                    '<p id="', '>test</p>',
-                    [ '</div>', '</body>', '</html>']);
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p id='", ">test</p>",
+                    [ "</div>", "</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "id", "", true, '"', false));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "id", "", true, "'", false));
             });
             
             it("should find an attribute as the value is typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>', '<div class="clearfix">'],
-                    '<p id="one', '>test</p>',
-                    [ '</div>', '</body>', '</html>']);
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p id='one", ">test</p>",
+                    [ "</div>", "</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "id", "one", true, '"', false));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "id", "one", true, "'", false));
             });
             
             it("should not find an attribute as text is added", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<p id="foo">tricky="', '</p>',
-                    [ '</body>', '</html>']);
+                    ["<html>", "<body>"],
+                    "<p id='foo'>tricky='", "</p>",
+                    [ "</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo());
@@ -125,52 +125,52 @@ define(function (require, exports, module) {
             it("should find the attribute value if present", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<p class="foo', '"></p>',
-                    [ '</body>', '</html>']);
+                    ["<html>", "<body>"],
+                    "<p class='foo", "'></p>",
+                    [ "</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, '"', true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, "'", true));
             });
             
             it("should find the full attribute as an existing value is changed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<p class="foo', ' bar"></p>',
-                    [ '</body>', '</html>']);
+                    ["<html>", "<body>"],
+                    "<p class='foo", " bar'></p>",
+                    [ "</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo bar", true, '"', true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo bar", true, "'", true));
             });
             
             it("should find the attribute value even when there is space around the =", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<p class = "foo', '"></p>',
-                    [ '</body>', '</html>']);
+                    ["<html>", "<body>"],
+                    "<p class = 'foo", "'></p>",
+                    [ "</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, '"', true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, "'", true));
             });
             
             it("should find the attribute value when the IP is after the =", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<p class=', '"foo"></p>',
-                    [ '</body>', '</html>']);
+                    ["<html>", "<body>"],
+                    "<p class=", "'foo'></p>",
+                    [ "</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, -1, "p", "class", "foo", true, '"', true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, -1, "p", "class", "foo", true, "'", true));
             });
             
             it("should find the tagname as it's typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<di');
+                    ["<html>", "<body>"],
+                    "<di");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.TAG_NAME, 2, "di"));
@@ -179,8 +179,8 @@ define(function (require, exports, module) {
             it("should hint tagname as the open < is typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<p>test</p><');
+                    ["<html>", "<body>"],
+                    "<p>test</p><");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.TAG_NAME));
@@ -189,8 +189,8 @@ define(function (require, exports, module) {
             it("should find the tagname of the current tag if two tags are right next to each other", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<div><span');
+                    ["<html>", "<body>"],
+                    "<div><span");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.TAG_NAME, 4, "span"));
@@ -199,8 +199,8 @@ define(function (require, exports, module) {
             it("should hint attributes even if there is a lot of space between the tag name and the next attr name", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<div><li  ', '  id="foo"');
+                    ["<html>", "<body>"],
+                    "<div><li  ", "  id='foo'");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_NAME, 0, "li"));
@@ -209,8 +209,8 @@ define(function (require, exports, module) {
             it("should find the tagname as space is typed before the attr name is added", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<div><span ');
+                    ["<html>", "<body>"],
+                    "<div><span ");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_NAME, 0, "span"));
@@ -219,8 +219,8 @@ define(function (require, exports, module) {
             it("should not hint anything after the tag is closed", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<div><span>');
+                    ["<html>", "<body>"],
+                    "<div><span>");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo());
@@ -229,9 +229,9 @@ define(function (require, exports, module) {
             it("should not hint anything after a closing tag", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>'],
-                    '<div><span></span>', '</div>',
-                    ['</body>', '</html>']);
+                    ["<html>", "<body>"],
+                    "<div><span></span>", "</div>",
+                    ["</body>", "</html>"]);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo());
@@ -240,11 +240,97 @@ define(function (require, exports, module) {
             it("should not hint anything inside a closing tag", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
-                    ['<html>', '<body>', '<div id="test" class="foo"></div>'],
-                    '</body></ht', 'ml>');
+                    ["<html>", "<body>", "<div id='test' class='foo'></div>"],
+                    "</body></ht", "ml>");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo());
+            });
+            
+            it("should not find attributes in an empty editor", function () {
+                var pos = {"ch": 0, "line": 0};
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+        
+            it("should not find attributes before the tag is opened", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "", "<p id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>test</p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+                
+            it("should not find attributes if there isn't a valid tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<", " id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>test</p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+            
+            it("should not find attributes after the tag is closed", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>", "test</p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
+            });
+                
+            it("should find all the tag attributes immediately after the tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p ", "id='pid' class='pclass' lang='plang' align='palign' title='ptitle'>test</p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+            
+            it("should find all the tag attributes before closing the tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p id='pid' class='pclass' lang='plang' align='palign' title='ptitle' ", ">test</p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+            
+            it("should find all the tag attributes backward and forward", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p id='pid' class='pclass' lang='plang' ", "align='palign' title='ptitle'>test</p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+            
+            it("should find valid attributes marked as errors by the tokenizer", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p id='pid' c", " class='pclass' lang='plang' align='palign' title='ptitle'>test</p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+                
+            it("should not find attributes in nested tags", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div class='clearfix'>"],
+                    "<p ", "id='pid' class='pclass' lang='plang' align='palign' title='ptitle'><span style='sstyle'></span></p>",
+                    [ "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
             });
         });
     });

@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     require("spec/EditorCommandHandlers-test");
     require("spec/ExtensionUtils-test");
     require("spec/FileIndexManager-test");
+    require("spec/FindReplace-test");
     require("spec/InlineEditorProviders-test");
     require("spec/KeyBindingManager-test");
     require("spec/LiveDevelopment-test");
