@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     var Async = require("utils/Async");
     
     // naïve match for import statements in CSS
-    var RE_IMPORT = /@import\s+(?:url\()?('|")([^'"]+)\1(?:\))?;/g;
+    var RE_IMPORT = /@import\s+(?:url\()?\s*('|")([^'"]+)\1\s*(?:\))?;/g;
     
     /**
      * Appends a <style> tag to the document's head.
@@ -152,6 +152,68 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Loads a CSS style sheet and all nested import directives.
+     *
+     * @param {!module} module Module provided by RequireJS
+     * @param {!string} path Relative path from the extension folder to a CSS file
+     * @param {!boolean} link When true, the stylesheet is added to the document
+     * @return {!$.Promise} A promise object that is resolved if when all
+     *     stylesheet dependencies are loaded
+     */
+    function _loadCSSImports(module, path, link) {
+        var deferred = new $.Deferred();
+        
+        loadFile(module, path)
+            .done(function (content) {
+                // scan for @import statements
+                var url = this.url,
+                    imports = [],
+                    exec,
+                    importsPromise,
+                    linkElem;
+                
+                // optionally add the stylesheet to the document
+                if (link) {
+                    linkElem = addLinkedStyleSheet(url);
+                }
+                
+                while ((exec = RE_IMPORT.exec(content)) !== null) {
+                    imports.push(exec[2]);
+                }
+
+                if (imports.length > 0) {
+                    // load all dependencies before resolving this import
+                    var rootPath = path.substr(0, path.lastIndexOf("/") + 1);
+                    importsPromise = Async.doInParallel(
+                        imports,
+                        function (oneImport) {
+                            return _loadCSSImports(module, rootPath + oneImport, false);
+                        },
+                        true
+                    );
+                }
+                
+                // HACK: use img.src to detect a load event for the stylesheet
+                // http://www.backalleycoder.com/2011/03/20/link-tag-css-stylesheet-load-event/
+                var img = window.document.createElement("img");
+                
+                img.onerror = function () {
+                    if (importsPromise) {
+                        importsPromise.done(function () {
+                            deferred.resolve(linkElem);
+                        });
+                    } else {
+                        deferred.resolve(linkElem);
+                    }
+                };
+                img.src = url;
+            })
+            .fail(deferred.reject);
+        
+        return deferred.promise();
+    }
+    
+    /**
      * Loads a style sheet (CSS or LESS) relative to the extension module.
      *
      * @param {!module} module Module provided by RequireJS
@@ -160,57 +222,20 @@ define(function (require, exports, module) {
      */
     function loadStyleSheet(module, path) {
         var result = new $.Deferred();
-
-        loadFile(module, path)
-            .done(function (content) {
-                var url = this.url;
-                
-                if (url.slice(-5) === ".less") {
-                    parseLessCode(content, url)
+        
+        if (path.slice(-5) === ".less") {
+            loadFile(module, path)
+                .done(function (content) {
+                    parseLessCode(content, this.url)
                         .done(function (css) {
                             result.resolve(addEmbeddedStyleSheet(css));
                         })
                         .fail(result.reject);
-                } else {
-                    // scan for @import statements
-                    var imports = [],
-                        exec,
-                        importsPromise;
-                    
-                    while ((exec = RE_IMPORT.exec(content)) !== null) {
-                        imports.push(exec[2]);
-                    }
-
-                    if (imports.length > 0) {
-                        // load all dependencies before resolving this import
-                        var rootPath = path.substr(0, path.lastIndexOf("/") + 1);
-                        importsPromise = Async.doInParallel(
-                            imports,
-                            function (oneImport) {
-                                return loadStyleSheet(module, rootPath + oneImport);
-                            },
-                            true
-                        );
-                    }
-                    
-                    // HACK: use img.src to detect a load event for the stylesheet
-                    // http://www.backalleycoder.com/2011/03/20/link-tag-css-stylesheet-load-event/
-                    var link = addLinkedStyleSheet(url),
-                        img = window.document.createElement("img");
-                    
-                    img.onerror = function () {
-                        if (importsPromise) {
-                            importsPromise.done(function () {
-                                result.resolve(link);
-                            });
-                        } else {
-                            result.resolve(link);
-                        }
-                    };
-                    img.src = url;
-                }
-            })
-            .fail(result.reject);
+                })
+                .fail(result.reject);
+        } else {
+            _loadCSSImports(module, path, true).pipe(result.resolve, result.reject);
+        }
         
         return result.promise();
     }

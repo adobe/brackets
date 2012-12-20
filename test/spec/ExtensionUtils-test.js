@@ -66,7 +66,6 @@ define(function (require, exports, module) {
                     loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.css");
                 });
 
-                // placing this code in a separate closure forces styles to update
                 runs(function () {
                     // basic.css
                     var $projectTitle = testWindow.$("#project-title");
@@ -76,18 +75,10 @@ define(function (require, exports, module) {
                     // second.css is imported in basic.css
                     var fontWeight = $projectTitle.css("font-weight");
                     expect(fontWeight).toEqual("500");
-                });
-
-                // attach another style sheet in a sub-directory with space in name.
-                runs(function () {
-                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/sub dir/third.css");
-                });
-
-                runs(function () {
-                    // third.css
-                    var $projectTitle = testWindow.$("#project-title");
-                    var fontVariant = $projectTitle.css("font-variant");
-                    expect(fontVariant).toEqual("small-caps");
+                    
+                    // third.css is imported by second.css
+                    var fontFamily = $projectTitle.css("font-family");
+                    expect(fontFamily).toEqual("serif");
                 });
             });
             
