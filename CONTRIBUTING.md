@@ -37,3 +37,4 @@ Before submitting any pull request, please make sure to:
 ##Additional Resources
 
 * [the Brackets github issue tracker](https://github.com/adobe/brackets/issues)
+* [Brackets wiki](https://github.com/adobe/brackets/wiki/Resources)
