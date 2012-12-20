@@ -45,15 +45,25 @@ define(function (require, exports, module) {
      * Appends a <link> tag to the document's head.
      *
      * @param {!string} url URL to a style sheet
+     * @param {$.Deferred=} deferred Optionally check for load and error events
      * @return {!HTMLLinkElement} The generated HTML node
      **/
-    function addLinkedStyleSheet(url) {
+    function addLinkedStyleSheet(url, deferred) {
         var attributes = {
             type: "text/css",
             rel:  "stylesheet",
             href: url
         };
-        return $("<link/>").attr(attributes).appendTo("head")[0];
+        
+        var $link = $("<link/>").attr(attributes);
+        
+        if (deferred) {
+            $link.load(deferred.resolve).error(deferred.reject);
+        }
+        
+        $link.appendTo("head");
+        
+        return $link[0];
     }
 
     /**
@@ -167,7 +177,14 @@ define(function (require, exports, module) {
                         })
                         .fail(result.reject);
                 } else {
-                    result.resolve(addLinkedStyleSheet(url));
+                    var deferred = new $.Deferred(),
+                        link = addLinkedStyleSheet(url, deferred);
+                    
+                    deferred
+                        .done(function () {
+                            result.resolve(link);
+                        })
+                        .fail(result.reject);
                 }
             })
             .fail(result.reject);
