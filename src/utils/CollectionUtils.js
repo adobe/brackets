@@ -58,7 +58,7 @@ define(function (require, exports, module) {
             i;
         
         for (i = 0; i < len; i++) {
-            callback(keys[i], object[keys[i]]);
+            callback(object[keys[i]], keys[i]);
         }
     }
     

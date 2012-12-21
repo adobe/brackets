@@ -389,11 +389,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Finds all instances of the specified functionName in "text".
+     * Finds all instances of the specified searchName in "text".
      * Returns an Array of Objects with start and end properties.
      *
      * @param text {!String} JS text to search
-     * @param functionName {!String} function name to search for
+     * @param searchName {!String} function name to search for
      * @return {Array.<{offset:number, functionName:string}>}
      *      Array of objects containing the start offset for each matched function name.
      */
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
         var result = [];
         var lines = text.split("\n");
         
-        CollectionUtils.forEach(allFunctions, function (functionName, functions) {
+        CollectionUtils.forEach(allFunctions, function (functions, functionName) {
             if (functionName === searchName || searchName === "*") {
                 functions.forEach(function (funcEntry) {
                     var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
