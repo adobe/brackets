@@ -26,5 +26,5 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"   : "ru/Начало работы"
+    "GETTING_STARTED"   : "ru/Getting Started"
 });
