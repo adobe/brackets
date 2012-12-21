@@ -7,6 +7,7 @@ This is an early version of Brackets, a code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
 
 What makes Brackets different from other web code editors?
+
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
 environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
 context-specific code and tools inline.
@@ -52,10 +53,8 @@ if you're interested, check out the
 [discussion thread](https://groups.google.com/forum/?fromgroups=#!topic/brackets-dev/29vOJ6tvl8A)
 on the brackets-dev Google Group.
 
-You can download "stable" builds of Brackets from the **Download Packages** section of the 
-[downloads page](http://download.brackets.io)--make sure you download one
-of the .dmg/.msi installers in that section (the "Download as zip/tar.gz" buttons at the 
-top will **not** work). If you want to pull the repo directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
+You can download "stable" builds of Brackets from 
+[download.brackets.io](http://download.brackets.io). If you want to pull the repo directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
 for instructions on how to get everything. 
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
