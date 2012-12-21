@@ -1,7 +1,7 @@
 Welcome to Brackets!
 -------------------
 
-Installers for the latest build can be [downloaded here](https://github.com/adobe/brackets/downloads).
+Installers for the latest build can be [downloaded here](http://download.brackets.io/).
 
 This is an early version of Brackets, a code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
@@ -53,7 +53,7 @@ if you're interested, check out the
 on the brackets-dev Google Group.
 
 You can download "stable" builds of Brackets from the **Download Packages** section of the 
-[downloads page](http://github.com/adobe/brackets/downloads)--make sure you download one
+[downloads page](http://download.brackets.io)--make sure you download one
 of the .dmg/.msi installers in that section (the "Download as zip/tar.gz" buttons at the 
 top will **not** work). If you want to pull the repo directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
 for instructions on how to get everything. 
