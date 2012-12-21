@@ -28,8 +28,7 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n",
-        "defaults"  : "../defaults"
+        "i18n"      : "thirdparty/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -294,6 +293,9 @@ define(function (require, exports, module) {
         
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
+            // check once a day, plus 2 minutes, 
+            // as the check will skip if the last check was not -24h ago
+            window.setInterval(UpdateNotification.checkForUpdate, 86520000);
             UpdateNotification.checkForUpdate();
         }
     }
@@ -306,14 +308,26 @@ define(function (require, exports, module) {
         }
     });
     
-    // Localize MainViewHTML and inject into <BODY> tag
-    var templateVars    = $.extend({
-        ABOUT_ICON          : brackets.config.about_icon,
-        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-        VERSION             : brackets.metadata.version
-    }, Strings);
+    // The .no-focus style is added to clickable elements that should
+    // not steal focus. Calling preventDefault() on mousedown prevents
+    // focus from going to the click target.
+    $("html").on("mousedown", ".no-focus", function (e) {
+        // Text fields should always be focusable.
+        var $target = $(e.target),
+            isTextField =
+                $target.is("input[type=text]") ||
+                $target.is("input[type=number]") ||
+                $target.is("input[type=password]") ||
+                $target.is("input:not([type])") || // input with no type attribute defaults to text
+                $target.is("textarea");
+
+        if (!isTextField) {
+            e.preventDefault();
+        }
+    });
     
-    $("body").html(Mustache.render(MainViewHTML, templateVars));
+    // Localize MainViewHTML and inject into <BODY> tag
+    $("body").html(Mustache.render(MainViewHTML, Strings));
     
     // Update title
     $("title").text(brackets.config.app_title);

@@ -228,7 +228,16 @@ define(function (require, exports, module) {
             // If file wasnt moved open or close it
             if (!moved) {
                 if (!fromClose) {
+                /***/
                     FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                /***
+                    // Backing out for Sprint 18 due to issues described in #2394, #2411
+                    if (selected) {
+                        CommandManager.execute(Commands.FILE_RENAME);
+                    } else {
+                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                    }
+                ***/
                 } else {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 }

@@ -325,7 +325,7 @@ define(function (require, exports, module) {
         if (relativeID) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
                 if (!relativeID.hasOwnProperty("sectionMarker")) {
-                    console.log("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                    console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
                     return null;
                 }
 
@@ -334,8 +334,8 @@ define(function (require, exports, module) {
                 // TODO: simplify using nextUntil()/prevUntil()
                 var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(relativeID.sectionMarker));
                 if (!$sectionMarker) {
-                    console.log("_getRelativeMenuItem(): MenuSection " + relativeID.sectionMarker +
-                                " not found in Menu " + this.id);
+                    console.error("_getRelativeMenuItem(): MenuSection " + relativeID.sectionMarker +
+                                  " not found in Menu " + this.id);
                     return null;
                 }
                 var $listElem = $sectionMarker;
@@ -353,7 +353,7 @@ define(function (require, exports, module) {
                 
             } else {
                 if (relativeID.hasOwnProperty("sectionMarker")) {
-                    console.log("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
+                    console.error("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
                     return null;
                 }
                 
@@ -365,8 +365,8 @@ define(function (require, exports, module) {
                     $relativeElement = this._getMenuItemForCommand(command);
                 }
                 if (!$relativeElement) {
-                    console.log("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
-                                " not found in Menu " + this.id);
+                    console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
+                                  " not found in Menu " + this.id);
                     return null;
                 }
             }
@@ -374,7 +374,7 @@ define(function (require, exports, module) {
             return $relativeElement;
             
         } else if (position && position !== FIRST && position !== LAST) {
-            console.log("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
+            console.error("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
             return null;
         }
         
@@ -391,13 +391,15 @@ define(function (require, exports, module) {
         var menuItemID;
 
         if (!command) {
-            throw new Error("removeMenuItem(): missing required parameters: command");
+            console.error("removeMenuItem(): missing required parameters: command");
+            return;
         }
 
         if (typeof (command) === "string") {
             var commandObj = CommandManager.get(command);
             if (!commandObj) {
-                throw new Error("removeMenuItem(): command not found: " + command);
+                console.error("removeMenuItem(): command not found: " + command);
+                return;
             }
 
             menuItemID = this._getMenuItemId(command);
@@ -446,7 +448,8 @@ define(function (require, exports, module) {
             commandID;
 
         if (!command) {
-            throw new Error("addMenuItem(): missing required parameters: command");
+            console.error("addMenuItem(): missing required parameters: command");
+            return null;
         }
 
         if (typeof (command) === "string") {
@@ -457,7 +460,8 @@ define(function (require, exports, module) {
                 commandID = command;
                 command = CommandManager.get(commandID);
                 if (!command) {
-                    throw new Error("addMenuItem(): commandID not found: " + commandID);
+                    console.error("addMenuItem(): commandID not found: " + commandID);
+                    return null;
                 }
                 name = command.getName();
             }
@@ -681,7 +685,8 @@ define(function (require, exports, module) {
             menu;
 
         if (!name || !id) {
-            throw new Error("call to addMenu() is missing required parameters");
+            console.error("call to addMenu() is missing required parameters");
+            return null;
         }
         
         // Guard against duplicate menu ids
@@ -728,8 +733,7 @@ define(function (require, exports, module) {
      *
      */
     function ContextMenu(id) {
-        this.id = id;
-        this.menu = new Menu(id);
+        Menu.apply(this, arguments);
 
         var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
@@ -748,7 +752,7 @@ define(function (require, exports, module) {
             },
             false);
     }
-    ContextMenu.prototype = new Menu();
+    ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;
     ContextMenu.prototype.parentClass = Menu.prototype;
 
@@ -766,7 +770,8 @@ define(function (require, exports, module) {
     ContextMenu.prototype.open = function (mouseOrLocation) {
 
         if (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY")) {
-            throw new Error("ContextMenu open(): missing required parameter");
+            console.error("ContextMenu open(): missing required parameter");
+            return;
         }
 
         var $window = $(window),
@@ -840,7 +845,8 @@ define(function (require, exports, module) {
      */
     function registerContextMenu(id) {
         if (!id) {
-            throw new Error("call to registerContextMenu() is missing required parameters");
+            console.error("call to registerContextMenu() is missing required parameters");
+            return null;
         }
         
         // Guard against duplicate menu ids
@@ -960,15 +966,30 @@ define(function (require, exports, module) {
          * Help menu
          */
         menu = addMenu(Strings.HELP_MENU, AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
         menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
 
+        menu.addMenuDivider();
+        if (brackets.config.how_to_use_url) {
+            menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
+        }
         if (brackets.config.forum_url) {
-            menu.addMenuDivider();
             menu.addMenuItem(Commands.HELP_FORUM);
+        }
+        if (brackets.config.release_notes_url) {
+            menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
+        }
+        if (brackets.config.report_issue_url) {
+            menu.addMenuItem(Commands.HELP_REPORT_AN_ISSUE);
         }
 
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
+
+
+        menu.addMenuDivider();
+        if (brackets.config.twitter_url) {
+            menu.addMenuItem(Commands.HELP_TWITTER);
+        }
         menu.addMenuItem(Commands.HELP_ABOUT);
 
 
@@ -1037,6 +1058,8 @@ define(function (require, exports, module) {
                     //e.pageY += 6;
                 }
                 
+                // Inline text editors have a different context menu (safe to assume it's not some other
+                // type of inline widget since we already know an Editor has focus)
                 if (inlineWidget) {
                     inline_editor_cmenu.open(e);
                 } else {

@@ -88,6 +88,8 @@ define(function (require, exports, module) {
         
         var result = this._commandFn.apply(this, arguments);
         if (!result) {
+            // If command does not return a promise, assume that it handled the
+            // command and return a resolved promise
             return (new $.Deferred()).resolve().promise();
         } else {
             return result;
@@ -177,7 +179,8 @@ define(function (require, exports, module) {
             return null;
         }
         if (!name || !id || !commandFn) {
-            throw new Error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
+            console.error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
+            return null;
         }
 
         var command = new Command(name, id, commandFn);

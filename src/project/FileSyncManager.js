@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, FileError */
+/*global define, $, brackets */
 
 /**
  * FileSyncManager is a set of utilities to help track external modifications to the files and folders
@@ -49,7 +49,8 @@ define(function (require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        FileUtils           = require("file/FileUtils");
+        FileUtils           = require("file/FileUtils"),
+        NativeFileError     = require("file/NativeFileError");
 
     
     /**
@@ -112,7 +113,7 @@ define(function (require, exports, module) {
                 },
                 function (error) {
                     // File has been deleted externally
-                    if (error.code === FileError.NOT_FOUND_ERR) {
+                    if (error.name === NativeFileError.NOT_FOUND_ERR) {
                         if (doc.isDirty) {
                             deleteConflicts.push(doc);
                         } else {
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking modification status of " + doc.file.fullPath, error.code);
+                        console.log("Error checking modification status of " + doc.file.fullPath, error.name);
                         result.reject();
                     }
                 }
@@ -154,12 +155,12 @@ define(function (require, exports, module) {
                 },
                 function (error) {
                     // File has been deleted externally
-                    if (error.code === FileError.NOT_FOUND_ERR) {
+                    if (error.name === NativeFileError.NOT_FOUND_ERR) {
                         DocumentManager.notifyFileDeleted(file);
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking for deletion of " + file.fullPath, error.code);
+                        console.log("Error checking for deletion of " + file.fullPath, error.name);
                         result.reject();
                     }
                 }
@@ -187,7 +188,7 @@ define(function (require, exports, module) {
             doc.refreshText(text, readTimestamp);
         });
         promise.fail(function (error) {
-            console.log("Error reloading contents of " + doc.file.fullPath, error.code);
+            console.log("Error reloading contents of " + doc.file.fullPath, error.name);
         });
         return promise;
     }
@@ -215,7 +216,7 @@ define(function (require, exports, module) {
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
                 StringUtils.htmlEscape(doc.file.fullPath),
-                FileUtils.getFileErrorString(error.code)
+                FileUtils.getFileErrorString(error.name)
             )
         );
     }

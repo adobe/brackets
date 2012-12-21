@@ -43,7 +43,8 @@ define(function (require, exports, module) {
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
-    function _handleRunUnitTests() {
+    function _runUnitTests(spec) {
+        var queryString = spec ? "?spec=" + spec : "";
         if (_testWindow) {
             try {
                 _testWindow.location.reload(true);
@@ -53,7 +54,7 @@ define(function (require, exports, module) {
         }
 
         if (!_testWindow) {
-            _testWindow = window.open("../test/SpecRunner.html", "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
+            _testWindow = window.open("../test/SpecRunner.html" + queryString, "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
             _testWindow.location.reload(true); // if it was opened before, we need to reload because it will be cached
         }
     }
@@ -264,11 +265,14 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests)
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
     
     _enableRunTestsMenuItem();
+    
+    // exposed for convenience, but not official API
+    exports._runUnitTests = _runUnitTests;
 });
