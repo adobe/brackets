@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
 
@@ -396,17 +397,17 @@ define(function (require, exports, module) {
      * @return {Array.<{offset:number, functionName:string}>}
      *      Array of objects containing the start offset for each matched function name.
      */
-    function findAllMatchingFunctionsInText(text, functionName) {
+    function findAllMatchingFunctionsInText(text, searchName) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
         var lines = text.split("\n");
         
-        $.each(allFunctions, function (index, functions) {
-            if (index === functionName || functionName === "*") {
+        CollectionUtils.forEach(allFunctions, function (functionName, functions) {
+            if (functionName === searchName || searchName === "*") {
                 functions.forEach(function (funcEntry) {
                     var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
                     result.push({
-                        name: index,
+                        name: functionName,
                         lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
                         lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
                     });
