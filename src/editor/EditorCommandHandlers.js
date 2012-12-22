@@ -580,7 +580,7 @@ define(function (require, exports, module) {
         // Make the move
         switch (direction) {
         case DIRECTION_UP:
-            if (sel.start.line !== firstLine && sel.end.line <= lastLine) {
+            if (sel.start.line !== firstLine) {
                 doc.batchOperation(function () {
                     var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
                     
