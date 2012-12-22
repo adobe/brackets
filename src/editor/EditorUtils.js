@@ -105,6 +105,7 @@ define(function (require, exports, module) {
         case "php5":
         case "phtm":
         case "phtml":
+        case "ctp":
             return "php";
 
         case "cc":
