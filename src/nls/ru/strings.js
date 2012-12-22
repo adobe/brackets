@@ -228,12 +228,17 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Новое окно {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать папку расширений",
     "CMD_SWITCH_LANGUAGE"                 : "Переключить язык",
-    "CMD_CHECK_FOR_UPDATE"                : "Проверить на обновления",
 
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
-    "CMD_ABOUT"                           : "О {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Проверить на обновления",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Как использовать {APP_NAME}",
     "CMD_FORUM"                           : "Форум {APP_NAME}",
+    "CMD_RELEASE_NOTES"                   : "Примечания к выпуску",
+    "CMD_REPORT_AN_ISSUE"                 : "Сообщить о проблеме",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} в Twitter",
+    "CMD_ABOUT"                           : "О {APP_TITLE}",
+
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Закрыть окно",
@@ -261,7 +266,7 @@ define({
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",
     "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Щелкните здесь для подробностей.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Нажмите здесь для подробностей.",
     "UPDATE_AVAILABLE_TITLE"               : "Доступно обновление",
     "UPDATE_MESSAGE"                       : "Эй, новая сборка {APP_NAME} доступна. Вот некоторые из новых функций:",
     "GET_IT_NOW"                           : "Получить сейчас!",
