@@ -144,6 +144,7 @@ define(function (require, exports, module) {
             return "ruby";
 
         case "py":
+        case "pyw":
             return "python";
         
         case "lua":
