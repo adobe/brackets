@@ -65,9 +65,9 @@ define(function (require, exports, module) {
         $(".modal-bar .message").css("display", "inline-block");
         $(".modal-bar .error").css("display", "none");
         try {
-            if(isRE && isRE[1]){ // Not a regexp or an empty one
+            if (isRE && isRE[1]) { // Not a regexp or an empty one
                 return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
-            }else{
+            } else {
                 return query;
             }
         } catch (e) {
