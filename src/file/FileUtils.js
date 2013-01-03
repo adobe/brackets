@@ -41,6 +41,25 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Encodings           = NativeFileSystem.Encodings;
 
+    /**
+     * Resolves a path to a FileEntry or DirectoryEntry
+     * @return {$.Promise} a jQuery promise that will be resolved with a FileEntry or DirectoryEntry
+     */
+    function resolvePath(path) {
+        var result = new $.Deferred();
+        
+        NativeFileSystem.resolveNativeFileSystemPath(
+            path,
+            function (entry) {
+                result.resolve(entry);
+            },
+            function (error) {
+                result.reject(error);
+            }
+        );
+        
+        return result.promise();
+    }
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
@@ -330,4 +349,5 @@ define(function (require, exports, module) {
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
+    exports.resolvePath                    = resolvePath;
 });

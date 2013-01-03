@@ -35,9 +35,10 @@ define(function (require, exports, module) {
 
     var CommandManager = require("command/CommandManager"),
         KeyEvent       = require("utils/KeyEvent"),
-        Strings        = require("strings");
+        Strings        = require("strings"),
+        FileUtils      = require("file/FileUtils");
 
-    var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+    var BaseConfig = JSON.parse(require("text!base-config/keyboard.json"));
     
     /**
      * Maps normalized shortcut descriptor to key binding info.
@@ -558,6 +559,14 @@ define(function (require, exports, module) {
         var bindings = _commandMap[commandID];
         return bindings || [];
     }
+
+    function _addBindingForCommand(bindings, commandId) {
+        var defaults = bindings[commandId];
+        
+        if (defaults) {
+            addBinding(commandId, defaults);
+        }
+    }
     
     /**
      * Adds default key bindings when commands are registered to CommandManager
@@ -565,12 +574,32 @@ define(function (require, exports, module) {
      * @param {Command} command Newly registered command
      */
     function _handleCommandRegistered(event, command) {
-        var commandId   = command.getID(),
-            defaults    = KeyboardPrefs[commandId];
+        _addBindingForCommand(BaseConfig, command.getID());
+    }
+
+    function loadKeyBindingsFile(path) {
+        // FIXME
+        path = "~/Library/Application Support/Brackets/keyboard.json";
         
-        if (defaults) {
-            addBinding(commandId, defaults);
-        }
+        FileUtils.resolvePath(path).done(function (entry) {
+            FileUtils.readAsText(entry).done(function (text) {
+                var userConfig, defaults;
+                
+                try {
+                    // attempt to parse JSON
+                    userConfig = JSON.parse(text);
+                
+                    // clear all keybindings
+                    _reset();
+                    
+                    CommandManager.getAll().forEach(function (commandId) {
+                        _addBindingForCommand(userConfig, commandId);
+                    });
+                } catch (err) {
+                    // do nothing
+                }
+            });
+        });
     }
 
     /**
@@ -607,6 +636,7 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    exports.loadKeyBindingsFile = loadKeyBindingsFile;
     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux). 
