@@ -12,7 +12,7 @@ ver | findstr /i "5\.1\." > nul
 IF %ERRORLEVEL% EQU 0 GOTO XPNotSupported
 
 REM - Remove existing 'dev' directory (if present)
-rmdir %1\dev
+if exist %1\dev rmdir %1\dev
 
 REM - Make symlink
 REM   (doesn't work on XP - see instructions below)
