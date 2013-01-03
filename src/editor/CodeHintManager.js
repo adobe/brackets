@@ -420,6 +420,8 @@ define(function (require, exports, module) {
             hintList.onClose(_endSession);
 
             _updateHintList();
+        } else {
+            lastChar = null;
         }
     }
     
