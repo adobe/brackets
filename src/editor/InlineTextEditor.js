@@ -158,7 +158,7 @@ define(function (require, exports, module) {
             if (editor.isFullyVisible()) {
                 var height = editor.totalHeight(true);
                 if (force || height !== this.height) {
-                    $(editor.getScrollerElement()).height(height);
+                    $(editor.getRootElement()).height(height);
                     this.height = height;
                     editor.refresh();
                 }
