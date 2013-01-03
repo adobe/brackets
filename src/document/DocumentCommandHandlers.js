@@ -434,10 +434,10 @@ define(function (require, exports, module) {
             doc = commandData.doc;
         }
         if (!doc) {
-            var focusedEditor = EditorManager.getFocusedEditor();
+            var activeEditor = EditorManager.getActiveEditor();
             
-            if (focusedEditor) {
-                doc = focusedEditor.document;
+            if (activeEditor) {
+                doc = activeEditor.document;
             }
             
             // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
