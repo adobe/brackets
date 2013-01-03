@@ -91,6 +91,8 @@ define(function (require, exports, module) {
         case "cfm":
         case "cfml":
         case "cfc":
+        case "dhtml":
+        case "xht":
             return "htmlmixed";
 
         case "svg":
