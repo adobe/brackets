@@ -829,9 +829,7 @@ define(function (require, exports, module) {
      * @returns {!number} height in pixels
      */
     Editor.prototype.totalHeight = function (includePadding) {
-        // TODO: need to port totalHeight()
-        // return this._codeMirror.totalHeight(includePadding);        
-        return 400;
+        return this._codeMirror.totalHeight(includePadding);
     };
 
     /**
