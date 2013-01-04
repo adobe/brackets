@@ -488,7 +488,7 @@ function RemoteFunctions(experimental) {
             // Clear this interval
             window.clearInterval(aliveTest);
         }
-    }, 2000);
+    }, 1000);
 
     return {
         "keepAlive": keepAlive,
