@@ -268,7 +268,7 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Projekt Inställningar för: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Förhandsvisnings URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(lämna för fil adress)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "{0} protokollet stödjer ej förhandsvisning&mdash;använd http: eller https: .",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "{0} protokollet stödjer ej förhandsvisning—använd http: eller https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Adressen kan inte innehålla sökparametrar som \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adressen kan inte innehålla hashar som \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Specialtecken som '{0}' måste vara %-kodade.",
