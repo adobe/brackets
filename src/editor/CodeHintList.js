@@ -41,23 +41,68 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     function CodeHintList(editor) {
-        this.hints = []; // the list of hints to display
-        this.match = null; // the hint substring to highlight
-        this.selectInitial = false; // should the first element be selected initially?
-        this.selectedIndex = -1; // current selected position; or -1 if none
-        this.maxResults = 999; // maximum number of results to display
-        this.opened = false; // is the list currently open?
-        this.editor = editor; // current editor context
-        this.handleSelect = null; // hint selection callback
-        this.handleClose = null; // hint list closure callback
-
-        this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
-        var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
-            .hide();
-
-        this.$hintMenu.append($toggle)
-            .append("<ul class='dropdown-menu'></ul>");
+        this.editor = editor;
     }
+
+    /**
+     * The list of hints to display
+     *
+     * @type {Array<String + jQuery.Object>}
+     */
+    CodeHintList.prototype.hints = [];
+
+    /**
+     * The selected position in the list; otherwise -1.
+     *
+     * @type {number}
+     */
+    CodeHintList.prototype.selectedIndex = -1;
+
+    /**
+     * The maximum number of hints to display
+     *
+     * @type {number}
+     */
+    CodeHintList.prototype.maxResults = 999;
+
+    /**
+     * Is the list currently open?
+     *
+     * @type {boolean}
+     */
+    CodeHintList.prototype.opened = false;
+
+    /**
+     * The editor context
+     *
+     * @type {Editor}
+     */
+    CodeHintList.prototype.editor = null;
+
+    /**
+     * The hint selection callback function
+     *
+     * @type {Function}
+     */
+    CodeHintList.prototype.handleSelect = null;
+
+    /**
+     * The hint list closure callback function
+     *
+     * @type {Function}
+     */
+    CodeHintList.prototype.handleClose = null;
+
+    /**
+     * The hint list menu object
+     *
+     * @type {jQuery.Object}
+     */
+    CodeHintList.prototype.$hintMenu =
+        $("<li class='dropdown codehint-menu'></li>")
+            .append($("<a href='#' class='dropdown-toggle'></a>")
+                    .hide())
+            .append("<ul class='dropdown-menu'></ul>");
 
     /**
      * Select the item in the hint list at the specified index, or remove the
@@ -94,15 +139,19 @@ define(function (require, exports, module) {
      *
      * @private
      */
-    CodeHintList.prototype._buildListView = function () {
-        var self = this,
+    CodeHintList.prototype._buildListView = function (hintObj) {
+        var self            = this,
+            match           = hintObj.match,
+            selectInitial   = hintObj.selectInitial,
             _addHint;
+
+        this.hints = hintObj.hints;
 
         // add a formatted hint to the hint list
         function _addListItem(hint, formattedHint) {
-            var $spanItem = $('<span class="codehint-item">').append(formattedHint),
-                $anchorItem = $('<a class="codehint-item" href="#">').append($spanItem),
-                $listItem = $('<li>').append($anchorItem)
+            var $spanItem = $("<span class='codehint-item'>").append(formattedHint),
+                $anchorItem = $("<a href='#'>").append($spanItem),
+                $listItem = $("<li>").append($anchorItem)
                     .on("click", function (e) {
                         // Don't let the click propagate upward (otherwise it will
                         // hit the close handler in bootstrap-dropdown).
@@ -118,11 +167,11 @@ define(function (require, exports, module) {
 
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
-        if (this.match) {
+        if (match) {
             _addHint = function (name) {
-                var displayName = $('<span>')
+                var displayName = $("<span>")
                     .append(name.replace(
-                        new RegExp(StringUtils.regexEscape(self.match), "i"),
+                        new RegExp(StringUtils.regexEscape(match), "i"),
                         "<strong>$&</strong>"
                     ));
                 _addListItem(name, displayName);
@@ -149,7 +198,7 @@ define(function (require, exports, module) {
                 }
                 _addHint(item);
             });
-            this._setSelectedIndex(this.selectInitial ? 0 : -1);
+            this._setSelectedIndex(selectInitial ? 0 : -1);
         }
     };
 
@@ -273,20 +322,17 @@ define(function (require, exports, module) {
         
         return this.opened;
     };
-    
+
     /**
      * Displays the hint list at the current cursor position
      *
-     * @param {Object<hints: Array<String>, match: String, selectInitial: boolean>} hintObj
+     * @param {Object<hints: Array<String + jQuery.Object>, match: String,
+     *          selectInitial: boolean>} hintObj
      */
     CodeHintList.prototype.open = function (hintObj) {
-        this.match = hintObj.match;
-        this.hints = hintObj.hints;
-        this.selectInitial = hintObj.selectInitial;
-
         Menus.closeAll();
-        this._buildListView();
-    
+        this._buildListView(hintObj);
+
         if (this.hints.length) {
             // Need to add the menu to the DOM before trying to calculate its ideal location.
             $("#codehint-menu-bar > ul").append(this.$hintMenu);
@@ -304,14 +350,11 @@ define(function (require, exports, module) {
     /**
      * Updates the (already open) hint list window with new hints
      *
-     * @param {Object<hints: Array<String>, match: String, selectInitial: boolean>} hintObj
+     * @param {Object<hints: Array<String + jQuery.Object>, match: String,
+     *          selectInitial: boolean>} hintObj
      */
     CodeHintList.prototype.update = function (hintObj) {
-        this.match = hintObj.match;
-        this.hints = hintObj.hints;
-        this.selectInitial = hintObj.selectInitial;
-
-        this._buildListView();
+        this._buildListView(hintObj);
 
         // Update the CodeHintList location
         if (this.hints.length) {
