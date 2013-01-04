@@ -338,7 +338,7 @@ define(function (require, exports, module) {
                 setContentAndUpdatePos(pos,
                     ["<html>", "<body>"],
                     "<div ", "",
-                    ["<div id='foo' class='clazz'>", "</body>", "</html>"]);
+                    ["<div id='foo' class='clazz'>", "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
                 expect(attrs).toEqual([]);
             });
