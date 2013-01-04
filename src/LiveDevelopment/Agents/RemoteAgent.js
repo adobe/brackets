@@ -110,9 +110,11 @@ define(function RemoteAgent(require, exports, module) {
         _load = new $.Deferred();
         $(Inspector.Page).on("loadEventFired.RemoteAgent", _onLoadEventFired);
         $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
-        _intervalId = window.setInterval(function () {
-            call("keepAlive");
-        }, 1000);
+        _load.done(function () {
+            _intervalId = window.setInterval(function () {
+                call("keepAlive");
+            }, 1000);
+        });
         return _load.promise();
     }
 
@@ -120,7 +122,9 @@ define(function RemoteAgent(require, exports, module) {
     function unload() {
         $(Inspector.Page).off(".RemoteAgent");
         $(Inspector.DOM).off(".RemoteAgent");
-        window.clearInterval(_intervalId);
+        if (_intervalId) {
+            window.clearInterval(_intervalId);
+        }
     }
 
     // Export public functions

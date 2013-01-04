@@ -35,7 +35,8 @@ function RemoteFunctions(experimental) {
 
     var lastKeepAliveTime = Date.now();
     
-    var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight";
+    var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight",
+        KEEP_ALIVE_TIMEOUT  = 3000;   // Keep alive timeout value, in milliseconds
     
     // determine the color for a type
     function _typeColor(type, highlight) {
@@ -477,7 +478,7 @@ function RemoteFunctions(experimental) {
     window.addEventListener("scroll", _scrollHandler, true);
     
     var aliveTest = window.setInterval(function () {
-        if (Date.now() > lastKeepAliveTime + 3000) {
+        if (Date.now() > lastKeepAliveTime + KEEP_ALIVE_TIMEOUT) {
             // Remove highlights
             hideHighlight();
             
