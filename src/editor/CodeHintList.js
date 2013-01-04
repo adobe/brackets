@@ -41,68 +41,67 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     function CodeHintList(editor) {
+
+        /**
+         * The list of hints to display
+         *
+         * @type {Array<String + jQuery.Object>}
+         */
+        this.hints = [];
+
+        /**
+         * The selected position in the list; otherwise -1.
+         *
+         * @type {number}
+         */
+        this.selectedIndex = -1;
+
+        /**
+         * The maximum number of hints to display
+         *
+         * @type {number}
+         */
+        this.maxResults = 999;
+
+        /**
+         * Is the list currently open?
+         *
+         * @type {boolean}
+         */
+        this.opened = false;
+
+        /**
+         * The editor context
+         *
+         * @type {Editor}
+         */
         this.editor = editor;
+
+        /**
+         * The hint selection callback function
+         *
+         * @type {Function}
+         */
+        this.handleSelect = null;
+
+        /**
+         * The hint list closure callback function
+         *
+         * @type {Function}
+         */
+        this.handleClose = null;
+
+        /**
+         * The hint list menu object
+         *
+         * @type {jQuery.Object}
+         */
+        this.$hintMenu =
+            $("<li class='dropdown codehint-menu'></li>")
+                .append($("<a href='#' class='dropdown-toggle'></a>")
+                        .hide())
+                .append("<ul class='dropdown-menu'></ul>");
     }
-
-    /**
-     * The list of hints to display
-     *
-     * @type {Array<String + jQuery.Object>}
-     */
-    CodeHintList.prototype.hints = [];
-
-    /**
-     * The selected position in the list; otherwise -1.
-     *
-     * @type {number}
-     */
-    CodeHintList.prototype.selectedIndex = -1;
-
-    /**
-     * The maximum number of hints to display
-     *
-     * @type {number}
-     */
-    CodeHintList.prototype.maxResults = 999;
-
-    /**
-     * Is the list currently open?
-     *
-     * @type {boolean}
-     */
-    CodeHintList.prototype.opened = false;
-
-    /**
-     * The editor context
-     *
-     * @type {Editor}
-     */
-    CodeHintList.prototype.editor = null;
-
-    /**
-     * The hint selection callback function
-     *
-     * @type {Function}
-     */
-    CodeHintList.prototype.handleSelect = null;
-
-    /**
-     * The hint list closure callback function
-     *
-     * @type {Function}
-     */
-    CodeHintList.prototype.handleClose = null;
-
-    /**
-     * The hint list menu object
-     *
-     * @type {jQuery.Object}
-     */
-    CodeHintList.prototype.$hintMenu =
-        $("<li class='dropdown codehint-menu'></li>")
-            .append($("<a href='#' class='dropdown-toggle'></a>")
-                    .hide())
-            .append("<ul class='dropdown-menu'></ul>");
 
     /**
      * Select the item in the hint list at the specified index, or remove the
