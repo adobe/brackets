@@ -830,8 +830,10 @@ define(function (require, exports, module) {
      */
     Editor.prototype.totalHeight = function (includePadding) {
         // TODO: need to port totalHeight()
-        // return this._codeMirror.totalHeight(includePadding);        
-        return 400;
+        //console.log(this._codeMirror.totalHeight(includePadding));
+        
+        var $root = $(this.getRootElement());
+        return (includePadding) ? $root.outerHeight() : $root.height();
     };
 
     /**
