@@ -124,10 +124,13 @@ define(function (require, exports, module) {
      * If no search pending, opens the search dialog. If search is already open, moves to
      * next/prev result (depending on 'rev')
      */
-    function doSearch(cm, rev, initialQuery) {
+    function doSearch(editor, rev, initialQuery) {
+        var cm = editor._codeMirror;
         var state = getSearchState(cm);
         if (state.query) {
-            return findNext(cm, rev);
+            findNext(cm, rev);
+            editor.centerOnCursor();
+            return;
         }
         
         // Use the selection start as the searchStartPos. This way if you
@@ -160,6 +163,9 @@ define(function (require, exports, module) {
                 
                 state.posFrom = state.posTo = searchStartPos;
                 var foundAny = findNext(cm, rev);
+                if (foundAny) {
+                    editor.centerOnCursor();
+                }
                 
                 getDialogTextField(modalBar).toggleClass("no-results", !foundAny);
             });
@@ -174,6 +180,7 @@ define(function (require, exports, module) {
                 // *after* the current selection so we find the next occurrence.
                 searchStartPos = cm.getCursor(false);
                 findFirst(query, modalBar);
+                editor.centerOnCursor();
             }
         });
         
@@ -191,6 +198,7 @@ define(function (require, exports, module) {
             // Clear the "findNextCalled" flag here so we have a clean start
             state.findNextCalled = false;
         }
+        editor.centerOnCursor();
     }
 
     var replaceQueryDialog = Strings.CMD_REPLACE +
@@ -205,7 +213,8 @@ define(function (require, exports, module) {
             '</button> <button id="replace-no"' + style + '>' + Strings.BUTTON_NO +
             '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
-    function replace(cm, all) {
+    function replace(editor, all) {
+        var cm = editor._codeMirror;
         var modalBar = new ModalBar(replaceQueryDialog, true);
         $(modalBar).on("closeOk", function (e, query) {
             if (!query) {
@@ -247,6 +256,7 @@ define(function (require, exports, module) {
                             }
                         }
                         cm.setSelection(cursor.from(), cursor.to());
+                        editor.centerOnCursor();
                         modalBar = new ModalBar(doReplaceConfirm, true);
                         modalBar.getRoot().on("click", function (e) {
                             modalBar.close();
@@ -272,7 +282,7 @@ define(function (require, exports, module) {
             .attr("value", cm.getSelection())
             .get(0).select();
     }
-
+    
     function _launchFind() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
@@ -280,28 +290,28 @@ define(function (require, exports, module) {
 
             // Bring up CodeMirror's existing search bar UI
             clearSearch(codeMirror);
-            doSearch(codeMirror, false, codeMirror.getSelection());
+            doSearch(editor, false, codeMirror.getSelection());
         }
     }
 
     function _findNext() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            doSearch(editor._codeMirror);
+            doSearch(editor);
         }
     }
 
     function _findPrevious() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            doSearch(editor._codeMirror, true);
+            doSearch(editor, true);
         }
     }
 
     function _replace() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            replace(editor._codeMirror);
+            replace(editor);
         }
     }
 

@@ -687,10 +687,29 @@ define(function (require, exports, module) {
     /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line The 0 based line number.
-     * @param {number=} ch  The 0 based character position; treated as 0 if unspecified.
+     * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
+     * @param {boolean} center  true if the view should be centered on the new cursor position
      */
-    Editor.prototype.setCursorPos = function (line, ch) {
+    Editor.prototype.setCursorPos = function (line, ch, center) {
         this._codeMirror.setCursor(line, ch);
+        if (center) {
+            this.centerOnCursor();
+        }
+    };
+    
+    var PADDING_ADJUSTMENT = 60;
+    
+    /**
+     * Scrolls the editor viewport to vertically center the line with the cursor.
+     * This does not alter the horizontal scroll position.
+     */
+    Editor.prototype.centerOnCursor = function () {
+        var coords = this._codeMirror.cursorCoords(null, "local");
+        // TODO fix the magic number 50 below... I'm not sure where
+        // it comes from.
+        this.setScrollPos(null, coords.bottom -
+                          this.getScrollerElement().clientHeight / 2 +
+                          PADDING_ADJUSTMENT);
     };
 
     /**
@@ -746,12 +765,18 @@ define(function (require, exports, module) {
     
     /**
      * Sets the current selection. Start is inclusive, end is exclusive. Places the cursor at the
-     * end of the selection range.
+     * end of the selection range. Optionally centers the around the cursor after
+     * making the selection
+     *
      * @param {!{line:number, ch:number}} start
      * @param {!{line:number, ch:number}} end
+     * @param {boolean} center true to center the viewport
      */
-    Editor.prototype.setSelection = function (start, end) {
+    Editor.prototype.setSelection = function (start, end, center) {
         this._codeMirror.setSelection(start, end);
+        if (center) {
+            this.centerOnCursor();
+        }
     };
 
     /**
