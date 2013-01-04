@@ -829,9 +829,6 @@ define(function (require, exports, module) {
      * @returns {!number} height in pixels
      */
     Editor.prototype.totalHeight = function (includePadding) {
-        // TODO: need to port totalHeight()
-        //console.log(this._codeMirror.totalHeight(includePadding));
-        
         var $root = $(this.getRootElement());
         return (includePadding) ? $root.outerHeight() : $root.height();
     };
