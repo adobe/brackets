@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         console.log(this.info);
         
         if (implicitChar === null) {
-            if (this.info.context === "prop.value" || this.info.context === "prop.name") {
+            if (this.info.context === CSSUtils.PROP_NAME || this.info.context === CSSUtils.PROP_VALUE) {
                 return true;
             }
         } else {
@@ -107,29 +107,35 @@ define(function (require, exports, module) {
         this.info = CSSUtils.getInfoAtPos(this.editor, this.editor.getCursorPos());
 
         var needle = this.info.name,
+            valueNeedle = "",
             context = this.info.context,
             result;
         
         var list = null;
-        if (context === "prop.value") {
+        if (context === CSSUtils.PROP_VALUE) {
             if (!attributes[needle]) {
                 return null;
             } else {
+                
+                if (this.info.values.length > 0) {
+                    valueNeedle = this.info.values[this.info.values.length - 1];
+                }
+                
                 result = $.map(attributes[needle].values, function (pvalue, pindex) {
-                    if (pvalue.indexOf(needle) === 0) {
+                    if (pvalue.indexOf(valueNeedle) === 0) {
                         return pvalue;
                     }
                 });
                 
                 return {
                     hints: result,
-                    match: needle,
+                    match: valueNeedle,
                     selectInitial: true
                 };
             }
             
             
-        } else if (context === "prop.name") {
+        } else if (context === CSSUtils.PROP_NAME) {
             result = $.map(attributes, function (pvalues, pname) {
                 if (pname.indexOf(needle) === 0) {
                     return pname;
@@ -180,7 +186,29 @@ define(function (require, exports, module) {
     };
     
     CssAttrHints.prototype.insertHint = function (hint) {
-        return false;
+        var offset = this.info.offset,
+            cursor = this.editor.getCursorPos(),
+            closure = "",
+            start = {line: -1, ch: -1},
+            end = {line: -1, ch: -1},
+            keepHints = false;
+        
+        if (this.info.context === CSSUtils.PROP_NAME) {
+            closure = ": ";
+            keepHints = true;
+        } else if (this.info.context === CSSUtils.PROP_VALUE) {
+            closure = ";";
+        }
+        
+        hint = hint + closure;
+        
+        start.line = end.line = cursor.line;
+        start.ch = cursor.ch - offset;
+        end.ch = start.ch + hint.length;
+        
+        this.editor.document.replaceRange(hint, start, end);
+        
+        return keepHints;
     };
     
     CssAttrHints.prototype.handleSelect2 = function (completion, editor, cursor) {
