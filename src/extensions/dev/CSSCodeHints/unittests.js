@@ -52,8 +52,24 @@ define(function (require, exports, module) {
             testDocument = null;
         });
     
-        
         // Ask provider for hints at current cursor position; expect it to return some
+        function expectHints(provider) {
+            expect(provider.hasHints(testEditor, null)).toBe(true);
+            var hintsObj = provider.getHints();
+            expect(hintsObj).not.toBeNull();
+            return hintsObj.hints; // return just the array of hints
+        }
+        
+        // Ask provider for hints at current cursor position; expect it NOT to return any
+        function expectNoHints(provider) {
+            expect(provider.hasHints(testEditor, null)).toBe(false);
+        }
+
+        
+        
+        
+        
+/*      // Ask provider for hints at current cursor position; expect it to return some
         function expectHints(provider) {
             var query = provider.hasHints(testEditor, testEditor.getCursorPos());
             expect(query).toBeTruthy();
@@ -70,13 +86,12 @@ define(function (require, exports, module) {
             var query = provider.hasHints(testEditor, testEditor.getCursorPos());
             expect(query).toBeTruthy();
             expect(query.queryStr).toBeNull();
-        }
+        }*/
 
         
         // Expect hintList to contain attribute names, starting with given value
         function verifyAttrHints(hintList, expectedFirstHint) {
             expect(hintList.indexOf("div")).toBe(-1);   // make sure tag names aren't sneaking in there
-            
             expect(hintList[0]).toBe(expectedFirstHint);
         }
         
@@ -84,7 +99,8 @@ define(function (require, exports, module) {
         function selectHint(provider, expectedHint) {
             var hintList = expectHints(provider);
             expect(hintList.indexOf(expectedHint)).not.toBe(-1);
-            provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos(), true);
+            return provider.insertHints(expectedHint);
+            //provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos(), true);
         }
         
         // Helper function for testing cursor position
@@ -186,7 +202,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
                 /* expectNoHints doesn't work here, since the input is the empty string, and the attribute is 'borborder' */
                 /* query.queryStr is NOT null, but the search is still empty, so we need to check the result of search instead */
-                var query = CSSCodeHints.attrHintProvider.getQueryInfo(testEditor, testEditor.getCursorPos());
+                var query = CSSCodeHints.attrHintProvider.hasHints(testEditor);
                 expect(query).toBeTruthy();
                 expect(query.queryStr).not.toBeNull();
                 var hintList = CSSCodeHints.attrHintProvider.search(query);
@@ -238,7 +254,7 @@ define(function (require, exports, module) {
                 
                 /* expectNoHints doesn't work here, since the input is the empty string, and the attribute is 'borborder' */
                 /* query.queryStr is NOT null, but the search is still empty, so we need to check the result of search instead */
-                var query = CSSCodeHints.attrHintProvider.getQueryInfo(testEditor, testEditor.getCursorPos());
+                var query = CSSCodeHints.attrHintProvider.hasHints(testEditor);
                 expect(query).toBeTruthy();
                 expect(query.queryStr).not.toBeNull();
                 var hintList = CSSCodeHints.attrHintProvider.search(query);
