@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         
         // Ask provider for hints at current cursor position; expect it to return some
         function expectHints(provider) {
-            var query = provider.getQueryInfo(testEditor, testEditor.getCursorPos());
+            var query = provider.hasHints(testEditor, testEditor.getCursorPos());
             expect(query).toBeTruthy();
             expect(query.queryStr).not.toBeNull();
             
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
         function expectNoHints(provider) {
-            var query = provider.getQueryInfo(testEditor, testEditor.getCursorPos());
+            var query = provider.hasHints(testEditor, testEditor.getCursorPos());
             expect(query).toBeTruthy();
             expect(query.queryStr).toBeNull();
         }

@@ -14,10 +14,12 @@ define(function (require, exports, module) {
 
     
     function CssAttrHints() {
+        this.alphabet = "abcdefghijklmnopqrstuvwxyz";
+        
         this.cssMode = "";
     }
     
-    CssAttrHints.prototype.getQueryInfo = function (editor, cursor) {
+    CssAttrHints.prototype.hasHints = function (editor, cursor) {
         var query       = {queryStr: null},
             pos         = $.extend({}, cursor),
             ctx         = TokenUtils.getInitialContext(editor._codeMirror, pos),
@@ -47,6 +49,7 @@ define(function (require, exports, module) {
         
         /* third: determine queryStr based on characters around cursor if actually in csscontext */
         if (csscontext && selector !== "") {
+            console.log(CSSUtils.getInfoAtPos(editor, cursor));
             query.queryStr = ctx.token.string;
             if (query.queryStr !== null) {
                 query.queryStr = query.queryStr.trim();
@@ -114,12 +117,20 @@ define(function (require, exports, module) {
     CssAttrHints.prototype.handleSelect = function (completion, editor, cursor) {
         var ctx  = TokenUtils.getInitialContext(editor._codeMirror, cursor),
             closure = "";
-
-        if (ctx.token !== null) {
+/*
+        TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+        console.log(ctx.token.string);
+        TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
+*/      
+        if (ctx.token !== null) {            
             if (this.cssMode === "value") {
                 closure = ";";
             } else if (this.cssMode === "attr") {
                 closure = ": ";
+            }
+            
+            if (len == completion.length) {
+                closure = "";
             }
             
             /* if token is special char, 'len' will be wrong, since a wrong token is used, set token directly to be the empty string */
@@ -155,8 +166,7 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     CssAttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        var alphabet = "abcdefghijklmnopqrstuvwxyz";
-        return (alphabet.indexOf(key) !== -1);
+        return (this.alphabet.indexOf(key) !== -1);
         // return (key === "{" || key === ";"); /* only popup after brackets, else this will always trigger */
         // return (key === " " || key === "{" );
     };
