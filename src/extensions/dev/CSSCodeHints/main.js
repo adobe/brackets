@@ -14,28 +14,22 @@ define(function (require, exports, module) {
 
     
     function CssAttrHints() {
-        this.alphabet = "abcdefghijklmnopqrstuvwxyz";
+        this.triggerkeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-";
     }
     
     CssAttrHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        var query       = {queryStr: null},
-            cursor      = this.editor.getCursorPos(),
-            pos         = $.extend({}, cursor),
-            ctx         = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            styleblocks = HTMLUtils.findStyleBlocks(editor),
-            selector    = CSSUtils.findSelectorAtDocumentPos(editor, cursor),
-            csscontext  = false;
+        var cursor = this.editor.getCursorPos();
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
-        console.log(this.info);
+        // console.log(this.info);
         
         if (implicitChar === null) {
             if (this.info.context === CSSUtils.PROP_NAME || this.info.context === CSSUtils.PROP_VALUE) {
                 return true;
             }
         } else {
-            return (this.alphabet.indexOf(implicitChar) !== -1);
+            return (this.triggerkeys.indexOf(implicitChar) !== -1);
         }
         
         return false;
@@ -68,7 +62,7 @@ define(function (require, exports, module) {
                 return {
                     hints: result,
                     match: valueNeedle,
-                    selectInitial: true
+                    selectInitial: false
                 };
             }
             
@@ -83,7 +77,7 @@ define(function (require, exports, module) {
             return {
                 hints: result,
                 match: needle,
-                selectInitial: true
+                selectInitial: false
             };
         
         }
