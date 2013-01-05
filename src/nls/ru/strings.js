@@ -83,7 +83,7 @@ define({
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Интерактивный Предпросмотр",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Интерактивный Предпросмотр: Подключение\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Интерактивный Предпросмотр: Инициализация\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Отсоединенить Интерактивный Предпросмотр",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Отсоединить Интерактивный Предпросмотр",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Интерактивный Предпросмотр: Нажмите чтобы отсоединиться (Сохранить файлы для обновления)",
     
     "SAVE_CLOSE_TITLE"                  : "Сохранить изменения",
@@ -181,7 +181,7 @@ define({
     "CMD_SELECT_LINE"                     : "Выделить строку",
     "CMD_FIND"                            : "Найти",
     "CMD_FIND_IN_FILES"                   : "Найти в файлах",
-    "CMD_FIND_IN_SUBTREE"                 : "Найти в...",
+    "CMD_FIND_IN_SUBTREE"                 : "Найти в\u2026",
     "CMD_FIND_NEXT"                       : "Найти след.",
     "CMD_FIND_PREVIOUS"                   : "Найти пред.",
     "CMD_REPLACE"                         : "Заменить",
@@ -246,6 +246,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Экспериментальная сборка",
+    "DEVELOPMENT_BUILD"                    : "Сборка для разработчиков",
     "JSLINT_ERRORS"                        : "Ошибки JSLint",
     "JSLINT_ERROR_INFORMATION"             : "1 Ошибка JSLint",
     "JSLINT_ERRORS_INFORMATION"            : "{0} Ошибок JSLint",
@@ -263,7 +264,7 @@ define({
     "ABOUT"                                : "О программе",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Закрыть",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",
     "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Нажмите здесь для подробностей.",
