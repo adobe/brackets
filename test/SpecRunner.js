@@ -28,11 +28,11 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test": "../test",
-        "perf": "../test/perf",
-        "spec": "../test/spec",
-        "text": "thirdparty/text",
-        "i18n" : "thirdparty/i18n"
+        "test"      : "../test",
+        "perf"      : "../test/perf",
+        "spec"      : "../test/spec",
+        "text"      : "thirdparty/text",
+        "i18n"      : "thirdparty/i18n"
     }
 });
 

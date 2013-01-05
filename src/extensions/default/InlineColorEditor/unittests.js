@@ -34,8 +34,8 @@ define(function (require, exports, module) {
         DocumentManager   = brackets.getModule("document/DocumentManager"),
         Strings           = brackets.getModule("strings"),
         KeyEvent          = brackets.getModule("utils/KeyEvent"),
-        testContentCSS    = require("text!unittests.css"),
-        testContentHTML   = require("text!unittests.html"),
+        testContentCSS    = require("text!unittest-files/unittests.css"),
+        testContentHTML   = require("text!unittest-files/unittests.html"),
         provider          = require("main").inlineColorEditorProvider,
         InlineColorEditor = require("InlineColorEditor").InlineColorEditor,
         ColorEditor       = require("ColorEditor").ColorEditor;
@@ -142,6 +142,12 @@ define(function (require, exports, module) {
                 });
                 it("should show the correct color when opened on a color in a shorthand property", function () {
                     testOpenColor({line: 41, ch: 27}, "#0f0f0f");
+                });
+                it("should show the correct color when opened on an rgba() color with a leading period in the alpha field", function () {
+                    testOpenColor({line: 45, ch: 18}, "rgba(100, 200, 150, .5)");
+                });
+                it("should show the correct color when opened on an hsla() color with a leading period in the alpha field", function () {
+                    testOpenColor({line: 49, ch: 18}, "hsla(180, 50%, 50%, .5)");
                 });
                 
                 it("should not open when not on a color", function () {

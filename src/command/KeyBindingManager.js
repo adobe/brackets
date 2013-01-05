@@ -37,6 +37,8 @@ define(function (require, exports, module) {
         KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings");
 
+    var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+    
     /**
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
@@ -118,34 +120,30 @@ define(function (require, exports, module) {
             key = "",
             error = false;
 
-        function _compareModifierString(left, right, previouslyFound, origDescriptor) {
+        function _compareModifierString(left, right) {
             if (!left || !right) {
                 return false;
             }
             left = left.trim().toLowerCase();
             right = right.trim().toLowerCase();
-            var matched = (left.length > 0 && left === right);
-            if (matched && previouslyFound) {
-                console.log("KeyBindingManager normalizeKeyDescriptorString() - Modifier " + left + " defined twice: " + origDescriptor);
-            }
-            return matched;
+            
+            return (left.length > 0 && left === right);
         }
         
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
-            if (_compareModifierString("ctrl", ele, hasCtrl, origDescriptor)) {
+            if (_compareModifierString("ctrl", ele)) {
                 if (brackets.platform === "mac") {
                     hasMacCtrl = true;
                 } else {
                     hasCtrl = true;
                 }
-            } else if (_compareModifierString("cmd", ele, hasCtrl, origDescriptor)) {
+            } else if (_compareModifierString("cmd", ele)) {
                 hasCtrl = true;
-            } else if (_compareModifierString("alt", ele, hasAlt, origDescriptor)) {
+            } else if (_compareModifierString("alt", ele)) {
                 hasAlt = true;
-            } else if (_compareModifierString("opt", ele, hasAlt, origDescriptor)) {
-                console.log("KeyBindingManager normalizeKeyDescriptorString() - Opt getting mapped to Alt from: " + origDescriptor);
+            } else if (_compareModifierString("opt", ele)) {
                 hasAlt = true;
-            } else if (_compareModifierString("shift", ele, hasShift, origDescriptor)) {
+            } else if (_compareModifierString("shift", ele)) {
                 hasShift = true;
             } else if (key.length > 0) {
                 console.log("KeyBindingManager normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
@@ -230,8 +228,8 @@ define(function (require, exports, module) {
      * Takes a keyboard event and translates it into a key in a key map
      */
     function _translateKeyboardEvent(event) {
-        var hasMacCtrl = (brackets.platform === "win") ? false : (event.ctrlKey),
-            hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey),
+        var hasMacCtrl = (brackets.platform === "mac") ? (event.ctrlKey) : false,
+            hasCtrl = (brackets.platform !== "mac") ? (event.ctrlKey) : (event.metaKey),
             hasAlt = (event.altKey),
             hasShift = (event.shiftKey),
             key = String.fromCharCode(event.keyCode);
@@ -297,146 +295,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     *
-     * @param {string} commandID
-     * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
-     * @param {?string} platform - undefined indicates all platforms
-     * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings
-     */
-    function _addBinding(commandID, keyBinding, platform) {
-        var key,
-            result = null,
-            normalized,
-            normalizedDisplay,
-            explicitPlatform = keyBinding.platform || platform,
-            targetPlatform = explicitPlatform || brackets.platform,
-            command;
-        
-        // skip if this binding doesn't match the current platform
-        if (targetPlatform !== brackets.platform) {
-            return null;
-        }
-        
-        key = (keyBinding.key) || keyBinding;
-        if (brackets.platform === "mac" && explicitPlatform === undefined) {
-            key = key.replace("Ctrl", "Cmd");
-            if (keyBinding.displayKey !== undefined) {
-                keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
-            }
-        }
-        normalized = normalizeKeyDescriptorString(key);
-        
-        // skip if the key binding is invalid 
-        if (!normalized) {
-            console.log("Failed to normalize " + key);
-            return null;
-        }
-        
-        // skip if the key is already assigned
-        if (_isKeyAssigned(normalized)) {
-            console.log("Cannot assign " + normalized + " to " + commandID +
-                        ". It is already assigned to " + _keyMap[normalized].commandID);
-            return null;
-        }
-        
-        // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
-        normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
-        
-        // 1-to-many commandID mapping to key binding
-        if (!_commandMap[commandID]) {
-            _commandMap[commandID] = [];
-        }
-        
-        result = {key: normalized, displayKey: normalizedDisplay};
-        _commandMap[commandID].push(result);
-        
-        // 1-to-1 key binding to commandID
-        _keyMap[normalized] = {commandID: commandID, key: normalized, displayKey: normalizedDisplay};
-        
-        // notify listeners
-        command = CommandManager.get(commandID);
-        
-        if (command) {
-            $(command).triggerHandler("keyBindingAdded", [result]);
-        }
-        
-        return result;
-    }
-
-    /**
-     * Returns a copy of the keymap
-     * @returns {!Object.<string, {commandID: string, key: string, displayKey: string}>}
-     */
-    function getKeymap() {
-        return $.extend({}, _keyMap);
-    }
-
-    /**
-     * Process the keybinding for the current key.
-     *
-     * @param {string} A key-description string.
-     * @return {boolean} true if the key was processed, false otherwise
-     */
-    function handleKey(key) {
-        if (_enabled && _keyMap[key]) {
-            CommandManager.execute(_keyMap[key].commandID);
-            return true;
-        }
-        return false;
-    }
-
-    // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
-    /**
-     * Enable or disable key bindings. Clients such as dialogs may wish to disable 
-     * global key bindings temporarily.
-     *
-     * @param {string} A key-description string.
-     * @return {boolean} true if the key was processed, false otherwise
-     */
-    function setEnabled(value) {
-        _enabled = value;
-    }
-
-    /**
-     * Add one or more key bindings to a particular Command.
-     * 
-     * @param {!string} commandID
-     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)}  keyBindings - a single key binding
-     *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
-     *      mapped to each other. Use displayKey property to display a different string (e.g. "CMD+" instead of "CMD=").
-     * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
-     *      the key binding. Ignored if keyBindings is passed an Array.
-     * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>} Returns record(s) for valid key binding(s)
-     */
-    function addBinding(commandID, keyBindings, platform) {
-        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
-            return;
-        }
-        
-        var normalizedBindings = [],
-            targetPlatform,
-            results;
-
-        if (Array.isArray(keyBindings)) {
-            var keyBinding;
-            results = [];
-            
-            keyBindings.forEach(function (keyBindingRequest) {
-                keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
-                
-                if (keyBinding) {
-                    results.push(keyBinding);
-                }
-            });
-        } else {
-            results = _addBinding(commandID, keyBindings, platform);
-        }
-        
-        return results;
-    }
-
-    /**
      * Remove a key binding from _keymap
      *
      * @param {!string} key - a key-description string that may or may not be normalized.
@@ -471,6 +329,224 @@ define(function (require, exports, module) {
             }
         }
     }
+
+    /**
+     * @private
+     *
+     * @param {string} commandID
+     * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
+     * @param {?string} platform - undefined indicates all platforms
+     * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings.
+     *     Returns null when key binding platform does not match, binding does not normalize,
+     *     or is already assigned.
+     */
+    function _addBinding(commandID, keyBinding, platform) {
+        var key,
+            result = null,
+            normalized,
+            normalizedDisplay,
+            explicitPlatform = keyBinding.platform || platform,
+            targetPlatform = explicitPlatform || brackets.platform,
+            command,
+            bindingsToDelete = [],
+            existing;
+        
+        // if the request does not specify an explicit platform, and we're
+        // currently on a mac, then replace Ctrl with Cmd.
+        key = (keyBinding.key) || keyBinding;
+        if (brackets.platform === "mac" && explicitPlatform === undefined) {
+            key = key.replace("Ctrl", "Cmd");
+            if (keyBinding.displayKey !== undefined) {
+                keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
+            }
+        }
+        normalized = normalizeKeyDescriptorString(key);
+        
+        // skip if the key binding is invalid 
+        if (!normalized) {
+            console.log("Failed to normalize " + key);
+            return null;
+        }
+        
+        // check for duplicate key bindings
+        existing = _keyMap[normalized];
+        
+        // for cross-platform compatibility
+        if (exports.useWindowsCompatibleBindings) {
+            // windows-only key bindings are used as the default binding
+            // only if a default binding wasn't already defined
+            if (explicitPlatform === "win") {
+                // search for a generic or platform-specific binding if it
+                // already exists
+                if (existing &&
+                        (!existing.explicitPlatform || existing.explicitPlatform === brackets.platform)) {
+                    // do not clobber existing binding with windows-only binding
+                    return null;
+                }
+                
+                // target this windows binding for the current platform
+                targetPlatform = brackets.platform;
+            }
+        }
+        
+        // skip if this binding doesn't match the current platform
+        if (targetPlatform !== brackets.platform) {
+            return null;
+        }
+        
+        // skip if the key is already assigned explicitly for this platform
+        if (existing) {
+            if (!existing.explicitPlatform) {
+                // remove existing generic bindings, then re-map this binding
+                // to the new command
+                removeBinding(normalized);
+            } else {
+                // do not re-assign a platform-specific key binding
+                console.log("Cannot assign " + normalized + " to " + commandID +
+                            ". It is already assigned to " + _keyMap[normalized].commandID);
+                return null;
+            }
+        }
+        
+        // delete existing bindings when
+        // (1) replacing a windows-compatible binding with a generic or
+        //     platform-specific binding
+        // (2) replacing a generic binding with a platform-specific binding
+        var existingBindings = _commandMap[commandID] || [],
+            isWindowsCompatible,
+            isReplaceGeneric;
+        
+        existingBindings.forEach(function (binding) {
+            // remove windows-only bindings in _commandMap
+            isWindowsCompatible = exports.useWindowsCompatibleBindings &&
+                binding.explicitPlatform === "win";
+            
+            // remove existing generic binding
+            isReplaceGeneric = !binding.explicitPlatform &&
+                explicitPlatform;
+            
+            if (isWindowsCompatible || isReplaceGeneric) {
+                bindingsToDelete.push(binding);
+            }
+        });
+                
+        // remove generic or windows-compatible bindigns
+        bindingsToDelete.forEach(function (binding) {
+            removeBinding(binding.key);
+        });
+        
+        // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
+        normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
+        
+        // 1-to-many commandID mapping to key binding
+        if (!_commandMap[commandID]) {
+            _commandMap[commandID] = [];
+        }
+        
+        result = {
+            key                 : normalized,
+            displayKey          : normalizedDisplay,
+            explicitPlatform    : explicitPlatform
+        };
+        
+        _commandMap[commandID].push(result);
+        
+        // 1-to-1 key binding to commandID
+        _keyMap[normalized] = {
+            commandID           : commandID,
+            key                 : normalized,
+            displayKey          : normalizedDisplay,
+            explicitPlatform    : explicitPlatform
+        };
+        
+        // notify listeners
+        command = CommandManager.get(commandID);
+        
+        if (command) {
+            $(command).triggerHandler("keyBindingAdded", [result]);
+        }
+        
+        return result;
+    }
+
+    /**
+     * Returns a copy of the keymap
+     * @returns {!Object.<string, {commandID: string, key: string, displayKey: string}>}
+     */
+    function getKeymap() {
+        return $.extend({}, _keyMap);
+    }
+
+    /**
+     * Process the keybinding for the current key.
+     *
+     * @param {string} A key-description string.
+     * @return {boolean} true if the key was processed, false otherwise
+     */
+    function handleKey(key) {
+        if (_enabled && _keyMap[key]) {
+            // The execute() function returns a promise because some commands are async.
+            // Generally, commands decide whether they can run or not synchronously,
+            // and reject immediately, so we can test for that synchronously.
+            var promise = CommandManager.execute(_keyMap[key].commandID);
+            return (promise.state() === "rejected") ? false : true;
+        }
+        return false;
+    }
+
+    // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
+    /**
+     * Enable or disable key bindings. Clients such as dialogs may wish to disable 
+     * global key bindings temporarily.
+     *
+     * @param {string} A key-description string.
+     * @return {boolean} true if the key was processed, false otherwise
+     */
+    function setEnabled(value) {
+        _enabled = value;
+    }
+
+    /**
+     * Add one or more key bindings to a particular Command.
+     * 
+     * @param {!string} commandID
+     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
+     *     a single key binding or an array of keybindings. Example:
+     *     "Shift-Cmd-F". Mac and Win key equivalents are automatically
+     *     mapped to each other. Use displayKey property to display a different
+     *     string (e.g. "CMD+" instead of "CMD=").
+     * @param {?string} platform - the target OS of the keyBindings either
+     *     "mac", "win" or "linux". If undefined, all platforms not explicitly
+     *     defined will use the key binding.
+     * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
+     *     Returns record(s) for valid key binding(s)
+     */
+    function addBinding(commandID, keyBindings, platform) {
+        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
+            return;
+        }
+        
+        var normalizedBindings = [],
+            results;
+
+        if (Array.isArray(keyBindings)) {
+            var keyBinding;
+            results = [];
+            
+            keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
+                // attempt to add keybinding
+                keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
+                
+                if (keyBinding) {
+                    results.push(keyBinding);
+                }
+            });
+        } else {
+            results = _addBinding(commandID, keyBindings, platform);
+        }
+        
+        return results;
+    }
     
     /**
      * Retrieve key bindings currently associated with a command
@@ -481,6 +557,20 @@ define(function (require, exports, module) {
     function getKeyBindings(commandID) {
         var bindings = _commandMap[commandID];
         return bindings || [];
+    }
+    
+    /**
+     * Adds default key bindings when commands are registered to CommandManager
+     * @param {$.Event} event jQuery event
+     * @param {Command} command Newly registered command
+     */
+    function _handleCommandRegistered(event, command) {
+        var commandId   = command.getID(),
+            defaults    = KeyboardPrefs[commandId];
+        
+        if (defaults) {
+            addBinding(commandId, defaults);
+        }
     }
 
     /**
@@ -498,7 +588,12 @@ define(function (require, exports, module) {
             },
             true
         );
+        
+        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
+            && (brackets.platform !== "win");
     }
+    
+    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
     // unit test only
     exports._reset = _reset;
@@ -512,4 +607,14 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    
+    /**
+     * Use windows-specific bindings if no other are found (e.g. Linux). 
+     * Core Brackets modules that use key bindings should always define at
+     * least a generic keybinding that is applied for all platforms. This 
+     * setting effectively creates a compatibility mode for third party
+     * extensions that define explicit key bindings for Windows and Mac, but
+     * not Linux.
+     */
+    exports.useWindowsCompatibleBindings = false;
 });

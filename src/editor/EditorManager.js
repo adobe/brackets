@@ -184,11 +184,10 @@ define(function (require, exports, module) {
      * is). The widget's onClosed() callback will be run as a result.
      * @param {!Editor} hostEditor The editor containing the widget.
      * @param {!InlineWidget} inlineWidget The inline widget to close.
-     * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
-     *      near the inline's location.
      */
-    function closeInlineWidget(hostEditor, inlineWidget, moveFocus) {
-        if (moveFocus) {
+    function closeInlineWidget(hostEditor, inlineWidget) {
+        // If widget has focus, return it to the hostEditor & move the cursor to where the inline used to be
+        if (inlineWidget.hasFocus()) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
             // If cursor's already on that line, leave it be to preserve column position
             var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineWidget.id).line;
@@ -370,7 +369,7 @@ define(function (require, exports, module) {
         if (_currentEditor) {
             $(_currentEditor.getScrollerElement()).height(editorAreaHt);
             if (!skipRefresh) {
-                _currentEditor.refresh();
+                _currentEditor.refresh(true);
             }
         }
     }
@@ -519,7 +518,8 @@ define(function (require, exports, module) {
      */
     function setEditorHolder(holder) {
         if (_currentEditor) {
-            throw new Error("Cannot change editor area after an editor has already been created!");
+            console.error("Cannot change editor area after an editor has already been created!");
+            return;
         }
         
         _editorHolder = holder;
@@ -528,20 +528,16 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the currently focused inline widget.
-     * @returns {?{widget:!InlineTextEditor, editor:!Editor}}
+     * Returns the currently focused inline widget, if any.
+     * @return {?InlineWidget}
      */
     function getFocusedInlineWidget() {
         var result = null;
         
         if (_currentEditor) {
             _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    widget.editors.forEach(function (editor) {
-                        if (editor.hasFocus()) {
-                            result = { widget: widget, editor: editor };
-                        }
-                    });
+                if (widget.hasFocus()) {
+                    result = widget;
                 }
             });
         }
@@ -549,12 +545,15 @@ define(function (require, exports, module) {
         return result;
     }
 
+    /**
+     * Returns the focused Editor within an inline text editor, or null if something else has focus
+     * @return {?Editor}
+     */
     function _getFocusedInlineEditor() {
-        var focusedInline = getFocusedInlineWidget();
-        if (focusedInline) {
-            return focusedInline.editor;
+        var focusedWidget = getFocusedInlineWidget();
+        if (focusedWidget instanceof InlineTextEditor) {
+            return focusedWidget.getFocusedEditor();
         }
-
         return null;
     }
     
@@ -565,7 +564,7 @@ define(function (require, exports, module) {
      * getActiveEditor() will return the last visible editor that was given focus (but
      * may not currently have focus because, for example, a dialog with editable text
      * is open).
-     * @returns {Editor}
+     * @returns {?Editor}
      */
     function getFocusedEditor() {
         if (_currentEditor) {
@@ -590,7 +589,7 @@ define(function (require, exports, module) {
      * have focus at the moment, but it is visible and was the last editor that was given 
      * focus. Returns null if no editors are active.
      * @see getFocusedEditor()
-     * @returns {Editor}
+     * @returns {?Editor}
      */
     function getActiveEditor() {
         return _lastFocusedEditor;
@@ -606,12 +605,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         if (_currentEditor) {
-            var inlineWidget = null,
-                focusedWidgetResult = getFocusedInlineWidget();
-            
-            if (focusedWidgetResult) {
-                inlineWidget = focusedWidgetResult.widget;
-            }
+            var inlineWidget = getFocusedInlineWidget();
             
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it

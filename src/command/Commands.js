@@ -103,9 +103,13 @@ define(function (require, exports, module) {
     exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
 
     // Help
-    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
     exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";
+    exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";
     exports.HELP_FORUM                  = "help.forum";
+    exports.HELP_RELEASE_NOTES          = "help.releaseNotes";
+    exports.HELP_REPORT_AN_ISSUE        = "help.reportAnIssue";
+    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
+    exports.HELP_TWITTER                = "help.twitter";
     exports.HELP_ABOUT                  = "help.about";
 
     // File shell callbacks

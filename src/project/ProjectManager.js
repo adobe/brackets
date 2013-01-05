@@ -63,6 +63,7 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         CollectionUtils     = require("utils/CollectionUtils"),
         FileUtils           = require("file/FileUtils"),
+        NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent");
     
@@ -555,9 +556,21 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    /** @param {Entry} entry File or directory to filter */
+    /**
+     * Returns false for files and directories that are not commonly useful to display.
+     *
+     * @param {Entry} entry File or directory to filter
+     * @return boolean true if the file should be displayed
+     */
     function shouldShow(entry) {
-        return [".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) === -1;
+        if ([".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) > -1) {
+            return false;
+        }
+        var extension = entry.name.split('.').pop();
+        if (["pyc"].indexOf(extension) > -1) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -655,7 +668,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_LOADING_PROJECT,
                     StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
                         StringUtils.htmlEscape(dirEntry.fullPath),
-                        error.code)
+                        error.name)
                 );
             }
         );
@@ -739,7 +752,8 @@ define(function (require, exports, module) {
         if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
-                function (rootEntry) {
+                function (fs) {
+                    var rootEntry = fs.root;
                     var projectRootChanged = (!_projectRoot || !rootEntry)
                         || _projectRoot.fullPath !== rootEntry.fullPath;
 
@@ -788,7 +802,7 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.htmlEscape(rootPath),
-                            error.code
+                            error.name
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default 
@@ -927,7 +941,7 @@ define(function (require, exports, module) {
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.code)
+                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.name)
                             );
                             result.reject();
                         }
@@ -1078,8 +1092,8 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error) {
-                    if ((error.code === FileError.PATH_EXISTS_ERR)
-                            || (error.code === FileError.TYPE_MISMATCH_ERR)) {
+                    if ((error.name === NativeFileError.PATH_EXISTS_ERR)
+                            || (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,
@@ -1087,9 +1101,9 @@ define(function (require, exports, module) {
                                 StringUtils.htmlEscape(data.rslt.name))
                         );
                     } else {
-                        var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
+                        var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                         StringUtils.format(Strings.GENERIC_ERROR, error.code);
+                                         StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
                         var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
                                         StringUtils.htmlEscape(data.rslt.name),
@@ -1131,25 +1145,36 @@ define(function (require, exports, module) {
         // In the meantime, pass null for node so new item is placed
         // relative to the selection
         node = selection;
-        
-        // Open the node before creating the new child
-        _projectTree.jstree("open_node", node);
+ 
+        function createNode() {
+           // Create the node and open the editor
+            _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
+    
+            if (!skipRename) {
+                var $renameInput = _projectTree.find(".jstree-rename-input");
+    
+                $renameInput.on("keydown", function (event) {
+                    // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+                    if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+    
+                        escapeKeyPressed = true;
+                    }
+                });
+    
+                ViewUtils.scrollElementIntoView(_projectTree, $renameInput, true);
+            }
+        }
 
-        // Create the node and open the editor
-        _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
-
-        if (!skipRename) {
-            var $renameInput = _projectTree.find(".jstree-rename-input");
-
-            $renameInput.on("keydown", function (event) {
-                // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-
-                    escapeKeyPressed = true;
-                }
-            });
-
-            ViewUtils.scrollElementIntoView(_projectTree, $renameInput, true);
+        // There is a race condition in jstree if "open_node" and "create" are called in rapid
+        // succession and the node was not yet loaded. To avoid it, first open the node and wait
+        // for the open_node event before trying to create the new one. See #2085 for more details.
+        if (wasNodeOpen) {
+            createNode();
+        } else {
+            _projectTree.one("open_node.jstree", createNode);
+    
+            // Open the node before creating the new child
+            _projectTree.jstree("open_node", node);
         }
         
         return result.promise();
@@ -1255,7 +1280,8 @@ define(function (require, exports, module) {
                     }
                     
                     var oldName = selected.data("entry").fullPath;
-                    var newName = oldName.replace(data.rslt.old_name, data.rslt.new_name);
+                    var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + "$");
+                    var newName = oldName.replace(oldNameRegex, data.rslt.new_name);
                     
                     renameItem(oldName, newName, isFolder)
                         .done(function () {

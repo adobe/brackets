@@ -108,6 +108,8 @@ define({
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_NO_SCOPE"            : "en el proyecto",
     "FIND_IN_FILES_FILE"                : "archivo",
     "FIND_IN_FILES_FILES"               : "archivos",
     "FIND_IN_FILES_MATCH"               : "coincidencia",
@@ -168,6 +170,7 @@ define({
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
+    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_QUIT"                            : "Salir",
@@ -178,6 +181,7 @@ define({
     "CMD_SELECT_LINE"                     : "Seleccionar línea",
     "CMD_FIND"                            : "Buscar",
     "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
+    "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
     "CMD_FIND_NEXT"                       : "Buscar siguiente",
     "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
     "CMD_REPLACE"                         : "Reemplazar",
@@ -224,19 +228,24 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Nueva ventana de {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
     "CMD_SWITCH_LANGUAGE"                 : "Cambiar idioma",
-    "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
 
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
-    "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Cómo utilizar {APP_NAME}",
     "CMD_FORUM"                           : "Foro de {APP_NAME}",
+    "CMD_RELEASE_NOTES"                   : "Notas de la versión",
+    "CMD_REPORT_AN_ISSUE"                 : "Informar de un error",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
+    "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Versión Experimental",
+    "EXPERIMENTAL_BUILD"                   : "versión experimental",
+    "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
     "JSLINT_ERRORS"                        : "Errores de JSLint",
     "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
     "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
@@ -254,14 +263,13 @@ define({
     "ABOUT"                                : "Acerca de...",
     "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versión experimental {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
     "GET_IT_NOW"                           : "¡Consíguelo ahora!",
-    "PROJECT_SETTINGS_TOOLTIP"             : "Configuración del proyecto",
     "PROJECT_SETTINGS_TITLE"               : "Configuración del proyecto para: {0}",
     "PROJECT_SETTING_BASE_URL"             : "URL base para Desarrollo en Vivo",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(deja en blanco para urls de tipo \"file\")",
@@ -269,5 +277,14 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base",
+    
+    // extensions/default/InlineColorEditor
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Color original",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "Formato RGBa",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Formato Hex",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)"
 });

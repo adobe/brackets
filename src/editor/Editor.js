@@ -233,10 +233,17 @@ define(function (require, exports, module) {
     }
 
     function _handleSelectAll() {
-        var editor = EditorManager.getFocusedEditor();
+        var result = new $.Deferred(),
+            editor = EditorManager.getFocusedEditor();
+
         if (editor) {
             editor._selectAllVisible();
+            result.resolve();
+        } else {
+            result.reject();    // command not handled
         }
+
+        return result.promise();
     }
     
     /**
@@ -482,7 +489,7 @@ define(function (require, exports, module) {
                 newText = change.text.join('\n');
                 if (!change.from || !change.to) {
                     if (change.from || change.to) {
-                        console.assert(false, "Change record received with only one end undefined--replacing entire text");
+                        console.error("Change record received with only one end undefined--replacing entire text");
                     }
                     cm.setValue(newText);
                 } else {
@@ -992,8 +999,13 @@ define(function (require, exports, module) {
     /**
      * Re-renders the editor UI
      */
-    Editor.prototype.refresh = function () {
+    Editor.prototype.refresh = function (handleResize) {
         this._codeMirror.refresh();
+        if (handleResize) {
+            // If the editor has been resized, the position of inline widgets relative to the
+            // browser window might have changed.
+            this._fireWidgetOffsetTopChanged(0);
+        }
     };
     
     /**

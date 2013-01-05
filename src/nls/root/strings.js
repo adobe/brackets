@@ -181,7 +181,7 @@ define({
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in...",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
     "CMD_FIND_NEXT"                       : "Find Next",
     "CMD_FIND_PREVIOUS"                   : "Find Previous",
     "CMD_REPLACE"                         : "Replace",
@@ -228,19 +228,25 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "New {APP_NAME} Window",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
-    "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
 
     // Help menu commands
     "HELP_MENU"                           : "Help",
-    "CMD_ABOUT"                           : "About {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
+    "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_RELEASE_NOTES"                   : "Release Notes",
+    "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
+    "CMD_ABOUT"                           : "About {APP_TITLE}",
+
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Close Window",
     "CMD_ABORT_QUIT"                      : "Abort Quit",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Experimental Build",
+    "EXPERIMENTAL_BUILD"                   : "experimental build",
+    "DEVELOPMENT_BUILD"                    : "development build",
     "JSLINT_ERRORS"                        : "JSLint Errors",
     "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
     "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
@@ -258,14 +264,13 @@ define({
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
     "GET_IT_NOW"                           : "Get it now!",
-    "PROJECT_SETTINGS_TOOLTIP"             : "Project Settings",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",
@@ -276,12 +281,8 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
     
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_SELECTION_FIELD_TIP"          : "Saturation (x) and Brightness (y)",
-    "COLOR_EDITOR_HUE_SLIDER_TIP"               : "Hue",
-    "COLOR_EDITOR_OPACITY_SLIDER_TIP"           : "Opacity",
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
-    "COLOR_EDITOR_COLOR_INPUT_TIP"              : "Color Value",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
