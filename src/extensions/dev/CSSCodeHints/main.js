@@ -14,7 +14,7 @@ define(function (require, exports, module) {
 
     
     function CssAttrHints() {
-        this.triggerkeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-";
+        this.triggerkeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ- ";
     }
     
     CssAttrHints.prototype.hasHints = function (editor, implicitChar) {
@@ -41,7 +41,13 @@ define(function (require, exports, module) {
         var needle = this.info.name,
             valueNeedle = "",
             context = this.info.context,
-            result;
+            result,
+            selectInitial = true;
+            
+        
+        if (implicitChar === " ") {
+            selectInitial = false;
+        }
         
         var list = null;
         if (context === CSSUtils.PROP_VALUE) {
@@ -50,7 +56,7 @@ define(function (require, exports, module) {
             } else {
                 
                 if (this.info.values.length > 0) {
-                    valueNeedle = this.info.values[this.info.values.length - 1];
+                    valueNeedle = this.info.values[this.info.values.length - 1].trim();
                 }
                 
                 result = $.map(attributes[needle].values, function (pvalue, pindex) {
@@ -62,7 +68,7 @@ define(function (require, exports, module) {
                 return {
                     hints: result,
                     match: valueNeedle,
-                    selectInitial: false
+                    selectInitial: selectInitial
                 };
             }
             
@@ -77,7 +83,7 @@ define(function (require, exports, module) {
             return {
                 hints: result,
                 match: needle,
-                selectInitial: false
+                selectInitial: selectInitial
             };
         
         }
