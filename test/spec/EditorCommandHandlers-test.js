@@ -574,6 +574,138 @@ define(function (require, exports, module) {
                 testToggleBlock(expectedText, {start: {line: 1, ch: 15}, end: {line: 3, ch: 9}});
             });
             
+            // Whitespace within block comments
+            
+            var BLOCK_CONTAINING_WS = "function foo()\n" +
+                                      "/*\n" +
+                                      "    a();\n" +
+                                      "    \n" +
+                                      "    b();\n" +
+                                      "*/\n" +
+                                      "}";
+            
+            it("should block uncomment, cursor in whitespace within block comment", function () {
+                myDocument.setText(BLOCK_CONTAINING_WS);
+
+                myEditor.setCursorPos(3, 2); // middle of blank line
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = BLOCK_CONTAINING_WS.split("\n");
+                lines.splice(5, 1);  // removes delimiter lines
+                lines.splice(1, 1);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 2, ch: 2});
+            });
+            
+            it("should block uncomment, selection in whitespace within block comment", function () {
+                myDocument.setText(BLOCK_CONTAINING_WS);
+
+                myEditor.setSelection({line: 3, ch: 0}, {line: 3, ch: 4});
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = BLOCK_CONTAINING_WS.split("\n");
+                lines.splice(5, 1);  // removes delimiter lines
+                lines.splice(1, 1);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 0}, end: {line: 2, ch: 4}});
+            });
+            
+            // Selections mixing whitespace and existing block comments
+            
+            var WS_SURROUNDING_BLOCK = "function foo()\n" +
+                                       "    \n" +
+                                       "    /*a();\n" +
+                                       "    \n" +
+                                       "    b();*/\n" +
+                                       "    \n" +
+                                       "}";
+            
+            it("should block uncomment, selection covers block comment plus whitespace before", function () {
+                myDocument.setText(WS_SURROUNDING_BLOCK);
+                
+                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 10});  // start of blank line to end of block comment
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = WS_SURROUNDING_BLOCK.split("\n");
+                lines[2] = "    a();";
+                lines[4] = "    b();";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 8}});
+            });
+            
+            it("should block uncomment, selection covers block comment plus whitespace after", function () {
+                myDocument.setText(WS_SURROUNDING_BLOCK);
+                
+                myEditor.setSelection({line: 2, ch: 4}, {line: 5, ch: 4});  // start of block comment to end of blank line
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = WS_SURROUNDING_BLOCK.split("\n");
+                lines[2] = "    a();";
+                lines[4] = "    b();";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 4}, end: {line: 5, ch: 4}});
+            });
+            
+            it("should block uncomment, selection covers part of block comment plus whitespace before", function () {
+                myDocument.setText(WS_SURROUNDING_BLOCK);
+                
+                myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 4});  // start of blank line to middle of block comment
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = WS_SURROUNDING_BLOCK.split("\n");
+                lines[2] = "    a();";
+                lines[4] = "    b();";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 4}});
+            });
+            
+            it("should block uncomment, selection covers part of block comment plus whitespace after", function () {
+                myDocument.setText(WS_SURROUNDING_BLOCK);
+                
+                myEditor.setSelection({line: 3, ch: 4}, {line: 5, ch: 4});  // middle of block comment to end of blank line
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = WS_SURROUNDING_BLOCK.split("\n");
+                lines[2] = "    a();";
+                lines[4] = "    b();";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 3, ch: 4}, end: {line: 5, ch: 4}});
+            });
+            
+            it("should block uncomment, selection covers block comment plus whitespace on both sides", function () {
+                myDocument.setText(WS_SURROUNDING_BLOCK);
+                
+                myEditor.setSelection({line: 1, ch: 0}, {line: 5, ch: 4});  // start of first blank line to end of last blank line
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = WS_SURROUNDING_BLOCK.split("\n");
+                lines[2] = "    a();";
+                lines[4] = "    b();";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 5, ch: 4}});
+            });
+            
             // Selections mixing uncommented text and existing block comments
             
             it("should block uncomment, selection covers block comment plus other text", function () {
@@ -592,6 +724,30 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 20}}); // range endpoints still align with same text
             });
             
+            it("should block uncomment, selection covers multi-line block comment plus other text", function () {
+                var content = "function foo()\n" +
+                              "    \n" +
+                              "    /*a();\n" +
+                              "    \n" +
+                              "    b();*/\n" +
+                              "    c();\n" +
+                              "}";
+                myDocument.setText(content);
+                
+                myEditor.setSelection({line: 0, ch: 5}, {line: 5, ch: 5});  // middle of first line of code to middle of line following comment
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                var lines = content.split("\n");
+                lines[2] = "    a();";
+                lines[4] = "    b();";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 0, ch: 5}, end: {line: 5, ch: 5}});
+            });
+            
+            // Selections including multiple separate block comments
             // We no-op in these cases since it's ambiguous - can't nest block comments, but was multiple independent uncomments intended?
             
             it("should do nothing, selection covers parts of multiple block comments", function () {
@@ -610,7 +766,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 9}, end: {line: 1, ch: 22}}); // no change
             });
             
-            it("should do nothing, selection covers multiple block comments", function () {
+            it("should do nothing, selection covers all of multiple block comments", function () {
                 // Start with part of line 1 wrapped in a block comment
                 var lines = defaultContent.split("\n");
                 lines[1] = "    /*function*/ /*bar()*/ {";
@@ -624,6 +780,22 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(startingContent);
                 expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 26}}); // no change
+            });
+            
+            it("should do nothing, selection covers multiple block comments & nothing else", function () {
+                // Start with part of line 1 wrapped in a block comment
+                var lines = defaultContent.split("\n");
+                lines[1] = "    /*function*//*bar()*/ {";
+                var startingContent = lines.join("\n");
+                myDocument.setText(startingContent);
+
+                // select both block comments, but nothing else
+                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 25});
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(startingContent);
+                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 25}}); // no change
             });
             
             it("should do nothing, selection covers multiple block comments plus other text", function () {
