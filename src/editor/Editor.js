@@ -698,17 +698,28 @@ define(function (require, exports, module) {
     };
     
     var PADDING_ADJUSTMENT = 60;
+    var CENTERING_MARGIN = 0.1;
     
     /**
-     * Scrolls the editor viewport to vertically center the line with the cursor.
+     * Scrolls the editor viewport to vertically center the line with the cursor,
+     * but only if the cursor is currently near the edges of the viewport or
+     * entirely outside the viewport.
+     *
      * This does not alter the horizontal scroll position.
      */
     Editor.prototype.centerOnCursor = function () {
-        var coords = this._codeMirror.cursorCoords(null, "local");
+        var localCoords = this._codeMirror.cursorCoords(null, "local");
+        var pageCoords = this._codeMirror.cursorCoords(null, "page");
+        var clientHeight = this.getScrollerElement().clientHeight;
         
-        this.setScrollPos(null, coords.bottom -
-                          this.getScrollerElement().clientHeight / 2 +
-                          PADDING_ADJUSTMENT);
+        // If the cursor is already reasonably centered, we won't
+        // make any change.
+        if (pageCoords.bottom < clientHeight * CENTERING_MARGIN + PADDING_ADJUSTMENT ||
+                pageCoords.bottom > clientHeight * (1 - CENTERING_MARGIN) + PADDING_ADJUSTMENT) {
+            this.setScrollPos(null, localCoords.bottom -
+                                clientHeight / 2 +
+                                PADDING_ADJUSTMENT);
+        }
     };
 
     /**
