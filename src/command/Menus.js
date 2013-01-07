@@ -518,6 +518,14 @@ define(function (require, exports, module) {
             menuItem._nameChanged();
         }
 
+        var bindings = KeyBindingManager.getKeyBindings(commandID),
+            binding = "";
+        
+        if (bindings && bindings.length > 0) {
+            binding = bindings[bindings.length - 1].key;
+        }
+        brackets.app.addMenuItem(this.id, name, commandID, binding, position, relativeID, function (err) { /* todo: error handling */ });
+        
         return menuItem;
     };
 
@@ -709,6 +717,8 @@ define(function (require, exports, module) {
         // Install ESC key handling
         PopUpManager.addPopUp($popUp, closeAll, false);
 
+        brackets.app.addMenu(name, id, position, relativeID, function (err) { /* todo: error handling */ });
+        
         // todo error handling
 
         return menu;
