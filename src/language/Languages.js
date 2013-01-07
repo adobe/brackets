@@ -30,7 +30,7 @@ define(function (require, exports, module) {
 	
 	var languages         = {},
 		fileExtensionsMap = {},
-		codeMirrorModeMap = {};
+		modeMap           = {};
 		
 	function _validateString(value, description) {
 		if (toString.call(value) !== '[object String]') {
@@ -45,137 +45,78 @@ define(function (require, exports, module) {
 		}
 	}
 	
-	function _validateArray(value, description, validateEntry) {
-        var i, entry;
-		if (!$.isArray(value)) {
-			throw new Error(description + " must be an array");
-		}
-		if (value.length === 0) {
-			throw new Error(description + " must not be empty");
-		}
-		if (validateEntry) {
-			for (i = 0; i < value.length; i++) {
-				entry = value[i];
-				validateEntry(entry, description + "[" + i + "]");
-			}
-		}
-	}
-	
-	function _validateNonEmptyArray(value, description, validateEntry) {
-		_validateArray(value, description, validateEntry);
-		if (value.length === 0) {
-			throw new Error(description + " must not be empty");
-		}
-	}
-	
-	function _validateId(id) {
+	function Language(id, name, mimeType) {
 		_validateString(id, "Language ID");
 		if (!id.match(/^[a-z]+$/)) {
 			throw new Error("Invalid language ID \"" + id + "\": Only letters a-z are allowed");
 		}
+		
+		_validateNonEmptyString(name, "name");
+		_validateNonEmptyString(mimeType, "type");
+		
+		this.id       = id;
+		this.name     = name;
+		this.mimeType = mimeType;
+		
+		this.fileExtensions = [];
 	}
 	
-	function _validateExtensions(extensions) {
-        var i, extension, language;
-		_validateNonEmptyArray(extensions, "definition.extensions", _validateNonEmptyString);
-		
-		for (i = 0; i < extensions.length; i++) {
-			extension = extensions[i];
-			language = fileExtensionsMap[extension];
+	Language.prototype.addFileExtension = function (extension) {
+		if (this.fileExtensions.indexOf(extension) === -1) {
+			this.fileExtensions.push(extension);
+			
+			var language = fileExtensionsMap[extension];
 			if (language) {
-				console.warn("Cannot register file extension \"" + extension + "\", it already belongs to " + language.name);
+				console.warn("Cannot register file extension \"" + extension + "\" for " + this.name + ", it already belongs to " + language.name);
+			} else {
+				fileExtensionsMap[extension] = this;
 			}
 		}
-	}
+			
+		return this;
+	};
 	
-	function _validateSyntax(syntax) {
-		// Syntax entry is optional
-		if (!syntax) {
-			return;
-		}
+	Language.prototype.setBlockComment = function (prefix, suffix) {
+		_validateNonEmptyString(prefix, "prefix");
+		_validateNonEmptyString(suffix, "suffix");
 		
-		if (syntax.blockComment) {
-			_validateNonEmptyString(syntax.blockComment.prefix, "definition.syntax.blockComment.prefix");
-			_validateNonEmptyString(syntax.blockComment.suffix, "definition.syntax.blockComment.suffix");
-		}
+		this.blockComment = { prefix: prefix, suffix: suffix };
 		
-		if (syntax.lineComment) {
-			_validateNonEmptyString(syntax.lineComment.prefix, "definition.syntax.lineComment.prefix");
-		}
-	}
-	
-	function _validateMode(mode) {
-		if (!mode) {
-			throw new Error("definition.mode is empty");
-		}
-		if (!mode.CodeMirror) {
-			throw new Error("definition.mode.CodeMirror is empty");
-		}
-		
-		if (mode.CodeMirror && !CodeMirror.modes[mode.CodeMirror]) {
-			throw new Error("CodeMirror mode \"" + mode.CodeMirror + "\" not found");
-		}
-	}
-	
-	function _validateDefinition(definition) {
-		if (!definition) {
-			throw new Error("No language definition was passed");
-		}
-		_validateNonEmptyString(definition.name, "definition.name");
-		_validateNonEmptyString(definition.type, "definition.type");
-		
-		_validateExtensions(definition.extensions);
-		_validateSyntax(definition.syntax);
-		_validateMode(definition.mode);
-	}
+		return this;
+	};
 
-	// Monkey-patch CodeMirror to prevent modes from being overwritten by extensions
-	// We rely on the tokens provided by some of those mode
-	function _patchCodeMirror() {
-		var _original_CodeMirror_defineMode = CodeMirror.defineMode;
-		function _wrapped_CodeMirror_defineMode(name) {
-			if (CodeMirror.modes[name]) {
-				throw new Error("There already is a CodeMirror mode with the name \"" + name + "\"");
-			}
-			_original_CodeMirror_defineMode.apply(CodeMirror, arguments);
-		}
-		CodeMirror.defineMode = _wrapped_CodeMirror_defineMode;
-	}
-
-	function Language(id, definition) {
-		this.id         = id;
-		this.name       = definition.name;
-		this.extensions = definition.extensions;
-		this.mode       = definition.mode;
-		this.syntax     = definition.syntax || {};
-	}
-	
-	function defineLanguage(id, definition) {
-        var i, language, extensions, mode;
-      
-		_validateId(id);
-		_validateDefinition(definition);
+	Language.prototype.setLineComment = function (prefix) {
+		_validateNonEmptyString(prefix, "prefix");
 		
+		this.lineComment = { prefix: prefix };
+		
+		return this;
+	};
+	
+	Language.prototype.setMode = function (mode) {
+		_validateNonEmptyString(mode, "mode");
+		if (!CodeMirror.modes[mode]) {
+			throw new Error("CodeMirror mode \"" + mode + "\" is not loaded");
+		}
+		
+		this.mode = mode;
+		if (!modeMap[mode]) {
+			modeMap[mode] = [];
+		} else {
+			console.warn("Multiple languages are using the CodeMirror mode \"" + mode + "\"", modeMap[mode]);
+		}
+		modeMap[mode].push(this);
+		
+		return this;
+	};
+	
+	function defineLanguage(id, name, mimeType) {
 		if (languages[id]) {
 			throw new Error("Language \"" + id + "\" is already defined");
 		}
 		
-		language   = new Language(id, definition);
-		extensions = language.extensions;
-		mode       = language.mode.CodeMirror;
-		
+		var language = new Language(id, name, mimeType);
 		languages[id] = language;
-		
-		if (!codeMirrorModeMap[mode]) {
-			codeMirrorModeMap[mode] = [];
-		} else {
-			console.warn("Multiple CodeMirror modes in use for the same language", codeMirrorModeMap[mode]);
-		}
-		codeMirrorModeMap[mode].push(language);
-		
-		for (i = 0; i < extensions.length; i++) {
-			fileExtensionsMap[extensions[i]] = language;
-		}
 		
 		return language;
 	}
@@ -192,19 +133,32 @@ define(function (require, exports, module) {
 		return fileExtensionsMap[extension];
 	}
 	
-	function getLanguageForCodeMirrorMode(mode) {
-		var modes = codeMirrorModeMap[mode];
+	function getLanguageForMode(mode) {
+		var modes = modeMap[mode];
 		if (modes) {
 			return modes[0];
 		}
 	}
 	
+	// Monkey-patch CodeMirror to prevent modes from being overwritten by extensions
+	// We rely on the tokens provided by some of those mode
+	function _patchCodeMirror() {
+		var _original_CodeMirror_defineMode = CodeMirror.defineMode;
+		function _wrapped_CodeMirror_defineMode(name) {
+			if (CodeMirror.modes[name]) {
+				throw new Error("There already is a CodeMirror mode with the name \"" + name + "\"");
+			}
+			_original_CodeMirror_defineMode.apply(CodeMirror, arguments);
+		}
+		CodeMirror.defineMode = _wrapped_CodeMirror_defineMode;
+	}
+
 	_patchCodeMirror();
 	
 	module.exports = {
-		defineLanguage:               defineLanguage,
-		getLanguage:                  getLanguage,
-		getLanguageForFileExtension:  getLanguageForFileExtension,
-		getLanguageForCodeMirrorMode: getLanguageForCodeMirrorMode
+		defineLanguage:              defineLanguage,
+		getLanguage:                 getLanguage,
+		getLanguageForFileExtension: getLanguageForFileExtension,
+		getLanguageForMode:          getLanguageForMode
 	};
 });

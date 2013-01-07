@@ -34,21 +34,9 @@ define(function (require, exports, module) {
     // Adding CodeMirror mode "more"
     require("thirdparty/CodeMirror2/mode/more/more");
     
-    var more = Languages.defineLanguage("more", {
-        name: "MORE",
-        type: "text/x-more",
-        extensions: ["more"],
-        mode: {
-            CodeMirror: "more",
-        },
-        syntax: {
-            blockComment: {
-                prefix: "/*",
-                suffix: "*/"
-            },
-            lineComment: {
-                prefix: "//"
-            }
-        }
-    });
+    Languages.defineLanguage("more", "MORE", "text/x-more")
+        .addFileExtension("more")
+        .setBlockComment("/*", "*/")
+        .setLineComment("//")
+        .setMode("more")
 });

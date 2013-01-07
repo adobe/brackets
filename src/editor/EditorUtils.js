@@ -76,8 +76,8 @@ define(function (require, exports, module) {
         ext = ext.toLowerCase();
 
         var language = Languages.getLanguageForFileExtension(ext);
-        if (language) {
-            return language.mode.CodeMirror;
+        if (language && language.mode) {
+            return language.mode;
         }
 
         switch (ext) {
