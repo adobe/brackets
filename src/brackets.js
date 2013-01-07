@@ -110,27 +110,6 @@ define(function (require, exports, module) {
     require("utils/ExtensionUtils");
     
     
-    function _initExtensions() {
-        // allow unit tests to override which plugin folder(s) to load
-        var paths = params.get("extensions");
-        
-        if (!paths) {
-            paths = "default,dev," + ExtensionLoader.getUserExtensionPath();
-        }
-        
-        return Async.doInParallel(paths.split(","), function (item) {
-            var extensionPath = item;
-            
-            // If the item has "/" in it, assume it is a full path. Otherwise, load
-            // from our source path + "/extensions/".
-            if (item.indexOf("/") === -1) {
-                extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
-            }
-            
-            return ExtensionLoader.loadAllExtensionsInNativeDirectory(extensionPath);
-        });
-    }
-    
     function _initTest() {
         // TODO: (issue #265) Make sure the "test" object is not included in final builds
         // All modules that need to be tested from the context of the application
@@ -246,28 +225,11 @@ define(function (require, exports, module) {
         LiveDevelopmentMain.init();
         
         PerfUtils.addMeasurement("Application Startup");
-
-        // Load extensions before restoring the project
-        
-        // Create a new DirectoryEntry and call getDirectory() on the user extension
-        // directory. If the directory doesn't exist, it will be created.
-        // Note that this is an async call and there are no success or failure functions passed
-        // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
-        // before the directory is finished being created, but that is okay, since the extension
-        // loading will work correctly without this directory.
-        // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
-        // during extension loading.
-        var extensionPath = ExtensionLoader.getUserExtensionPath();
-        new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
-                                                           {create: true});
-        
-        // Create the extensions/disabled directory, too.
-        var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
-        new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
-                                                           {create: true});
         
         // Load all extensions
-        _initExtensions().always(function () {
+        var extensionLoaderPromimse = ExtensionLoader.init(params.get("extensions"));
+        
+        extensionLoaderPromimse.always(function () {
             // Finish UI initialization
             var initialProjectPath = ProjectManager.getInitialProjectPath();
             ProjectManager.openProject(initialProjectPath).always(function () {

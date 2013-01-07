@@ -1318,6 +1318,8 @@ define(function (require, exports, module) {
         $(".jstree-rename-input").blur();
     }
 
+    function init() {
+    }
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
@@ -1343,6 +1345,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
 
     // Define public API
+    exports.init                     = init;
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;
     exports.setBaseUrl               = setBaseUrl;
