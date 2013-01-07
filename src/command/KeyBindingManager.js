@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         Strings        = require("strings"),
         FileUtils      = require("file/FileUtils");
 
-    var BaseConfig = JSON.parse(require("text!base-config/keyboard.json"));
+    var BaseConfig = JSON.parse(require("text!base-config/keyboard.json")),
+        mergedConfig = $.extend({}, BaseConfig);
     
     /**
      * Maps normalized shortcut descriptor to key binding info.
@@ -56,14 +57,6 @@ define(function (require, exports, module) {
      * Allow clients to toggle key binding
      */
     var _enabled = true;
-
-    /**
-     * @private
-     */
-    function _reset() {
-        _keyMap = {};
-        _commandMap = {};
-    }
 
     /**
      * @private
@@ -332,6 +325,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Removes all key bindings
+     */
+    function _reset() {
+        Object.keys(_keyMap).forEach(function (key) {
+            removeBinding(key);
+        });
+    }
+
+    /**
      * @private
      *
      * @param {string} commandID
@@ -560,6 +562,9 @@ define(function (require, exports, module) {
         return bindings || [];
     }
 
+    /**
+     * @private
+     */
     function _addBindingForCommand(bindings, commandId) {
         var defaults = bindings[commandId];
         
@@ -574,26 +579,28 @@ define(function (require, exports, module) {
      * @param {Command} command Newly registered command
      */
     function _handleCommandRegistered(event, command) {
-        _addBindingForCommand(BaseConfig, command.getID());
+        _addBindingForCommand(mergedConfig, command.getID());
     }
 
+    /**
+     * Loads a key binding file and merges it with base key bindings. 
+     * @param {string} path Native file path to load key bindings JSON file
+     */
     function loadKeyBindingsFile(path) {
-        // FIXME
-        path = "~/Library/Application Support/Brackets/keyboard.json";
-        
         FileUtils.resolvePath(path).done(function (entry) {
             FileUtils.readAsText(entry).done(function (text) {
-                var userConfig, defaults;
+                var defaults;
                 
                 try {
                     // attempt to parse JSON
-                    userConfig = JSON.parse(text);
+                    mergedConfig = $.extend(BaseConfig, JSON.parse(text));
                 
                     // clear all keybindings
                     _reset();
                     
+                    // add bindings for all existing commands
                     CommandManager.getAll().forEach(function (commandId) {
-                        _addBindingForCommand(userConfig, commandId);
+                        _addBindingForCommand(mergedConfig, commandId);
                     });
                 } catch (err) {
                     // do nothing
@@ -601,6 +608,19 @@ define(function (require, exports, module) {
             });
         });
     }
+    
+    /*
+    function toJSON() {
+        var result = {},
+            commandData;
+        
+        Object.keys(_commandMap).forEach(function (commandId) {
+            commandData[commandId];
+            
+            result[commandId] = commandData;
+        });
+    }
+    */
 
     /**
      * Install keydown event listener.
@@ -621,7 +641,13 @@ define(function (require, exports, module) {
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
             && (brackets.platform !== "win");
     }
+        
+    // TODO (jasonsanjose): user configurable path to key binding file
+    // hard coded preference file 
+    var pathToKeyBindingsJSON = brackets.app.getApplicationSupportDirectory() + "/keyboard.json";
+    loadKeyBindingsFile(pathToKeyBindingsJSON);
     
+    // add key bindings as commands are registered
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
     // unit test only
@@ -637,6 +663,7 @@ define(function (require, exports, module) {
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
     exports.loadKeyBindingsFile = loadKeyBindingsFile;
+    //exports.toJSON = toJSON;
     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux). 
