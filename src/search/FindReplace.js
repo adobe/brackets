@@ -65,7 +65,11 @@ define(function (require, exports, module) {
         $(".modal-bar .message").css("display", "inline-block");
         $(".modal-bar .error").css("display", "none");
         try {
-            return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+            if (isRE && isRE[1]) { // Not a regexp or an empty one
+                return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
+            } else {
+                return query;
+            }
         } catch (e) {
             $(".modal-bar .message").css("display", "none");
             $(".modal-bar .error")
@@ -99,20 +103,23 @@ define(function (require, exports, module) {
         return found;
     }
 
+    function clearHighlights(state) {
+        var i;
+        for (i = 0; i < state.marked.length; ++i) {
+            state.marked[i].clear();
+        }
+        state.marked.length = 0;
+    }
+
     function clearSearch(cm) {
         cm.operation(function () {
-            var state = getSearchState(cm),
-                i;
+            var state = getSearchState(cm);
             if (!state.query) {
                 return;
             }
             state.query = null;
-            
-            // Clear highlights
-            for (i = 0; i < state.marked.length; ++i) {
-                state.marked[i].clear();
-            }
-            state.marked.length = 0;
+
+            clearHighlights(state);
         });
     }
     
@@ -143,16 +150,16 @@ define(function (require, exports, module) {
                 if (!query) {
                     return;
                 }
-                
+
                 if (state.query) {
                     clearSearch(cm);  // clear highlights from previous query
                 }
                 state.query = parseQuery(query);
-                
+
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
                 if (cm.lineCount() < 2000) { // This is too expensive on big documents.
-                    var cursor = getSearchCursor(cm, query);
+                    var cursor = getSearchCursor(cm, state.query || query);
                     while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
                     }
@@ -175,6 +182,9 @@ define(function (require, exports, module) {
                 searchStartPos = cm.getCursor(false);
                 findFirst(query, modalBar);
             }
+        });
+        $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
+            clearHighlights(state);
         });
         
         var $input = getDialogTextField(modalBar);
