@@ -148,6 +148,7 @@ define(function (require, exports, module) {
         function findFirst(query, modalBar) {
             cm.operation(function () {
                 if (!query) {
+                    clearHighlights(getSearchState(cm));
                     return;
                 }
 
@@ -159,7 +160,7 @@ define(function (require, exports, module) {
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
                 if (cm.lineCount() < 2000) { // This is too expensive on big documents.
-                    var cursor = getSearchCursor(cm, state.query || query);
+                    var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
                     }
