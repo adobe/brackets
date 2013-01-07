@@ -180,7 +180,6 @@ define(function (require, exports, module) {
                 // *after* the current selection so we find the next occurrence.
                 searchStartPos = cm.getCursor(false);
                 findFirst(query, modalBar);
-                editor.centerOnCursor();
             }
         });
         

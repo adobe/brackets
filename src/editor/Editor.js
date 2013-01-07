@@ -705,8 +705,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.centerOnCursor = function () {
         var coords = this._codeMirror.cursorCoords(null, "local");
-        // TODO fix the magic number 50 below... I'm not sure where
-        // it comes from.
+        
         this.setScrollPos(null, coords.bottom -
                           this.getScrollerElement().clientHeight / 2 +
                           PADDING_ADJUSTMENT);
