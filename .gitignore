@@ -7,7 +7,6 @@ src/brackets.min.css
 # (so that the directory is non-empty and can be in git)
 src/extensions/dev/*
 !src/extensions/dev/README
-!src/extensions/dev/CSSCodeHints/
 
 src/extensions/disabled
 
@@ -15,4 +14,4 @@ src/extensions/disabled
 .DS_Store
 
 # unit test working directory
-
+test/temp
