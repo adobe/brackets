@@ -519,12 +519,14 @@ define(function (require, exports, module) {
         }
 
         var bindings = KeyBindingManager.getKeyBindings(commandID),
-            binding = "";
+            binding,
+            bindingStr = "";
         
         if (bindings && bindings.length > 0) {
-            binding = bindings[bindings.length - 1].key;
+            binding = bindings[bindings.length - 1];
+            bindingStr = binding.displayKey || binding.key;
         }
-        brackets.app.addMenuItem(this.id, name, commandID, binding, position, relativeID, function (err) { /* todo: error handling */ });
+        brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) { /* todo: error handling */ });
         
         return menuItem;
     };
