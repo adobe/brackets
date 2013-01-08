@@ -298,17 +298,20 @@ define(function (require, exports, module) {
                     inlineWidget = hostEditor.getInlineWidgets()[0];
                     inlinePos = inlineWidget.editors[0].getCursorPos();
                     
-                    // verify cursor position in inline editor
+                    // verify cursor position & focus in inline editor
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+                    expect(inlineWidget.hasFocus()).toEqual(true);
+                    expect(hostEditor.hasFocus()).toEqual(false);
                     
                     // close the editor
-                    EditorManager.closeInlineWidget(hostEditor, inlineWidget, true);
+                    EditorManager.closeInlineWidget(hostEditor, inlineWidget);
                     
                     // verify no inline widgets 
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                     
-                    // verify full editor cursor restored
+                    // verify full editor cursor & focus restored
                     expect(savedPos).toEqual(hostEditor.getCursorPos());
+                    expect(hostEditor.hasFocus()).toEqual(true);
                 });
             });
 

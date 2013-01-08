@@ -1285,7 +1285,8 @@ define(function (require, exports, module) {
                     }
                     
                     var oldName = selected.data("entry").fullPath;
-                    var newName = oldName.replace(new RegExp(data.rslt.old_name + "$"), data.rslt.new_name);
+                    var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + "$");
+                    var newName = oldName.replace(oldNameRegex, data.rslt.new_name);
                     
                     renameItem(oldName, newName, isFolder)
                         .done(function () {

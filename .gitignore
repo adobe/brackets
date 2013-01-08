@@ -1,4 +1,5 @@
 Thumbs.db
+node_modules
 src/brackets.css
 src/brackets.min.css
 
