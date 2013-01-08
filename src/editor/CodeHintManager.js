@@ -230,46 +230,6 @@ define(function (require, exports, module) {
         hintList        = null,
         deferredHints   = null;
 
-    /** 
-     *  If there is any provider for all modes, then add it to each individual
-     *  mode providers list and re-sort them based on their specificity.
-     */
-    function _mergeAllModeToIndividualMode() {
-        var allModeProviders = [];
-        if (hintProviders.all) {
-            allModeProviders = hintProviders.all;
-            
-            // Remove "all" mode list since we don't need it any more after
-            // merging them to each individual mode provider lists.
-            delete hintProviders.all;
-            
-            $.each(hintProviders, function (key, value) {
-                if (hintProviders[key]) {
-                    hintProviders[key] = hintProviders[key].concat(allModeProviders);
-                    hintProviders[key].sort(_providerSort);
-                }
-            });
-        }
-    }
-    
-    /** 
-     *  Return the array of hint providers for the given mode.
-     *  If this is called for the first time, then we check if any provider wants to show
-     *  hints on all modes. If there is any, then we merge it into each individual
-     *  mode provider list.
-     *
-     * @param {(string|Object<name: string>)} mode
-     * @return {Array.<{provider: Object, modes: Array.<string>, specificity: number}>}
-     */
-    function _getEnabledHintProviders(mode) {
-        if (hintProviders.all) {
-            _mergeAllModeToIndividualMode();
-        }
-        
-        var modeName = (typeof mode === "string") ? mode : mode.name;
-        return hintProviders[modeName] || [];
-    }
-    
     /**
      * Comparator to sort providers based on their priority
      */
@@ -458,6 +418,7 @@ define(function (require, exports, module) {
                 }
             });
             hintList.onClose(_endSession);
+
             _updateHintList();
         } else {
             lastChar = null;
