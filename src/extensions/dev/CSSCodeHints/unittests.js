@@ -165,6 +165,7 @@ define(function (require, exports, module) {
             });
             
             it("should insert semicolon followed by newline after value added", function () {
+                testDocument.replaceRange(";", { line: 12, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 13, ch: 10 });   // cursor after 'display: '
                 selectHint(CSSCodeHints.attrHintProvider, "block");
                 expect(testDocument.getLine(13)).toBe(" display: block;");
@@ -178,16 +179,9 @@ define(function (require, exports, module) {
                 // expectCursorAt({ line: 10, ch: 4 });
             });
 
-            it("should insert nothing if  previous property not closed properly", function () {
+            it("should insert nothing if previous property not closed properly", function () {
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
-                /* expectNoHints doesn't work here, since the input is the empty string, and the attribute is 'borborder' */
-                /* query.queryStr is NOT null, but the search is still empty, so we need to check the result of search instead */
-                var query = CSSCodeHints.attrHintProvider.hasHints(testEditor);
-                expect(query).toBeTruthy();
-                expect(query.queryStr).not.toBeNull();
-                var hintList = CSSCodeHints.attrHintProvider.search(query);
-                expect(hintList).toBeTruthy();
-                expect(hintList.length).toBe(0);
+                expectNoHints(CSSCodeHints.attrHintProvider);
             });
             
             it("should insert nothing but the closure if propertyvalue is already complete", function () {
@@ -198,7 +192,9 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 16, ch: 8 });
             });
             
-            it("should start new selection whenever there is a whitespace to last stringliteral", function () {
+            xit("should start new selection whenever there is a whitespace to last stringliteral", function () {
+                // this needs to be discussed, whether or not this behaviour is aimed for
+                // if so, changes to CSSUtils.getInfoAt need to be done imho to classify this 
                 testDocument.replaceRange(" ", { line: 16, ch: 6 }); // insert whitespace after color
                 testEditor.setCursorPos({ line: 16, ch: 7 });   // cursor one whitespace after color
                 selectHint(CSSCodeHints.attrHintProvider, "color");
@@ -209,6 +205,7 @@ define(function (require, exports, module) {
 
         describe("CSS attribute value hints", function () {
             it("should list all display-values after colon", function () {
+                testDocument.replaceRange(";", { line: 12, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 13, ch: 9 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
@@ -216,6 +213,7 @@ define(function (require, exports, module) {
             });
 
             it("should list all display-values after colon and whitespace", function () {
+                testDocument.replaceRange(";", { line: 12, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 13, ch: 10 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
@@ -223,23 +221,16 @@ define(function (require, exports, module) {
             });
 
             it("should list all display-values after colon and whitespace", function () {
+                testDocument.replaceRange(";", { line: 13, ch: 10 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 14, ch: 12 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
-                verifyAttrHints(hintList, "inline");  // filtered after "display: in"
+                verifyAttrHints(hintList, "inherit");  // filtered after "display: in"
             });
             
             it("should NOT list hints for unknown attribute", function () {
                 testEditor.setCursorPos({ line: 15, ch: 12 });    // at borborder:
-                
-                /* expectNoHints doesn't work here, since the input is the empty string, and the attribute is 'borborder' */
-                /* query.queryStr is NOT null, but the search is still empty, so we need to check the result of search instead */
-                var query = CSSCodeHints.attrHintProvider.hasHints(testEditor);
-                expect(query).toBeTruthy();
-                expect(query.queryStr).not.toBeNull();
-                var hintList = CSSCodeHints.attrHintProvider.search(query);
-                expect(hintList).toBeTruthy();
-                expect(hintList.length).toBe(0);
+                expectNoHints(CSSCodeHints.attrHintProvider);
             });
             
         });
