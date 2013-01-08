@@ -437,7 +437,7 @@ define(function (require, exports, module) {
      *
      * * the first character
      * * "/" and the character following the "/"
-     * * "." and "-"
+     * * "_", "." and "-" and the character following it
      * * an uppercase character that follows a lowercase one (think camelCase)
      *
      * The returned object contains an array called "specials". This array is
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
      * the last segment's specials separately.)
      * 
      * @param {string} input string to break apart (e.g. filename that is being searched)
-     * @return {Object}
+     * @return {{specials:Array.<number>, lastSegmentSpecialsIndex:number}}
      */
     function findSpecialCharacters(str) {
         var i, c;
@@ -471,22 +471,20 @@ define(function (require, exports, module) {
                 specials.push(i);
                 lastSegmentSpecialsIndex = specials.length - 1;
                 lastWasLowerCase = false;
-            } else {
-                // . and - are separators so they are
+            } else if (c === "." || c === "-" || c === "_") {
+                // _, . and - are separators so they are
                 // special and so is the next character
-                if (c === "." || c === "-") {
-                    specials.push(i++);
+                specials.push(i++);
+                specials.push(i);
+                lastWasLowerCase = false;
+            } else if (c.toUpperCase() === c) {
+                // this is the check for camelCase changeovers
+                if (lastWasLowerCase) {
                     specials.push(i);
-                    lastWasLowerCase = false;
-                } else if (c.toUpperCase() === c) {
-                    // this is the check for camelCase changeovers
-                    if (lastWasLowerCase) {
-                        specials.push(i);
-                    }
-                    lastWasLowerCase = false;
-                } else {
-                    lastWasLowerCase = true;
                 }
+                lastWasLowerCase = false;
+            } else {
+                lastWasLowerCase = true;
             }
         }
         return {
@@ -502,7 +500,7 @@ define(function (require, exports, module) {
     
     // Scores can be hard to make sense of. The DEBUG_SCORES flag
     // provides a way to peek into the parts that made up a score.
-    // This flag is also used in the unit tests.
+    // This flag is used for manual debugging and in the unit tests only.
     var DEBUG_SCORES = false;
     function _setDebugScores(ds) {
         DEBUG_SCORES = ds;
@@ -540,9 +538,9 @@ define(function (require, exports, module) {
      * @param {string} str the original string to search
      * @param {string} compareStr the string to compare with (generally lower cased)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
-     * @param {int} startingSpecial optional index into specials array to start scanning with
+     * @param {int} startingSpecial index into specials array to start scanning with
      * @param {boolean} lastSegmentStart optional which character does the last segment start at
-     * @return {Object} matched ranges and score
+     * @return {{ranges:Array.{text:string, matched:boolean, lastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function getMatchRanges(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
         var ranges = [];
@@ -589,7 +587,7 @@ define(function (require, exports, module) {
         
         // variable to award bonus points for consecutive matching characters. We keep track of the
         // last matched character.
-        var lastMatchedIndex = -2;
+        var lastMatchedIndex = -1;
         
         // Records the current range and adds any additional ranges required to
         // get to character index c. This function is called before starting a new range
@@ -772,8 +770,16 @@ define(function (require, exports, module) {
      * except this function is always working on the last segment and the
      * result can optionally include a remainder, which is the characters
      * at the beginning of the query which did not match in the last segment.
+     *
+     * @param {string} query the search string (generally lower cased)
+     * @param {string} str the original string to search
+     * @param {string} compareStr the string to compare with (generally lower cased)
+     * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
+     * @param {int} startingSpecial index into specials array to start scanning with
+     * @param {boolean} lastSegmentStart which character does the last segment start at
+     * @return {{ranges:Array.{text:string, matched:boolean, lastSegment:boolean}, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    function lastSegmentSearch(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
+    function _lastSegmentSearch(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
         var queryCounter, matchRanges;
         
         // It's possible that the query is longer than the last segment.
@@ -791,7 +797,7 @@ define(function (require, exports, module) {
                                      str, compareStr, specials, startingSpecial, lastSegmentStart);
             
             // if we've got a match *or* there are no segments in this string, we're done
-            if (matchRanges !== null || !startingSpecial) {
+            if (matchRanges || startingSpecial === 0) {
                 break;
             }
         }
@@ -809,29 +815,39 @@ define(function (require, exports, module) {
      * then search the rest of the string with the remainder.
      *
      * The parameters and return value are the same as for getMatchRanges.
+     *
+     * @param {string} query the search string (will be searched lower case)
+     * @param {string} str the original string to search
+     * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
+     * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
+     * @return {{ranges:Array.{text:string, matched:boolean, lastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    function orderedCompare(query, str, compareStr, specials, lastSegmentSpecialsIndex) {
+    function _computeMatch(query, str, specials, lastSegmentSpecialsIndex) {
+        // set up query as all lower case and make a lower case string to use for comparisons
+        query = query.toLowerCase();
+        var compareStr = str.toLowerCase();
+        
         var lastSegmentStart = specials[lastSegmentSpecialsIndex];
         var result;
         
         if (lastSegmentStart + query.length < str.length) {
-            result = lastSegmentSearch(query, str, compareStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
+            result = _lastSegmentSearch(query, str, compareStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
         }
         
         if (result) {
             // Do we have more query characters that did not fit?
             if (result.remainder) {
                 // Scan with the remainder only through the beginning of the last segment
-                var result2 = getMatchRanges(result.remainder, str.substring(0, lastSegmentStart),
+                var remainderResult = getMatchRanges(result.remainder, str.substring(0, lastSegmentStart),
                                               compareStr.substring(0, lastSegmentStart),
                                               specials.slice(0, lastSegmentSpecialsIndex), 0, lastSegmentStart);
                 
-                if (result2) {
+                if (remainderResult) {
                     // We have a match
                     // This next part deals with scoring for the case where
                     // there are consecutive matched characters at the border of the
                     // last segment.
-                    var lastRange = result2.ranges[result2.ranges.length - 1];
+                    var lastRange = remainderResult.ranges[remainderResult.ranges.length - 1];
                     if (result.ranges[0].matched && lastRange.matched) {
                         result.matchGoodness += lastRange.text.length * CONSECUTIVE_MATCHES_POINTS;
                         if (DEBUG_SCORES) {
@@ -840,7 +856,7 @@ define(function (require, exports, module) {
                     }
                     
                     // add the new matched ranges to the beginning of the set of ranges we had
-                    result.ranges.unshift.apply(result.ranges, result2.ranges);
+                    result.ranges.unshift.apply(result.ranges, remainderResult.ranges);
                 } else {
                     // no match
                     return null;
@@ -911,7 +927,7 @@ define(function (require, exports, module) {
         // Locate the special characters and then use orderedCompare to do the real
         // work.
         var special = findSpecialCharacters(str);
-        var compareData = orderedCompare(query.toLowerCase(), str, str.toLowerCase(), special.specials,
+        var compareData = _computeMatch(query, str, special.specials,
                               special.lastSegmentSpecialsIndex);
         
         // If we get a match, turn this into a SearchResult as expected by the consumers
@@ -923,8 +939,6 @@ define(function (require, exports, module) {
             if (DEBUG_SCORES) {
                 result.scoreDebug = compareData.scoreDebug;
             }
-        } else {
-            result = undefined;
         }
         return result;
     }
@@ -1333,7 +1347,7 @@ define(function (require, exports, module) {
     exports.multiFieldSort          = multiFieldSort;
     exports.highlightMatch          = highlightMatch;
     exports._findSpecialCharacters  = findSpecialCharacters;
-    exports._orderedCompare         = orderedCompare;
-    exports._lastSegmentSearch      = lastSegmentSearch;
+    exports._computeMatch           = _computeMatch;
+    exports._lastSegmentSearch      = _lastSegmentSearch;
     exports._setDebugScores         = _setDebugScores;
 });

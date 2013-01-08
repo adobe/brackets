@@ -162,15 +162,14 @@ define(function (require, exports, module) {
                 var comparePath = path.toLowerCase();
                 var _lastSegmentSearch = QuickOpen._lastSegmentSearch;
                 var sc = QuickOpen._findSpecialCharacters(path);
-                expect(_lastSegmentSearch("ocud", path, comparePath, sc.specials)).toEqual(null);
+                expect(_lastSegmentSearch("ocud", path, comparePath, sc.specials, 0)).toEqual(null);
             });
             
             it("should compare matches that don't fit in just the final segment", function () {
                 var path = "src/document/DocumentCommandHandler.js";
-                var comparePath = path.toLowerCase();
-                var orderedCompare = QuickOpen._orderedCompare;
+                var computeMatch = QuickOpen._computeMatch;
                 var sc = QuickOpen._findSpecialCharacters(path);
-                expect(orderedCompare("sdoc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(computeMatch("sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
                         { text: "s", matched: true, lastSegment: false },
@@ -180,7 +179,7 @@ define(function (require, exports, module) {
                     ]
                 });
                 
-                expect(orderedCompare("doc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(computeMatch("doc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
                         { text: "src/document/", matched: false, lastSegment: false },
@@ -188,9 +187,9 @@ define(function (require, exports, module) {
                         { text: "umentCommandHandler.js", matched: false, lastSegment: true }
                     ]
                 });
-                expect(orderedCompare("z", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(computeMatch("z", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
                 
-                expect(orderedCompare("docdoc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(computeMatch("docdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
                         { text: "src/", matched: false, lastSegment: false },
@@ -204,10 +203,9 @@ define(function (require, exports, module) {
             
             it("should handle matches that don't fit at all in the final segment", function () {
                 var path = "src/extensions/default/QuickOpenCSS/main.js";
-                var comparePath = path.toLowerCase();
-                var orderedCompare = QuickOpen._orderedCompare;
+                var computeMatch = QuickOpen._computeMatch;
                 var sc = QuickOpen._findSpecialCharacters(path);
-                expect(orderedCompare("quick", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(computeMatch("quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
                         { text: "src/extensions/default/", matched: false, lastSegment: false },
@@ -216,7 +214,7 @@ define(function (require, exports, module) {
                     ]
                 });
                 
-                expect(orderedCompare("quickopen", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(computeMatch("quickopen", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
                         { text: "src/extensions/default/", matched: false, lastSegment: false },
@@ -225,7 +223,7 @@ define(function (require, exports, module) {
                     ]
                 });
                 
-                expect(orderedCompare("quickopenain", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(computeMatch("quickopenain", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
                         { text: "src/extensions/default/", matched: false, lastSegment: false },
@@ -354,6 +352,11 @@ define(function (require, exports, module) {
             it("should boost last segment matches, even when searching the whole string", function () {
                 var result = QuickOpen.stringMatch("src/extensions/default/QuickOpenCSS/main.js", "quickopenain");
                 expect(result.scoreDebug.lastSegment).toBeGreaterThan(0);
+            });
+            
+            it("should treat the character after _ as a special", function () {
+                var result = QuickOpen.stringMatch("src/extensions/default/Quick_Open.js", "o");
+                expect(result.scoreDebug.special).toBeGreaterThan(0);
             });
         });
     });
