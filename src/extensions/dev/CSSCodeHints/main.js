@@ -80,7 +80,6 @@ define(function (require, exports, module) {
             selectInitial = false;
         }
         
-        var list = null;
         if (context === CSSUtils.PROP_VALUE) {
             if (!attributes[needle]) {
                 return null;
