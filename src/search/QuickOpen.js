@@ -581,13 +581,9 @@ define(function (require, exports, module) {
         var currentRange = null;
         var lastSegmentScore = 0;
         
-        // the character index (against str) that was last in a matched range. this is used for
-        // adding unmatched ranges in between
-        var lastRangeCharacter = strCounter - 1;
-        
-        // variable to award bonus points for consecutive matching characters. We keep track of the
-        // last matched character.
-        var lastMatchedIndex = -1;
+        // the character index (against str) that was last in a matched range. This is used for
+        // adding unmatched ranges in between and adding bonus points for consecutive matches.
+        var lastMatchIndex = strCounter - 1;
         
         // Records the current range and adds any additional ranges required to
         // get to character index c. This function is called before starting a new range
@@ -595,7 +591,7 @@ define(function (require, exports, module) {
         function closeRangeGap(c) {
             // close the current range
             if (currentRange) {
-                currentRange.lastSegment = lastRangeCharacter >= lastSegmentStart;
+                currentRange.lastSegment = lastMatchIndex >= lastSegmentStart;
                 if (currentRange.matched && currentRange.lastSegment) {
                     if (DEBUG_SCORES) {
                         scoreDebug.lastSegment += lastSegmentScore * LAST_SEGMENT_BOOST;
@@ -607,9 +603,9 @@ define(function (require, exports, module) {
             
             // if there was space between the new range and the last,
             // add a new unmatched range before the new range can be added.
-            if (lastRangeCharacter + 1 < c) {
+            if (lastMatchIndex + 1 < c) {
                 ranges.push({
-                    text: str.substring(lastRangeCharacter + 1, c),
+                    text: str.substring(lastMatchIndex + 1, c),
                     matched: false,
                     lastSegment: c > lastSegmentStart
                 });
@@ -639,8 +635,10 @@ define(function (require, exports, module) {
             }
             
             // If the new character immediately follows the last matched character,
-            // we award the consecutive matches bonus.
-            if (lastMatchedIndex + 1 === c) {
+            // we award the consecutive matches bonus. The check for score > 0
+            // handles the initial value of lastMatchIndex which is used for
+            // constructing ranges but we don't yet have a true match.
+            if (score > 0 && lastMatchIndex + 1 === c) {
                 if (DEBUG_SCORES) {
                     scoreDebug.consecutive += CONSECUTIVE_MATCHES_POINTS;
                 }
@@ -651,13 +649,13 @@ define(function (require, exports, module) {
             if (c > lastSegmentStart) {
                 lastSegmentScore += newPoints;
             }
-            lastMatchedIndex = c;
             
             // if the last range wasn't a match or there's a gap, we need to close off
             // the range to start a new one.
-            if ((currentRange && !currentRange.matched) || c > lastRangeCharacter + 1) {
+            if ((currentRange && !currentRange.matched) || c > lastMatchIndex + 1) {
                 closeRangeGap(c);
             }
+            lastMatchIndex = c;
             
             // set up a new match range or add to the current one
             if (!currentRange) {
@@ -668,7 +666,6 @@ define(function (require, exports, module) {
             } else {
                 currentRange.text += str[c];
             }
-            lastRangeCharacter = c;
         }
         
         // Compares the current character from the query string against the
@@ -694,11 +691,11 @@ define(function (require, exports, module) {
                     specialsCounter++;
                     queryCounter++;
                     strCounter = tempsc;
+                    addMatch(strCounter++);
                     if (DEBUG_SCORES) {
                         scoreDebug.special += SPECIAL_POINTS;
                     }
                     score += SPECIAL_POINTS;
-                    addMatch(strCounter++);
                     foundMatch = true;
                     break;
                 }
