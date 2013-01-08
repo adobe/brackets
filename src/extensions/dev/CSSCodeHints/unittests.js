@@ -64,31 +64,7 @@ define(function (require, exports, module) {
         function expectNoHints(provider) {
             expect(provider.hasHints(testEditor, null)).toBe(false);
         }
-
-        
-        
-        
-        
-/*      // Ask provider for hints at current cursor position; expect it to return some
-        function expectHints(provider) {
-            var query = provider.hasHints(testEditor, testEditor.getCursorPos());
-            expect(query).toBeTruthy();
-            expect(query.queryStr).not.toBeNull();
-            
-            var hintList = provider.search(query);
-            expect(hintList).toBeTruthy();
-            
-            return hintList;
-        }
-        
-        // Ask provider for hints at current cursor position; expect it NOT to return any
-        function expectNoHints(provider) {
-            var query = provider.hasHints(testEditor, testEditor.getCursorPos());
-            expect(query).toBeTruthy();
-            expect(query.queryStr).toBeNull();
-        }*/
-
-        
+    
         // Expect hintList to contain attribute names, starting with given value
         function verifyAttrHints(hintList, expectedFirstHint) {
             expect(hintList.indexOf("div")).toBe(-1);   // make sure tag names aren't sneaking in there
@@ -99,7 +75,7 @@ define(function (require, exports, module) {
         function selectHint(provider, expectedHint) {
             var hintList = expectHints(provider);
             expect(hintList.indexOf(expectedHint)).not.toBe(-1);
-            return provider.insertHints(expectedHint);
+            return provider.insertHint(expectedHint);
             //provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos(), true);
         }
         
@@ -133,6 +109,7 @@ define(function (require, exports, module) {
             });
 
             it("should list all hints starting with 'bord' ", function () {
+                testDocument.replaceRange(";", { line: 6, ch: 2 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 7, ch: 5 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
@@ -140,13 +117,15 @@ define(function (require, exports, module) {
             });
 
             it("should list all hints starting with 'border-' ", function () {
+                testDocument.replaceRange(";", { line: 7, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 8, ch: 8 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
-                verifyAttrHints(hintList, "border-collapse");  // filtered on "border-"
+                verifyAttrHints(hintList, "border-bottom");  // filtered on "border-"
             });
 
             it("should list only hint border-color", function () {
+                testDocument.replaceRange(";", { line: 8, ch: 8 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 9, ch: 12 });
                 
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
@@ -177,7 +156,8 @@ define(function (require, exports, module) {
         
         
         describe("CSS attribute handleSelect", function () {
-            it("should insert colon followd by whitespace after attribute", function () {
+            it("should insert colon followed by whitespace after attribute", function () {
+                testDocument.replaceRange(";", { line: 6, ch: 2 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 7, ch: 5 });   // cursor after 'bord'
                 selectHint(CSSCodeHints.attrHintProvider, "border");
                 expect(testDocument.getLine(7)).toBe(" border: ");
