@@ -19,7 +19,7 @@ define(function (require, exports, module) {
         var cursor = this.editor.getCursorPos();
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
-        console.log(this.info);
+        // console.log(this.info);
         
         if (implicitChar === null) {
             if (this.info.context === CSSUtils.PROP_NAME || this.info.context === CSSUtils.PROP_VALUE) {
