@@ -75,7 +75,8 @@ define(function (require, exports, module) {
         }
     }
 
-    function findNext(cm, rev) {
+    function findNext(editor, rev) {
+        var cm = editor._codeMirror;
         var found = true;
         cm.operation(function () {
             var state = getSearchState(cm);
@@ -91,7 +92,7 @@ define(function (require, exports, module) {
                     return;
                 }
             }
-            cm.setSelection(cursor.from(), cursor.to());
+            editor.setSelection(cursor.from(), cursor.to(), true);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
@@ -128,8 +129,7 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
         if (state.query) {
-            findNext(cm, rev);
-            editor.centerOnCursor();
+            findNext(editor, rev);
             return;
         }
         
@@ -162,10 +162,7 @@ define(function (require, exports, module) {
                 }
                 
                 state.posFrom = state.posTo = searchStartPos;
-                var foundAny = findNext(cm, rev);
-                if (foundAny) {
-                    editor.centerOnCursor();
-                }
+                var foundAny = findNext(editor, rev);
                 
                 getDialogTextField(modalBar).toggleClass("no-results", !foundAny);
             });
@@ -197,7 +194,6 @@ define(function (require, exports, module) {
             // Clear the "findNextCalled" flag here so we have a clean start
             state.findNextCalled = false;
         }
-        editor.centerOnCursor();
     }
 
     var replaceQueryDialog = Strings.CMD_REPLACE +
@@ -254,8 +250,7 @@ define(function (require, exports, module) {
                                 return;
                             }
                         }
-                        cm.setSelection(cursor.from(), cursor.to());
-                        editor.centerOnCursor();
+                        editor.setSelection(cursor.from(), cursor.to(), true);
                         modalBar = new ModalBar(doReplaceConfirm, true);
                         modalBar.getRoot().on("click", function (e) {
                             modalBar.close();
