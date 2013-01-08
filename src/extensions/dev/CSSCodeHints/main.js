@@ -5,16 +5,13 @@ define(function (require, exports, module) {
     "use strict";
 
     var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils"),
         CSSAttributes       = require("text!CSSAttributes.json"),
         attributes          = JSON.parse(CSSAttributes);
 
-    
     function CssAttrHints() {
-        this.triggerkeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ- ";
+        this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-";
+        this.secondaryTriggerKeys = " :;";
     }
     
     CssAttrHints.prototype.hasHints = function (editor, implicitChar) {
@@ -29,7 +26,8 @@ define(function (require, exports, module) {
                 return true;
             }
         } else {
-            return (this.triggerkeys.indexOf(implicitChar) !== -1);
+            return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
+                   (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
         }
         
         return false;
@@ -45,7 +43,7 @@ define(function (require, exports, module) {
             selectInitial = true;
             
         
-        if (implicitChar === " ") {
+        if (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1) {
             selectInitial = false;
         }
         
@@ -118,7 +116,6 @@ define(function (require, exports, module) {
     };
     
     var cssAttrHints = new CssAttrHints();
-    // CodeHintManager.registerHintProvider(cssAttrHints);
     CodeHintManager.registerHintProvider(cssAttrHints, ["css"], 0);
     
     // For unit testing
