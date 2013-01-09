@@ -104,7 +104,14 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _suppressSelectionChange = false;
-    
+
+    /**
+     * @private
+     * Internal flag to suppress entering rename mode during "show in file tree".
+     * @type {boolean}
+     */
+    var _suppressRename = false;
+
     /**
      * @private
      * Reference to the tree control UL element
@@ -415,7 +422,8 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        if (_lastSelected && _lastSelected.data("entry").fullPath === data.rslt.obj.data("entry").fullPath) {
+                        if (!_suppressRename && _lastSelected &&
+                                _lastSelected.data("entry").fullPath === data.rslt.obj.data("entry").fullPath) {
                             // Entry is already selected, so rename
                             CommandManager.execute(Commands.FILE_RENAME);
                         } else {
@@ -902,7 +910,9 @@ define(function (require, exports, module) {
         return _findTreeNode(entry)
             .done(function ($node) {
                 // jsTree will automatically expand parent nodes to ensure visible
+                _suppressRename = true;
                 _projectTree.jstree("select_node", $node, false);
+                _suppressRename = false;
             });
     }
     
