@@ -964,7 +964,7 @@ define(function (require, exports, module) {
      */
     Document.prototype.setLanguage = function (language) {
         this.language = language;
-    }
+    };
     
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is

@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     
     // Minimal language definition: ID, human readable name, MIME Type
     var language = Languages.defineLanguage("less", "LESS", "text/x-less")
-        .addFileExtension("less")
+        .addFileExtension("less");
     
     // Fluent interface to add more information about the language
     language

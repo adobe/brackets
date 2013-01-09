@@ -62,6 +62,27 @@ define(function (require, exports, module) {
         }
         _modeMap[mode].push(language);
     }
+
+    
+    function getLanguage(id) {
+        if (!_languages[id]) {
+            throw new Error("No definition was provided for language \"" + id + "\"");
+        }
+        
+        return _languages[id];
+    }
+    
+    function getLanguageForFileExtension(extension) {
+        return _fileExtensionsMap[extension];
+    }
+    
+    function getLanguageForMode(mode) {
+        var modes = _modeMap[mode];
+        if (modes) {
+            return modes[0];
+        }
+    }
+
     
     // Monkey-patch CodeMirror to prevent modes from being overwritten by extensions
     // We rely on the tokens provided by some of those mode
@@ -145,16 +166,16 @@ define(function (require, exports, module) {
         }
 
         return this._modeMap[mode] || getLanguageForMode(mode);
-    }
+    };
 
     Language.prototype.setLanguageForMode = function (mode, language) {
         if (mode === this.mode && language !== this) {
-            throw new Exception("A language must always map its mode to itself");
+            throw new Error("A language must always map its mode to itself");
         }
         this._modeMap[mode] = language;
         
         return this;
-    }
+    };
     
     
     function defineLanguage(id, name, mimeType) {
@@ -168,25 +189,6 @@ define(function (require, exports, module) {
         return language;
     }
     
-    function getLanguage(id) {
-        if (!_languages[id]) {
-            throw new Error("No definition was provided for language \"" + id + "\"");
-        }
-        
-        return _languages[id];
-    }
-    
-    function getLanguageForFileExtension(extension) {
-        return _fileExtensionsMap[extension];
-    }
-    
-    function getLanguageForMode(mode) {
-        var modes = _modeMap[mode];
-        if (modes) {
-            return modes[0];
-        }
-    }
-
     
     _patchCodeMirror();
     

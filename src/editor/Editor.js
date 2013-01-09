@@ -1244,9 +1244,13 @@ define(function (require, exports, module) {
         this._codeMirror.setOption("mode", mode);
     };
     
+    /**
+     * Returns the document's language 
+     * @return {Language} An object with information about the language
+     */
     Editor.prototype.getLanguageForDocument = function () {
         return this.document.getLanguage();
-    }
+    };
 
     /**
      * The Document we're bound to
