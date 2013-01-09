@@ -30,13 +30,11 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    // !! See also language/Languages.js !!
 
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/CodeMirror2/mode/xml/xml");
-    require("thirdparty/CodeMirror2/mode/javascript/javascript");
-    require("thirdparty/CodeMirror2/mode/css/css");
-    require("thirdparty/CodeMirror2/mode/less/less");
-    require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
     require("thirdparty/CodeMirror2/mode/clike/clike");
     require("thirdparty/CodeMirror2/mode/php/php");
     require("thirdparty/CodeMirror2/mode/coffeescript/coffeescript");
@@ -74,34 +72,11 @@ define(function (require, exports, module) {
         ext = ext.toLowerCase();
 
         switch (ext) {
-
-        case "js":
-            return "javascript";
+            
+        // !! See also language/Languages.js !!
 
         case "json":
             return {name: "javascript", json: true};
-
-        case "css":
-            return "css";
-
-        case "less":
-            return "less";
-
-        case "html":
-        case "htm":
-        case "shtm":
-        case "shtml":
-        case "xhtml":
-        case "cfm":
-        case "cfml":
-        case "cfc":
-        case "dhtml":
-        case "xht":
-            return {
-                name: "htmlmixed",
-                scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
-                               mode: null}]
-            };
 
         case "svg":
         case "xml":

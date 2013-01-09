@@ -110,6 +110,21 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     /**
+     * Determines the CodeMirror mode to use for this document,
+     * either based on the document's language or {@link EditorUtils#getModeFromFileExtension()}.
+     * @return {string|{{name: string}}} The CodeMirror mode for this document
+     */
+    function _modeForDocument(doc) {
+        var mode, language = doc.getLanguage();
+        if (language && language.mode) {
+            mode = language.mode;
+        } else {
+            mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
+        }
+        return mode;
+    }
+    
+    /**
      * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
      * file extension. The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
@@ -121,12 +136,7 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        var mode, language = doc.getLanguage();
-        if (language && language.mode) {
-            mode = language.mode;
-        } else {
-            mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
-        }
+        var mode = _modeForDocument(doc);
         
         return new Editor(doc, makeMasterEditor, mode, container, range);
     }
@@ -701,7 +711,7 @@ define(function (require, exports, module) {
     
     function _updateModeInfo(editor) {
         var language = editor.getLanguageForDocument();
-        var text = language ? language.name : StatusBar.getModeDisplayString(editor.getModeForDocument());
+        var text = language.id !== "unknown" ? language.name : StatusBar.getModeDisplayString(editor.getModeForDocument());
         
         $modeInfo.text(text);
     }
@@ -801,9 +811,7 @@ define(function (require, exports, module) {
         var editor = getCurrentFullEditor();
         
         if (editor && editor.document.file.fullPath === newName) {
-            editor.setModeForDocument(
-                EditorUtils.getModeFromFileExtension(editor.document.file.fullPath)
-            );
+            editor.setModeForDocument(_modeForDocument(editor.document));
         }
     }
 

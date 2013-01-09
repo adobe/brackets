@@ -39,41 +39,6 @@ define(function (require, exports, module) {
         StringUtils        = require("utils/StringUtils"),
         TokenUtils         = require("utils/TokenUtils");
     
-    
-    var modeSettings = {
-        css: {
-            blockComment: {
-                prefix: "/*",
-                suffix: "*/"
-            }
-        },
-        html: {
-            blockComment: {
-                prefix: "<!--",
-                suffix: "-->"
-            }
-        },
-        less: {
-            blockComment: {
-                prefix: "/*",
-                suffix: "*/"
-            },
-            lineComment: {
-                prefix: "//"
-            }
-        },
-        javascript: {
-            blockComment: {
-                prefix: "/*",
-                suffix: "*/"
-            },
-            lineComment: {
-                prefix: "//"
-            }
-        }
-    };
-
-    
     /**
      * List of constants
      */
@@ -501,14 +466,10 @@ define(function (require, exports, module) {
             return;
         }
         
-        var settings = editor.getLanguageForSelection() || modeSettings[editor.getModeForSelection()];
+        var language = editor.getLanguageForSelection();
         
-        if (!settings) {
-            return;
-        }
-        
-        if (settings.blockComment) {
-            blockCommentPrefixSuffix(editor, settings.blockComment.prefix, settings.blockComment.suffix, settings.lineComment ? settings.lineComment.prefix : null);
+        if (language.blockComment) {
+            blockCommentPrefixSuffix(editor, language.blockComment.prefix, language.blockComment.suffix, language.lineComment ? language.lineComment.prefix : null);
         }
     }
     
@@ -522,16 +483,12 @@ define(function (require, exports, module) {
             return;
         }
         
-        var settings = editor.getLanguageForSelection() || modeSettings[editor.getModeForSelection()];
+        var language = editor.getLanguageForSelection();
         
-        if (!settings) {
-            return;
-        }
-        
-        if (settings.lineComment) {
-            lineCommentPrefix(editor, settings.lineComment.prefix);
-        } else if (settings.blockComment) {
-            lineCommentPrefixSuffix(editor, settings.blockComment.prefix, settings.blockComment.suffix);
+        if (language.lineComment) {
+            lineCommentPrefix(editor, language.lineComment.prefix);
+        } else if (language.blockComment) {
+            lineCommentPrefixSuffix(editor, language.blockComment.prefix, language.blockComment.suffix);
         }
     }
     
@@ -772,6 +729,4 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
     CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
     CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
-    
-    exports.modeSettings = modeSettings;
 });

@@ -188,16 +188,13 @@ define(function (require, exports, module) {
             result;
 
         s = s.toLowerCase();
+        
+        // !! See also language/Languages.js !!
 
         // Handle special cases (in order of likely occurrance)
-        if (s === "javascript") {
-            return "JavaScript";
-        } else if (s === "html" || s === "htmlmixed") {
-            return "HTML";
-        } else if (s === "css") {
-            return "CSS";
-        } else if (s === "less") {
-            return "LESS";
+        if (s === "html") {
+            // Did not move the definition for mode "html" to the language API because it's not a registered CodeMirror mode
+            return "HTML"
         } else if (s === "text/plain") {
             return "Text";
         } else if (s === "php") {

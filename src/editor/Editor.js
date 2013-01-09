@@ -1222,12 +1222,7 @@ define(function (require, exports, module) {
     };
     
     Editor.prototype.getLanguageForSelection = function () {
-        var mode     = this.getModeForSelection(),
-            language = this.getLanguageForDocument();
-        
-        if (language) {
-            return language.getLanguageForMode(mode);
-        }
+        return this.getLanguageForDocument().getLanguageForMode(this.getModeForSelection());
     };
     
     /**
