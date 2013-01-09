@@ -271,7 +271,7 @@ define(function (require, exports, module) {
             this.$lineNumber.text(this._startLine + 1);
         }
 
-        return (this._lineCount < oldLineCount);
+        return (this._lineCount !== oldLineCount);
     };
 
     /**
