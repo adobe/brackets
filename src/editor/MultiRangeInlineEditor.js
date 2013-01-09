@@ -505,6 +505,10 @@ define(function (require, exports, module) {
      * @param {boolean} ensureVisibility makes the parent editor scroll to display the inline editor. Default true.
      */
     MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
+        // Size the code mirror editors height to the editor content
+        // We use "call" rather than "apply" here since ensureVisibility was an argument added just for this override.
+        MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
+        
         // Size the widget height to the max between the editor content and the related ranges list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
         this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);

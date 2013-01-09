@@ -825,12 +825,10 @@ define(function (require, exports, module) {
 
     /**
      * Gets the total height of the document in pixels (not the viewport)
-     * @param {!boolean} includePadding
      * @returns {!number} height in pixels
      */
-    Editor.prototype.totalHeight = function (includePadding) {
-        var $sizer = $(this.getScrollerElement().firstChild);
-        return (includePadding) ? $sizer.outerHeight() : $sizer.height();
+    Editor.prototype.totalHeight = function () {
+        return this.getScrollerElement().scrollHeight;
     };
 
     /**

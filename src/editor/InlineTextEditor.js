@@ -229,8 +229,18 @@ define(function (require, exports, module) {
         // other view of the doc: Editor fires "change" any time its text
         // changes, regardless of origin)
         $(inlineInfo.editor).on("change.InlineTextEditor", function (event, editor) {
-            if (self.hostEditor.isFullyVisible() && self._updateLineRange(editor)) {
+            if (self.hostEditor.isFullyVisible()) {
                 self.sizeInlineWidgetToContents(true);
+
+                // Refresh the host editor when the inline editor line range
+                // shrinks. Without this, CodeMirror doesn't update the
+                // viewport properly, causing empty space to appear below
+                // previous last visible line (or near it depending how many
+                // lines were previously cached). This has a negative impact
+                // on performance when rapidly deleting lines.
+                if (self._updateLineRange(editor)) {
+                    self.hostEditor.refresh();
+                }
             }
         });
         
@@ -261,7 +271,7 @@ define(function (require, exports, module) {
             this.$lineNumber.text(this._startLine + 1);
         }
 
-        return (this._lineCount !== oldLineCount);
+        return (this._lineCount < oldLineCount);
     };
 
     /**
