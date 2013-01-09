@@ -148,6 +148,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Check whether a ContextMenu exists for the given id. 
+     * @param {string} id
+     * @return {boolean}
+     */
+    function _isContextMenu(id) {
+        return !!getContextMenu(id);
+    }
+    
+    /**
      * Retrieves the MenuItem object for the corresponding id. 
      * @param {string} id
      * @return {MenuItem}
@@ -482,21 +491,23 @@ define(function (require, exports, module) {
         menuItemMap[id] = menuItem;
 
         // create MenuItem DOM
-        if (name === DIVIDER) {
-            $menuItem = $("<li><hr class='divider' /></li>");
-        } else {
-            // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
-
-            $menuItem.on("click", function () {
-                menuItem._command.execute();
-            });
+        if (brackets.inBrowser || _isContextMenu(this.id)) {
+            if (name === DIVIDER) {
+                $menuItem = $("<li><hr class='divider' /></li>");
+            } else {
+                // Create the HTML Menu
+                $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
+    
+                $menuItem.on("click", function () {
+                    menuItem._command.execute();
+                });
+            }
+    
+            // Insert menu item
+            var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+                          $menuItem, position, $relativeElement);
         }
-
-        // Insert menu item
-        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
-        _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
-                      $menuItem, position, $relativeElement);
 
         // Initialize MenuItem state
         if (!menuItem.isDivider) {
@@ -526,7 +537,9 @@ define(function (require, exports, module) {
             binding = bindings[bindings.length - 1];
             bindingStr = binding.displayKey || binding.key;
         }
-        brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) { /* todo: error handling */ });
+        if (!brackets.inBrowser && !_isContextMenu(this.id)) {
+            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) { /* todo: error handling */ });
+        }
         
         return menuItem;
     };
@@ -708,6 +721,11 @@ define(function (require, exports, module) {
         menu = new Menu(id);
         menuMap[id] = menu;
 
+        if (!brackets.inBrowser && !_isContextMenu(id)) {
+            brackets.app.addMenu(name, id, position, relativeID, function (err) { /* todo: error handling */ });
+            return menu;
+        }
+
         var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
             $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
@@ -719,8 +737,6 @@ define(function (require, exports, module) {
         // Install ESC key handling
         PopUpManager.addPopUp($popUp, closeAll, false);
 
-        brackets.app.addMenu(name, id, position, relativeID, function (err) { /* todo: error handling */ });
-        
         // todo error handling
 
         return menu;
