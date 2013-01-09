@@ -329,35 +329,55 @@ define(function (require, exports, module) {
                     "src/extensions/default/QuickOpenCSS/main.js"
                 ])).toBe(true);
             });
+            
             it("should find the right spec/live", function () {
                 expect(goodRelativeOrdering("spec/live", [
                     "test/spec/LiveDevelopment-test.js",
                     "test/spec/LiveDevelopment-chrome-user-data/Default/VisitedLinks"
                 ])).toBe(true);
             });
+            
             it("should find the right samples/index", function () {
                 expect(goodRelativeOrdering("samples/index", [
                     "samples/de/Erste Schritte/index.html",
                     "src/thirdparty/CodeMirror2/mode/ntriples/index.html"
                 ])).toBe(true);
             });
+            
             it("should find the right Commands", function () {
                 expect(goodRelativeOrdering("Commands", [
                     "src/command/Commands.js",
                     "src/command/CommandManager.js"
                 ])).toBe(true);
             });
+            
             it("should find the right extensions", function () {
                 expect(goodRelativeOrdering("extensions", [
                     "src/utils/ExtensionLoader.js",
                     "src/extensions/default/RecentProjects/styles.css"
                 ])).toBe(true);
             });
+            
             it("should find the right EUtil", function () {
                 expect(goodRelativeOrdering("EUtil", [
                     "src/editor/EditorUtils.js",
                     "src/utils/ExtensionUtils.js",
                     "src/file/FileUtils.js"
+                ]));
+            });
+            
+            it("should find the right ECH", function () {
+                expect(goodRelativeOrdering("ECH", [
+                    "EditorCommandHandlers",
+                    "EditorCommandHandlers-test",
+                    "SpecHelper"
+                ]));
+            });
+            
+            it("should find the right DMan", function () {
+                expect(goodRelativeOrdering("DMan", [
+                    "DocumentManager",
+                    "CommandManager"
                 ]));
             });
         });
@@ -376,17 +396,28 @@ define(function (require, exports, module) {
                 var result2 = QuickOpen.stringMatch("test/spec/live/foobar.js", "spec/live");
                 expect(result2.scoreDebug.consecutive).toEqual(result1.scoreDebug.consecutive);
                 expect(result2.scoreDebug.consecutive).toBeGreaterThan(0);
+                expect(result2.scoreDebug.notStartingOnSpecial).toEqual(0);
             });
             
             it("should boost last segment matches, even when searching the whole string", function () {
                 var result = QuickOpen.stringMatch("src/extensions/default/QuickOpenCSS/main.js", "quickopenain");
                 expect(result.scoreDebug.lastSegment).toBeGreaterThan(0);
+                expect(result.scoreDebug.notStartingOnSpecial).toEqual(-25);
             });
             
             it("should treat the character after _ as a special", function () {
                 var result = QuickOpen.stringMatch("src/extensions/default/Quick_Open.js", "o");
                 expect(result.scoreDebug.special).toBeGreaterThan(0);
             });
+            
+            it("should penalize matches that don't start on a special", function () {
+                var result = QuickOpen.stringMatch("src/thirdparty/CodeMirror2/mode/ntriples/index.html", "samples/index");
+                expect(result.scoreDebug.notStartingOnSpecial).toEqual(-50);
+                
+                result = QuickOpen.stringMatch("src/thirdparty/CodeMirror2/mode/ntriples/index.html", "codemirror");
+                expect(result.scoreDebug.notStartingOnSpecial).toEqual(0);
+            });
+
         });
     });
 });

@@ -513,6 +513,7 @@ define(function (require, exports, module) {
     var BEGINNING_OF_NAME_POINTS = 25;
     var DEDUCTION_FOR_LENGTH = 0.2;
     var CONSECUTIVE_MATCHES_POINTS = 25;
+    var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
     
     /*
      * Finds the best matches between the query and the string. The query is
@@ -554,7 +555,8 @@ define(function (require, exports, module) {
                 lastSegment: 0,
                 beginning: 0,
                 lengthDeduction: 0,
-                consecutive: 0
+                consecutive: 0,
+                notStartingOnSpecial: 0
             };
         }
         
@@ -580,6 +582,7 @@ define(function (require, exports, module) {
         // currentRange keeps track of the range we are adding characters to now
         var currentRange = null;
         var lastSegmentScore = 0;
+        var currentRangeStartedOnSpecial = false;
         
         // the character index (against str) that was last in a matched range. This is used for
         // adding unmatched ranges in between and adding bonus points for consecutive matches.
@@ -597,6 +600,13 @@ define(function (require, exports, module) {
                         scoreDebug.lastSegment += lastSegmentScore * LAST_SEGMENT_BOOST;
                     }
                     score += lastSegmentScore * LAST_SEGMENT_BOOST;
+                }
+                
+                if (currentRange.matched && !currentRangeStartedOnSpecial) {
+                    if (DEBUG_SCORES) {
+                        scoreDebug.notStartingOnSpecial -= NOT_STARTING_ON_SPECIAL_PENALTY;
+                    }
+                    score -= NOT_STARTING_ON_SPECIAL_PENALTY;
                 }
                 ranges.push(currentRange);
             }
@@ -663,6 +673,11 @@ define(function (require, exports, module) {
                     text: str[c],
                     matched: true
                 };
+                
+                // Check to see if this new matched range is starting on a special
+                // character. We penalize those ranges that don't, because most
+                // people will search on the logical boundaries of the name
+                currentRangeStartedOnSpecial = c === specials[specialsCounter];
             } else {
                 currentRange.text += str[c];
             }
@@ -1086,7 +1101,8 @@ define(function (require, exports, module) {
             var sd = item.scoreDebug;
             displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
                 ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
-                ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + '">(' + item.matchGoodness + ') </span>';
+                ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
+                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
         }
         
         // Put the path pieces together, highlighting the matched parts
