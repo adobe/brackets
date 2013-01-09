@@ -90,16 +90,10 @@ define(function (require, exports, module) {
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
-        LiveDevelopmentMain     = require("LiveDevelopment/main");
-
-    // Local variables
-    var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
-    
-    // read URL params
-    params.parse();
+        LiveDevelopmentMain     = require("LiveDevelopment/main"),
+        ExtensionUtils          = require("utils/ExtensionUtils");
             
-    //Load modules that self-register and just need to get included in the main project
+    // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
     require("view/ViewCommandHandlers");
@@ -107,8 +101,15 @@ define(function (require, exports, module) {
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
-    require("utils/ExtensionUtils");
     
+    PerfUtils.addMeasurement("brackets module dependencies resolved");
+
+    // Local variables
+    var params                  = new UrlParams(),
+        PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
+    
+    // read URL params
+    params.parse();
     
     function _initTest() {
         // TODO: (issue #265) Make sure the "test" object is not included in final builds
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
         // in the modules since they would run in context of the unit test window,
         // and would not have access to the app html/css.
         brackets.test = {
-            PreferencesManager      : require("preferences/PreferencesManager"),
+            PreferencesManager      : PreferencesManager,
             ProjectManager          : ProjectManager,
             DocumentCommandHandlers : DocumentCommandHandlers,
             FileViewController      : FileViewController,
@@ -128,7 +129,7 @@ define(function (require, exports, module) {
             JSLintUtils             : JSLintUtils,
             PerfUtils               : PerfUtils,
             JSUtils                 : JSUtils,
-            CommandManager          : require("command/CommandManager"),
+            CommandManager          : CommandManager,
             FileSyncManager         : FileSyncManager,
             FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
@@ -139,7 +140,7 @@ define(function (require, exports, module) {
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
-            ExtensionUtils          : require("utils/ExtensionUtils"),
+            ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
             doneLoading             : false
         };
@@ -148,46 +149,9 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-    
-    function _initDragAndDropListeners() {
-        // Prevent unhandled drag and drop of files into the browser from replacing 
-        // the entire Brackets app. This doesn't prevent children from choosing to
-        // handle drops.
-        $(window.document.body)
-            .on("dragover", function (event) {
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    event.originalEvent.dataTransfer.dropEffect = "none";
-                }
-            })
-            .on("drop", function (event) {
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-            });
-    }
-    
-    function _initCommandHandlers() {
-        // Most command handlers are automatically registered when their module is loaded (see "modules
-        // that self-register" above for some). A few commands need an extra kick here though:
-        
-        DocumentCommandHandlers.init($("#main-toolbar"));
-    }
-    
-    function _initWindowListeners() {
-        // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
-        $(window).focus(function () {
-            FileSyncManager.syncOpenDocuments();
-            FileIndexManager.markDirty();
-        });
-        
-    }
             
     function _onReady() {
-        // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
-        $("body").addClass("platform-" + brackets.platform);
+        PerfUtils.addMeasurement("window.document Ready");
         
         EditorManager.setEditorHolder($("#editor-holder"));
 
@@ -199,12 +163,6 @@ define(function (require, exports, module) {
                 Strings.ERROR_IN_BROWSER
             );
         }
-
-        _initDragAndDropListeners();
-        _initCommandHandlers();
-        KeyBindingManager.init();
-        Menus.init(); // key bindings should be initialized first
-        _initWindowListeners();
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
@@ -221,14 +179,11 @@ define(function (require, exports, module) {
             $testDiv.remove();
         }
         
-        // Initialize LiveDevelopment
-        LiveDevelopmentMain.init();
-        
-        PerfUtils.addMeasurement("Application Startup");
-        
-        // Load all extensions
+        // Load all extensions. This promise will complete even if one or more
+        // extensions fail to load.
         var extensionLoaderPromimse = ExtensionLoader.init(params.get("extensions"));
         
+        // Load the initial project after extensions have loaded
         extensionLoaderPromimse.always(function () {
             // Finish UI initialization
             var initialProjectPath = ProjectManager.getInitialProjectPath();
@@ -260,6 +215,8 @@ define(function (require, exports, module) {
                 deferred.always(function () {
                     // Signal that Brackets is loaded
                     AppInit._dispatchReady(AppInit.APP_READY);
+                    
+                    PerfUtils.addMeasurement("Application Startup");
                 });
             });
         });
@@ -273,41 +230,73 @@ define(function (require, exports, module) {
         }
     }
     
-    // Prevent unhandled middle button clicks from triggering native behavior
-    // Example: activating AutoScroll (see #510)
-    $("html").on("mousedown", ".inline-widget", function (e) {
-        if (e.button === 1) {
-            e.preventDefault();
-        }
-    });
+    /**
+     * Setup event handlers prior to dispatching AppInit.HTML_READY
+     */
+    function _beforeHTMLReady() {
+        // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
+        $("body").addClass("platform-" + brackets.platform);
+        
+        // Localize MainViewHTML and inject into <BODY> tag
+        $("body").html(Mustache.render(MainViewHTML, Strings));
+        
+        // Update title
+        $("title").text(brackets.config.app_title);
+            
+        // Prevent unhandled drag and drop of files into the browser from replacing 
+        // the entire Brackets app. This doesn't prevent children from choosing to
+        // handle drops.
+        $(window.document.body)
+            .on("dragover", function (event) {
+                if (event.originalEvent.dataTransfer.files) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    event.originalEvent.dataTransfer.dropEffect = "none";
+                }
+            })
+            .on("drop", function (event) {
+                if (event.originalEvent.dataTransfer.files) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+            });
+        
+        // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
+        $(window).focus(function () {
+            FileSyncManager.syncOpenDocuments();
+            FileIndexManager.markDirty();
+        });
+        
+        // Prevent unhandled middle button clicks from triggering native behavior
+        // Example: activating AutoScroll (see #510)
+        $("html").on("mousedown", ".inline-widget", function (e) {
+            if (e.button === 1) {
+                e.preventDefault();
+            }
+        });
+        
+        // The .no-focus style is added to clickable elements that should
+        // not steal focus. Calling preventDefault() on mousedown prevents
+        // focus from going to the click target.
+        $("html").on("mousedown", ".no-focus", function (e) {
+            // Text fields should always be focusable.
+            var $target = $(e.target),
+                isTextField =
+                    $target.is("input[type=text]") ||
+                    $target.is("input[type=number]") ||
+                    $target.is("input[type=password]") ||
+                    $target.is("input:not([type])") || // input with no type attribute defaults to text
+                    $target.is("textarea");
     
-    // The .no-focus style is added to clickable elements that should
-    // not steal focus. Calling preventDefault() on mousedown prevents
-    // focus from going to the click target.
-    $("html").on("mousedown", ".no-focus", function (e) {
-        // Text fields should always be focusable.
-        var $target = $(e.target),
-            isTextField =
-                $target.is("input[type=text]") ||
-                $target.is("input[type=number]") ||
-                $target.is("input[type=password]") ||
-                $target.is("input:not([type])") || // input with no type attribute defaults to text
-                $target.is("textarea");
+            if (!isTextField) {
+                e.preventDefault();
+            }
+        });
+    }
 
-        if (!isTextField) {
-            e.preventDefault();
-        }
-    });
-    
-    // Localize MainViewHTML and inject into <BODY> tag
-    $("body").html(Mustache.render(MainViewHTML, Strings));
-    
-    // Update title
-    $("title").text(brackets.config.app_title);
-
-    // Dispatch htmlReady callbacks
+    // Dispatch htmlReady event
+    _beforeHTMLReady();
     AppInit._dispatchReady(AppInit.HTML_READY);
 
     $(window.document).ready(_onReady);
-    
 });

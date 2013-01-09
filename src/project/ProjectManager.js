@@ -785,7 +785,7 @@ define(function (require, exports, module) {
                             // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                             var promises = [];
                             $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot, promises]);
-                            $.when.apply($, promises).pipe(result.resolve, result.reject);
+                            $.when(promises).pipe(result.resolve, result.reject);
                         } else {
                             result.resolve();
                         }
@@ -1318,9 +1318,6 @@ define(function (require, exports, module) {
         $(".jstree-rename-input").blur();
     }
 
-    function init() {
-    }
-
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -1345,7 +1342,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
 
     // Define public API
-    exports.init                     = init;
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;
     exports.setBaseUrl               = setBaseUrl;
