@@ -886,7 +886,8 @@ define(function (require, exports, module) {
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget) {
         var self = this;
-        inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent, { coverGutter: true });
+        inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
+                                                           { coverGutter: true, noHScroll: true });
         CodeMirror.on(inlineWidget.info.line, "delete", function () {
             self._removeInlineWidgetInternal(inlineWidget);
             inlineWidget.onClosed();
