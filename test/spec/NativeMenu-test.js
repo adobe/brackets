@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -27,6 +27,11 @@
 
 define(function (require, exports, module) {
     'use strict';
+    
+    // Don't run tests when running in browser
+    if (brackets.inBrowser) {
+        return;
+    }
     
     // These are tests for the low-level file io routines in brackets-app. Make sure
     // you have the latest brackets-app before running.
