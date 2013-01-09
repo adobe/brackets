@@ -59,6 +59,7 @@ define(function (require, exports, module) {
 		this.mimeType = mimeType;
 		
 		this.fileExtensions = [];
+		this.modeMap = {};
 	}
 	
 	Language.prototype.addFileExtension = function (extension) {
@@ -109,6 +110,23 @@ define(function (require, exports, module) {
 		
 		return this;
 	};
+	
+	Language.prototype.getLanguageForMode = function (mode) {
+		if (mode === this.mode) {
+			return this;
+		}
+
+		return this.modeMap[mode] || getLanguageForMode(mode);
+	}
+
+	Language.prototype.setLanguageForMode = function (mode, language) {
+		if (mode === this.mode && language !== this) {
+			throw new Exception("A language must always map its mode to itself");
+		}
+		this.modeMap[mode] = language;
+		
+		return this;
+	}
 	
 	function defineLanguage(id, name, mimeType) {
 		if (languages[id]) {

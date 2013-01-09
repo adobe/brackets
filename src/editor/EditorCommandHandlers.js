@@ -37,8 +37,7 @@ define(function (require, exports, module) {
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
-        TokenUtils         = require("utils/TokenUtils"),
-        Languages          = require("language/Languages");
+        TokenUtils         = require("utils/TokenUtils");
     
     
     var modeSettings = {
@@ -502,8 +501,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        var mode     = editor.getModeForSelection(),
-            settings = modeSettings[mode] || Languages.getLanguageForMode(mode);
+        var settings = editor.getLanguageForSelection() || modeSettings[editor.getModeForSelection()];
         
         if (!settings) {
             return;
@@ -524,8 +522,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        var mode     = editor.getModeForSelection(),
-            settings = modeSettings[mode] || Languages.getLanguageForMode(mode);
+        var settings = editor.getLanguageForSelection() || modeSettings[editor.getModeForSelection()];
         
         if (!settings) {
             return;

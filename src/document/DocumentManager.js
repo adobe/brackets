@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, PathUtils */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -92,7 +92,8 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
         PerfUtils           = require("utils/PerfUtils"),
-        Commands            = require("command/Commands");
+        Commands            = require("command/Commands"),
+        Languages           = require("language/Languages");
     
     /**
      * Unique PreferencesManager clientID
@@ -613,6 +614,12 @@ define(function (require, exports, module) {
      * @type {!FileEntry}
      */
     Document.prototype.file = null;
+
+    /**
+     * The Language for this document. Will be resolved dynamically by file extension if not set manually
+     * @type {!Language}
+     */
+    Document.prototype.language = null;
     
     /**
      * Whether this document has unsaved changes or not.
@@ -928,6 +935,36 @@ define(function (require, exports, module) {
         var refInfo = " refs:" + this._refCount;
         return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
     };
+    
+    /**
+     * Returns the language this document is written in.
+     * The language returned is based on the file extension - use {@link setLanguage} to override.
+     * @return {Language} An object describing the language used in this document
+     */
+    Document.prototype.getLanguage = function () {
+        if (this.language) {
+            return this.language;
+        }
+        
+        var ext = PathUtils.filenameExtension(this.file.fullPath);
+        if (ext.charAt(0) === ".") {
+            ext = ext.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        ext = ext.toLowerCase();
+
+        return Languages.getLanguageForFileExtension(ext);
+    };
+    
+    /**
+     * Sets the language this document is written in.
+     * Overrides the automatic detection used by {@link getLanguage}
+     * @param {!Language} language An object describing the language used in this document
+     */
+    Document.prototype.setLanguage = function (language) {
+        this.language = language;
+    }
     
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is

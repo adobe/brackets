@@ -121,7 +121,12 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
+        var mode, language = doc.getLanguage();
+        if (language && language.mode) {
+            mode = language.mode;
+        } else {
+            mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
+        }
         
         return new Editor(doc, makeMasterEditor, mode, container, range);
     }
@@ -695,7 +700,10 @@ define(function (require, exports, module) {
     }
     
     function _updateModeInfo(editor) {
-        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForDocument()));
+        var language = editor.getLanguageForDocument();
+        var text = language ? language.name : StatusBar.getModeDisplayString(editor.getModeForDocument());
+        
+        $modeInfo.text(text);
     }
     
     function _updateFileInfo(editor) {

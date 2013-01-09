@@ -1221,6 +1221,15 @@ define(function (require, exports, module) {
         }
     };
     
+    Editor.prototype.getLanguageForSelection = function () {
+        var mode     = this.getModeForSelection(),
+            language = this.getLanguageForDocument();
+        
+        if (language) {
+            return language.getLanguageForMode(mode);
+        }
+    };
+    
     /**
      * Gets the syntax-highlighting mode for the document.
      *
@@ -1239,6 +1248,10 @@ define(function (require, exports, module) {
     Editor.prototype.setModeForDocument = function (mode) {
         this._codeMirror.setOption("mode", mode);
     };
+    
+    Editor.prototype.getLanguageForDocument = function () {
+        return this.document.getLanguage();
+    }
 
     /**
      * The Document we're bound to
