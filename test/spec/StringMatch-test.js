@@ -24,20 +24,20 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, require: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, jasmine: false */
-/*unittests: QuickOpen */
+/*unittests: StringMatch */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var QuickOpen = require("search/QuickOpen");
+    var StringMatch = require("utils/StringMatch");
     
-    describe("QuickOpen", function () {
+    describe("StringMatch", function () {
         
-        QuickOpen._setDebugScores(false);
+        StringMatch._setDebugScores(false);
         
         describe("findSpecialCharacters", function () {
             it("should find the important match characters in the string", function () {
-                var fSC = QuickOpen._findSpecialCharacters;
+                var fSC = StringMatch._findSpecialCharacters;
                 expect(fSC("src/document/DocumentCommandHandler.js")).toEqual({
                     lastSegmentSpecialsIndex: 4,
                     specials: [0, 3, 4, 12, 13, 21, 28, 35, 36]
@@ -59,8 +59,8 @@ define(function (require, exports, module) {
             it("should compare results in the final segment properly", function () {
                 var path = "src/document/DocumentCommandHandler.js";
                 var comparePath = path.toLowerCase();
-                var _lastSegmentSearch = QuickOpen._lastSegmentSearch;
-                var sc = QuickOpen._findSpecialCharacters(path);
+                var _lastSegmentSearch = StringMatch._lastSegmentSearch;
+                var sc = StringMatch._findSpecialCharacters(path);
                 expect(_lastSegmentSearch("d", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
@@ -167,15 +167,15 @@ define(function (require, exports, module) {
                 // note that the d's in Command and Handler have been removed
                 var path = "DocumentCommanHanler.js";
                 var comparePath = path.toLowerCase();
-                var _lastSegmentSearch = QuickOpen._lastSegmentSearch;
-                var sc = QuickOpen._findSpecialCharacters(path);
+                var _lastSegmentSearch = StringMatch._lastSegmentSearch;
+                var sc = StringMatch._findSpecialCharacters(path);
                 expect(_lastSegmentSearch("ocud", path, comparePath, sc.specials, 0)).toEqual(null);
             });
             
             it("should compare matches that don't fit in just the final segment", function () {
                 var path = "src/document/DocumentCommandHandler.js";
-                var computeMatch = QuickOpen._computeMatch;
-                var sc = QuickOpen._findSpecialCharacters(path);
+                var computeMatch = StringMatch._computeMatch;
+                var sc = StringMatch._findSpecialCharacters(path);
                 expect(computeMatch("sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
@@ -213,8 +213,8 @@ define(function (require, exports, module) {
             
             it("should handle matches that don't fit at all in the final segment", function () {
                 var path = "src/extensions/default/QuickOpenCSS/main.js";
-                var computeMatch = QuickOpen._computeMatch;
-                var sc = QuickOpen._findSpecialCharacters(path);
+                var computeMatch = StringMatch._computeMatch;
+                var sc = StringMatch._findSpecialCharacters(path);
                 expect(computeMatch("quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
         });
         
         describe("stringMatch", function () {
-            var stringMatch = QuickOpen.stringMatch;
+            var stringMatch = StringMatch.stringMatch;
             
             it("should return appropriate matching ranges", function () {
                 var result;
@@ -384,37 +384,37 @@ define(function (require, exports, module) {
         
         describe("scoring", function () {
             beforeEach(function () {
-                QuickOpen._setDebugScores(true);
+                StringMatch._setDebugScores(true);
             });
             
             afterEach(function () {
-                QuickOpen._setDebugScores(false);
+                StringMatch._setDebugScores(false);
             });
             
             it("should score consecutive matches across the last segment", function () {
-                var result1 = QuickOpen.stringMatch("test/spec/LiveDevelopment-test.js", "spec/live");
-                var result2 = QuickOpen.stringMatch("test/spec/live/foobar.js", "spec/live");
+                var result1 = StringMatch.stringMatch("test/spec/LiveDevelopment-test.js", "spec/live");
+                var result2 = StringMatch.stringMatch("test/spec/live/foobar.js", "spec/live");
                 expect(result2.scoreDebug.consecutive).toEqual(result1.scoreDebug.consecutive);
                 expect(result2.scoreDebug.consecutive).toBeGreaterThan(0);
                 expect(result2.scoreDebug.notStartingOnSpecial).toEqual(0);
             });
             
             it("should boost last segment matches, even when searching the whole string", function () {
-                var result = QuickOpen.stringMatch("src/extensions/default/QuickOpenCSS/main.js", "quickopenain");
+                var result = StringMatch.stringMatch("src/extensions/default/QuickOpenCSS/main.js", "quickopenain");
                 expect(result.scoreDebug.lastSegment).toBeGreaterThan(0);
                 expect(result.scoreDebug.notStartingOnSpecial).toEqual(-25);
             });
             
             it("should treat the character after _ as a special", function () {
-                var result = QuickOpen.stringMatch("src/extensions/default/Quick_Open.js", "o");
+                var result = StringMatch.stringMatch("src/extensions/default/Quick_Open.js", "o");
                 expect(result.scoreDebug.special).toBeGreaterThan(0);
             });
             
             it("should penalize matches that don't start on a special", function () {
-                var result = QuickOpen.stringMatch("src/thirdparty/CodeMirror2/mode/ntriples/index.html", "samples/index");
+                var result = StringMatch.stringMatch("src/thirdparty/CodeMirror2/mode/ntriples/index.html", "samples/index");
                 expect(result.scoreDebug.notStartingOnSpecial).toEqual(-50);
                 
-                result = QuickOpen.stringMatch("src/thirdparty/CodeMirror2/mode/ntriples/index.html", "codemirror");
+                result = StringMatch.stringMatch("src/thirdparty/CodeMirror2/mode/ntriples/index.html", "codemirror");
                 expect(result.scoreDebug.notStartingOnSpecial).toEqual(0);
             });
 
