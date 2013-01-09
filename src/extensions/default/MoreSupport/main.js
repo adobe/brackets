@@ -31,12 +31,17 @@ define(function (require, exports, module) {
 
     var Languages = brackets.getModule("language/Languages");
     
-    // Adding CodeMirror mode "more"
-    require("thirdparty/CodeMirror2/mode/more/more");
+    // Minimal language definition: ID, human readable name, MIME Type
+    var language = Languages.defineLanguage("more", "MORE", "text/x-more")
     
-    Languages.defineLanguage("more", "MORE", "text/x-more")
+    // Fluent interface to add more information about the language
+    language
         .addFileExtension("more")
         .setBlockComment("/*", "*/")
-        .setLineComment("//")
-        .setMode("more")
+        .setLineComment("//");
+    
+    // Add the CodeMirror mode "more"
+    require("thirdparty/CodeMirror2/mode/more/more");
+    // Retrieve a language that has already been defined and add further information
+    Languages.getLanguage("more").setMode("more");
 });
