@@ -708,16 +708,19 @@ define(function (require, exports, module) {
      * This does not alter the horizontal scroll position.
      */
     Editor.prototype.centerOnCursor = function () {
-        var localCoords = this._codeMirror.cursorCoords(null, "local");
-        var pageCoords = this._codeMirror.cursorCoords(null, "page");
-        var clientHeight = this.getScrollerElement().clientHeight;
+        var documentCursorPosition = this._codeMirror.cursorCoords(null, "local").bottom;
+        var screenCursorPosition = this._codeMirror.cursorCoords(null, "page").bottom;
+        var editorHeight = this.getScrollerElement().clientHeight;
         
         // If the cursor is already reasonably centered, we won't
-        // make any change.
-        if (pageCoords.bottom < clientHeight * CENTERING_MARGIN + PADDING_ADJUSTMENT ||
-                pageCoords.bottom > clientHeight * (1 - CENTERING_MARGIN) + PADDING_ADJUSTMENT) {
-            this.setScrollPos(null, localCoords.bottom -
-                                clientHeight / 2 +
+        // make any change. "Reasonably centered" is defined as
+        // not being within CENTERING_MARGIN of the top or bottom
+        // of the editor (where CENTERING_MARGIN is a percentage
+        // of the editor height).
+        if (screenCursorPosition < editorHeight * CENTERING_MARGIN + PADDING_ADJUSTMENT ||
+                screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN) + PADDING_ADJUSTMENT) {
+            this.setScrollPos(null, documentCursorPosition -
+                                editorHeight / 2 +
                                 PADDING_ADJUSTMENT);
         }
     };
