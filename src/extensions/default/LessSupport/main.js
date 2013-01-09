@@ -27,21 +27,21 @@
 define(function (require, exports, module) {
     "use strict";
 
-    console.log("Loading MORE support");
-
     var Languages = brackets.getModule("language/Languages");
     
     // Minimal language definition: ID, human readable name, MIME Type
-    var language = Languages.defineLanguage("more", "MORE", "text/x-more")
+    var language = Languages.defineLanguage("less", "LESS", "text/x-less")
+        .addFileExtension("less")
     
     // Fluent interface to add more information about the language
     language
-        .addFileExtension("more")
+        .addFileExtension("less")
         .setBlockComment("/*", "*/")
         .setLineComment("//");
     
     // Add the CodeMirror mode "more"
-    require("thirdparty/CodeMirror2/mode/more/more");
-    // Retrieve a language that has already been defined and add further information
-    Languages.getLanguage("more").setMode("more");
+    brackets.libRequire(["thirdparty/CodeMirror2/mode/less/less"], function () {
+        // Retrieve a language that has already been defined and add further information
+        Languages.getLanguage("less").setMode("less");
+    });
 });
