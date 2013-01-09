@@ -697,8 +697,7 @@ define(function (require, exports, module) {
         }
     };
     
-    var PADDING_ADJUSTMENT = 60;
-    var CENTERING_MARGIN = 0.1;
+    var CENTERING_MARGIN = 0.15;
     
     /**
      * Scrolls the editor viewport to vertically center the line with the cursor,
@@ -708,20 +707,25 @@ define(function (require, exports, module) {
      * This does not alter the horizontal scroll position.
      */
     Editor.prototype.centerOnCursor = function () {
+        var $scrollerElement = $(this.getScrollerElement());
+        var editorHeight = $scrollerElement.height();
+        
+        // we need to make adjustments for the statusbar's padding on the bottom and the menu bar on top. 
+        var statusBarHeight = $scrollerElement.outerHeight() - editorHeight;
+        var menuBarHeight = $scrollerElement.offset().top;
+        
         var documentCursorPosition = this._codeMirror.cursorCoords(null, "local").bottom;
-        var screenCursorPosition = this._codeMirror.cursorCoords(null, "page").bottom;
-        var editorHeight = this.getScrollerElement().clientHeight;
+        var screenCursorPosition = this._codeMirror.cursorCoords(null, "page").bottom - menuBarHeight;
         
         // If the cursor is already reasonably centered, we won't
         // make any change. "Reasonably centered" is defined as
         // not being within CENTERING_MARGIN of the top or bottom
         // of the editor (where CENTERING_MARGIN is a percentage
         // of the editor height).
-        if (screenCursorPosition < editorHeight * CENTERING_MARGIN + PADDING_ADJUSTMENT ||
-                screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN) + PADDING_ADJUSTMENT) {
+        if (screenCursorPosition < editorHeight * CENTERING_MARGIN ||
+                screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)) {
             this.setScrollPos(null, documentCursorPosition -
-                                editorHeight / 2 +
-                                PADDING_ADJUSTMENT);
+                                editorHeight / 2 + statusBarHeight);
         }
     };
 
