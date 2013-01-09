@@ -51,6 +51,26 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Internal counter and flag for determining single vs. double-click.
+     * @type {boolean}
+     */
+    var _clickCounter = 0,
+        _inClickCallback = false;
+
+    /**
+     * @private
+     * Timeout callback for handling click to rename. If _clickCounter was incremented
+     * during timeout, then this was not a single click, so do not rename.
+     */
+    var _handleClickToRename = function () {
+        if (_clickCounter === 0) {
+            CommandManager.execute(Commands.FILE_RENAME);
+        }
+        _inClickCallback = false;
+    };
+
+    /**
+     * @private
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      */
     function _fireSelectionChanged() {
@@ -225,7 +245,7 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
             }
             
-            // If file wasnt moved open or close it
+            // If file wasn't moved, then open or close it
             if (moved) {
                 if (selected) {
                     // Update the file selection
@@ -241,9 +261,15 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 } else {
                     if (selected) {
-                        // Only rename on left click
+                        // Only initiate rename on left click
                         if (event.which === 1) {
-                            CommandManager.execute(Commands.FILE_RENAME);
+                            if (_inClickCallback) {
+                                _clickCounter++;
+                            } else {
+                                _inClickCallback = true;
+                                _clickCounter = 0;
+                                window.setTimeout(_handleClickToRename, 300);
+                            }
                         }
                     } else {
                         FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
@@ -375,6 +401,10 @@ define(function (require, exports, module) {
                 _updateFileStatusIcon($(this), isOpenAndDirty(file), false);
             }
         );
+
+        $newItem.on("dblclick", function () {
+            _clickCounter++;
+        });
     }
     
     /** 

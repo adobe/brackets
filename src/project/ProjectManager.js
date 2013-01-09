@@ -114,6 +114,14 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Internal counter and flag for determining single vs. double-click.
+     * @type {boolean}
+     */
+    var _clickCounter = 0,
+        _inClickCallback = false;
+
+    /**
+     * @private
      * Reference to the tree control UL element
      * @type {DOMElement}
      */
@@ -367,6 +375,18 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Timeout callback for handling click to rename. If _clickCounter was incremented
+     * during timeout, then this was not a single click, so do not rename.
+     */
+    var _handleClickToRename = function () {
+        if (_clickCounter === 0) {
+            CommandManager.execute(Commands.FILE_RENAME);
+        }
+        _inClickCallback = false;
+    };
+
+    /**
+     * @private
      * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
      * (replacing any existing file tree that was previously displayed). This input could be
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
@@ -424,8 +444,14 @@ define(function (require, exports, module) {
                     if (entry.isFile) {
                         if (!_suppressRename && _lastSelected &&
                                 _lastSelected.data("entry").fullPath === data.rslt.obj.data("entry").fullPath) {
-                            // Entry is already selected, so rename
-                            CommandManager.execute(Commands.FILE_RENAME);
+                            // Entry is already selected, so initiate rename
+                            if (_inClickCallback) {
+                                _clickCounter++;
+                            } else {
+                                _inClickCallback = true;
+                                _clickCounter = 0;
+                                window.setTimeout(_handleClickToRename, 300);
+                            }
                         } else {
                             // Entry is not selected, so open and select it
                             var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
@@ -554,6 +580,7 @@ define(function (require, exports, module) {
             _projectTree
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
+                    _clickCounter++;
                     var entry = $(event.target).closest("li").data("entry");
                     if (entry && entry.isFile) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
