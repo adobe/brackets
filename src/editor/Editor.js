@@ -885,8 +885,11 @@ define(function (require, exports, module) {
      * @param {boolean=} scrollLineIntoView Scrolls the associated line into view. Default true.
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
-        var self = this,
-            scrollLineIntoView = (scrollLineIntoView === false) ? false : true;
+        var self = this;
+        
+        if (scrollLineIntoView === undefined) {
+            scrollLineIntoView = true;
+        }
 
         if (scrollLineIntoView) {
             // FIXME (issue #2491): widget height is not set initially if widget is outside viewport
@@ -935,6 +938,7 @@ define(function (require, exports, module) {
         
         this._codeMirror.removeLineWidget(inlineWidget.info);
         this._removeInlineWidgetInternal(inlineWidget);
+        inlineWidget.onClosed();
         
         // once this widget is removed, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(lineNum);

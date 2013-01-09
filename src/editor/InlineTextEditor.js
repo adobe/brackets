@@ -130,12 +130,14 @@ define(function (require, exports, module) {
         _syncGutterWidths(this.hostEditor);
         
         this.editors.forEach(function (editor) {
+            $(editor).off(".InlineTextEditor");
             editor.destroy(); //release ref on Document
         });
     };
     
     /**
-     * Update the inline editor's height when the number of lines change.
+     * Update the inline editor's height when the number of lines change. The
+     * base implementation of this method does nothing.
      * @param {boolean} force the editor to resize
      */
     InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
@@ -235,7 +237,6 @@ define(function (require, exports, module) {
         // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
         $(inlineInfo.editor).on("lostContent.InlineTextEditor", function () {
             self._onLostContent.apply(self, arguments);
-            $(inlineInfo).off(".InlineTextEditor");
         });
         
         // set dirty indicator state
