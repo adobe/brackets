@@ -142,17 +142,6 @@ define(function (require, exports, module) {
         // brackets_codemirror_overrides.css adds height:auto to CodeMirror
         // Inline editors themselves do not need to be sized, but layouts like
         // the one used in CSSInlineEditor do need some manual layout.
-        
-        // Resize the editors to the content
-        // TODO: only handles 1 editor right now. Add multiple editor support when
-        // the design is finalized
-        if (this.editors.length > 0 && force) {
-            var editor = this.editors[0];
-            
-            if (editor.isFullyVisible()) {
-                editor.refresh();
-            }
-        }
     };
 
     /**
@@ -206,12 +195,12 @@ define(function (require, exports, module) {
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        var $lineNumber = $("<span class='line-number'/>");
+        this.$lineNumber = $("<span class='line-number'/>");
 
         // wrap filename & line number in clickable link with tooltip
         $filenameInfo.append($dirtyIndicatorDiv)
             .append(doc.file.name + " : ")
-            .append($lineNumber)
+            .append(this.$lineNumber)
             .attr("title", doc.file.fullPath);
         
         // clicking filename jumps to full editor view
@@ -225,50 +214,53 @@ define(function (require, exports, module) {
         $header.append($filenameInfo);
         $wrapperDiv.append($header);
         
-        
         // Create actual Editor instance
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
 
-        var updateLineNumber = function () {
-            var oldStartLine    = self._startLine,
-                oldEndLine      = self._endLine,
-                oldLineCount    = self._lineCount;
+        // Init line number display
+        this._updateLineRange = this._updateLineRange.bind(this);
+        this._updateLineRange(inlineInfo.editor);
 
-            self._updateLineStats(inlineInfo.editor);
-
-            if (oldStartLine !== self._startLine) {
-                $lineNumber.text(self._startLine + 1);
-                return true;
-            }
-
-            return (oldLineCount !== self._lineCount);
-        };
-        updateLineNumber();
-
-        // Size editor to content whenever text changes (via edits here or any other view of the doc: Editor
-        // fires "change" any time its text changes, regardless of origin)
-        $(inlineInfo.editor).on("change", function () {
-            if (updateLineNumber()) {
+        // Size editor to content whenever text changes (via edits here or any
+        // other view of the doc: Editor fires "change" any time its text
+        // changes, regardless of origin)
+        $(inlineInfo.editor).on("change.InlineTextEditor", function (event, editor) {
+            if (self.hostEditor.isFullyVisible() && self._updateLineRange(editor)) {
                 self.sizeInlineWidgetToContents(true);
-                self.hostEditor.refresh();
             }
         });
         
         // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
-        $(inlineInfo.editor).on("lostContent", function () {
+        $(inlineInfo.editor).on("lostContent.InlineTextEditor", function () {
             self._onLostContent.apply(self, arguments);
+            $(inlineInfo).off(".InlineTextEditor");
         });
         
         // set dirty indicator state
         _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
     };
 
-    InlineTextEditor.prototype._updateLineStats = function (editor) {
+    /**
+     * Updates start line display.
+     * @param {Editor} editor
+     * @return {boolean} Returns true when the widget height requires an update
+     */
+    InlineTextEditor.prototype._updateLineRange = function (editor) {
+        var oldStartLine    = this._startLine,
+            oldEndLine      = this._endLine,
+            oldLineCount    = this._lineCount;
+
         this._startLine = editor.getFirstVisibleLine();
         this._endLine = editor.getLastVisibleLine();
         this._lineCount = this._endLine - this._startLine;
+
+        if (oldStartLine !== this._startLine) {
+            this.$lineNumber.text(this._startLine + 1);
+        }
+
+        return (this._lineCount !== oldLineCount);
     };
 
     /**
@@ -286,7 +278,15 @@ define(function (require, exports, module) {
      * Called when the editor containing the inline is made visible.
      */
     InlineTextEditor.prototype.onParentShown = function () {
+        var self = this;
+
         InlineTextEditor.prototype.parentClass.onParentShown.apply(this, arguments);
+
+        // Refresh line number display and codemirror line number gutter
+        this.editors.forEach(function (editor) {
+            self._updateLineRange(editor);
+            editor.refresh();
+        });
 
         // We need to call this explicitly whenever the host editor is reshown
         this.sizeInlineWidgetToContents(true);

@@ -829,8 +829,8 @@ define(function (require, exports, module) {
      * @returns {!number} height in pixels
      */
     Editor.prototype.totalHeight = function (includePadding) {
-        var $root = $(this.getRootElement());
-        return (includePadding) ? $root.outerHeight() : $root.height();
+        var $sizer = $(this.getScrollerElement().firstChild);
+        return (includePadding) ? $sizer.outerHeight() : $sizer.height();
     };
 
     /**
