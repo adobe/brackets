@@ -135,32 +135,22 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Update the inline editor's height when the number of lines change
+     * Update the inline editor's height when the number of lines change.
      * @param {boolean} force the editor to resize
      */
     InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
-        var i,
-            len = this.editors.length,
-            editor;
+        // brackets_codemirror_overrides.css adds height:auto to CodeMirror
+        // Inline editors themselves do not need to be sized, but layouts like
+        // the one used in CSSInlineEditor do need some manual layout.
         
+        // Resize the editors to the content
         // TODO: only handles 1 editor right now. Add multiple editor support when
         // the design is finalized
-
-        // Reize the editors to the content
-        for (i = 0; i < len; i++) {
-            // Only supports 1 editor right now
-            if (i === 1) {
-                break;
-            }
-            
-            editor = this.editors[i];
+        if (this.editors.length > 0 && force) {
+            var editor = this.editors[0];
             
             if (editor.isFullyVisible()) {
-                var height = editor.totalHeight(true);
-                if (force || height !== this.height) {
-                    this.height = height;
-                    editor.refresh();
-                }
+                editor.refresh();
             }
         }
     };
@@ -216,7 +206,7 @@ define(function (require, exports, module) {
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        var $lineNumber = $("<span class='line-number'>" + (startLine + 1) + "</span>");
+        var $lineNumber = $("<span class='line-number'/>");
 
         // wrap filename & line number in clickable link with tooltip
         $filenameInfo.append($dirtyIndicatorDiv)
@@ -241,13 +231,29 @@ define(function (require, exports, module) {
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
 
+        var updateLineNumber = function () {
+            var oldStartLine    = self._startLine,
+                oldEndLine      = self._endLine,
+                oldLineCount    = self._lineCount;
+
+            self._updateLineStats(inlineInfo.editor);
+
+            if (oldStartLine !== self._startLine) {
+                $lineNumber.text(self._startLine + 1);
+                return true;
+            }
+
+            return (oldLineCount !== self._lineCount);
+        };
+        updateLineNumber();
+
         // Size editor to content whenever text changes (via edits here or any other view of the doc: Editor
         // fires "change" any time its text changes, regardless of origin)
         $(inlineInfo.editor).on("change", function () {
-            self.sizeInlineWidgetToContents();
-            
-            // Changes above the inline range could change our line number, so update label
-            $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
+            if (updateLineNumber()) {
+                self.sizeInlineWidgetToContents(true);
+                self.hostEditor.refresh();
+            }
         });
         
         // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
@@ -257,6 +263,12 @@ define(function (require, exports, module) {
         
         // set dirty indicator state
         _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
+    };
+
+    InlineTextEditor.prototype._updateLineStats = function (editor) {
+        this._startLine = editor.getFirstVisibleLine();
+        this._endLine = editor.getLastVisibleLine();
+        this._lineCount = this._endLine - this._startLine;
     };
 
     /**
@@ -275,9 +287,8 @@ define(function (require, exports, module) {
      */
     InlineTextEditor.prototype.onParentShown = function () {
         InlineTextEditor.prototype.parentClass.onParentShown.apply(this, arguments);
-        // We need to call this explicitly whenever the host editor is reshown, since
-        // we don't actually resize the inline editor while its host is invisible (see
-        // isFullyVisible() check in sizeInlineWidgetToContents()).
+
+        // We need to call this explicitly whenever the host editor is reshown
         this.sizeInlineWidgetToContents(true);
     };
     
