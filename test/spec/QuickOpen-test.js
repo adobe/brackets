@@ -32,7 +32,9 @@ define(function (require, exports, module) {
     var QuickOpen = require("search/QuickOpen");
     
     describe("QuickOpen", function () {
+        
         QuickOpen._setDebugScores(false);
+        
         describe("findSpecialCharacters", function () {
             it("should find the important match characters in the string", function () {
                 var fSC = QuickOpen._findSpecialCharacters;
@@ -44,6 +46,11 @@ define(function (require, exports, module) {
                 expect(fSC("foobar.js")).toEqual({
                     lastSegmentSpecialsIndex: 0,
                     specials: [0, 6, 7]
+                });
+                
+                expect(fSC("foo")).toEqual({
+                    lastSegmentSpecialsIndex: 0,
+                    specials: [0]
                 });
             });
         });
@@ -58,8 +65,8 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "D", matched: true, lastSegment: true },
-                        { text: "ocumentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "D", matched: true, includesLastSegment: true },
+                        { text: "ocumentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
@@ -67,8 +74,8 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "Do", matched: true, lastSegment: true },
-                        { text: "cumentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "Do", matched: true, includesLastSegment: true },
+                        { text: "cumentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
@@ -76,8 +83,8 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
@@ -85,10 +92,10 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "ument", matched: false, lastSegment: true },
-                        { text: "C", matched: true, lastSegment: true },
-                        { text: "ommandHandler.js", matched: false, lastSegment: true }
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "ument", matched: false, includesLastSegment: true },
+                        { text: "C", matched: true, includesLastSegment: true },
+                        { text: "ommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
 
@@ -96,12 +103,12 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "ument", matched: false, lastSegment: true },
-                        { text: "C", matched: true, lastSegment: true },
-                        { text: "ommand", matched: false, lastSegment: true },
-                        { text: "H", matched: true, lastSegment: true },
-                        { text: "andler.js", matched: false, lastSegment: true }
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "ument", matched: false, includesLastSegment: true },
+                        { text: "C", matched: true, includesLastSegment: true },
+                        { text: "ommand", matched: false, includesLastSegment: true },
+                        { text: "H", matched: true, includesLastSegment: true },
+                        { text: "andler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
@@ -109,13 +116,13 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "ument", matched: false, lastSegment: true },
-                        { text: "C", matched: true, lastSegment: true },
-                        { text: "ommand", matched: false, lastSegment: true },
-                        { text: "H", matched: true, lastSegment: true },
-                        { text: "andler", matched: false, lastSegment: true },
-                        { text: ".js", matched: true, lastSegment: true }
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "ument", matched: false, includesLastSegment: true },
+                        { text: "C", matched: true, includesLastSegment: true },
+                        { text: "ommand", matched: false, includesLastSegment: true },
+                        { text: "H", matched: true, includesLastSegment: true },
+                        { text: "andler", matched: false, includesLastSegment: true },
+                        { text: ".js", matched: true, includesLastSegment: true }
                     ]
                 });
                 
@@ -123,9 +130,9 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "D", matched: false, lastSegment: true },
-                        { text: "ocu", matched: true, lastSegment: true },
-                        { text: "mentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "D", matched: false, includesLastSegment: true },
+                        { text: "ocu", matched: true, includesLastSegment: true },
+                        { text: "mentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
@@ -133,11 +140,11 @@ define(function (require, exports, module) {
                     remainder: "",
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "D", matched: false, lastSegment: true },
-                        { text: "ocu", matched: true, lastSegment: true },
-                        { text: "mentCommand", matched: false, lastSegment: true },
-                        { text: "Ha", matched: true, lastSegment: true },
-                        { text: "ndler.js", matched: false, lastSegment: true }
+                        { text: "D", matched: false, includesLastSegment: true },
+                        { text: "ocu", matched: true, includesLastSegment: true },
+                        { text: "mentCommand", matched: false, includesLastSegment: true },
+                        { text: "Ha", matched: true, includesLastSegment: true },
+                        { text: "ndler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
@@ -148,8 +155,8 @@ define(function (require, exports, module) {
                     matchGoodness: jasmine.any(Number),
                     remainder: "s",
                     ranges: [
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
             });
@@ -172,19 +179,19 @@ define(function (require, exports, module) {
                 expect(computeMatch("sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "s", matched: true, lastSegment: false },
-                        { text: "rc/document/", matched: false, lastSegment: false },
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "s", matched: true, includesLastSegment: false },
+                        { text: "rc/document/", matched: false, includesLastSegment: false },
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
                 expect(computeMatch("doc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "src/document/", matched: false, lastSegment: false },
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "src/document/", matched: false, includesLastSegment: false },
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 expect(computeMatch("z", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
@@ -192,13 +199,16 @@ define(function (require, exports, module) {
                 expect(computeMatch("docdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "src/", matched: false, lastSegment: false },
-                        { text: "doc", matched: true, lastSegment: false },
-                        { text: "ument/", matched: false, lastSegment: false },
-                        { text: "Doc", matched: true, lastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, lastSegment: true }
+                        { text: "src/", matched: false, includesLastSegment: false },
+                        { text: "doc", matched: true, includesLastSegment: false },
+                        { text: "ument/", matched: false, includesLastSegment: false },
+                        { text: "Doc", matched: true, includesLastSegment: true },
+                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
                     ]
                 });
+                
+                // test for a suspected bug where specials are matched out of order.
+                expect(computeMatch("hc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
             });
             
             it("should handle matches that don't fit at all in the final segment", function () {
@@ -208,29 +218,29 @@ define(function (require, exports, module) {
                 expect(computeMatch("quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "src/extensions/default/", matched: false, lastSegment: false },
-                        { text: "Quick", matched: true, lastSegment: false },
-                        { text: "OpenCSS/main.js", matched: false, lastSegment: true }
+                        { text: "src/extensions/default/", matched: false, includesLastSegment: false },
+                        { text: "Quick", matched: true, includesLastSegment: false },
+                        { text: "OpenCSS/main.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
                 expect(computeMatch("quickopen", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "src/extensions/default/", matched: false, lastSegment: false },
-                        { text: "QuickOpen", matched: true, lastSegment: false },
-                        { text: "CSS/main.js", matched: false, lastSegment: true }
+                        { text: "src/extensions/default/", matched: false, includesLastSegment: false },
+                        { text: "QuickOpen", matched: true, includesLastSegment: false },
+                        { text: "CSS/main.js", matched: false, includesLastSegment: true }
                     ]
                 });
                 
                 expect(computeMatch("quickopenain", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     matchGoodness: jasmine.any(Number),
                     ranges: [
-                        { text: "src/extensions/default/", matched: false, lastSegment: false },
-                        { text: "QuickOpen", matched: true, lastSegment: false },
-                        { text: "CSS/m", matched: false, lastSegment: true },
-                        { text: "ain", matched: true, lastSegment: true },
-                        { text: ".js", matched: false, lastSegment: true }
+                        { text: "src/extensions/default/", matched: false, includesLastSegment: false },
+                        { text: "QuickOpen", matched: true, includesLastSegment: false },
+                        { text: "CSS/m", matched: false, includesLastSegment: true },
+                        { text: "ain", matched: true, includesLastSegment: true },
+                        { text: ".js", matched: false, includesLastSegment: true }
                     ]
                 });
             });
@@ -241,7 +251,9 @@ define(function (require, exports, module) {
             
             it("should return appropriate matching ranges", function () {
                 var result;
+                
                 expect(stringMatch("foo/bar/baz.js", "bingo")).toBeUndefined();
+                
                 result = stringMatch("foo/bar/baz.js", "fbb.js");
                 expect(result).not.toBeUndefined();
                 expect(result.matchGoodness).toBeLessThan(-100);
@@ -269,17 +281,33 @@ define(function (require, exports, module) {
                     matchGoodness: jasmine.any(Number),
                     label: "src/search/QuickOpen.js",
                     stringRanges: [
-                        { text: "src/search/", matched: false, lastSegment: false },
-                        { text: "Q", matched: true, lastSegment: true },
-                        { text: "uick", matched: false, lastSegment: true },
-                        { text: "O", matched: true, lastSegment: true },
-                        { text: "pen.js", matched: false, lastSegment: true }
+                        { text: "src/search/", matched: false, includesLastSegment: false },
+                        { text: "Q", matched: true, includesLastSegment: true },
+                        { text: "uick", matched: false, includesLastSegment: true },
+                        { text: "O", matched: true, includesLastSegment: true },
+                        { text: "pen.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+            });
+            
+            it("should prefer special characters", function () {
+                expect(stringMatch("src/document/DocumentCommandHandler.js", "dch")).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "src/document/DocumentCommandHandler.js",
+                    stringRanges: [
+                        { text: "src/document/", matched: false, includesLastSegment: false },
+                        { text: "D", matched: true, includesLastSegment: true },
+                        { text: "ocument", matched: false, includesLastSegment: true },
+                        { text: "C", matched: true, includesLastSegment: true },
+                        { text: "ommand", matched: false, includesLastSegment: true },
+                        { text: "H", matched: true, includesLastSegment: true },
+                        { text: "andler.js", matched: false, includesLastSegment: true }
                     ]
                 });
             });
             
             var goodRelativeOrdering = function (query, testStrings) {
-                var lastScore = -20000;
+                var lastScore = -Infinity;
                 var goodOrdering = true;
                 testStrings.forEach(function (str) {
                     var result = stringMatch(str, query);
@@ -347,6 +375,7 @@ define(function (require, exports, module) {
                 var result1 = QuickOpen.stringMatch("test/spec/LiveDevelopment-test.js", "spec/live");
                 var result2 = QuickOpen.stringMatch("test/spec/live/foobar.js", "spec/live");
                 expect(result2.scoreDebug.consecutive).toEqual(result1.scoreDebug.consecutive);
+                expect(result2.scoreDebug.consecutive).toBeGreaterThan(0);
             });
             
             it("should boost last segment matches, even when searching the whole string", function () {

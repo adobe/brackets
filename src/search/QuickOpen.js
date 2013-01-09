@@ -530,7 +530,7 @@ define(function (require, exports, module) {
      * * {Array} ranges: the scanned regions of the string, in order. For each range:
      *     * {string} text: the text for the string range
      *     * {boolean} matched: was this range part of the match?
-     *     * {boolean} lastSegment: is this range part of the last segment of str
+     *     * {boolean} includesLastSegment: is this range part of the last segment of str
      * * {int} matchGoodness: the score computed for this match
      * * (optional) {Object} scoreDebug: if DEBUG_SCORES is true, an object with the score broken down
      *
@@ -540,7 +540,7 @@ define(function (require, exports, module) {
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
      * @param {boolean} lastSegmentStart optional which character does the last segment start at
-     * @return {{ranges:Array.{text:string, matched:boolean, lastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {{ranges:Array.{text:string, matched:boolean, includesLastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function getMatchRanges(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
         var ranges = [];
@@ -591,8 +591,8 @@ define(function (require, exports, module) {
         function closeRangeGap(c) {
             // close the current range
             if (currentRange) {
-                currentRange.lastSegment = lastMatchIndex >= lastSegmentStart;
-                if (currentRange.matched && currentRange.lastSegment) {
+                currentRange.includesLastSegment = lastMatchIndex >= lastSegmentStart;
+                if (currentRange.matched && currentRange.includesLastSegment) {
                     if (DEBUG_SCORES) {
                         scoreDebug.lastSegment += lastSegmentScore * LAST_SEGMENT_BOOST;
                     }
@@ -607,7 +607,7 @@ define(function (require, exports, module) {
                 ranges.push({
                     text: str.substring(lastMatchIndex + 1, c),
                     matched: false,
-                    lastSegment: c > lastSegmentStart
+                    includesLastSegment: c > lastSegmentStart
                 });
             }
             currentRange = null;
@@ -627,7 +627,7 @@ define(function (require, exports, module) {
             
             // a bonus is given for characters that match at the beginning
             // of the filename
-            if (c === 0 && (strCounter > lastSegmentStart)) {
+            if (c === lastSegmentStart) {
                 if (DEBUG_SCORES) {
                     scoreDebug.beginning += BEGINNING_OF_NAME_POINTS;
                 }
@@ -646,7 +646,7 @@ define(function (require, exports, module) {
             }
             
             score += newPoints;
-            if (c > lastSegmentStart) {
+            if (c >= lastSegmentStart) {
                 lastSegmentScore += newPoints;
             }
             
@@ -670,27 +670,23 @@ define(function (require, exports, module) {
         
         // Compares the current character from the query string against the
         // special characters in compareStr.
-        function compareSpecials() {
+        function findMatchingSpecial() {
             // used to loop through the specials
             var i;
             
-            // used to keep track of where we are in compareStr
-            // without overriding strCounter until we have a match
-            var tempsc;
             var foundMatch = false;
             for (i = specialsCounter; i < specials.length; i++) {
-                tempsc = specials[i];
                 // first, check to see if strCounter has moved beyond
                 // the current special character. This is possible
                 // if the contiguous comparison continued on through
                 // the next special
-                if (tempsc < strCounter) {
+                if (specials[i] < strCounter) {
                     specialsCounter = i;
-                } else if (query[queryCounter] === compareStr[tempsc]) {
+                } else if (query[queryCounter] === compareStr[specials[i]]) {
                     // we have a match! do the required tracking
-                    specialsCounter++;
+                    specialsCounter = i;
                     queryCounter++;
-                    strCounter = tempsc;
+                    strCounter = specials[i];
                     addMatch(strCounter++);
                     if (DEBUG_SCORES) {
                         scoreDebug.special += SPECIAL_POINTS;
@@ -713,7 +709,7 @@ define(function (require, exports, module) {
         // keep looping until we've either exhausted the query or the string
         while (queryCounter < query.length && strCounter < str.length) {
             if (state === SPECIALS_COMPARE) {
-                compareSpecials();
+                findMatchingSpecial();
             } else if (state === CONTIGUOUS_COMPARE || state === SPECIALS_EXHAUSTED) {
                 // for both of these states, we're looking character by character 
                 // for matches
@@ -729,7 +725,7 @@ define(function (require, exports, module) {
                     // already exhaused the specials, we're just going to keep
                     // stepping through compareStr.
                     if (state !== SPECIALS_EXHAUSTED) {
-                        compareSpecials();
+                        findMatchingSpecial();
                     } else {
                         strCounter++;
                     }
@@ -774,7 +770,7 @@ define(function (require, exports, module) {
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
      * @param {boolean} lastSegmentStart which character does the last segment start at
-     * @return {{ranges:Array.{text:string, matched:boolean, lastSegment:boolean}, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {{ranges:Array.{text:string, matched:boolean, includesLastSegment:boolean}, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function _lastSegmentSearch(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
         var queryCounter, matchRanges;
@@ -817,7 +813,7 @@ define(function (require, exports, module) {
      * @param {string} str the original string to search
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
-     * @return {{ranges:Array.{text:string, matched:boolean, lastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {{ranges:Array.{text:string, matched:boolean, includesLastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function _computeMatch(query, str, specials, lastSegmentSpecialsIndex) {
         // set up query as all lower case and make a lower case string to use for comparisons
@@ -865,7 +861,7 @@ define(function (require, exports, module) {
                 result.ranges.unshift({
                     text: str.substring(0, lastSegmentStart),
                     matched: false,
-                    lastSegment: false
+                    includesLastSegment: false
                 });
             }
             delete result.remainder;
@@ -916,7 +912,7 @@ define(function (require, exports, module) {
             result.stringRanges = [{
                 text: str,
                 matched: false,
-                lastSegment: true
+                includesLastSegment: true
             }];
             return result;
         }
@@ -1068,7 +1064,7 @@ define(function (require, exports, module) {
      * matched; else formats the label with no highlighting.
      * @param {!string|SearchResult} item
      * @param {?string} matchClass CSS class for highlighting matched text
-     * @param {?function(number, string):string} rangeFilter
+     * @param {?function(boolean, string):string} rangeFilter
      * @return {!string} bolded, HTML-escaped result
      */
     function highlightMatch(item, matchClass, rangeFilter) {
@@ -1081,7 +1077,7 @@ define(function (require, exports, module) {
             stringRanges = [{
                 text: label,
                 matched: false,
-                lastSegment: true
+                includesLastSegment: true
             }];
         }
         
@@ -1099,7 +1095,7 @@ define(function (require, exports, module) {
                 displayName += "<span class='" + matchClass + "'>";
             }
             
-            var rangeText = rangeFilter ? rangeFilter(range.lastSegment, range.text) : range.text;
+            var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
             displayName += StringUtils.breakableUrl(StringUtils.htmlEscape(rangeText));
             
             if (range.matched) {
@@ -1118,8 +1114,8 @@ define(function (require, exports, module) {
     
     function _filenameResultsFormatter(item, query) {
         // For main label, we just want filename: drop most of the string
-        function fileNameFilter(lastSegment, rangeText) {
-            if (lastSegment) {
+        function fileNameFilter(includesLastSegment, rangeText) {
+            if (includesLastSegment) {
                 var rightmostSlash = rangeText.lastIndexOf('/');
                 return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
             } else {
