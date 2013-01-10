@@ -289,7 +289,7 @@ define(function (require, exports, module) {
             return loadAllExtensionsInNativeDirectory(extensionPath);
         });
         
-        promise.done(function () {
+        promise.always(function () {
             _init = true;
         });
         
