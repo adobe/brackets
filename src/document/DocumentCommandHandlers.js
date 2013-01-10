@@ -695,12 +695,7 @@ define(function (require, exports, module) {
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
-            return (new $.Deferred()).resolve().promise();
-        }
-        
-        //prevent the default action of closing the window until we can save all the files
-        if (commandData && commandData.evt && commandData.evt.cancelable) {
-            commandData.evt.preventDefault();
+            return (new $.Deferred()).reject().promise();
         }
 
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
