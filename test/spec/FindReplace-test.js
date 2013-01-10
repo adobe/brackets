@@ -90,6 +90,12 @@ define(function (require, exports, module) {
         function expectSelection(sel) {
             expect(myEditor.getSelection()).toEqual(sel);
         }
+        function expectHighlightedMatches(num) {
+            //Empty hidden div with one line of code used somehow internally for search.
+            //Reason - it also contains matches and spoil the result.
+            $(".CodeMirror-cursor:eq(0)").prev("div").empty();
+            expect($(".CodeMirror-searching").length).toEqual(num);
+        }
         
         
         function getSearchBar() {
@@ -133,6 +139,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("foo");
+                expectHighlightedMatches(4);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -141,7 +148,8 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
-                
+                expectHighlightedMatches(4);
+
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
@@ -153,6 +161,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("Foo");
+                expectHighlightedMatches(3);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -173,6 +182,7 @@ define(function (require, exports, module) {
                 
                 enterSearchText("foo");
                 pressEnter();
+                expectHighlightedMatches(0);
                 expectSearchBarClosed();
                 
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
@@ -313,6 +323,7 @@ define(function (require, exports, module) {
                 pressEnter();
                 
                 expectSearchBarClosed();
+                expectHighlightedMatches(0);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_PAREN}});
             });
             
@@ -325,6 +336,7 @@ define(function (require, exports, module) {
                 pressEscape();
                 
                 expectSearchBarClosed();
+                expectHighlightedMatches(0);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
             });
             
@@ -410,6 +422,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("/Ba./");
+                expectHighlightedMatches(4);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}});
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -430,6 +443,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("/foo/");
+                expectHighlightedMatches(1);
                 expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
             });
             
@@ -439,6 +453,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("/foo/i");
+                expectHighlightedMatches(4);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
             });
             
@@ -449,6 +464,7 @@ define(function (require, exports, module) {
                 
                 // This should be interpreted as a non-RegExp search, which actually does have a result thanks to "modules/Bar"
                 enterSearchText("/Ba");
+                expectHighlightedMatches(2);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 30}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 33}});
             });
             
@@ -460,6 +476,7 @@ define(function (require, exports, module) {
                 // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
                 enterSearchText("/+/");
                 expect($(".modal-bar .error").length).toBe(1);
+                expectHighlightedMatches(0);
                 expectCursorAt({line: 0, ch: 0}); // no change
             });
             
@@ -469,7 +486,19 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("//");
+                expectHighlightedMatches(0);
                 expectCursorAt({line: 0, ch: 0}); // no change
+            });
+
+            it("shouldn't freeze on /.*/ regexp", function () {
+                myEditor.setCursorPos(0, 0);
+
+                CommandManager.execute(Commands.EDIT_FIND);
+
+                enterSearchText("/.*/");
+                expectHighlightedMatches(47);
+                pressEnter();
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
             });
         });
     });

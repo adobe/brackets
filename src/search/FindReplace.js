@@ -156,13 +156,26 @@ define(function (require, exports, module) {
                     clearSearch(cm);  // clear highlights from previous query
                 }
                 state.query = parseQuery(query);
+                if (!state.query) {
+                    return;
+                }
 
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
-                if (cm.lineCount() < 2000) { // This is too expensive on big documents.
+                if (cm.getValue().length < 2000000) {
+                    // This is too expensive on big documents.
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
+
+                        if (cursor.from().ch === cursor.to().ch && cursor.from().line === cursor.to().line) {
+                            //If stuck on last symbol (in case of /.*/ for example), move to the next line
+                            if (cm.lineCount() > cursor.to().line + 1) {
+                                cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
+                            } else {
+                                break;
+                            }
+                        }
                     }
                 }
                 
