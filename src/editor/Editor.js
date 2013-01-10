@@ -867,13 +867,10 @@ define(function (require, exports, module) {
 
     /**
      * Gets the total height of the document in pixels (not the viewport)
-     * @param {!boolean} includePadding
      * @returns {!number} height in pixels
      */
-    Editor.prototype.totalHeight = function (includePadding) {
-        // TODO: need to port totalHeight()
-        // return this._codeMirror.totalHeight(includePadding);        
-        return 400;
+    Editor.prototype.totalHeight = function () {
+        return this.getScrollerElement().scrollHeight;
     };
 
     /**
@@ -925,9 +922,21 @@ define(function (require, exports, module) {
      * line, it is closed without warning.
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!InlineWidget} inlineWidget The widget to add.
+     * @param {boolean=} scrollLineIntoView Scrolls the associated line into view. Default true.
      */
-    Editor.prototype.addInlineWidget = function (pos, inlineWidget) {
+    Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
         var self = this;
+        
+        if (scrollLineIntoView === undefined) {
+            scrollLineIntoView = true;
+        }
+
+        if (scrollLineIntoView) {
+            // FIXME (issue #2491): widget height is not set initially if widget is outside viewport
+            // Use scrollLineIntoView=true to force widget into viewport.
+            this._codeMirror.scrollIntoView(pos);
+        }
+
         inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent, { coverGutter: true });
         CodeMirror.on(inlineWidget.info.line, "delete", function () {
             self._removeInlineWidgetInternal(inlineWidget);
@@ -935,6 +944,13 @@ define(function (require, exports, module) {
         });
         this._inlineWidgets.push(inlineWidget);
         inlineWidget.onAdded();
+
+        if (scrollLineIntoView) {
+            // FIXME (issue #2491): Scroll the line into view again if the
+            // height of the widget forces the line out of view
+            this._codeMirror.scrollIntoView(pos);
+        }
+
         this.refresh();
         
         // once this widget is added, notify all following inline widgets of a position change
@@ -962,6 +978,7 @@ define(function (require, exports, module) {
         
         this._codeMirror.removeLineWidget(inlineWidget.info);
         this._removeInlineWidgetInternal(inlineWidget);
+        inlineWidget.onClosed();
         
         // once this widget is removed, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(lineNum);

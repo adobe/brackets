@@ -370,7 +370,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                    widgetHeight = inlineEditor.totalHeight(true);
+                    widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
                     expect(inlineEditor.lineCount()).toBe(12);
@@ -387,7 +387,7 @@ define(function (require, exports, module) {
                     
                     // verify widget resizes when contents is changed
                     expect(inlineEditor.lineCount()).toBe(17);
-                    expect(inlineEditor.totalHeight(true)).toBeGreaterThan(widgetHeight);
+                    expect(inlineEditor.totalHeight()).toBeGreaterThan(widgetHeight);
                 });
             });
             
@@ -398,7 +398,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                    widgetHeight = inlineEditor.totalHeight(true);
+                    widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
                     expect(inlineEditor.lineCount()).toBe(12);
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
                     
                     // verify widget resizes when contents is changed
                     expect(inlineEditor.lineCount()).toBe(10);
-                    expect(inlineEditor.totalHeight(true)).toBeLessThan(widgetHeight);
+                    expect(inlineEditor.totalHeight()).toBeLessThan(widgetHeight);
                 });
             });
             
@@ -668,7 +668,7 @@ define(function (require, exports, module) {
                     
                     runs(function () {
                         inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                        widgetHeight = inlineEditor.totalHeight(true);
+                        widgetHeight = inlineEditor.totalHeight();
                         
                         // change inline editor content
                         var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
