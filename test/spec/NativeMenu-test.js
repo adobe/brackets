@@ -431,15 +431,13 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     brackets.app.removeMenuItem(ITEM_ID, function (err) {
-                        if (err) {
+                        // Ignore errors from removeMenuItem() and always remove
+                        // the menu too. This is cleanup time so it's okay if
+                        // an error gets missed here.
+                        brackets.app.removeMenu(TEST_MENU_ID, function (err) {
                             complete = true;
                             error = err;
-                        } else {
-                            brackets.app.removeMenu(TEST_MENU_ID, function (err) {
-                                complete = true;
-                                error = err;
-                            });
-                        }
+                        });
                     });
                 });
                 
