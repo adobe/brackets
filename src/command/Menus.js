@@ -29,14 +29,15 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Global                  = require("utils/Global"),
-        Commands                = require("command/Commands"),
-        KeyBindingManager       = require("command/KeyBindingManager"),
-        EditorManager           = require("editor/EditorManager"),
-        Strings                 = require("strings"),
-        StringUtils             = require("utils/StringUtils"),
-        CommandManager          = require("command/CommandManager"),
-        PopUpManager            = require("widgets/PopUpManager");
+    var AppInit             = require("utils/AppInit"),
+        Global              = require("utils/Global"),
+        Commands            = require("command/Commands"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        CommandManager      = require("command/CommandManager"),
+        PopUpManager        = require("widgets/PopUpManager");
 
     /**
      * Brackets Application Menu Constants
@@ -866,10 +867,8 @@ define(function (require, exports, module) {
     // function removeMenu(id) {
     //     NOT IMPLEMENTED
     // }
-
-
-    function init() {
-
+    
+    AppInit.htmlReady(function () {
         /*
          * File menu
          */
@@ -1102,10 +1101,9 @@ define(function (require, exports, module) {
                 $(this).addClass("open");
             }
         });
-    }
+    });
 
     // Define public API
-    exports.init = init;
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;
     exports.MenuSection = MenuSection;

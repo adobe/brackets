@@ -31,7 +31,8 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     
     // Load dependent modules
-    var CommandManager      = require("command/CommandManager"),
+    var AppInit             = require("utils/AppInit"),
+        CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
@@ -823,42 +824,40 @@ define(function (require, exports, module) {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
-
-    function init($titleContainerToolbar) {
+    // Init DOM elements
+    AppInit.htmlReady(function () {
+        var $titleContainerToolbar = $("#main-toolbar");
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
+    });
 
-        // Register global commands
-        CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
-        CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
-        // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
-        // File > New should open a new blank tab, and handleFileNewInProject should
-        // be called from a "+" button in the project
-        CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
-        CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-        CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
-        CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
-        CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
-        
-        CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
-        CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-        CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
-        CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
-        CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-        CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
-        
-        CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-        CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-        CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-        
-        // Listen for changes that require updating the editor titlebar
-        $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-        $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
-    }
-
-    // Define public API
-    exports.init = init;
+    // Register global commands
+    CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+    // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
+    // File > New should open a new blank tab, and handleFileNewInProject should
+    // be called from a "+" button in the project
+    CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
+    
+    CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
+    CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
+    CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
+    
+    CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+    
+    // Listen for changes that require updating the editor titlebar
+    $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
+    $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
 });
 
