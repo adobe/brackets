@@ -181,7 +181,7 @@ define({
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
 	"CMD_FIND": "Rechercher",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
-	"CMD_FIND_IN_SUBTREE": "Rechercher dans...",
+	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_FIND_NEXT": "Rechercher suivant",
 	"CMD_FIND_PREVIOUS": "Rechercher précédent",
 	"CMD_REPLACE": "Remplacer",
@@ -228,19 +228,25 @@ define({
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
-	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 
     // Help menu commands
 	"HELP_MENU": "Aide",
-	"CMD_ABOUT": "A propos de {APP_TITLE}",
+	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
+	"CMD_HOW_TO_USE_BRACKETS": "Comment utiliser {APP_NAME}",
 	"CMD_FORUM": "Forum {APP_NAME}",
+	"CMD_RELEASE_NOTES": "Notes de mise à jour",
+	"CMD_REPORT_AN_ISSUE": "Signaler un problème",
+	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
+	"CMD_ABOUT": "A propos de {APP_TITLE}",
+
 
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
 	"CMD_ABORT_QUIT": "Annuler la fermeture",
 
     // Strings for main-view.html
-	"EXPERIMENTAL_BUILD": "Version expérimentale",
+	"EXPERIMENTAL_BUILD": "version expérimentale",
+	"DEVELOPMENT_BUILD": "version de développement",
 	"JSLINT_ERRORS": "Erreurs JSLint",
 	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
 	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
@@ -258,14 +264,13 @@ define({
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "version expérimentale sprint {VERSION_MINOR} {VERSION}",
+	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
 	"GET_IT_NOW": "Télécharger",
-	"PROJECT_SETTINGS_TOOLTIP": "Paramètres du projet",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
 	"PROJECT_SETTING_BASE_URL_HINT": "(Dans le cas d’une URL de fichier, ne rien indiquer)",
@@ -276,12 +281,8 @@ define({
 	"BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
     
     // extensions/default/InlineColorEditor
-	"COLOR_EDITOR_SELECTION_FIELD_TIP": "Saturation (x) et luminosité (y)",
-	"COLOR_EDITOR_HUE_SLIDER_TIP": "Teinte",
-	"COLOR_EDITOR_OPACITY_SLIDER_TIP": "Opacité",
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
 	"COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "Couleur d’origine",
-	"COLOR_EDITOR_COLOR_INPUT_TIP": "Valeur de la couleur",
 	"COLOR_EDITOR_RGBA_BUTTON_TIP": "Format RGBa",
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "Format Hex",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "Format HSLa",
