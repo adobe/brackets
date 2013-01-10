@@ -40,7 +40,7 @@ define(function (require, exports, module) {
      */
     function executeCommand(eventName) {
         var promise = CommandManager.execute(eventName);
-        return (promise.state() === "rejected") ? false : true;
+        return (promise && promise.state() === "rejected") ? false : true;
     }
 
     exports.executeCommand = executeCommand;

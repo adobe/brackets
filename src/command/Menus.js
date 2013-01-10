@@ -260,6 +260,7 @@ define(function (require, exports, module) {
     function MenuItem(id, command) {
         this.id = id;
         this.isDivider = (command === DIVIDER);
+        this.isNative = false;
 
         if (!this.isDivider) {
             // Bind event handlers
@@ -529,16 +530,18 @@ define(function (require, exports, module) {
             menuItem._nameChanged();
         }
 
-        var bindings = KeyBindingManager.getKeyBindings(commandID),
-            binding,
-            bindingStr = "";
-        
-        if (bindings && bindings.length > 0) {
-            binding = bindings[bindings.length - 1];
-            bindingStr = binding.displayKey || binding.key;
-        }
         if (!brackets.inBrowser && !_isContextMenu(this.id)) {
+            var bindings = KeyBindingManager.getKeyBindings(commandID),
+                binding,
+                bindingStr = "";
+            
+            if (bindings && bindings.length > 0) {
+                binding = bindings[bindings.length - 1];
+                bindingStr = binding.displayKey || binding.key;
+            }
+            
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) { /* todo: error handling */ });
+            menuItem.isNative = true;
         }
         
         return menuItem;
@@ -633,13 +636,22 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem checked state with underlying Command checked state
      */
     MenuItem.prototype._checkedChanged = function () {
-        var checked = this._command.getChecked();
-        // Note, checked can also be undefined, so we explicitly check
-        // for truthiness and don't use toggleClass().
-        if (checked) {
-            $(_getHTMLMenuItem(this.id)).addClass("checked");
+        var checked = !!this._command.getChecked();
+        if (this.isNative) {
+            var enabled = !!this._command.getEnabled();
+            brackets.app.setMenuItemState(this._command.getID(), enabled, checked, function (err) {
+                if (err) {
+                    console.log("Error setting menu item state: " + err);
+                }
+            });
         } else {
-            $(_getHTMLMenuItem(this.id)).removeClass("checked");
+            // Note, checked can also be undefined, so we explicitly check
+            // for truthiness and don't use toggleClass().
+            if (checked) {
+                $(_getHTMLMenuItem(this.id)).addClass("checked");
+            } else {
+                $(_getHTMLMenuItem(this.id)).removeClass("checked");
+            }
         }
     };
 
@@ -647,14 +659,32 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem enabled state with underlying Command enabled state
      */
     MenuItem.prototype._enabledChanged = function () {
-        $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+        if (this.isNative) {
+            var enabled = !!this._command.getChecked();
+            var checked = !!this._command.getChecked();
+            brackets.app.setMenuItemState(this._command.getID(), enabled, checked, function (err) {
+                if (err) {
+                    console.log("Error setting menu item state: " + err);
+                }
+            });
+        } else {
+            $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+        }
     };
 
     /**
      * Synchronizes MenuItem name with underlying Command name
      */
     MenuItem.prototype._nameChanged = function () {
-        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        if (this.isNative) {
+            brackets.app.setMenuTitle(this._command.getID(), this._command.getName(), function (err) {
+                if (err) {
+                    console.log("Error setting menu title: " + err);
+                }
+            });
+        } else {
+            $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        }
     };
     
     /**
