@@ -130,40 +130,20 @@ define(function (require, exports, module) {
         _syncGutterWidths(this.hostEditor);
         
         this.editors.forEach(function (editor) {
+            $(editor).off(".InlineTextEditor");
             editor.destroy(); //release ref on Document
         });
     };
     
     /**
-     * Update the inline editor's height when the number of lines change
+     * Update the inline editor's height when the number of lines change. The
+     * base implementation of this method does nothing.
      * @param {boolean} force the editor to resize
      */
     InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
-        var i,
-            len = this.editors.length,
-            editor;
-        
-        // TODO: only handles 1 editor right now. Add multiple editor support when
-        // the design is finalized
-
-        // Reize the editors to the content
-        for (i = 0; i < len; i++) {
-            // Only supports 1 editor right now
-            if (i === 1) {
-                break;
-            }
-            
-            editor = this.editors[i];
-            
-            if (editor.isFullyVisible()) {
-                var height = editor.totalHeight(true);
-                if (force || height !== this.height) {
-                    $(editor.getScrollerElement()).height(height);
-                    this.height = height;
-                    editor.refresh();
-                }
-            }
-        }
+        // brackets_codemirror_overrides.css adds height:auto to CodeMirror
+        // Inline editors themselves do not need to be sized, but layouts like
+        // the one used in CSSInlineEditor do need some manual layout.
     };
 
     /**
@@ -217,12 +197,12 @@ define(function (require, exports, module) {
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        var $lineNumber = $("<span class='line-number'>" + (startLine + 1) + "</span>");
+        this.$lineNumber = $("<span class='line-number'/>");
 
         // wrap filename & line number in clickable link with tooltip
         $filenameInfo.append($dirtyIndicatorDiv)
             .append(doc.file.name + " : ")
-            .append($lineNumber)
+            .append(this.$lineNumber)
             .attr("title", doc.file.fullPath);
         
         // clicking filename jumps to full editor view
@@ -236,28 +216,62 @@ define(function (require, exports, module) {
         $header.append($filenameInfo);
         $wrapperDiv.append($header);
         
-        
         // Create actual Editor instance
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
 
-        // Size editor to content whenever text changes (via edits here or any other view of the doc: Editor
-        // fires "change" any time its text changes, regardless of origin)
-        $(inlineInfo.editor).on("change", function () {
-            self.sizeInlineWidgetToContents();
-            
-            // Changes above the inline range could change our line number, so update label
-            $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
+        // Init line number display
+        this._updateLineRange = this._updateLineRange.bind(this);
+        this._updateLineRange(inlineInfo.editor);
+
+        // Size editor to content whenever text changes (via edits here or any
+        // other view of the doc: Editor fires "change" any time its text
+        // changes, regardless of origin)
+        $(inlineInfo.editor).on("change.InlineTextEditor", function (event, editor) {
+            if (self.hostEditor.isFullyVisible()) {
+                self.sizeInlineWidgetToContents(true);
+
+                // Refresh the host editor when the inline editor line range
+                // shrinks. Without this, CodeMirror doesn't update the
+                // viewport properly, causing empty space to appear below
+                // previous last visible line (or near it depending how many
+                // lines were previously cached). This has a negative impact
+                // on performance when rapidly deleting lines.
+                if (self._updateLineRange(editor)) {
+                    self.hostEditor.refresh();
+                }
+            }
         });
         
         // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
-        $(inlineInfo.editor).on("lostContent", function () {
+        $(inlineInfo.editor).on("lostContent.InlineTextEditor", function () {
             self._onLostContent.apply(self, arguments);
         });
         
         // set dirty indicator state
         _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
+    };
+
+    /**
+     * Updates start line display.
+     * @param {Editor} editor
+     * @return {boolean} Returns true when the widget height requires an update
+     */
+    InlineTextEditor.prototype._updateLineRange = function (editor) {
+        var oldStartLine    = this._startLine,
+            oldEndLine      = this._endLine,
+            oldLineCount    = this._lineCount;
+
+        this._startLine = editor.getFirstVisibleLine();
+        this._endLine = editor.getLastVisibleLine();
+        this._lineCount = this._endLine - this._startLine;
+
+        if (oldStartLine !== this._startLine) {
+            this.$lineNumber.text(this._startLine + 1);
+        }
+
+        return (this._lineCount !== oldLineCount);
     };
 
     /**
@@ -275,10 +289,17 @@ define(function (require, exports, module) {
      * Called when the editor containing the inline is made visible.
      */
     InlineTextEditor.prototype.onParentShown = function () {
+        var self = this;
+
         InlineTextEditor.prototype.parentClass.onParentShown.apply(this, arguments);
-        // We need to call this explicitly whenever the host editor is reshown, since
-        // we don't actually resize the inline editor while its host is invisible (see
-        // isFullyVisible() check in sizeInlineWidgetToContents()).
+
+        // Refresh line number display and codemirror line number gutter
+        this.editors.forEach(function (editor) {
+            self._updateLineRange(editor);
+            editor.refresh();
+        });
+
+        // We need to call this explicitly whenever the host editor is reshown
         this.sizeInlineWidgetToContents(true);
     };
     
