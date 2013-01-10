@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, setTimeout, ArrayBuffer, Int8Array */
+/*global define, $, window, setTimeout */
 /*unittests: StringMatch */
 
 define(function (require, exports, module) {
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
      * @param {boolean} lastSegmentStart optional which character does the last segment start at
-     * @return {{ranges:Array.{text:string, matched:boolean, includesLastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function getMatchRanges(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
         var ranges = [];
@@ -393,7 +393,7 @@ define(function (require, exports, module) {
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
      * @param {boolean} lastSegmentStart which character does the last segment start at
-     * @return {{ranges:Array.{text:string, matched:boolean, includesLastSegment:boolean}, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function _lastSegmentSearch(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
         var queryCounter, matchRanges;
@@ -436,7 +436,7 @@ define(function (require, exports, module) {
      * @param {string} str the original string to search
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
-     * @return {{ranges:Array.{text:string, matched:boolean, includesLastSegment:boolean}, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function _computeMatch(query, str, specials, lastSegmentSpecialsIndex) {
         // set up query as all lower case and make a lower case string to use for comparisons

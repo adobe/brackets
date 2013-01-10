@@ -288,6 +288,16 @@ define(function (require, exports, module) {
                         { text: "pen.js", matched: false, includesLastSegment: true }
                     ]
                 });
+                
+                expect(stringMatch("MoonsunSum", "sun")).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "MoonsunSum",
+                    stringRanges: [
+                        { text: "Moon", matched: false, includesLastSegment: true },
+                        { text: "sun", matched: true, includesLastSegment: true },
+                        { text: "Sum", matched: false, includesLastSegment: true }
+                    ]
+                });
             });
             
             it("should prefer special characters", function () {
@@ -417,7 +427,11 @@ define(function (require, exports, module) {
                 result = StringMatch.stringMatch("src/thirdparty/CodeMirror2/mode/ntriples/index.html", "codemirror");
                 expect(result.scoreDebug.notStartingOnSpecial).toEqual(0);
             });
-
+            
+            it("should try to prioritize points for the last segment", function () {
+                var result = StringMatch.stringMatch("abc/def/zzz/abc/def", "abc/def");
+                expect(result.scoreDebug.lastSegment).toBeGreaterThan(0);
+            });
         });
     });
 });
