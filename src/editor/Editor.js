@@ -687,10 +687,46 @@ define(function (require, exports, module) {
     /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line The 0 based line number.
-     * @param {number=} ch  The 0 based character position; treated as 0 if unspecified.
+     * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
+     * @param {boolean} center  true if the view should be centered on the new cursor position
      */
-    Editor.prototype.setCursorPos = function (line, ch) {
+    Editor.prototype.setCursorPos = function (line, ch, center) {
         this._codeMirror.setCursor(line, ch);
+        if (center) {
+            this.centerOnCursor();
+        }
+    };
+    
+    var CENTERING_MARGIN = 0.15;
+    
+    /**
+     * Scrolls the editor viewport to vertically center the line with the cursor,
+     * but only if the cursor is currently near the edges of the viewport or
+     * entirely outside the viewport.
+     *
+     * This does not alter the horizontal scroll position.
+     */
+    Editor.prototype.centerOnCursor = function () {
+        var $scrollerElement = $(this.getScrollerElement());
+        var editorHeight = $scrollerElement.height();
+        
+        // we need to make adjustments for the statusbar's padding on the bottom and the menu bar on top. 
+        var statusBarHeight = $scrollerElement.outerHeight() - editorHeight;
+        var menuBarHeight = $scrollerElement.offset().top;
+        
+        var documentCursorPosition = this._codeMirror.cursorCoords(null, "local").bottom;
+        var screenCursorPosition = this._codeMirror.cursorCoords(null, "page").bottom - menuBarHeight;
+        
+        // If the cursor is already reasonably centered, we won't
+        // make any change. "Reasonably centered" is defined as
+        // not being within CENTERING_MARGIN of the top or bottom
+        // of the editor (where CENTERING_MARGIN is a percentage
+        // of the editor height).
+        if (screenCursorPosition < editorHeight * CENTERING_MARGIN ||
+                screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)) {
+            this.setScrollPos(null, documentCursorPosition -
+                                editorHeight / 2 + statusBarHeight);
+        }
     };
 
     /**
@@ -746,12 +782,18 @@ define(function (require, exports, module) {
     
     /**
      * Sets the current selection. Start is inclusive, end is exclusive. Places the cursor at the
-     * end of the selection range.
+     * end of the selection range. Optionally centers the around the cursor after
+     * making the selection
+     *
      * @param {!{line:number, ch:number}} start
      * @param {!{line:number, ch:number}} end
+     * @param {boolean} center true to center the viewport
      */
-    Editor.prototype.setSelection = function (start, end) {
+    Editor.prototype.setSelection = function (start, end, center) {
         this._codeMirror.setSelection(start, end);
+        if (center) {
+            this.centerOnCursor();
+        }
     };
 
     /**

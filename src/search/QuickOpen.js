@@ -252,12 +252,8 @@ define(function (require, exports, module) {
         } else {
 
             // extract line number, if any
-            var cursor,
-                query = this.$searchField.val(),
+            var query = this.$searchField.val(),
                 gotoLine = extractLineNumber(query);
-            if (!isNaN(gotoLine)) {
-                cursor = {line: gotoLine, ch: 0};
-            }
 
             // Navigate to file and line number
             var fullPath = selectedItem && selectedItem.fullPath;
@@ -265,11 +261,12 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
                     .done(function () {
                         if (!isNaN(gotoLine)) {
-                            EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+                            var editor = EditorManager.getCurrentFullEditor();
+                            editor.setCursorPos(gotoLine, 0, true);
                         }
                     });
             } else if (!isNaN(gotoLine)) {
-                EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+                EditorManager.getCurrentFullEditor().setCursorPos(gotoLine, 0, true);
             }
         }
 
@@ -314,7 +311,7 @@ define(function (require, exports, module) {
             var from = {line: gotoLine, ch: 0};
             var to = {line: gotoLine, ch: 99999};
             
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
+            EditorManager.getCurrentFullEditor().setSelection(from, to, true);
         }
 
         // Remove current plugin if the query stops matching
