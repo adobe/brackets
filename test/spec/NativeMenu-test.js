@@ -131,18 +131,43 @@ define(function (require, exports, module) {
                 error = 0,
                 title;
             
-            it("should add a menu item", function () {
+            beforeEach(function () {
                 runs(function () {
                     brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
-                        if (err) {
-                            complete = true;
-                            error = err;
-                        } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", function (err) {
-                                complete = true;
-                                error = err;
-                            });
-                        }
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+            });
+            
+            it("should add a menu item", function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", function (err) {
+                        complete = true;
+                        error = err;
                     });
                 });
                 
@@ -168,24 +193,15 @@ define(function (require, exports, module) {
                     expect(error).toBe(0);
                     expect(title).toBe(TEST_MENU_ITEM);
                     brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
-                        brackets.app.removeMenu(TEST_MENU_ID, function (err) {
-                        });
                     });
                 });
             });
             it("should return an error if invalid parameters are passed", function () {
-                complete = false;
                 runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
-                        if (err) {
-                            complete = true;
-                            error = err;
-                        } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", function (err) {
-                                complete = true;
-                                error = err;
-                            });
-                        }
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", function (err) {
+                        complete = true;
+                        error = err;
                     });
                 });
                 
@@ -297,6 +313,8 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     brackets.app.removeMenuItem(ITEM_ID, function (err) {
+                        // Ignore the error from removeMenuItem(). The item may have
+                        // already been removed by the test.
                         brackets.app.removeMenu(TEST_MENU_ID, function (err) {
                             complete = true;
                             error = err;
@@ -413,10 +431,15 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     brackets.app.removeMenuItem(ITEM_ID, function (err) {
-                        brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        if (err) {
                             complete = true;
                             error = err;
-                        });
+                        } else {
+                            brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                                complete = true;
+                                error = err;
+                            });
+                        }
                     });
                 });
                 
@@ -583,10 +606,15 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
-                        brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        if (err) {
                             complete = true;
                             error = err;
-                        });
+                        } else {
+                            brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                                complete = true;
+                                error = err;
+                            });
+                        }
                     });
                 });
                 
