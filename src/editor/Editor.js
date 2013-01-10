@@ -687,10 +687,46 @@ define(function (require, exports, module) {
     /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line The 0 based line number.
-     * @param {number=} ch  The 0 based character position; treated as 0 if unspecified.
+     * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
+     * @param {boolean} center  true if the view should be centered on the new cursor position
      */
-    Editor.prototype.setCursorPos = function (line, ch) {
+    Editor.prototype.setCursorPos = function (line, ch, center) {
         this._codeMirror.setCursor(line, ch);
+        if (center) {
+            this.centerOnCursor();
+        }
+    };
+    
+    var CENTERING_MARGIN = 0.15;
+    
+    /**
+     * Scrolls the editor viewport to vertically center the line with the cursor,
+     * but only if the cursor is currently near the edges of the viewport or
+     * entirely outside the viewport.
+     *
+     * This does not alter the horizontal scroll position.
+     */
+    Editor.prototype.centerOnCursor = function () {
+        var $scrollerElement = $(this.getScrollerElement());
+        var editorHeight = $scrollerElement.height();
+        
+        // we need to make adjustments for the statusbar's padding on the bottom and the menu bar on top. 
+        var statusBarHeight = $scrollerElement.outerHeight() - editorHeight;
+        var menuBarHeight = $scrollerElement.offset().top;
+        
+        var documentCursorPosition = this._codeMirror.cursorCoords(null, "local").bottom;
+        var screenCursorPosition = this._codeMirror.cursorCoords(null, "page").bottom - menuBarHeight;
+        
+        // If the cursor is already reasonably centered, we won't
+        // make any change. "Reasonably centered" is defined as
+        // not being within CENTERING_MARGIN of the top or bottom
+        // of the editor (where CENTERING_MARGIN is a percentage
+        // of the editor height).
+        if (screenCursorPosition < editorHeight * CENTERING_MARGIN ||
+                screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)) {
+            this.setScrollPos(null, documentCursorPosition -
+                                editorHeight / 2 + statusBarHeight);
+        }
     };
 
     /**
@@ -746,12 +782,18 @@ define(function (require, exports, module) {
     
     /**
      * Sets the current selection. Start is inclusive, end is exclusive. Places the cursor at the
-     * end of the selection range.
+     * end of the selection range. Optionally centers the around the cursor after
+     * making the selection
+     *
      * @param {!{line:number, ch:number}} start
      * @param {!{line:number, ch:number}} end
+     * @param {boolean} center true to center the viewport
      */
-    Editor.prototype.setSelection = function (start, end) {
+    Editor.prototype.setSelection = function (start, end, center) {
         this._codeMirror.setSelection(start, end);
+        if (center) {
+            this.centerOnCursor();
+        }
     };
 
     /**
@@ -825,13 +867,10 @@ define(function (require, exports, module) {
 
     /**
      * Gets the total height of the document in pixels (not the viewport)
-     * @param {!boolean} includePadding
      * @returns {!number} height in pixels
      */
-    Editor.prototype.totalHeight = function (includePadding) {
-        // TODO: need to port totalHeight()
-        // return this._codeMirror.totalHeight(includePadding);        
-        return 400;
+    Editor.prototype.totalHeight = function () {
+        return this.getScrollerElement().scrollHeight;
     };
 
     /**
@@ -883,9 +922,21 @@ define(function (require, exports, module) {
      * line, it is closed without warning.
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!InlineWidget} inlineWidget The widget to add.
+     * @param {boolean=} scrollLineIntoView Scrolls the associated line into view. Default true.
      */
-    Editor.prototype.addInlineWidget = function (pos, inlineWidget) {
+    Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
         var self = this;
+
+        if (scrollLineIntoView === undefined) {
+            scrollLineIntoView = true;
+        }
+
+        if (scrollLineIntoView) {
+            // FIXME (issue #2491): widget height is not set initially if widget is outside viewport
+            // Use scrollLineIntoView=true to force widget into viewport.
+            this._codeMirror.scrollIntoView(pos);
+        }
+
         inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
                                                            { coverGutter: true, noHScroll: true });
         CodeMirror.on(inlineWidget.info.line, "delete", function () {
@@ -894,6 +945,13 @@ define(function (require, exports, module) {
         });
         this._inlineWidgets.push(inlineWidget);
         inlineWidget.onAdded();
+
+        if (scrollLineIntoView) {
+            // FIXME (issue #2491): Scroll the line into view again if the
+            // height of the widget forces the line out of view
+            this._codeMirror.scrollIntoView(pos);
+        }
+
         this.refresh();
         
         // once this widget is added, notify all following inline widgets of a position change
@@ -921,6 +979,7 @@ define(function (require, exports, module) {
         
         this._codeMirror.removeLineWidget(inlineWidget.info);
         this._removeInlineWidgetInternal(inlineWidget);
+        inlineWidget.onClosed();
         
         // once this widget is removed, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(lineNum);
