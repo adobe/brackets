@@ -926,7 +926,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
         var self = this;
-        
+
         if (scrollLineIntoView === undefined) {
             scrollLineIntoView = true;
         }
@@ -937,7 +937,8 @@ define(function (require, exports, module) {
             this._codeMirror.scrollIntoView(pos);
         }
 
-        inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent, { coverGutter: true });
+        inlineWidget.info = this._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
+                                                           { coverGutter: true, noHScroll: true });
         CodeMirror.on(inlineWidget.info.line, "delete", function () {
             self._removeInlineWidgetInternal(inlineWidget);
             inlineWidget.onClosed();
