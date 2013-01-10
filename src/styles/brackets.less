@@ -563,6 +563,7 @@ a, img {
 /* Styles for inline editors */
 .inline-widget {
     background-color:   @inline-background-color-1;
+    min-width: 250px;
     
     .inline-editor-header {
         padding: 10px 10px 0px 10px;
@@ -610,9 +611,11 @@ a, img {
     }
     
     .CodeMirror-scroll {
-        /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
-        overflow-x: hidden;
         background-color: transparent;
+        
+        .CodeMirror-linenumbers {
+            background-color: @inline-background-color-1;
+        }
     }
 }
 
@@ -620,16 +623,14 @@ a, img {
 .related-container {
     @top-margin: 12px;
     
-    /*width: 0;*/
+    float: right;
+    position: relative;
+    min-height: 100%;
     font-family: @fontstack-sans-serif;
-    position: fixed;
     width: 250px;
+    max-width: 50%;
     overflow: hidden;
-    /*-webkit-transition: width 0.15s ease-out;*/
     background: @inline-background-color-2;
-    
-    /* CodeMirror sets widgets that overlap the gutter to have a z-index of 5. We need to be in front of this. */
-    z-index: 6;
     
     .selection {
         width: 100%;
