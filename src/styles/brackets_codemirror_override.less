@@ -20,11 +20,6 @@
 
 /* Brackets / CodeMirror Code Formatting */
 
-.CodeMirror {
-    /* remove CodeMirror default height: 300px */
-    height: auto;
-}
-
 /*
  * TODO This can be removed next time we update CodeMirror2.
  * Marijn made this change to codemirror.css, but I need it now
@@ -116,6 +111,11 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
+    .CodeMirror {
+        /* remove CodeMirror default height: 300px */
+        height: auto;
+    }
+    
     .CodeMirror pre.CodeMirror-cursor {
         visibility: hidden;
     }
