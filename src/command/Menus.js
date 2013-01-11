@@ -660,7 +660,7 @@ define(function (require, exports, module) {
      */
     MenuItem.prototype._enabledChanged = function () {
         if (this.isNative) {
-            var enabled = !!this._command.getChecked();
+            var enabled = !!this._command.getEnabled();
             var checked = !!this._command.getChecked();
             brackets.app.setMenuItemState(this._command.getID(), enabled, checked, function (err) {
                 if (err) {
