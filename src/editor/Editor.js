@@ -1093,6 +1093,7 @@ define(function (require, exports, module) {
     
     /**
      * Re-renders the editor UI
+     * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
      */
     Editor.prototype.refresh = function (handleResize) {
         // If focus is currently in a child of the CodeMirror editor (e.g. in an inline widget), but not in
@@ -1113,6 +1114,7 @@ define(function (require, exports, module) {
     
     /**
      * Re-renders the editor, and all children inline editors.
+     * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
      */
     Editor.prototype.refreshAll = function (handleResize) {
         this.refresh(handleResize);
