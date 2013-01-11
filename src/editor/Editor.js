@@ -932,8 +932,6 @@ define(function (require, exports, module) {
         }
 
         if (scrollLineIntoView) {
-            // FIXME (issue #2491): widget height is not set initially if widget is outside viewport
-            // Use scrollLineIntoView=true to force widget into viewport.
             this._codeMirror.scrollIntoView(pos);
         }
 
@@ -944,15 +942,9 @@ define(function (require, exports, module) {
             inlineWidget.onClosed();
         });
         this._inlineWidgets.push(inlineWidget);
+
+        // Callback to widget once parented to the editor
         inlineWidget.onAdded();
-
-        if (scrollLineIntoView) {
-            // FIXME (issue #2491): Scroll the line into view again if the
-            // height of the widget forces the line out of view
-            this._codeMirror.scrollIntoView(pos);
-        }
-
-        this.refresh();
         
         // once this widget is added, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(pos.line);
@@ -1029,20 +1021,35 @@ define(function (require, exports, module) {
      * @param {boolean} ensureVisible Whether to scroll the entire widget into view.
      */
     Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
-        var node = inlineWidget.htmlContent,
+        var self = this,
+            node = inlineWidget.htmlContent,
             oldHeight = (node && $(node).height()) || 0;
         
         $(node).height(height);
+
+        // Check if the widget is attached to the host editor
+        if (!inlineWidget.info) {
+            return;
+        }
+
+        // notify CodeMirror for the height change
+        inlineWidget.info.changed();
+
         if (ensureVisible) {
-            var offset = $(node).offset(), // offset relative to document
-                position = $(node).position(), // position within parent linespace
-                scrollerTop = this.getVirtualScrollAreaTop();
-            this._codeMirror.scrollIntoView({
-                left: position.left,
-                top: offset.top - scrollerTop,
-                right: position.left, // don't try to make the right edge visible
-                bottom: offset.top + height - scrollerTop
-            });
+            // FIXME (issue #2515): addLineWidget() async updates the scroll
+            // position if the widget is above the viewport.
+            window.setTimeout(function () {
+                var offset = $(node).offset(), // offset relative to document
+                    position = $(node).position(), // position within parent linespace
+                    scrollerTop = self.getVirtualScrollAreaTop();
+
+                self._codeMirror.scrollIntoView({
+                    left: position.left,
+                    top: offset.top - scrollerTop,
+                    right: position.left, // don't try to make the right edge visible
+                    bottom: offset.top + height - scrollerTop
+                });
+            }, 0);
         }
         
         // update position for all following inline editors
