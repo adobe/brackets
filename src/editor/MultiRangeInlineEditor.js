@@ -213,6 +213,18 @@ define(function (require, exports, module) {
         this.createInlineEditorFromText(range.textRange.document, range.textRange.startLine, range.textRange.endLine, this.$editorsDiv.get(0));
         this.editors[0].focus();
 
+        // Set the scroller's min-height to the natural height of the rule list, so the editor
+        // always stays at least as tall as the rule list.
+        var ruleListNaturalHeight = $("ul", this.$relatedContainer).outerHeight(),
+            headerHeight = $(".inline-editor-header", this.$htmlContent).outerHeight();
+
+        // We have to set this on the scroller instead of the wrapper because:
+        // * we want the wrapper's actual height to remain "auto"
+        // * if we set a min-height on the wrapper, the scroller's height: 100% doesn't
+        //   respect it (height: 100% doesn't seem to work properly with min-height on the parent)
+        $(this.editors[0].getScrollerElement())
+            .css("min-height", (ruleListNaturalHeight - headerHeight) + "px");
+        
         this.editors[0].refresh();
         
         // Ensure the cursor position is visible in the host editor as the user is arrowing around.
