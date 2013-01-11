@@ -1114,8 +1114,8 @@ define(function (require, exports, module) {
     /**
      * Re-renders the editor, and all children inline editors.
      */
-    Editor.prototype.refreshAll = function () {
-        this.refresh();
+    Editor.prototype.refreshAll = function (handleResize) {
+        this.refresh(handleResize);
         this.getInlineWidgets().forEach(function (inlineWidget) {
             inlineWidget.refresh();
         });
