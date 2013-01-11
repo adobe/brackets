@@ -581,7 +581,7 @@ define(function (require, exports, module) {
         window.document.body.addEventListener(
             "keydown",
             function (event) {
-                if (brackets.inBrowser && handleKey(_translateKeyboardEvent(event))) {
+                if (handleKey(_translateKeyboardEvent(event))) {
                     event.stopPropagation();
                     event.preventDefault();
                 }
