@@ -1036,7 +1036,7 @@ define(function (require, exports, module) {
         inlineWidget.info.changed();
 
         if (ensureVisible) {
-            // FIXME (issue #2491): addLineWidget() async updates the scroll
+            // FIXME (issue #2515): addLineWidget() async updates the scroll
             // position if the widget is above the viewport.
             window.setTimeout(function () {
                 var offset = $(node).offset(), // offset relative to document
