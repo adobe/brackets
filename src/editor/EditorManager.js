@@ -370,7 +370,7 @@ define(function (require, exports, module) {
         if (_currentEditor) {
             $(_currentEditor.getRootElement()).height(editorAreaHt);
             if (!skipRefresh) {
-                _currentEditor.refresh(true);
+                _currentEditor.refreshAll(true);
             }
         }
     }

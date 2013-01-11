@@ -174,6 +174,14 @@ define(function (require, exports, module) {
         // Listen for clicks directly on us, so we can set focus back to the editor
         this.$htmlContent.on("click", this._onClick);
     };
+    
+    /**
+     * @override
+     */
+    MultiRangeInlineEditor.prototype.onAdded = function () {
+        MultiRangeInlineEditor.prototype.parentClass.onAdded.apply(this, arguments);
+        this._updateEditorMinHeight();
+    };
 
     /**
      * Specify the range that is shown in the editor.
@@ -213,6 +221,7 @@ define(function (require, exports, module) {
         this.createInlineEditorFromText(range.textRange.document, range.textRange.startLine, range.textRange.endLine, this.$editorsDiv.get(0));
         this.editors[0].focus();
 
+        this._updateEditorMinHeight();
         this.editors[0].refresh();
         
         // Ensure the cursor position is visible in the host editor as the user is arrowing around.
@@ -222,6 +231,30 @@ define(function (require, exports, module) {
         this.sizeInlineWidgetToContents(true, false);
 
         this._updateSelectedMarker();
+    };
+    
+    /**
+     * Ensures that the editor's min-height is set so it never gets shorter than the rule list.
+     * This is necessary to make sure the editor's horizontal scrollbar stays at the bottom of the
+     * widget.
+     */
+    MultiRangeInlineEditor.prototype._updateEditorMinHeight = function () {
+        // Set the scroller's min-height to the natural height of the rule list, so the editor
+        // always stays at least as tall as the rule list.
+        var ruleListNaturalHeight = $("ul", this.$relatedContainer).outerHeight(),
+            headerHeight = $(".inline-editor-header", this.$htmlContent).outerHeight();
+
+        // If the widget isn't fully loaded yet, bail--we'll get called again in onAdded().
+        if (!ruleListNaturalHeight || !headerHeight) {
+            return;
+        }
+        
+        // We have to set this on the scroller instead of the wrapper because:
+        // * we want the wrapper's actual height to remain "auto"
+        // * if we set a min-height on the wrapper, the scroller's height: 100% doesn't
+        //   respect it (height: 100% doesn't seem to work properly with min-height on the parent)
+        $(this.editors[0].getScrollerElement())
+            .css("min-height", (ruleListNaturalHeight - headerHeight) + "px");
     };
 
     MultiRangeInlineEditor.prototype._removeRange = function (range) {
