@@ -249,6 +249,7 @@ define(function (require, exports, module) {
         Strings.CMD_JSLINT_FIRST_ERROR,
         Commands.NAVIGATE_GOTO_JSLINT_ERROR,
         function () {
+            run();
             if (_gotoFirstErrorFunction) {
                 _gotoFirstErrorFunction();
             }

@@ -162,10 +162,10 @@
     ],
     "navigate.gotoJSLintError":  [
         {
-            "key": "Ctrl-J"
+            "key": "F2"
         },
         {
-            "key": "Ctrl-J",
+            "key": "Cmd-'",
             "platform": "mac"
         }
     ],
