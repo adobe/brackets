@@ -162,7 +162,7 @@
     ],
     "navigate.gotoJSLintError":  [
         {
-            "key": "F2"
+            "key": "F8"
         },
         {
             "key": "Cmd-'",
