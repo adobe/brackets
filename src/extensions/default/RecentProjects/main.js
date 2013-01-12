@@ -299,10 +299,12 @@ define(function (require, exports, module) {
     }
     
     // Initialize extension
-    ExtensionUtils.loadStyleSheet(module, "styles.css");
-    
-    $(ProjectManager).on("projectOpen", add);
-    $(ProjectManager).on("beforeProjectClose", add);
+    AppInit.appReady(function () {
+        ExtensionUtils.loadStyleSheet(module, "styles.css");
+        
+        $(ProjectManager).on("projectOpen", add);
+        $(ProjectManager).on("beforeProjectClose", add);
+    });
 
     AppInit.htmlReady(function () {
         $("#project-title")

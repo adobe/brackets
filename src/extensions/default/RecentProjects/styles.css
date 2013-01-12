@@ -1,3 +1,8 @@
+#project-dropdown {
+    border-radius: 3px;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, .3);
+    border: none;
+}
 .dropdown-arrow {
     display: inline-block;
     width: 10px;
@@ -12,9 +17,10 @@
     width: 16px;
     height: 16px;
     background-image: url("close-btn.svg");
+    background-position: 0 0;
 }
 .trash-icon:hover {
-    background-image: url("close-btn-hover.svg");
+    background-position: -15px 0;
 }
 
 #project-dropdown-toggle {
@@ -50,9 +56,13 @@
 }
 
 .recent-folder, #open-folder-link, #project-settings-link {
-    color: #333;
+    color: #454545;
 }
 
 .recent-folder-path {
     color: #aaa;
+}
+
+.dropdown-menu a:hover {
+    background: #E0F0FA;
 }

@@ -47,7 +47,11 @@ define(function (require, exports, module) {
         var queryString = spec ? "?spec=" + spec : "";
         if (_testWindow) {
             try {
-                _testWindow.location.reload(true);
+                if (_testWindow.location.search !== queryString) {
+                    _testWindow.location.href = "../test/SpecRunner.html" + queryString;
+                } else {
+                    _testWindow.location.reload(true);
+                }
             } catch (e) {
                 _testWindow = null;  // the window was probably closed
             }

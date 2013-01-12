@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
@@ -38,8 +39,8 @@ define(function (require, exports, module) {
         StringUtils         = brackets.getModule("utils/StringUtils"),
         HTMLTags            = require("text!HtmlTags.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
-        tags                = JSON.parse(HTMLTags),
-        attributes          = JSON.parse(HTMLAttributes);
+        tags,
+        attributes;
 
     /**
      * @constructor
@@ -622,12 +623,19 @@ define(function (require, exports, module) {
         return false;
     };
 
-    var tagHints = new TagHints();
-    var attrHints = new AttrHints();
-    CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
-    CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
+    AppInit.appReady(function () {
+        // Parse JSON files
+        tags = JSON.parse(HTMLTags);
+        attributes = JSON.parse(HTMLAttributes);
+        
+        // Register code hint providers
+        var tagHints = new TagHints();
+        var attrHints = new AttrHints();
+        CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
+        CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
     
-    // For unit testing
-    exports.tagHintProvider = tagHints;
-    exports.attrHintProvider = attrHints;
+        // For unit testing
+        exports.tagHintProvider = tagHints;
+        exports.attrHintProvider = attrHints;
+    });
 });
