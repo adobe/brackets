@@ -160,6 +160,15 @@
     "navigate.gotoDefinition":  [
         "Ctrl-T"
     ],
+    "navigate.gotoJSLintError":  [
+        {
+            "key": "Ctrl-J"
+        },
+        {
+            "key": "Ctrl-J",
+            "platform": "mac"
+        }
+    ],
     "navigate.nextDoc":  [
         {
             "key": "Ctrl-Tab"
