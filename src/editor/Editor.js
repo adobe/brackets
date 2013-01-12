@@ -327,6 +327,7 @@ define(function (require, exports, module) {
             "Esc": function (instance) {
                 self.removeAllInlineWidgets();
             },
+            "Cmd-Left": "goLineStartSmart",
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
@@ -482,7 +483,7 @@ define(function (require, exports, module) {
                 newText = change.text.join('\n');
                 if (!change.from || !change.to) {
                     if (change.from || change.to) {
-                        console.assert(false, "Change record received with only one end undefined--replacing entire text");
+                        console.error("Change record received with only one end undefined--replacing entire text");
                     }
                     cm.setValue(newText);
                 } else {

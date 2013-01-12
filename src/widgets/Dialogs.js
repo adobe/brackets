@@ -223,7 +223,8 @@ define(function (require, exports, module) {
             .clone()
             .removeClass("template");
         if ($template.length === 0) {
-            throw new Error("Dialog id " + dlgClass + " does not exist");
+            console.error("Dialog id " + dlgClass + " does not exist");
+            return;
         }
         return showModalDialogUsingTemplate($template, title, message);
     }

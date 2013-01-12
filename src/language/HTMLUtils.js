@@ -133,6 +133,11 @@ define(function (require, exports, module) {
                 
                 while (TokenUtils.moveNextToken(forwardCtx) && forwardCtx.token.className !== "tag") {
                     if (forwardCtx.token.className === "attribute") {
+                        // If the current tag is not closed, codemirror may return the next opening
+                        // tag as an attribute. Stop the search loop in that case.
+                        if (forwardCtx.token.string.indexOf("<") === 0) {
+                            break;
+                        }
                         attrs.push(forwardCtx.token.string);
                     } else if (forwardCtx.token.className === "error") {
                         // If we type the first letter of the next attribute, it comes as an error

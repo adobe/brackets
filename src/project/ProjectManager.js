@@ -782,10 +782,13 @@ define(function (require, exports, module) {
 
                     resultRenderTree.done(function () {
                         if (projectRootChanged) {
-                            $(exports).triggerHandler("projectOpen", _projectRoot);
+                            // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
+                            var promises = [];
+                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot, promises]);
+                            $.when.apply($, promises).pipe(result.resolve, result.reject);
+                        } else {
+                            result.resolve();
                         }
-                        
-                        result.resolve();
                     });
                     resultRenderTree.fail(function () {
                         PerfUtils.terminateMeasurement(perfTimerName);
@@ -1280,7 +1283,8 @@ define(function (require, exports, module) {
                     }
                     
                     var oldName = selected.data("entry").fullPath;
-                    var newName = oldName.replace(data.rslt.old_name, data.rslt.new_name);
+                    var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + "$");
+                    var newName = oldName.replace(oldNameRegex, data.rslt.new_name);
                     
                     renameItem(oldName, newName, isFolder)
                         .done(function () {
@@ -1313,7 +1317,6 @@ define(function (require, exports, module) {
     function forceFinishRename() {
         $(".jstree-rename-input").blur();
     }
-
 
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {

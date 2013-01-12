@@ -179,7 +179,8 @@ define(function (require, exports, module) {
             return null;
         }
         if (!name || !id || !commandFn) {
-            throw new Error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
+            console.error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
+            return null;
         }
 
         var command = new Command(name, id, commandFn);

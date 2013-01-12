@@ -46,7 +46,23 @@ define(function (require, exports, module) {
         return -1;
     }
     
+    /**
+     * Iterates over all the properties in an object or elements in an array. Differs from
+     * $.each in that it iterates over array-like objects like regular objects.
+     * @param {*} object The object or array to iterate over.
+     * @param {function(index, value)} callback The function that will be executed on every object.
+     */
+    function forEach(object, callback) {
+        var keys = Object.keys(object),
+            len = keys.length,
+            i;
+        
+        for (i = 0; i < len; i++) {
+            callback(object[keys[i]], keys[i]);
+        }
+    }
     
     // Define public API
     exports.indexOf = indexOf;
+    exports.forEach = forEach;
 });

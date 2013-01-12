@@ -200,6 +200,9 @@ define(function (require, exports, module) {
      */
     function destroyMockEditor(doc) {
         EditorManager._destroyEditorIfUnneeded(doc);
+
+        // Clear editor holder so EditorManager doesn't try to resize destroyed object
+        EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
 

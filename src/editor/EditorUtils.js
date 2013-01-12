@@ -92,6 +92,8 @@ define(function (require, exports, module) {
         case "cfm":
         case "cfml":
         case "cfc":
+        case "dhtml":
+        case "xht":
             return "htmlmixed";
 
         case "svg":
@@ -106,6 +108,7 @@ define(function (require, exports, module) {
         case "php5":
         case "phtm":
         case "phtml":
+        case "ctp":
             return "php";
 
         case "cc":
@@ -144,6 +147,7 @@ define(function (require, exports, module) {
             return "ruby";
 
         case "py":
+        case "pyw":
             return "python";
         
         case "lua":

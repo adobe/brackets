@@ -40,7 +40,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Utility dependency
-    var Global                  = require("utils/Global"),
+    var AppInit                 = require("utils/AppInit"),
+        Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
@@ -116,6 +117,8 @@ define(function (require, exports, module) {
         });
         
         $("#" + suite).closest("li").toggleClass("active", true);
+        
+        AppInit._dispatchReady(AppInit.APP_READY);
         
         jasmine.getEnv().execute();
     }

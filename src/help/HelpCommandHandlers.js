@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Global                  = require("utils/Global"),
+    var AppInit                 = require("utils/AppInit"),
+        Global                  = require("utils/Global"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -73,14 +74,16 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
     }
 
-    // Read "build number" SHAs off disk immediately at load time, instead
+    // Read "build number" SHAs off disk immediately at APP_READY, instead
     // of later, when they may have been updated to a different version
-    BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
-        // If we've successfully determined a "build number" via .git metadata, add it to dialog
-        sha = sha ? sha.substr(0, 9) : "";
-        if (branch || sha) {
-            buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
-        }
+    AppInit.appReady(function () {
+        BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
+            // If we've successfully determined a "build number" via .git metadata, add it to dialog
+            sha = sha ? sha.substr(0, 9) : "";
+            if (branch || sha) {
+                buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
+            }
+        });
     });
 
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);

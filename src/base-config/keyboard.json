@@ -115,7 +115,13 @@
         "Ctrl-/"
     ],
     "edit.blockComment":  [
-        "Ctrl-Shift-/"
+        {
+            "key": "Ctrl-Shift-/"
+        },
+        {
+            "key": "Cmd-Opt-/",
+            "platform": "mac"
+        }
     ],
     "view.hideSidebar":  [
         "Ctrl-Shift-H"

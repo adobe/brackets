@@ -54,10 +54,12 @@ define(function (require, exports, module) {
             if (!error && (temp[key] !== undefined)) {
                 return true;
             } else {
-                throw new Error("Value '" + value + "' for key '" + key + "' must be a valid JSON value");
+                console.error("Value '" + value + "' for key '" + key + "' must be a valid JSON value");
+                return false;
             }
         } else {
-            throw new Error("Preference key '" + key + "' must be a string");
+            console.error("Preference key '" + key + "' must be a string");
+            return false;
         }
     }
     
@@ -130,7 +132,7 @@ define(function (require, exports, module) {
     
     /**
      * Writes name-value pairs from a JSON object as preference properties.
-     * Invalid JSON values throw an error and all changes are discarded.
+     * Invalid JSON values report an error and all changes are discarded.
      *
      * @param {!object} obj A JSON object with zero or more preference properties to write.
      * @param {boolean} append Defaults to false. When true, properties in the JSON object
@@ -154,7 +156,8 @@ define(function (require, exports, module) {
         
         // skip changes if any error is detected
         if (error) {
-            throw error;
+            console.error(error);
+            return;
         }
         
         // delete all exiting properties if not appending

@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         "pt-br": true,
         "ja": true,
         "tr": true,
-        "ru": true
+        "ru": true,
+        "sv": true
     };
 });
