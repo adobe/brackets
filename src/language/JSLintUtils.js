@@ -243,18 +243,17 @@ define(function (require, exports, module) {
         setEnabled(!getEnabled());
     }
     
+    /** Command to go to the first JSLint Error */
+    function _handleGotoJSLintError() {
+        run();
+        if (_gotoFirstErrorFunction) {
+            _gotoFirstErrorFunction();
+        }
+    }
+    
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
-    CommandManager.register(
-        Strings.CMD_JSLINT_FIRST_ERROR,
-        Commands.NAVIGATE_GOTO_JSLINT_ERROR,
-        function () {
-            run();
-            if (_gotoFirstErrorFunction) {
-                _gotoFirstErrorFunction();
-            }
-        }
-    );
+    CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, Commands.NAVIGATE_GOTO_JSLINT_ERROR, _handleGotoJSLintError);
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
