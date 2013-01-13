@@ -13,8 +13,8 @@ define(function (require, exports, module) {
      * @constructor
      */
     function CssAttrHints() {
-        this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-";
-        this.secondaryTriggerKeys = " :;";
+        this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
+        this.secondaryTriggerKeys = " :;{";
     }
 
     /**
@@ -73,11 +73,11 @@ define(function (require, exports, module) {
             valueNeedle = "",
             context = this.info.context,
             result,
-            selectInitial = true;
+            selectInitial = false;
             
         
-        if (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1) {
-            selectInitial = false;
+        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
+            selectInitial = true;
         }
         
         if (context === CSSUtils.PROP_VALUE) {
@@ -133,13 +133,14 @@ define(function (require, exports, module) {
             closure = "",
             start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
-            keepHints = false;
+            keepHints = true;
         
         if (this.info.context === CSSUtils.PROP_NAME) {
-            closure = ": ";
-            keepHints = true;
+            closure = ":";
         } else if (this.info.context === CSSUtils.PROP_VALUE) {
             closure = ";";
+        } else {
+            return false;
         }
         
         hint = hint + closure;

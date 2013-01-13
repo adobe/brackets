@@ -33,22 +33,18 @@ define(function (require, exports, module) {
                              " color\n" +
                              "} \n";
         
-        var testWindow;
         var testDocument, testEditor;
         
         beforeEach(function () {
             // create Editor instance (containing a CodeMirror instance)
-            $("body").append("<div id='editor'/>");
-            
-            // create dummy Document for the Editor
-            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-            testEditor = new Editor(testDocument, true, "css", $("#editor").get(0), {});
+            var mock = SpecRunnerUtils.createMockEditor(defaultContent, "css");
+            testEditor = mock.editor;
+            testDocument = mock.doc;
         });
         
         afterEach(function () {
-            testEditor.destroy();
+            SpecRunnerUtils.destroyMockEditor(testDocument);
             testEditor = null;
-            $("#editor").remove();
             testDocument = null;
         });
     
@@ -160,8 +156,8 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 6, ch: 2 }); // insert colon after previous rule to avoid incorrect tokenizing
                 testEditor.setCursorPos({ line: 7, ch: 5 });   // cursor after 'bord'
                 selectHint(CSSCodeHints.attrHintProvider, "border");
-                expect(testDocument.getLine(7)).toBe(" border: ");
-                expectCursorAt({ line: 7, ch: 9 });
+                expect(testDocument.getLine(7)).toBe(" border:");
+                expectCursorAt({ line: 7, ch: 8 });
             });
             
             it("should insert semicolon followed by newline after value added", function () {
@@ -175,7 +171,7 @@ define(function (require, exports, module) {
             it("should insert attribute directly after semicolon ", function () {
                 testEditor.setCursorPos({ line: 10, ch: 19 });   // cursor after red;
                 selectHint(CSSCodeHints.attrHintProvider, "align-content");
-                expect(testDocument.getLine(10)).toBe(" border-color: red;align-content: ");
+                expect(testDocument.getLine(10)).toBe(" border-color: red;align-content:");
                 // expectCursorAt({ line: 10, ch: 4 });
             });
 
@@ -188,8 +184,8 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 15, ch: 13 }); // insert text ;
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
                 selectHint(CSSCodeHints.attrHintProvider, "color");
-                expect(testDocument.getLine(16)).toBe(" color: ");
-                expectCursorAt({ line: 16, ch: 8 });
+                expect(testDocument.getLine(16)).toBe(" color:");
+                expectCursorAt({ line: 16, ch: 7 });
             });
             
             xit("should start new selection whenever there is a whitespace to last stringliteral", function () {
@@ -198,8 +194,8 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(" ", { line: 16, ch: 6 }); // insert whitespace after color
                 testEditor.setCursorPos({ line: 16, ch: 7 });   // cursor one whitespace after color
                 selectHint(CSSCodeHints.attrHintProvider, "color");
-                expect(testDocument.getLine(16)).toBe(" color color: ");
-                expectCursorAt({ line: 16, ch: 14 });
+                expect(testDocument.getLine(16)).toBe(" color color:");
+                expectCursorAt({ line: 16, ch: 13 });
             });
         });
 
@@ -251,9 +247,13 @@ define(function (require, exports, module) {
                     
             beforeEach(function () {
                 // create dummy Document for the Editor
-                testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-                testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0), {});
+                var mock = SpecRunnerUtils.createMockEditor(defaultContent, "htmlmixed");
+                testEditor = mock.editor;
+                testDocument = mock.doc;
             });
+            
+            
+            
             
             it("should list hints right after curly bracket", function () {
                 testEditor.setCursorPos({ line: 3, ch: 7 });    // inside body-selector, after {
@@ -307,8 +307,9 @@ define(function (require, exports, module) {
                                  "} \n";
             beforeEach(function () {
                 // create dummy Document for the Editor
-                testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-                testEditor = new Editor(testDocument, true, "javascript", $("#editor").get(0), {});
+                var mock = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
+                testEditor = mock.editor;
+                testDocument = mock.doc;
             });
             
             it("should NOT list hints after function declaration", function () {
