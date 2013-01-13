@@ -147,14 +147,7 @@ define(function (require, exports, module) {
         // result, starting from the original cursor position
         function findFirst(query, modalBar) {
             cm.operation(function () {
-                if (!query) {
-                    clearHighlights(getSearchState(cm));
-                    return;
-                }
-
-                if (state.query) {
-                    clearSearch(cm);  // clear highlights from previous query
-                }
+                clearSearch(cm);
                 state.query = parseQuery(query);
                 if (!state.query) {
                     return;
@@ -168,13 +161,12 @@ define(function (require, exports, module) {
                     while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
 
-                        if (cursor.from().ch === cursor.to().ch && cursor.from().line === cursor.to().line) {
-                            //If stuck on last symbol (in case of /.*/ for example), move to the next line
-                            if (cm.lineCount() > cursor.to().line + 1) {
-                                cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
-                            } else {
+                        //Remove this section when https://github.com/marijnh/CodeMirror/issues/1155 will be fixed
+                        if (cursor.pos.match && cursor.pos.match[0] === "") {
+                            if (cursor.to().line + 1 === cm.lineCount()) {
                                 break;
                             }
+                            cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
                 }
