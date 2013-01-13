@@ -399,7 +399,8 @@ define(function (require, exports, module) {
      * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
      */
     Menu.prototype.removeMenuItem = function (command) {
-        var menuItemID;
+        var menuItemID,
+            commandID;
 
         if (!command) {
             console.error("removeMenuItem(): missing required parameters: command");
@@ -413,13 +414,23 @@ define(function (require, exports, module) {
                 return;
             }
 
-            menuItemID = this._getMenuItemId(command);
+            commandID = command;
         } else {
-            menuItemID = this._getMenuItemId(command.getID());
+            commandID = command.getID();
         }
+        menuItemID = this._getMenuItemId(commandID);
 
-        // Targeting parent to get the menu item <a> and the <li> that contains it
-        $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        if (brackets.inBrowser || _isContextMenu(this.id)) {
+            // Targeting parent to get the menu item <a> and the <li> that contains it
+            $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        } else {
+            brackets.app.removeMenuItem(commandID, function (err) {
+                if (err) {
+                    console.error("removeMenuItem() -- command not found: " + commandID + " (error: " + err + ")");
+                }
+            });
+        }
+        
         delete menuItemMap[menuItemID];
     };
     
@@ -541,7 +552,11 @@ define(function (require, exports, module) {
                 bindingStr = binding.displayKey || binding.key;
             }
             
-            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) { /* todo: error handling */ });
+            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
+                if (err) {
+                    console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
+                }
+            });
             menuItem.isNative = true;
         }
         
@@ -753,7 +768,11 @@ define(function (require, exports, module) {
         menuMap[id] = menu;
 
         if (!brackets.inBrowser && !_isContextMenu(id)) {
-            brackets.app.addMenu(name, id, position, relativeID, function (err) { /* todo: error handling */ });
+            brackets.app.addMenu(name, id, position, relativeID, function (err) {
+                if (err) {
+                    console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
+                }
+            });
             return menu;
         }
 
