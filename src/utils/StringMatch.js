@@ -103,8 +103,7 @@ define(function (require, exports, module) {
     
     // states used during the scanning of the string
     var SPECIALS_COMPARE = 0;
-    var CONTIGUOUS_COMPARE = 1;
-    var SPECIALS_EXHAUSTED = 2;
+    var CONSECUTIVE_COMPARE = 1;
     
     // Scores can be hard to make sense of. The DEBUG_SCORES flag
     // provides a way to peek into the parts that made up a score.
@@ -115,7 +114,7 @@ define(function (require, exports, module) {
     }
     
     // Constants for scoring
-    var SPECIAL_POINTS = 25;
+    var SPECIAL_POINTS = 30;
     var MATCH_POINTS = 10;
     var LAST_SEGMENT_BOOST = 1;
     var BEGINNING_OF_NAME_POINTS = 25;
@@ -123,36 +122,309 @@ define(function (require, exports, module) {
     var CONSECUTIVE_MATCHES_POINTS = 25;
     var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
     
+    // Used in match lists to designate matches of "special" characters (see
+    // findSpecialCharacters above
+    function SpecialMatch(index) {
+        this.index = index;
+    }
+    
+    // Used in match lists to designate any matched characters that are not special
+    function NormalMatch(index) {
+        this.index = index;
+    }
+    
     /*
      * Finds the best matches between the query and the string. The query is
-     * compared with compareStr (generally a lower case string with a lower case
-     * query), but the results are returned based on str.
+     * compared with str (usually a lower case string with a lower case
+     * query).
      *
-     * Generally speaking, this function tries to find a "special" character
-     * (see findSpecialCharacters above) for the first character of the query.
-     * When it finds one, it then tries to look for consecutive characters that
-     * match. Once the characters stop matching, it tries to find a special
-     * character for the next query character. If a special character isn't found, 
-     * it starts scanning sequentially.
+     * Generally speaking, this function tries to find "special" characters
+     * (see findSpecialCharacters above) first. Failing that, it starts scanning
+     * the "normal" characters. Sometimes, it will find a special character that matches
+     * but then not be able to match the rest of the query. In cases like that, the
+     * search will backtrack and try to find matches for the whole query earlier in the
+     * string.
      *
-     * The returned object contains the following fields:
-     * * {Array} ranges: the scanned regions of the string, in order. For each range:
-     *     * {string} text: the text for the string range
-     *     * {boolean} matched: was this range part of the match?
-     *     * {boolean} includesLastSegment: is this range part of the last segment of str
-     * * {int} matchGoodness: the score computed for this match
-     * * (optional) {Object} scoreDebug: if DEBUG_SCORES is true, an object with the score broken down
+     * @param {string} query the search string (generally lower cased)
+     * @param {string} str the string to compare with (generally lower cased)
+     * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
+     * @param {int} startingSpecial index into specials array to start scanning with
+     * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
+     */
+    function _generateMatchList(query, str, specials, startingSpecial) {
+        var result = [];
+        
+        // used to keep track of which special character we're testing now
+        var specialsCounter = startingSpecial;
+        
+        // strCounter and queryCounter are the indexes used for pulling characters
+        // off of the str/compareStr and query.
+        var strCounter = specials[startingSpecial];
+        var queryCounter;
+        
+        // the search branches out between special characters and normal characters
+        // that are found via consecutive character scanning. In the process of
+        // performing these scans, we discover that parts of the query will not match
+        // beyond a given point in the string. We keep track of that information
+        // in deadBranches, which has a slot for each character in the query.
+        // The value stored in the slot is the index into the string after which we
+        // are certain there is no match.
+        var deadBranches = [];
+        
+        for (queryCounter = 0; queryCounter < query.length; queryCounter++) {
+            deadBranches[queryCounter] = Infinity;
+        }
+        
+        queryCounter = 0;
+        
+        var state = SPECIALS_COMPARE;
+        
+        // Compares the current character from the query string against the
+        // special characters in str. Returns true if a match was found,
+        // false otherwise.
+        function findMatchingSpecial() {
+            // used to loop through the specials
+            var i;
+            
+            for (i = specialsCounter; i < specials.length; i++) {
+                // short circuit this search when we know there are no matches following
+                if (specials[i] >= deadBranches[queryCounter]) {
+                    break;
+                }
+                
+                // First, ensure that we're not comparing specials that
+                // come earlier in the string than our current search position.
+                // This can happen when the string position changes elsewhere.
+                if (specials[i] < strCounter) {
+                    specialsCounter = i;
+                } else if (query[queryCounter] === str[specials[i]]) {
+                    // we have a match! do the required tracking
+                    specialsCounter = i;
+                    queryCounter++;
+                    strCounter = specials[i];
+                    result.push(new SpecialMatch(strCounter++));
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Keeps track of how far back we need to go to keep searching.
+        var backtrackTo = Infinity;
+        
+        // This function implements the backtracking that is done when we fail to find
+        // a match with the query using the "search for specials first" approach.
+        //
+        // returns false when it is not able to backtrack successfully
+        function backtrack() {
+            
+            // The idea is to pull matches off of our match list, rolling back
+            // characters from the query. We pay special attention to the special
+            // characters since they are searched first.
+            while (result.length > 0) {
+                var item = result.pop();
+                
+                // nothing in the list? there's no possible match then.
+                if (!item) {
+                    return false;
+                }
+                
+                // we pulled off a match, which means that we need to put a character
+                // back into our query
+                queryCounter--;
+                
+                if (item instanceof SpecialMatch) {
+                    // pulled off a special, which means we need to make that special available
+                    // for matching again
+                    specialsCounter--;
+                    
+                    // check to see if we've gone back as far as we need to
+                    if (item.index < backtrackTo) {
+                        // next time, we'll have to go back farther
+                        backtrackTo = item.index - 1;
+                        
+                        // we now know that this part of the query does not match beyond this
+                        // point
+                        deadBranches[queryCounter] = backtrackTo;
+                        
+                        // since we failed with the specials along this track, we're
+                        // going to reset to looking for matches consecutively.
+                        state = CONSECUTIVE_COMPARE;
+                        
+                        // we figure out where to start looking based on the new
+                        // last item in the list. If there isn't anything else
+                        // in the match list, we'll start over at the starting special
+                        // (which is generally the beginning of the string, or the
+                        // beginning of the last segment of the string)
+                        item = result[result.length - 1];
+                        if (!item) {
+                            strCounter = specials[startingSpecial] + 1;
+                            return true;
+                        }
+                        strCounter = item.index + 1;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        
+        while (true) {
+            
+            // keep looping until we've either exhausted the query or the string
+            while (queryCounter < query.length && strCounter < str.length && strCounter <= deadBranches[queryCounter]) {
+                if (state === SPECIALS_COMPARE) {
+                    if (!findMatchingSpecial()) {
+                        state = CONSECUTIVE_COMPARE;
+                    }
+                }
+                
+                if (state === CONSECUTIVE_COMPARE) {
+                    // we look character by character for matches
+                    if (query[queryCounter] === str[strCounter]) {
+                        // got a match! record it, and switch back to searching specials
+                        queryCounter++;
+                        result.push(new NormalMatch(strCounter++));
+                        state = SPECIALS_COMPARE;
+                    } else {
+                        // no match, keep looking
+                        strCounter++;
+                    }
+                }
+            }
+            
+            // if we've finished the query, or we haven't finished the query but we have no
+            // more backtracking we can do, then we're all done searching.
+            if ((queryCounter < query.length && !backtrack()) || queryCounter >= query.length) {
+                break;
+            }
+        }
+        
+        // return null when we don't find anything
+        if (queryCounter < query.length || result.length === 0) {
+            return null;
+        }
+        return result;
+    }
+    
+    /*
+     * Seek out the best match in the last segment (generally the filename). 
+     * Matches in the filename are preferred, but the query entered could match
+     * any part of the path. So, we find the best match we can get in the filename
+     * and then allow for searching the rest of the string with any characters that
+     * are left from the beginning of the query.
+     *
+     * The parameters and return value are the same as for getMatchRanges,
+     * except this function is always working on the last segment and the
+     * result can optionally include a remainder, which is the characters
+     * at the beginning of the query which did not match in the last segment.
      *
      * @param {string} query the search string (generally lower cased)
      * @param {string} str the original string to search
      * @param {string} compareStr the string to compare with (generally lower cased)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
-     * @param {boolean} lastSegmentStart optional which character does the last segment start at
+     * @param {boolean} lastSegmentStart which character does the last segment start at
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     */
+    function _lastSegmentSearch(query, compareStr, specials, startingSpecial, lastSegmentStart) {
+        var queryCounter, matchList;
+        
+        // It's possible that the query is longer than the last segment.
+        // If so, we can chop off the bit that we know couldn't possibly be there.
+        var remainder = "";
+        var extraCharacters = specials[startingSpecial] + query.length - compareStr.length;
+
+        if (extraCharacters > 0) {
+            remainder = query.substring(0, extraCharacters);
+            query = query.substring(extraCharacters);
+        }
+        
+        for (queryCounter = 0; queryCounter < query.length; queryCounter++) {
+            matchList = _generateMatchList(query.substring(queryCounter),
+                                     compareStr, specials, startingSpecial);
+            
+            // if we've got a match *or* there are no segments in this string, we're done
+            if (matchList || startingSpecial === 0) {
+                break;
+            }
+        }
+        
+        if (queryCounter === query.length || !matchList) {
+            return null;
+        } else {
+            return {
+                remainder: remainder + query.substring(0, queryCounter),
+                matchList: matchList
+            };
+        }
+    }
+    
+    /*
+     * Implements the top-level search algorithm. Search the last segment first,
+     * then search the rest of the string with the remainder.
+     *
+     * The parameters and return value are the same as for getMatchRanges.
+     *
+     * @param {string} query the search string (will be searched lower case)
+     * @param {string} str the original string to search
+     * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
+     * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    function getMatchRanges(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
+    function _wholeStringSearch(query, str, specials, lastSegmentSpecialsIndex) {
+        // set up query as all lower case and make a lower case string to use for comparisons
+        query = query.toLowerCase();
+        var compareStr = str.toLowerCase();
+        
+        var lastSegmentStart = specials[lastSegmentSpecialsIndex];
+        var result;
+        var matchList;
+        
+        result = _lastSegmentSearch(query, compareStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
+        
+        if (result) {
+            matchList = result.matchList;
+            
+            // Do we have more query characters that did not fit?
+            if (result.remainder) {
+                // Scan with the remainder only through the beginning of the last segment
+                var remainderMatchList = _generateMatchList(result.remainder,
+                                              compareStr.substring(0, lastSegmentStart),
+                                              specials.slice(0, lastSegmentSpecialsIndex), 0);
+                
+                if (remainderMatchList) {
+                    // add the new matched ranges to the beginning of the set of ranges we had
+                    matchList.unshift.apply(matchList, remainderMatchList);
+                } else {
+                    // no match
+                    return null;
+                }
+            }
+        } else {
+            // No match in the last segment, so we start over searching the whole
+            // string
+            matchList = _generateMatchList(query, compareStr, specials, 0, lastSegmentStart);
+        }
+        
+        return matchList;
+    }
+    
+    /**
+     * Converts a list of matches into a form suitable for returning from stringMatch.
+     *
+     * @param {Array.<SpecialMatch|NormalMatch>} matchList to convert
+     * @param {string} original string
+     * @param {int} character index where last segment begins
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     */
+    function _computeRangesAndScore(matchList, str, lastSegmentStart) {
+        var matchCounter;
         var ranges = [];
+        var lastMatchIndex = -1;
+        var lastSegmentScore = 0;
+        var currentRangeStartedOnSpecial = false;
         
         var score = 0;
         var scoreDebug;
@@ -168,33 +440,7 @@ define(function (require, exports, module) {
             };
         }
         
-        // normalize the optional parameters
-        if (!lastSegmentStart) {
-            lastSegmentStart = 0;
-        }
-        
-        if (startingSpecial === undefined) {
-            startingSpecial = 0;
-        }
-        
-        var specialsCounter = startingSpecial;
-        
-        // strCounter and queryCounter are the indexes used for pulling characters
-        // off of the str/compareStr and query.
-        var strCounter = specials[startingSpecial];
-        var queryCounter = 0;
-        
-        // initial state is to scan through the special characters
-        var state = SPECIALS_COMPARE;
-        
-        // currentRange keeps track of the range we are adding characters to now
         var currentRange = null;
-        var lastSegmentScore = 0;
-        var currentRangeStartedOnSpecial = false;
-        
-        // the character index (against str) that was last in a matched range. This is used for
-        // adding unmatched ranges in between and adding bonus points for consecutive matches.
-        var lastMatchIndex = strCounter - 1;
         
         // Records the current range and adds any additional ranges required to
         // get to character index c. This function is called before starting a new range
@@ -232,12 +478,14 @@ define(function (require, exports, module) {
             lastSegmentScore = 0;
         }
         
-        // records that the character at index c (of str) matches, adding
-        // that character to the current range or starting a new one.
-        function addMatch(c) {
+        // adds a matched character to the appropriate range
+        function addMatch(match) {
+            // pull off the character index
+            var c = match.index;
             var newPoints = 0;
             
             // A match means that we need to do some scoring bookkeeping.
+            // Start with points added for any match
             if (DEBUG_SCORES) {
                 scoreDebug.match += MATCH_POINTS;
             }
@@ -263,7 +511,17 @@ define(function (require, exports, module) {
                 newPoints += CONSECUTIVE_MATCHES_POINTS;
             }
             
+            // add points for "special" character matches
+            if (match instanceof SpecialMatch) {
+                if (DEBUG_SCORES) {
+                    scoreDebug.special += SPECIAL_POINTS;
+                }
+                newPoints += SPECIAL_POINTS;
+            }
+            
             score += newPoints;
+            
+            // points accumulated in the last segment get an extra bonus
             if (c >= lastSegmentStart) {
                 lastSegmentScore += newPoints;
             }
@@ -285,225 +543,39 @@ define(function (require, exports, module) {
                 // Check to see if this new matched range is starting on a special
                 // character. We penalize those ranges that don't, because most
                 // people will search on the logical boundaries of the name
-                currentRangeStartedOnSpecial = c === specials[specialsCounter];
+                currentRangeStartedOnSpecial = match instanceof SpecialMatch;
             } else {
                 currentRange.text += str[c];
             }
         }
         
-        // Compares the current character from the query string against the
-        // special characters in compareStr.
-        function findMatchingSpecial() {
-            // used to loop through the specials
-            var i;
-            
-            var foundMatch = false;
-            for (i = specialsCounter; i < specials.length; i++) {
-                // first, check to see if strCounter has moved beyond
-                // the current special character. This is possible
-                // if the contiguous comparison continued on through
-                // the next special
-                if (specials[i] < strCounter) {
-                    specialsCounter = i;
-                } else if (query[queryCounter] === compareStr[specials[i]]) {
-                    // we have a match! do the required tracking
-                    specialsCounter = i;
-                    queryCounter++;
-                    strCounter = specials[i];
-                    addMatch(strCounter++);
-                    if (DEBUG_SCORES) {
-                        scoreDebug.special += SPECIAL_POINTS;
-                    }
-                    score += SPECIAL_POINTS;
-                    foundMatch = true;
-                    break;
-                }
-            }
-            
-            // when we find a match, we switch to looking for consecutive matching characters
-            if (foundMatch) {
-                state = CONTIGUOUS_COMPARE;
-            } else {
-                // we didn't find a match among the specials
-                state = SPECIALS_EXHAUSTED;
-            }
+        // scan through the matches, adding each one in turn
+        for (matchCounter = 0; matchCounter < matchList.length; matchCounter++) {
+            var match = matchList[matchCounter];
+            addMatch(match);
         }
         
-        // keep looping until we've either exhausted the query or the string
-        while (queryCounter < query.length && strCounter < str.length) {
-            if (state === SPECIALS_COMPARE) {
-                findMatchingSpecial();
-            } else if (state === CONTIGUOUS_COMPARE || state === SPECIALS_EXHAUSTED) {
-                // for both of these states, we're looking character by character 
-                // for matches
-                if (query[queryCounter] === compareStr[strCounter]) {
-                    // got a match! record it, and switch to CONTIGUOUS_COMPARE
-                    // in case we had been in SPECIALS_EXHAUSTED state
-                    queryCounter++;
-                    addMatch(strCounter++);
-                    state = CONTIGUOUS_COMPARE;
-                } else {
-                    // no match. If we were in CONTIGUOUS_COMPARE mode, we
-                    // we switch to looking for specials again. If we've
-                    // already exhaused the specials, we're just going to keep
-                    // stepping through compareStr.
-                    if (state !== SPECIALS_EXHAUSTED) {
-                        findMatchingSpecial();
-                    } else {
-                        strCounter++;
-                    }
-                }
-            }
-        }
-        
-        var result;
-        // Add the rest of the string ranges
+        // add a range for the last part of the string
         closeRangeGap(str.length);
         
-        // It's not a match if we still have query string left.
-        if (queryCounter < query.length) {
-            result = null;
-        } else {
-            result = {
-                matchGoodness: score,
-                ranges: ranges
-            };
-            if (DEBUG_SCORES) {
-                result.scoreDebug = scoreDebug;
-            }
+        // shorter strings that match are often better than longer ones
+        var lengthPenalty = -1 * Math.round(str.length * DEDUCTION_FOR_LENGTH);
+        if (DEBUG_SCORES) {
+            scoreDebug.lengthDeduction = lengthPenalty;
         }
-        return result;
-    }
-    
-    /*
-     * Seek out the best match in the last segment (generally the filename). 
-     * Matches in the filename are preferred, but the query entered could match
-     * any part of the path. So, we find the best match we can get in the filename
-     * and then allow for searching the rest of the string with any characters that
-     * are left from the beginning of the query.
-     *
-     * The parameters and return value are the same as for getMatchRanges,
-     * except this function is always working on the last segment and the
-     * result can optionally include a remainder, which is the characters
-     * at the beginning of the query which did not match in the last segment.
-     *
-     * @param {string} query the search string (generally lower cased)
-     * @param {string} str the original string to search
-     * @param {string} compareStr the string to compare with (generally lower cased)
-     * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
-     * @param {int} startingSpecial index into specials array to start scanning with
-     * @param {boolean} lastSegmentStart which character does the last segment start at
-     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
-     */
-    function _lastSegmentSearch(query, str, compareStr, specials, startingSpecial, lastSegmentStart) {
-        var queryCounter, matchRanges;
-        
-        // It's possible that the query is longer than the last segment.
-        // If so, we can chop off the bit that we know couldn't possibly be there.
-        var remainder = "";
-        var extraCharacters = specials[startingSpecial] + query.length - str.length;
+        score = score + lengthPenalty;
 
-        if (extraCharacters > 0) {
-            remainder = query.substring(0, extraCharacters);
-            query = query.substring(extraCharacters);
-        }
+        var result = {
+            ranges: ranges,
+            matchGoodness: score
+        };
         
-        for (queryCounter = 0; queryCounter < query.length; queryCounter++) {
-            matchRanges = getMatchRanges(query.substring(queryCounter),
-                                     str, compareStr, specials, startingSpecial, lastSegmentStart);
-            
-            // if we've got a match *or* there are no segments in this string, we're done
-            if (matchRanges || startingSpecial === 0) {
-                break;
-            }
-        }
-        
-        if (queryCounter === query.length || !matchRanges) {
-            return null;
-        } else {
-            matchRanges.remainder = remainder + query.substring(0, queryCounter);
-            return matchRanges;
-        }
-    }
-    
-    /*
-     * Implements the top-level search algorithm. Search the last segment first,
-     * then search the rest of the string with the remainder.
-     *
-     * The parameters and return value are the same as for getMatchRanges.
-     *
-     * @param {string} query the search string (will be searched lower case)
-     * @param {string} str the original string to search
-     * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
-     * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
-     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
-     */
-    function _computeMatch(query, str, specials, lastSegmentSpecialsIndex) {
-        // set up query as all lower case and make a lower case string to use for comparisons
-        query = query.toLowerCase();
-        var compareStr = str.toLowerCase();
-        
-        var lastSegmentStart = specials[lastSegmentSpecialsIndex];
-        var result;
-        
-        if (lastSegmentStart + query.length < str.length) {
-            result = _lastSegmentSearch(query, str, compareStr, specials, lastSegmentSpecialsIndex, lastSegmentStart);
-        }
-        
-        if (result) {
-            // Do we have more query characters that did not fit?
-            if (result.remainder) {
-                // Scan with the remainder only through the beginning of the last segment
-                var remainderResult = getMatchRanges(result.remainder, str.substring(0, lastSegmentStart),
-                                              compareStr.substring(0, lastSegmentStart),
-                                              specials.slice(0, lastSegmentSpecialsIndex), 0, lastSegmentStart);
-                
-                if (remainderResult) {
-                    // We have a match
-                    // This next part deals with scoring for the case where
-                    // there are consecutive matched characters at the border of the
-                    // last segment.
-                    var lastRange = remainderResult.ranges[remainderResult.ranges.length - 1];
-                    if (result.ranges[0].matched && lastRange.matched) {
-                        result.matchGoodness += lastRange.text.length * CONSECUTIVE_MATCHES_POINTS;
-                        if (DEBUG_SCORES) {
-                            result.scoreDebug.consecutive += lastRange.text.length * CONSECUTIVE_MATCHES_POINTS;
-                        }
-                    }
-                    
-                    // add the new matched ranges to the beginning of the set of ranges we had
-                    result.ranges.unshift.apply(result.ranges, remainderResult.ranges);
-                } else {
-                    // no match
-                    return null;
-                }
-            } else {
-                // There was no remainder, which means that the whole match is in the
-                // last segment. We need to add a range at the beginning for everything
-                // that came before the last segment.
-                result.ranges.unshift({
-                    text: str.substring(0, lastSegmentStart),
-                    matched: false,
-                    includesLastSegment: false
-                });
-            }
-            delete result.remainder;
-        } else {
-            // No match in the last segment, so we start over searching the whole
-            // string
-            result = getMatchRanges(query, str, compareStr, specials, 0, lastSegmentStart);
-        }
-        
-        if (result) {
-            var lengthPenalty = -1 * Math.round(str.length * DEDUCTION_FOR_LENGTH);
-            if (DEBUG_SCORES) {
-                result.scoreDebug.lengthDeduction = lengthPenalty;
-            }
-            result.matchGoodness = result.matchGoodness + lengthPenalty;
+        if (DEBUG_SCORES) {
+            result.scoreDebug = scoreDebug;
         }
         return result;
     }
-    
+        
     /*
      * Match str against the query using the QuickOpen algorithm provided by
      * the functions above. The general idea is to prefer matches in the last
@@ -520,6 +592,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} str  The string to search
      * @param {string} query  The query string to find in string
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
     function stringMatch(str, query) {
         var result;
@@ -543,12 +616,14 @@ define(function (require, exports, module) {
         // Locate the special characters and then use orderedCompare to do the real
         // work.
         var special = findSpecialCharacters(str);
-        var compareData = _computeMatch(query, str, special.specials,
+        var lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
+        var matchList = _wholeStringSearch(query, str, special.specials,
                               special.lastSegmentSpecialsIndex);
         
         // If we get a match, turn this into a SearchResult as expected by the consumers
         // of this API.
-        if (compareData) {
+        if (matchList) {
+            var compareData = _computeRangesAndScore(matchList, str, lastSegmentStart);
             result = new SearchResult(str);
             result.stringRanges = compareData.ranges;
             result.matchGoodness = -1 * compareData.matchGoodness;
@@ -610,9 +685,13 @@ define(function (require, exports, module) {
     }
     
     exports._findSpecialCharacters  = findSpecialCharacters;
-    exports._computeMatch           = _computeMatch;
+    exports._wholeStringSearch      = _wholeStringSearch;
     exports._lastSegmentSearch      = _lastSegmentSearch;
     exports._setDebugScores         = _setDebugScores;
+    exports._generateMatchList      = _generateMatchList;
+    exports._SpecialMatch           = SpecialMatch;
+    exports._NormalMatch            = NormalMatch;
+    exports._computeRangesAndScore  = _computeRangesAndScore;
 
     // public exports
     exports.SearchResult            = SearchResult;

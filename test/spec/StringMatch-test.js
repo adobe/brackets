@@ -55,108 +55,231 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("_generateMatchList", function () {
+            var fSC = StringMatch._findSpecialCharacters;
+            var generateMatchList = StringMatch._generateMatchList;
+            var SpecialMatch = StringMatch._SpecialMatch;
+            var NormalMatch = StringMatch._NormalMatch;
+            
+            beforeEach(function () {
+                SpecialMatch.prototype.type = "special";
+                NormalMatch.prototype.type = "normal";
+            });
+            
+            afterEach(function () {
+                delete SpecialMatch.prototype.type;
+                delete NormalMatch.prototype.type;
+            });
+            
+            var path = "src/document/DocumentCommandHandler.js";
+            var specialsInfo = fSC(path);
+            path = path.toLowerCase();
+            
+            it("should return undefined for no matches", function () {
+                var result = generateMatchList("foo", path, specialsInfo.specials, 0);
+                expect(result).toEqual(null);
+            });
+            
+            it("should return an array with specials matches", function () {
+                var result = generateMatchList("d", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual([new SpecialMatch(13)]);
+                
+                result = generateMatchList("ch", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual([new SpecialMatch(21), new SpecialMatch(28)]);
+            });
+            
+            it("should try contiguous matches as well, but prefer specials", function () {
+                var result = generateMatchList("do", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14)]);
+                
+                result = generateMatchList("doc", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new SpecialMatch(21)]);
+                
+                result = generateMatchList("doch", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new SpecialMatch(21), new SpecialMatch(28)]);
+            });
+            
+            it("should handle contiguous matches that stand alone", function () {
+                var result = generateMatchList("o", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual([new NormalMatch(14)]);
+            });
+            
+            it("should recognize non-matches", function () {
+                var result = generateMatchList("ham", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual(null);
+            });
+            
+            it("should backtrack as needed", function () {
+                var result = generateMatchList("cu", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual([new NormalMatch(15), new NormalMatch(16)]);
+                
+                result = generateMatchList("dcho", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
+                expect(result).toEqual(null);
+                
+                var btpath = "MamoMeMiMoMu";
+                var btspecials = fSC(btpath);
+                btpath = btpath.toLowerCase();
+                
+                result = generateMatchList("m", btpath, btspecials.specials, 0);
+                expect(result).toEqual([new SpecialMatch(0)]);
+                
+                result = generateMatchList("mu", btpath, btspecials.specials, 0);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(11)]);
+                
+                result = generateMatchList("mamo", btpath, btspecials.specials, 0);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new SpecialMatch(4), new NormalMatch(9)]);
+                
+                btpath = "AbcdefzBcdefCdefDefEfF";
+                btspecials = fSC(btpath);
+                btpath = btpath.toLowerCase();
+                
+                result = generateMatchList("f", btpath, btspecials.specials, 0);
+                expect(result).toEqual([new SpecialMatch(21)]);
+                
+                result = generateMatchList("abcdefz", btpath, btspecials.specials, 0);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new NormalMatch(2), new NormalMatch(3), new NormalMatch(4), new NormalMatch(5), new NormalMatch(6)]);
+                
+                result = generateMatchList("abcdefe", btpath, btspecials.specials, 0);
+                expect(result).toEqual([new SpecialMatch(0), new SpecialMatch(7), new SpecialMatch(12), new SpecialMatch(16), new NormalMatch(17), new NormalMatch(18), new SpecialMatch(19)]);
+            });
+                
+        });
+        
+        describe("_computeRangesAndScore", function () {
+            var compute = StringMatch._computeRangesAndScore;
+            var SpecialMatch = StringMatch._SpecialMatch;
+            var NormalMatch = StringMatch._NormalMatch;
+
+            var path = "src/document/DocumentCommandHandler.js";
+            
+            var matchList = [new SpecialMatch(13)];
+            expect(compute(matchList, path, 13)).toEqual({
+                matchGoodness: jasmine.any(Number),
+                ranges: [
+                    { text: "src/document/", matched: false, includesLastSegment: false },
+                    { text: "D", matched: true, includesLastSegment: true },
+                    { text: "ocumentCommandHandler.js", matched: false, includesLastSegment: true }
+                ]
+            });
+            
+            matchList = [new SpecialMatch(13), new NormalMatch(14)];
+            expect(compute(matchList, path, 13)).toEqual({
+                matchGoodness: jasmine.any(Number),
+                ranges: [
+                    { text: "src/document/", matched: false, includesLastSegment: false },
+                    { text: "Do", matched: true, includesLastSegment: true },
+                    { text: "cumentCommandHandler.js", matched: false, includesLastSegment: true }
+                ]
+            });
+                
+        });
+        
         describe("_lastSegmentSearch", function () {
+            var SpecialMatch = StringMatch._SpecialMatch;
+            var NormalMatch = StringMatch._NormalMatch;
+            beforeEach(function () {
+                SpecialMatch.prototype.type = "special";
+                NormalMatch.prototype.type = "normal";
+            });
+            
+            afterEach(function () {
+                delete SpecialMatch.prototype.type;
+                delete NormalMatch.prototype.type;
+            });
+            
             it("should compare results in the final segment properly", function () {
                 var path = "src/document/DocumentCommandHandler.js";
                 var comparePath = path.toLowerCase();
                 var _lastSegmentSearch = StringMatch._lastSegmentSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
-                expect(_lastSegmentSearch("d", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("d", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "D", matched: true, includesLastSegment: true },
-                        { text: "ocumentCommandHandler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new SpecialMatch(13)
                     ]
                 });
                 
-                expect(_lastSegmentSearch("do", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("do", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "Do", matched: true, includesLastSegment: true },
-                        { text: "cumentCommandHandler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new SpecialMatch(13),
+                        new NormalMatch(14)
                     ]
                 });
                 
-                expect(_lastSegmentSearch("doc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("doc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new SpecialMatch(13),
+                        new NormalMatch(14),
+                        new SpecialMatch(21)
                     ]
                 });
                 
-                expect(_lastSegmentSearch("docc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("docc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "ument", matched: false, includesLastSegment: true },
-                        { text: "C", matched: true, includesLastSegment: true },
-                        { text: "ommandHandler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new SpecialMatch(13),
+                        new NormalMatch(14),
+                        new NormalMatch(15),
+                        new SpecialMatch(21)
                     ]
                 });
 
-                expect(_lastSegmentSearch("docch", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("docch", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "ument", matched: false, includesLastSegment: true },
-                        { text: "C", matched: true, includesLastSegment: true },
-                        { text: "ommand", matched: false, includesLastSegment: true },
-                        { text: "H", matched: true, includesLastSegment: true },
-                        { text: "andler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new SpecialMatch(13),
+                        new NormalMatch(14),
+                        new NormalMatch(15),
+                        new SpecialMatch(21),
+                        new SpecialMatch(28)
                     ]
                 });
                 
-                expect(_lastSegmentSearch("docch.js", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("docch.js", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "ument", matched: false, includesLastSegment: true },
-                        { text: "C", matched: true, includesLastSegment: true },
-                        { text: "ommand", matched: false, includesLastSegment: true },
-                        { text: "H", matched: true, includesLastSegment: true },
-                        { text: "andler", matched: false, includesLastSegment: true },
-                        { text: ".js", matched: true, includesLastSegment: true }
+                    matchList: [
+                        new SpecialMatch(13),
+                        new NormalMatch(14),
+                        new NormalMatch(15),
+                        new SpecialMatch(21),
+                        new SpecialMatch(28),
+                        new SpecialMatch(35),
+                        new SpecialMatch(36),
+                        new NormalMatch(37)
                     ]
                 });
                 
-                expect(_lastSegmentSearch("ocu", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("ocu", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "D", matched: false, includesLastSegment: true },
-                        { text: "ocu", matched: true, includesLastSegment: true },
-                        { text: "mentCommandHandler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new NormalMatch(14),
+                        new NormalMatch(15),
+                        new NormalMatch(16)
                     ]
                 });
                 
-                expect(_lastSegmentSearch("ocuha", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
+                expect(_lastSegmentSearch("ocuha", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "",
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "D", matched: false, includesLastSegment: true },
-                        { text: "ocu", matched: true, includesLastSegment: true },
-                        { text: "mentCommand", matched: false, includesLastSegment: true },
-                        { text: "Ha", matched: true, includesLastSegment: true },
-                        { text: "ndler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new NormalMatch(14),
+                        new NormalMatch(15),
+                        new NormalMatch(16),
+                        new SpecialMatch(28),
+                        new NormalMatch(29)
                     ]
                 });
                 
-                expect(_lastSegmentSearch("z", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
-                expect(_lastSegmentSearch("ocuz", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(_lastSegmentSearch("z", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(_lastSegmentSearch("ocuz", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
                 
-                expect(_lastSegmentSearch("sdoc", path, comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
-                    matchGoodness: jasmine.any(Number),
+                expect(_lastSegmentSearch("sdoc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
                     remainder: "s",
-                    ranges: [
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
+                    matchList: [
+                        new SpecialMatch(13),
+                        new NormalMatch(14),
+                        new SpecialMatch(21)
                     ]
                 });
             });
@@ -169,80 +292,83 @@ define(function (require, exports, module) {
                 var comparePath = path.toLowerCase();
                 var _lastSegmentSearch = StringMatch._lastSegmentSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
-                expect(_lastSegmentSearch("ocud", path, comparePath, sc.specials, 0)).toEqual(null);
+                expect(_lastSegmentSearch("ocud", comparePath, sc.specials, 0)).toEqual(null);
             });
             
             it("should compare matches that don't fit in just the final segment", function () {
                 var path = "src/document/DocumentCommandHandler.js";
-                var computeMatch = StringMatch._computeMatch;
+                
+                var wholeStringSearch = StringMatch._wholeStringSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
-                expect(computeMatch("sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "s", matched: true, includesLastSegment: false },
-                        { text: "rc/document/", matched: false, includesLastSegment: false },
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
-                    ]
-                });
                 
-                expect(computeMatch("doc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "src/document/", matched: false, includesLastSegment: false },
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
-                    ]
-                });
-                expect(computeMatch("z", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(wholeStringSearch("sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                    new SpecialMatch(0),
+                    new SpecialMatch(13),
+                    new NormalMatch(14),
+                    new SpecialMatch(21)
+                ]);
                 
-                expect(computeMatch("docdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "src/", matched: false, includesLastSegment: false },
-                        { text: "doc", matched: true, includesLastSegment: false },
-                        { text: "ument/", matched: false, includesLastSegment: false },
-                        { text: "Doc", matched: true, includesLastSegment: true },
-                        { text: "umentCommandHandler.js", matched: false, includesLastSegment: true }
-                    ]
-                });
+                expect(wholeStringSearch("doc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                    new SpecialMatch(13),
+                    new NormalMatch(14),
+                    new SpecialMatch(21)
+                ]);
+                
+                expect(wholeStringSearch("z", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                
+                expect(wholeStringSearch("docdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                    new SpecialMatch(4),
+                    new NormalMatch(5),
+                    new NormalMatch(6),
+                    new SpecialMatch(13),
+                    new NormalMatch(14),
+                    new SpecialMatch(21)
+                ]);
                 
                 // test for a suspected bug where specials are matched out of order.
-                expect(computeMatch("hc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(wholeStringSearch("hc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
             });
             
             it("should handle matches that don't fit at all in the final segment", function () {
                 var path = "src/extensions/default/QuickOpenCSS/main.js";
-                var computeMatch = StringMatch._computeMatch;
+                
+                var wholeStringSearch = StringMatch._wholeStringSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
-                expect(computeMatch("quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "src/extensions/default/", matched: false, includesLastSegment: false },
-                        { text: "Quick", matched: true, includesLastSegment: false },
-                        { text: "OpenCSS/main.js", matched: false, includesLastSegment: true }
-                    ]
-                });
                 
-                expect(computeMatch("quickopen", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "src/extensions/default/", matched: false, includesLastSegment: false },
-                        { text: "QuickOpen", matched: true, includesLastSegment: false },
-                        { text: "CSS/main.js", matched: false, includesLastSegment: true }
-                    ]
-                });
+                expect(wholeStringSearch("quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                    new SpecialMatch(23),
+                    new NormalMatch(24),
+                    new NormalMatch(25),
+                    new NormalMatch(26),
+                    new NormalMatch(27)
+                ]);
                 
-                expect(computeMatch("quickopenain", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual({
-                    matchGoodness: jasmine.any(Number),
-                    ranges: [
-                        { text: "src/extensions/default/", matched: false, includesLastSegment: false },
-                        { text: "QuickOpen", matched: true, includesLastSegment: false },
-                        { text: "CSS/m", matched: false, includesLastSegment: true },
-                        { text: "ain", matched: true, includesLastSegment: true },
-                        { text: ".js", matched: false, includesLastSegment: true }
-                    ]
-                });
+                expect(wholeStringSearch("quickopen", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                    new SpecialMatch(23),
+                    new NormalMatch(24),
+                    new NormalMatch(25),
+                    new NormalMatch(26),
+                    new NormalMatch(27),
+                    new SpecialMatch(28),
+                    new NormalMatch(29),
+                    new NormalMatch(30),
+                    new NormalMatch(39)
+                ]);
+                                
+                expect(wholeStringSearch("quickopenain", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                    new SpecialMatch(23),
+                    new NormalMatch(24),
+                    new NormalMatch(25),
+                    new NormalMatch(26),
+                    new NormalMatch(27),
+                    new SpecialMatch(28),
+                    new NormalMatch(29),
+                    new NormalMatch(30),
+                    new NormalMatch(31),
+                    new NormalMatch(37),
+                    new NormalMatch(38),
+                    new NormalMatch(39)
+                ]);
             });
         });
         
@@ -373,7 +499,7 @@ define(function (require, exports, module) {
                     "src/editor/EditorUtils.js",
                     "src/utils/ExtensionUtils.js",
                     "src/file/FileUtils.js"
-                ]));
+                ])).toBe(true);
             });
             
             it("should find the right ECH", function () {
@@ -381,14 +507,21 @@ define(function (require, exports, module) {
                     "EditorCommandHandlers",
                     "EditorCommandHandlers-test",
                     "SpecHelper"
-                ]));
+                ])).toBe(true);
             });
             
             it("should find the right DMan", function () {
                 expect(goodRelativeOrdering("DMan", [
                     "DocumentManager",
                     "CommandManager"
-                ]));
+                ])).toBe(true);
+            });
+            
+            it("should find the right sru", function () {
+                expect(goodRelativeOrdering("sru", [
+                    "test/spec/SpecRunnerUtils.js",
+                    "test/SpecRunner.html"
+                ])).toBe(true);
             });
         });
         
