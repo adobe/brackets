@@ -22,13 +22,14 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
     'use strict';
 
     var ExtensionUtils,
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        LESS_RESULT         = require("text!spec/ExtensionUtils-test-files/less.text");
 
 
     describe("Extension Utils", function () {
@@ -51,12 +52,16 @@ define(function (require, exports, module) {
         describe("loadStyleSheet", function () {
 
             function loadStyleSheet(doc, path) {
+                var deferred = new $.Deferred();
 
                 // attach style sheet
                 runs(function () {
                     var promise = ExtensionUtils.loadStyleSheet(module, path);
+                    promise.pipe(deferred.resolve, deferred.reject);
                     waitsForDone(promise, "loadStyleSheet: " + path);
                 });
+                
+                return deferred.promise();
             }
 
             it("should load CSS style sheets with imports", function () {
@@ -104,31 +109,23 @@ define(function (require, exports, module) {
             
             // putting everything LESS related in 1 test so it runs faster
             it("should attach LESS style sheets", function () {
+                var promise, result;
                 
                 runs(function () {
-                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.less");
+                    promise = loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.less");
+                    promise.done(function (style) {
+                        result = style;
+                    });
+                    
+                    waitsForDone(promise);
                 });
                 
                 runs(function () {
-                    // basic.less
-                    var $projectTitle = testWindow.$("#project-title");
-                    var fontSize = $projectTitle.css("font-size");
-                    expect(fontSize).toEqual("66px");
-
-                    // fourth.less is imported in basic.less
-                    var fontWeight = $projectTitle.css("font-weight");
-                    expect(fontWeight).toEqual("800");
-                });
-                
-                runs(function () {
-                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/sub dir/fifth.less");
-                });
-                
-                runs(function () {
-                    // fifth.less
-                    var $projectTitle = testWindow.$("#project-title");
-                    var fontVariant = $projectTitle.css("letter-spacing");
-                    expect(fontVariant).toEqual("9px");
+                    // confirm style sheet contents
+                    expect(testWindow.$(result).text()).toBe(LESS_RESULT);
+                    
+                    // confirm style is attached to document
+                    expect(testWindow.$.contains(testWindow.document, result)).toBeTruthy();
                 });
             });
         });
