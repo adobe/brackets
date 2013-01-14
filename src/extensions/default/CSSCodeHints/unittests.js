@@ -83,21 +83,21 @@ define(function (require, exports, module) {
             
             it("should list all prop-name hints right after curly bracket", function () {
                 testEditor.setCursorPos({ line: 4, ch: 11 });    // after {
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
             });
             
             it("should list all prop-namehints in new line", function () {
                 testEditor.setCursorPos({ line: 5, ch: 1 });
                 
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"
             });
 
             it("should list all prop-name hints starting with 'b' in new line", function () {
                 testEditor.setCursorPos({ line: 6, ch: 2 });
                 
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "backface-visibility");  // filtered on "b"
             });
 
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 6, ch: 2 });
 
                 testEditor.setCursorPos({ line: 7, ch: 5 });
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border");  // filtered on "bord"
             });
 
@@ -115,7 +115,7 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 7, ch: 5 });
                 
                 testEditor.setCursorPos({ line: 8, ch: 8 });
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-bottom");  // filtered on "border-"
             });
 
@@ -124,30 +124,30 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 8, ch: 8 });
 
                 testEditor.setCursorPos({ line: 9, ch: 12 });
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"  
                 expect(hintList.length).toBe(1);
             });
             
             it("should list prop-name hints at end of property-value finished by ;", function () {
                 testEditor.setCursorPos({ line: 10, ch: 19 });    // after ;
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "align-content");  // filtered on "empty string"    
             });
             
             it("should NOT list prop-name hints right before curly bracket", function () {
                 testEditor.setCursorPos({ line: 4, ch: 10 });    // inside .selector, before {
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
             
             it("should NOT list prop-name hints after declaration of mediatype", function () {
                 testEditor.setCursorPos({ line: 0, ch: 15 });    // after {
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
             
             it("should NOT list prop-name hints if previous property is not closed properly", function () {
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
         });
 
@@ -170,7 +170,7 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 6, ch: 2 });
                 
                 testEditor.setCursorPos({ line: 7, ch: 5 });   // cursor after 'bord'
-                selectHint(CSSCodeHints.attrHintProvider, "border");
+                selectHint(CSSCodeHints.cssPropHintProvider, "border");
                 expect(testDocument.getLine(7)).toBe(" border:");
                 expectCursorAt({ line: 7, ch: 8 });
             });
@@ -179,20 +179,20 @@ define(function (require, exports, module) {
                 // insert semicolon after previous rule to avoid incorrect tokenizing
                 testDocument.replaceRange(";", { line: 12, ch: 5 });
                 testEditor.setCursorPos({ line: 13, ch: 10 });   // cursor after 'display: '
-                selectHint(CSSCodeHints.attrHintProvider, "block");
+                selectHint(CSSCodeHints.cssPropHintProvider, "block");
                 expect(testDocument.getLine(13)).toBe(" display: block;");
             });
             
             it("should insert prop-name directly after semicolon", function () {
                 testEditor.setCursorPos({ line: 10, ch: 19 });   // cursor after red;
-                selectHint(CSSCodeHints.attrHintProvider, "align-content");
+                selectHint(CSSCodeHints.cssPropHintProvider, "align-content");
                 expect(testDocument.getLine(10)).toBe(" border-color: red;align-content:");
             });
             
             it("should insert nothing but the closure(semicolon) if prop-value is fully written", function () {
                 testDocument.replaceRange(";", { line: 15, ch: 13 }); // insert text ;
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
-                selectHint(CSSCodeHints.attrHintProvider, "color");
+                selectHint(CSSCodeHints.cssPropHintProvider, "color");
                 expect(testDocument.getLine(16)).toBe(" color:");
                 expectCursorAt({ line: 16, ch: 7 });
             });
@@ -203,7 +203,7 @@ define(function (require, exports, module) {
                 // if so, changes to CSSUtils.getInfoAt need to be done imho to classify this 
                 testDocument.replaceRange(" ", { line: 16, ch: 6 }); // insert whitespace after color
                 testEditor.setCursorPos({ line: 16, ch: 7 });   // cursor one whitespace after color
-                selectHint(CSSCodeHints.attrHintProvider, "color");
+                selectHint(CSSCodeHints.cssPropHintProvider, "color");
                 expect(testDocument.getLine(16)).toBe(" color color:");
                 expectCursorAt({ line: 16, ch: 13 });
             });
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 12, ch: 5 });
                 
                 testEditor.setCursorPos({ line: 13, ch: 9 });
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display:"
             });
 
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 12, ch: 5 });
                 
                 testEditor.setCursorPos({ line: 13, ch: 10 });
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display: "
             });
 
@@ -246,13 +246,13 @@ define(function (require, exports, module) {
                 testDocument.replaceRange(";", { line: 13, ch: 10 });
                 
                 testEditor.setCursorPos({ line: 14, ch: 12 });
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "inherit");  // filtered after "display: in"
             });
             
             it("should NOT list prop-value hints for unknown prop-name", function () {
                 testEditor.setCursorPos({ line: 15, ch: 12 });  // at bordborder:
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
             
         });
@@ -286,44 +286,44 @@ define(function (require, exports, module) {
                 
             it("should list prop-name hints right after curly bracket", function () {
                 testEditor.setCursorPos({ line: 3, ch: 7 });  // inside body-selector, after {
-                expectHints(CSSCodeHints.attrHintProvider);
+                expectHints(CSSCodeHints.cssPropHintProvider);
             });
 
             it("should list prop-name hints inside single-line styletags at start", function () {
                 testEditor.setCursorPos({ line: 1, ch: 23 });  // inside style, after {
-                expectHints(CSSCodeHints.attrHintProvider);
+                expectHints(CSSCodeHints.cssPropHintProvider);
             });
 
             it("should list prop-name hints inside single-line styletags after semicolon", function () {
                 testEditor.setCursorPos({ line: 1, ch: 37 });  // inside style, after ;
-                expectHints(CSSCodeHints.attrHintProvider);
+                expectHints(CSSCodeHints.cssPropHintProvider);
             });
 
             it("should list prop-name hints inside multi-line styletags with cursor in first line", function () {
                 testEditor.setCursorPos({ line: 9, ch: 18 });   // inside style, after {
-                expectHints(CSSCodeHints.attrHintProvider);
+                expectHints(CSSCodeHints.cssPropHintProvider);
             });
 
             it("should list prop-name hints inside multi-line styletags with cursor in last line", function () {
                 testEditor.setCursorPos({ line: 10, ch: 5 });    // inside style, after colo
-                var hintList = expectHints(CSSCodeHints.attrHintProvider);
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "color");  // filtered on "colo"
                 expect(hintList.length).toBe(1);
             });
             
             it("should NOT list prop-name hints between closed styletag and new opening styletag", function () {
                 testEditor.setCursorPos({ line: 8, ch: 0 });    // right before <div
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
             
             it("should NOT list hints right before curly bracket", function () {
                 testEditor.setCursorPos({ line: 3, ch: 6 });    // inside body-selector, before {
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
 
             it("should NOT list hints inside head-tag", function () {
                 testEditor.setCursorPos({ line: 1, ch: 6 });    // between <head> and </head> {
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
             
         });
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
             
             it("should NOT list hints after function declaration", function () {
                 testEditor.setCursorPos({ line: 0, ch: 24 });    // after {  after function declaration
-                expectNoHints(CSSCodeHints.attrHintProvider);
+                expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
         });
     });

@@ -12,7 +12,7 @@ define(function (require, exports, module) {
     /**
      * @constructor
      */
-    function CssAttrHints() {
+    function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
         this.secondaryTriggerKeys = " :;\t\n\r";
     }
@@ -34,7 +34,7 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
      */
-    CssAttrHints.prototype.hasHints = function (editor, implicitChar) {
+    CssPropHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
         var cursor = this.editor.getCursorPos();
 
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
      * 3. a boolean that indicates whether the first result, if one exists, should be 
      *    selected by default in the hint list window.
      */
-    CssAttrHints.prototype.getHints = function (implicitChar) {
+    CssPropHints.prototype.getHints = function (implicitChar) {
         this.info = CSSUtils.getInfoAtPos(this.editor, this.editor.getCursorPos());
 
         var needle = this.info.name,
@@ -132,7 +132,7 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    CssAttrHints.prototype.insertHint = function (hint) {
+    CssPropHints.prototype.insertHint = function (hint) {
         var offset = this.info.offset,
             cursor = this.editor.getCursorPos(),
             closure = "",
@@ -159,10 +159,10 @@ define(function (require, exports, module) {
         return keepHints;
     };
     
-    var cssAttrHints = new CssAttrHints();
-    CodeHintManager.registerHintProvider(cssAttrHints, ["css"], 0);
+    var cssPropHints = new CssPropHints();
+    CodeHintManager.registerHintProvider(cssPropHints, ["css"], 0);
     
     // For unit testing
-    exports.attrHintProvider = cssAttrHints;
+    exports.cssPropHintProvider = cssPropHints;
     
 });
