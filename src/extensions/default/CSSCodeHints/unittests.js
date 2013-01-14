@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     
         // Expect hintList to contain attribute names, starting with given value
         function verifyAttrHints(hintList, expectedFirstHint) {
-            expect(hintList.indexOf("div")).toBe(-1);   // make sure tag names aren't sneaking in there
+            expect(hintList.indexOf("div")).toBe(-1);
             expect(hintList[0]).toBe(expectedFirstHint);
         }
         
@@ -72,7 +72,6 @@ define(function (require, exports, module) {
             var hintList = expectHints(provider);
             expect(hintList.indexOf(expectedHint)).not.toBe(-1);
             return provider.insertHint(expectedHint);
-            //provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos(), true);
         }
         
         // Helper function for testing cursor position
@@ -105,25 +104,28 @@ define(function (require, exports, module) {
             });
 
             it("should list all hints starting with 'bord' ", function () {
-                testDocument.replaceRange(";", { line: 6, ch: 2 }); // insert colon after previous rule to avoid incorrect tokenizing
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 6, ch: 2 });
+
                 testEditor.setCursorPos({ line: 7, ch: 5 });
-                
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "border");  // filtered on "bord"
             });
 
             it("should list all hints starting with 'border-' ", function () {
-                testDocument.replaceRange(";", { line: 7, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
-                testEditor.setCursorPos({ line: 8, ch: 8 });
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 7, ch: 5 });
                 
+                testEditor.setCursorPos({ line: 8, ch: 8 });
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "border-bottom");  // filtered on "border-"
             });
 
             it("should list only hint border-color", function () {
-                testDocument.replaceRange(";", { line: 8, ch: 8 }); // insert colon after previous rule to avoid incorrect tokenizing
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 8, ch: 8 });
+
                 testEditor.setCursorPos({ line: 9, ch: 12 });
-                
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"  
                 expect(hintList.length).toBe(1);
@@ -153,7 +155,8 @@ define(function (require, exports, module) {
         
         describe("CSS attribute handleSelect", function () {
             it("should insert colon followed by whitespace after attribute", function () {
-                testDocument.replaceRange(";", { line: 6, ch: 2 }); // insert colon after previous rule to avoid incorrect tokenizing
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 6, ch: 2 });
                 testEditor.setCursorPos({ line: 7, ch: 5 });   // cursor after 'bord'
                 selectHint(CSSCodeHints.attrHintProvider, "border");
                 expect(testDocument.getLine(7)).toBe(" border:");
@@ -161,18 +164,17 @@ define(function (require, exports, module) {
             });
             
             it("should insert semicolon followed by newline after value added", function () {
-                testDocument.replaceRange(";", { line: 12, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 12, ch: 5 });
                 testEditor.setCursorPos({ line: 13, ch: 10 });   // cursor after 'display: '
                 selectHint(CSSCodeHints.attrHintProvider, "block");
                 expect(testDocument.getLine(13)).toBe(" display: block;");
-                // expectCursorAt({ line: 10, ch: 4 });
             });
             
             it("should insert attribute directly after semicolon ", function () {
                 testEditor.setCursorPos({ line: 10, ch: 19 });   // cursor after red;
                 selectHint(CSSCodeHints.attrHintProvider, "align-content");
                 expect(testDocument.getLine(10)).toBe(" border-color: red;align-content:");
-                // expectCursorAt({ line: 10, ch: 4 });
             });
 
             it("should insert nothing if previous property not closed properly", function () {
@@ -201,31 +203,34 @@ define(function (require, exports, module) {
 
         describe("CSS attribute value hints", function () {
             it("should list all display-values after colon", function () {
-                testDocument.replaceRange(";", { line: 12, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
-                testEditor.setCursorPos({ line: 13, ch: 9 });
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 12, ch: 5 });
                 
+                testEditor.setCursorPos({ line: 13, ch: 9 });
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display:"
             });
 
             it("should list all display-values after colon and whitespace", function () {
-                testDocument.replaceRange(";", { line: 12, ch: 5 }); // insert colon after previous rule to avoid incorrect tokenizing
-                testEditor.setCursorPos({ line: 13, ch: 10 });
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 12, ch: 5 });
                 
+                testEditor.setCursorPos({ line: 13, ch: 10 });
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "block");  // filtered after "display: "
             });
 
             it("should list all display-values after colon and whitespace", function () {
-                testDocument.replaceRange(";", { line: 13, ch: 10 }); // insert colon after previous rule to avoid incorrect tokenizing
-                testEditor.setCursorPos({ line: 14, ch: 12 });
+                // insert semicolon after previous rule to avoid incorrect tokenizing
+                testDocument.replaceRange(";", { line: 13, ch: 10 });
                 
+                testEditor.setCursorPos({ line: 14, ch: 12 });
                 var hintList = expectHints(CSSCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "inherit");  // filtered after "display: in"
             });
             
             it("should NOT list hints for unknown attribute", function () {
-                testEditor.setCursorPos({ line: 15, ch: 12 });    // at borborder:
+                testEditor.setCursorPos({ line: 15, ch: 12 });  // at bordborder:
                 expectNoHints(CSSCodeHints.attrHintProvider);
             });
             
@@ -256,22 +261,22 @@ define(function (require, exports, module) {
             
             
             it("should list hints right after curly bracket", function () {
-                testEditor.setCursorPos({ line: 3, ch: 7 });    // inside body-selector, after {
+                testEditor.setCursorPos({ line: 3, ch: 7 });  // inside body-selector, after {
                 expectHints(CSSCodeHints.attrHintProvider);
             });
 
             it("should list hints inside oneline styletags at start", function () {
-                testEditor.setCursorPos({ line: 1, ch: 23 });    // inside style, after {
+                testEditor.setCursorPos({ line: 1, ch: 23 });  // inside style, after {
                 expectHints(CSSCodeHints.attrHintProvider);
             });
 
             it("should list hints inside oneline styletags after ;", function () {
-                testEditor.setCursorPos({ line: 1, ch: 37 });    // inside style, after ;
+                testEditor.setCursorPos({ line: 1, ch: 37 });  // inside style, after ;
                 expectHints(CSSCodeHints.attrHintProvider);
             });
 
             it("should list hints inside multiline styletags with cursor in first line", function () {
-                testEditor.setCursorPos({ line: 9, ch: 18 });    // inside style, after {
+                testEditor.setCursorPos({ line: 9, ch: 18 });   // inside style, after {
                 expectHints(CSSCodeHints.attrHintProvider);
             });
 

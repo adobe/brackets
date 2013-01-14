@@ -6,8 +6,8 @@ define(function (require, exports, module) {
 
     var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
-        CSSAttributes       = require("text!CSSAttributes.json"),
-        attributes          = JSON.parse(CSSAttributes);
+        CSSProperties       = require("text!CSSProperties.json"),
+        properties          = JSON.parse(CSSProperties);
     
     /**
      * @constructor
@@ -18,7 +18,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Determines whether HTML tag hints are available in the current editor
+     * Determines whether CSS propertyname or -name hints are available in the current editor
      * context.
      * 
      * @param {Editor} editor 
@@ -54,17 +54,23 @@ define(function (require, exports, module) {
     };
        
     /**
-     * Returns a list of availble HTML tag hints if possible for the current
+     * Returns a list of availble CSS protertyname or -value hints if possible for the current
      * editor context. 
+     * 
+     * @param {Editor} implicitChar 
+     * Either null, if the hinting request was explicit, or a single character
+     * that represents the last insertion and that indicates an implicit
+     * hinting request.
      *
      * @return {Object<hints: Array<(String + jQuery.Obj)>, match: String, 
      *      selectInitial: Boolean>}
      * Null if the provider wishes to end the hinting session. Otherwise, a
-     * response object that provides 1. a sorted array hints that consists 
-     * of strings; 2. a string match that is used by the manager to emphasize
-     * matching substrings when rendering the hint list; and 3. a boolean that
-     * indicates whether the first result, if one exists, should be selected
-     * by default in the hint list window.
+     * response object that provides 
+     * 1. a sorted array hints that consists of strings
+     * 2. a string match that is used by the manager to emphasize matching 
+     *    substrings when rendering the hint list 
+     * 3. a boolean that indicates whether the first result, if one exists, should be 
+     *    selected by default in the hint list window.
      */
     CssAttrHints.prototype.getHints = function (implicitChar) {
         this.info = CSSUtils.getInfoAtPos(this.editor, this.editor.getCursorPos());
@@ -81,7 +87,7 @@ define(function (require, exports, module) {
         }
         
         if (context === CSSUtils.PROP_VALUE) {
-            if (!attributes[needle]) {
+            if (!properties[needle]) {
                 return null;
             } else {
                 
@@ -89,7 +95,7 @@ define(function (require, exports, module) {
                     valueNeedle = this.info.values[this.info.values.length - 1].trim();
                 }
                 
-                result = $.map(attributes[needle].values, function (pvalue, pindex) {
+                result = $.map(properties[needle].values, function (pvalue, pindex) {
                     if (pvalue.indexOf(valueNeedle) === 0) {
                         return pvalue;
                     }
@@ -102,7 +108,7 @@ define(function (require, exports, module) {
                 };
             }
         } else if (context === CSSUtils.PROP_NAME) {
-            result = $.map(attributes, function (pvalues, pname) {
+            result = $.map(properties, function (pvalues, pname) {
                 if (pname.indexOf(needle) === 0) {
                     return pname;
                 }
@@ -118,7 +124,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Inserts a given HTML tag hint into the current editor context. 
+     * Inserts a given CSS protertyname or -value hint into the current editor context. 
      * 
      * @param {String} hint 
      * The hint to be inserted into the editor context.
