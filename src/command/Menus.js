@@ -489,6 +489,7 @@ define(function (require, exports, module) {
             }
         } else {
             commandID = command.getID();
+            name = command.getName();
         }
 
         // Internal id is the a composite of the parent menu id and the command id.
