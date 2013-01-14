@@ -927,6 +927,8 @@ define(function (require, exports, module) {
      */
     Editor.prototype.addInlineWidget = function (pos, inlineWidget, scrollLineIntoView) {
         var self = this;
+        
+        this.removeAllInlineWidgetsForLine(pos.line);
 
         if (scrollLineIntoView === undefined) {
             scrollLineIntoView = true;
@@ -976,6 +978,31 @@ define(function (require, exports, module) {
         
         // once this widget is removed, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(lineNum);
+    };
+    
+    /**
+     * Removes all inline widgets for a given line
+     * @param {number} lineNum The line number to modify
+     */
+    Editor.prototype.removeAllInlineWidgetsForLine = function (lineNum) {
+        var lineInfo = this._codeMirror.lineInfo(lineNum),
+            widgetInfos = (lineInfo && lineInfo.widgets) ? [].concat(lineInfo.widgets) : null,
+            self = this;
+        
+        if (widgetInfos && widgetInfos.length) {
+            // Map from CodeMirror LineWidget to Brackets InlineWidget
+            var inlineWidget,
+                allWidgetInfos = this._inlineWidgets.map(function (w) {
+                    return w.info;
+                });
+
+            widgetInfos.forEach(function (info) {
+                // Lookup the InlineWidget object using the same index
+                inlineWidget = self._inlineWidgets[allWidgetInfos.indexOf(info)];
+                self.removeInlineWidget(inlineWidget);
+            });
+
+        }
     };
     
     /**
