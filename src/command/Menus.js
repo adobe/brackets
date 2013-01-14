@@ -157,6 +157,10 @@ define(function (require, exports, module) {
         return !!getContextMenu(id);
     }
     
+    function _isHTMLMenu(id) {
+        return (brackets.inBrowser || _isContextMenu(id));
+    }
+
     /**
      * Retrieves the MenuItem object for the corresponding id. 
      * @param {string} id
@@ -420,7 +424,7 @@ define(function (require, exports, module) {
         }
         menuItemID = this._getMenuItemId(commandID);
 
-        if (brackets.inBrowser || _isContextMenu(this.id)) {
+        if (_isHTMLMenu(this.id)) {
             // Targeting parent to get the menu item <a> and the <li> that contains it
             $(_getHTMLMenuItem(menuItemID)).parent().remove();
         } else {
@@ -505,7 +509,7 @@ define(function (require, exports, module) {
         menuItemMap[id] = menuItem;
 
         // create MenuItem DOM
-        if (brackets.inBrowser || _isContextMenu(this.id)) {
+        if (_isHTMLMenu(this.id)) {
             if (name === DIVIDER) {
                 $menuItem = $("<li><hr class='divider' /></li>");
             } else {
@@ -543,7 +547,7 @@ define(function (require, exports, module) {
             menuItem._nameChanged();
         }
 
-        if (!brackets.inBrowser && !_isContextMenu(this.id)) {
+        if (!_isHTMLMenu(this.id)) {
             var bindings = KeyBindingManager.getKeyBindings(commandID),
                 binding,
                 bindingStr = "";
@@ -768,7 +772,7 @@ define(function (require, exports, module) {
         menu = new Menu(id);
         menuMap[id] = menu;
 
-        if (!brackets.inBrowser && !_isContextMenu(id)) {
+        if (!_isHTMLMenu(id)) {
             brackets.app.addMenu(name, id, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
