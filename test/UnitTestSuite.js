@@ -45,6 +45,7 @@ define(function (require, exports, module) {
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
     require("spec/NativeFileSystem-test");
+    require("spec/NativeMenu-test");
     require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");
     require("spec/UpdateNotification-test");

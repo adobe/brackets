@@ -36,9 +36,11 @@ define(function (require, exports, module) {
 
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
-        Async               = require("utils/Async"),
-        contexts            = {},
-        srcPath             = FileUtils.getNativeBracketsDirectoryPath();
+        Async               = require("utils/Async");
+    
+    var _init       = false,
+        contexts    = {},
+        srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
     // The native directory path ends with either "test" or "src". We need "src" to
     // load the text and i18n modules.
@@ -238,6 +240,63 @@ define(function (require, exports, module) {
         return _loadAll(directory, config, "unittests", testExtension);
     }
     
+    /**
+     * Load extensions.
+     *
+     * @param {?string} A list containing references to extension source
+     *      location. A source location may be either (a) a folder path
+     *      relative to src/extensions or (b) an absolute path.
+     * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
+     */
+    function init(paths) {
+        if (_init) {
+            // Only init once. Return a resolved promise.
+            return new $.Deferred().resolve().promise();
+        }
+        
+        if (!paths) {
+            paths = "default,dev," + getUserExtensionPath();
+        }
+
+        // Load extensions before restoring the project
+        
+        // Create a new DirectoryEntry and call getDirectory() on the user extension
+        // directory. If the directory doesn't exist, it will be created.
+        // Note that this is an async call and there are no success or failure functions passed
+        // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
+        // before the directory is finished being created, but that is okay, since the extension
+        // loading will work correctly without this directory.
+        // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
+        // during extension loading.
+        var extensionPath = getUserExtensionPath();
+        new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
+                                                           {create: true});
+        
+        // Create the extensions/disabled directory, too.
+        var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
+        new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
+                                                           {create: true});
+        
+        var promise = Async.doInParallel(paths.split(","), function (item) {
+            var extensionPath = item;
+            
+            // If the item has "/" in it, assume it is a full path. Otherwise, load
+            // from our source path + "/extensions/".
+            if (item.indexOf("/") === -1) {
+                extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
+            }
+            
+            return loadAllExtensionsInNativeDirectory(extensionPath);
+        });
+        
+        promise.always(function () {
+            _init = true;
+        });
+        
+        return promise;
+    }
+    
+    exports.init = init;
     exports.getUserExtensionPath = getUserExtensionPath;
     exports.getRequireContextForExtension = getRequireContextForExtension;
     exports.loadExtension = loadExtension;

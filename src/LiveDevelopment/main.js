@@ -188,7 +188,7 @@ define(function main(require, exports, module) {
     }
 
     /** Initialize LiveDevelopment */
-    function init() {
+    AppInit.appReady(function () {
         params.parse();
 
         Inspector.init(config);
@@ -204,12 +204,10 @@ define(function main(require, exports, module) {
         }
 
         // trigger autoconnect
-        if (config.autoconnect && window.sessionStorage.getItem("live.enabled") === "true") {
-            AppInit.appReady(function () {
-                if (DocumentManager.getCurrentDocument()) {
-                    _handleGoLiveCommand();
-                }
-            });
+        if (config.autoconnect &&
+                window.sessionStorage.getItem("live.enabled") === "true" &&
+                DocumentManager.getCurrentDocument()) {
+            _handleGoLiveCommand();
         }
         
         // Redraw highlights when window gets focus. This ensures that the highlights
@@ -219,7 +217,7 @@ define(function main(require, exports, module) {
                 LiveDevelopment.redrawHighlight();
             }
         });
-    }
+    });
     
     // init prefs
     prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY, {highlight: true});
@@ -231,5 +229,4 @@ define(function main(require, exports, module) {
     CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(false);
 
     // Export public functions
-    exports.init = init;
 });
