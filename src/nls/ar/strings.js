@@ -30,49 +30,49 @@ define({
      */
 
     // General file io error strings
-    "GENERIC_ERROR"                     : "(مشكلة {0})",
-    "NOT_FOUND_ERR"                     : "وثيقة غير قابل للقراءةة",
-    "NOT_READABLE_ERR"                  : "الملف غير قابل للقراءة",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "لا يمكن أن يتم تعديل مجلد",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "لا يمكن تعديل الوثيقة",
-    "FILE_EXISTS_ERR"                   : "الوثيقة موجودة بالفعل",
+    "GENERIC_ERROR"                     : "(خطأ {0})",
+    "NOT_FOUND_ERR"                     : "لا يمكن العثور على الملف",
+    "NOT_READABLE_ERR"                  : "لا يمكن قراءة الملف",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "لا يمكن أن يتم تعديل المجلد",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "لم يكن لديك إذن لإجراء تعديلات",
+    "FILE_EXISTS_ERR"                   : "الملف موجود مسبقا",
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "لا يمكن تحميل المشروع",
-    "OPEN_DIALOG_ERROR"                 : "تعذر فتح مربع الوثيقة (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "لا يمكن فتح مجلد <span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "لا يمكن قراءة مجلد <span class='dialog-filename'>{0}</span>. (error {1})",
+    "ERROR_LOADING_PROJECT"             : "يمكن الخطأ لا يتم تحميل الملف",
+    "OPEN_DIALOG_ERROR"                 : "خطأ (error {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "يمكن الخطأ لا يتم تحميل المل <span class='dialog-filename'>{0}</span>. (error {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "يمكن الخطأ لا يتم تحميل المل <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "لا يمكن فتح الملف",
-    "ERROR_OPENING_FILE"                : "لا يمكن فتح الملف <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RELOADING_FILE_TITLE"        : "لا يمكن تحميل القرص الصلب",
-    "ERROR_RELOADING_FILE"              : "لا يمكن فتح المستند <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILE_TITLE"          : "لا يمكن فتح ملف خطأ",
+    "ERROR_OPENING_FILE"                : "لا يمكن فتح ملف خطأ <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RELOADING_FILE_TITLE"        : "لا يمكن تحميل التغييرات من محرك الأقراص",
+    "ERROR_RELOADING_FILE"              : "لا يمكن تحميل التغييرات من محرك الأقراص <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "لا يمكن حفظ الملف",
     "ERROR_SAVING_FILE"                 : "لا يمكن حفظ الملف <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "لا يمكن تغيير اسم المستند",
-    "ERROR_RENAMING_FILE"               : "لا يمكن تغيير اسم المستند <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "الوثيقة سيئة اسم",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
-    "FILE_ALREADY_EXISTS"               : "الوثيقة موجودة بالفعل <span class='dialog-filename'>{0}</span>",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creating file",
-    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "لا يمكن إعادة تسمية الملف",
+    "ERROR_RENAMING_FILE"               : "لا يمكن إعادة تسمية الملف <span class='dialog-filename'>{0}</span>. {1}",
+    "INVALID_FILENAME_TITLE"            : "اسم الملف سيئ",
+    "INVALID_FILENAME_MESSAGE"          : "يمكن اسم الملف لم يكن لديك ما يلي: /?*:;{}<>\\|",
+    "FILE_ALREADY_EXISTS"               : "الملف موجود مسبقا <span class='dialog-filename'>{0}</span>",
+    "ERROR_CREATING_FILE_TITLE"         : "يمكن إنشاء ملف خطأ لا",
+    "ERROR_CREATING_FILE"               : "يمكن إنشاء ملف خطأ لا <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
 
     // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
+    "ERROR_MAX_FILES_TITLE"             : "لا يمكن قراءة الملفات",
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error launching browser",
-    "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
-    "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "لا يمكن فتح الإنترنت",
+    "ERROR_CANT_FIND_CHROME"            : "لا يمكن تشغيل كروم google chrome ",
+    "ERROR_LAUNCHING_BROWSER"           : "لا يمكن فتح الإنترنت (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "الاتصال بالإنترنت",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
@@ -86,53 +86,53 @@ define({
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
     
-    "SAVE_CLOSE_TITLE"                  : "Save Changes",
-    "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
-    "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
-    "EXT_MODIFIED_TITLE"                : "External Changes",
+    "SAVE_CLOSE_TITLE"                  : "حفظ التغييرات",
+    "SAVE_CLOSE_MESSAGE"                : "هل تريد حفظ الملف <span class='dialog-filename'>{0}</span>?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "هل تريد حفظ الملف?",
+    "EXT_MODIFIED_TITLE"                : "التغييرات الخارجية",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
-    "WITH"                              : "With",
-    "BUTTON_YES"                        : "Yes",
-    "BUTTON_NO"                         : "No",
-    "BUTTON_STOP"                       : "Stop",
+    "WITH"                              : "مع",
+    "BUTTON_YES"                        : "نعم",
+    "BUTTON_NO"                         : "لا",
+    "BUTTON_STOP"                       : "توقف",
 
-    "OPEN_FILE"                         : "Open File",
-    "CHOOSE_FOLDER"                     : "Choose a folder",
+    "OPEN_FILE"                         : "فتح ملف",
+    "CHOOSE_FOLDER"                     : "اختيار مجلد",
 
     "RELEASE_NOTES"                     : "Release Notes",
-    "NO_UPDATE_TITLE"                   : "You're up to date!",
-    "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
+    "NO_UPDATE_TITLE"                   : "كنت حتى الآن!",
+    "NO_UPDATE_MESSAGE"                 : "كنت تقوم بتشغيل الإصدار الأحدث{APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "for \"{4}\" {5} - {0} {1} in {2} {3}",
-    "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_NO_SCOPE"            : "in project",
-    "FIND_IN_FILES_FILE"                : "file",
-    "FIND_IN_FILES_FILES"               : "files",
-    "FIND_IN_FILES_MATCH"               : "match",
-    "FIND_IN_FILES_MATCHES"             : "matches",
-    "FIND_IN_FILES_MORE_THAN"           : "More than ",
+    "FIND_IN_FILES_SCOPED"              : "في <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_NO_SCOPE"            : "في المشروع",
+    "FIND_IN_FILES_FILE"                : "ملف",
+    "FIND_IN_FILES_FILES"               : "ملفات",
+    "FIND_IN_FILES_MATCH"               : "مباراة",
+    "FIND_IN_FILES_MATCHES"             : "مباريات",
+    "FIND_IN_FILES_MORE_THAN"           : "أكثر من ",
     "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
-    "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_FILE_PATH"           : "ملف: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
     
     // Switch language
-    "LANGUAGE_TITLE"                    : "Switch Language",
-    "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
-    "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancel",
+    "LANGUAGE_TITLE"                    : "تغيير اللغة",
+    "LANGUAGE_MESSAGE"                  : "حدد اللغة:",
+    "LANGUAGE_SUBMIT"                   : "تحديث {APP_NAME}",
+    "LANGUAGE_CANCEL"                   : "إلغاء",
 
     /**
      * ProjectManager
      */
 
-    "UNTITLED" : "Untitled",
+    "UNTITLED" : "لا يوجد اسم",
 
     /**
      * Keyboard modifier names
@@ -150,7 +150,7 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
-    "STATUSBAR_SPACES"                      : "Spaces",
+    "STATUSBAR_SPACES"                      : "المساحات",
     "STATUSBAR_TAB_SIZE"                    : "Tab Size",
     "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
 
