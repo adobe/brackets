@@ -14,7 +14,6 @@ define(function (require, exports, module) {
      */
     function CssAttrHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
-        //this.secondaryTriggerKeys = " :;{\t\n\r";
         this.secondaryTriggerKeys = " :;\t\n\r";
     }
 
@@ -40,8 +39,6 @@ define(function (require, exports, module) {
         var cursor = this.editor.getCursorPos();
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
-        this.info.caller = "hasHints";
-        console.log(this.info);
         
         if (implicitChar === null) {
             if (this.info.context === CSSUtils.PROP_NAME || this.info.context === CSSUtils.PROP_VALUE) {
@@ -76,8 +73,6 @@ define(function (require, exports, module) {
      */
     CssAttrHints.prototype.getHints = function (implicitChar) {
         this.info = CSSUtils.getInfoAtPos(this.editor, this.editor.getCursorPos());
-        this.info.caller = "getHints";
-        console.log(this.info);
 
         var needle = this.info.name,
             valueNeedle = "",
