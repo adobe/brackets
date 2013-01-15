@@ -207,7 +207,7 @@ define(function (require, exports, module) {
                 .on("currentDocumentChange.jslint", function () {
                     run();
                 })
-                .on("documentSaved.jslint", function (event, document) {
+                .on("documentSaved.jslint documentRefreshed.jslint", function (event, document) {
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();
                     }
