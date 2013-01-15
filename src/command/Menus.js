@@ -972,6 +972,13 @@ define(function (require, exports, module) {
          * Edit  menu
          */
         menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
+        menu.addMenuItem(Commands.EDIT_UNDO);
+        menu.addMenuItem(Commands.EDIT_REDO);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.EDIT_CUT);
+        menu.addMenuItem(Commands.EDIT_COPY);
+        menu.addMenuItem(Commands.EDIT_PASTE);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuDivider();

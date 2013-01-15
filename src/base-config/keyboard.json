@@ -26,6 +26,21 @@
     "file.quit":  [
         "Ctrl-Q"
     ],
+    "edit.undo": [
+        "Ctrl-Z"
+    ],
+    "edit.redo": [
+        "Ctrl-Shift-Z"
+    ],
+    "edit.cut": [
+        "Ctrl-X"
+    ],
+    "edit.copy": [
+        "Ctrl-C"
+    ],
+    "edit.paste": [
+        "Ctrl-V"
+    ],
     "edit.selectAll":  [
         "Ctrl-A"
     ],
@@ -69,18 +84,6 @@
         {
             "key": "Cmd-Alt-F",
             "platform": "mac"
-        }
-    ],
-    "edit.indent":  [
-        {
-            "key": "Indent",
-            "displayKey": "Tab"
-        }
-    ],
-    "edit.unindent":  [
-        {
-            "key": "Unindent",
-            "displayKey": "Shift-Tab"
         }
     ],
     "edit.duplicate":  [

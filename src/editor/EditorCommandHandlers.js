@@ -671,6 +671,16 @@ define(function (require, exports, module) {
             editor.setSelection(from, to);
         }
     }
+
+    /**
+     * Special command handler that just ignores the command. This is used for Undo, Redo, Cut, Copy,
+     * Paste, and Select All. These menu items are handled natively, but need to be registered in our
+     * JavaScript code so the menu items can be created.
+     */
+    function ignoreCommand() {
+        // Do nothing. The shell will call the native handler for the command.
+        return (new $.Deferred()).reject().promise();
+    }
         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
@@ -682,4 +692,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
     CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
+
+    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             ignoreCommand);
+    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             ignoreCommand);
+    CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
+    CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
+    CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
 });
