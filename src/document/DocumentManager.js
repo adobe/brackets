@@ -56,6 +56,8 @@
  *      Document whose flag changed.
  *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
  *      Document that has been saved.
+ *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
+ *      listener is the Document that has been refreshed.
  *
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
  *
@@ -804,6 +806,8 @@ define(function (require, exports, module) {
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
+        
+        $(exports).triggerHandler("documentRefreshed", this);
 
         PerfUtils.addMeasurement(perfTimerName);
     };
