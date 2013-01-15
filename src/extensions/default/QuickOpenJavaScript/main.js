@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         });
         
         // Sort based on ranking & basic alphabetical order
-        QuickOpen.basicMatchSort(filteredList);
+        matcher.basicMatchSort(filteredList);
 
         return filteredList;
     }

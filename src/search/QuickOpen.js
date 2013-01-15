@@ -166,8 +166,9 @@ define(function (require, exports, module) {
         this._filterCallback           = this._filterCallback.bind(this);
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
         
-        this.filenameMatcher           = new StringMatch.StringMatcher();
-        this.matchers                  = {};
+        // StringMatchers that cache in-progress query data.
+        this._filenameMatcher           = new StringMatch.StringMatcher();
+        this._matchers                  = {};
     }
 
     function _filenameFromPath(path, includeExtension) {
@@ -517,10 +518,12 @@ define(function (require, exports, module) {
                 var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
                 if (extensionMatch &&  plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
-                    var matcher = this.matchers[currentPlugin.name];
+                    
+                    // Look up the StringMatcher for this plugin.
+                    var matcher = this._matchers[currentPlugin.name];
                     if (!matcher) {
                         matcher = new StringMatch.StringMatcher();
-                        this.matchers[currentPlugin.name] = matcher;
+                        this._matchers[currentPlugin.name] = matcher;
                     }
                     return plugin.search(query, matcher);
                 }
@@ -529,7 +532,7 @@ define(function (require, exports, module) {
         
         // No matching plugin: use default file search mode
         currentPlugin = null;
-        return searchFileList(query, this.filenameMatcher);
+        return searchFileList(query, this._filenameMatcher);
     };
 
     /**
