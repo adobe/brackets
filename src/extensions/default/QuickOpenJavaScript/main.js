@@ -53,18 +53,17 @@ define(function (require, exports, module) {
     }
 
     function createFunctionList() {
-        /**
-         * Contains a list of information about functions for a single document. This array is populated
-         * by createFunctionList()
-         * @type {?Array.<FileLocation>}
-         */
-        var functionList = null;
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
         }
 
-        functionList = [];
+        /**
+         * Contains a list of information about functions for a single document. This array is populated
+         * by createFunctionList()
+         * @type {?Array.<FileLocation>}
+         */
+        var functionList = [];
         var docText = doc.getText();
         var lines = docText.split("\n");
         var functions = JSUtils.findAllMatchingFunctionsInText(docText, "*");
