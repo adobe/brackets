@@ -672,10 +672,36 @@ define(function (require, exports, module) {
         }
     }
 
+    function handleUndo() {
+        var editor = EditorManager.getFocusedEditor();
+        var result = new $.Deferred();
+        
+        if (editor) {
+            editor.undo();
+            result.resolve();
+        } else {
+            result.reject();
+        }
+        
+        return result.promise();
+    }
+
+    function handleRedo() {
+        var editor = EditorManager.getFocusedEditor();
+        
+        if (editor) {
+            editor.redo();
+            return;
+        }
+        
+        // No editor, return a rejected promise so the system will handle the command
+        return (new $.Deferred()).reject().promise();
+    }
+
     /**
-     * Special command handler that just ignores the command. This is used for Undo, Redo, Cut, Copy,
-     * Paste, and Select All. These menu items are handled natively, but need to be registered in our
-     * JavaScript code so the menu items can be created.
+     * Special command handler that just ignores the command. This is used for Cut, Copy, and Paste.
+     * These menu items are handled natively, but need to be registered in our JavaScript code so the 
+     * menu items can be created.
      */
     function ignoreCommand() {
         // Do nothing. The shell will call the native handler for the command.
