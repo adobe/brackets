@@ -165,6 +165,9 @@ define(function (require, exports, module) {
         // Bind callbacks from smart-autocomplete
         this._filterCallback           = this._filterCallback.bind(this);
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
+        
+        this.filenameMatcher           = new StringMatch.StringMatcher();
+        this.matchers                  = {};
     }
 
     function _filenameFromPath(path, includeExtension) {
@@ -435,8 +438,8 @@ define(function (require, exports, module) {
         var currentQuery = $("input#quickOpenSearch").val();
         return currentQuery !== query;
     }
-    
-    function searchFileList(query) {
+
+    function searchFileList(query, matcher) {
         // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
             // Smart Autocomplete allows us to return a Promise instead...
@@ -447,7 +450,7 @@ define(function (require, exports, module) {
                 // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
                 if (!queryIsStale(query)) {
                     // We're still the current query. Synchronously re-run the search call and resolve with its results
-                    asyncResult.resolve(searchFileList(query));
+                    asyncResult.resolve(searchFileList(matcher, query));
                 } else {
                     asyncResult.reject();
                 }
@@ -460,7 +463,7 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
             // match query against the full path (with gaps between query characters allowed)
-            var searchResult = StringMatch.stringMatch(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+            var searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             if (searchResult) {
                 searchResult.label = fileInfo.name;
                 searchResult.fullPath = fileInfo.fullPath;
@@ -514,14 +517,19 @@ define(function (require, exports, module) {
                 var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
                 if (extensionMatch &&  plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
-                    return plugin.search(query);
+                    var matcher = this.matchers[currentPlugin.name];
+                    if (!matcher) {
+                        matcher = new StringMatch.StringMatcher();
+                        this.matchers[currentPlugin.name] = matcher;
+                    }
+                    return plugin.search(query, matcher);
                 }
             }
         }
         
         // No matching plugin: use default file search mode
         currentPlugin = null;
-        return searchFileList(query);
+        return searchFileList(query, this.filenameMatcher);
     };
 
     /**
