@@ -648,18 +648,17 @@ define(function (require, exports, module) {
                 CommandManager.register("Brackets Test Command Custom 53", "Menu-test.command53", function () {});
                 var menuItem = cmenu.addMenuItem("Menu-test.command53");
 
-                var closeEvent = false;
-                testWindow.$(cmenu).on("contextMenuClose", function () {
-                    closeEvent = true;
-                });
                 cmenu.open({pageX: 0, pageY: 0});
-                
+
+                // verify dropdown is open
+                var $menus = testWindow.$(".dropdown.open");
+                expect($menus.length).toBe(1);
+
                 // verify close event
                 cmenu.close();
-                expect(closeEvent).toBeTruthy();
 
                 // verify all dropdowns are closed
-                var $menus = testWindow.$(".dropdown.open");
+                $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
             });
 
@@ -668,10 +667,6 @@ define(function (require, exports, module) {
                 CommandManager.register("Brackets Test Command Custom 54", "Menu-test.command54", function () {});
                 var menuItem = cmenu.addMenuItem("Menu-test.command54");
 
-                var closeEvent = false;
-                testWindow.$(cmenu).on("contextMenuClose", function () {
-                    closeEvent = true;
-                });
                 cmenu.open({pageX: 0, pageY: 0});
 
                 // verify dropdown is open
@@ -682,9 +677,6 @@ define(function (require, exports, module) {
                 var key = KeyEvent.DOM_VK_ESCAPE,
                     element = $menus[0];
                 SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
-
-                // verify close event
-                expect(closeEvent).toBeTruthy();
 
                 // verify all dropdowns are closed
                 $menus = testWindow.$(".dropdown.open");
