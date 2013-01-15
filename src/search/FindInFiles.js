@@ -253,7 +253,7 @@ define(function (require, exports, module) {
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 searchResults.length,
                 (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
-                query,
+                StringUtils.htmlEscape(query),
                 scope ? _labelForScope(scope) : ""
             );
             
