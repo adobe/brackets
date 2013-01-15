@@ -90,6 +90,26 @@ define(function (require, exports, module) {
         function expectSelection(sel) {
             expect(myEditor.getSelection()).toEqual(sel);
         }
+        function expectHighlightedMatches(selections) {
+            var cm = myEditor._codeMirror;
+            if (selections) {
+                selections.forEach(function (value) {
+                    var textMarkers = cm.lineInfo(value.start.line).handle.marked;
+                    expect(textMarkers).toBeTruthy();
+                    expect(textMarkers.length).toBeGreaterThan(0);
+
+                    var found = false;
+                    cm.lineInfo(value.start.line).handle.marked.forEach(function (textMarker) {
+                        if (textMarker.from === value.start.ch && textMarker.to === value.end.ch) {
+                            found = true;
+                        }
+                    });
+                    expect(found).toBeTruthy();
+                });
+            } else {
+                expect(cm._searchState.marked).toBeFalsy();
+            }
+        }
         
         
         function getSearchBar() {
@@ -128,42 +148,55 @@ define(function (require, exports, module) {
             beforeEach(setupFullEditor);
             
             it("should find all case-insensitive matches", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
+                    {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}},
+                    {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}}
+                ];
                 myEditor.setCursorPos(0, 0);
-                
+
                 CommandManager.execute(Commands.EDIT_FIND);
-                
+
                 enterSearchText("foo");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
-                
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                expectSelection(expectedSelections[1]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
+                expectSelection(expectedSelections[2]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
-                
+                expectSelection(expectedSelections[3]);
+                expectHighlightedMatches(expectedSelections);
+
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expectSelection(expectedSelections[0]);
             });
             
             it("should find all case-sensitive matches", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
+                    {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}}
+                ];
                 myEditor.setCursorPos(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("Foo");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                expectSelection(expectedSelections[1]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
+                expectSelection(expectedSelections[2]);
                 // note the lowercase "foo()" is NOT matched
                 
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expectSelection(expectedSelections[0]);
             });
             
             it("should Find Next after search bar closed, including wraparound", function () {
@@ -173,6 +206,7 @@ define(function (require, exports, module) {
                 
                 enterSearchText("foo");
                 pressEnter();
+                expectHighlightedMatches([]);
                 expectSearchBarClosed();
                 
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
@@ -313,6 +347,7 @@ define(function (require, exports, module) {
                 pressEnter();
                 
                 expectSearchBarClosed();
+                expectHighlightedMatches([]);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_PAREN}});
             });
             
@@ -325,6 +360,7 @@ define(function (require, exports, module) {
                 pressEscape();
                 
                 expectSearchBarClosed();
+                expectHighlightedMatches([]);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
             });
             
@@ -405,51 +441,74 @@ define(function (require, exports, module) {
             beforeEach(setupFullEditor);
             
             it("should find based on regexp", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE + 1, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 34}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
+                ];
                 myEditor.setCursorPos(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("/Ba./");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}});
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 34}});
+                expectSelection(expectedSelections[1]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 2, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 11}});
+                expectSelection(expectedSelections[2]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}});
+                expectSelection(expectedSelections[3]);
                 
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}});
+                expectSelection(expectedSelections[0]);
             });
             
             it("should be a case-sensitive regexp by default", function () {
+                var expectedSelections = [
+                    {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}}
+                ];
                 myEditor.setCursorPos(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("/foo/");
-                expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
             });
             
             it("should support case-insensitive regexps via /.../i", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
+                    {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}},
+                    {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}}
+                ];
                 myEditor.setCursorPos(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("/foo/i");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
             });
             
             it("shouldn't choke on partial regexp", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE + 1, ch: 30}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 33}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 30}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 33}}
+                ];
                 myEditor.setCursorPos(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 // This should be interpreted as a non-RegExp search, which actually does have a result thanks to "modules/Bar"
                 enterSearchText("/Ba");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 30}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 33}});
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
             });
             
             it("shouldn't choke on invalid regexp", function () {
@@ -460,6 +519,7 @@ define(function (require, exports, module) {
                 // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
                 enterSearchText("/+/");
                 expect($(".modal-bar .error").length).toBe(1);
+                expectHighlightedMatches([]);
                 expectCursorAt({line: 0, ch: 0}); // no change
             });
             
@@ -469,7 +529,18 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("//");
+                expectHighlightedMatches([]);
                 expectCursorAt({line: 0, ch: 0}); // no change
+            });
+
+            it("shouldn't freeze on /.*/ regexp", function () {
+                myEditor.setCursorPos(0, 0);
+
+                CommandManager.execute(Commands.EDIT_FIND);
+
+                enterSearchText("/.*/");
+                pressEnter();
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
             });
         });
     });
