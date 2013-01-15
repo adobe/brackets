@@ -52,20 +52,13 @@ define(function (require, exports, module) {
         this.functionName = functionName;
     }
 
-    /**
-     * Contains a list of information about functions for a single document. This array is populated
-     * by createFunctionList()
-     * @type {?Array.<FileLocation>}
-     */
-    var functionList = null;
-
-
-    function done() {
-        functionList = null;
-    }
-
-    
     function createFunctionList() {
+        /**
+         * Contains a list of information about functions for a single document. This array is populated
+         * by createFunctionList()
+         * @type {?Array.<FileLocation>}
+         */
+        var functionList = null;
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
@@ -80,7 +73,7 @@ define(function (require, exports, module) {
             var chTo = chFrom + funcEntry.name.length;
             functionList.push(new FileLocation(null, funcEntry.lineStart, chFrom, chTo, funcEntry.name));
         });
-
+        return functionList;
     }
 
     
@@ -89,13 +82,17 @@ define(function (require, exports, module) {
      * @param {string} query what the user is searching for
      * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
-    function search(query) {
-        createFunctionList();
+    function search(query, matcher) {
+        var functionList = matcher.functionList;
+        if (!functionList) {
+            functionList = createFunctionList();
+            matcher.functionList = functionList;
+        }
         query = query.slice(query.indexOf("@") + 1, query.length);
         
         // Filter and rank how good each match is
         var filteredList = $.map(functionList, function (fileLocation) {
-            var searchResult = QuickOpen.stringMatch(fileLocation.functionName, query);
+            var searchResult = matcher.match(fileLocation.functionName, query);
             if (searchResult) {
                 searchResult.fileLocation = fileLocation;
             }
@@ -147,8 +144,8 @@ define(function (require, exports, module) {
         {
             name: "JavaScript functions",
             fileTypes: ["js"],
-            done: done,
             search: search,
+            done: function () {},
             match: match,
             itemFocus: itemFocus,
             itemSelect: itemSelect,

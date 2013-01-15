@@ -594,7 +594,7 @@ define(function (require, exports, module) {
      * @param {string} query  The query string to find in string
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    function stringMatch(str, query) {
+    function stringMatch(str, query, special) {
         var result;
 
         // No query? Short circuit the normal work done and just
@@ -615,7 +615,9 @@ define(function (require, exports, module) {
         
         // Locate the special characters and then use orderedCompare to do the real
         // work.
-        var special = findSpecialCharacters(str);
+        if (!special) {
+            special = findSpecialCharacters(str);
+        }
         var lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
         var matchList = _wholeStringSearch(query, str, special.specials,
                               special.lastSegmentSpecialsIndex);
@@ -684,6 +686,36 @@ define(function (require, exports, module) {
         multiFieldSort(searchResults, { matchGoodness: 0, label: 1 });
     }
     
+    function StringMatcher() {
+        this.lastQuery = null;
+        this.specialsCache = {};
+        this.noMatchCache = {};
+    }
+    
+    StringMatcher.prototype.match = function (str, query) {
+        if (this.lastQuery !== null && (this.lastQuery !== query.substring(0, this.lastQuery.length))) {
+            this.noMatchCache = {};
+        }
+        
+        this.lastQuery = query;
+        
+        if (this.noMatchCache[str]) {
+            return undefined;
+        }
+        
+        var special = this.specialsCache[str];
+        if (special === undefined) {
+            special = findSpecialCharacters(str);
+            this.specialsCache[str] = special;
+        }
+        
+        var result = stringMatch(str, query, special);
+        if (!result) {
+            this.noMatchCache[str] = true;
+        }
+        return result;
+    };
+    
     exports._findSpecialCharacters  = findSpecialCharacters;
     exports._wholeStringSearch      = _wholeStringSearch;
     exports._lastSegmentSearch      = _lastSegmentSearch;
@@ -698,4 +730,5 @@ define(function (require, exports, module) {
     exports.stringMatch             = stringMatch;
     exports.basicMatchSort          = basicMatchSort;
     exports.multiFieldSort          = multiFieldSort;
+    exports.StringMatcher           = StringMatcher;
 });
