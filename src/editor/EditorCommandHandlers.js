@@ -672,12 +672,12 @@ define(function (require, exports, module) {
         }
     }
 
-    function handleUndo() {
+    function handleUndoRedo(operation) {
         var editor = EditorManager.getFocusedEditor();
         var result = new $.Deferred();
         
         if (editor) {
-            editor.undo();
+            editor[operation]();
             result.resolve();
         } else {
             result.reject();
@@ -686,16 +686,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    function handleUndo() {
+        return handleUndoRedo("undo");
+    }
+
     function handleRedo() {
-        var editor = EditorManager.getFocusedEditor();
-        
-        if (editor) {
-            editor.redo();
-            return;
-        }
-        
-        // No editor, return a rejected promise so the system will handle the command
-        return (new $.Deferred()).reject().promise();
+        return handleUndoRedo("redo");
     }
 
     /**
@@ -719,8 +715,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
     CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
 
-    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             ignoreCommand);
-    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             ignoreCommand);
+    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             handleUndo);
+    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             handleRedo);
     CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
     CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
     CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
