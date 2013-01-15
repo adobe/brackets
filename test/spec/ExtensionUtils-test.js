@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     'use strict';
 
     var ExtensionUtils,
+        FileUtils           = require("file/FileUtils"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         LESS_RESULT         = require("text!spec/ExtensionUtils-test-files/less.text");
 
@@ -121,8 +122,12 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
+                    // convert all line endings to platform default
+                    var windowText = FileUtils.translateLineEndings(testWindow.$(result).text()),
+                        lessText   = FileUtils.translateLineEndings(LESS_RESULT);
+                    
                     // confirm style sheet contents
-                    expect(testWindow.$(result).text()).toBe(LESS_RESULT);
+                    expect(windowText).toBe(lessText);
                     
                     // confirm style is attached to document
                     expect(testWindow.$.contains(testWindow.document, result)).toBeTruthy();
