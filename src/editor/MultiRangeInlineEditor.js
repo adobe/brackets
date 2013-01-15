@@ -101,6 +101,7 @@ define(function (require, exports, module) {
     
     MultiRangeInlineEditor.prototype.$editorsDiv = null;
     MultiRangeInlineEditor.prototype.$relatedContainer = null;
+    MultiRangeInlineEditor.prototype.$related = null;
     MultiRangeInlineEditor.prototype.$selectedMarker = null;
     
     /** @type {Array.<SearchResultItem>} */
@@ -118,15 +119,11 @@ define(function (require, exports, module) {
         // Container to hold all editors
         var self = this;
 
-        // Bind event handlers
-        this._ensureCursorVisible = this._ensureCursorVisible.bind(this);
-        this._onClick = this._onClick.bind(this);
-
         // Create DOM to hold editors and related list
         this.$editorsDiv = $(window.document.createElement("div")).addClass("inlineEditorHolder");
         
         // Prevent touch scroll events from bubbling up to the parent editor.
-        this.$editorsDiv.on("mousewheel", function (e) {
+        this.$editorsDiv.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
         });
         
@@ -137,10 +134,10 @@ define(function (require, exports, module) {
         this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
         
         // Inner container
-        var $related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
+        this.$related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
         // Range list
-        var $rangeList = $(window.document.createElement("ul")).appendTo($related);
+        var $rangeList = $(window.document.createElement("ul")).appendTo(this.$related);
         
         // create range list & add listeners for range textrange changes
         var rangeItemText;
@@ -172,15 +169,34 @@ define(function (require, exports, module) {
         this.$htmlContent.append(this.$relatedContainer).append(this.$editorsDiv);
                 
         // Listen for clicks directly on us, so we can set focus back to the editor
-        this.$htmlContent.on("click", this._onClick);
+        this.$htmlContent.on("click.MultiRangeInlineEditor", this._onClick.bind(this));
     };
     
     /**
      * @override
      */
     MultiRangeInlineEditor.prototype.onAdded = function () {
+        // Before setting the inline widget height, force a height on the
+        // floating related-container in order for CodeMirror to layout and
+        // compute scrollbars
+        this.$relatedContainer.height(this.$related.height());
+
+        // Call super
         MultiRangeInlineEditor.prototype.parentClass.onAdded.apply(this, arguments);
+
+        // Editor must be at least as tall as the related list
         this._updateEditorMinHeight();
+
+        // Resize the widget when scrollbars are added
+        var _updateSize = this._updateSize.bind(this);
+        $(window).on("resize.MultiRangeInlineEditor", _updateSize);
+
+        // Kick the layout again to redraw scrollbars after the related list
+        // is floated. This is necessary because the related list may overlap
+        // the editor(s) after the list is laid out by in sequence by (1) the
+        // float within the inline-widget container and (2) by the host
+        // editor's vertical scroll bar.
+        window.setTimeout(_updateSize, 0);
     };
 
     /**
@@ -189,7 +205,8 @@ define(function (require, exports, module) {
      * @param {!number} index The index of the range to select.
      */
     MultiRangeInlineEditor.prototype.setSelectedIndex = function (index) {
-        var newIndex = Math.min(Math.max(0, index), this._ranges.length - 1);
+        var newIndex = Math.min(Math.max(0, index), this._ranges.length - 1),
+            self = this;
         
         if (newIndex === this._selectedRangeIndex) {
             return;
@@ -210,6 +227,7 @@ define(function (require, exports, module) {
 
         // Remove previous editors
         this.editors.forEach(function (editor) {
+            $(self.editors[0]).off(".MultiRangeInlineEditor");
             editor.destroy(); //release ref on Document
         });
         
@@ -225,13 +243,20 @@ define(function (require, exports, module) {
         this.editors[0].refresh();
         
         // Ensure the cursor position is visible in the host editor as the user is arrowing around.
-        $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
+        $(this.editors[0]).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
 
         // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
         this.sizeInlineWidgetToContents(true, false);
 
         this._updateSelectedMarker();
     };
+
+    /**
+     * Resize the widget to handle adding/removing scrollbars
+     */
+    MultiRangeInlineEditor.prototype._updateSize = function () {
+        this.sizeInlineWidgetToContents();
+    }
     
     /**
      * Ensures that the editor's min-height is set so it never gets shorter than the rule list.
@@ -241,7 +266,7 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype._updateEditorMinHeight = function () {
         // Set the scroller's min-height to the natural height of the rule list, so the editor
         // always stays at least as tall as the rule list.
-        var ruleListNaturalHeight = $("ul", this.$relatedContainer).outerHeight(),
+        var ruleListNaturalHeight = this.$related.outerHeight(),
             headerHeight = $(".inline-editor-header", this.$htmlContent).outerHeight();
 
         // If the widget isn't fully loaded yet, bail--we'll get called again in onAdded().
@@ -326,14 +351,16 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.onClosed = function () {
         // Superclass onClosed() destroys editor
         MultiRangeInlineEditor.prototype.parentClass.onClosed.apply(this, arguments);
-        
-        // Remove event handlers
-        $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
-       
+
         // de-ref all the Documents in the search results
         this._ranges.forEach(function (searchResult) {
             searchResult.textRange.dispose();
         });
+
+        // Remove event handlers
+        $(window).off(".MultiRangeInlineEditor");
+        this.$htmlContent.off(".MultiRangeInlineEditor");
+        this.$editorsDiv.off(".MultiRangeInlineEditor");
     };
     
     /**
@@ -437,8 +464,11 @@ define(function (require, exports, module) {
         MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
         
         // Size the widget height to the max between the editor content and the related ranges list
-        var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
-        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
+        var widgetHeight = Math.max(this.$related.height(), this.$editorsDiv.height());
+
+        if (widgetHeight) {
+            this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
+        }
     };
     
     /**
