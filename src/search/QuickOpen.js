@@ -157,8 +157,8 @@ define(function (require, exports, module) {
         this._handleItemSelect         = this._handleItemSelect.bind(this);
         this._handleItemFocus          = this._handleItemFocus.bind(this);
         this._handleKeyUp              = this._handleKeyUp.bind(this);
-        this._handleKeyDown            = this._handleKeyDown.bind(this);
         this._handleResultsReady       = this._handleResultsReady.bind(this);
+        this._handleShowResults        = this._handleShowResults.bind(this);
         this._handleBlur               = this._handleBlur.bind(this);
         this._handleDocumentMouseDown  = this._handleDocumentMouseDown.bind(this);
         
@@ -204,6 +204,12 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /** Returns the last return value of _filterCallback(), which Smart Autocomplete helpfully caches */
+    function getLastFilterResult() {
+        var cachedResult = $("input#quickOpenSearch").data("smart-autocomplete").rawResults;
+        return cachedResult || [];
+    }
+    
     /**
      * Converts from list item DOM node to search provider list object
      * @param {jQueryObject} domItem
@@ -218,8 +224,7 @@ define(function (require, exports, module) {
         // exactly matches index of search result in list returned by _filterCallback()
         var index = $(domItem).index();
         
-        // This is just the last return value of _filterCallback(), which smart autocomplete helpfully caches
-        var lastFilterResult = $("input#quickOpenSearch").data("smart-autocomplete").rawResults;
+        var lastFilterResult = getLastFilterResult();
         return lastFilterResult[index];
     }
     
@@ -247,7 +252,7 @@ define(function (require, exports, module) {
             currentPlugin.itemSelect(selectedItem);
         } else {
 
-            // extract line number, if any
+            // Extract line number, if any
             var cursor,
                 query = this.$searchField.val(),
                 gotoLine = extractLineNumber(query);
@@ -299,62 +304,46 @@ define(function (require, exports, module) {
     };
 
     /**
-     * KeyUp is for cases that handle AFTER a character has been committed to $searchField
+     * Called before Smart Autocomplete processes the key, but after the DOM textfield ($searchField) updates its value.
+     * After this, Smart Autocomplete doesn't call _handleFilter() & re-render the list until a setTimeout(0) later.
      */
     QuickNavigateDialog.prototype._handleKeyUp = function (e) {
-        var query = this.$searchField.val();
-
-        // extract line number
-        var gotoLine = extractLineNumber(query);
-        if (!isNaN(gotoLine)) {
-            var from = {line: gotoLine, ch: 0};
-            var to = {line: gotoLine, ch: 99999};
-            
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
-        }
-
-        // Remove current plugin if the query stops matching
-        if (currentPlugin && !currentPlugin.match(query)) {
-            currentPlugin = null;
-        }
-
-        if ($(".smart_autocomplete_highlight").length === 0) {
-            this._handleItemFocus(null, $(".smart_autocomplete_container > li:first-child").get(0));
-        }
-    };
-
-    /**
-     * Close the dialog when the Enter or Esc key is pressed
-     *
-     * Note, when keydown is handled $searchField does not yet have the character added
-     * for the current event e. 
-     */
-    QuickNavigateDialog.prototype._handleKeyDown = function (e) {
-        // clear the query on ESC key and restore document and cursor position
+        // Cancel the search on Esc key, and finish the search on Enter key
         if (e.keyCode === KeyEvent.DOM_VK_RETURN || e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-            e.stopPropagation();
+            // Smart Autocomplete also handles Enter; but it does so without a timeout, which causes #1855.
+            // Since our listener was added first (see showDialog()), we can steal the Enter event and block
+            // Smart Autocomplete from buggily acting on it.
+            e.stopImmediatePropagation();
             e.preventDefault();
-
-            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                // restore previously viewed doc if user navigated away from it
-                if (origDocPath) {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
-                        .done(function () {
-                            if (origSelection) {
-                                EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
-                            }
-                        });
+            
+            // Process on a timeout since letter keys are handled that way and we don't want to get ahead
+            // of processing letters that were typed before the Enter key. The ideal order of events is:
+            //   letter keydown/keyup, letter key processed async, enter keydown/keyup, enter key processed async
+            // However, we might get 'enter keyup' before 'letter key processed async'. The letter key's
+            // timeout will always run before ours since it was registered first.
+            var self = this;
+            setTimeout(function () {
+                if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                    // Restore original document & selection / scroll pos
+                    if (origDocPath) {
+                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
+                            .done(function () {
+                                if (origSelection) {
+                                    EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
+                                }
+                            });
+                    }
+    
+                    self._close();
+                    
+                } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+                    self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls _close() too
                 }
-
-                this._close();
-                
-            } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-                this._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));
-            }
+            }, 0);
             
         }
     };
-    
+
     /**
      * Checks if the given query string is a line number query that is either empty (the number hasn't been typed yet)
      * or is a valid line number within the visible range of the current full editor.
@@ -375,11 +364,24 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Give visual clue when there are no results
+     * Called synchronously after _handleFilter(), but before the cached "last result" is updated and before the DOM
+     * list items are re-rendered. Both happen synchronously just after we return. Called even when results is empty.
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
+        // Give visual clue when there are no results
         var isNoResults = (results.length === 0 && !this._isValidLineNumberQuery(this.$searchField.val()));
         this.$searchField.toggleClass("no-results", isNoResults);
+    };
+    
+    /**
+     * Called synchronously after all other processing is done (_handleFilter(), updating cached "last result" and
+     * re-rendering DOM list items). NOT called if the last filter action had 0 results.
+     */
+    QuickNavigateDialog.prototype._handleShowResults = function (e, results) {
+        // Scroll to top result (unless some other item has been highlighted by user)
+        if ($(".smart_autocomplete_highlight").length === 0) {
+            this._handleItemFocus(null, $(".smart_autocomplete_container > li:first-child").get(0));
+        }
     };
 
     /**
@@ -421,6 +423,19 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this._handleDocumentMouseDown);
     };
     
+    /**
+     * Returns true if the query string doesn't match the query text field. This can happen when _handleFilter()
+     * runs slow (either synchronously or async as in searchFileList()). Several key events queue up before filtering
+     * is done, and each sets a timeout. After all the key events are handled, we wind up with a queue of timeouts
+     * waiting to run, once per key event. All but the last one reflect a stale value of the text field.
+     * @param {string} query
+     * @return {boolean}
+     */
+    function queryIsStale(query) {
+        var currentQuery = $("input#quickOpenSearch").val();
+        return currentQuery !== query;
+    }
+
     function searchFileList(query) {
         // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
@@ -430,8 +445,7 @@ define(function (require, exports, module) {
                 // ...but it's not very robust. If a previous Promise is obsoleted by the query string changing, it
                 // keeps listening to it anyway. So the last Promise to resolve "wins" the UI update even if it's for
                 // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
-                var currentQuery = $("input#quickOpenSearch").val();
-                if (currentQuery === query) {
+                if (!queryIsStale(query)) {
                     // We're still the current query. Synchronously re-run the search call and resolve with its results
                     asyncResult.resolve(searchFileList(query));
                 } else {
@@ -469,8 +483,26 @@ define(function (require, exports, module) {
      * @return {Array} The filtered list of results.
      */
     QuickNavigateDialog.prototype._filterCallback = function (query) {
+        // If previous filter calls ran slow, we may have accumulated several query change events in the meantime.
+        // Only respond to the one that's current. Note that this only works because we're called on a timeout after
+        // the key event; checking DURING the key event itself would never yield a future value for the input field.
+        if (queryIsStale(query)) {
+            return getLastFilterResult();
+        }
+        
+        // Reflect current search mode in UI
         this._updateDialogLabel(query);
         
+        // "Go to line" mode is special-cased
+        var gotoLine = extractLineNumber(query);
+        if (!isNaN(gotoLine)) {
+            var from = {line: gotoLine, ch: 0};
+            var to = {line: gotoLine, ch: 99999};
+            
+            EditorManager.getCurrentFullEditor().setSelection(from, to);
+        }
+        
+        // Try to invoke a search plugin
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc) {
             var filename = _filenameFromPath(curDoc.file.fullPath, true);
@@ -487,7 +519,7 @@ define(function (require, exports, module) {
             }
         }
         
-        // No plugin: use default file search mode
+        // No matching plugin: use default file search mode
         currentPlugin = null;
         return searchFileList(query);
     };
@@ -685,6 +717,22 @@ define(function (require, exports, module) {
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 
+        // The various listeners registered below fire in this order:
+        //   keydown, (async gap), keyup, (async gap), filter, resultsReady, showResults/noResults
+        // The later events *always* come after the keydown & keyup (they're triggered on a timeout from keyup). But
+        // because of the async gaps, a keydown for the *next* key typed might come *before* they run:
+        //   keydown, (async gap), keyup, (async gap), keydown #2, (async gap), filter, resultsReady, showResults/noResults
+        // The staleness check in _filterCallback() and the forced async wait in _handleKeyUp() are due to this.
+        
+        this.$searchField.bind({
+            resultsReady: this._handleResultsReady,
+            showResults: this._handleShowResults,
+            itemSelect: this._handleItemSelect,
+            itemFocus: this._handleItemFocus,
+            keyup: this._handleKeyUp,   // it's important we register this BEFORE calling smartAutoComplete(); see handler for details
+            blur: this._handleBlur   // can't use lostFocus since smart autocomplete fires it immediately in response to the shortcut's keyup
+        });
+        
         this.$searchField.smartAutoComplete({
             source: [],
             maxResults: 20,
@@ -695,17 +743,6 @@ define(function (require, exports, module) {
                                 // using internal raw results instead of filtered results for matching
             filter: this._filterCallback,
             resultFormatter: this._resultsFormatterCallback
-        });
-
-        this.$searchField.bind({
-            resultsReady: this._handleResultsReady,
-            itemSelect: this._handleItemSelect,
-            itemFocus: this._handleItemFocus,
-            keydown: this._handleKeyDown,
-            keyup: this._handleKeyUp,
-            blur: this._handleBlur
-            // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
-            // triggers lostFocus
         });
 
         this.setSearchFieldValue(prefix, initialString);
