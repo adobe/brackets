@@ -23,48 +23,104 @@ summary {
   cursor: pointer;
 }
 body {
-  font-family: source-sans-pro;
+  background: #f8f8f8;
+  font-family: 'SourceSans', sans-serif;
   color: #363a3a;
-  background: #f7f7f7;
 }
-body > header h1 {
-  padding: 24px 0;
-  font-size: 40px;
-  text-align: center;
-}
-body > header h1 img {
-  vertical-align: center;
+header.main {
   position: relative;
-  top: 2px;
-  margin-right: 10px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 940px;
+  padding-top: 100px;
 }
-body > header .hero {
+header.main hgroup img {
+  position: relative;
+  top: 2px
+}
+header.main hgroup {
+  position: absolute;
+  top: 38px;
+  left: 10px;
+}
+header.main hgroup > a {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+header.main hgroup > h1 {
+  font-size: 40px;
+  font-weight: 700;
+  position: absolute;
+  left: 40px;
+  top: -2px;
+}
+header.main hgroup > h1 a {
+  text-decoration: none;
+  color: #363a3a;
+}
+header.main hgroup > h2 {
+  font-size: 21px;
+  font-weight: 300;
+  position: absolute;
+  left: 40px;
+  top: 36px;
+}
+header.main nav.site {
+  position: absolute;
+  display: inline-block;
+  right: 10px;
+  top: 51px;
+}
+header.main nav.site li {
+  display: inline-block;
+  padding: 1px 12px;
+  border-right: 1px solid #363a3a;
+}
+header.main nav.site li:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+header.main nav.site li a {
+  text-decoration: none;
+  color: #363a3a;
+  font-weight: normal;
+  font-size: 13px;
+}
+header.main nav.site li a:hover {
+  text-decoration: underline;
+}
+.hero {
   background: #008fe2;
   padding: 50px 0;
   text-align: center;
   color: #fff;
 }
-body > header .hero h2 {
+.hero h2 {
   font-size: 72px;
   text-shadow: -3px 3px 0 rgba(16,107,153,0.6);
   text-transform: uppercase;
   margin-bottom: 30px;
 }
-body > header .hero img {
+.hero img {
   margin-right: 20px;
+  box-shadow: -5px 5px 0 #2459AB;
 }
-body > header .hero section {
+.hero section {
   display: inline-block;
   width: 280px;
   vertical-align: top;
+  padding-top: 10px;
 }
-body > header .hero section h3 {
+.hero section h3 {
   font-size: 20px;
   margin: 0 0 16px;
   text-align: left;
   font-weight: 500;
 }
-body > header .hero section p {
+.hero section p {
   font-size: 16px;
   text-align: left;
   margin-bottom: 16px;
