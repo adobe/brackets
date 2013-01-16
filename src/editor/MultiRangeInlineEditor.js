@@ -256,7 +256,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype._updateSize = function () {
         this.sizeInlineWidgetToContents();
-    }
+    };
     
     /**
      * Ensures that the editor's min-height is set so it never gets shorter than the rule list.
