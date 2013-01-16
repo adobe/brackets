@@ -560,6 +560,15 @@ define(function (require, exports, module) {
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
+                } else {
+                    // Make sure the name is up to date
+                    if (!menuItem.isDivider) {
+                        brackets.app.setMenuTitle(commandID, name, function (err) {
+                            if (err) {
+                                console.error("setMenuTitle() -- error: " + err);
+                            }
+                        });
+                    }
                 }
             });
             menuItem.isNative = true;
@@ -776,6 +785,14 @@ define(function (require, exports, module) {
             brackets.app.addMenu(name, id, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
+                } else {
+                    // Make sure name is up to date
+                    console.log("setting menu " + id + " title to " + name);
+                    brackets.app.setMenuTitle(id, name, function (err) {
+                        if (err) {
+                            console.error("setMenuTitle() -- error: " + err);
+                        }
+                    });
                 }
             });
             return menu;

@@ -30,7 +30,13 @@
         "Ctrl-Z"
     ],
     "edit.redo": [
-        "Ctrl-Shift-Z"
+        {
+            "key": "Ctrl-Y"
+        },
+        {
+            "key": "Ctrl-Shift-Z",
+            "platform": "mac"
+        }
     ],
     "edit.cut": [
         "Ctrl-X"
