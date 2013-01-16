@@ -787,7 +787,6 @@ define(function (require, exports, module) {
                     console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
                 } else {
                     // Make sure name is up to date
-                    console.log("setting menu " + id + " title to " + name);
                     brackets.app.setMenuTitle(id, name, function (err) {
                         if (err) {
                             console.error("setMenuTitle() -- error: " + err);
