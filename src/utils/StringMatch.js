@@ -102,8 +102,8 @@ define(function (require, exports, module) {
     }
     
     // states used during the scanning of the string
-    var SPECIALS_COMPARE = 0;
-    var CONSECUTIVE_COMPARE = 1;
+    var SPECIALS_MATCH = 0;
+    var ANY_MATCH = 1;
     
     // Scores can be hard to make sense of. The DEBUG_SCORES flag
     // provides a way to peek into the parts that made up a score.
@@ -145,6 +145,35 @@ define(function (require, exports, module) {
      * search will backtrack and try to find matches for the whole query earlier in the
      * string.
      *
+     * A contrived example will help illustrate how the searching and backtracking works. It's a bit long,
+     * but it illustrates different pieces of the algorithm which can be tricky. Let's say that we're
+     * searching the string "AzzBzzCzdzezzDgxgEF" for "abcdex".
+     *
+     * To start with, it will match "abcde" from the query to "A B C D E" in the string (the spaces 
+     * represent gaps in the matched part of the string), because those are all "special characters".
+     * However, the "x" in the query doesn't match the "F" which is the only character left in the
+     * string.
+     * 
+     * Backtracking kicks in. The "E" is pulled off of the match list. backtrackTo is set to the "g"
+     * before the "E" (which means that the next time we backtrack, we'll need to at least that far back.
+     * deadBranches[4] is set to the "g" before the "E" as well. This means that for the 5th
+     * query character (the "e") we know that we don't have a match beyond that point in the string.
+     *
+     * To resume searching, the backtrack function looks at the previous match (the "D") and starts
+     * searching in character-by-character (ANY_MATCH) mode right after that. It fails to find an
+     * "e" before it gets to deadBranches[4], so it has to backtrack again.
+     *
+     * This time, the "D" is pulled off the match list. backtrackTo goes back to the "z" before the "D".
+     * deadBranches[3] is set to the "z" before the "D", because we know that for the "dex" part of the
+     * query, we can't make it work past the "D". We'll resume searching with the "z" after the "C".
+     *
+     * Doing an ANY_MATCH search, we find the "d". We then start searching specials for "e", but we
+     * stop before we get to "E" because deadBranches[4] tells us that's a dead end. So, we switch
+     * to ANY_MATCH and find the "e".
+     *
+     * Finally, we search for the "x". We don't find a special that matches, so we start an ANY_MATCH
+     * search. Then we find the "x", and we have a successful match.
+     *
      * @param {string} query the search string (generally lower cased)
      * @param {string} str the string to compare with (generally lower cased)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
@@ -177,7 +206,7 @@ define(function (require, exports, module) {
         
         queryCounter = 0;
         
-        var state = SPECIALS_COMPARE;
+        var state = SPECIALS_MATCH;
         
         // Compares the current character from the query string against the
         // special characters in str. Returns true if a match was found,
@@ -231,7 +260,9 @@ define(function (require, exports, module) {
                 }
                 
                 // we pulled off a match, which means that we need to put a character
-                // back into our query
+                // back into our query. strCounter is going to be set once we've pulled
+                // off the right special character and know where we're going to restart
+                // searching from.
                 queryCounter--;
                 
                 if (item instanceof SpecialMatch) {
@@ -250,7 +281,7 @@ define(function (require, exports, module) {
                         
                         // since we failed with the specials along this track, we're
                         // going to reset to looking for matches consecutively.
-                        state = CONSECUTIVE_COMPARE;
+                        state = ANY_MATCH;
                         
                         // we figure out where to start looking based on the new
                         // last item in the list. If there isn't anything else
@@ -274,19 +305,19 @@ define(function (require, exports, module) {
             
             // keep looping until we've either exhausted the query or the string
             while (queryCounter < query.length && strCounter < str.length && strCounter <= deadBranches[queryCounter]) {
-                if (state === SPECIALS_COMPARE) {
+                if (state === SPECIALS_MATCH) {
                     if (!findMatchingSpecial()) {
-                        state = CONSECUTIVE_COMPARE;
+                        state = ANY_MATCH;
                     }
                 }
                 
-                if (state === CONSECUTIVE_COMPARE) {
+                if (state === ANY_MATCH) {
                     // we look character by character for matches
                     if (query[queryCounter] === str[strCounter]) {
                         // got a match! record it, and switch back to searching specials
                         queryCounter++;
                         result.push(new NormalMatch(strCounter++));
-                        state = SPECIALS_COMPARE;
+                        state = SPECIALS_MATCH;
                     } else {
                         // no match, keep looking
                         strCounter++;
@@ -296,7 +327,7 @@ define(function (require, exports, module) {
             
             // if we've finished the query, or we haven't finished the query but we have no
             // more backtracking we can do, then we're all done searching.
-            if ((queryCounter < query.length && !backtrack()) || queryCounter >= query.length) {
+            if (queryCounter >= query.length || (queryCounter < query.length && !backtrack())) {
                 break;
             }
         }
@@ -321,20 +352,19 @@ define(function (require, exports, module) {
      * at the beginning of the query which did not match in the last segment.
      *
      * @param {string} query the search string (generally lower cased)
-     * @param {string} str the original string to search
-     * @param {string} compareStr the string to compare with (generally lower cased)
+     * @param {string} str the string to compare with (generally lower cased)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} startingSpecial index into specials array to start scanning with
      * @param {boolean} lastSegmentStart which character does the last segment start at
-     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, remainder:string, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {{remainder:int, matchList:Array.<SpecialMatch|NormalMatch>}} matched indexes or null if no matches possible
      */
-    function _lastSegmentSearch(query, compareStr, specials, startingSpecial, lastSegmentStart) {
+    function _lastSegmentSearch(query, str, specials, startingSpecial, lastSegmentStart) {
         var queryCounter, matchList;
         
         // It's possible that the query is longer than the last segment.
         // If so, we can chop off the bit that we know couldn't possibly be there.
         var remainder = "";
-        var extraCharacters = specials[startingSpecial] + query.length - compareStr.length;
+        var extraCharacters = specials[startingSpecial] + query.length - str.length;
 
         if (extraCharacters > 0) {
             remainder = query.substring(0, extraCharacters);
@@ -343,7 +373,7 @@ define(function (require, exports, module) {
         
         for (queryCounter = 0; queryCounter < query.length; queryCounter++) {
             matchList = _generateMatchList(query.substring(queryCounter),
-                                     compareStr, specials, startingSpecial);
+                                     str, specials, startingSpecial);
             
             // if we've got a match *or* there are no segments in this string, we're done
             if (matchList || startingSpecial === 0) {
@@ -371,7 +401,7 @@ define(function (require, exports, module) {
      * @param {string} str the original string to search
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
      * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
-     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
      */
     function _wholeStringSearch(query, str, specials, lastSegmentSpecialsIndex) {
         // set up query as all lower case and make a lower case string to use for comparisons
