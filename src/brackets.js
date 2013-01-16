@@ -181,10 +181,10 @@ define(function (require, exports, module) {
         
         // Load all extensions. This promise will complete even if one or more
         // extensions fail to load.
-        var extensionLoaderPromimse = ExtensionLoader.init(params.get("extensions"));
+        var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
         
         // Load the initial project after extensions have loaded
-        extensionLoaderPromimse.always(function () {
+        extensionLoaderPromise.always(function () {
             // Finish UI initialization
             var initialProjectPath = ProjectManager.getInitialProjectPath();
             ProjectManager.openProject(initialProjectPath).always(function () {

@@ -447,9 +447,11 @@ define(function (require, exports, module) {
                 }
                 // Begin a new explicit session
                 _beginSession(editor);
-            } else if (_inSession(editor)) {
+            } else if (_inSession(editor) && hintList.isOpen()) {
                 // Pass event to the hint list, if it's open
                 hintList.handleKeyEvent(event);
+            } else {
+                lastChar = String.fromCharCode(event.keyCode);
             }
         } else if (event.type === "keypress") {
             // Last inserted character, used later by handleChange

@@ -812,7 +812,6 @@ define(function (require, exports, module) {
      *
      * Events:
      *      beforeContextMenuOpen
-     *      contextMenuClose
      *
      */
     function ContextMenu(id) {
@@ -893,12 +892,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Closes the context menu and dispatches the "contextMenuClose" event.
+     * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
-
-        $(this).triggerHandler("contextMenuClose");
     };
 
     /**
@@ -1018,6 +1015,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
 
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
+        menu.addMenuItem(Commands.NAVIGATE_GOTO_JSLINT_ERROR);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
