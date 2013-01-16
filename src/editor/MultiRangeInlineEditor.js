@@ -188,15 +188,15 @@ define(function (require, exports, module) {
         this._updateEditorMinHeight();
 
         // Resize the widget when scrollbars are added
-        var _updateSize = this._updateSize.bind(this);
-        $(window).on("resize.MultiRangeInlineEditor", _updateSize);
+        this._updateSize = this._updateSize.bind(this);
+        $(window).on("resize.MultiRangeInlineEditor", this._updateSize);
 
         // Kick the layout again to redraw scrollbars after the related list
         // is floated. This is necessary because the related list may overlap
         // the editor(s) after the list is laid out by in sequence by (1) the
         // float within the inline-widget container and (2) by the host
         // editor's vertical scroll bar.
-        window.setTimeout(_updateSize, 0);
+        window.setTimeout(this._updateSize, 0);
     };
 
     /**
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
         });
 
         // Remove event handlers
-        $(window).off(".MultiRangeInlineEditor");
+        $(window).off("resize", this._updateSize);
         this.$htmlContent.off(".MultiRangeInlineEditor");
         this.$editorsDiv.off(".MultiRangeInlineEditor");
     };
