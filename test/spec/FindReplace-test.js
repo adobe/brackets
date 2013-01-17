@@ -22,7 +22,8 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine */
+/*unittests: FindReplace*/
 
 define(function (require, exports, module) {
     'use strict';
@@ -63,6 +64,7 @@ define(function (require, exports, module) {
             var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
             myDocument = mocks.doc;
             myEditor = mocks.editor;
+            myEditor.centerOnCursor = jasmine.createSpy("centering");
             
             myEditor.focus();
         }
@@ -134,9 +136,11 @@ define(function (require, exports, module) {
                 
                 enterSearchText("foo");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -145,6 +149,7 @@ define(function (require, exports, module) {
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
             it("should find all case-sensitive matches", function () {
@@ -176,10 +181,12 @@ define(function (require, exports, module) {
                 expectSearchBarClosed();
                 
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
                 
                 // Simple linear Find Next
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
