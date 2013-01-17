@@ -174,6 +174,33 @@ define(function (require, exports, module) {
      * Finally, we search for the "x". We don't find a special that matches, so we start an ANY_MATCH
      * search. Then we find the "x", and we have a successful match.
      *
+     * Here are some notes on how the algorithm works:
+     *
+     * * We only backtrack() when we're exhausted both special AND normal forward searches past that point, 
+     *   for the query remainder we currently have.  For a different query remainder, we may well get further 
+     *   along - hence deadBranches[] being dependent on queryCounter; but in order to get a different query 
+     *   remainder, we must give up one or more current matches by backtracking.
+     *
+     * * Normal "any char" forward search is a superset of special matching mode -- anything that would have 
+     *   been matched in special mode *could* also be matched by normal mode. In practice, however,
+     *   any special characters that could have matched would be picked up first by the specials matching
+     *   code.
+     *
+     * * backtrack() always goes at least as far back as str[backtrackTo-1] before allowing forward searching 
+     *   to resume
+     *
+     * * When `deadBranches[qi] = si` it means if we're still trying to match `queryStr[qi]` and we get to 
+     *   `str[si]`, there's no way we can match the remainer of `queryStr` with the remainder of `str` -- 
+     *   either using specials-only or full any-char matching.
+     *
+     * * We know this because deadBranches[] is set in backtrack(), and we don't get to backtrack() unless 
+     *   either:
+     *   1. We've already exhausted both special AND normal forward searches past that point
+     *      (i.e. backtrack() due to `strCounter >= str.length`, yet `queryCounter < query.length`)
+     *   2. We stopped searching further forward due to a previously set deadBranches[] value
+     *      (i.e. backtrack() due to `strCounter > deadBranches[queryCounter]`, yet 
+     *      `queryCounter < query.length`)
+     *
      * @param {string} query the search string (generally lower cased)
      * @param {string} str the string to compare with (generally lower cased)
      * @param {Array} specials list of special indexes in str (from findSpecialCharacters)
