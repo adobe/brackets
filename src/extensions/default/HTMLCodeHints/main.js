@@ -606,6 +606,11 @@ define(function (require, exports, module) {
         }
 
         if (!this.closeOnSelect) {
+            // If we append the missing quote, then we need to adjust the cursor postion
+            // to keep the code hint list open.
+            if (tokenType === HTMLUtils.ATTR_VALUE && !tagInfo.attr.hasEndQuote) {
+                this.editor.setCursorPos(start.line, start.ch + completion.length - 1);
+            }
             return true;
         }
         
