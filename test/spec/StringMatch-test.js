@@ -141,6 +141,18 @@ define(function (require, exports, module) {
                 
                 result = generateMatchList("abcdefe", btpath, btspecials.specials, 0);
                 expect(result).toEqual([new SpecialMatch(0), new SpecialMatch(7), new SpecialMatch(12), new SpecialMatch(16), new NormalMatch(17), new NormalMatch(18), new SpecialMatch(19)]);
+                
+                var str = "_computeRangesAndScore";
+                var strSpecials = fSC(str);
+                str = str.toLowerCase();
+                result = generateMatchList("_computerangesa", str, strSpecials.specials, 0);
+                expect(result).toEqual([
+                    new SpecialMatch(0), new SpecialMatch(1), new NormalMatch(2),
+                    new NormalMatch(3), new NormalMatch(4), new NormalMatch(5),
+                    new NormalMatch(6), new NormalMatch(7), new SpecialMatch(8),
+                    new NormalMatch(9), new NormalMatch(10), new NormalMatch(11),
+                    new NormalMatch(12), new NormalMatch(13), new SpecialMatch(14)
+                ]);
             });
                 
         });

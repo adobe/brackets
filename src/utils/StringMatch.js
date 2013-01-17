@@ -154,16 +154,15 @@ define(function (require, exports, module) {
      * However, the "x" in the query doesn't match the "F" which is the only character left in the
      * string.
      * 
-     * Backtracking kicks in. The "E" is pulled off of the match list. backtrackTo is set to the "g"
-     * before the "E" (which means that the next time we backtrack, we'll need to at least that far back.
-     * deadBranches[4] is set to the "g" before the "E" as well. This means that for the 5th
+     * Backtracking kicks in. The "E" is pulled off of the match list.
+     * deadBranches[4] is set to the "g" before the "E". This means that for the 5th
      * query character (the "e") we know that we don't have a match beyond that point in the string.
      *
      * To resume searching, the backtrack function looks at the previous match (the "D") and starts
      * searching in character-by-character (ANY_MATCH) mode right after that. It fails to find an
      * "e" before it gets to deadBranches[4], so it has to backtrack again.
      *
-     * This time, the "D" is pulled off the match list. backtrackTo goes back to the "z" before the "D".
+     * This time, the "D" is pulled off the match list.
      * deadBranches[3] is set to the "z" before the "D", because we know that for the "dex" part of the
      * query, we can't make it work past the "D". We'll resume searching with the "z" after the "C".
      *
@@ -186,12 +185,13 @@ define(function (require, exports, module) {
      *   any special characters that could have matched would be picked up first by the specials matching
      *   code.
      *
-     * * backtrack() always goes at least as far back as str[backtrackTo-1] before allowing forward searching 
-     *   to resume
+     * * backtrack() always goes at least as far back as str[deadBranches[queryCounter]-1] before allowing 
+     *   forward searching to resume
      *
-     * * When `deadBranches[qi] = si` it means if we're still trying to match `queryStr[qi]` and we get to 
-     *   `str[si]`, there's no way we can match the remainer of `queryStr` with the remainder of `str` -- 
-     *   either using specials-only or full any-char matching.
+     * * When `deadBranches[queryCounter] = strCounter` it means if we're still trying to match 
+     *   `queryStr[queryCounter]` and we get to `str[strCounter]`, there's no way we can match the 
+     *   remainer of `queryStr` with the remainder of `str` -- either using specials-only or 
+     *   full any-char matching.
      *
      * * We know this because deadBranches[] is set in backtrack(), and we don't get to backtrack() unless 
      *   either:
@@ -266,9 +266,6 @@ define(function (require, exports, module) {
             return false;
         }
         
-        // Keeps track of how far back we need to go to keep searching.
-        var backtrackTo = Infinity;
-        
         // This function implements the backtracking that is done when we fail to find
         // a match with the query using the "search for specials first" approach.
         //
@@ -298,13 +295,10 @@ define(function (require, exports, module) {
                     specialsCounter--;
                     
                     // check to see if we've gone back as far as we need to
-                    if (item.index < backtrackTo) {
-                        // next time, we'll have to go back farther
-                        backtrackTo = item.index - 1;
-                        
+                    if (item.index < deadBranches[queryCounter]) {
                         // we now know that this part of the query does not match beyond this
                         // point
-                        deadBranches[queryCounter] = backtrackTo;
+                        deadBranches[queryCounter] = item.index - 1;
                         
                         // since we failed with the specials along this track, we're
                         // going to reset to looking for matches consecutively.
