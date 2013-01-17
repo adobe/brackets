@@ -123,8 +123,268 @@ define(function (require, exports, module) {
                     expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
                 });
             });
-
         }); // describe("addMenu")
+
+        describe("addMenu (with reference)", function () {
+            var complete = false,
+                error = 0,
+                parentId,
+                position = -1;
+            
+            beforeEach(function () {
+                runs(function () {
+                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+            });
+            
+            it("should add new menu in last position of list", function () {
+                runs(function () {
+                    brackets.app.addMenu("Custom1", "menu-unittest1", "", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+
+                // Verify menu is found
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("menu-unittest1", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe("");
+                    expect(position).toBe(1);
+                    
+                    brackets.app.removeMenu("menu-unittest1", function (err) {
+                        // Ignore error
+                    });
+                });
+            });
+
+            it("should add new menu after reference menu", function () {
+                runs(function () {
+                    brackets.app.addMenu("CustomFirst", "menu-unittest-first", "first", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+
+                runs(function () {
+                    brackets.app.addMenu("CustomAfter", "menu-unittest-after", "after", "menu-unittest-first", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+
+                // Verify menu is found
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("menu-unittest-first", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe("");
+                    expect(position).toBe(0);
+                });
+
+                // Verify menu is found
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("menu-unittest-after", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe("");
+                    expect(position).toBe(1);
+                    
+                    brackets.app.removeMenu("menu-unittest-first", function (err) {
+                        // Ignore error
+                    });
+                    brackets.app.removeMenu("menu-unittest-after", function (err) {
+                        // Ignore error
+                    });
+                });
+            });
+
+            it("should add new menu before reference menu", function () {
+                runs(function () {
+                    brackets.app.addMenu("CustomLast", "menu-unittest-last", "last", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+
+                runs(function () {
+                    brackets.app.addMenu("CustomBefore", "menu-unittest-before", "before", "menu-unittest-last", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+
+                // Verify menu is found
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("menu-unittest-last", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe("");
+                    expect(position).toBe(2);
+                });
+
+                // Verify menu is found
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("menu-unittest-before", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe("");
+                    expect(position).toBe(1);
+                    
+                    brackets.app.removeMenu("menu-unittest-last", function (err) {
+                        // Ignore error
+                    });
+                    brackets.app.removeMenu("menu-unittest-before", function (err) {
+                        // Ignore error
+                    });
+                });
+            });
+
+            it("should add new menu at end of list when reference menu doesn't exist", function () {
+                runs(function () {
+                    brackets.app.addMenu("Custom4", "menu-unittest4", "after", "NONEXISTANT", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+
+                // Verify menu is found
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("menu-unittest4", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe("");
+                    expect(position).toBe(1);
+                    
+                    brackets.app.removeMenu("menu-unittest4", function (err) {
+                        // Ignore error
+                    });
+                });
+            });
+
+        }); // describe("addMenu (with reference)")
         
         describe("addMenuItem", function () {
             var complete = false,
@@ -196,6 +456,7 @@ define(function (require, exports, module) {
                     });
                 });
             });
+         
             it("should return an error if invalid parameters are passed", function () {
                 runs(function () {
                     complete = false;
@@ -211,7 +472,335 @@ define(function (require, exports, module) {
                     expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
                 });
             });
-        });
+        }); // describe("addMenuItem")
+         
+        describe("addMenuItem (with reference)", function () {
+            var complete = false,
+                error = 0,
+                title,
+                parentId,
+                position;
+            
+            beforeEach(function () {
+                runs(function () {
+                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+
+                // Add a menu item into the empty menu
+                runs(function () {
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+                
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
+                    });
+                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; });
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+            });
+            
+            it("should add a menu item in first position of menu", function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 1", "Menu-test.command01", "", "first", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+                
+                // Verify item is found in the right position
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("Menu-test.command01", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe(TEST_MENU_ID);
+                    expect(position).toBe(0);
+                });
+
+                // Verify item
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuTitle("Menu-test.command01", function (err, titleStr) {
+                        complete = true;
+                        error = err;
+                        title = titleStr;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(title).toBe("Brackets Test Command Custom 1");
+                    brackets.app.removeMenuItem("Menu-test.command01", function (err) {
+                    });
+                });
+            });
+         
+            it("should add a menu item in last position of menu", function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 2", "Menu-test.command02", "", "last", "", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+                
+                // Verify item is found in the right position
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("Menu-test.command02", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe(TEST_MENU_ID);
+                    expect(position).toBe(1);
+                });
+
+                // Verify item
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuTitle("Menu-test.command02", function (err, titleStr) {
+                        complete = true;
+                        error = err;
+                        title = titleStr;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(title).toBe("Brackets Test Command Custom 2");
+                    brackets.app.removeMenuItem("Menu-test.command02", function (err) {
+                    });
+                });
+            });
+         
+         
+            it("should add a menu item after the referenced menu item", function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 3", "Menu-test.command03", "", "after", TEST_MENU_ITEM_ID, function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+                
+                // Verify item is found in the right position
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("Menu-test.command03", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe(TEST_MENU_ID);
+                    expect(position).toBe(1);
+                });
+
+                // Verify item
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuTitle("Menu-test.command03", function (err, titleStr) {
+                        complete = true;
+                        error = err;
+                        title = titleStr;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(title).toBe("Brackets Test Command Custom 3");
+                    brackets.app.removeMenuItem("Menu-test.command03", function (err) {
+                    });
+                });
+            });
+         
+            it("should add a menu item before the referenced menu item", function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 4", "Menu-test.command04", "", "before", TEST_MENU_ITEM_ID, function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+                
+                // Verify item is found in the right position
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("Menu-test.command04", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe(TEST_MENU_ID);
+                    expect(position).toBe(0);
+                });
+
+                // Verify item
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuTitle("Menu-test.command04", function (err, titleStr) {
+                        complete = true;
+                        error = err;
+                        title = titleStr;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(title).toBe("Brackets Test Command Custom 4");
+                    brackets.app.removeMenuItem("Menu-test.command04", function (err) {
+                    });
+                });
+            });
+
+            it("should add a menu item at the end when reference menu item doesn't exist", function () {
+                runs(function () {
+                    complete = false;
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 5", "Menu-test.command05", "", "before", "NONEXISTANT", function (err) {
+                        complete = true;
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                });
+                
+                // Verify item is found in the right position
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuPosition("Menu-test.command05", function (err, parent, index) {
+                        complete = true;
+                        error = err;
+                        parentId = parent;
+                        position = index;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(parentId).toBe(TEST_MENU_ID);
+                    expect(position).toBe(1);
+                });
+
+                // Verify item
+                runs(function () {
+                    complete = false;
+                    brackets.app.getMenuTitle("Menu-test.command05", function (err, titleStr) {
+                        complete = true;
+                        error = err;
+                        title = titleStr;
+                    });
+                });
+                
+                waitsFor(function () { return complete; }, 1000);
+                
+                runs(function () {
+                    expect(error).toBe(0);
+                    expect(title).toBe("Brackets Test Command Custom 5");
+                    brackets.app.removeMenuItem("Menu-test.command05", function (err) {
+                    });
+                });
+            });
+        });  // describe("addMenuItem (with reference)")
         
         describe("removeMenu", function () {
             var complete = false,
