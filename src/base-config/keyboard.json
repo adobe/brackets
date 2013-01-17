@@ -34,7 +34,7 @@
             "key": "Ctrl-Y"
         },
         {
-            "key": "Ctrl-Shift-Z",
+            "key": "Cmd-Shift-Z",
             "platform": "mac"
         }
     ],
