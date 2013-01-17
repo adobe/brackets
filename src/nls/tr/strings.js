@@ -150,7 +150,7 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
-    "STATUSBAR_SPACES"                      : "Boşlık",
+    "STATUSBAR_SPACES"                      : "Boşluk",
     "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu",
     "STATUSBAR_LINE_COUNT"                  : "{0} Satır",
 

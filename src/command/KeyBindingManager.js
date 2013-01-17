@@ -33,7 +33,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var CommandManager = require("command/CommandManager"),
+    var AppInit        = require("utils/AppInit"),
+        CommandManager = require("command/CommandManager"),
         KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings"),
         FileUtils      = require("file/FileUtils");
@@ -608,25 +609,14 @@ define(function (require, exports, module) {
             });
         });
     }
-    
-    /*
-    function toJSON() {
-        var result = {},
-            commandData;
-        
-        Object.keys(_commandMap).forEach(function (commandId) {
-            commandData[commandId];
-            
-            result[commandId] = commandData;
-        });
-    }
-    */
 
-    /**
-     * Install keydown event listener.
-     */
-    function init() {
-        // init
+    AppInit.htmlReady(function () {
+        // TODO (jasonsanjose): user configurable path to key binding file
+        // Read keyboard.json preference file from the user's preferences
+        var pathToKeyBindingsJSON = brackets.app.getApplicationSupportDirectory() + "/keyboard.json";
+        loadKeyBindingsFile(pathToKeyBindingsJSON);
+
+        // Install keydown event listener.
         window.document.body.addEventListener(
             "keydown",
             function (event) {
@@ -640,12 +630,6 @@ define(function (require, exports, module) {
         
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
             && (brackets.platform !== "win");
-    }
-        
-    // TODO (jasonsanjose): user configurable path to key binding file
-    // hard coded preference file 
-    var pathToKeyBindingsJSON = brackets.app.getApplicationSupportDirectory() + "/keyboard.json";
-    loadKeyBindingsFile(pathToKeyBindingsJSON);
     
     // add key bindings as commands are registered
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
@@ -654,7 +638,6 @@ define(function (require, exports, module) {
     exports._reset = _reset;
 
     // Define public API
-    exports.init = init;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
