@@ -557,6 +557,16 @@ define(function (require, exports, module) {
                 bindingStr = binding.displayKey || binding.key;
             }
             
+            if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
+                if (!relativeID.hasOwnProperty("sectionMarker")) {
+                    console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                    return null;
+                }
+                
+                // For sections, pass in the marker for that section. 
+                relativeID = relativeID.sectionMarker;
+            }
+            
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
