@@ -630,6 +630,7 @@ define(function (require, exports, module) {
         
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
             && (brackets.platform !== "win");
+    });
     
     // add key bindings as commands are registered
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
