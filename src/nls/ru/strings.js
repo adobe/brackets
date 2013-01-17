@@ -74,7 +74,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Ошибка Интерактивного Предпросмотра",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Соединение с браузером",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Для того чтобы подключить Интерактивный Предпросмотр, нужно перезапустить Chrome с включенной удаленной отладкой. <br /><br />Вы хотите перезапустить Chrome и включить удаленную отладку?",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Открыть HTML файл для того чтобы запустить Интерактивный Предпросмотр.",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Откройте HTML файл для того чтобы запустить Интерактивный Предпросмотр.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Для запуска Интерактивного Предпросмотра с серверным файлом, вы должны указать основной URL для этого проекта.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Добро пожаловать в Интерактивный Предпросмотр!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Интерактивный Предпросмотр подключает {APP_NAME} к вашему браузеру. Он запускает предпросмотр HTML файла в вашем браузере и к тому же мгновенно обновляет предпросмотр при редактировании кода.<br /><br />В этой ранней версии {APP_NAME}, Интерактивный Предпросмотр работает только с <strong>Google Chrome</strong> и обновляется в реальном времени при редактировании <strong>CSS файлов</strong>. Изменения в HTML или Javascript файлах автоматически перезагружаются при сохранении.<br /><br />(Вы увидите это сообщение только один раз.)",
@@ -83,7 +83,7 @@ define({
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Интерактивный Предпросмотр",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Интерактивный Предпросмотр: Подключение\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Интерактивный Предпросмотр: Инициализация\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Отсоединение Интерактивного Предпросмотра",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Отсоединить Интерактивный Предпросмотр",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Интерактивный Предпросмотр: Нажмите чтобы отсоединиться (Сохранить файлы для обновления)",
     
     "SAVE_CLOSE_TITLE"                  : "Сохранить изменения",
@@ -181,7 +181,7 @@ define({
     "CMD_SELECT_LINE"                     : "Выделить строку",
     "CMD_FIND"                            : "Найти",
     "CMD_FIND_IN_FILES"                   : "Найти в файлах",
-    "CMD_FIND_IN_SUBTREE"                 : "Найти в...",
+    "CMD_FIND_IN_SUBTREE"                 : "Найти в\u2026",
     "CMD_FIND_NEXT"                       : "Найти след.",
     "CMD_FIND_PREVIOUS"                   : "Найти пред.",
     "CMD_REPLACE"                         : "Заменить",
@@ -228,12 +228,17 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Новое окно {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать папку расширений",
     "CMD_SWITCH_LANGUAGE"                 : "Переключить язык",
-    "CMD_CHECK_FOR_UPDATE"                : "Проверить на обновления",
 
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
-    "CMD_ABOUT"                           : "О {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Проверить на обновления",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Как использовать {APP_NAME}",
     "CMD_FORUM"                           : "Форум {APP_NAME}",
+    "CMD_RELEASE_NOTES"                   : "Примечания к выпуску",
+    "CMD_REPORT_AN_ISSUE"                 : "Сообщить о проблеме",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} в Twitter",
+    "CMD_ABOUT"                           : "О {APP_TITLE}",
+
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Закрыть окно",
@@ -241,6 +246,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Экспериментальная сборка",
+    "DEVELOPMENT_BUILD"                    : "Сборка для разработчиков",
     "JSLINT_ERRORS"                        : "Ошибки JSLint",
     "JSLINT_ERROR_INFORMATION"             : "1 Ошибка JSLint",
     "JSLINT_ERRORS_INFORMATION"            : "{0} Ошибок JSLint",
@@ -258,10 +264,10 @@ define({
     "ABOUT"                                : "О программе",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Закрыть",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",
     "ABOUT_TEXT_LINE4"                     : "Документация и исходные коды находятся на <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Щелкните здесь для подробностей.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "Новая сборка {APP_NAME} доступна! Нажмите здесь для подробностей.",
     "UPDATE_AVAILABLE_TITLE"               : "Доступно обновление",
     "UPDATE_MESSAGE"                       : "Эй, новая сборка {APP_NAME} доступна. Вот некоторые из новых функций:",
     "GET_IT_NOW"                           : "Получить сейчас!",

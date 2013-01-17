@@ -327,6 +327,7 @@ define(function (require, exports, module) {
             "Esc": function (instance) {
                 self.removeAllInlineWidgets();
             },
+            "Cmd-Left": "goLineStartSmart",
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
@@ -1016,6 +1017,16 @@ define(function (require, exports, module) {
         this.getInlineWidgets().forEach(function (inlineWidget) {
             inlineWidget.refresh();
         });
+    };
+    
+    /** Undo the last edit. */
+    Editor.prototype.undo = function () {
+        this._codeMirror.undo();
+    };
+    
+    /** Redo the last un-done edit. */
+    Editor.prototype.redo = function () {
+        this._codeMirror.redo();
     };
     
     /**

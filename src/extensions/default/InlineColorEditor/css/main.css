@@ -76,7 +76,6 @@
 }
 .color-editor aside ul.swatches li {
     -webkit-text-size-adjust: none;
-    cursor: pointer;
     height: 18px;
     margin-bottom: 2px;
     padding: 0 1px 1px 2px;

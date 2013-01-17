@@ -56,6 +56,8 @@
  *      Document whose flag changed.
  *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
  *      Document that has been saved.
+ *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
+ *      listener is the Document that has been refreshed.
  *
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
  *
@@ -804,6 +806,8 @@ define(function (require, exports, module) {
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
+        
+        $(exports).triggerHandler("documentRefreshed", this);
 
         PerfUtils.addMeasurement(perfTimerName);
     };
@@ -1094,7 +1098,7 @@ define(function (require, exports, module) {
      * @private
      * Initializes the working set.
      */
-    function _projectOpen() {
+    function _projectOpen(e) {
         _isProjectChanging = false;
         
         // file root is appended for each project
@@ -1124,7 +1128,9 @@ define(function (require, exports, module) {
         }
 
         if (activeFile) {
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
+            var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
+            // Add this promise to the event's promises to signal that this handler isn't done yet
+            e.promises.push(promise);
         }
     }
 

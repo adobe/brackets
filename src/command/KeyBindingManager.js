@@ -33,7 +33,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var CommandManager = require("command/CommandManager"),
+    var AppInit        = require("utils/AppInit"),
+        CommandManager = require("command/CommandManager"),
         KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings");
 
@@ -573,11 +574,8 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * Install keydown event listener.
-     */
-    function init() {
-        // init
+    AppInit.htmlReady(function () {
+        // Install keydown event listener.
         window.document.body.addEventListener(
             "keydown",
             function (event) {
@@ -591,7 +589,7 @@ define(function (require, exports, module) {
         
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
             && (brackets.platform !== "win");
-    }
+    });
     
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
@@ -599,7 +597,6 @@ define(function (require, exports, module) {
     exports._reset = _reset;
 
     // Define public API
-    exports.init = init;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
