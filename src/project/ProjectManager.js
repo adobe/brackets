@@ -660,6 +660,13 @@ define(function (require, exports, module) {
                     
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
+                    
+                    // This is a workaround for a part of issue #2085, where the file creation process
+                    // depends on the open_node.jstree event being triggered, which doesn't happen on 
+                    // empty folders
+                    if (!wasNodeOpen) {
+                        treeNode.trigger("open_node.jstree");
+                    }
                 }
             },
             function (error) {
