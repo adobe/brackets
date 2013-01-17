@@ -535,6 +535,20 @@ define(function (require, exports, module) {
                     "test/SpecRunner.html"
                 ])).toBe(true);
             });
+            
+            it("should find the right jsutil", function () {
+                expect(goodRelativeOrdering("jsutil", [
+                    "src/language/JSUtil.js",
+                    "src/language/JSLintUtils.js"
+                ])).toBe(true);
+            });
+            
+            it("should find the right jsu", function () {
+                expect(goodRelativeOrdering("jsu", [
+                    "src/language/JSLintUtils.js",
+                    "src/language/JSUtil.js"
+                ])).toBe(true);
+            });
         });
         
         describe("scoring", function () {

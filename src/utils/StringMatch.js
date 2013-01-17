@@ -114,12 +114,12 @@ define(function (require, exports, module) {
     }
     
     // Constants for scoring
-    var SPECIAL_POINTS = 30;
+    var SPECIAL_POINTS = 35;
     var MATCH_POINTS = 10;
     var LAST_SEGMENT_BOOST = 1;
     var BEGINNING_OF_NAME_POINTS = 25;
     var DEDUCTION_FOR_LENGTH = 0.2;
-    var CONSECUTIVE_MATCHES_POINTS = 25;
+    var CONSECUTIVE_MATCHES_POINTS = 10;
     var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
     
     // Used in match lists to designate matches of "special" characters (see
@@ -497,7 +497,7 @@ define(function (require, exports, module) {
         // get to character index c. This function is called before starting a new range
         // or returning from the function.
         function closeRangeGap(c) {
-            // close the current range
+            // Close the current range
             if (currentRange) {
                 currentRange.includesLastSegment = lastMatchIndex >= lastSegmentStart;
                 if (currentRange.matched && currentRange.includesLastSegment) {
@@ -516,7 +516,7 @@ define(function (require, exports, module) {
                 ranges.push(currentRange);
             }
             
-            // if there was space between the new range and the last,
+            // If there was space between the new range and the last,
             // add a new unmatched range before the new range can be added.
             if (lastMatchIndex + 1 < c) {
                 ranges.push({
@@ -529,9 +529,13 @@ define(function (require, exports, module) {
             lastSegmentScore = 0;
         }
         
-        // adds a matched character to the appropriate range
+        // In some cases (see the use of this variable below), we accelerate the
+        // bonus the more consecutive matches there are.
+        var numConsecutive = 0;
+        
+        // Adds a matched character to the appropriate range
         function addMatch(match) {
-            // pull off the character index
+            // Pull off the character index
             var c = match.index;
             var newPoints = 0;
             
@@ -542,7 +546,7 @@ define(function (require, exports, module) {
             }
             newPoints += MATCH_POINTS;
             
-            // a bonus is given for characters that match at the beginning
+            // A bonus is given for characters that match at the beginning
             // of the filename
             if (c === lastSegmentStart) {
                 if (DEBUG_SCORES) {
@@ -556,10 +560,18 @@ define(function (require, exports, module) {
             // handles the initial value of lastMatchIndex which is used for
             // constructing ranges but we don't yet have a true match.
             if (score > 0 && lastMatchIndex + 1 === c) {
-                if (DEBUG_SCORES) {
-                    scoreDebug.consecutive += CONSECUTIVE_MATCHES_POINTS;
+                // Consecutive matches that started on a special are a
+                // good indicator of intent, so we award an added bonus there.
+                if (currentRangeStartedOnSpecial) {
+                    numConsecutive++;
                 }
-                newPoints += CONSECUTIVE_MATCHES_POINTS;
+                
+                if (DEBUG_SCORES) {
+                    scoreDebug.consecutive += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+                }
+                newPoints += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+            } else {
+                numConsecutive = 1;
             }
             
             // add points for "special" character matches
