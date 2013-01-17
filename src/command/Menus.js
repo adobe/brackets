@@ -984,7 +984,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         
         // supress redundant quit menu item on mac
-        if (brackets.platform !== "mac") {
+        if (brackets.platform !== "mac" && !brackets.inBrowser) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT);
         }
