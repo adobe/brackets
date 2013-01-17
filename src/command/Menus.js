@@ -560,6 +560,15 @@ define(function (require, exports, module) {
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
+                } else {
+                    // Make sure the name is up to date
+                    if (!menuItem.isDivider) {
+                        brackets.app.setMenuTitle(commandID, name, function (err) {
+                            if (err) {
+                                console.error("setMenuTitle() -- error: " + err);
+                            }
+                        });
+                    }
                 }
             });
             menuItem.isNative = true;
@@ -776,6 +785,13 @@ define(function (require, exports, module) {
             brackets.app.addMenu(name, id, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
+                } else {
+                    // Make sure name is up to date
+                    brackets.app.setMenuTitle(id, name, function (err) {
+                        if (err) {
+                            console.error("setMenuTitle() -- error: " + err);
+                        }
+                    });
                 }
             });
             return menu;
@@ -973,6 +989,13 @@ define(function (require, exports, module) {
          * Edit  menu
          */
         menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
+        menu.addMenuItem(Commands.EDIT_UNDO);
+        menu.addMenuItem(Commands.EDIT_REDO);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.EDIT_CUT);
+        menu.addMenuItem(Commands.EDIT_COPY);
+        menu.addMenuItem(Commands.EDIT_PASTE);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuDivider();
