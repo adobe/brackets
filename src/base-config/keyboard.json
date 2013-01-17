@@ -34,7 +34,7 @@
             "key": "Ctrl-Y"
         },
         {
-            "key": "Ctrl-Shift-Z",
+            "key": "Cmd-Shift-Z",
             "platform": "mac"
         }
     ],
@@ -97,6 +97,12 @@
     ],
     "edit.deletelines":  [
         "Ctrl-Shift-D"
+    ],
+    "edit.indent": [
+        "Tab"
+    ],
+    "edit.unindent": [
+        "Shift-Tab"
     ],
     "edit.lineUp":  [
         {
