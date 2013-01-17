@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         return cm.getSearchCursor(query, pos, typeof query === "string" && query === query.toLowerCase());
     }
     
-    function getDialogTextField(modalBar) {
+    function getDialogTextField() {
         return $("input[type='text']", modalBar.getRoot());
     }
 
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
-        function findFirst(query, modalBar) {
+        function findFirst(query) {
             cm.operation(function () {
                 if (!query) {
                     return;
@@ -179,14 +179,16 @@ define(function (require, exports, module) {
                 state.posFrom = state.posTo = searchStartPos;
                 var foundAny = findNext(cm, rev);
                 
-                getDialogTextField(modalBar).toggleClass("no-results", !foundAny);
+                if (modalBar) {
+                    getDialogTextField().toggleClass("no-results", !foundAny);
+                }
             });
         }
         
         if (modalBar) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            initialQuery = getDialogTextField(modalBar).attr("value");
+            initialQuery = getDialogTextField().attr("value");
         }
         
         createModalBar(queryDialog, true);
@@ -197,13 +199,13 @@ define(function (require, exports, module) {
                 // next occurrence. In this case we want to start searching
                 // *after* the current selection so we find the next occurrence.
                 searchStartPos = cm.getCursor(false);
-                findFirst(query, modalBar);
+                findFirst(query);
             }
         });
     
-        var $input = getDialogTextField(modalBar);
+        var $input = getDialogTextField();
         $input.on("input", function () {
-            findFirst($input.attr("value"), modalBar);
+            findFirst($input.attr("value"));
         });
 
         // Prepopulate the search field with the current selection, if any.
@@ -211,7 +213,7 @@ define(function (require, exports, module) {
             $input
                 .attr("value", initialQuery)
                 .get(0).select();
-            findFirst(initialQuery, modalBar);
+            findFirst(initialQuery);
             // Clear the "findNextCalled" flag here so we have a clean start
             state.findNextCalled = false;
         }
@@ -292,7 +294,7 @@ define(function (require, exports, module) {
         });
         
         // Prepopulate the replace field with the current selection, if any
-        getDialogTextField(modalBar)
+        getDialogTextField()
             .attr("value", cm.getSelection())
             .get(0).select();
     }
