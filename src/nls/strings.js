@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         "es": true,
         "it": true,
         "pt-br": true,
+        "pt-pt": true,
         "ja": true,
         "tr": true,
         "ru": true,
