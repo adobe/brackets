@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     require("spec/NativeMenu-test");
     require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");
+    require("spec/StringMatch-test");
     require("spec/UpdateNotification-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");
