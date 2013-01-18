@@ -149,6 +149,19 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Check whether a ContextMenu exists for the given id. 
+     * @param {string} id
+     * @return {boolean}
+     */
+    function _isContextMenu(id) {
+        return !!getContextMenu(id);
+    }
+    
+    function _isHTMLMenu(id) {
+        return (brackets.inBrowser || _isContextMenu(id));
+    }
+
+    /**
      * Retrieves the MenuItem object for the corresponding id. 
      * @param {string} id
      * @return {MenuItem}
@@ -252,6 +265,7 @@ define(function (require, exports, module) {
     function MenuItem(id, command) {
         this.id = id;
         this.isDivider = (command === DIVIDER);
+        this.isNative = false;
 
         if (!this.isDivider) {
             // Bind event handlers
@@ -389,7 +403,8 @@ define(function (require, exports, module) {
      * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
      */
     Menu.prototype.removeMenuItem = function (command) {
-        var menuItemID;
+        var menuItemID,
+            commandID;
 
         if (!command) {
             console.error("removeMenuItem(): missing required parameters: command");
@@ -403,13 +418,23 @@ define(function (require, exports, module) {
                 return;
             }
 
-            menuItemID = this._getMenuItemId(command);
+            commandID = command;
         } else {
-            menuItemID = this._getMenuItemId(command.getID());
+            commandID = command.getID();
         }
+        menuItemID = this._getMenuItemId(commandID);
 
-        // Targeting parent to get the menu item <a> and the <li> that contains it
-        $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        if (_isHTMLMenu(this.id)) {
+            // Targeting parent to get the menu item <a> and the <li> that contains it
+            $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        } else {
+            brackets.app.removeMenuItem(commandID, function (err) {
+                if (err) {
+                    console.error("removeMenuItem() -- command not found: " + commandID + " (error: " + err + ")");
+                }
+            });
+        }
+        
         delete menuItemMap[menuItemID];
     };
     
@@ -468,6 +493,7 @@ define(function (require, exports, module) {
             }
         } else {
             commandID = command.getID();
+            name = command.getName();
         }
 
         // Internal id is the a composite of the parent menu id and the command id.
@@ -483,21 +509,23 @@ define(function (require, exports, module) {
         menuItemMap[id] = menuItem;
 
         // create MenuItem DOM
-        if (name === DIVIDER) {
-            $menuItem = $("<li><hr class='divider' /></li>");
-        } else {
-            // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
-
-            $menuItem.on("click", function () {
-                menuItem._command.execute();
-            });
+        if (_isHTMLMenu(this.id)) {
+            if (name === DIVIDER) {
+                $menuItem = $("<li><hr class='divider' /></li>");
+            } else {
+                // Create the HTML Menu
+                $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
+    
+                $menuItem.on("click", function () {
+                    menuItem._command.execute();
+                });
+            }
+    
+            // Insert menu item
+            var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+                          $menuItem, position, $relativeElement);
         }
-
-        // Insert menu item
-        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
-        _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
-                      $menuItem, position, $relativeElement);
 
         // Initialize MenuItem state
         if (!menuItem.isDivider) {
@@ -519,6 +547,33 @@ define(function (require, exports, module) {
             menuItem._nameChanged();
         }
 
+        if (!_isHTMLMenu(this.id)) {
+            var bindings = KeyBindingManager.getKeyBindings(commandID),
+                binding,
+                bindingStr = "";
+            
+            if (bindings && bindings.length > 0) {
+                binding = bindings[bindings.length - 1];
+                bindingStr = binding.displayKey || binding.key;
+            }
+            
+            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
+                if (err) {
+                    console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
+                } else {
+                    // Make sure the name is up to date
+                    if (!menuItem.isDivider) {
+                        brackets.app.setMenuTitle(commandID, name, function (err) {
+                            if (err) {
+                                console.error("setMenuTitle() -- error: " + err);
+                            }
+                        });
+                    }
+                }
+            });
+            menuItem.isNative = true;
+        }
+        
         return menuItem;
     };
 
@@ -611,13 +666,22 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem checked state with underlying Command checked state
      */
     MenuItem.prototype._checkedChanged = function () {
-        var checked = this._command.getChecked();
-        // Note, checked can also be undefined, so we explicitly check
-        // for truthiness and don't use toggleClass().
-        if (checked) {
-            $(_getHTMLMenuItem(this.id)).addClass("checked");
+        var checked = !!this._command.getChecked();
+        if (this.isNative) {
+            var enabled = !!this._command.getEnabled();
+            brackets.app.setMenuItemState(this._command.getID(), enabled, checked, function (err) {
+                if (err) {
+                    console.log("Error setting menu item state: " + err);
+                }
+            });
         } else {
-            $(_getHTMLMenuItem(this.id)).removeClass("checked");
+            // Note, checked can also be undefined, so we explicitly check
+            // for truthiness and don't use toggleClass().
+            if (checked) {
+                $(_getHTMLMenuItem(this.id)).addClass("checked");
+            } else {
+                $(_getHTMLMenuItem(this.id)).removeClass("checked");
+            }
         }
     };
 
@@ -625,14 +689,32 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem enabled state with underlying Command enabled state
      */
     MenuItem.prototype._enabledChanged = function () {
-        $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+        if (this.isNative) {
+            var enabled = !!this._command.getEnabled();
+            var checked = !!this._command.getChecked();
+            brackets.app.setMenuItemState(this._command.getID(), enabled, checked, function (err) {
+                if (err) {
+                    console.log("Error setting menu item state: " + err);
+                }
+            });
+        } else {
+            $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+        }
     };
 
     /**
      * Synchronizes MenuItem name with underlying Command name
      */
     MenuItem.prototype._nameChanged = function () {
-        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        if (this.isNative) {
+            brackets.app.setMenuTitle(this._command.getID(), this._command.getName(), function (err) {
+                if (err) {
+                    console.log("Error setting menu title: " + err);
+                }
+            });
+        } else {
+            $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        }
     };
     
     /**
@@ -699,6 +781,22 @@ define(function (require, exports, module) {
         menu = new Menu(id);
         menuMap[id] = menu;
 
+        if (!_isHTMLMenu(id)) {
+            brackets.app.addMenu(name, id, position, relativeID, function (err) {
+                if (err) {
+                    console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
+                } else {
+                    // Make sure name is up to date
+                    brackets.app.setMenuTitle(id, name, function (err) {
+                        if (err) {
+                            console.error("setMenuTitle() -- error: " + err);
+                        }
+                    });
+                }
+            });
+            return menu;
+        }
+
         var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
             $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
@@ -730,7 +828,6 @@ define(function (require, exports, module) {
      *
      * Events:
      *      beforeContextMenuOpen
-     *      contextMenuClose
      *
      */
     function ContextMenu(id) {
@@ -811,12 +908,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Closes the context menu and dispatches the "contextMenuClose" event.
+     * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
-
-        $(this).triggerHandler("contextMenuClose");
     };
 
     /**
@@ -887,13 +982,24 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
         menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_QUIT);
+        
+        // supress redundant quit menu item on mac
+        if (brackets.platform !== "mac" && !brackets.inBrowser) {
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.FILE_QUIT);
+        }
 
         /*
          * Edit  menu
          */
         menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
+        menu.addMenuItem(Commands.EDIT_UNDO);
+        menu.addMenuItem(Commands.EDIT_REDO);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.EDIT_CUT);
+        menu.addMenuItem(Commands.EDIT_COPY);
+        menu.addMenuItem(Commands.EDIT_PASTE);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuDivider();
@@ -936,6 +1042,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
 
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
+        menu.addMenuItem(Commands.NAVIGATE_GOTO_JSLINT_ERROR);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);

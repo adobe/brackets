@@ -26,6 +26,27 @@
     "file.quit":  [
         "Ctrl-Q"
     ],
+    "edit.undo": [
+        "Ctrl-Z"
+    ],
+    "edit.redo": [
+        {
+            "key": "Ctrl-Y"
+        },
+        {
+            "key": "Cmd-Shift-Z",
+            "platform": "mac"
+        }
+    ],
+    "edit.cut": [
+        "Ctrl-X"
+    ],
+    "edit.copy": [
+        "Ctrl-C"
+    ],
+    "edit.paste": [
+        "Ctrl-V"
+    ],
     "edit.selectAll":  [
         "Ctrl-A"
     ],
@@ -69,18 +90,6 @@
         {
             "key": "Cmd-Alt-F",
             "platform": "mac"
-        }
-    ],
-    "edit.indent":  [
-        {
-            "key": "Indent",
-            "displayKey": "Tab"
-        }
-    ],
-    "edit.unindent":  [
-        {
-            "key": "Unindent",
-            "displayKey": "Shift-Tab"
         }
     ],
     "edit.duplicate":  [
@@ -159,6 +168,15 @@
     ],
     "navigate.gotoDefinition":  [
         "Ctrl-T"
+    ],
+    "navigate.gotoJSLintError":  [
+        {
+            "key": "F8"
+        },
+        {
+            "key": "Cmd-'",
+            "platform": "mac"
+        }
     ],
     "navigate.nextDoc":  [
         {
