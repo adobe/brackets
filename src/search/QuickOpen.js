@@ -48,7 +48,8 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
         KeyEvent            = require("utils/KeyEvent"),
-        ModalBar            = require("widgets/ModalBar").ModalBar;
+        ModalBar            = require("widgets/ModalBar").ModalBar,
+        StringMatch         = require("utils/StringMatch");
     
 
     /** @type Array.<QuickOpenPlugin> */
@@ -86,11 +87,6 @@ define(function (require, exports, module) {
      */
     var _curDialog;
 
-    /** Object representing a search result with associated metadata (added as extra ad hoc fields) */
-    function SearchResult(label) {
-        this.label = label;
-    }
-    
     /**
      * Defines API for new QuickOpen plug-ins
      */
@@ -428,261 +424,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Helper functions for stringMatch score calculation.
-     */
-    
-    /**
-     * The current scoring gives a boost for matches in the "most specific" (generally farthest right) 
-     * segment of the string being tested against the query.
-     */
-    function _adjustScoreForSegment(segmentCounter, score) {
-        if (segmentCounter === 0) {
-            // Multiplier used for matches within the most-specific part of the name (filename, for example)
-            return score * 3;
-        } else {
-            return score;
-        }
-    }
-    
-    /**
-     * Additional points are added when multiple characters in the string
-     * being tested match against query characters.
-     */
-    function _boostForMatches(sequentialMatches) {
-        // Multiplier for the number of sequential matched characters
-        return sequentialMatches * sequentialMatches * 5;
-    }
-    
-    /**
-     * The score is boosted for matches that occur at the beginning
-     * of a segment of string that is being tested against the query.
-     */
-    function _boostForPathSegmentStart(sequentialMatches) {
-        // Multiplier for sequential matched characters at the beginning
-        // of a delimited section (after a '/' in a path, for example)
-        return sequentialMatches * sequentialMatches * 5;
-    }
-    
-    /**
-    * Upper case characters are boosted to help match MixedCase strings better.
-    */
-    function _boostForUpperCase(c) {
-        return c.toUpperCase() === c ? 50 : 0;
-    }
-
-   /**
-    * Performs matching of a string based on a query, and scores
-    * the result based on specificity (assuming that the rightmost
-    * side of the input is the most specific) and how clustered the
-    * query characters are in the input string. The matching is
-    * case-insensitive, but case is taken into account in the scoring.
-    *
-    * If the query characters cannot be found in order (but not necessarily all together), 
-    * undefined is returned.
-    *
-    * The returned SearchResult has a matchGoodness score that can be used
-    * for sorting. It also has a stringRanges array, each entry with
-    * "text", "matched" and "segment". If you string the "text" properties together, you will
-    * get the original str. Using the matched property, you can highlight
-    * the string matches. The segment property tells you the most specific (rightmost)
-    * segment covered by the range, though there may be more than one segment covered.
-    * Segments are currently determined by "/"s.
-    *
-    * Use basicMatchSort() to sort the filtered results taking this ranking into account.
-    * The label of the SearchResult is set to 'str'.
-    * @param {!string} str
-    * @param {!string} query
-    * @return {?SearchResult}
-    */
-    function stringMatch(str, query) {
-        var result;
-        
-        // start at the end and work backward, because we give preference
-        // to matches in the name (last) segment
-        var strCounter = str.length - 1;
-        
-        // stringRanges are used to keep track of which parts of
-        // the input str matched the query
-        var stringRanges = [];
-        
-        // segmentCounter tracks which "segment" (delimited section) of the
-        // str we are in so that we can treat certain (generally most-specific) segments
-        // specially.
-        var segmentCounter = 0;
-        
-        // Keeps track of the most specific segment that the current stringRange
-        // is associated with.
-        var rangeSegment = 0;
-        
-        // addToStringRanges is used when we transition between matched and unmatched
-        // parts of the string.
-        function addToStringRanges(numberOfCharacters, matched) {
-            var segment = rangeSegment;
-            rangeSegment = segmentCounter;
-            stringRanges.unshift({
-                text: str.substr(strCounter + 1, numberOfCharacters),
-                matched: matched,
-                segment: segment
-            });
-        }
-
-        // No query? Short circuit the normal work done and just
-        // return a single range that covers the whole string.
-        if (!query) {
-            result = new SearchResult(str);
-            result.matchGoodness = 0;
-            strCounter = -1;
-            addToStringRanges(str.length, false);
-            result.stringRanges = stringRanges;
-            return result;
-        }
-        
-        var queryChars = query.toLowerCase().split("");
-        
-        // start at the end of the query
-        var queryCounter = queryChars.length - 1;
-
-        var score = 0;
-        
-        // sequentialMatches is positive when we are stepping through matched
-        // characters and negative when stepping through unmatched characters
-        var sequentialMatches = 0;
-        
-        while (strCounter >= 0 && queryCounter >= 0) {
-            var curChar = str.charAt(strCounter);
-            
-            // Ideally, this function will work with different delimiters used in
-            // different contexts. For now, this is used for paths delimited by '/'.
-            if (curChar === '/') {
-                // Beginning of segment, apply boost for a matching
-                // string of characters, if there is one
-                if (sequentialMatches > 0) {
-                    score += _boostForPathSegmentStart(sequentialMatches);
-                }
-                
-                score = _adjustScoreForSegment(segmentCounter, score);
-                segmentCounter++;
-            }
-            
-            if (queryChars[queryCounter] === curChar.toLowerCase()) {
-                
-                score += _boostForUpperCase(curChar);
-                
-                // are we ending a string of unmatched characters?
-                if (sequentialMatches < 0) {
-                    addToStringRanges(-sequentialMatches, false);
-                    sequentialMatches = 0;
-                }
-                
-                // matched character, chalk up another match
-                // and move both counters back a character
-                sequentialMatches++;
-                queryCounter--;
-                strCounter--;
-            } else {
-                // are we ending a string of matched characters?
-                if (sequentialMatches > 0) {
-                    addToStringRanges(sequentialMatches, true);
-                    score += _boostForMatches(sequentialMatches);
-                    sequentialMatches = 0;
-                }
-                // character didn't match, apply sequential matches
-                // to score and keep looking
-                strCounter--;
-                sequentialMatches--;
-            }
-        }
-        
-        // if there are still query characters left, we don't
-        // have a match
-        if (queryCounter >= 0) {
-            return undefined;
-        }
-        
-        if (sequentialMatches) {
-            addToStringRanges(Math.abs(sequentialMatches), sequentialMatches > 0);
-        }
-        
-        if (strCounter >= 0) {
-            stringRanges.unshift({
-                text: str.substring(0, strCounter + 1),
-                matched: false,
-                segment: rangeSegment
-            });
-        }
-        
-        // now, we need to apply any score we've accumulated
-        // before we ran out of query characters
-        score += _boostForMatches(sequentialMatches);
-        
-        if (sequentialMatches && strCounter >= 0) {
-            if (str.charAt(strCounter) === '/') {
-                score += _boostForPathSegmentStart(sequentialMatches);
-            }
-        }
-        score = _adjustScoreForSegment(segmentCounter, score);
-        
-        // Produce a SearchResult that is augmented with matchGoodness
-        // (used for sorting) and stringRanges (used for highlighting
-        // matched areas of the string)
-        result = new SearchResult(str);
-        result.matchGoodness = -1 * score;
-        result.stringRanges = stringRanges;
-        return result;
-    }
-    
-    /**
-     * Sorts an array of SearchResult objects on a primary field, followed by secondary fields
-     * in case of ties. 'fields' maps field name to priority, where 0 is the primary field. E.g.:
-     *      multiFieldSort(bugList, { milestone: 0, severity: 1 });
-     * Would sort a bug list by milestone, and within each milestone sort bugs by severity.
-     *
-     * Any fields that have a string value are compared case-insensitively. Fields used should be
-     * present on all SearchResult objects (no optional/undefined fields).
-     *
-     * @param {!Array.<SearchResult>} searchResults
-     * @param {!Object.<string, number>} fields
-     */
-    function multiFieldSort(searchResults, fields) {
-        // Move field names into an array, with primary field first
-        var fieldNames = [];
-        $.each(fields, function (key, priority) {
-            fieldNames[priority] = key;
-        });
-        
-        searchResults.sort(function (a, b) {
-            var priority;
-            for (priority = 0; priority < fieldNames.length; priority++) {
-                var fieldName = fieldNames[priority];
-                var valueA = a[fieldName];
-                var valueB = b[fieldName];
-                if (typeof valueA === "string") {
-                    valueA = valueA.toLowerCase();
-                    valueB = valueB.toLowerCase();
-                }
-                
-                if (valueA < valueB) {
-                    return -1;
-                } else if (valueA > valueB) {
-                    return 1;
-                }
-                // otherwise, move on to next sort priority
-            }
-            return 0; // all sort fields are equal
-        });
-    }
-    
-    /**
-     * Sorts search results generated by stringMatch(): results are sorted into several
-     * tiers based on how well they matched the search query, then sorted alphabetically
-     * within each tier.
-     */
-    function basicMatchSort(searchResults) {
-        multiFieldSort(searchResults, { matchGoodness: 0, label: 1 });
-    }
-    
-    
-    /**
      * Returns true if the query string doesn't match the query text field. This can happen when _handleFilter()
      * runs slow (either synchronously or async as in searchFileList()). Several key events queue up before filtering
      * is done, and each sets a timeout. After all the key events are handled, we wind up with a queue of timeouts
@@ -719,7 +460,7 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
             // match query against the full path (with gaps between query characters allowed)
-            var searchResult = stringMatch(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+            var searchResult = StringMatch.stringMatch(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             if (searchResult) {
                 searchResult.label = fileInfo.name;
                 searchResult.fullPath = fileInfo.fullPath;
@@ -731,7 +472,7 @@ define(function (require, exports, module) {
         // Sort by "match goodness" tier first, then within each tier sort alphabetically - first by filename
         // sans extension, (so that "abc.js" comes before "abc-d.js"), then by filename, and finally (for
         // identically-named files) by full path
-        multiFieldSort(filteredList, { matchGoodness: 0, filenameWithoutExtension: 1, label: 2, fullPath: 3 });
+        StringMatch.multiFieldSort(filteredList, { matchGoodness: 0, filenameWithoutExtension: 1, label: 2, fullPath: 3 });
 
         return filteredList;
     }
@@ -789,7 +530,7 @@ define(function (require, exports, module) {
      * matched; else formats the label with no highlighting.
      * @param {!string|SearchResult} item
      * @param {?string} matchClass CSS class for highlighting matched text
-     * @param {?function(number, string):string} rangeFilter
+     * @param {?function(boolean, string):string} rangeFilter
      * @return {!string} bolded, HTML-escaped result
      */
     function highlightMatch(item, matchClass, rangeFilter) {
@@ -802,11 +543,18 @@ define(function (require, exports, module) {
             stringRanges = [{
                 text: label,
                 matched: false,
-                segment: 0
+                includesLastSegment: true
             }];
         }
         
         var displayName = "";
+        if (item.scoreDebug) {
+            var sd = item.scoreDebug;
+            displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
+                ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
+                ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
+                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
+        }
         
         // Put the path pieces together, highlighting the matched parts
         stringRanges.forEach(function (range) {
@@ -814,7 +562,7 @@ define(function (require, exports, module) {
                 displayName += "<span class='" + matchClass + "'>";
             }
             
-            var rangeText = rangeFilter ? rangeFilter(range.segment, range.text) : range.text;
+            var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
             displayName += StringUtils.breakableUrl(StringUtils.htmlEscape(rangeText));
             
             if (range.matched) {
@@ -833,8 +581,8 @@ define(function (require, exports, module) {
     
     function _filenameResultsFormatter(item, query) {
         // For main label, we just want filename: drop most of the string
-        function fileNameFilter(segment, rangeText) {
-            if (segment === 0) {
+        function fileNameFilter(includesLastSegment, rangeText) {
+            if (includesLastSegment) {
                 var rightmostSlash = rangeText.lastIndexOf('/');
                 return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
             } else {
@@ -1056,11 +804,13 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
-    exports.beginSearch         = beginSearch;
-    exports.addQuickOpenPlugin  = addQuickOpenPlugin;
-    exports.SearchResult        = SearchResult;
-    exports.stringMatch         = stringMatch;
-    exports.basicMatchSort      = basicMatchSort;
-    exports.multiFieldSort      = multiFieldSort;
-    exports.highlightMatch      = highlightMatch;
+    exports.beginSearch             = beginSearch;
+    exports.addQuickOpenPlugin      = addQuickOpenPlugin;
+    exports.highlightMatch          = highlightMatch;
+    
+    // accessing these from this module will ultimately be deprecated
+    exports.stringMatch             = StringMatch.stringMatch;
+    exports.SearchResult            = StringMatch.SearchResult;
+    exports.basicMatchSort          = StringMatch.basicMatchSort;
+    exports.multiFieldSort          = StringMatch.multiFieldSort;
 });
