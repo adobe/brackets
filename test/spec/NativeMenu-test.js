@@ -98,12 +98,17 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(title).toBe(TEST_MENU_TITLE);
+                });
                     
-                    // Remove menu
+                // Remove menu
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        complete = true;
                         // Ignore error
                     });
                 });
+                waitsFor(function () { return complete; }, 1000);
             });
 		
             it("should return an error if invalid parameters are passed", function () {
@@ -133,6 +138,7 @@ define(function (require, exports, module) {
             
             beforeEach(function () {
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
@@ -163,7 +169,9 @@ define(function (require, exports, module) {
             });
             
             it("should add new menu in last position of list", function () {
+                error = 0;
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu("Custom1", "menu-unittest1", "", "", function (err) {
                         complete = true;
                         error = err;
@@ -179,6 +187,8 @@ define(function (require, exports, module) {
                 // Verify menu is found
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("menu-unittest1", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -192,16 +202,30 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(parentId).toBe("");
-                    expect(position).toBe(1);
-                    
+                    expect(position).toBeGreaterThan(0);
+                });
+
+                // Remove menu
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenu("menu-unittest1", function (err) {
-                        // Ignore error
+                        complete = true;
+                        error = err;
                     });
+                });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    expect(error).toBe(0);
                 });
             });
 
             it("should add new menu after reference menu", function () {
+                var targetPos = -1;
+                error = 0;
+
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu("CustomFirst", "menu-unittest-first", "first", "", function (err) {
                         complete = true;
                         error = err;
@@ -215,6 +239,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu("CustomAfter", "menu-unittest-after", "after", "menu-unittest-first", function (err) {
                         complete = true;
                         error = err;
@@ -230,11 +255,15 @@ define(function (require, exports, module) {
                 // Verify menu is found
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
+                    targetPos = -1;
                     brackets.app.getMenuPosition("menu-unittest-first", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
                         position = index;
+                        targetPos = position + 1;
                     });
                 });
                 
@@ -243,12 +272,13 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(parentId).toBe("");
-                    expect(position).toBe(0);
                 });
 
                 // Verify menu is found
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("menu-unittest-after", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -262,19 +292,35 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(parentId).toBe("");
-                    expect(position).toBe(1);
-                    
+                    expect(position).toBe(targetPos);
+                });
+
+                // Remove menu
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenu("menu-unittest-first", function (err) {
-                        // Ignore error
-                    });
-                    brackets.app.removeMenu("menu-unittest-after", function (err) {
+                        complete = true;
                         // Ignore error
                     });
                 });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.app.removeMenu("menu-unittest-after", function (err) {
+                        complete = true;
+                        // Ignore error
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
             });
 
             it("should add new menu before reference menu", function () {
+                var targetPos = -1;
+                error = 0;
+                
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu("CustomLast", "menu-unittest-last", "last", "", function (err) {
                         complete = true;
                         error = err;
@@ -288,6 +334,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu("CustomBefore", "menu-unittest-before", "before", "menu-unittest-last", function (err) {
                         complete = true;
                         error = err;
@@ -303,11 +350,15 @@ define(function (require, exports, module) {
                 // Verify menu is found
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
+                    targetPos = -1;
                     brackets.app.getMenuPosition("menu-unittest-last", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
                         position = index;
+                        targetPos = position - 1;
                     });
                 });
                 
@@ -316,12 +367,13 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(parentId).toBe("");
-                    expect(position).toBe(2);
                 });
 
                 // Verify menu is found
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("menu-unittest-before", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -335,19 +387,33 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(parentId).toBe("");
-                    expect(position).toBe(1);
-                    
+                    expect(position).toBe(targetPos);
+                });
+
+                // Remove menu
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenu("menu-unittest-last", function (err) {
-                        // Ignore error
-                    });
-                    brackets.app.removeMenu("menu-unittest-before", function (err) {
+                        complete = true;
                         // Ignore error
                     });
                 });
+                waitsFor(function () { return complete; }, 1000);
+
+                runs(function () {
+                    complete = false;
+                    brackets.app.removeMenu("menu-unittest-before", function (err) {
+                        complete = true;
+                        // Ignore error
+                    });
+                });
+                waitsFor(function () { return complete; }, 1000);
             });
 
             it("should add new menu at end of list when reference menu doesn't exist", function () {
+                error = 0;
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu("Custom4", "menu-unittest4", "after", "NONEXISTANT", function (err) {
                         complete = true;
                         error = err;
@@ -363,6 +429,8 @@ define(function (require, exports, module) {
                 // Verify menu is found
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("menu-unittest4", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -376,12 +444,18 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(parentId).toBe("");
-                    expect(position).toBe(1);
-                    
+                    expect(position).toBeGreaterThan(0);
+                });
+
+                // Remove menu
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenu("menu-unittest4", function (err) {
+                        complete = true;
                         // Ignore error
                     });
                 });
+                waitsFor(function () { return complete; }, 1000);
             });
 
         }); // describe("addMenu (with reference)")
@@ -423,6 +497,7 @@ define(function (require, exports, module) {
             });
             
             it("should add a menu item", function () {
+                error = 0;
                 runs(function () {
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", function (err) {
@@ -458,6 +533,7 @@ define(function (require, exports, module) {
             });
          
             it("should return an error if invalid parameters are passed", function () {
+                error = 0;
                 runs(function () {
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", function (err) {
@@ -478,11 +554,12 @@ define(function (require, exports, module) {
             var complete = false,
                 error = 0,
                 title,
-                parentId,
-                position;
+                parentId = null,
+                position = -1;
             
             beforeEach(function () {
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
@@ -516,13 +593,18 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
+                        complete = true;
                     });
+                });
+                waitsFor(function () { return complete; });
+
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenu(TEST_MENU_ID, function (err) {
                         complete = true;
                         error = err;
                     });
                 });
-                
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
@@ -531,6 +613,7 @@ define(function (require, exports, module) {
             });
             
             it("should add a menu item in first position of menu", function () {
+                error = 0;
                 runs(function () {
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 1", "Menu-test.command01", "", "first", "", function (err) {
@@ -548,6 +631,8 @@ define(function (require, exports, module) {
                 // Verify item is found in the right position
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("Menu-test.command01", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -579,12 +664,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(title).toBe("Brackets Test Command Custom 1");
+                });
+
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenuItem("Menu-test.command01", function (err) {
+                        complete = true;
                     });
                 });
+                waitsFor(function () { return complete; });
             });
          
             it("should add a menu item in last position of menu", function () {
+                error = 0;
                 runs(function () {
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 2", "Menu-test.command02", "", "last", "", function (err) {
@@ -602,6 +694,8 @@ define(function (require, exports, module) {
                 // Verify item is found in the right position
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("Menu-test.command02", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -633,13 +727,20 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(title).toBe("Brackets Test Command Custom 2");
+                });
+
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenuItem("Menu-test.command02", function (err) {
+                        complete = true;
                     });
                 });
+                waitsFor(function () { return complete; });
             });
          
          
             it("should add a menu item after the referenced menu item", function () {
+                error = 0;
                 runs(function () {
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 3", "Menu-test.command03", "", "after", TEST_MENU_ITEM_ID, function (err) {
@@ -657,6 +758,8 @@ define(function (require, exports, module) {
                 // Verify item is found in the right position
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("Menu-test.command03", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -688,12 +791,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(title).toBe("Brackets Test Command Custom 3");
+                });
+
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenuItem("Menu-test.command03", function (err) {
+                        complete = true;
                     });
                 });
+                waitsFor(function () { return complete; });
             });
          
             it("should add a menu item before the referenced menu item", function () {
+                error = 0;
                 runs(function () {
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 4", "Menu-test.command04", "", "before", TEST_MENU_ITEM_ID, function (err) {
@@ -711,6 +821,8 @@ define(function (require, exports, module) {
                 // Verify item is found in the right position
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("Menu-test.command04", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -742,12 +854,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(title).toBe("Brackets Test Command Custom 4");
+                });
+
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenuItem("Menu-test.command04", function (err) {
+                        complete = true;
                     });
                 });
+                waitsFor(function () { return complete; });
             });
 
             it("should add a menu item at the end when reference menu item doesn't exist", function () {
+                error = 0;
                 runs(function () {
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 5", "Menu-test.command05", "", "before", "NONEXISTANT", function (err) {
@@ -765,6 +884,8 @@ define(function (require, exports, module) {
                 // Verify item is found in the right position
                 runs(function () {
                     complete = false;
+                    parentId = null;
+                    position = -1;
                     brackets.app.getMenuPosition("Menu-test.command05", function (err, parent, index) {
                         complete = true;
                         error = err;
@@ -796,9 +917,15 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(title).toBe("Brackets Test Command Custom 5");
+                });
+
+                runs(function () {
+                    complete = false;
                     brackets.app.removeMenuItem("Menu-test.command05", function (err) {
+                        complete = true;
                     });
                 });
+                waitsFor(function () { return complete; });
             });
         });  // describe("addMenuItem (with reference)")
         
@@ -834,8 +961,10 @@ define(function (require, exports, module) {
                     expect(error).toBe(0);
                 });
             });
+
             it("should return an error if invalid parameters are passed", function () {
                 complete = false;
+                error = 0;
                 
                 runs(function () {
                     brackets.app.removeMenu(42, function (err) {
@@ -850,8 +979,10 @@ define(function (require, exports, module) {
                     expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
                 });
             });
+
             it("should return an error if the menu can't be found", function () {
                 complete = false;
+                error = 0;
                 
                 runs(function () {
                     brackets.app.removeMenu(TEST_MENU_ID, function (err) {
