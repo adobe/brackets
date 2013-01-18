@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine, setTimeout */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
@@ -73,21 +73,8 @@ define(function (require, exports, module) {
             timeoutLength = timeoutLength || 10;
             
             expectSearchBarOpen();
-            var input = getSearchField()[0];
             
-            // We need to simulate typing into the field in order to get the QuickOpen matching code to
-            // run.
-            var i;
-            for (i = 0; i < str.length; i++) {
-                SpecRunnerUtils.simulateKeyEvent(KeyEvent["DOM_VK_" + str[i]], "keydown", input);
-            }
-            
-            // We still set the input value as well because that is read by other code.
-            // setTimeout is used to turn the event loop so that the search text is not placed in
-            // the text field until after the keydown code has received the events.
-            //
-            // timeoutLength is configurable because some uses may take longer than others
-            setTimeout(function () {
+            window.setTimeout(function () {
                 getSearchField().val(str);
             }, timeoutLength);
         }
@@ -102,21 +89,14 @@ define(function (require, exports, module) {
 
         
         it("can open a file and jump to a line, centering that line on the screen", function () {
-            var hostOpened = false;
             var err = false;
-            var workingSet = [];
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
             
             runs(function () {
-                SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
-                    hostOpened = true;
-                }).fail(function () {
-                    err = true;
-                });
+                var promise = SpecRunnerUtils.openProjectFiles([]);
+                waitsForDone(promise, "open project files");
             });
-            
-            waitsFor(function () { return hostOpened && !err; }, "window opening timeout", 1000);
             
             runs(function () {
                 executeCommand(Commands.NAVIGATE_QUICK_OPEN);
@@ -153,7 +133,7 @@ define(function (require, exports, module) {
             var eventLooped = false;
             runs(function () {
                 pressEnter();
-                setTimeout(function () {
+                window.setTimeout(function () {
                     eventLooped = true;
                 }, 10);
             });
@@ -171,14 +151,7 @@ define(function (require, exports, module) {
                 // We expect the result to be scrolled roughly to the middle of the window.
                 expect(scrollPos.y).toBeGreaterThan(400);
                 expect(scrollPos.y).toBeLessThan(500);
-                
-                eventLooped = false;
-                setTimeout(function () {
-                    eventLooped = true;
-                }, 10);
             });
-            
-            waitsFor(function () { return eventLooped; });
         });
 
     });

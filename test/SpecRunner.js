@@ -54,7 +54,6 @@ define(function (require, exports, module) {
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
-    require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
     
     
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
