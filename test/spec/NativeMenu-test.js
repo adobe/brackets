@@ -467,6 +467,7 @@ define(function (require, exports, module) {
             
             beforeEach(function () {
                 runs(function () {
+                    complete = false;
                     brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
@@ -527,14 +528,18 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(error).toBe(0);
                     expect(title).toBe(TEST_MENU_ITEM);
+                    complete = false;
                     brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
+                        complete = true;
                     });
                 });
+                
+                waitsFor(function () { return complete; }, 1000);
             });
          
             it("should return an error if invalid parameters are passed", function () {
-                error = 0;
                 runs(function () {
+                    error = 0;
                     complete = false;
                     brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", function (err) {
                         complete = true;
