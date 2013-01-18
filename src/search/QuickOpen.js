@@ -23,6 +23,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, window, setTimeout */
+/*unittests: QuickOpen*/
 
 /*
  * Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines

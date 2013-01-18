@@ -84,11 +84,6 @@ define(function (require, exports, module) {
         
         // Helper functions for testing cursor position / selection range
         // TODO: duplicated from EditorCommandHandlers-test
-        function expectCursorAt(pos) {
-            var selection = myEditor.getSelection();
-            expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
-        }
         function expectSelection(sel) {
             expect(myEditor.getSelection()).toEqual(sel);
         }
@@ -235,10 +230,10 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 expectSearchBarOpen();
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
             });
             
             it("should open search bar on Find Next with no previous search", function () {
@@ -247,7 +242,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 
                 expectSearchBarOpen();
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
             });
             
         });
@@ -303,7 +298,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
                 enterSearchText("requireX");
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, CH_REQUIRE_PAREN);
             });
         });
         
@@ -354,7 +349,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
@@ -369,7 +364,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
@@ -387,10 +382,10 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
                 
             });
             
@@ -398,12 +393,12 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
 
                 pressEnter();
                 
                 expectSearchBarClosed();
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
             });
         });
         
@@ -467,7 +462,7 @@ define(function (require, exports, module) {
                 // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
                 enterSearchText("/+/");
                 expect($(".modal-bar .error").length).toBe(1);
-                expectCursorAt({line: 0, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(0, 0); // no change
             });
             
             it("shouldn't choke on empty regexp", function () {
@@ -476,7 +471,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("//");
-                expectCursorAt({line: 0, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(0, 0); // no change
             });
         });
     });
