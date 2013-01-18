@@ -288,6 +288,31 @@ define(function (require, exports, module) {
     function _isKeyAssigned(key) {
         return (_keyMap[key] !== undefined);
     }
+    
+    /**
+     * @private
+     * Convert Ctrl to Cmd for generic key bindings
+     * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
+     * @param {?string} platform - undefined indicates all platforms
+     * @return {string|{{key: string, displayKey: string}}}
+     */
+    function transformBinding(keyBinding, explicitPlatform) {
+        var key;
+        
+        if (brackets.platform === "mac" && explicitPlatform === undefined) {
+            key = (keyBinding.key || keyBinding).replace("Ctrl", "Cmd");
+            
+            if (keyBinding.key) {
+                keyBinding.key = key;
+            }
+            
+            if (keyBinding.displayKey !== undefined) {
+                keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
+            }
+        }
+        
+        return keyBinding.key ? keyBinding : key;
+    }
 
     /**
      * Remove a key binding from _keymap
@@ -300,6 +325,7 @@ define(function (require, exports, module) {
             return;
         }
 
+        key = transformBinding(key, platform);
         var normalizedKey = normalizeKeyDescriptorString(key);
         
         if (!normalizedKey) {
@@ -357,13 +383,8 @@ define(function (require, exports, module) {
         
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
+        keyBinding = transformBinding(keyBinding, explicitPlatform);
         key = (keyBinding.key) || keyBinding;
-        if (brackets.platform === "mac" && explicitPlatform === undefined) {
-            key = key.replace("Ctrl", "Cmd");
-            if (keyBinding.displayKey !== undefined) {
-                keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
-            }
-        }
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
@@ -647,7 +668,6 @@ define(function (require, exports, module) {
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
     exports.loadKeyBindingsFile = loadKeyBindingsFile;
-    //exports.toJSON = toJSON;
     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux). 
