@@ -177,6 +177,11 @@ define({
 
     // Edit menu commands
 	"EDIT_MENU": "Modifier",
+	"CMD_UNDO": "Annuler",
+	"CMD_REDO": "Répéter",
+	"CMD_CUT": "Couper",
+	"CMD_COPY": "[6663366] !é=Copy=!",
+	"CMD_PASTE": "Coller",
 	"CMD_SELECT_ALL": "Sélectionner tout",
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
 	"CMD_FIND": "Rechercher",
@@ -211,6 +216,7 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
