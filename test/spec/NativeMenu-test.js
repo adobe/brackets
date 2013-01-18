@@ -423,7 +423,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, 1000);
                 
                 runs(function () {
-                    expect(error).toBe(0);
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
                 });
 
                 // Verify menu is found
@@ -878,7 +878,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, 1000);
                 
                 runs(function () {
-                    expect(error).toBe(0);
+                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
                 });
                 
                 // Verify item is found in the right position
