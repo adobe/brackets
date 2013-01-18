@@ -39,6 +39,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar;
     
+    var modalBar;
+    
     function SearchState() {
         this.posFrom = this.posTo = this.query = null;
         this.marked = [];
@@ -56,7 +58,7 @@ define(function (require, exports, module) {
         return cm.getSearchCursor(query, pos, typeof query === "string" && query === query.toLowerCase());
     }
     
-    function getDialogTextField(modalBar) {
+    function getDialogTextField() {
         return $("input[type='text']", modalBar.getRoot());
     }
 
@@ -116,6 +118,22 @@ define(function (require, exports, module) {
         });
     }
     
+    function createModalBar(template, autoClose) {
+        // Normally, creating a new modal bar will simply cause the old one to close
+        // automatically. This can cause timing issues because the focus change might
+        // cause the new one to think it should close, too. The old CodeMirror version
+        // of this handled it by adding a timeout within which a blur wouldn't cause
+        // the modal bar to close. Rather than reinstate that hack, we simply explicitly
+        // close the old modal bar before creating a new one.
+        if (modalBar) {
+            modalBar.close();
+        }
+        modalBar = new ModalBar(template, autoClose);
+        $(modalBar).on("closeOk closeBlur closeCancel", function () {
+            modalBar = null;
+        });
+    }
+    
     var queryDialog = Strings.CMD_FIND +
             ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
             Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
@@ -138,7 +156,7 @@ define(function (require, exports, module) {
         
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
-        function findFirst(query, modalBar) {
+        function findFirst(query) {
             cm.operation(function () {
                 if (!query) {
                     return;
@@ -161,11 +179,19 @@ define(function (require, exports, module) {
                 state.posFrom = state.posTo = searchStartPos;
                 var foundAny = findNext(cm, rev);
                 
-                getDialogTextField(modalBar).toggleClass("no-results", !foundAny);
+                if (modalBar) {
+                    getDialogTextField().toggleClass("no-results", !foundAny);
+                }
             });
         }
         
-        var modalBar = new ModalBar(queryDialog, true);
+        if (modalBar) {
+            // The modalBar was already up. When creating the new modalBar, copy the
+            // current query instead of using the passed-in selected text.
+            initialQuery = getDialogTextField().attr("value");
+        }
+        
+        createModalBar(queryDialog, true);
         $(modalBar).on("closeOk", function (e, query) {
             if (!state.findNextCalled) {
                 // If findNextCalled is false, this means the user has *not*
@@ -173,13 +199,13 @@ define(function (require, exports, module) {
                 // next occurrence. In this case we want to start searching
                 // *after* the current selection so we find the next occurrence.
                 searchStartPos = cm.getCursor(false);
-                findFirst(query, modalBar);
+                findFirst(query);
             }
         });
-        
-        var $input = getDialogTextField(modalBar);
+    
+        var $input = getDialogTextField();
         $input.on("input", function () {
-            findFirst($input.attr("value"), modalBar);
+            findFirst($input.attr("value"));
         });
 
         // Prepopulate the search field with the current selection, if any.
@@ -187,7 +213,7 @@ define(function (require, exports, module) {
             $input
                 .attr("value", initialQuery)
                 .get(0).select();
-            findFirst(initialQuery, modalBar);
+            findFirst(initialQuery);
             // Clear the "findNextCalled" flag here so we have a clean start
             state.findNextCalled = false;
         }
@@ -206,14 +232,14 @@ define(function (require, exports, module) {
             '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
     function replace(cm, all) {
-        var modalBar = new ModalBar(replaceQueryDialog, true);
+        createModalBar(replaceQueryDialog, true);
         $(modalBar).on("closeOk", function (e, query) {
             if (!query) {
                 return;
             }
             
             query = parseQuery(query);
-            modalBar = new ModalBar(replacementQueryDialog, true);
+            createModalBar(replacementQueryDialog, true);
             $(modalBar).on("closeOk", function (e, text) {
                 text = text || "";
                 var match,
@@ -247,7 +273,7 @@ define(function (require, exports, module) {
                             }
                         }
                         cm.setSelection(cursor.from(), cursor.to());
-                        modalBar = new ModalBar(doReplaceConfirm, true);
+                        createModalBar(doReplaceConfirm, true);
                         modalBar.getRoot().on("click", function (e) {
                             modalBar.close();
                             if (e.target.id === "replace-yes") {
@@ -268,7 +294,7 @@ define(function (require, exports, module) {
         });
         
         // Prepopulate the replace field with the current selection, if any
-        getDialogTextField(modalBar)
+        getDialogTextField()
             .attr("value", cm.getSelection())
             .get(0).select();
     }

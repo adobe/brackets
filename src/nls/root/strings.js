@@ -177,6 +177,11 @@ define({
 
     // Edit menu commands
     "EDIT_MENU"                           : "Edit",
+    "CMD_UNDO"                            : "Undo",
+    "CMD_REDO"                            : "Redo",
+    "CMD_CUT"                             : "Cut",
+    "CMD_COPY"                            : "Copy",
+    "CMD_PASTE"                           : "Paste",
     "CMD_SELECT_ALL"                      : "Select All",
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_FIND"                            : "Find",

@@ -1019,6 +1019,16 @@ define(function (require, exports, module) {
         });
     };
     
+    /** Undo the last edit. */
+    Editor.prototype.undo = function () {
+        this._codeMirror.undo();
+    };
+    
+    /** Redo the last un-done edit. */
+    Editor.prototype.redo = function () {
+        this._codeMirror.redo();
+    };
+    
     /**
      * Shows or hides the editor within its parent. Does not force its ancestors to
      * become visible.
