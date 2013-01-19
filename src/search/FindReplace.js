@@ -147,7 +147,9 @@ define(function (require, exports, module) {
         // result, starting from the original cursor position
         function findFirst(query, modalBar) {
             cm.operation(function () {
-                clearSearch(cm);
+                if (state.query) {
+                    clearHighlights(getSearchState(cm));
+                }
                 state.query = parseQuery(query);
                 if (!state.query) {
                     return;
