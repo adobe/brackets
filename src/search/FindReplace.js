@@ -173,7 +173,7 @@ define(function (require, exports, module) {
 
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
-                if (cm.getValue().length < 2000000) {
+                if (cm.getValue().length < 500000) {
                     // This is too expensive on big documents.
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {

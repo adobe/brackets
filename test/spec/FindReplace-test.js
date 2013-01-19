@@ -92,23 +92,27 @@ define(function (require, exports, module) {
         }
         function expectHighlightedMatches(selections) {
             var cm = myEditor._codeMirror;
+            var searchState = cm._searchState;
+            
+            expect(searchState).toBeDefined();
+            expect(searchState.marked).toBeDefined();
+            expect(searchState.marked.length).toEqual(selections.length);
+            
+            // Verify that searchState's marked ranges match expected ranges
             if (selections) {
-                selections.forEach(function (value) {
-                    var textMarkers = cm.lineInfo(value.start.line).handle.marked;
-                    expect(textMarkers).toBeTruthy();
-                    expect(textMarkers.length).toBeGreaterThan(0);
-
-                    var found = false;
-                    cm.lineInfo(value.start.line).handle.marked.forEach(function (textMarker) {
-                        if (textMarker.from === value.start.ch && textMarker.to === value.end.ch) {
-                            found = true;
-                        }
-                    });
-                    expect(found).toBeTruthy();
+                selections.forEach(function (location, index) {
+                    var textMarker = searchState.marked[index];
+                    var markerLocation = textMarker.find();
+                    expect(markerLocation.from).toEqual(location.start);
+                    expect(markerLocation.to).toEqual(location.end);
                 });
-            } else {
-                expect(cm._searchState.marked).toBeFalsy();
             }
+            
+            // Verify that editor UI doesn't have extra ranges left highlighted from earlier
+            // (note: this only works for text that's short enough to not get virtualized)
+            var lineDiv = $(".CodeMirror-lines > div > div:last-child");
+            var actualHighlights = $(".CodeMirror-searching", lineDiv);
+            expect(actualHighlights.length).toEqual(selections.length);
         }
         
         
