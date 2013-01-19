@@ -933,7 +933,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
             });
             
-            it("should add menu items to beginnging and end of menu section", function () {
+            it("should add menu items to beginning and end of menu section", function () {
                 var complete,
                     error,
                     index,
@@ -945,7 +945,8 @@ define(function (require, exports, module) {
                     brackets.app.addMenu("Section Test", "menuitem-sectiontest", "", "", function (err) {});
                     brackets.app.addMenuItem(SECTION_MENU, "Command 10", "Menu-test.command10", "", "", "", function (err) {});
                     brackets.app.addMenuItem(SECTION_MENU, "Command 11", "Menu-test.command11", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "---", "Menu-test.separator", "", "", "", function (err) {});
+                    // String(Date.now()) is used as a temporary measure until bug #2613 is fixed.
+                    brackets.app.addMenuItem(SECTION_MENU, "---", String(Date.now()), "", "", "", function (err) {});
                     brackets.app.addMenuItem(SECTION_MENU, "Command 12", "Menu-test.command12", "", "", "", function (err) {});
                     brackets.app.addMenuItem(SECTION_MENU, "Command 13", "Menu-test.command13", "", "", "", function (err) {});
                 });
@@ -1079,8 +1080,7 @@ define(function (require, exports, module) {
                     brackets.app.removeMenuItem("Menu-test.command15", function (err) {});
                     brackets.app.removeMenuItem("Menu-test.command16", function (err) {});
                     brackets.app.removeMenuItem("Menu-test.command17", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.separator", function (err) {});
-                    //brackets.app.removeMenu(SECTION_MENU, function (err) {});
+                    brackets.app.removeMenu(SECTION_MENU, function (err) {});
                 });
             });
         });  // describe("addMenuItem (with reference)")
