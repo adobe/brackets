@@ -465,7 +465,8 @@ define(function (require, exports, module) {
                     // End the session if the user presses any key with a modifier (other than Ctrl+Space).
                     _endSession();
                 } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
-                        event.keyCode === KeyEvent.DOM_VK_RIGHT) {
+                           event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                           event.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
                     // Update the list after a simple navigation.
                     // We do this in "keyup" because we want the cursor position to be updated before
                     // we redraw the list.
