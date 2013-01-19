@@ -218,8 +218,8 @@ define({
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
-    "CMD_GOTO_LINE"                       : "Gehe zu Zeile",
-    "CMD_GOTO_DEFINITION"                 : "Gehe zu Definition",
+    "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
+    "CMD_GOTO_DEFINITION"                 : "Gehe zur Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
