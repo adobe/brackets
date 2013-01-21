@@ -228,7 +228,8 @@ define(function (require, exports, module) {
         sessionProvider = null,
         sessionEditor   = null,
         hintList        = null,
-        deferredHints   = null;
+        deferredHints   = null,
+        keyDownEditor   = null;
 
     /**
      * Comparator to sort providers based on their priority
@@ -318,6 +319,7 @@ define(function (require, exports, module) {
     function _endSession() {
         hintList.close();
         hintList = null;
+        keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;
         if (deferredHints) {
@@ -455,10 +457,12 @@ define(function (require, exports, module) {
                          event.keyCode === KeyEvent.DOM_VK_RETURN ||
                          event.keyCode === KeyEvent.DOM_VK_TAB)) {
                 lastChar = String.fromCharCode(event.keyCode);
+                keyDownEditor = editor;
             }
         } else if (event.type === "keypress") {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
+            keyDownEditor = editor;
         } else if (event.type === "keyup") {
             if (_inSession(editor)) {
                 if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
@@ -482,7 +486,8 @@ define(function (require, exports, module) {
      * the lastChar.
      */
     function handleChange(editor) {
-        if (lastChar) {
+        if (lastChar && editor === keyDownEditor) {
+            keyDownEditor = null;
             if (_inSession(editor)) {
                 var charToRetest = lastChar;
                 _updateHintList();
