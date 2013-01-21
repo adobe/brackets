@@ -315,7 +315,47 @@ define(function (require, exports, module) {
         return wrapper.promise();
     }
     
-    
+    /**
+     * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions 
+     * together, using the result of each successive function as the argument(s) to the next.
+     * 
+     * @param {Array.<function(*)>} functions Functions to be chained
+     * @param {?Array} args Arguments to call the first function with
+     * @param {function(*)} successCallback Function that receives results of the final call
+     * @param {function(*)} failCallback Function that is called on any failure
+     */
+    function chain(functions, args, successCallback, failCallback) {
+        if (!args) {
+            args = [];
+        }
+        
+        if (functions.length === 0) {
+            successCallback.apply(null, args);
+        } else {
+            var firstFunction = functions.shift();
+            try {
+                var responseOrPromise = firstFunction.apply(null, args);
+                if (responseOrPromise.hasOwnProperty("done") &&
+                        responseOrPromise.hasOwnProperty("fail")) {
+                    responseOrPromise.done(function () {
+                        var resultArgs = Array.prototype.slice.call(arguments, 0);
+                        chain(functions, resultArgs, successCallback, failCallback);
+                    });
+                    responseOrPromise.fail(function () {
+                        var resultArgs = Array.prototype.slice.call(arguments, 0);
+                        failCallback.apply(null, resultArgs);
+                    });
+                    
+                } else {
+                    chain(functions, [responseOrPromise], successCallback, failCallback);
+                }
+
+            } catch (e) {
+                failCallback(e);
+            }
+            
+        }
+    }
 
     // Define public API
     exports.doInParallel   = doInParallel;
@@ -323,5 +363,6 @@ define(function (require, exports, module) {
     exports.doSequentiallyInBackground = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
+    exports.chain          = chain;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
 });
