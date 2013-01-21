@@ -60,7 +60,6 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         KeyEvent            = require("utils/KeyEvent"),
-        EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         StatusBar           = require("widgets/StatusBar"),
         Strings             = require("strings"),
@@ -110,21 +109,6 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     /**
-     * Determines the CodeMirror mode to use for this document,
-     * either based on the document's language or {@link EditorUtils#getModeFromFileExtension()}.
-     * @return {string|{{name: string}}} The CodeMirror mode for this document
-     */
-    function _modeForDocument(doc) {
-        var mode, language = doc.getLanguage();
-        if (language && language.mode) {
-            mode = language.mode;
-        } else {
-            mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
-        }
-        return mode;
-    }
-    
-    /**
      * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
      * file extension. The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
@@ -136,9 +120,7 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        var mode = _modeForDocument(doc);
-        
-        return new Editor(doc, makeMasterEditor, mode, container, range);
+        return new Editor(doc, makeMasterEditor, doc.getLanguage().mode, container, additionalKeys, range);
     }
     
     /**

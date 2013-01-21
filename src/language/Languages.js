@@ -62,10 +62,14 @@ define(function (require, exports, module) {
             throw new Error(description + " must not be empty");
         }
     }
+    
+    function _hasMode(mode) {
+        return Boolean(CodeMirror.modes[mode] || CodeMirror.mimeModes[mode]);
+    }
 
     function _validateMode(mode, description) {
         _validateNonEmptyString(mode, description);
-        if (!CodeMirror.modes[mode]) {
+        if (!_hasMode(mode)) {
             throw new Error("CodeMirror mode \"" + mode + "\" is not loaded");
         }
     }
@@ -89,7 +93,19 @@ define(function (require, exports, module) {
     }
     
     function getLanguageForFileExtension(extension) {
-        return _fileExtensionsMap[extension] || defaultLanguage;
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
+        
+        var language = _fileExtensionsMap[extension];
+        if (!language) {
+            console.log("Called Languages.js getLanguageForFileExtension with an unhandled file extension: " + extension);
+        }
+        
+        return language || defaultLanguage;
     }
     
     function getLanguageForMode(mode) {
@@ -97,6 +113,8 @@ define(function (require, exports, module) {
         if (modes) {
             return modes[0];
         }
+        
+        console.log("Called Languages.js getLanguageForMode with an unhandled mode:", mode);
         return defaultLanguage;
     }
 
@@ -229,16 +247,20 @@ define(function (require, exports, module) {
             language._setLineComment(lineComment);
         }
         
-        var mode = definition.mode, modeAliases = definition.modeAliases;
+        var mode = definition.mode, mimeMode = definition.mimeMode, modeAliases = definition.modeAliases;
         if (mode) {
+            
             var setMode = function () {
-                language.setMode(mode, modeAliases);
+                language.setMode(mimeMode || mode, modeAliases);
             }
             
-            if (CodeMirror.modes[mode]) {
+            if (_hasMode(mode)) {
                 setMode();
             } else {
-                loadBuiltinMode(mode).done(setMode);
+                loadBuiltinMode(mode).done(function () {
+                    // For some reason, passing setMode directly to done swallows the exceptions it throws
+                    window.setTimeout(setMode);
+                })
             }
         }
         
@@ -262,7 +284,7 @@ define(function (require, exports, module) {
         }
         
         if (!modePath.match(/^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/)) {
-            throw new Error("loadBuiltinMode call resulted in possibly unsafe path", modePath);
+            throw new Error("loadBuiltinMode call resulted in possibly unsafe path " + modePath);
         }
         
         require(["thirdparty/CodeMirror2/mode/" + modePath], result.resolve, result.reject);

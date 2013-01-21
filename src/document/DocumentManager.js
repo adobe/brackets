@@ -937,13 +937,6 @@ define(function (require, exports, module) {
      */
     Document.prototype.getLanguage = function () {
         var ext = PathUtils.filenameExtension(this.file.fullPath);
-        if (ext.charAt(0) === ".") {
-            ext = ext.substr(1);
-        }
-        
-        // Make checks below case-INsensitive
-        ext = ext.toLowerCase();
-
         return Languages.getLanguageForFileExtension(ext);
     };
     

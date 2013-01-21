@@ -287,7 +287,7 @@ define(function (require, exports, module) {
      * @param {!(string|Object)} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          May either be a string naming the mode, or an object containing a "name" property
      *          naming the mode along with configuration options required by the mode. 
-     *          See {@link EditorUtils#getModeFromFileExtension()}.
+     *          See {@link Languages#getLanguageFromFileExtension()} and {@link Language.mode}.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
@@ -1195,7 +1195,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link EditorUtils#getModeFromFileExtension()}.
+     *     See {@link Languages#getLanguageFromFileExtension()} and {@link Language.mode}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1228,7 +1228,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link Languages#getLanguageFromFileExtension()} and {@link Language.mode}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
