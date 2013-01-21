@@ -29,10 +29,29 @@ define(function (require, exports, module) {
     "use strict";
     
     
+    var ExtensionUtils = require("utils/ExtensionUtils");
+    
+    
     var _languages         = {},
         _fileExtensionsMap = {},
         _modeMap           = {};
-        
+
+   	
+    function _validateArray(value, description, validateEntry) {
+        var i, entry;
+		if (!$.isArray(value)) {
+			throw new Error(description + " must be an array");
+		}
+		if (value.length === 0) {
+			throw new Error(description + " must not be empty");
+		}
+		if (validateEntry) {
+			for (i = 0; i < value.length; i++) {
+				entry = value[i];
+				validateEntry(entry, description + "[" + i + "]");
+			}
+		}
+	}    
     
     function _validateString(value, description) {
         if (toString.call(value) !== '[object String]') {
@@ -157,9 +176,24 @@ define(function (require, exports, module) {
         
         return this;
     };
+
+    Language.prototype.setModeAliases = function (modeAliases) {
+        _validateArray(modeAliases, "modeAliases", _validateNonEmptyString);
+        
+        this.modeAliases = modeAliases;
+        for (var i = 0; i < modeAliases.length; i++) {
+            _registerMode(modeAliases[i], this);
+        }
+        
+        return this;
+    };
+    
+    Language.prototype._isOwnMode = function (mode) {
+        return mode === this.mode || this.modeAliases.indexOf(mode) !== -1;
+    }
     
     Language.prototype.getLanguageForMode = function (mode) {
-        if (mode === this.mode) {
+        if (this._isOwnMode(mode)) {
             return this;
         }
 
@@ -167,8 +201,8 @@ define(function (require, exports, module) {
     };
 
     Language.prototype.setLanguageForMode = function (mode, language) {
-        if (mode === this.mode && language !== this) {
-            throw new Error("A language must always map its mode to itself");
+        if (this._isOwnMode(mode) && language !== this) {
+            throw new Error("A language must always map its mode and mode aliases to itself");
         }
         this._modeMap[mode] = language;
         
@@ -176,12 +210,43 @@ define(function (require, exports, module) {
     };
     
     
-    function defineLanguage(id, name) {
+    function defineLanguage(id, definition) {
         if (_languages[id]) {
             throw new Error("Language \"" + id + "\" is already defined");
         }
         
-        var language = new Language(id, name);
+        var i, language = new Language(id, definition.name);
+        
+        var fileExtensions = definition.fileExtensions;
+        if (fileExtensions) {
+            for (i = 0; i < fileExtensions.length; i++) {
+                language.addFileExtension(fileExtensions[i]);
+            }
+        }
+        
+        var blockComment = definition.blockComment;
+        if (blockComment) {
+            language.setBlockComment(blockComment[0], blockComment[1]);
+        }
+        
+        var lineComment = definition.lineComment;
+        if (lineComment) {
+            language.setLineComment(lineComment);
+        }
+        
+        var mode = definition.mode;
+        if (mode) {
+            ExtensionUtils.loadBuiltinMode(mode)
+                .done(function () {
+                    language.setMode(mode);
+                });
+        }
+        
+        var modeAliases = definition.modeAliases;
+        if (modeAliases) {
+            language.setModeAliases(modeAliases);
+        }
+        
         _languages[id] = language;
         
         return language;
@@ -190,42 +255,20 @@ define(function (require, exports, module) {
     
     _patchCodeMirror();
     
-    var defaultLanguage = defineLanguage("unknown", "Unknown");
+    $.getJSON("language/languages.json", function (defaultLanguages) {
+        defaultLanguages.html.mode = {
+            "name": "htmlmixed",
+            "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
+                           "mode": null}]
+        };
+        
+        $.each(defaultLanguages, defineLanguage);
+        exports.defaultLanguage = getLanguage("unknown");
+    });
     
-    require("thirdparty/CodeMirror2/mode/css/css");
-    defineLanguage("css", "CSS")
-        .addFileExtension("css")
-        .setMode("css")
-        .setBlockComment("/*", "*/");
     
-    require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
-    defineLanguage("html", "HTML")
-        .addFileExtension("html")
-        .addFileExtension("htm")
-        .addFileExtension("shtm")
-        .addFileExtension("shtml")
-        .addFileExtension("xhtml")
-        .addFileExtension("cfm")
-        .addFileExtension("cfml")
-        .addFileExtension("cfc")
-        .addFileExtension("dhtml")
-        .addFileExtension("xht")
-        .setMode({
-            name: "htmlmixed",
-            scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
-                           mode: null}]
-        })
-        .setBlockComment("<!--", "-->");
-    
-    require("thirdparty/CodeMirror2/mode/javascript/javascript");
-    defineLanguage("javascript", "JavaScript")
-        .addFileExtension("js")
-        .setMode("javascript")
-        .setBlockComment("/*", "*/")
-        .setLineComment("//");
-    
-    module.exports = {
-        defaultLanguage:             defaultLanguage,
+    exports = module.exports = {
+        defaultLanguage:             null,
         defineLanguage:              defineLanguage,
         getLanguage:                 getLanguage,
         getLanguageForFileExtension: getLanguageForFileExtension,

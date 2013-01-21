@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var Languages = brackets.getModule("language/Languages");
     
     // Minimal language definition: ID, human readable name, MIME Type
-    var language = Languages.defineLanguage("less", "LESS")
+    var language = Languages.defineLanguage("less", { name: "LESS" })
         .addFileExtension("less");
     
     // Fluent interface to add more information about the language

@@ -1,0 +1,28 @@
+{
+    "unknown": {
+		"name": "Unknown"
+	},
+	
+	"css": {
+		"name": "CSS",
+		"mode": "css",
+        "fileExtensions": ["css"],
+        "blockComment": ["/*", "*/"]
+	},
+	
+	"html": {
+		"name": "HTML",
+        "mode": "htmlmixed",
+        "modeAliases": ["html"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht"],
+		"blockComment": ["<!--", "-->"]
+	},
+	
+	"javascript": {
+		"name": "JavaScript",
+        "mode": "javascript",
+        "fileExtensions": ["js"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+	}
+}

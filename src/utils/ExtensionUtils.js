@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, less */
+/*global define, $, brackets, CodeMirror, less */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} code LESS code to parse
      * @param {?string} url URL to the file containing the code
-     * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed.
+     * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
      */
     function parseLessCode(code, url) {
         var result = new $.Deferred(),
@@ -192,6 +192,33 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Loads a mode stored in thirdparty/CodeMirror2/mode/
+     * @param {!string} mode Name of the mode to load
+     * @param {string} subDirectory Name of a sub directory with mode files (e.g. "rpm")
+     * @return {!$.Promise} A promise object that is resolved with when the mode has been loaded
+     */
+    function loadBuiltinMode(mode, subDirectory) {
+        var result = new $.Deferred();
+        
+        if (CodeMirror.modes[mode]) {
+            result.reject();
+        } else {
+            var modePath = mode + "/" + mode;
+            if (subDirectory) {
+                modePath = subDirectory + "/" + modePath;
+            }
+            
+            if (!modePath.match(/^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/)) {
+                throw new Error("loadBuiltinMode call resulted in possibly unsafe path", modePath);
+            }
+            
+            require(["thirdparty/CodeMirror2/mode/" + modePath], result.resolve, result.reject);
+        }
+        
+        return result.promise();
+    }
+    
     exports.addEmbeddedStyleSheet = addEmbeddedStyleSheet;
     exports.addLinkedStyleSheet   = addLinkedStyleSheet;
     exports.parseLessCode         = parseLessCode;
@@ -199,4 +226,5 @@ define(function (require, exports, module) {
     exports.getModuleUrl          = getModuleUrl;
     exports.loadFile              = loadFile;
     exports.loadStyleSheet        = loadStyleSheet;
+    exports.loadBuiltinMode       = loadBuiltinMode;
 });
