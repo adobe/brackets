@@ -1,8 +1,4 @@
 {
-    "unknown": {
-		"name": "Unknown"
-	},
-	
 	"css": {
 		"name": "CSS",
 		"mode": "css",

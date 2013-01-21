@@ -29,9 +29,6 @@ define(function (require, exports, module) {
     "use strict";
     
     
-    var ExtensionUtils = require("utils/ExtensionUtils");
-    
-    
     var _languages         = {},
         _fileExtensionsMap = {},
         _modeMap           = {};
@@ -92,7 +89,7 @@ define(function (require, exports, module) {
     }
     
     function getLanguageForFileExtension(extension) {
-        return _fileExtensionsMap[extension];
+        return _fileExtensionsMap[extension] || defaultLanguage;
     }
     
     function getLanguageForMode(mode) {
@@ -100,6 +97,7 @@ define(function (require, exports, module) {
         if (modes) {
             return modes[0];
         }
+        return defaultLanguage;
     }
 
     
@@ -132,11 +130,28 @@ define(function (require, exports, module) {
         this._modeMap = {};
     }
     
+    Language.prototype.setMode = function (mode, modeAliases) {
+        _validateMode(mode, "mode");
+        
+        this.mode = mode;
+        _registerMode(mode, this);
+
+        if (modeAliases) {
+            _validateArray(modeAliases, "modeAliases", _validateNonEmptyString);
+            
+            this.modeAliases = modeAliases;
+            for (var i = 0; i < modeAliases.length; i++) {
+                _registerMode(modeAliases[i], this);
+            }
+        }
+        
+        return this;
+    };
     Language.prototype.getFileExtensions = function () {
         return this._fileExtensions.concat();
     };
     
-    Language.prototype.addFileExtension = function (extension) {
+    Language.prototype._addFileExtension = function (extension) {
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
@@ -151,7 +166,7 @@ define(function (require, exports, module) {
         return this;
     };
     
-    Language.prototype.setBlockComment = function (prefix, suffix) {
+    Language.prototype._setBlockComment = function (prefix, suffix) {
         _validateNonEmptyString(prefix, "prefix");
         _validateNonEmptyString(suffix, "suffix");
         
@@ -160,30 +175,10 @@ define(function (require, exports, module) {
         return this;
     };
 
-    Language.prototype.setLineComment = function (prefix) {
+    Language.prototype._setLineComment = function (prefix) {
         _validateNonEmptyString(prefix, "prefix");
         
         this.lineComment = { prefix: prefix };
-        
-        return this;
-    };
-    
-    Language.prototype.setMode = function (mode) {
-        _validateMode(mode, "mode");
-        
-        this.mode = mode;
-        _registerMode(mode, this);
-        
-        return this;
-    };
-
-    Language.prototype.setModeAliases = function (modeAliases) {
-        _validateArray(modeAliases, "modeAliases", _validateNonEmptyString);
-        
-        this.modeAliases = modeAliases;
-        for (var i = 0; i < modeAliases.length; i++) {
-            _registerMode(modeAliases[i], this);
-        }
         
         return this;
     };
@@ -220,31 +215,31 @@ define(function (require, exports, module) {
         var fileExtensions = definition.fileExtensions;
         if (fileExtensions) {
             for (i = 0; i < fileExtensions.length; i++) {
-                language.addFileExtension(fileExtensions[i]);
+                language._addFileExtension(fileExtensions[i]);
             }
         }
         
         var blockComment = definition.blockComment;
         if (blockComment) {
-            language.setBlockComment(blockComment[0], blockComment[1]);
+            language._setBlockComment(blockComment[0], blockComment[1]);
         }
         
         var lineComment = definition.lineComment;
         if (lineComment) {
-            language.setLineComment(lineComment);
+            language._setLineComment(lineComment);
         }
         
-        var mode = definition.mode;
+        var mode = definition.mode, modeAliases = definition.modeAliases;
         if (mode) {
-            ExtensionUtils.loadBuiltinMode(mode)
-                .done(function () {
-                    language.setMode(mode);
-                });
-        }
-        
-        var modeAliases = definition.modeAliases;
-        if (modeAliases) {
-            language.setModeAliases(modeAliases);
+            var setMode = function () {
+                language.setMode(mode, modeAliases);
+            }
+            
+            if (CodeMirror.modes[mode]) {
+                setMode();
+            } else {
+                loadBuiltinMode(mode).done(setMode);
+            }
         }
         
         _languages[id] = language;
@@ -252,9 +247,33 @@ define(function (require, exports, module) {
         return language;
     }
     
+    /**
+     * Loads a mode stored in thirdparty/CodeMirror2/mode/
+     * @param {!string} mode Name of the mode to load
+     * @param {string} subDirectory Name of a sub directory with mode files (e.g. "rpm")
+     * @return {!$.Promise} A promise object that is resolved with when the mode has been loaded
+     */
+    function loadBuiltinMode(mode, subDirectory) {
+        var result = new $.Deferred();
+        
+        var modePath = mode + "/" + mode;
+        if (subDirectory) {
+            modePath = subDirectory + "/" + modePath;
+        }
+        
+        if (!modePath.match(/^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/)) {
+            throw new Error("loadBuiltinMode call resulted in possibly unsafe path", modePath);
+        }
+        
+        require(["thirdparty/CodeMirror2/mode/" + modePath], result.resolve, result.reject);
+        
+        return result.promise();
+    }
+
     
     _patchCodeMirror();
     
+    var defaultLanguage = defineLanguage("unknown", { "name": "Unknown" });
     $.getJSON("language/languages.json", function (defaultLanguages) {
         defaultLanguages.html.mode = {
             "name": "htmlmixed",
@@ -263,15 +282,15 @@ define(function (require, exports, module) {
         };
         
         $.each(defaultLanguages, defineLanguage);
-        exports.defaultLanguage = getLanguage("unknown");
     });
     
     
     exports = module.exports = {
-        defaultLanguage:             null,
+        defaultLanguage:             defaultLanguage,
         defineLanguage:              defineLanguage,
         getLanguage:                 getLanguage,
         getLanguageForFileExtension: getLanguageForFileExtension,
-        getLanguageForMode:          getLanguageForMode
+        getLanguageForMode:          getLanguageForMode,
+        loadBuiltinMode:             loadBuiltinMode
     };
 });

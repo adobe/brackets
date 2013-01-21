@@ -29,19 +29,14 @@ define(function (require, exports, module) {
 
     var Languages = brackets.getModule("language/Languages");
     
-    // Minimal language definition: ID, human readable name, MIME Type
-    var language = Languages.defineLanguage("less", { name: "LESS" })
-        .addFileExtension("less");
+    var language = Languages.defineLanguage("less", {
+        name: "LESS",
+        fileExtensions: ["less"],
+        blockComment: ["/*", "*/"],
+        lineComment: "//"
+    })
     
-    // Fluent interface to add more information about the language
-    language
-        .addFileExtension("less")
-        .setBlockComment("/*", "*/")
-        .setLineComment("//");
-    
-    // Add the CodeMirror mode "more"
-    brackets.libRequire(["thirdparty/CodeMirror2/mode/less/less"], function () {
-        // Retrieve a language that has already been defined and add further information
+    Languages.loadBuiltinMode("less").done(function () {
         Languages.getLanguage("less").setMode("less");
     });
 });
