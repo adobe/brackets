@@ -468,8 +468,6 @@ define(function (require, exports, module) {
         
         var language = editor.getLanguageForSelection();
         
-        console.log("language", language);
-        
         if (language.blockComment) {
             blockCommentPrefixSuffix(editor, language.blockComment.prefix, language.blockComment.suffix, language.lineComment ? language.lineComment.prefix : null);
         }
