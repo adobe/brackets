@@ -616,12 +616,6 @@ define(function (require, exports, module) {
     Document.prototype.file = null;
 
     /**
-     * The Language for this document. Will be resolved dynamically by file extension if not set manually
-     * @type {!Language}
-     */
-    Document.prototype.language = null;
-    
-    /**
      * Whether this document has unsaved changes or not.
      * When this changes on any Document, DocumentManager dispatches a "dirtyFlagChange" event.
      * @type {boolean}
@@ -938,14 +932,10 @@ define(function (require, exports, module) {
     
     /**
      * Returns the language this document is written in.
-     * The language returned is based on the file extension - use {@link setLanguage} to override.
+     * The language returned is based on the file extension.
      * @return {Language} An object describing the language used in this document
      */
     Document.prototype.getLanguage = function () {
-        if (this.language) {
-            return this.language;
-        }
-        
         var ext = PathUtils.filenameExtension(this.file.fullPath);
         if (ext.charAt(0) === ".") {
             ext = ext.substr(1);
@@ -955,15 +945,6 @@ define(function (require, exports, module) {
         ext = ext.toLowerCase();
 
         return Languages.getLanguageForFileExtension(ext) || Languages.defaultLanguage;
-    };
-    
-    /**
-     * Sets the language this document is written in.
-     * Overrides the automatic detection used by {@link getLanguage}
-     * @param {!Language} language An object describing the language used in this document
-     */
-    Document.prototype.setLanguage = function (language) {
-        this.language = language;
     };
     
     /**
