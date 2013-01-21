@@ -599,6 +599,9 @@ define(function (require, exports, module) {
         this.file = file;
         this.refreshText(rawText, initialTimestamp);
         
+        var ext = PathUtils.filenameExtension(this.file.fullPath);
+        this.language = Languages.getLanguageForFileExtension(ext);
+        
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
     }
@@ -615,6 +618,12 @@ define(function (require, exports, module) {
      */
     Document.prototype.file = null;
 
+    /**
+     * The Language for this document. Will be resolved by file extension in the constructor
+     * @type {!Language}
+     */
+    Document.prototype.language = null;
+    
     /**
      * Whether this document has unsaved changes or not.
      * When this changes on any Document, DocumentManager dispatches a "dirtyFlagChange" event.
@@ -932,12 +941,11 @@ define(function (require, exports, module) {
     
     /**
      * Returns the language this document is written in.
-     * The language returned is based on the file extension.
+     * The language returned is based on the file extension and is set in the constructor.
      * @return {Language} An object describing the language used in this document
      */
     Document.prototype.getLanguage = function () {
-        var ext = PathUtils.filenameExtension(this.file.fullPath);
-        return Languages.getLanguageForFileExtension(ext);
+        return this.language;
     };
     
     /**
