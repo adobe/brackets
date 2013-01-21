@@ -784,7 +784,7 @@ define(function (require, exports, module) {
                         if (projectRootChanged) {
                             // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                             var promises = [];
-                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot, promises]);
+                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
                             $.when.apply($, promises).pipe(result.resolve, result.reject);
                         } else {
                             result.resolve();
