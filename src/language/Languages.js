@@ -98,19 +98,17 @@ define(function (require, exports, module) {
     }
     
 
-    function Language(id, name, mimeType) {
+    function Language(id, name) {
         _validateString(id, "Language ID");
         if (!id.match(/^[a-z]+$/)) {
             throw new Error("Invalid language ID \"" + id + "\": Only letters a-z are allowed");
         }
         
         _validateNonEmptyString(name, "name");
-        _validateNonEmptyString(mimeType, "type");
         
         this.id        = id;
         this.name      = name;
         
-        this._mimeType = mimeType;
         this._fileExtensions = [];
         this._modeMap = {};
     }
@@ -178,12 +176,12 @@ define(function (require, exports, module) {
     };
     
     
-    function defineLanguage(id, name, mimeType) {
+    function defineLanguage(id, name) {
         if (_languages[id]) {
             throw new Error("Language \"" + id + "\" is already defined");
         }
         
-        var language = new Language(id, name, mimeType);
+        var language = new Language(id, name);
         _languages[id] = language;
         
         return language;
@@ -192,16 +190,16 @@ define(function (require, exports, module) {
     
     _patchCodeMirror();
     
-    var defaultLanguage = defineLanguage("unknown", "Unknown", "text/plain");
+    var defaultLanguage = defineLanguage("unknown", "Unknown");
     
     require("thirdparty/CodeMirror2/mode/css/css");
-    defineLanguage("css", "CSS", "text/css")
+    defineLanguage("css", "CSS")
         .addFileExtension("css")
         .setMode("css")
         .setBlockComment("/*", "*/");
     
     require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
-    defineLanguage("html", "HTML", "text/html")
+    defineLanguage("html", "HTML")
         .addFileExtension("html")
         .addFileExtension("htm")
         .addFileExtension("shtm")
@@ -220,7 +218,7 @@ define(function (require, exports, module) {
         .setBlockComment("<!--", "-->");
     
     require("thirdparty/CodeMirror2/mode/javascript/javascript");
-    defineLanguage("javascript", "JavaScript", "application/javascript")
+    defineLanguage("javascript", "JavaScript")
         .addFileExtension("js")
         .setMode("javascript")
         .setBlockComment("/*", "*/")
