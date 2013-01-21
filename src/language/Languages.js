@@ -23,17 +23,18 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, CodeMirror, toString */
+/*global define, $, brackets, CodeMirror, toString, window */
 
 define(function (require, exports, module) {
     "use strict";
     
     
-    var _languages         = {},
+    var _fallbackLanguage  = null,
+        _languages         = {},
         _fileExtensionsMap = {},
         _modeMap           = {};
 
-   	/**
+    /**
      * Checks whether value is an array. Optionally checks its contents, too.
      * Throws an exception in case of a validation error.
      * @param {*}                   value         The value to validate
@@ -54,7 +55,7 @@ define(function (require, exports, module) {
 				validateEntry(entry, description + "[" + i + "]");
 			}
 		}
-	}    
+	}
     
     /**
      * Checks whether value is a string. Throws an exception otherwise.
@@ -157,7 +158,7 @@ define(function (require, exports, module) {
             console.log("Called Languages.js getLanguageForFileExtension with an unhandled file extension: " + extension);
         }
         
-        return language || fallbackLanguage;
+        return language || _fallbackLanguage;
     }
     
     /**
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
         
         // In case of unsupported languages
         console.log("Called Languages.js getLanguageForMode with an unhandled mode:", mode);
-        return fallbackLanguage;
+        return _fallbackLanguage;
     }
 
     /**
@@ -198,7 +199,7 @@ define(function (require, exports, module) {
             modePath = subDirectory + "/" + modePath;
         }
         
-        if (!modePath.match(/^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/)) {
+        if (!modePath.match(/^[a-zA-Z0-9_\-]+(\/[a-zA-Z0-9_\-]+)*$/)) {
             throw new Error("loadBuiltinMode call resulted in possibly unsafe path " + modePath);
         }
         
@@ -213,7 +214,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} id Identifier for this language, use only letter a-z (i.e. "cpp")
      * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
-     */    
+     */
     function Language(id, name) {
         _validateString(id, "Language ID");
         if (!id.match(/^[a-z]+$/)) {
@@ -238,6 +239,8 @@ define(function (require, exports, module) {
      * @return {Language} This language
      */
     Language.prototype.setMode = function (mode, modeAliases) {
+        var i;
+        
         _validateMode(mode, "mode");
         
         this.mode = mode;
@@ -247,7 +250,7 @@ define(function (require, exports, module) {
             _validateArray(modeAliases, "modeAliases", _validateNonEmptyString);
             
             this.modeAliases = modeAliases;
-            for (var i = 0; i < modeAliases.length; i++) {
+            for (i = 0; i < modeAliases.length; i++) {
                 _setLanguageForMode(modeAliases[i], this);
             }
         }
@@ -322,7 +325,7 @@ define(function (require, exports, module) {
      */
     Language.prototype.usesMode = function (mode) {
         return mode === this.mode || this.modeAliases.indexOf(mode) !== -1;
-    }
+    };
     
     /**
      * Returns either a language associated with the mode or the fallback language.
@@ -398,7 +401,7 @@ define(function (require, exports, module) {
             
             var setMode = function () {
                 language.setMode(mimeMode || mode, modeAliases);
-            }
+            };
             
             if (_hasMode(mode)) {
                 setMode();
@@ -406,7 +409,7 @@ define(function (require, exports, module) {
                 loadBuiltinMode(mode).done(function () {
                     // For some reason, passing setMode directly to done swallows the exceptions it throws
                     window.setTimeout(setMode);
-                })
+                });
             }
         }
         
@@ -420,7 +423,7 @@ define(function (require, exports, module) {
     _patchCodeMirror();
     
     // The fallback language
-    var fallbackLanguage = defineLanguage("unknown", { "name": "Text" });
+    _fallbackLanguage = defineLanguage("unknown", { "name": "Text" });
     
     // Load the default languages from languages.json
     $.getJSON("language/languages.json", function (defaultLanguages) {

@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         fileExtensions: ["less"],
         blockComment: ["/*", "*/"],
         lineComment: "//"
-    })
+    });
     
     Languages.loadBuiltinMode("less").done(function () {
         Languages.getLanguage("less").setMode("less");
