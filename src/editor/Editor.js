@@ -1235,16 +1235,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the syntax-highlighting mode for the document.
-     *
-     * @param {(string|Object)} mode Name of syntax highlighting mode, or object containing a "name"
-     *     property naming the mode along with configuration options required by the mode.
-     */
-    Editor.prototype.setModeForDocument = function (mode) {
-        this._codeMirror.setOption("mode", mode);
-    };
-    
-    /**
      * The Document we're bound to
      * @type {!Document}
      */

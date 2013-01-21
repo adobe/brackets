@@ -1182,10 +1182,18 @@ define(function (require, exports, module) {
             FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName);
         }
         
+        // If the renamed file is shown in the current full editor, re-open that
+        // This way everything that depends on the language will be updated (editor mode, JSLint, ...)
+        var doc = getCurrentDocument();
+        if (doc && doc.file.fullPath === newName) {
+            closeFullEditor(doc.file);
+            setCurrentDocument(doc);
+        }
+        
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
     }
-    
+
     // Define public API
     exports.Document                    = Document;
     exports.getCurrentDocument          = getCurrentDocument;
