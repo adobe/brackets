@@ -325,36 +325,42 @@ define(function (require, exports, module) {
      * @param {function(*)} failCallback Function that is called on any failure
      */
     function chain(functions, args, successCallback, failCallback) {
-        if (!args) {
-            args = [];
+        // private function that sometimes modifies its arguments
+        function chainHelper(functions, args, successCallback, failCallback) {
+            if (functions.length === 0) {
+                successCallback.apply(null, args);
+            } else {
+                var firstFunction = functions.shift();
+                try {
+                    var responseOrPromise = firstFunction.apply(null, args);
+                    if (responseOrPromise.hasOwnProperty("done") &&
+                            responseOrPromise.hasOwnProperty("fail")) {
+                        responseOrPromise.done(function () {
+                            var resultArgs = Array.prototype.slice.call(arguments, 0);
+                            chainHelper(functions, resultArgs, successCallback, failCallback);
+                        });
+                        responseOrPromise.fail(function () {
+                            var resultArgs = Array.prototype.slice.call(arguments, 0);
+                            failCallback.apply(null, resultArgs);
+                        });
+                        
+                    } else {
+                        chainHelper(functions, [responseOrPromise], successCallback, failCallback);
+                    }
+    
+                } catch (e) {
+                    failCallback(e);
+                }
+                
+            }
         }
         
-        if (functions.length === 0) {
-            successCallback.apply(null, args);
-        } else {
-            var firstFunction = functions.shift();
-            try {
-                var responseOrPromise = firstFunction.apply(null, args);
-                if (responseOrPromise.hasOwnProperty("done") &&
-                        responseOrPromise.hasOwnProperty("fail")) {
-                    responseOrPromise.done(function () {
-                        var resultArgs = Array.prototype.slice.call(arguments, 0);
-                        chain(functions, resultArgs, successCallback, failCallback);
-                    });
-                    responseOrPromise.fail(function () {
-                        var resultArgs = Array.prototype.slice.call(arguments, 0);
-                        failCallback.apply(null, resultArgs);
-                    });
-                    
-                } else {
-                    chain(functions, [responseOrPromise], successCallback, failCallback);
-                }
-
-            } catch (e) {
-                failCallback(e);
-            }
-            
-        }
+        // Make a copy of the args and functions arrays because the helper modifies them
+        var argsCopy = args ? Array.prototype.slice.call(args) : [];
+        var functionsCopy = Array.prototype.slice.call(functions, 0);
+        
+        chainHelper(functionsCopy, argsCopy, successCallback, failCallback);
+        
     }
 
     // Define public API
