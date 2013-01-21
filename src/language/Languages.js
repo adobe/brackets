@@ -295,7 +295,8 @@ define(function (require, exports, module) {
     
     _patchCodeMirror();
     
-    var defaultLanguage = defineLanguage("unknown", { "name": "Unknown" });
+    
+    var defaultLanguage = defineLanguage("unknown", { "name": "Text" });
     $.getJSON("language/languages.json", function (defaultLanguages) {
         defaultLanguages.html.mode = {
             "name": "htmlmixed",

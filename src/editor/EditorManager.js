@@ -692,10 +692,7 @@ define(function (require, exports, module) {
     }
     
     function _updateModeInfo(editor) {
-        var language = editor.document.getLanguage();
-        var text = language.id !== "unknown" ? language.name : StatusBar.getModeDisplayString(editor.getModeForDocument());
-        
-        $modeInfo.text(text);
+        $modeInfo.text(editor.document.getLanguage().name);
     }
     
     function _updateFileInfo(editor) {

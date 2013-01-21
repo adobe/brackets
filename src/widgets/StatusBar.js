@@ -181,61 +181,11 @@ define(function (require, exports, module) {
         hide();
     }
 
-    function getModeDisplayString(mode) {
-        // mode is either a string or an object with a name property string
-        var s = (typeof mode === "string") ? mode : mode.name,
-            slash,
-            result;
-
-        s = s.toLowerCase();
-        
-        // !! See also language/Languages.js !!
-
-        // Handle special cases (in order of likely occurrance)
-        if (s === "html") {
-            // Did not move the definition for mode "html" to the language API because it's not a registered CodeMirror mode
-            return "HTML";
-        } else if (s === "text/plain") {
-            return "Text";
-        } else if (s === "php") {
-            return "PHP";
-        } else if (s === "xml") {
-            return "XML";
-        } else if (s === "yaml") {
-            return "YAML";
-        } else if (s === "coffeescript") {
-            return "CoffeeScript";
-        } else if (s === "mysql") {
-            return "SQL";
-        }
-
-        // Generic case
-
-        // Strip "text/" or "application/" from beginning
-        s = s.replace(/^(text\/|application\/)/, "");
-
-        // Strip "x-" from beginning
-        s = s.replace(/^x-/, "");
-
-        // Strip any remaining "/" sections from end
-        slash = s.indexOf("/");
-        if (slash !== -1) {
-            s = s.substr(0, slash);
-        }
-
-        // Uppercase first char and rest is (already) lowercase
-        result = s[0].toUpperCase();
-        result += s.substr(1);
-
-        return result;
-    }
-    
     exports.init = init;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.addIndicator = addIndicator;
     exports.updateIndicator = updateIndicator;
-    exports.getModeDisplayString = getModeDisplayString;
     exports.hide = hide;
     exports.show = show;
 });
