@@ -502,6 +502,10 @@ define(function (require, exports, module) {
             afterEach(function () {
                 LiveDevelopmentModule.config = liveDevelopmentConfig;
                 InspectorModule.config = inspectorConfig;
+                
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testDocument = null;
+                testEditor = null;
             });
             
             it("should toggle the highlight via a command", function () {

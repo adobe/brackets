@@ -181,6 +181,11 @@ define({
 
     // Edit menu commands
     "EDIT_MENU"                           : "Bearbeiten",
+    "CMD_UNDO"                            : "Rückgängig",
+    "CMD_REDO"                            : "Wiederholen",
+    "CMD_CUT"                             : "Ausschneiden",
+    "CMD_COPY"                            : "Kopieren",
+    "CMD_PASTE"                           : "Einfügen",
     "CMD_SELECT_ALL"                      : "Alles auswählen",
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
     "CMD_FIND"                            : "Suchen",
@@ -215,6 +220,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zu Zeile",
     "CMD_GOTO_DEFINITION"                 : "Gehe zu Definition",
+    "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
@@ -281,5 +287,14 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+    
+    // extensions/default/InlineColorEditor
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original-Farbe",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa-Format",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex-Format",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)"
 });
