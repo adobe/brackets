@@ -137,11 +137,11 @@ define(function (require, exports, module) {
             cursor = this.editor.getCursorPos(),
             closure = "",
             start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1},
-            keepHints = true;
+            keepHints = false;
         
         if (this.info.context === CSSUtils.PROP_NAME) {
             closure = ":";
+            keepHints = true;
         } else if (this.info.context === CSSUtils.PROP_VALUE) {
             closure = ";";
         } else {
@@ -150,12 +150,11 @@ define(function (require, exports, module) {
         
         hint = hint + closure;
         
-        start.line = end.line = cursor.line;
-        start.ch = cursor.ch - offset;
-        end.ch = start.ch + hint.length;
+        start.line = cursor.line;
+        start.ch = cursor.ch;
         
-        this.editor.document.replaceRange(hint, start, end);
-        
+        this.editor.document.replaceRange(hint.substr(offset), start);
+
         return keepHints;
     };
     
