@@ -153,10 +153,16 @@ define(function (require, exports, module) {
      *  editor is constructed and added to the DOM
      */
     InlineTextEditor.prototype.onAdded = function () {
+        var self = this;
+
         InlineTextEditor.prototype.parentClass.onAdded.apply(this, arguments);
         
         this.editors.forEach(function (editor) {
             editor.refresh();
+        });
+
+        CodeMirror.on(this.info, "redraw", function () {
+            self.editors[0].refresh();
         });
         
         _syncGutterWidths(this.hostEditor);

@@ -196,7 +196,7 @@ define(function (require, exports, module) {
         // the editor(s) after the list is laid out by in sequence by (1) the
         // float within the inline-widget container and (2) by the host
         // editor's vertical scroll bar.
-        window.setTimeout(this._updateSize, 0);
+        //window.setTimeout(this._updateSize, 0);
     };
 
     /**
