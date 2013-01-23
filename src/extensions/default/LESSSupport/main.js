@@ -36,7 +36,5 @@ define(function (require, exports, module) {
         lineComment: "//"
     });
     
-    Languages.loadBuiltinMode("less").done(function () {
-        Languages.getLanguage("less").setMode("less");
-    });
+    language.loadAndSetBuiltinMode("less");
 });

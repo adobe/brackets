@@ -197,7 +197,7 @@ define(function (require, exports, module) {
      * Loads a mode stored in thirdparty/CodeMirror2/mode/
      * @param {!string} mode Name of the mode to load
      * @param {string} subDirectory Name of a sub directory with mode files (e.g. "rpm")
-     * @return {!$.Promise} A promise object that is resolved with when the mode has been loaded
+     * @return {$.Promise} A promise object that is resolved when the mode has been loaded
      */
     function loadBuiltinMode(mode, subDirectory) {
         var result = new $.Deferred();
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
      * Sets the mode and optionally aliases for this language.
      *
      * 
-     * @param {!string} mode Name of a CodeMirror mode or MIME mode that has to be loaded
+     * @param {!string} mode Name of a CodeMirror mode or MIME mode that is already loaded
      * @param {Array.<string>} modeAliases Names of CodeMirror modes or MIME modes that are only used as submodes
      * @return {Language} This language
      */
@@ -264,6 +264,25 @@ define(function (require, exports, module) {
         }
         
         return this;
+    };
+    
+    /**
+     * First load, then set a mode provided by our CodeMirror distribution.
+     * 
+     * @param {!string} mode Name
+     * @return {$.Promise} A promise object that is resolved when the mode has been loaded and set
+     */
+    Language.prototype.loadAndSetBuiltinMode = function (mode) {
+        var result = new $.Deferred(), _this = this;
+        
+        loadBuiltinMode(mode)
+            .done(function () {
+                _this.setMode(mode);
+                result.resolve();
+            })
+            .fail(result.reject);
+        
+        return result.promise();
     };
     
     /**
