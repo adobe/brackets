@@ -51,19 +51,19 @@ define(function (require, exports, module) {
      */
     function _validateArray(value, description, validateEntry) {
         var i, entry;
-		if (!$.isArray(value)) {
-			throw new Error(description + " must be an array");
-		}
-		if (value.length === 0) {
-			throw new Error(description + " must not be empty");
-		}
-		if (validateEntry) {
-			for (i = 0; i < value.length; i++) {
-				entry = value[i];
-				validateEntry(entry, description + "[" + i + "]");
-			}
-		}
-	}
+        if (!$.isArray(value)) {
+            throw new Error(description + " must be an array");
+        }
+        if (value.length === 0) {
+            throw new Error(description + " must not be empty");
+        }
+        if (validateEntry) {
+            for (i = 0; i < value.length; i++) {
+                entry = value[i];
+                validateEntry(entry, description + "[" + i + "]");
+            }
+        }
+    }
     
     /**
      * Checks whether value is a string. Throws an exception otherwise.
