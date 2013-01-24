@@ -5,16 +5,23 @@ define(function (require, exports, module) {
     "use strict";
 
     var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         CSSProperties       = require("text!CSSProperties.json"),
+        Menus               = brackets.getModule("command/Menus"),
         properties          = JSON.parse(CSSProperties);
     
+    var enabledSeparator  = true,
+        enabledWhitespace = true;
+
     /**
      * @constructor
      */
     function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
-        this.secondaryTriggerKeys = " :;\t\n\r";
+        this.secondaryTriggerKeys           = ":";
+        this.secondaryTriggerKeysSeparator  = ";{";
+        this.secondaryTriggerKeysWhitespace = " \t\n\r";
     }
 
     /**
@@ -46,7 +53,9 @@ define(function (require, exports, module) {
             }
         } else {
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
-                   (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
+                   (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1) ||
+                   (enabledSeparator  && (this.secondaryTriggerKeysSeparator.indexOf(implicitChar)  !== -1)) ||
+                   (enabledWhitespace && (this.secondaryTriggerKeysWhitespace.indexOf(implicitChar) !== -1));
         }
         
         return false;
@@ -165,4 +174,38 @@ define(function (require, exports, module) {
     // For unit testing
     exports.cssPropHintProvider = cssPropHints;
     
+    // TEMPORARY TOGGLE COMMANDS - start
+    var POPUP_ON_SEPARATOR      = "CSS Hints: Popup on separator ( ; { )",
+        POPUP_ON_WHITESPACE     = "CSS Hints: Popup on whitespace (space, newline, tab)",
+        CMD_POPUP_SEPARATOR     = "test.popup-semicolon.debug.menu",
+        CMD_POPUP_WHITESPACE    = "test.popup-whitespace.debug.menu";
+
+    function updateSeparatorCheckmark() {
+        CommandManager.get(CMD_POPUP_SEPARATOR).setChecked(enabledSeparator);
+    }
+    function updateWhitespaceCheckmark() {
+        CommandManager.get(CMD_POPUP_WHITESPACE).setChecked(enabledWhitespace);
+    }
+    function toggleEnableSeparator() {
+        enabledSeparator = !enabledSeparator;
+        updateSeparatorCheckmark();
+    }
+    function toggleEnableWhitespace() {
+        enabledWhitespace = !enabledWhitespace;
+        updateWhitespaceCheckmark();
+    }
+
+    CommandManager.register(POPUP_ON_SEPARATOR, CMD_POPUP_SEPARATOR, toggleEnableSeparator);
+    CommandManager.register(POPUP_ON_WHITESPACE, CMD_POPUP_WHITESPACE, toggleEnableWhitespace);
+    var menu = Menus.getMenu(Menus.AppMenuBar.DEBUG_MENU);
+    if (menu) {
+        menu.addMenuDivider();
+
+        menu.addMenuItem(CMD_POPUP_SEPARATOR);
+        updateSeparatorCheckmark();
+
+        menu.addMenuItem(CMD_POPUP_WHITESPACE);
+        updateWhitespaceCheckmark();
+    }
+    // TEMPORARY TOGGLE COMMANDS - end
 });
