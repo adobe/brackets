@@ -180,7 +180,7 @@ define({
 	"CMD_UNDO": "Annuler",
 	"CMD_REDO": "Répéter",
 	"CMD_CUT": "Couper",
-	"CMD_COPY": "[6663366] !é=Copy=!",
+	"CMD_COPY": "Copier",
 	"CMD_PASTE": "Coller",
 	"CMD_SELECT_ALL": "Sélectionner tout",
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
