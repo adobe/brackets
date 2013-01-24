@@ -363,11 +363,6 @@ a, img {
 
 /* Project panel */
 
-#project-header {
-    /* Fixed height blank space for now. The mockups have the window "stoplights" or a logo here. */
-    height: 29px;
-}
-
 #sidebar-resizer {
     position: absolute;
     width: 6px;
@@ -377,17 +372,17 @@ a, img {
     cursor: col-resize;
 } 
 
+#file-section .project-file-header-area, #project-header {
+    padding: 6px 6px 2px 10px;
+    font-size: 13px;
+    color: #929292;
+}
+
 #file-section {
     .vbox;
     .box-flex(1);
     margin: 5px 0px 0px 0px;
     position: relative;
-    
-    .project-file-header-area {
-        padding: 6px 6px 2px 10px;
-        font-size: 13px;
-        color: #929292;
-    }
 
     .file-list-divider {
         border-bottom: 1px solid #9a9a9a;  
@@ -437,17 +432,17 @@ a, img {
 }
 
 .sidebar-selection {
-    background: url("images/active_back.png") no-repeat top right;
-    height: 22px;
+    background: #2c2e30; /*TODO move colors out as variables*/
+    height: 20px;
     position: absolute;
+    border-bottom: 1px solid #5B5D5E;
+    border-top: 1px solid #242526   ;
 }
 
 .sidebar-selection-triangle {
-    background: url("images/active_back.png");
-    width: 10px;
-    height: 22px;
+    width: @triangle-size;
+    height: 30px;
     position: fixed;
-
     z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
 }
 
@@ -456,12 +451,12 @@ a, img {
     
     border-top: @triangle-size solid transparent;
     border-bottom: @triangle-size solid transparent; 
-    border-right: @triangle-size solid @background-color-3;
+    border-left: @triangle-size solid #2c2e30;
     
     display: block;
     position: absolute;
-    top: 2px;
-    right: 0;
+    top: 1px;
+    right: -8px;
     width: 0;
     height: 0;
     
@@ -475,6 +470,8 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
+    background: #484b4c;
+    padding-top: 6px 0 0 1px;
     
     .jstree-brackets li > a {
         padding-right: @triangle-size * 2;
@@ -483,6 +480,10 @@ a, img {
     ul {
         padding-left: 8px;
     }
+}
+#project-files-header {
+    background: #484b4c;
+    border-top: 1px solid #56595a;
 }
 
 #editor-holder .scroller-shadow {
