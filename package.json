@@ -16,6 +16,7 @@
     "devDependencies"       :
     {
         "grunt"                 : ">=0.4.0rc5",
+        "grunt-cli"             : ">=0.1.6",
         "grunt-contrib-jshint"  : "git://github.com/gruntjs/grunt-contrib-jshint.git#master",
         "grunt-contrib-watch"   : ">=0.2.0rc5",
         "grunt-contrib-jasmine" : "git://github.com/gruntjs/grunt-contrib-jasmine.git#master",
