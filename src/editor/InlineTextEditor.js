@@ -161,16 +161,12 @@ define(function (require, exports, module) {
             editor.refresh();
         });
 
+        // Update display of inline editors when the hostEditor signals a redraw
         CodeMirror.on(this.info, "redraw", function () {
             self.editors[0].refresh();
         });
         
         _syncGutterWidths(this.hostEditor);
-        
-        // Set initial size
-        // Note that the second argument here (ensureVisibility) is only used by CSSInlineEditor.
-        // FUTURE: Should clean up this API so it's consistent between the two.
-        this.sizeInlineWidgetToContents(true, true);
         
         this.editors[0].focus();
     };
@@ -242,6 +238,12 @@ define(function (require, exports, module) {
         // Init line number display
         this._updateLineRange = this._updateLineRange.bind(this);
         this._updateLineRange(inlineInfo.editor);
+
+        // Always update the widget height when an inline editor completes a
+        // display update
+        $(inlineInfo.editor).on("update.InlineTextEditor", function (event, editor) {
+            self.sizeInlineWidgetToContents(true);
+        });
 
         // Size editor to content whenever text changes (via edits here or any
         // other view of the doc: Editor fires "change" any time its text
