@@ -67,7 +67,9 @@
         margin-left: 4px;
     }
 }
-
+.content {
+    margin-right: 30px;
+}
 /* Editor toolbar layout
 
    CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
@@ -84,23 +86,20 @@
 */
 #main-toolbar.toolbar {
     text-align: center;
-    .nav {
-        float: left;
-        text-align: left;
-    }
-    .title {
-        float: none;
-        display: inline;  // must be an inline for JS to measure text size
-    }
-    .title-wrapper {
-        margin: 0 auto;
-        display: block;  // must be a block for the fixed width applied by JS to be respected
-        // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
-    }
+    background: #5D5F60;
+    .vbox;
+    .box-flex(1);
+    width: 30px;
+    height: 100%;
+    float: right;
+    box-sizing: border-box;
+    padding: 5px 0px;
     .buttons {
-        float: right;
-        text-align: left;
+        text-align: center;
     }
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
@@ -138,8 +137,6 @@
     }
     
     .buttons {
-        margin: @toolbar-top-gap-px 0 0 4px;
-        
         .experimental-label {
             color: #a0a0a0;
             font-size: 15px;

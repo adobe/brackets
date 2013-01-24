@@ -70,24 +70,7 @@
                 not get set correctly.
          -->
         <div class="content">
-            <!-- Toolbar containing menus, filename, and icons -->
-            <div id="main-toolbar" class="toolbar no-focus">
-                <!-- Menu bar -->
-                <ul class="nav" data-dropdown="dropdown">
-                </ul>
-                
-                <!-- Toolbar -->
-                <div class="buttons">
-                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>
-                    
-                    <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
-                </div>
-                
-                <!-- Filename label -->
-                <div class="title-wrapper">
-                    <span class="title"></span>&nbsp;<span class='dirty-dot' style="visibility:hidden;">•</span>
-                </div>
-            </div>
+            
             
             <div id="editor-holder">
                 <div id="not-editor">
@@ -110,6 +93,25 @@
                 <div class="table-container resizable-content"></div>
             </div>
             
+        </div>
+
+        <!-- Toolbar containing menus, filename, and icons -->
+        <div id="main-toolbar" class="toolbar no-focus"><!--TODO: move menus out -->
+            <!-- Menu bar -->
+            <ul class="nav" data-dropdown="dropdown">
+            </ul>
+            
+            <!-- Toolbar -->
+            <div class="buttons">
+                <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>
+                
+                <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
+            </div>
+            
+            <!-- Filename label --><!--TODO: remove and js inserting filename (move to shell header)-->
+            <div class="title-wrapper" style="display:none;">
+                <span class="title"></span>&nbsp;<span class='dirty-dot' style="visibility:hidden;">•</span>
+            </div>
         </div>
 
         <!-- Hack to ensure that the code editor's web font is loaded early. -->
