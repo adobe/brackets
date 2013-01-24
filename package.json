@@ -24,7 +24,7 @@
     },
     "scripts"               :
     {
-        "install"           : "grunt install",
+        "postinstall"       : "grunt install",
         "test"              : "grunt test"
     }
 }
