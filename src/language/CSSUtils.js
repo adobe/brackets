@@ -93,6 +93,47 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Checks if the given character is one of the characters used for attribute selectors or
+     *     pseudo selectors or class selectors or ID selectors.
+     * @param {string} a single character string
+     * @return {boolean} true if the given characters is one of the start characters used for 
+     *     CSS selectors.
+     */
+    function _isSelectorStartChar(c) {
+        return (c === "[" || c === ":" || c === "." || c === "#");
+    }
+    
+    /**
+     * @private
+     * Checks if the current cursor position is inside the CSS selector context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {boolean} true if the context is in property name
+     */
+    function _isInSelector(ctx) {
+        var ctxClone = $.extend({}, ctx),
+            testNextToken = false;
+        if (!ctx || !ctx.token || ctx.token.className === "comment" || ctx.token.className === "meta") {
+            return false;
+        }
+
+        // If the cursor is on the right of a whitespace and we have non-whitespace on the left,
+        // then check whether the next token is in the selector context.
+        if (ctx.token.className === null && ctx.token.string.length &&
+                !ctx.token.string.match(/\S/) && TokenUtils.offsetInToken(ctx) === ctx.token.string.length) {
+            if (TokenUtils.moveNextToken(ctxClone)) {
+                testNextToken = true;
+            }
+        }
+        if ((ctxClone.token.className === null || ctxClone.token.className === "string-2") &&
+                ctxClone.token.string.length && _isSelectorStartChar(ctxClone.token.string[0])) {
+            return !testNextToken || (testNextToken && ctxClone.token.string[0] === ":");
+        }
+        
+        return (ctxClone.token.className === "tag");
+    }
+
+    /**
+     * @private
      * Creates a context info object
      * @param {string=} context A constant string 
      * @param {number=} offset The offset of the token for a given cursor position
@@ -332,6 +373,69 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Returns a context info object for the current CSS selector
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {!Editor} editor
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
+     */
+    function _getSelectorInfo(ctx, editor) {
+        var lastValue = "",
+            curValue = ctx.token.string,
+            offset = TokenUtils.offsetInToken(ctx),
+            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+            testToken = editor._codeMirror.getTokenAt(testPos);
+        
+        // If the cursor is on the right of a whitespace and we have non-whitespace on the left,
+        // then move cursor to the next token, set offset to 0 and get the selector from next token.
+        if (ctx.token.className === null && curValue.length &&
+                !curValue.match(/\S/) && TokenUtils.offsetInToken(ctx) === curValue.length) {
+            if (TokenUtils.moveNextToken(ctx)) {
+                curValue = ctx.token.string;
+                offset = 0;
+                testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line};
+                testToken = editor._codeMirror.getTokenAt(testPos);
+            }
+        }
+        if (curValue.length && _isSelectorStartChar(curValue[0]) &&
+                editor.document.getLine(ctx.pos.line).length > ctx.pos.ch) {
+            if (testToken.string.length) {
+                curValue += testToken.string;
+            }
+        } else {
+            while (curValue.length && !_isSelectorStartChar(curValue[0])) {
+                lastValue = curValue;
+                if (!TokenUtils.movePrevToken(ctx)) {
+                    break;
+                }
+                if (ctx.token.className === "meta" || ctx.token.className === "tag" ||
+                        ctx.token.string === "]" || ctx.token.string === ")" ||
+                        ctx.token.string === "}" || !ctx.token.string.match(/\S/)) {
+                    break;
+                }
+    
+                curValue = ctx.token.string;
+                if (curValue.length) {
+                    offset += curValue.length;
+                    curValue += lastValue;
+                }
+            }
+        }
+
+        if (curValue[0] === ":" && TokenUtils.movePrevToken(ctx) && ctx.token.string === ":") {
+            curValue = ":" + curValue;
+            offset++;
+        }
+
+        return createInfo(SELECTOR, offset, curValue);
+    }
+    
+    /**
      * Returns a context info object for the given cursor position
      * @param {!Editor} editor
      * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
@@ -380,6 +484,10 @@ define(function (require, exports, module) {
         
         if (_isInPropValue(ctx)) {
             return _getRuleInfoStartingFromPropValue(ctx, editor);
+        }
+        
+        if (_isInSelector(ctx)) {
+            return _getSelectorInfo(ctx, editor);
         }
                     
         return createInfo();

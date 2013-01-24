@@ -37,8 +37,7 @@ define(function (require, exports, module) {
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
-        HTMLTags            = require("text!HtmlTags.json"),
-        HTMLAttributes      = require("text!HtmlAttributes.json"),
+        HintsCollector      = brackets.getModule("codehint/HintsCollector"),
         tags,
         attributes;
 
@@ -628,9 +627,8 @@ define(function (require, exports, module) {
     };
 
     AppInit.appReady(function () {
-        // Parse JSON files
-        tags = JSON.parse(HTMLTags);
-        attributes = JSON.parse(HTMLAttributes);
+        tags = HintsCollector.getCodeHints(HintsCollector.HTML_TAG);
+        attributes = HintsCollector.getCodeHints(HintsCollector.HTML_ATTRIBUTE);
         
         // Register code hint providers
         var tagHints = new TagHints();

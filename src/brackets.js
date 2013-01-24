@@ -104,6 +104,7 @@ define(function (require, exports, module) {
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
+    require("codehint/HintsCollector");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
