@@ -1044,22 +1044,19 @@ define(function (require, exports, module) {
         var self = this,
             node = inlineWidget.htmlContent,
             oldHeight = (node && $(node).height()) || 0,
-            changed = (oldHeight !== height);
+            changed = (oldHeight !== height)
+            isAttached = inlineWidget.info !== undefined;
 
         if (changed) {
             $(node).height(height);
+
+            if (isAttached) {
+                // Notify CodeMirror for the height change
+                inlineWidget.info.changed();
+            }
         }
 
-        // Check if the widget is attached to the host editor
-        if (changed && inlineWidget.info !== undefined) {
-            // Notify CodeMirror for the height change
-            inlineWidget.info.changed();
-        } else {
-            // Do nothing if not attached to host editor
-            return;
-        }
-
-        if (ensureVisible) {
+        if (ensureVisible && isAttached) {
             var offset = $(node).offset(), // offset relative to document
                 position = $(node).position(), // position within parent linespace
                 scrollerTop = self.getVirtualScrollAreaTop();
