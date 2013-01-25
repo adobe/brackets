@@ -237,7 +237,7 @@ define(function (require, exports, module) {
             editor = EditorManager.getFocusedEditor();
 
         if (editor) {
-            editor._selectAllVisible();
+            editor.selectAll();
             result.resolve();
         } else {
             result.reject();    // command not handled
@@ -434,18 +434,6 @@ define(function (require, exports, module) {
         this._inlineWidgets.forEach(function (inlineWidget) {
             inlineWidget.onClosed();
         });
-    };
-    
-        
-    /** 
-     * Handles Select All specially when we have a visible range in order to work around
-     * bugs in CodeMirror when lines are hidden.
-     */
-    Editor.prototype._selectAllVisible = function () {
-        var startLine = this.getFirstVisibleLine(),
-            endLine = this.getLastVisibleLine();
-        this.setSelection({line: startLine, ch: 0},
-                          {line: endLine, ch: this.document.getLine(endLine).length});
     };
     
     /**
@@ -796,6 +784,33 @@ define(function (require, exports, module) {
         if (center) {
             this.centerOnCursor();
         }
+    };
+
+    /**
+     * Selects all visible lines in the editor.
+     */
+    Editor.prototype.selectAll = function () {
+        var self = this;
+
+        // Wrap selectAll in an operation so we can provide our own scroll position
+        this._codeMirror.operation(function () {
+            var startLine   = self.getFirstVisibleLine(),
+                endLine     = self.getLastVisibleLine(),
+                from        = {line: startLine, ch: 0},
+                to          = {line: endLine, ch: self.document.getLine(endLine).length};
+
+            // setSelection will scroll the end of the selection into view
+            self.setSelection(from, to);
+            
+            var doc = self._codeMirror.doc,
+                keepScrollPos = {
+                    scrollTop: doc.scrollTop,
+                    scrollLeft: doc.scrollLeft
+                };
+            
+            // Preserve original scroll position
+            self._codeMirror.curOp.updateScrollPos = keepScrollPos;
+        });
     };
 
     /**
