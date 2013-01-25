@@ -165,11 +165,16 @@ define(function (require, exports, module) {
         // result, starting from the original cursor position
         function findFirst(query) {
             cm.operation(function () {
-                clearSearch(cm);
+                if (state.query) {
+                    clearHighlights(getSearchState(cm));
+                }
                 state.query = parseQuery(query);
                 if (!state.query) {
                     return;
                 }
+                
+                // Temporarily change selection color to improve highlighting - see LESS code for details
+                $(cm.getWrapperElement()).addClass("findHighlightingOn");
 
                 // Highlight all matches
                 // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
@@ -217,6 +222,9 @@ define(function (require, exports, module) {
         });
         $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
             clearHighlights(state);
+            
+            // As soon as focus goes back to the editor, restore normal selection color
+            $(cm.getWrapperElement()).removeClass("findHighlightingOn");
         });
         
         var $input = getDialogTextField();
