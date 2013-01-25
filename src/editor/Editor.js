@@ -1045,17 +1045,18 @@ define(function (require, exports, module) {
             node = inlineWidget.htmlContent,
             oldHeight = (node && $(node).height()) || 0,
             changed = (oldHeight !== height);
-        
-        $(node).height(height);
 
-        // Check if the widget is attached to the host editor
-        if (!inlineWidget.info) {
-            return;
+        if (changed) {
+            $(node).height(height);
         }
 
-        // notify CodeMirror for the height change
-        if (changed) {
+        // Check if the widget is attached to the host editor
+        if (inlineWidget.info !== undefined) {
+            // Notify CodeMirror for the height change
             inlineWidget.info.changed();
+        } else {
+            // Do nothing if not attached to host editor
+            return;
         }
 
         if (ensureVisible) {
