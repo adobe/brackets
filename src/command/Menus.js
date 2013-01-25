@@ -571,11 +571,17 @@ define(function (require, exports, module) {
                 if (err) {
                     console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
                 } else {
-                    // Make sure the name is up to date
+                    // Make sure the name and shortcut are up to date
                     if (!menuItem.isDivider) {
                         brackets.app.setMenuTitle(commandID, name, function (err) {
                             if (err) {
-                                console.error("setMenuTitle() -- error: " + err);
+                                console.error("setMenuTitle() -- error: " + err + " when adding command: " + commandID);
+                            } else {
+                                brackets.app.setMenuItemShortcut(commandID, bindingStr, function (err) {
+                                    if (err) {
+                                        console.error("setMenuItemShortcut() -- error: " + err + " when adding command: " + commandID);
+                                    }
+                                });
                             }
                         });
                     }
@@ -732,7 +738,15 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM with a keyboard shortcut label
      */
     MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
-        _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        if (this.isNative) {
+            brackets.app.setMenuItemShortcut(this.id, keyBinding.displayKey || keyBinding.key, function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        }
     };
     
     /**
@@ -740,12 +754,20 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM to remove keyboard shortcut label
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
-        var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
-        
-        if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
-            // check for any other bindings
-            if (_addExistingKeyBinding(this) === null) {
-                $shortcut.empty();
+        if (this.isNative) {
+            brackets.app.setMenuItemShortcut(this.id, "", function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
+            
+            if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
+                // check for any other bindings
+                if (_addExistingKeyBinding(this) === null) {
+                    $shortcut.empty();
+                }
             }
         }
     };
