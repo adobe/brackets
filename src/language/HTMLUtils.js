@@ -126,6 +126,9 @@ define(function (require, exports, module) {
         if (editor.getModeForSelection() === "html") {
             if (backwardCtx.token && backwardCtx.token.className !== "tag") {
                 while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.className !== "tag") {
+                    if (backwardCtx.token.className === "error" && backwardCtx.token.string.indexOf("<") === 0) {
+                        break;
+                    }
                     if (backwardCtx.token.className === "attribute") {
                         attrs.push(backwardCtx.token.string);
                     }
@@ -140,6 +143,9 @@ define(function (require, exports, module) {
                         }
                         attrs.push(forwardCtx.token.string);
                     } else if (forwardCtx.token.className === "error") {
+                        if (forwardCtx.token.string.indexOf("<") === 0 || forwardCtx.token.string.indexOf(">") === 0) {
+                            break;
+                        }
                         // If we type the first letter of the next attribute, it comes as an error
                         // token. We need to double check for possible invalidated attributes.
                         if (forwardCtx.token.string.trim() !== "" &&
@@ -317,7 +323,7 @@ define(function (require, exports, module) {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
 
-                if (ctx.token.className === "tag") {
+                if (ctx.token.className === "tag" || ctx.token.className === "error") {
                     // Check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
@@ -383,7 +389,7 @@ define(function (require, exports, module) {
             }
         }
         
-        if (ctx.token.className === "tag") {
+        if (ctx.token.className === "tag" || ctx.token.className === "error") {
             // Check if the user just typed a white space after "<" that made an existing tag invalid.
             if (ctx.token.string.match(/^<\s+/) && offset !== 1) {
                 return createTagInfo();
