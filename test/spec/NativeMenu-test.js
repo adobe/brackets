@@ -985,7 +985,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 15", "Menu-test.command15", "", "lastInSection", "Menu-test.command12", function (err) {
+                    brackets.app.addMenuItem(SECTION_MENU, "Command 15", "Menu-test.command15", "", "lastInSection", "Menu-test.command13", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1015,7 +1015,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 16", "Menu-test.command16", "", "firstInSection", "Menu-test.command10", function (err) {
+                    brackets.app.addMenuItem(SECTION_MENU, "Command 16", "Menu-test.command16", "", "firstInSection", "Menu-test.command11", function (err) {
                         complete = true;
                         error = err;
                     });
