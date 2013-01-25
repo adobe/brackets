@@ -121,3 +121,9 @@ function\u0009unicodeTabBefore () {
 
 function unicodeTabAfter\u0009() {
 }
+
+
+// test for issue #1390
+MyClass.prototype.length = function () {
+    return 1;
+}

@@ -47,22 +47,27 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
+        ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
         KeyEvent            = require("utils/KeyEvent"),
         AppInit             = require("utils/AppInit"),
-        StatusBar           = require("widgets/StatusBar");
+        StatusBar           = require("widgets/StatusBar"),
+        ModalBar            = require("widgets/ModalBar").ModalBar;
 
     var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100,
-        maxHitsFoundInFile = false;
+        maxHitsFoundInFile = false,
+        currentQuery = "",
+        currentScope;
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
-        $(".CodeMirror-dialog .alert-message").remove();
-        
+        $(".modal-bar .message").css("display", "inline-block");
+        $(".modal-bar .error").css("display", "none");
+
         // If query is a regular expression, use it directly
         var isRE = query.match(/^\/(.*)\/(g|i)*$/);
         if (isRE) {
@@ -74,7 +79,10 @@ define(function (require, exports, module) {
             try {
                 return new RegExp(isRE[1], flags);
             } catch (e) {
-                $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+                $(".modal-bar .message").css("display", "none");
+                $(".modal-bar .error")
+                    .css("display", "inline-block")
+                    .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
                 return null;
             }
         }
@@ -85,6 +93,21 @@ define(function (require, exports, module) {
         query = StringUtils.regexEscape(query);
         return new RegExp(query, "gi");
     }
+    
+    /**
+     * Returns label text to indicate the search scope. Already HTML-escaped.
+     * @param {?Entry} scope
+     */
+    function _labelForScope(scope) {
+        var projName = ProjectManager.getProjectRoot().name;
+        if (scope) {
+            var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
+            return StringUtils.format(Strings.FIND_IN_FILES_SCOPED, displayPath);
+        } else {
+            return Strings.FIND_IN_FILES_NO_SCOPE;
+        }
+    }
+    
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -100,16 +123,6 @@ define(function (require, exports, module) {
     }
 
     /**
-    * Creates a dialog div floating on top of the current code mirror editor
-    */
-    FindInFilesDialog.prototype._createDialogDiv = function (template) {
-        this.dialog = $("<div />")
-                          .attr("class", "CodeMirror-dialog")
-                          .html("<div>" + template + "</div>")
-                          .prependTo($("#editor-holder"));
-    };
-    
-    /**
     * Closes the search dialog and resolves the promise that showDialog returned
     */
     FindInFilesDialog.prototype._close = function (value) {
@@ -118,7 +131,7 @@ define(function (require, exports, module) {
         }
         
         this.closed = true;
-        this.dialog.remove();
+        this.modalBar.close();
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
@@ -126,19 +139,23 @@ define(function (require, exports, module) {
     /**
     * Shows the search dialog 
     * @param {?string} initialString Default text to prepopulate the search field with
+    * @param {?Entry} scope Search scope, or null to search whole proj
     * @returns {$.Promise} that is resolved with the string to search for
     */
-    FindInFilesDialog.prototype.showDialog = function (initialString) {
-        var dialogHTML = Strings.CMD_FIND_IN_FILES +
-            ": <input type='text' id='findInFilesInput' style='width: 10em'> <span style='color: #888'>(" +
-            Strings.SEARCH_REGEXP_INFO  + ")</span>";
+    FindInFilesDialog.prototype.showDialog = function (initialString, scope) {
+        // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
+        var dialogHTML = Strings.CMD_FIND +
+            ": <input type='text' id='findInFilesInput' style='width: 10em'> <span id='findInFilesScope'></span> &nbsp;" +
+            "<div class='message'><span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
         this.result = new $.Deferred();
-        this._createDialogDiv(dialogHTML);
+        this.modalBar = new ModalBar(dialogHTML, false);
         var $searchField = $("input#findInFilesInput");
         var that = this;
         
         $searchField.attr("value", initialString || "");
         $searchField.get(0).select();
+        
+        $("#findInFilesScope").html(_labelForScope(scope));
         
         $searchField.bind("keydown", function (event) {
             if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
@@ -209,7 +226,7 @@ define(function (require, exports, module) {
         return matches;
     }
         
-    function _showSearchResults(searchResults, query) {
+    function _showSearchResults(searchResults, query, scope) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
@@ -229,17 +246,19 @@ define(function (require, exports, module) {
             }
             numMatchesStr += String(numMatches);
 
+            // This text contains some formatting, so all the strings are assumed to be already escaped
             var summary = StringUtils.format(
                 Strings.FIND_IN_FILES_TITLE,
                 numMatchesStr,
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 searchResults.length,
                 (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
-                query
+                StringUtils.htmlEscape(query),
+                scope ? _labelForScope(scope) : ""
             );
             
             $("#search-result-summary")
-                .text(summary +
+                .html(summary +
                      (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
                 .prepend("&nbsp;"); // putting a normal space before the "-" is not enough
             
@@ -251,23 +270,25 @@ define(function (require, exports, module) {
                         return $("<td/>").html(content);
                     };
                     
-                    var esc = function (str) {
-                        str = str.replace(/</g, "&lt;");
-                        str = str.replace(/>/g, "&gt;");
-                        return str;
-                    };
+                    // shorthand function name
+                    var esc = StringUtils.htmlEscape;
                     
                     var highlightMatch = function (line, start, end) {
                         return esc(line.substr(0, start)) + "<span class='highlight'>" + esc(line.substring(start, end)) + "</span>" + esc(line.substr(end));
                     };
                     
                     // Add row for file name
+                    var displayFileName = StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH,
+                                                             StringUtils.breakableUrl(esc(item.fullPath)));
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(item.fullPath)) + "</td>")
+                        .append("<td colspan='3'><span class='disclosure-triangle expanded'></span>" + displayFileName + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
                             $fileHeader.nextUntil(".file-section").toggle();
+                            
+                            var $triangle = $(".disclosure-triangle", $fileHeader);
+                            $triangle.toggleClass("expanded").toggleClass("collapsed");
                         })
                         .appendTo($resultTable);
                     
@@ -314,23 +335,45 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @param {!FileInfo} fileInfo File in question
+     * @param {?Entry} scope Search scope, or null if whole project
+     * @return {boolean}
+     */
+    function inScope(fileInfo, scope) {
+        if (scope) {
+            if (scope.isDirectory) {
+                // Dirs always have trailing slash, so we don't have to worry about being
+                // a substring of another dir name
+                return fileInfo.fullPath.indexOf(scope.fullPath) === 0;
+            } else {
+                return fileInfo.fullPath === scope.fullPath;
+            }
+        }
+        return true;
+    }
+    
+    /**
     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
     * a find operation across all files in the project.
+    * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
     */
-    function doFindInFiles() {
+    function doFindInFiles(scope) {
 
         var dialog = new FindInFilesDialog();
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getActiveEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
-        
+
+        currentQuery = "";
+        currentScope = scope;
         searchResults = [];
         maxHitsFoundInFile = false;
                             
-        dialog.showDialog(initialString)
+        dialog.showDialog(initialString, scope)
             .done(function (query) {
                 if (query) {
+                    currentQuery = query;
                     var queryExpr = _getQueryRegExp(query);
                     if (!queryExpr) {
                         return;
@@ -341,28 +384,33 @@ define(function (require, exports, module) {
                             Async.doInParallel(fileListResult, function (fileInfo) {
                                 var result = new $.Deferred();
                                 
-                                DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                                    .done(function (doc) {
-                                        var matches = _getSearchMatches(doc.getText(), queryExpr);
-                                        
-                                        if (matches && matches.length) {
-                                            searchResults.push({
-                                                fullPath: fileInfo.fullPath,
-                                                matches: matches
-                                            });
-                                        }
-                                        result.resolve();
-                                    })
-                                    .fail(function (error) {
-                                        // Error reading this file. This is most likely because the file isn't a text file.
-                                        // Resolve here so we move on to the next file.
-                                        result.resolve();
-                                    });
-                                
+                                if (!inScope(fileInfo, scope)) {
+                                    result.resolve();
+                                } else {
+                                    // Search one file
+                                    DocumentManager.getDocumentForPath(fileInfo.fullPath)
+                                        .done(function (doc) {
+                                            var matches = _getSearchMatches(doc.getText(), queryExpr);
+                                            
+                                            if (matches && matches.length) {
+                                                searchResults.push({
+                                                    fullPath: fileInfo.fullPath,
+                                                    matches: matches
+                                                });
+                                            }
+                                            result.resolve();
+                                        })
+                                        .fail(function (error) {
+                                            // Error reading this file. This is most likely because the file isn't a text file.
+                                            // Resolve here so we move on to the next file.
+                                            result.resolve();
+                                        });
+                                }
                                 return result.promise();
                             })
                                 .done(function () {
-                                    _showSearchResults(searchResults, query);
+                                    // Done searching all files: show results
+                                    _showSearchResults(searchResults, query, scope);
                                     StatusBar.hideBusyIndicator();
                                 })
                                 .fail(function () {
@@ -374,11 +422,23 @@ define(function (require, exports, module) {
             });
     }
     
+    /** Search within the file/subtree defined by the sidebar selection */
+    function doFindInSubtree() {
+        // Prefer project tree selection, else use working set selection
+        var selectedEntry = ProjectManager.getSelectedItem();
+        if (!selectedEntry) {
+            var doc = DocumentManager.getCurrentDocument();
+            selectedEntry = (doc && doc.file);
+        }
+        
+        doFindInFiles(selectedEntry);
+    }
+    
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var $searchResults  = $("#search-results"),
             $searchContent  = $("#search-results .table-container");
-
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
@@ -387,10 +447,12 @@ define(function (require, exports, module) {
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
             });
-            _showSearchResults(searchResults);
+            _showSearchResults(searchResults, currentQuery, currentScope);
         }
     }
     
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
+    
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
+    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, doFindInSubtree);
 });

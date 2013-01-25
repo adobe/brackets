@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils */
+/*global define, $, JSLINT, PathUtils, brackets */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         StatusBar               = require("widgets/StatusBar");
         
     var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { enabled: true };
+        defaultPrefs = { enabled: !!brackets.config.enable_jslint };
     
     /**
      * @private
@@ -69,6 +69,27 @@ define(function (require, exports, module) {
      */
     function getEnabled() {
         return _enabled;
+    }
+    
+    /**
+     * @private
+     * @type {function()}
+     * Holds a pointer to the function that selects the first error in the 
+     * list. Stored when running JSLint and used by the "Go to First JSLint
+     * Error" command
+     */
+    var _gotoFirstErrorFunction = null;
+    
+    /**
+     * @private
+     * Enable or disable the "Go to First JSLint Error" command
+     * @param {boolean} gotoEnabled Whether it is enabled.
+     */
+    function _setGotoEnabled(gotoEnabled) {
+        CommandManager.get(Commands.NAVIGATE_GOTO_JSLINT_ERROR).setEnabled(gotoEnabled);
+        if (!gotoEnabled) {
+            _gotoFirstErrorFunction = null;
+        }
     }
     
     /**
@@ -123,7 +144,7 @@ define(function (require, exports, module) {
                             .append(makeCell(item.evidence || ""))
                             .appendTo($errorTable);
                         
-                        $row.click(function () {
+                        var clickCallback = function () {
                             if ($selectedRow) {
                                 $selectedRow.removeClass("selected");
                             }
@@ -133,7 +154,11 @@ define(function (require, exports, module) {
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(item.line - 1, item.character - 1);
                             EditorManager.focusEditor();
-                        });
+                        };
+                        $row.click(clickCallback);
+                        if (i === 0) { // first result, so store callback for goto command
+                            _gotoFirstErrorFunction = clickCallback;
+                        }
                     }
                 });
 
@@ -149,10 +174,12 @@ define(function (require, exports, module) {
                 } else {
                     StatusBar.updateIndicator(module.id, true, "jslint-errors", StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, JSLINT.errors.length));
                 }
+                _setGotoEnabled(true);
             } else {
                 $lintResults.hide();
                 $goldStar.show();
                 StatusBar.updateIndicator(module.id, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
+                _setGotoEnabled(false);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
@@ -163,6 +190,7 @@ define(function (require, exports, module) {
             $lintResults.hide();
             $goldStar.hide();
             StatusBar.updateIndicator(module.id, true, "jslint-disabled", Strings.JSLINT_DISABLED);
+            _setGotoEnabled(false);
         }
         
         EditorManager.resizeEditor();
@@ -179,7 +207,7 @@ define(function (require, exports, module) {
                 .on("currentDocumentChange.jslint", function () {
                     run();
                 })
-                .on("documentSaved.jslint", function (event, document) {
+                .on("documentSaved.jslint documentRefreshed.jslint", function (event, document) {
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();
                     }
@@ -215,19 +243,30 @@ define(function (require, exports, module) {
         setEnabled(!getEnabled());
     }
     
+    /** Command to go to the first JSLint Error */
+    function _handleGotoJSLintError() {
+        run();
+        if (_gotoFirstErrorFunction) {
+            _gotoFirstErrorFunction();
+        }
+    }
+    
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
+    CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, Commands.NAVIGATE_GOTO_JSLINT_ERROR, _handleGotoJSLintError);
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-    _setEnabled(_prefs.getValue("enabled"));
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var $jslintResults  = $("#jslint-results"),
             $jslintContent  = $("#jslint-results .table-container");
         
-        StatusBar.addIndicator(module.id, $("#gold-star"), false);
+        StatusBar.addIndicator(module.id, $("#gold-star"));
+        
+        // Called on HTML ready to trigger the initial UI state
+        _setEnabled(_prefs.getValue("enabled"));
     });
 
     // Define public API

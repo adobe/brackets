@@ -29,14 +29,6 @@
  * Adds Find and Replace commands
  *
  * Originally based on the code in CodeMirror2/lib/util/search.js.
- * 
- * Define search commands. Depends on dialog.js or another
- * implementation of the openDialog method.
- *
- * Replace works a little oddly -- it will do the replace on the next findNext press.
- * You prevent a replace by making sure the match is no longer selected when hitting
- * findNext.
- *
  */
 define(function (require, exports, module) {
     "use strict";
@@ -44,8 +36,11 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
-        EditorManager       = require("editor/EditorManager");
-
+        EditorManager       = require("editor/EditorManager"),
+        ModalBar            = require("widgets/ModalBar").ModalBar;
+    
+    var modalBar;
+    
     function SearchState() {
         this.posFrom = this.posTo = this.query = null;
         this.marked = [];
@@ -62,34 +57,22 @@ define(function (require, exports, module) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         return cm.getSearchCursor(query, pos, typeof query === "string" && query === query.toLowerCase());
     }
-
-    function dialog(cm, text, shortText, f) {
-        if (cm.openDialog) {
-            cm.openDialog(text, f);
-        } else {
-            f(prompt(shortText, ""));
-        }
-    }
-
-    function confirmDialog(cm, text, shortText, fs) {
-        if (cm.openConfirm) {
-            cm.openConfirm(text, fs);
-        } else if (confirm(shortText)) {
-            fs[0]();
-        }
-    }
     
     function getDialogTextField() {
-        return $(".CodeMirror-dialog input[type='text']");
+        return $("input[type='text']", modalBar.getRoot());
     }
 
     function parseQuery(query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        $(".CodeMirror-dialog .alert-message").remove();
+        $(".modal-bar .message").css("display", "inline-block");
+        $(".modal-bar .error").css("display", "none");
         try {
             return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
         } catch (e) {
-            $(".CodeMirror-dialog div").append("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
+            $(".modal-bar .message").css("display", "none");
+            $(".modal-bar .error")
+                .css("display", "inline-block")
+                .html("<div class='alert-message' style='margin-bottom: 0'>" + e.message + "</div>");
             return "";
         }
     }
@@ -113,6 +96,7 @@ define(function (require, exports, module) {
             cm.setSelection(cursor.from(), cursor.to());
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
+            state.findNextCalled = true;
         });
         return found;
     }
@@ -134,21 +118,41 @@ define(function (require, exports, module) {
         });
     }
     
+    function createModalBar(template, autoClose) {
+        // Normally, creating a new modal bar will simply cause the old one to close
+        // automatically. This can cause timing issues because the focus change might
+        // cause the new one to think it should close, too. The old CodeMirror version
+        // of this handled it by adding a timeout within which a blur wouldn't cause
+        // the modal bar to close. Rather than reinstate that hack, we simply explicitly
+        // close the old modal bar before creating a new one.
+        if (modalBar) {
+            modalBar.close();
+        }
+        modalBar = new ModalBar(template, autoClose);
+        $(modalBar).on("closeOk closeBlur closeCancel", function () {
+            modalBar = null;
+        });
+    }
+    
     var queryDialog = Strings.CMD_FIND +
-            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span>';
+            ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
+            Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
      * next/prev result (depending on 'rev')
      */
-    function doSearch(cm, rev) {
+    function doSearch(cm, rev, initialQuery) {
         var state = getSearchState(cm);
         if (state.query) {
             return findNext(cm, rev);
         }
         
-        var searchStartPos = cm.getCursor();
+        // Use the selection start as the searchStartPos. This way if you
+        // start with a pre-populated search and enter an additional character,
+        // it will extend the initial selection instead of jumping to the next
+        // occurrence.
+        var searchStartPos = cm.getCursor(true);
         
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
@@ -175,44 +179,69 @@ define(function (require, exports, module) {
                 state.posFrom = state.posTo = searchStartPos;
                 var foundAny = findNext(cm, rev);
                 
-                getDialogTextField().toggleClass("no-results", !foundAny);
+                if (modalBar) {
+                    getDialogTextField().toggleClass("no-results", !foundAny);
+                }
             });
         }
         
-        dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
-            // If the dialog is closed and the query string is not empty,
-            // make sure we have called findFirst at least once. This way
-            // if the Find dialog is opened with pre-populated text, pressing
-            // enter will find the next occurance of the text and store
-            // the query for subsequent "Find Next" commands.
-            if (query && !state.query) {
+        if (modalBar) {
+            // The modalBar was already up. When creating the new modalBar, copy the
+            // current query instead of using the passed-in selected text.
+            initialQuery = getDialogTextField().attr("value");
+        }
+        
+        createModalBar(queryDialog, true);
+        $(modalBar).on("closeOk", function (e, query) {
+            if (!state.findNextCalled) {
+                // If findNextCalled is false, this means the user has *not*
+                // entered any search text *or* pressed Cmd-G/F3 to find the
+                // next occurrence. In this case we want to start searching
+                // *after* the current selection so we find the next occurrence.
+                searchStartPos = cm.getCursor(false);
                 findFirst(query);
             }
         });
-        getDialogTextField().on("input", function () {
-            findFirst(getDialogTextField().attr("value"));
+    
+        var $input = getDialogTextField();
+        $input.on("input", function () {
+            findFirst($input.attr("value"));
         });
+
+        // Prepopulate the search field with the current selection, if any.
+        if (initialQuery !== undefined) {
+            $input
+                .attr("value", initialQuery)
+                .get(0).select();
+            findFirst(initialQuery);
+            // Clear the "findNextCalled" flag here so we have a clean start
+            state.findNextCalled = false;
+        }
     }
 
     var replaceQueryDialog = Strings.CMD_REPLACE +
-            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span>';
+            ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
+            Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
     var replacementQueryDialog = Strings.WITH +
             ': <input type="text" style="width: 10em"/>';
     // style buttons to match height/margins/border-radius of text input boxes
     var style = ' style="padding:5px 15px;border:1px #999 solid;border-radius:3px;margin:2px 2px 5px;"';
     var doReplaceConfirm = Strings.CMD_REPLACE +
-            '? <button' + style + '>' + Strings.BUTTON_YES +
-            '</button> <button' + style + '>' + Strings.BUTTON_NO +
+            '? <button id="replace-yes"' + style + '>' + Strings.BUTTON_YES +
+            '</button> <button id="replace-no"' + style + '>' + Strings.BUTTON_NO +
             '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
     function replace(cm, all) {
-        dialog(cm, replaceQueryDialog, Strings.CMD_REPLACE, function (query) {
+        createModalBar(replaceQueryDialog, true);
+        $(modalBar).on("closeOk", function (e, query) {
             if (!query) {
                 return;
             }
+            
             query = parseQuery(query);
-            dialog(cm, replacementQueryDialog, Strings.WITH, function (text) {
+            createModalBar(replacementQueryDialog, true);
+            $(modalBar).on("closeOk", function (e, text) {
+                text = text || "";
                 var match,
                     fnMatch = function (w, i) { return match[i]; };
                 if (all) {
@@ -244,8 +273,15 @@ define(function (require, exports, module) {
                             }
                         }
                         cm.setSelection(cursor.from(), cursor.to());
-                        confirmDialog(cm, doReplaceConfirm, Strings.CMD_REPLACE + "?",
-                                                    [function () { doReplace(match); }, advance]);
+                        createModalBar(doReplaceConfirm, true);
+                        modalBar.getRoot().on("click", function (e) {
+                            modalBar.close();
+                            if (e.target.id === "replace-yes") {
+                                doReplace(match);
+                            } else if (e.target.id === "replace-no") {
+                                advance();
+                            }
+                        });
                     };
                     var doReplace = function (match) {
                         cursor.replace(typeof query === "string" ? text :
@@ -270,12 +306,7 @@ define(function (require, exports, module) {
 
             // Bring up CodeMirror's existing search bar UI
             clearSearch(codeMirror);
-            doSearch(codeMirror);
-
-            // Prepopulate the search field with the current selection, if any
-            getDialogTextField()
-                .attr("value", codeMirror.getSelection())
-                .get(0).select();
+            doSearch(codeMirror, false, codeMirror.getSelection());
         }
     }
 

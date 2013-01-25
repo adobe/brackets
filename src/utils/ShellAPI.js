@@ -39,13 +39,13 @@ define(function (require, exports, module) {
      * calling Brackets commands from the native shell.
      */
     function executeCommand(eventName) {
-        var evt = window.document.createEvent("Event");
-        evt.initEvent(eventName, false, true);
-        
-        CommandManager.execute(eventName, {evt: evt});
-        
-        //return if default was prevented
-        return evt.defaultPrevented;
+        // Temporary fix for #2616 - don't execute the command if a modal dialog is open.
+        // This should really be fixed with proper menu enabling.
+        if ($(".modal.instance").length) {
+            return false;
+        }
+        var promise = CommandManager.execute(eventName);
+        return (promise && promise.state() === "rejected") ? false : true;
     }
 
     exports.executeCommand = executeCommand;

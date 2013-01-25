@@ -168,6 +168,20 @@ define(function (require, exports, module) {
                 }
             });
         });
+        
+        describe("File Display", function () {
+            it("should not show useless directory entries", function () {
+                var shouldShow = ProjectManager.shouldShow;
+                var makeEntry = function (name) {
+                    return { name: name };
+                };
+                
+                expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
+                expect(shouldShow(makeEntry("foobar"))).toBe(true);
+                expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
+                expect(shouldShow(makeEntry("module.pyc"))).toBe(false);
+            });
+        });
 
     });
 });

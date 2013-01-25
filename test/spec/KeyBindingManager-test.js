@@ -34,12 +34,16 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         KeyBindingManager   = require("command/KeyBindingManager");
     
-    function key(k, displayKey) {
-        return {key: k, displayKey: displayKey || k };
+    function key(k, displayKey, explicitPlatform) {
+        return {
+            key                 : k,
+            displayKey          : displayKey || k,
+            explicitPlatform    : explicitPlatform
+        };
     }
     
-    function keyBinding(k, commandID, displayKey) {
-        var obj = key(k, displayKey);
+    function keyBinding(k, commandID, displayKey, explicitPlatform) {
+        var obj = key(k, displayKey, explicitPlatform);
         obj.commandID = commandID;
         
         return obj;
@@ -60,11 +64,11 @@ define(function (require, exports, module) {
         var platform = brackets.platform;
         
         beforeEach(function () {
+            KeyBindingManager._reset();
             brackets.platform = "test";
         });
         
         afterEach(function () {
-            KeyBindingManager._reset();
             brackets.platform = platform;
         });
 
@@ -86,26 +90,30 @@ define(function (require, exports, module) {
             });
             
             it("should add single bindings to the keymap", function () {
-                var result = KeyBindingManager.addBinding("test.foo", "Ctrl-A");
-                expect(result).toEqual(key("Ctrl-A"));
-                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([key("Ctrl-A")]);
+                var result = KeyBindingManager.addBinding("test.foo", "Ctrl-A"),
+                    keyTest = key("Ctrl-A");
+                
+                expect(result).toEqual(keyTest);
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([keyTest]);
                 
                 result = KeyBindingManager.addBinding("test.bar", "Ctrl-B");
-                expect(result).toEqual(key("Ctrl-B"));
-                expect(KeyBindingManager.getKeyBindings("test.bar")).toEqual([key("Ctrl-B")]);
+                keyTest = key("Ctrl-B");
+                expect(result).toEqual(keyTest);
+                expect(KeyBindingManager.getKeyBindings("test.bar")).toEqual([keyTest]);
                 
                 result = KeyBindingManager.addBinding("test.cat", "Ctrl-C", "bark");
                 expect(result).toBeNull();
                 
                 result = KeyBindingManager.addBinding("test.dog", "Ctrl-D", "test");
-                expect(result).toEqual(key("Ctrl-D"));
-                expect(KeyBindingManager.getKeyBindings("test.dog")).toEqual([key("Ctrl-D")]);
+                keyTest = key("Ctrl-D", null, "test");
+                expect(result).toEqual(keyTest);
+                expect(KeyBindingManager.getKeyBindings("test.dog")).toEqual([keyTest]);
                 
                 // only "test" platform bindings
                 var expected = keyMap([
                     keyBinding("Ctrl-A", "test.foo"),
                     keyBinding("Ctrl-B", "test.bar"),
-                    keyBinding("Ctrl-D", "test.dog")
+                    keyBinding("Ctrl-D", "test.dog", null, "test")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
@@ -128,11 +136,11 @@ define(function (require, exports, module) {
                 
                 var results = KeyBindingManager.addBinding("test.foo", [{key: "Ctrl-A", platform: "test1"}, "Ctrl-1"]);
                 expect(results).toEqual([
-                    key("Ctrl-A"),
+                    key("Ctrl-A", null, "test1"),
                     key("Ctrl-1")
                 ]);
                 expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([
-                    key("Ctrl-A"),
+                    key("Ctrl-A", null, "test1"),
                     key("Ctrl-1")
                 ]);
                 
@@ -146,7 +154,7 @@ define(function (require, exports, module) {
             
                 // only "test1" platform and cross-platform bindings
                 var expected = keyMap([
-                    keyBinding("Ctrl-A", "test.foo"),
+                    keyBinding("Ctrl-A", "test.foo", null, "test1"),
                     keyBinding("Ctrl-1", "test.foo"),
                     keyBinding("Ctrl-B", "test.bar")
                 ]);
@@ -154,12 +162,34 @@ define(function (require, exports, module) {
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
             });
             
-            it("should prevent a key binding from mapping to multiple commands", function () {
+            it("should allow a generic key binding to be replaced", function () {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A");
                 KeyBindingManager.addBinding("test.bar", "Ctrl-A");
                 
                 var expected = keyMap([
-                    keyBinding("Ctrl-A", "test.foo")
+                    keyBinding("Ctrl-A", "test.bar")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should allow a platform-specific key binding to override a generic binding", function () {
+                KeyBindingManager.addBinding("test.foo", "Ctrl-A");
+                KeyBindingManager.addBinding("test.bar", "Ctrl-A", "test");
+                
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.bar", null, "test")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should keep a platform-specific key binding if a generic binding is added later", function () {
+                KeyBindingManager.addBinding("test.foo", "Ctrl-A", "test");
+                KeyBindingManager.addBinding("test.bar", "Ctrl-A");
+                
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo", null, "test")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
@@ -187,10 +217,68 @@ define(function (require, exports, module) {
                 KeyBindingManager.addBinding("test.cmdCtrlAlt", "Cmd-Ctrl-A", "mac");
                 
                 var expected = keyMap([
-                    keyBinding("Cmd-A", "test.cmd"),
-                    keyBinding("Ctrl-A", "test.ctrl"),
-                    keyBinding("Ctrl-Alt-A", "test.ctrlAlt"),
-                    keyBinding("Ctrl-Cmd-A", "test.cmdCtrlAlt") // KeyBindingManager changes the order
+                    keyBinding("Cmd-A", "test.cmd", null, "mac"),
+                    keyBinding("Ctrl-A", "test.ctrl", null, "mac"),
+                    keyBinding("Ctrl-Alt-A", "test.ctrlAlt", null, "mac"),
+                    keyBinding("Ctrl-Cmd-A", "test.cmdCtrlAlt", null, "mac") // KeyBindingManager changes the order
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should use windows key bindings on linux", function () {
+                var original = KeyBindingManager.useWindowsCompatibleBindings;
+                
+                this.after(function () {
+                    KeyBindingManager.useWindowsCompatibleBindings = original;
+                });
+                
+                KeyBindingManager.useWindowsCompatibleBindings = true;
+                brackets.platform = "linux";
+                
+                // create a windows-specific binding
+                KeyBindingManager.addBinding("test.cmd", "Ctrl-A", "win");
+                
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.cmd", null, "win")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+                
+                // create a generic binding to replace the windows binding
+                KeyBindingManager.addBinding("test.cmd", "Ctrl-B");
+                
+                expected = keyMap([
+                    keyBinding("Ctrl-B", "test.cmd", null)
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should support windows compatible bindings", function () {
+                var original = KeyBindingManager.useWindowsCompatibleBindings;
+                
+                this.after(function () {
+                    KeyBindingManager.useWindowsCompatibleBindings = original;
+                });
+                
+                KeyBindingManager.useWindowsCompatibleBindings = true;
+                brackets.platform = "linux";
+                
+                // create a generic binding
+                KeyBindingManager.addBinding("test.cmd", "Ctrl-A");
+                
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.cmd")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+                
+                // create a linux-only binding to replace the windows binding
+                KeyBindingManager.addBinding("test.cmd", "Ctrl-B", "linux");
+                
+                expected = keyMap([
+                    keyBinding("Ctrl-B", "test.cmd", null, "linux")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);

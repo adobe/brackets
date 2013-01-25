@@ -44,6 +44,7 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
+    exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
@@ -58,6 +59,7 @@ define(function (require, exports, module) {
     exports.EDIT_SELECT_LINE            = "edit.selectLine";
     exports.EDIT_FIND                   = "edit.find";
     exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";
+    exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";
     exports.EDIT_FIND_NEXT              = "edit.findNext";
     exports.EDIT_FIND_PREVIOUS          = "edit.findPrevious";
     exports.EDIT_REPLACE                = "edit.replace";
@@ -87,6 +89,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
+    exports.NAVIGATE_GOTO_JSLINT_ERROR  = "navigate.gotoJSLintError";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
@@ -101,9 +104,13 @@ define(function (require, exports, module) {
     exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
 
     // Help
-    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
     exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";
+    exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";
     exports.HELP_FORUM                  = "help.forum";
+    exports.HELP_RELEASE_NOTES          = "help.releaseNotes";
+    exports.HELP_REPORT_AN_ISSUE        = "help.reportAnIssue";
+    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
+    exports.HELP_TWITTER                = "help.twitter";
     exports.HELP_ABOUT                  = "help.about";
 
     // File shell callbacks
