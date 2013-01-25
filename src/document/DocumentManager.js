@@ -857,9 +857,7 @@ define(function (require, exports, module) {
         this._ensureMasterEditor();
         
         var self = this;
-        this._masterEditor._codeMirror.compoundChange(function () {
-            self._masterEditor._codeMirror.operation(doOperation);
-        });
+        self._masterEditor._codeMirror.operation(doOperation);
     };
     
     /**
