@@ -550,11 +550,16 @@ define(function (require, exports, module) {
         if (!_isHTMLMenu(this.id)) {
             var bindings = KeyBindingManager.getKeyBindings(commandID),
                 binding,
-                bindingStr = "";
+                bindingStr = "",
+                displayStr = "";
             
             if (bindings && bindings.length > 0) {
                 binding = bindings[bindings.length - 1];
                 bindingStr = binding.displayKey || binding.key;
+            }
+            
+            if (bindingStr.length > 0) {
+                displayStr = KeyBindingManager.formatKeyDescriptor(bindingStr);
             }
             
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
@@ -567,7 +572,7 @@ define(function (require, exports, module) {
                 relativeID = relativeID.sectionMarker;
             }
             
-            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
+            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
                 } else {
@@ -577,11 +582,16 @@ define(function (require, exports, module) {
                             if (err) {
                                 console.error("setMenuTitle() -- error: " + err + " when adding command: " + commandID);
                             } else {
-                                brackets.app.setMenuItemShortcut(commandID, bindingStr, function (err) {
-                                    if (err) {
-                                        console.error("setMenuItemShortcut() -- error: " + err + " when adding command: " + commandID);
+                                brackets.app.setMenuItemShortcut(
+                                    commandID,
+                                    bindingStr,
+                                    displayStr,
+                                    function (err) {
+                                        if (err) {
+                                            console.error("setMenuItemShortcut() -- error: " + err + " when adding command: " + commandID);
+                                        }
                                     }
-                                });
+                                );
                             }
                         });
                     }
@@ -739,7 +749,8 @@ define(function (require, exports, module) {
      */
     MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
         if (this.isNative) {
-            brackets.app.setMenuItemShortcut(this.id, keyBinding.displayKey || keyBinding.key, function (err) {
+            var shortcutKey = keyBinding.displayKey || keyBinding.key;
+            brackets.app.setMenuItemShortcut(this.id, shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
                 if (err) {
                     console.error("Error setting menu item shortcut: " + err);
                 }
@@ -755,7 +766,7 @@ define(function (require, exports, module) {
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
         if (this.isNative) {
-            brackets.app.setMenuItemShortcut(this.id, "", function (err) {
+            brackets.app.setMenuItemShortcut(this.id, "", "", function (err) {
                 if (err) {
                     console.error("Error setting menu item shortcut: " + err);
                 }
