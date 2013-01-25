@@ -79,6 +79,12 @@
     span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @background-color-2;}
     span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 
+    .CodeMirror-cursor {
+        /* Ensure the cursor shows up in front of code spans with a background color
+         * (e.g. matchingbracket).
+         */
+        z-index: 3;
+    }
     
     .CodeMirror-lines {
         padding: @code-padding 0;
@@ -111,6 +117,11 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
+    .CodeMirror span.CodeMirror-matchingbracket {
+        /* Ensure visibility against gray inline editor background */
+        background-color: @background-color-1;
+    }
+
     .CodeMirror pre.CodeMirror-cursor {
         visibility: hidden;
     }
