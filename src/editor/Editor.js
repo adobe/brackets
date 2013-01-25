@@ -1051,7 +1051,7 @@ define(function (require, exports, module) {
         }
 
         // Check if the widget is attached to the host editor
-        if (inlineWidget.info !== undefined) {
+        if (changed && inlineWidget.info !== undefined) {
             // Notify CodeMirror for the height change
             inlineWidget.info.changed();
         } else {
