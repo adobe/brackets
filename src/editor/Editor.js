@@ -613,9 +613,6 @@ define(function (require, exports, module) {
             }
 
             $(self).triggerHandler("scroll", [self]);
-        
-            // notify all inline widgets of a position change
-            self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
@@ -627,6 +624,10 @@ define(function (require, exports, module) {
         this._codeMirror.on("blur", function () {
             self._focused = false;
             // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
+        });
+
+        this._codeMirror.on("update", function (instance) {
+            $(self).triggerHandler("update", [self]);
         });
     };
     
@@ -860,9 +861,6 @@ define(function (require, exports, module) {
             {collapsed: true, inclusiveLeft: true, inclusiveRight: true}
         );
         
-        // when this line is hidden, notify all following inline widgets of a position change
-        this._fireWidgetOffsetTopChanged(from);
-        
         return value;
     };
 
@@ -948,9 +946,6 @@ define(function (require, exports, module) {
 
         // Callback to widget once parented to the editor
         inlineWidget.onAdded();
-        
-        // once this widget is added, notify all following inline widgets of a position change
-        this._fireWidgetOffsetTopChanged(pos.line);
     };
     
     /**
@@ -975,9 +970,6 @@ define(function (require, exports, module) {
         this._codeMirror.removeLineWidget(inlineWidget.info);
         this._removeInlineWidgetInternal(inlineWidget);
         inlineWidget.onClosed();
-        
-        // once this widget is removed, notify all following inline widgets of a position change
-        this._fireWidgetOffsetTopChanged(lineNum);
     };
     
     /**
@@ -1051,39 +1043,30 @@ define(function (require, exports, module) {
     Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
         var self = this,
             node = inlineWidget.htmlContent,
-            oldHeight = (node && $(node).height()) || 0;
-        
-        $(node).height(height);
+            oldHeight = (node && $(node).height()) || 0,
+            changed = (oldHeight !== height),
+            isAttached = inlineWidget.info !== undefined;
 
-        // Check if the widget is attached to the host editor
-        if (!inlineWidget.info) {
-            return;
+        if (changed) {
+            $(node).height(height);
+
+            if (isAttached) {
+                // Notify CodeMirror for the height change
+                inlineWidget.info.changed();
+            }
         }
 
-        // notify CodeMirror for the height change
-        inlineWidget.info.changed();
+        if (ensureVisible && isAttached) {
+            var offset = $(node).offset(), // offset relative to document
+                position = $(node).position(), // position within parent linespace
+                scrollerTop = self.getVirtualScrollAreaTop();
 
-        if (ensureVisible) {
-            // FIXME (issue #2515): addLineWidget() async updates the scroll
-            // position if the widget is above the viewport.
-            window.setTimeout(function () {
-                var offset = $(node).offset(), // offset relative to document
-                    position = $(node).position(), // position within parent linespace
-                    scrollerTop = self.getVirtualScrollAreaTop();
-
-                self._codeMirror.scrollIntoView({
-                    left: position.left,
-                    top: offset.top - scrollerTop,
-                    right: position.left, // don't try to make the right edge visible
-                    bottom: offset.top + height - scrollerTop
-                });
-            }, 0);
-        }
-        
-        // update position for all following inline editors
-        if (oldHeight !== height) {
-            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
-            this._fireWidgetOffsetTopChanged(lineNum);
+            self._codeMirror.scrollIntoView({
+                left: position.left,
+                top: offset.top - scrollerTop,
+                right: position.left, // don't try to make the right edge visible
+                bottom: offset.top + height - scrollerTop
+            });
         }
     };
     
@@ -1095,25 +1078,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype._getInlineWidgetLineNumber = function (inlineWidget) {
         return this._codeMirror.getLineNumber(inlineWidget.info.line);
-    };
-    
-    /**
-     * @private
-     * Fire "offsetTopChanged" events when inline editor positions change due to
-     * height changes of other inline editors.
-     * @param {!InlineWidget} inlineWidget 
-     */
-    Editor.prototype._fireWidgetOffsetTopChanged = function (lineNum) {
-        var self = this,
-            otherLineNum;
-        
-        this.getInlineWidgets().forEach(function (other) {
-            otherLineNum = self._getInlineWidgetLineNumber(other);
-            
-            if (otherLineNum > lineNum) {
-                $(other).triggerHandler("offsetTopChanged");
-            }
-        });
     };
     
     /** Gives focus to the editor control */
@@ -1139,11 +1103,6 @@ define(function (require, exports, module) {
         this._codeMirror.refresh();
         if (restoreFocus) {
             focusedItem.focus();
-        }
-        if (handleResize) {
-            // If the editor has been resized, the position of inline widgets relative to the
-            // browser window might have changed.
-            this._fireWidgetOffsetTopChanged(0);
         }
     };
     
