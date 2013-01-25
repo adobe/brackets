@@ -530,11 +530,10 @@ define(function (require, exports, module) {
                 return false;
             }
         } else {
-            switch (event.keyCode) {
-            case KeyEvent.DOM_VK_LEFT:
-            case KeyEvent.DOM_VK_RIGHT:
-            case KeyEvent.DOM_VK_UP:
-            case KeyEvent.DOM_VK_DOWN:
+            if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
+                event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                event.keyCode === KeyEvent.DOM_VK_UP ||
+                event.keyCode === KeyEvent.DOM_VK_DOWN)
                 // Prevent arrow keys that weren't handled by a child control 
                 // from being handled by a parent, either through bubbling or 
                 // through default native behavior. There isn't a good general
