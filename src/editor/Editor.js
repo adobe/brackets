@@ -1044,7 +1044,7 @@ define(function (require, exports, module) {
         var self = this,
             node = inlineWidget.htmlContent,
             oldHeight = (node && $(node).height()) || 0,
-            changed = (oldHeight !== height)
+            changed = (oldHeight !== height),
             isAttached = inlineWidget.info !== undefined;
 
         if (changed) {
