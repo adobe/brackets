@@ -169,9 +169,10 @@ define(function (require, exports, module) {
         this.$htmlContent.append(this.$relatedContainer).append(this.$editorsDiv);
                 
         // Listen for clicks directly on us, so we can set focus back to the editor
-        this.$htmlContent.on("click.MultiRangeInlineEditor", this._onClick.bind(this));
+        var clickHandler = this._onClick.bind(this);
+        this.$htmlContent.on("click.MultiRangeInlineEditor", clickHandler);
         // Also handle mouseup in case the user drags a little bit
-        this.$htmlContent.on("mouseup.MultiRangeInlineEditor", this._onClick.bind(this));
+        this.$htmlContent.on("mouseup.MultiRangeInlineEditor", clickHandler);
     };
     
     /**
