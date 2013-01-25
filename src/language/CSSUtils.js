@@ -403,9 +403,20 @@ define(function (require, exports, module) {
             }
         }
         if (curValue.length && _isSelectorStartChar(curValue[0]) &&
-                editor.document.getLine(ctx.pos.line).length > ctx.pos.ch) {
-            if (testToken.string.length) {
-                curValue += testToken.string;
+                editor.document.getLine(ctx.pos.line).length > ctx.pos.ch &&
+                testToken.string.length) {
+            curValue += testToken.string;
+            // Handle the case where the cursor is between two colons as in ":|:after"
+            if (curValue[0] === ":" &&  testToken.string === ":") {
+                TokenUtils.moveNextToken(ctx);      // Skip the second colon
+                // If we have some text after the two colons, then append it to curValue
+                if (TokenUtils.moveNextToken(ctx) && ctx.token.string.match(/\S/)) {
+                    curValue += ctx.token.string;
+                }
+            } else if (curValue[0] === ":" && TokenUtils.movePrevToken(ctx) && ctx.token.string === ":") {
+                // Handle the case where the cursor is after two colons as in "::|after"
+                curValue = ":" + curValue;
+                offset++;
             }
         } else {
             while (curValue.length && !_isSelectorStartChar(curValue[0])) {
@@ -425,12 +436,14 @@ define(function (require, exports, module) {
                     curValue += lastValue;
                 }
             }
+            
+            // Handle the case where the cursor is in the text after the two colons as in "::a|fter"
+            if (curValue[0] === ":" && TokenUtils.movePrevToken(ctx) && ctx.token.string === ":") {
+                curValue = ":" + curValue;
+                offset++;
+            }
         }
 
-        if (curValue[0] === ":" && TokenUtils.movePrevToken(ctx) && ctx.token.string === ":") {
-            curValue = ":" + curValue;
-            offset++;
-        }
 
         return createInfo(SELECTOR, offset, curValue);
     }
