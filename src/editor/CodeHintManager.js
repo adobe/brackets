@@ -465,7 +465,8 @@ define(function (require, exports, module) {
                     // End the session if the user presses any key with a modifier (other than Ctrl+Space).
                     _endSession();
                 } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
-                        event.keyCode === KeyEvent.DOM_VK_RIGHT) {
+                           event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                           event.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
                     // Update the list after a simple navigation.
                     // We do this in "keyup" because we want the cursor position to be updated before
                     // we redraw the list.
@@ -481,10 +482,20 @@ define(function (require, exports, module) {
      * the lastChar.
      */
     function handleChange(editor) {
-        if (_inSession(editor)) {
-            _updateHintList();
-        } else {
-            if (lastChar) {
+        if (lastChar) {
+            if (_inSession(editor)) {
+                var charToRetest = lastChar;
+                _updateHintList();
+                
+                // _updateHintList() may end a hinting session and clear lastChar, but a 
+                // different provider may want to start a new session with the same character.  
+                // So check whether current provider terminates the current hinting
+                // session. If so, then restore lastChar and restart a new session.
+                if (!_inSession(editor)) {
+                    lastChar = charToRetest;
+                    _beginSession(editor);
+                }
+            } else {
                 _beginSession(editor);
             }
         }
