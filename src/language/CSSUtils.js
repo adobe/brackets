@@ -116,10 +116,12 @@ define(function (require, exports, module) {
             return false;
         }
 
-        // If the cursor is on the right of a whitespace and we have non-whitespace on the left,
-        // then check whether the next token is in the selector context.
-        if (ctx.token.className === null && ctx.token.string.length &&
-                !ctx.token.string.match(/\S/) && TokenUtils.offsetInToken(ctx) === ctx.token.string.length) {
+        // If the cursor is on the right of a whitespace and we also have non-whitespace character on 
+        // the right of the cursor, then check whether the next token is in the selector context.
+        // Also check the next character if the cursor is at the very beginning of the line.
+        if ((ctxClone.token.className === null && ctxClone.token.string.length === 0) ||
+                (ctxClone.token.className === null && ctxClone.token.string.length &&
+                !ctxClone.token.string.match(/\S/) && TokenUtils.offsetInToken(ctxClone) === ctxClone.token.string.length)) {
             if (TokenUtils.moveNextToken(ctxClone)) {
                 testNextToken = true;
             }
@@ -377,6 +379,7 @@ define(function (require, exports, module) {
      * Returns a context info object for the current CSS selector
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @param {!Editor} editor
+     * @param {!number} offset - The offset in the token of the current cursor context.
      * @return {{context: string,
      *           offset: number,
      *           name: string,
@@ -384,17 +387,18 @@ define(function (require, exports, module) {
      *           values: Array.<string>,
      *           isNewItem: boolean}} A CSS context info object.
      */
-    function _getSelectorInfo(ctx, editor) {
+    function _getSelectorInfo(ctx, editor, offset) {
         var lastValue = "",
             curValue = ctx.token.string,
-            offset = TokenUtils.offsetInToken(ctx),
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
             testToken = editor._codeMirror.getTokenAt(testPos);
         
-        // If the cursor is on the right of a whitespace and we have non-whitespace on the left,
-        // then move cursor to the next token, set offset to 0 and get the selector from next token.
-        if (ctx.token.className === null && curValue.length &&
-                !curValue.match(/\S/) && TokenUtils.offsetInToken(ctx) === curValue.length) {
+        // If the cursor is on the right of a whitespace and we also have non-whitespace character on the right of 
+        // the cursor, then move cursor to the next token, set offset to 0 and get the selector from next token.
+        // Also do the same things if the cursor is at the very beginning of the line.
+        if ((ctx.token.className === null && curValue.length === 0) ||
+                (ctx.token.className === null && curValue.length &&
+                !curValue.match(/\S/) && offset === curValue.length)) {
             if (TokenUtils.moveNextToken(ctx)) {
                 curValue = ctx.token.string;
                 offset = 0;
@@ -405,7 +409,10 @@ define(function (require, exports, module) {
         if (curValue.length && _isSelectorStartChar(curValue[0]) &&
                 editor.document.getLine(ctx.pos.line).length > ctx.pos.ch &&
                 testToken.string.length) {
-            curValue += testToken.string;
+            // Append the string in testToken only if it has any non-whitesapce character.
+            if (testToken.string.match(/\S/)) {
+                curValue += testToken.string;
+            }
             // Handle the case where the cursor is between two colons as in ":|:after"
             if (curValue[0] === ":" &&  testToken.string === ":") {
                 TokenUtils.moveNextToken(ctx);      // Skip the second colon
@@ -500,7 +507,7 @@ define(function (require, exports, module) {
         }
         
         if (_isInSelector(ctx)) {
-            return _getSelectorInfo(ctx, editor);
+            return _getSelectorInfo(ctx, editor, offset);
         }
                     
         return createInfo();

@@ -154,6 +154,7 @@ define(function (require, exports, module) {
         end.line = start.line = cursor.line;
         if (offset && charCount && this.info.name[0] === "[") {
             offset--;
+            charCount--;
         }
         start.ch = cursor.ch - offset;
         end.ch = start.ch + charCount;
