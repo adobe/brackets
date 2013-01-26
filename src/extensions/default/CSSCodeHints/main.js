@@ -8,7 +8,7 @@ define(function (require, exports, module) {
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
-
+    
     /**
      * @constructor
      */
@@ -142,7 +142,9 @@ define(function (require, exports, module) {
         
         if (this.info.context === CSSUtils.PROP_NAME) {
             closure = ":";
-        } else if (this.info.context !== CSSUtils.PROP_VALUE) {
+        } else if (this.info.context === CSSUtils.PROP_VALUE) {
+            keepHints = false;
+        } else {
             return false;
         }
         
