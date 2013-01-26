@@ -142,9 +142,7 @@ define(function (require, exports, module) {
         
         if (this.info.context === CSSUtils.PROP_NAME) {
             closure = ":";
-        } else if (this.info.context === CSSUtils.PROP_VALUE) {
-            closure = ";";
-        } else {
+        } else if (this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
         }
         
