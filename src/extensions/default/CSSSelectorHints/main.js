@@ -164,6 +164,9 @@ define(function (require, exports, module) {
             } else {
                 this.editor.document.replaceRange(hint, start);
             }
+            if (hint[0] === ":" && hint[hint.length - 1] === ")") {
+                this.editor.setCursorPos(start.line, start.ch + hint.length - 1);
+            }
         }
 
         return false;
