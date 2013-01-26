@@ -43,6 +43,7 @@ module.exports = function (grunt) {
                     consolidate: true
                 },
                 specs : '<%= meta.specs %>',
+                /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
                     'src/thirdparty/jquery-1.7.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
@@ -98,7 +99,7 @@ module.exports = function (grunt) {
             }
         });
 
-        grunt.file.write("src/config.json", JSON.stringify(appConfigJSON));
+        grunt.file.write("src/config.json", JSON.stringify(appConfigJSON, null, "    "));
     });
 
     // task: test
