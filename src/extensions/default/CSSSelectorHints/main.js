@@ -101,9 +101,9 @@ define(function (require, exports, module) {
                         }).sort();
                     } else if (selector[0] === ":") {
                         query = selector.substr(0, this.info.offset);
-                        result = $.map(pseudoSelectors, function (value, key) {
-                            if (key.indexOf(query) === 0) {
-                                return key;
+                        result = $.map(pseudoSelectors, function (item) {
+                            if (item.indexOf(query) === 0) {
+                                return item;
                             }
                         }).sort();
                     }

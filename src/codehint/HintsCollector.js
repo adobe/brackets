@@ -30,15 +30,18 @@ define(function (require, exports, module) {
     // Load dependent modules
     var HTMLTags        = require("text!codehint/HtmlTags.json"),
         HTMLAttributes  = require("text!codehint/HtmlAttributes.json"),
-        pseudoSelectors = require("text!codehint/PseudoSelectors.json");
+        CSSHints        = require("text!codehint/CssHints.json");
         
     // Constants
     var HTML_TAG        = "tag",
         HTML_ATTRIBUTE  = "attribute",
+        AT_RULE         = "at-rule",
         PSEUDO_SELECTOR = "pseudo";
 
     var tags = null,
         attributes = null,
+        cssHints = null,
+        atRule = null,
         pseudo = null;
 
     function getCodeHints(type) {
@@ -54,20 +57,30 @@ define(function (require, exports, module) {
             }
             return attributes;
         }
+        if (type === AT_RULE) {
+            if (!cssHints) {
+                cssHints = JSON.parse(CSSHints);
+            }
+            if (cssHints && cssHints.atRule) {
+                atRule = cssHints.atRule.values;
+            }
+            return atRule;
+        }
         if (type === PSEUDO_SELECTOR) {
-            if (!pseudo) {
-                pseudo = JSON.parse(pseudoSelectors);
+            if (!cssHints) {
+                cssHints = JSON.parse(CSSHints);
+            }
+            if (cssHints && cssHints.pseudo) {
+                pseudo = cssHints.pseudo.values;
             }
             return pseudo;
         }
     }
     
     // Define public API
-    exports.HTML_TAG = HTML_TAG;
-    exports.HTML_ATTRIBUTE = HTML_ATTRIBUTE;
+    exports.HTML_TAG        = HTML_TAG;
+    exports.HTML_ATTRIBUTE  = HTML_ATTRIBUTE;
+    exports.AT_RULE         = AT_RULE;
     exports.PSEUDO_SELECTOR = PSEUDO_SELECTOR;
-
-    exports.HTML_TAG = HTML_TAG;
-    
-    exports.getCodeHints = getCodeHints;
+    exports.getCodeHints    = getCodeHints;
 });

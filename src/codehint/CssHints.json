@@ -1,0 +1,9 @@
+{
+    "atRule": { "values": ["charset", "font-face", "import", "meida", "namespace", "page"] },
+    "pseudo": { "values": [":active", ":checked", ":empty", ":enabled", ":first-child",
+                           ":first-of-type", ":focus", ":hover", ":indeterminate", ":lang()",
+                           ":last-child", ":last-of-type", ":link", ":not()", ":nth-child()",
+                           ":nth-last-child()", ":nth-of-type()", ":nth-last-of-type()",
+                           ":only-child", ":only-of-type", ":root", ":target", ":visited",
+                           "::after", "::before", "::first-letter", "::first-line"] }
+}

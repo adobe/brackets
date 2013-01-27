@@ -111,11 +111,24 @@ define(function (require, exports, module) {
      */
     function _isInSelector(ctx) {
         var ctxClone = $.extend({}, ctx),
-            testNextToken = false;
+            testNextToken = false,
+            state,
+            lastToken;
         if (!ctx || !ctx.token || ctx.token.className === "comment" || ctx.token.className === "meta") {
             return false;
         }
 
+        state = ctx.token.state.localState || ctx.token.state;
+
+        if (state.stack && state.stack.length) {
+            lastToken = state.stack[state.stack.length - 1];
+            // Return false if the current context is in a property name or value.
+            if (lastToken.length && (lastToken === "rule" ||
+                    (lastToken[lastToken.length - 1] === "{" && lastToken[0] !== "@"))) {
+                return false;
+            }
+        }
+        
         // If the cursor is on the right of a whitespace and we also have non-whitespace character on 
         // the right of the cursor, then check whether the next token is in the selector context.
         // Also check the next character if the cursor is at the very beginning of the line.
