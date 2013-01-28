@@ -40,6 +40,7 @@ define(function (require, exports, module) {
     
     var _init       = false,
         contexts    = {},
+        entryPoints = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
     // The native directory path ends with either "test" or "src". We need "src" to
@@ -51,6 +52,15 @@ define(function (require, exports, module) {
             "i18n" : srcPath + "/thirdparty/i18n",
             "mode" : srcPath + "/thirdparty/CodeMirror2/mode"
         };
+    
+    define("extension", {
+        load: function requireExtension(name, req, onLoad, config) {
+            var context = contexts[name], entryPoint = entryPoints[name];
+            if (context && entryPoint) {
+                context([entryPoint], onLoad);
+            }
+        }
+    });
     
     /**
      * Returns the full path of the default user extensions directory. This is in the users
@@ -94,6 +104,7 @@ define(function (require, exports, module) {
                 locale: brackets.getLocale()
             });
         contexts[name] = extensionRequire;
+        entryPoints[name] = entryPoint;
 
         // console.log("[Extension] starting to load " + config.baseUrl);
         
