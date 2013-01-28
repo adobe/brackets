@@ -438,11 +438,18 @@ define(function (require, exports, module) {
     
         
     /** 
-     * Handles Select All specially when we have a visible range in order to work around
-     * bugs in CodeMirror when lines are hidden.
+     * Selects all text and maintains the current scroll position.
      */
     Editor.prototype.selectAllNoScroll = function () {
-        this._codeMirror.execCommand("selectAllNoScroll");
+        var cm = this._codeMirror,
+            info = this._codeMirror.getScrollInfo();
+        
+        // Note that we do not have to check for the visible range here. This
+        // concern is handled internally by code mirror.
+        cm.operation(function () {
+            cm.scrollTo(info.left, info.top);
+            cm.execCommand("selectAll");
+        });
     };
     
     /**
