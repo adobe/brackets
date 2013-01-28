@@ -321,7 +321,7 @@ define(function (require, exports, module) {
      * @return {Language} This language
      * @private
      */
-    Language.prototype._setBlockComment = function (prefix, suffix) {
+    Language.prototype.setBlockComment = function (prefix, suffix) {
         _validateNonEmptyString(prefix, "prefix");
         _validateNonEmptyString(suffix, "suffix");
         
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
      * @return {Language} This language
      * @private
      */
-    Language.prototype._setLineComment = function (prefix) {
+    Language.prototype.setLineComment = function (prefix) {
         _validateNonEmptyString(prefix, "prefix");
         
         this.lineComment = { prefix: prefix };
@@ -415,12 +415,12 @@ define(function (require, exports, module) {
         
         var blockComment = definition.blockComment;
         if (blockComment) {
-            language._setBlockComment(blockComment[0], blockComment[1]);
+            language.setBlockComment(blockComment[0], blockComment[1]);
         }
         
         var lineComment = definition.lineComment;
         if (lineComment) {
-            language._setLineComment(lineComment);
+            language.setLineComment(lineComment);
         }
         
         var mode = definition.mode, mimeMode = definition.mimeMode, modeAliases = definition.modeAliases;
