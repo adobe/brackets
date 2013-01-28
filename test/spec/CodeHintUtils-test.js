@@ -43,7 +43,7 @@ define(function (require, exports, module) {
             // init Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
             myDocument = SpecRunnerUtils.createMockDocument("");
-            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
+            myEditor = new Editor(myDocument, true, "", $("#editor").get(0));
         });
 
         afterEach(function () {
