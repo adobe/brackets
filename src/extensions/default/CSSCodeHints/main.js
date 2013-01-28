@@ -142,6 +142,8 @@ define(function (require, exports, module) {
             start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             keepHints = false,
+            adjustCursor = false,
+            newCursor,
             ctx;
         
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
@@ -152,25 +154,32 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - offset;
 
         if (this.info.context === CSSUtils.PROP_NAME) {
+            keepHints = true;
             if (this.info.name.length === 0) {
                 // It's a new insertion, so append a colon and set keepHints
                 // to show property value hints.
                 hint += ":";
-                keepHints = true;
                 end.ch = start.ch;
             } else {
-                // It's a replacement of an existing one or just typed in properety.
+                // It's a replacement of an existing one or just typed in property.
                 // So we need to check whether there is an existing colon following 
-                // the current property name. If a colon already exists, then we just
-                // replace the property name and won't adjust the cursor position. 
-                // And therefore we won't show code hints for property values either.
+                // the current property name. If a colon already exists, then we also 
+                // adjust the cursor position and show code hints for property values.
                 end.ch = start.ch + this.info.name.length;
                 ctx = TokenUtils.getInitialContext(this.editor._codeMirror, cursor);
-                if (!TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) ||
-                        ctx.token.string !== ":") {
+                if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+                    // We're at the very beginning of a property name. So skip it 
+                    // before we locate the colon following it.
+                    TokenUtils.moveNextToken(ctx);
+                }
+                if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ":") {
+                    adjustCursor = true;
+                    newCursor = cursor;
+                    newCursor.ch = cursor.ch + (hint.length - this.info.name.length);
+                }
+                if (!adjustCursor) {
                     hint += ":";
-                    keepHints = true;
-                    end.ch += 1;    // Add one for the colon that we're appending.
+                    end.ch++;       // Add one for the colon that we're appending.
                 }
             }
         } else if (!this.info.isNewItem && this.info.index !== -1) {
@@ -182,6 +191,10 @@ define(function (require, exports, module) {
         }
         
         this.editor.document.replaceRange(hint, start, end);
+        
+        if (adjustCursor) {
+            this.editor.setCursorPos(newCursor);
+        }
         
         return keepHints;
     };
