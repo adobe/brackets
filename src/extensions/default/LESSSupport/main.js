@@ -26,15 +26,16 @@
 
 define(function (require, exports, module) {
     "use strict";
-
+    
+    require("mode/less/less");
+    
     var Languages = brackets.getModule("language/Languages");
     
     var language = Languages.defineLanguage("less", {
         name: "LESS",
+        mode: "less",
         fileExtensions: ["less"],
         blockComment: ["/*", "*/"],
         lineComment: "//"
     });
-    
-    language.loadAndSetBuiltinMode("less");
 });

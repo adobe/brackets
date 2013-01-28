@@ -48,7 +48,8 @@ define(function (require, exports, module) {
 
     var globalConfig        = {
             "text" : srcPath + "/thirdparty/text",
-            "i18n" : srcPath + "/thirdparty/i18n"
+            "i18n" : srcPath + "/thirdparty/i18n",
+            "mode" : srcPath + "/thirdparty/CodeMirror2/mode"
         };
     
     /**

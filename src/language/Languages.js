@@ -194,29 +194,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Loads a mode stored in thirdparty/CodeMirror2/mode/
-     * @param {!string} mode Name of the mode to load
-     * @param {string} subDirectory Name of a sub directory with mode files (e.g. "rpm")
-     * @return {$.Promise} A promise object that is resolved when the mode has been loaded
-     */
-    function loadBuiltinMode(mode, subDirectory) {
-        var result = new $.Deferred();
-        
-        var modePath = mode + "/" + mode;
-        if (subDirectory) {
-            modePath = subDirectory + "/" + modePath;
-        }
-        
-        if (!modePath.match(/^[a-zA-Z0-9_\-]+(\/[a-zA-Z0-9_\-]+)*$/)) {
-            throw new Error("loadBuiltinMode call resulted in possibly unsafe path " + modePath);
-        }
-        
-        require(["thirdparty/CodeMirror2/mode/" + modePath], result.resolve, result.reject);
-        
-        return result.promise();
-    }
-
-    /**
      * @constructor
      * Model for a language.
      *
@@ -246,7 +223,7 @@ define(function (require, exports, module) {
      * @param {Array.<string>} modeAliases Names of CodeMirror modes or MIME modes that are only used as submodes
      * @return {Language} This language
      */
-    Language.prototype.setMode = function (mode, modeAliases) {
+    Language.prototype._setMode = function (mode, modeAliases) {
         var i;
         
         _validateMode(mode, "mode");
@@ -264,25 +241,6 @@ define(function (require, exports, module) {
         }
         
         return this;
-    };
-    
-    /**
-     * First load, then set a mode provided by our CodeMirror distribution.
-     * 
-     * @param {!string} mode Name
-     * @return {$.Promise} A promise object that is resolved when the mode has been loaded and set
-     */
-    Language.prototype.loadAndSetBuiltinMode = function (mode) {
-        var result = new $.Deferred(), _this = this;
-        
-        loadBuiltinMode(mode)
-            .done(function () {
-                _this.setMode(mode);
-                result.resolve();
-            })
-            .fail(result.reject);
-        
-        return result.promise();
     };
     
     /**
@@ -427,15 +385,14 @@ define(function (require, exports, module) {
         if (mode) {
             
             var setMode = function () {
-                language.setMode(mimeMode || mode, modeAliases);
+                language._setMode(mimeMode || mode, modeAliases);
             };
             
             if (_hasMode(mode)) {
                 setMode();
             } else {
-                loadBuiltinMode(mode).done(function () {
-                    // For some reason, passing setMode directly to done swallows the exceptions it throws
-                    window.setTimeout(setMode);
+                require(["mode/" + mode + "/" + mode], function () {
+                    setMode();
                 });
             }
         }
@@ -467,7 +424,6 @@ define(function (require, exports, module) {
         defineLanguage:              defineLanguage,
         getLanguage:                 getLanguage,
         getLanguageForFileExtension: getLanguageForFileExtension,
-        getLanguageForMode:          getLanguageForMode,
-        loadBuiltinMode:             loadBuiltinMode
+        getLanguageForMode:          getLanguageForMode
     };
 });
