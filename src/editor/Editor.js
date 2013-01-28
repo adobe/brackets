@@ -237,7 +237,7 @@ define(function (require, exports, module) {
             editor = EditorManager.getFocusedEditor();
 
         if (editor) {
-            editor._selectAllVisible();
+            editor.selectAllNoScroll();
             result.resolve();
         } else {
             result.reject();    // command not handled
@@ -441,11 +441,8 @@ define(function (require, exports, module) {
      * Handles Select All specially when we have a visible range in order to work around
      * bugs in CodeMirror when lines are hidden.
      */
-    Editor.prototype._selectAllVisible = function () {
-        var startLine = this.getFirstVisibleLine(),
-            endLine = this.getLastVisibleLine();
-        this.setSelection({line: startLine, ch: 0},
-                          {line: endLine, ch: this.document.getLine(endLine).length});
+    Editor.prototype.selectAllNoScroll = function () {
+        this._codeMirror.execCommand("selectAllNoScroll");
     };
     
     /**
@@ -1163,21 +1160,26 @@ define(function (require, exports, module) {
     Editor.prototype.getModeForSelection = function () {
         var sel = this.getSelection();
         
-        // Check for mixed mode info (meaning mode varies depending on position)
-        // TODO (#921): this only works for certain mixed modes; some do not expose this info
-        var startState = this._codeMirror.getTokenAt(sel.start).state;
-        if (startState.mode) {
-            var startMode = startState.mode;
-            
+        // Check for mixed mode info
+        var tokenStart  = this._codeMirror.getTokenAt(sel.start),
+            outerMode   = this._codeMirror.getMode(),
+            innerStart  = CodeMirror.innerMode(outerMode, tokenStart.state),
+            isMixed     = (outerMode !== innerStart.mode);
+
+        if (isMixed) {
             // If mixed mode, check that mode is the same at start & end of selection
             if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
-                var endState = this._codeMirror.getTokenAt(sel.end).state;
-                var endMode = endState.mode;
-                if (startMode !== endMode) {
+                var tokenEnd = this._codeMirror.getTokenAt(sel.end),
+                    innerEnd = CodeMirror.innerMode(outerMode, tokenEnd.state);
+                
+                if (innerStart.mode !== innerEnd.mode) {
                     return null;
                 }
             }
-            return startMode;
+
+            // xml mode uses configuration property for html. All other modes
+            // define a name property.
+            return innerStart.mode.configuration || innerStart.mode.name;
             
         } else {
             // Mode does not vary: just use the editor-wide mode
