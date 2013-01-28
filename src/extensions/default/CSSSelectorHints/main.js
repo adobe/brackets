@@ -17,7 +17,7 @@ define(function (require, exports, module) {
      */
     function CssSelectorHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-";
-        this.secondaryTriggerKeys = "#.[:";
+        this.secondaryTriggerKeys = "#.[:='\"";
     }
 
     /**
@@ -43,14 +43,18 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
         
-        if (implicitChar === null && this.info.context === CSSUtils.SELECTOR) {
-            return true;
-        } else {
+        if (this.info.context !== CSSUtils.SELECTOR) {
+            return false;
+        }
+        
+        if (implicitChar) {
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
         }
+        
+        return true;
     };
-       
+
     /**
      * @private
      * Checks if the given character is one of the characters used for attribute selectors or
@@ -87,20 +91,61 @@ define(function (require, exports, module) {
 
         var selector = this.info.name,
             query,
-            result = [];
+            result = [],
+            attrName,
+            attrInfo,
+            equalIndex,
+            quoteIndex,
+            quote = "'";
 
         if (this.info.context === CSSUtils.SELECTOR) {
             if (this.info.offset >= 0) {
                 if (_isSelectorStartChar(selector[0])) {
                     if (selector[0] === "[") {
-                        query = selector.substr(1, this.info.offset - 1);
-                        result = $.map(attributes, function (value, key) {
-                            if (key.indexOf(query) === 0) {
-                                return key;
+                        equalIndex = selector.indexOf("=");
+                        if (equalIndex === -1) {
+                            query = selector.slice(1, this.info.offset);
+                            result = $.map(attributes, function (value, key) {
+                                // Exclude those that have tagName/attrName as their key.
+                                if (key.indexOf(query) === 0 && key.indexOf("/") === -1) {
+                                    return key;
+                                }
+                            }).sort();
+                        } else {
+                            quoteIndex = selector.indexOf("'", equalIndex);
+                            if (quoteIndex === -1) {
+                                quoteIndex = selector.indexOf("\"", equalIndex);
+                                quote = (quoteIndex === -1) ? null : "\"";
                             }
-                        }).sort();
+                            if (quote) {
+                                query = selector.slice(quoteIndex + 1, this.info.offset);
+                                query = query.trim();
+                                if (query.length && query[query.length - 1] === quote) {
+                                    query = query.slice(0, query.length - 1);
+                                }
+                            } else {
+                                query = selector.slice(equalIndex + 1, this.info.offset);
+                            }
+                            attrName = selector.slice(1, equalIndex);
+                            attrName = attrName.replace(/[~|\|]/, "");
+                            attrInfo = attributes[attrName];
+                            if (attrInfo) {
+                                if (attrInfo.type === "boolean") {
+                                    result = ["false", "true"];
+                                } else if (attrInfo.attribOption) {
+                                    result = attrInfo.attribOption;
+                                    if (result instanceof Array && result.length) {
+                                        result = $.map(result, function (item) {
+                                            if (item.indexOf(query) === 0) {
+                                                return item;
+                                            }
+                                        }).sort();
+                                    }
+                                }
+                            }
+                        }
                     } else if (selector[0] === ":") {
-                        query = selector.substr(0, this.info.offset);
+                        query = selector.slice(0, this.info.offset);
                         result = $.map(pseudoSelectors, function (item) {
                             if (item.indexOf(query) === 0) {
                                 return item;
@@ -142,19 +187,53 @@ define(function (require, exports, module) {
             end = {line: -1, ch: -1},
             cursor = this.editor.getCursorPos(),
             charCount = 0,
-            offset = 0;
+            offset = 0,
+            selector,
+            quoteIndex,
+            equalIndex,
+            quote = "'";
 
         this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
         offset = this.info.offset;
+        selector = this.info.name;
         if (this.info.context !== CSSUtils.SELECTOR) {
             return false;
         }
 
-        charCount = this.info.name.length;
+        charCount = selector.length;
         end.line = start.line = cursor.line;
         if (offset && charCount && this.info.name[0] === "[") {
-            offset--;
-            charCount--;
+            equalIndex = selector.indexOf("=");
+            if (equalIndex === -1) {
+                // We're handling attribute name.
+                // Adjust offset and charCount to exclude the leading '['.
+                offset--;
+                charCount--;
+            } else {
+                // We're handling attribute value here. 
+                // Check whether it has quote and whether it is single or double.
+                quoteIndex = selector.indexOf("'", equalIndex);
+                if (quoteIndex === -1) {
+                    quoteIndex = selector.indexOf("\"", equalIndex);
+                    quote = (quoteIndex === -1) ? null : "\"";
+                }
+                if (quote) {
+                    if (offset > (quoteIndex + 1)) {
+                        offset -= (quoteIndex + 1);
+                        charCount -= (quoteIndex + 1);
+                    } else {
+                        offset = 0;
+                        charCount = 0;
+                    }
+                    // If we have the closing quote, then subtract one to avoid overwriting it.
+                    if (charCount && quoteIndex !== (selector.length - 1) && selector[selector.length - 1] === quote) {
+                        charCount--;
+                    }
+                } else {
+                    offset -= (equalIndex + 1);
+                    charCount -= (equalIndex + 1);
+                }
+            }
         }
         start.ch = cursor.ch - offset;
         end.ch = start.ch + charCount;
@@ -184,5 +263,4 @@ define(function (require, exports, module) {
         // For unit testing
         exports.cssSelectorHintProvider = cssSelectorHints;
     });
-    
 });

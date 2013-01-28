@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, regexp: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
@@ -139,12 +139,31 @@ define(function (require, exports, module) {
                 testNextToken = true;
             }
         }
+        
         if ((ctxClone.token.className === null || ctxClone.token.className === "string-2") &&
                 ctxClone.token.string.length && _isSelectorStartChar(ctxClone.token.string[0])) {
             return !testNextToken || (testNextToken && ctxClone.token.string[0] === ":");
         }
         
-        return (ctxClone.token.className === "tag");
+        if (ctxClone.token.className === "tag") {
+            return true;
+        }
+
+        if (ctxClone.token.className === "string" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
+                (ctxClone.token.string === "=" || ctxClone.token.string === "~=" || ctxClone.token.string === "|=")) {
+            TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctxClone);
+            return true;
+        }
+
+        if (ctxClone.token.string === "=" || ctxClone.token.string === "~=" || ctxClone.token.string === "|=") {
+            if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctxClone) && (ctxClone.token.className === "string")) {
+                return false;
+            }
+            TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone);
+            return true;
+        }
+                    
+        return false;
     }
 
     /**
@@ -358,7 +377,7 @@ define(function (require, exports, module) {
                     canAddNewOne = true;
                     if (index > 0) {
                         // Append all spaces before the cursor to the previous value in values array
-                        propValues[index - 1] += ctx.token.string.substr(0, offset);
+                        propValues[index - 1] += ctx.token.string.slice(0, offset);
                     }
                 }
             }
@@ -423,7 +442,7 @@ define(function (require, exports, module) {
                 editor.document.getLine(ctx.pos.line).length > ctx.pos.ch &&
                 testToken.string.length) {
             // Append the string in testToken only if it has any non-whitesapce character.
-            if (testToken.string.match(/\S/)) {
+            if (testToken.string.match(/\S/) && testToken.className === "tag") {
                 curValue += testToken.string;
             }
             // Handle the case where the cursor is between two colons as in ":|:after"
@@ -444,9 +463,10 @@ define(function (require, exports, module) {
                 if (!TokenUtils.movePrevToken(ctx)) {
                     break;
                 }
-                if (ctx.token.className === "meta" || ctx.token.className === "tag" ||
+                if (curValue.indexOf("=") === -1 &&
+                        (ctx.token.className === "meta" || ctx.token.className === "tag" ||
                         ctx.token.string === "]" || ctx.token.string === ")" ||
-                        ctx.token.string === "}" || !ctx.token.string.match(/\S/)) {
+                        ctx.token.string === "}" || !ctx.token.string.match(/\S/))) {
                     break;
                 }
     
@@ -457,13 +477,17 @@ define(function (require, exports, module) {
                 }
             }
             
+            if (offset < curValue.length && curValue.match(/[~|\|]?=.*\]$/)) {
+                curValue = curValue.replace(/\]$/, "");
+                offset--;
+            }
+            
             // Handle the case where the cursor is in the text after the two colons as in "::a|fter"
             if (curValue[0] === ":" && TokenUtils.movePrevToken(ctx) && ctx.token.string === ":") {
                 curValue = ":" + curValue;
                 offset++;
             }
         }
-
 
         return createInfo(SELECTOR, offset, curValue);
     }
