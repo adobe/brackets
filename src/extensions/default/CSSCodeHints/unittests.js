@@ -5,13 +5,9 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        Editor          = brackets.getModule("editor/Editor").Editor,
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         CSSCodeHints    = require("main");
-    
-    /* set indentation to one, to make use of tabs for the following testContent */
-    Editor.setIndentUnit(1);
-    
+       
     describe("CSS Code Hinting", function () {
 
         var defaultContent = "@media screen { \n" +
