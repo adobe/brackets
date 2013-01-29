@@ -377,29 +377,26 @@ define(function (require, exports, module) {
         // (jsTree is smart enough to replace the old tree if there's already one there)
         $projectTreeContainer.hide();
         _projectTree = $projectTreeContainer
-            .jstree(
-                {
-                    plugins : ["ui", "themes", "json_data", "crrm", "sort"],
-                    ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
-                    json_data : { data: treeDataProvider, correct_state: false },
-                    core : { animation: 0 },
-                    themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
-                        //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
-                        // file because jsTree insists on loading one itself)
-                    strings : { loading : "Loading ...", new_node : "New node" },
-                    sort :  function (a, b) {
-                        if (brackets.platform === "win") {
-                            // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                            var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
-                                b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
-                            return (a1 > b1) ? 1 : -1;
-                        } else {
-                            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
-                        }
+            .jstree({
+                plugins : ["ui", "themes", "json_data", "crrm", "sort"],
+                ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
+                json_data : { data: treeDataProvider, correct_state: false },
+                core : { animation: 0 },
+                themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
+                    //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
+                    // file because jsTree insists on loading one itself)
+                strings : { loading : "Loading ...", new_node : "New node" },
+                sort :  function (a, b) {
+                    if (brackets.platform === "win") {
+                        // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
+                        var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                            b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+                        return (a1 > b1) ? 1 : -1;
+                    } else {
+                        return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
                     }
                 }
-            )
-            .bind(
+            }).bind(
                 "before.jstree",
                 function (event, data) {
                     if (data.func === "toggle_node") {
@@ -409,8 +406,7 @@ define(function (require, exports, module) {
                         suppressToggleOpen = _projectTree.jstree("is_open", data.args[0]);
                     }
                 }
-            )
-            .bind(
+            ).bind(
                 "select_node.jstree",
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
@@ -444,8 +440,7 @@ define(function (require, exports, module) {
                     
                     suppressToggleOpen = false;
                 }
-            )
-            .bind(
+            ).bind(
                 "reopen.jstree",
                 function (event, data) {
                     // This handler fires for the initial load and subsequent
@@ -475,15 +470,13 @@ define(function (require, exports, module) {
                         result.resolve();
                     }
                 }
-            )
-            .bind(
+            ).bind(
                 "scroll.jstree",
                 function (e) {
                     // close all dropdowns on scroll
                     Menus.closeAll();
                 }
-            )
-            .bind(
+            ).bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     if (event.type === "open_node") {
@@ -508,8 +501,7 @@ define(function (require, exports, module) {
                     
                     _savePreferences();
                 }
-            )
-            .bind(
+            ).bind(
                 "mousedown.jstree",
                 function (event) {
                     // select tree node on right-click
@@ -660,6 +652,13 @@ define(function (require, exports, module) {
                     
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
+                    
+                    // This is a workaround for a part of issue #2085, where the file creation process
+                    // depends on the open_node.jstree event being triggered, which doesn't happen on 
+                    // empty folders
+                    if (!wasNodeOpen) {
+                        treeNode.trigger("open_node.jstree");
+                    }
                 }
             },
             function (error) {
@@ -754,8 +753,8 @@ define(function (require, exports, module) {
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function (fs) {
                     var rootEntry = fs.root;
-                    var projectRootChanged = (!_projectRoot || !rootEntry)
-                        || _projectRoot.fullPath !== rootEntry.fullPath;
+                    var projectRootChanged = (!_projectRoot || !rootEntry) ||
+                        _projectRoot.fullPath !== rootEntry.fullPath;
 
                     // Success!
                     var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
@@ -1095,8 +1094,8 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error) {
-                    if ((error.name === NativeFileError.PATH_EXISTS_ERR)
-                            || (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
+                    if ((error.name === NativeFileError.PATH_EXISTS_ERR) ||
+                            (error.name === NativeFileError.TYPE_MISMATCH_ERR)) {
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,

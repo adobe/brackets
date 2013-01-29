@@ -196,8 +196,8 @@ define(function (require, exports, module) {
                             }
                         }
                         
-                        visibleRangeCheck = (editor._visibleRange.startLine === startLine)
-                            && (editor._visibleRange.endLine === endLine);
+                        visibleRangeCheck = (editor._visibleRange.startLine === startLine) &&
+                            (editor._visibleRange.endLine === endLine);
                         
                         this.message = function () {
                             var msg = "";
@@ -211,18 +211,18 @@ define(function (require, exports, module) {
                             }
                             
                             if (!visibleRangeCheck) {
-                                msg += "Editor._visibleRange ["
-                                    + editor._visibleRange.startLine + ","
-                                    + editor._visibleRange.endLine + "] should be ["
-                                    + startLine + "," + endLine + "].";
+                                msg += "Editor._visibleRange [" +
+                                    editor._visibleRange.startLine + "," +
+                                    editor._visibleRange.endLine + "] should be [" +
+                                    startLine + "," + endLine + "].";
                             }
                             
                             return msg;
                         };
                         
-                        return (shouldHide.length === 0)
-                            && (shouldShow.length === 0)
-                            && visibleRangeCheck;
+                        return (shouldHide.length === 0) &&
+                            (shouldShow.length === 0) &&
+                            visibleRangeCheck;
                     }
                 });
             });
