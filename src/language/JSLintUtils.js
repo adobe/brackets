@@ -177,6 +177,8 @@ define(function (require, exports, module) {
                     //if there was a null value it means there was a stop notice and an indertiminate
                     //upper bound on the number of JSLint errors, which we'll represent by appending a '+'
                     if (numberOfErrors !== JSLINT.errors.length) {
+                        //first discard the stop notice
+                        numberOfErrors -= 1;
                         numberOfErrors += "+";
                     }
                     StatusBar.updateIndicator(module.id, true, "jslint-errors", StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, numberOfErrors));
