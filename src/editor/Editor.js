@@ -1178,7 +1178,6 @@ define(function (require, exports, module) {
         if (isMixed) {
             // If mixed mode, check that mode is the same at start & end of selection
             if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
-
                 var tokenEnd    = this._codeMirror.getTokenAt(sel.end),
                     innerEnd    = CodeMirror.innerMode(outerMode, tokenEnd.state),
                     endMode     = _getModeName(innerEnd);
