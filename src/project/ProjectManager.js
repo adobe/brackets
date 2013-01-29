@@ -104,7 +104,22 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _suppressSelectionChange = false;
-    
+
+    /**
+     * @private
+     * Internal flag to suppress entering rename mode during "show in file tree".
+     * @type {boolean}
+     */
+    var _suppressRename = false;
+
+    /**
+     * @private
+     * Internal counter and flag for determining single vs. double-click.
+     * @type {boolean}
+     */
+    var _clickCounter = 0,
+        _inClickCallback = false;
+
     /**
      * @private
      * Reference to the tree control UL element
@@ -360,6 +375,18 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Timeout callback for handling click to rename. If _clickCounter was incremented
+     * during timeout, then this was not a single click, so do not rename.
+     */
+    var _handleClickToRename = function () {
+        if (_clickCounter === 0) {
+            CommandManager.execute(Commands.FILE_RENAME);
+        }
+        _inClickCallback = false;
+    };
+
+    /**
+     * @private
      * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
      * (replacing any existing file tree that was previously displayed). This input could be
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
@@ -415,21 +442,33 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
-                    
-                        openResult.done(function () {
-                            // update when tree display state changes
-                            _redraw(true);
-                            _lastSelected = data.rslt.obj;
-                        }).fail(function () {
-                            if (_lastSelected) {
-                                // revert this new selection and restore previous selection
-                                _forceSelection(data.rslt.obj, _lastSelected);
+                        if (!_suppressRename && _lastSelected &&
+                                _lastSelected.data("entry").fullPath === data.rslt.obj.data("entry").fullPath) {
+                            // Entry is already selected, so initiate rename
+                            if (_inClickCallback) {
+                                _clickCounter++;
                             } else {
-                                _projectTree.jstree("deselect_all");
-                                _lastSelected = null;
+                                _inClickCallback = true;
+                                _clickCounter = 0;
+                                window.setTimeout(_handleClickToRename, 300);
                             }
-                        });
+                        } else {
+                            // Entry is not selected, so open and select it
+                            var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                            openResult.done(function () {
+                                // update when tree display state changes
+                                _redraw(true);
+                                _lastSelected = data.rslt.obj;
+                            }).fail(function () {
+                                if (_lastSelected) {
+                                    // revert this new selection and restore previous selection
+                                    _forceSelection(data.rslt.obj, _lastSelected);
+                                } else {
+                                    _projectTree.jstree("deselect_all");
+                                    _lastSelected = null;
+                                }
+                            });
+                        }
                     } else {
                         FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
                         // show selection marker on folders
@@ -541,6 +580,7 @@ define(function (require, exports, module) {
             _projectTree
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
+                    _clickCounter++;
                     var entry = $(event.target).closest("li").data("entry");
                     if (entry && entry.isFile) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
@@ -900,7 +940,9 @@ define(function (require, exports, module) {
         return _findTreeNode(entry)
             .done(function ($node) {
                 // jsTree will automatically expand parent nodes to ensure visible
+                _suppressRename = true;
                 _projectTree.jstree("select_node", $node, false);
+                _suppressRename = false;
             });
     }
     

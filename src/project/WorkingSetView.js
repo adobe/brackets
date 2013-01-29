@@ -51,6 +51,26 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Internal counter and flag for determining single vs. double-click.
+     * @type {boolean}
+     */
+    var _clickCounter = 0,
+        _inClickCallback = false;
+
+    /**
+     * @private
+     * Timeout callback for handling click to rename. If _clickCounter was incremented
+     * during timeout, then this was not a single click, so do not rename.
+     */
+    var _handleClickToRename = function () {
+        if (_clickCounter === 0) {
+            CommandManager.execute(Commands.FILE_RENAME);
+        }
+        _inClickCallback = false;
+    };
+
+    /**
+     * @private
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      */
     function _fireSelectionChanged() {
@@ -213,7 +233,7 @@ define(function (require, exports, module) {
             }
         }
         
-        function drop() {
+        function drop(event) {
             // Enable Mousewheel
             window.onmousewheel = window.document.onmousewheel = null;
             
@@ -225,23 +245,8 @@ define(function (require, exports, module) {
                 window.clearInterval(interval);
             }
             
-            // If file wasnt moved open or close it
-            if (!moved) {
-                if (!fromClose) {
-                /***/
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                /***
-                    // Backing out for Sprint 18 due to issues described in #2394, #2411
-                    if (selected) {
-                        CommandManager.execute(Commands.FILE_RENAME);
-                    } else {
-                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-                    }
-                ***/
-                } else {
-                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
-                }
-            } else if (moved) {
+            // If file wasn't moved, then open or close it
+            if (moved) {
                 if (selected) {
                     // Update the file selection
                     _fireSelectionChanged();
@@ -251,13 +256,32 @@ define(function (require, exports, module) {
                     // Restore the shadows
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
+            } else {
+                if (fromClose) {
+                    CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
+                } else {
+                    if (selected) {
+                        // Only initiate rename on left click
+                        if (event.which === 1) {
+                            if (_inClickCallback) {
+                                _clickCounter++;
+                            } else {
+                                _inClickCallback = true;
+                                _clickCounter = 0;
+                                window.setTimeout(_handleClickToRename, 300);
+                            }
+                        }
+                    } else {
+                        FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                    }
+                }
             }
         }
         
         
         // Only drag with the left mouse button, end the drop in other cases
         if (event.which !== 1) {
-            drop();
+            drop(event);
             return;
         }
         
@@ -278,7 +302,7 @@ define(function (require, exports, module) {
         });
         $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
             $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
-            drop();
+            drop(event);
         });
     }
     
@@ -377,6 +401,10 @@ define(function (require, exports, module) {
                 _updateFileStatusIcon($(this), isOpenAndDirty(file), false);
             }
         );
+
+        $newItem.on("dblclick", function () {
+            _clickCounter++;
+        });
     }
     
     /** 
