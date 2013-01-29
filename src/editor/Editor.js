@@ -1148,6 +1148,15 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns the name of a given CodeMirror mode
+     * @param {{mode: Object, name: string}} modeData
+     * @return {string}
+     */
+    function _getModeName(modeData) {
+        return modeData.mode.configuration || modeData.mode.name;
+    }
+    
+    /**
      * Gets the syntax-highlighting mode for the current selection or cursor position. (The mode may
      * vary within one file due to embedded languages, e.g. JS embedded in an HTML script block).
      *
@@ -1158,28 +1167,28 @@ define(function (require, exports, module) {
      * @return {?(Object|String)} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
      */
     Editor.prototype.getModeForSelection = function () {
-        var sel = this.getSelection();
-        
         // Check for mixed mode info
-        var tokenStart  = this._codeMirror.getTokenAt(sel.start),
+        var sel         = this.getSelection(),
+            tokenStart  = this._codeMirror.getTokenAt(sel.start),
             outerMode   = this._codeMirror.getMode(),
             innerStart  = CodeMirror.innerMode(outerMode, tokenStart.state),
+            startMode   = _getModeName(innerStart),
             isMixed     = (outerMode !== innerStart.mode);
 
         if (isMixed) {
             // If mixed mode, check that mode is the same at start & end of selection
             if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
-                var tokenEnd = this._codeMirror.getTokenAt(sel.end),
-                    innerEnd = CodeMirror.innerMode(outerMode, tokenEnd.state);
+
+                var tokenEnd    = this._codeMirror.getTokenAt(sel.end),
+                    innerEnd    = CodeMirror.innerMode(outerMode, tokenEnd.state),
+                    endMode     = _getModeName(innerEnd);
                 
-                if (innerStart.mode !== innerEnd.mode) {
+                if (startMode !== endMode) {
                     return null;
                 }
             }
 
-            // xml mode uses configuration property for html. All other modes
-            // define a name property.
-            return innerStart.mode.configuration || innerStart.mode.name;
+            return startMode;
             
         } else {
             // Mode does not vary: just use the editor-wide mode
