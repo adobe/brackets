@@ -174,10 +174,9 @@ define(function (require, exports, module) {
                 }
                 if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ":") {
                     adjustCursor = true;
-                    newCursor = cursor;
-                    newCursor.ch = cursor.ch + (hint.length - this.info.name.length);
-                }
-                if (!adjustCursor) {
+                    newCursor = { line: cursor.line,
+                                  ch: cursor.ch + (hint.length - this.info.name.length) };
+                } else {
                     hint += ":";
                     end.ch++;       // Add one for the colon that we're appending.
                 }
