@@ -16187,7 +16187,7 @@ define('editor/EditorManager',['require','exports','module','file/FileUtils','co
     function _createEditorForDocument(doc, makeMasterEditor, container, range, additionalKeys) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
-        return new Editor(doc, makeMasterEditor, mode, container, range);
+        return new Editor(doc, makeMasterEditor, mode, container, additionalKeys, range);
     }
     
     /**
@@ -54441,7 +54441,7 @@ define('editor/EditorManager',['require','exports','module','file/FileUtils','co
     function _createEditorForDocument(doc, makeMasterEditor, container, range, additionalKeys) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
-        return new Editor(doc, makeMasterEditor, mode, container, range);
+        return new Editor(doc, makeMasterEditor, mode, container, additionalKeys, range);
     }
     
     /**
