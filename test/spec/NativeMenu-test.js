@@ -501,7 +501,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -541,7 +541,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     error = 0;
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -580,7 +580,7 @@ define(function (require, exports, module) {
                 // Add a menu item into the empty menu
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -621,7 +621,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 1", "Menu-test.command01", "", "first", "", function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 1", "Menu-test.command01", "", "", "first", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -684,7 +684,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 2", "Menu-test.command02", "", "last", "", function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 2", "Menu-test.command02", "", "", "last", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -748,7 +748,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 3", "Menu-test.command03", "", "after", TEST_MENU_ITEM_ID, function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 3", "Menu-test.command03", "", "", "after", TEST_MENU_ITEM_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -811,7 +811,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 4", "Menu-test.command04", "", "before", TEST_MENU_ITEM_ID, function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 4", "Menu-test.command04", "", "", "before", TEST_MENU_ITEM_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -874,7 +874,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 5", "Menu-test.command05", "", "before", "NONEXISTANT", function (err) {
+                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 5", "Menu-test.command05", "", "", "before", "NONEXISTANT", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1168,7 +1168,7 @@ define(function (require, exports, module) {
                             complete = true;
                             error = err;
                         } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", function (err) {
+                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", "", function (err) {
                                 complete = true;
                                 error = err;
                             });
@@ -1286,7 +1286,7 @@ define(function (require, exports, module) {
                             complete = true;
                             error = err;
                         } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", function (err) {
+                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", "", function (err) {
                                 complete = true;
                                 error = err;
                             });
@@ -1459,7 +1459,7 @@ define(function (require, exports, module) {
                             complete = true;
                             error = err;
                         } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", function (err) {
+                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
                                 complete = true;
                                 error = err;
                             });
