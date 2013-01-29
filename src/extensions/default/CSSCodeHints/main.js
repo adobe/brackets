@@ -95,7 +95,9 @@ define(function (require, exports, module) {
                 }
                 
                 result = $.map(properties[needle].values, function (pvalue, pindex) {
-                    if (pvalue.indexOf(valueNeedle) === 0) {
+                    if ((typeof pvalue === "string") && pvalue.indexOf(valueNeedle) === 0) {
+                        return pvalue;
+                    } else {
                         return pvalue;
                     }
                 }).sort();
