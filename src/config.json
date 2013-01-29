@@ -1,15 +1,4 @@
 {
-    "name": "Brackets",
-    "homepage": "http://brackets.io",
-    "issues": {
-        "url": "http://github.com/adobe/brackets/issues"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/adobe/brackets.git",
-        "branch": "",
-        "SHA": ""
-    },
     "config": {
         "app_title": "Brackets",
         "app_name_about": "Brackets",
@@ -25,7 +14,18 @@
         "troubleshoot_url": "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
         "twitter_name": "@brackets"
     },
+    "name": "Brackets",
     "version": "0.20.0-0",
+    "homepage": "http://brackets.io",
+    "issues": {
+        "url": "http://github.com/adobe/brackets/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/adobe/brackets.git",
+        "branch": "",
+        "SHA": ""
+    },
     "devDependencies": {
         "grunt": ">=0.4.0rc5",
         "grunt-cli": ">=0.1.6",
