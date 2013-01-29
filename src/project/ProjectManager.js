@@ -396,8 +396,7 @@ define(function (require, exports, module) {
                         return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
                     }
                 }
-            }
-            ).bind(
+            }).bind(
                 "before.jstree",
                 function (event, data) {
                     if (data.func === "toggle_node") {
@@ -407,8 +406,7 @@ define(function (require, exports, module) {
                         suppressToggleOpen = _projectTree.jstree("is_open", data.args[0]);
                     }
                 }
-            )
-            .bind(
+            ).bind(
                 "select_node.jstree",
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
@@ -442,8 +440,7 @@ define(function (require, exports, module) {
                     
                     suppressToggleOpen = false;
                 }
-            )
-            .bind(
+            ).bind(
                 "reopen.jstree",
                 function (event, data) {
                     // This handler fires for the initial load and subsequent
@@ -473,15 +470,13 @@ define(function (require, exports, module) {
                         result.resolve();
                     }
                 }
-            )
-            .bind(
+            ).bind(
                 "scroll.jstree",
                 function (e) {
                     // close all dropdowns on scroll
                     Menus.closeAll();
                 }
-            )
-            .bind(
+            ).bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     if (event.type === "open_node") {
@@ -506,8 +501,7 @@ define(function (require, exports, module) {
                     
                     _savePreferences();
                 }
-            )
-            .bind(
+            ).bind(
                 "mousedown.jstree",
                 function (event) {
                     // select tree node on right-click

@@ -531,9 +531,9 @@ define(function (require, exports, module) {
             }
         } else {
             if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
-                event.keyCode === KeyEvent.DOM_VK_RIGHT ||
-                event.keyCode === KeyEvent.DOM_VK_UP ||
-                event.keyCode === KeyEvent.DOM_VK_DOWN) {
+                    event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                    event.keyCode === KeyEvent.DOM_VK_UP ||
+                    event.keyCode === KeyEvent.DOM_VK_DOWN) {
                 // Prevent arrow keys that weren't handled by a child control 
                 // from being handled by a parent, either through bubbling or 
                 // through default native behavior. There isn't a good general
