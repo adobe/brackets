@@ -34,7 +34,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var packageJSON = require("text!package.json");
+    var configJSON = require("text!config.json");
     
     // Define core brackets namespace if it isn't already defined
     //
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     
     // Parse src/config.json
     try {
-        global.brackets.metadata = JSON.parse(packageJSON);
+        global.brackets.metadata = JSON.parse(configJSON);
         global.brackets.config = global.brackets.metadata.config;
     } catch (err) {
         console.log(err);

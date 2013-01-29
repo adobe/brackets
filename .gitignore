@@ -1,5 +1,6 @@
 Thumbs.db
 node_modules
+npm-debug.log
 src/brackets.css
 src/brackets.min.css
 
@@ -15,3 +16,4 @@ src/extensions/disabled
 
 # unit test working directory
 test/temp
+test/results
