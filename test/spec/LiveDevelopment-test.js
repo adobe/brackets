@@ -509,6 +509,22 @@ define(function (require, exports, module) {
             });
             
             it("should toggle the highlight via a command", function () {
+                // Highlight is controlled by a global pref. We want to change it for the test
+                // but reset it when done if need be.
+                
+                // if highlight is false, we're going to need to change it.
+                var needsReset = !inspectorConfig.highlight;
+                
+                if (needsReset) {
+                    inspectorConfig.highlight = true;
+                }
+                
+                afterEach(function () {
+                    if (needsReset) {
+                        CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    }
+                });
+                
                 // force command to be enabled (see LiveDevelopment/main::_setupGoLiveMenu())
                 var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
                 cmd.setEnabled(true);
