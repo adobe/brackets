@@ -237,7 +237,7 @@ define(function (require, exports, module) {
             editor = EditorManager.getFocusedEditor();
 
         if (editor) {
-            editor._selectAllVisible();
+            editor.selectAllNoScroll();
             result.resolve();
         } else {
             result.reject();    // command not handled
@@ -438,14 +438,18 @@ define(function (require, exports, module) {
     
         
     /** 
-     * Handles Select All specially when we have a visible range in order to work around
-     * bugs in CodeMirror when lines are hidden.
+     * Selects all text and maintains the current scroll position.
      */
-    Editor.prototype._selectAllVisible = function () {
-        var startLine = this.getFirstVisibleLine(),
-            endLine = this.getLastVisibleLine();
-        this.setSelection({line: startLine, ch: 0},
-                          {line: endLine, ch: this.document.getLine(endLine).length});
+    Editor.prototype.selectAllNoScroll = function () {
+        var cm = this._codeMirror,
+            info = this._codeMirror.getScrollInfo();
+        
+        // Note that we do not have to check for the visible range here. This
+        // concern is handled internally by code mirror.
+        cm.operation(function () {
+            cm.scrollTo(info.left, info.top);
+            cm.execCommand("selectAll");
+        });
     };
     
     /**
