@@ -587,8 +587,8 @@ define(function (require, exports, module) {
             true
         );
         
-        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
-            && (brackets.platform !== "win");
+        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
+            (brackets.platform !== "win");
     });
     
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
