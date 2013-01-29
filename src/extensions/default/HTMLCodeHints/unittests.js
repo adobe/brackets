@@ -58,7 +58,7 @@ define(function (require, exports, module) {
             
             // create Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
-            testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0), {});
+            testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0));
         });
         
         afterEach(function () {
