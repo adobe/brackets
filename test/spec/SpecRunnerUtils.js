@@ -189,7 +189,7 @@ define(function (require, exports, module) {
         var doc = createMockDocument(initialContent);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {}, visibleRange);
+        var editor = new Editor(doc, true, mode, $editorHolder.get(0), visibleRange);
         
         return { doc: doc, editor: editor };
     }
