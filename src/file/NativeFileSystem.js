@@ -228,10 +228,8 @@ define(function (require, exports, module) {
             case brackets.fs.ERR_CANT_READ:
                 error = NativeFileError.NOT_READABLE_ERR;
                 break;
-            // It might seem like you should use NativeFileError.ENCODING_ERR for this,
-            // but according to the spec that's for malformed URLs.
             case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                error = NativeFileError.SECURITY_ERR;
+                error = NativeFileError.NOT_READABLE_ERR;
                 break;
             case brackets.fs.ERR_CANT_WRITE:
                 error = NativeFileError.NO_MODIFICATION_ALLOWED_ERR;
