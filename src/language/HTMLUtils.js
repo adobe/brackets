@@ -102,9 +102,9 @@ define(function (require, exports, module) {
      */
     function _extractTagName(ctx) {
         var mode = ctx.editor.getMode(),
-            modeData = CodeMirror.innerMode(mode, ctx.token.state);
+            innerModeData = CodeMirror.innerMode(mode, ctx.token.state);
 
-        return modeData.state.tagName || null;
+        return innerModeData.state.tagName || null;
     }
     
     /**
