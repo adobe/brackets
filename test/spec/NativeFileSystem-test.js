@@ -770,9 +770,8 @@ define(function (require, exports, module) {
                 // fileWriter.onerror handler should be invoked for read only files
                 waitsFor(
                     function () {
-                        return writeComplete
-                            && error
-                            && (error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR);
+                        return writeComplete && error &&
+                            (error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR);
                     },
                     1000
                 );

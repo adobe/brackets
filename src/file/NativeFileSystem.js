@@ -228,10 +228,8 @@ define(function (require, exports, module) {
             case brackets.fs.ERR_CANT_READ:
                 error = NativeFileError.NOT_READABLE_ERR;
                 break;
-            // It might seem like you should use NativeFileError.ENCODING_ERR for this,
-            // but according to the spec that's for malformed URLs.
             case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                error = NativeFileError.SECURITY_ERR;
+                error = NativeFileError.NOT_READABLE_ERR;
                 break;
             case brackets.fs.ERR_CANT_WRITE:
                 error = NativeFileError.NO_MODIFICATION_ALLOWED_ERR;
@@ -991,8 +989,7 @@ define(function (require, exports, module) {
                 var timeoutWrapper = Async.withTimeout(masterPromise, NativeFileSystem.ASYNC_TIMEOUT);
 
                 // Add the callbacks to this top-level Promise, which wraps all the individual deferred objects
-                timeoutWrapper.then(
-                    function () { // success
+                timeoutWrapper.done(function () { // success
                         // The entries array may have null values if stat returned things that were
                         // neither a file nor a dir. So, we need to clean those out.
                         var cleanedEntries = [], i;
@@ -1002,8 +999,8 @@ define(function (require, exports, module) {
                             }
                         }
                         successCallback(cleanedEntries);
-                    },
-                    function (err) { // error
+                    })
+                    .fail(function (err) { // error
                         if (err === Async.ERROR_TIMEOUT) {
                             // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
                             // more fitting for a timeout.
