@@ -308,8 +308,8 @@ define(function (require, exports, module) {
                 });
                 
                 waitsFor(function () {
-                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC)
-                        && (DOMAgent.root);
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC) &&
+                        (DOMAgent.root);
                 }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.

@@ -1,18 +1,4 @@
 {
-    "name"                  : "Brackets",
-    "version"               : "0.20.0-0",
-    "homepage"              : "http://brackets.io",
-    "issues"                :
-    {
-        "url"               : "http://github.com/adobe/brackets/issues"
-    },
-    "repository"            :
-    {
-        "type"              : "git",
-        "url"               : "https://github.com/adobe/brackets.git",
-        "branch"            : "",
-        "SHA"               : ""
-    },
     "config"                :
     {
         "app_title"         : "Brackets",

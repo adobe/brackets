@@ -91,7 +91,7 @@ define(function RemoteAgent(require, exports, module) {
                 args[i] = args[i].resolve();
             }
         }
-        $.when.apply(undefined, args).then(function onResolvedAllNodes() {
+        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
             var i, arg, params = [];
             for (i in arguments) {
                 arg = args[i];
