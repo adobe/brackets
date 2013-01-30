@@ -188,6 +188,8 @@ define({
     "CMD_COMMENT"                         : "Commenta/De-commenta linee",
     "CMD_LINE_UP"                         : "Sposta la linea in alto",
     "CMD_LINE_DOWN"                       : "Sposta la linea in basso",
+    "CMD_OPEN_LINE_ABOVE"                 : "Apri linea in alto",
+    "CMD_OPEN_LINE_BELOW"                 : "Apri linea in basso",
      
     // View menu commands
     "VIEW_MENU"                           : "Vista",

@@ -200,6 +200,8 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Toggle Block Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
+    "CMD_OPEN_LINE_ABOVE"                 : "Open Line Above",
+    "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
      
     // View menu commands
     "VIEW_MENU"                           : "View",

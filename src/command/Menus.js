@@ -1039,6 +1039,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_DELETE_LINES);
         menu.addMenuItem(Commands.EDIT_LINE_UP);
         menu.addMenuItem(Commands.EDIT_LINE_DOWN);
+        menu.addMenuItem(Commands.EDIT_OPEN_LINE_ABOVE);
+        menu.addMenuItem(Commands.EDIT_OPEN_LINE_BELOW);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT);
         menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);

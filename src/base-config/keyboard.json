@@ -130,6 +130,12 @@
             "platform": "mac"
         }
     ],
+    "edit.openLineAbove":  [
+        "Ctrl-Enter"
+    ],
+    "edit.openLineBelow":  [
+        "Ctrl-Shift-Enter"
+    ],
     "edit.lineComment":  [
         "Ctrl-/"
     ],
