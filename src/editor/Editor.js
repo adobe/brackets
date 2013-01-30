@@ -1160,7 +1160,11 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _getModeName(modeData) {
-        return modeData.mode.configuration || modeData.mode.name;
+        if (modeData.mode.name === "xml") {
+            return modeData.mode.configuration;
+        }
+
+        return modeData.mode.name;
     }
     
     /**
