@@ -59,9 +59,7 @@ define(function (require, exports, module) {
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
-            function (err) {
-                // Ignore errors
-            }
+            function (err) {} /* Ignore errors */
         );
     }
 

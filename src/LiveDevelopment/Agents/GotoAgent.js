@@ -88,7 +88,7 @@ define(function GotoAgent(require, exports, module) {
             var target = {};
             var url = rule.sourceURL;
             url += ":" + rule.style.range.start;
-            var name = rule.selectorText;
+            var name = rule.selectorList.text;
             var file = _fileFromURL(url);
             targets.push({"type": "css", "url": url, "name": name, "file": file});
         }
@@ -130,7 +130,7 @@ define(function GotoAgent(require, exports, module) {
                 _makeJSTarget(targets, trace.callFrames[0]);
             }
             for (i in res.matchedCSSRules.reverse()) {
-                _makeCSSTarget(targets, res.matchedCSSRules[i]);
+                _makeCSSTarget(targets, res.matchedCSSRules[i].rule);
             }
             RemoteAgent.call("showGoto", targets);
         });

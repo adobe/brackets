@@ -271,12 +271,10 @@ define(function (require, exports, module) {
      * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
-     * @param {!Object<string, function(Editor)>} additionalKeys  Mapping of keyboard shortcuts to
-     *          custom handler functions. Mapping is in CodeMirror format
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      */
-    function Editor(document, makeMasterEditor, mode, container, additionalKeys, range) {
+    function Editor(document, makeMasterEditor, mode, container, range) {
         var self = this;
         
         _instances.push(this);
@@ -331,8 +329,6 @@ define(function (require, exports, module) {
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
-        
-        EditorManager.mergeExtraKeys(self, codeMirrorKeyMap, additionalKeys);
         
         // We'd like null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert

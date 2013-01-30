@@ -1,0 +1,41 @@
+{
+    "config": {
+        "app_title": "Brackets",
+        "app_name_about": "Brackets",
+        "about_icon": "styles/images/brackets_icon.svg",
+        "show_debug_menu": true,
+        "enable_jslint": true,
+        "update_info_url": "http://dev.brackets.io/updates/stable/",
+        "how_to_use_url": "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
+        "forum_url": "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",
+        "release_notes_url": "https://github.com/adobe/brackets/wiki/Release-Notes",
+        "report_issue_url": "https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue",
+        "twitter_url": "https://twitter.com/brackets",
+        "troubleshoot_url": "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
+        "twitter_name": "@brackets"
+    },
+    "name": "Brackets",
+    "version": "0.20.0-0",
+    "homepage": "http://brackets.io",
+    "issues": {
+        "url": "http://github.com/adobe/brackets/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/adobe/brackets.git",
+        "branch": "",
+        "SHA": ""
+    },
+    "devDependencies": {
+        "grunt": ">=0.4.0rc5",
+        "grunt-cli": ">=0.1.6",
+        "grunt-contrib-jshint": ">=0.1.1rc6",
+        "grunt-contrib-watch": ">=0.2.0rc5",
+        "grunt-contrib-jasmine": ">=0.3.0rc7",
+        "grunt-template-jasmine-requirejs": ">=0.1.0"
+    },
+    "scripts": {
+        "postinstall": "grunt install",
+        "test": "grunt test"
+    }
+}
