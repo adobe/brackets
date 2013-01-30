@@ -45,10 +45,6 @@
 @code-padding: 1.2em;
 
 .cm-s-default {
-    .CodeMirror-cursor {
-        .code-cursor();
-    }
-
     span.cm-keyword {color: @accent-keyword;}
     span.cm-atom {color: @accent-atom;}
     span.cm-number {color: @accent-number;}
@@ -80,12 +76,14 @@
     span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 
     .CodeMirror-cursor {
+        .code-cursor();
+
         /* Ensure the cursor shows up in front of code spans with a background color
          * (e.g. matchingbracket).
          */
         z-index: 3;
     }
-    
+
     .CodeMirror-lines {
         padding: @code-padding 0;
     }
@@ -102,6 +100,9 @@
         /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
         padding-top: 0px;
         padding-bottom: 0px;
+    }
+    &.CodeMirror-focused .CodeMirror-selected {
+        background: @selection-color-focused;
     }
 }
 
@@ -125,15 +126,15 @@
     .CodeMirror pre.CodeMirror-cursor {
         visibility: hidden;
     }
-    .CodeMirror .CodeMirror-focused pre.CodeMirror-cursor {
+    .CodeMirror.CodeMirror-focused pre.CodeMirror-cursor {
         visibility: visible;
     }
     
-    .CodeMirror div.CodeMirror-selected {
-        background: #d9d9d9;
+    .CodeMirror.cm-s-default .CodeMirror-selected {
+        background: @selection-color-unfocused;
     }
-    .CodeMirror .CodeMirror-focused div.CodeMirror-selected {
-        background: #d2dcf8;
+    .CodeMirror.cm-s-default.CodeMirror-focused .CodeMirror-selected {
+        background: @selection-color-focused;
     }
     .CodeMirror .CodeMirror-gutters {
         background: transparent;
