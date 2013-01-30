@@ -98,30 +98,6 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     /**
-     * Adds keyboard command handlers to an Editor instance.
-     * @param {Editor} editor 
-     * @param {!Object.<string,function(Editor)>} to destination key mapping
-     * @param {!Object.<string,function(Editor)>} from source key mapping
-     */
-    function mergeExtraKeys(editor, to, from) {
-        // Merge in the additionalKeys we were passed
-        function wrapEventHandler(externalHandler) {
-            return function (instance) {
-                externalHandler(editor);
-            };
-        }
-        var key;
-        for (key in from) {
-            if (from.hasOwnProperty(key)) {
-                if (to.hasOwnProperty(key)) {
-                    console.log("Warning: overwriting standard Editor shortcut " + key);
-                }
-                to[key] = (editor !== null) ? wrapEventHandler(from[key]) : from[key];
-            }
-        }
-    }
-    
-    /**
      * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
      * file extension. The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
@@ -132,10 +108,10 @@ define(function (require, exports, module) {
      *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, range, additionalKeys) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, range) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
-        return new Editor(doc, makeMasterEditor, mode, container, additionalKeys, range);
+        return new Editor(doc, makeMasterEditor, mode, container, range);
     }
     
     /**
@@ -275,9 +251,9 @@ define(function (require, exports, module) {
      *
      * @return {{content:DOMElement, editor:Editor}}
      */
-    function createInlineEditorForDocument(doc, range, inlineContent, additionalKeys) {
+    function createInlineEditorForDocument(doc, range, inlineContent) {
         // Create the Editor
-        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range, additionalKeys);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range);
         
         return { content: inlineContent, editor: inlineEditor };
     }
@@ -812,5 +788,4 @@ define(function (require, exports, module) {
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
-    exports.mergeExtraKeys = mergeExtraKeys;
 });

@@ -644,9 +644,9 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li><span class='dialog-filename'>"
-                    + StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
-                    + "</span></li>";
+                message += "<li><span class='dialog-filename'>" +
+                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
+                    "</span></li>";
             });
             message += "</ul>";
             

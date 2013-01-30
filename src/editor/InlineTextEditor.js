@@ -207,7 +207,7 @@ define(function (require, exports, module) {
      * @param {number} endLine of text to show in inline editor
      * @param {HTMLDivElement} container container to hold the inline editor
      */
-    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container, additionalKeys) {
+    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container) {
         var self = this;
         
         var range = {
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
         
         
         // Create actual Editor instance
-        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, additionalKeys);
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
 
