@@ -1139,8 +1139,8 @@ define(function (require, exports, module) {
         if (brackets.config.twitter_url) {
             menu.addMenuItem(Commands.HELP_TWITTER);
         }
-        // supress redundant about menu item on mac
-        if (brackets.platform !== "mac" && !brackets.inBrowser) {
+        // supress redundant about menu item in mac shell
+        if (brackets.platform !== "mac" || brackets.inBrowser) {
             menu.addMenuItem(Commands.HELP_ABOUT);
         }
 
