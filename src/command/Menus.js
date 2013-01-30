@@ -750,7 +750,7 @@ define(function (require, exports, module) {
     MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
         if (this.isNative) {
             var shortcutKey = keyBinding.displayKey || keyBinding.key;
-            brackets.app.setMenuItemShortcut(this.id, shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
+            brackets.app.setMenuItemShortcut(this._command.getID(), shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
                 if (err) {
                     console.error("Error setting menu item shortcut: " + err);
                 }
@@ -766,7 +766,7 @@ define(function (require, exports, module) {
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
         if (this.isNative) {
-            brackets.app.setMenuItemShortcut(this.id, "", "", function (err) {
+            brackets.app.setMenuItemShortcut(this._command.getID(), "", "", function (err) {
                 if (err) {
                     console.error("Error setting menu item shortcut: " + err);
                 }
