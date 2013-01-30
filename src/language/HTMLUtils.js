@@ -123,7 +123,7 @@ define(function (require, exports, module) {
             backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             forwardCtx  = $.extend({}, backwardCtx);
         
-        if (editor.getModeForSelection() === "html") {
+        if (editor.getModeForSelection() === "htmlmixed") {
             if (backwardCtx.token && backwardCtx.token.className !== "tag") {
                 while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.className !== "tag") {
                     if (backwardCtx.token.className === "error" && backwardCtx.token.string.indexOf("<") === 0) {
@@ -303,7 +303,7 @@ define(function (require, exports, module) {
             tokenType;
         
         // check if this is inside a style block.
-        if (editor.getModeForSelection() !== "html") {
+        if (editor.getModeForSelection() !== "htmlmixed") {
             return createTagInfo();
         }
         
