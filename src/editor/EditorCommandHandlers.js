@@ -461,7 +461,7 @@ define(function (require, exports, module) {
             blockCommentPrefixSuffix(editor, "/*", "*/", true);
         } else if (mode === "css") {
             blockCommentPrefixSuffix(editor, "/*", "*/", false);
-        } else if (mode === "html") {
+        } else if (mode === "htmlmixed") {
             blockCommentPrefixSuffix(editor, "<!--", "-->", false);
         }
     }
@@ -483,7 +483,7 @@ define(function (require, exports, module) {
             lineCommentSlashSlash(editor);
         } else if (mode === "css") {
             lineCommentPrefixSuffix(editor, "/*", "*/");
-        } else if (mode === "html") {
+        } else if (mode === "htmlmixed") {
             lineCommentPrefixSuffix(editor, "<!--", "-->");
         }
     }
