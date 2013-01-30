@@ -70,6 +70,7 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
+        TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
@@ -1155,19 +1156,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns the name of a given CodeMirror mode
-     * @param {{mode: Object, name: string}} modeData
-     * @return {string}
-     */
-    function _getModeName(modeData) {
-        if (modeData.mode.name === "xml") {
-            return modeData.mode.configuration;
-        }
-
-        return modeData.mode.name;
-    }
-    
-    /**
      * Gets the syntax-highlighting mode for the current selection or cursor position. (The mode may
      * vary within one file due to embedded languages, e.g. JS embedded in an HTML script block).
      *
@@ -1180,26 +1168,21 @@ define(function (require, exports, module) {
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
         var sel         = this.getSelection(),
-            tokenStart  = this._codeMirror.getTokenAt(sel.start),
             outerMode   = this._codeMirror.getMode(),
-            innerStart  = CodeMirror.innerMode(outerMode, tokenStart.state),
-            startMode   = _getModeName(innerStart),
-            isMixed     = (outerMode !== innerStart.mode);
+            startMode   = TokenUtils.getModeAt(this._codeMirror, sel.start),
+            isMixed     = (outerMode.name !== startMode.name);
 
         if (isMixed) {
             // If mixed mode, check that mode is the same at start & end of selection
             if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
-                var tokenEnd    = this._codeMirror.getTokenAt(sel.end),
-                    innerEnd    = CodeMirror.innerMode(outerMode, tokenEnd.state),
-                    endMode     = _getModeName(innerEnd);
+                var endMode = TokenUtils.getModeAt(this._codeMirror, sel.end);
                 
-                if (startMode !== endMode) {
+                if (startMode.name !== endMode.name) {
                     return null;
                 }
             }
 
-            return startMode;
-            
+            return startMode.name;
         } else {
             // Mode does not vary: just use the editor-wide mode
             return this._codeMirror.getOption("mode");
