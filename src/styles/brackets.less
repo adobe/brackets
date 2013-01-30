@@ -57,6 +57,9 @@ html, body {
     
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
+    
+    /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
+    -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -713,6 +716,10 @@ a, img {
     &.collapsed {
         background-position: -(@jstree-sprite-size*0 - 2px) -@jstree-sprite-size*1;
     }
+}
+
+#search-results td {
+    vertical-align: baseline;
 }
 
 /* Modal bar for Find/Quick Open */
