@@ -31,6 +31,7 @@
  *
  * This module dispatches these events:
  *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after  _projectRoot changes
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.

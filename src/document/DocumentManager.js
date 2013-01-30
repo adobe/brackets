@@ -149,12 +149,6 @@ define(function (require, exports, module) {
     var _documentNavPending = false;
     
     /**
-     * While true, allow preferences to be saved
-     * @type {boolean}
-     */
-    var _isProjectChanging = false;
-    
-    /**
      * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
      * @private
      * @type {Object.<string, Document>}
@@ -1043,14 +1037,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Preferences callback. Saves the document file paths for the working set.
+     * Preferences callback. Saves the state of the working set.
      */
     function _savePreferences() {
-
-        if (_isProjectChanging) {
-            return;
-        }
-        
         // save the working set file paths
         var files       = [],
             isActive    = false,
@@ -1065,10 +1054,14 @@ define(function (require, exports, module) {
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
             isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
-
+            
+            // save editor UI state for just the working set
+            var viewState = EditorManager._getViewState(file.fullPath);
+            
             files.push({
                 file: file.fullPath,
-                active: isActive
+                active: isActive,
+                viewState: viewState
             });
         });
 
@@ -1078,29 +1071,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Handle beforeProjectClose event
-     */
-    function _beforeProjectClose() {
-        _savePreferences();
-
-        // When app is shutdown via shortcut key, the command goes directly to the
-        // app shell, so we can't reliably fire the beforeProjectClose event on
-        // app shutdown. To compensate, we listen for currentDocumentChange,
-        // workingSetAdd, and workingSetRemove events so that the prefs for
-        // last project used get updated. But when switching projects, after
-        // the beforeProjectChange event gets fired, DocumentManager.closeAll()
-        // causes workingSetRemove event to get fired and update the prefs to an empty
-        // list. So, temporarily (until projectOpen event) disallow saving prefs.
-        _isProjectChanging = true;
-    }
-
-    /**
-     * @private
      * Initializes the working set.
      */
     function _projectOpen(e) {
-        _isProjectChanging = false;
-        
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
             files = _prefs.getValue("files_" + projectRoot.fullPath);
@@ -1110,6 +1083,7 @@ define(function (require, exports, module) {
         }
 
         var filesToOpen = [],
+            viewStates = {},
             activeFile;
 
         // Add all files to the working set without verifying that
@@ -1119,8 +1093,14 @@ define(function (require, exports, module) {
             if (value.active) {
                 activeFile = value.file;
             }
+            if (value.viewState) {
+                viewStates[value.file] = value.viewState;
+            }
         });
         addListToWorkingSet(filesToOpen);
+        
+        // Allow for restoring saved editor UI state
+        EditorManager._resetViewStates(viewStates);
 
         // Initialize the active editor
         if (!activeFile && _workingSet.length > 0) {
@@ -1207,12 +1187,11 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder workingSetSort", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Handle project change events
     $(ProjectManager).on("projectOpen", _projectOpen);
-    $(ProjectManager).on("beforeProjectClose", _beforeProjectClose);
+    $(ProjectManager).on("beforeProjectClose beforeAppClose", _savePreferences);
 });

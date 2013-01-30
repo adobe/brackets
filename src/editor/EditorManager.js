@@ -84,6 +84,13 @@ define(function (require, exports, module) {
     var _lastFocusedEditor = null;
     
     /**
+     * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
+     * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
+     * @type {Object<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}}
+     */
+    var _viewStateCache = {};
+    
+    /**
      * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
      * @type {Array.<function(...)>}
      */
@@ -384,6 +391,49 @@ define(function (require, exports, module) {
     }
     
     
+    /** Updates _viewStateCache from the given editor's actual current state */
+    function _saveEditorViewState(editor) {
+        _viewStateCache[editor.document.file.fullPath] = {
+            selection: editor.getSelection(),
+            scrollPos: editor.getScrollPos()
+        };
+    }
+    
+    /** Updates the given editor's actual state from _viewStateCache, if any state stored */
+    function _restoreEditorViewState(editor) {
+        // We want to ignore the current state of the editor, so don't call _getViewState()
+        var viewState = _viewStateCache[editor.document.file.fullPath];
+        if (viewState) {
+            if (viewState.selection) {
+                editor.setSelection(viewState.selection.start, viewState.selection.end);
+            }
+            if (viewState.scrollPos) {
+                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
+                
+                // Force CM.onScroll() to run now, in case refresh() gets called synchronously after this
+                // (as often happens when switching editors, due to JSLint panel)
+                // TODO: why doesn't CM.scrollTo() do this automatically?
+                var event = window.document.createEvent("HTMLEvents");
+                event.initEvent("scroll", true, false);
+                editor._codeMirror.getScrollerElement().dispatchEvent(event);
+            }
+        }
+    }
+    
+    /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
+    function _getViewState(fullPath) {
+        if (_currentEditorsDocument && _currentEditorsDocument.file.fullPath === fullPath) {
+            _saveEditorViewState(_currentEditor);
+        }
+        return _viewStateCache[fullPath];
+    }
+    
+    /** Removes all cached view state info and replaces it with the given mapping */
+    function _resetViewStates(viewStates) {
+        _viewStateCache = viewStates;
+    }
+    
+    
     /**
      * @private
      * @param {?Editor} current
@@ -425,23 +475,31 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#not-editor").css("display", "none");
         } else {
+            _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
         // Ensure a main editor exists for this document to show in the UI
+        var createdNewEditor = false;
         if (!document._masterEditor) {
+            createdNewEditor = true;
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
         
         _doShow(document);
+        
+        if (createdNewEditor) {
+            _restoreEditorViewState(document._masterEditor);
+        }
     }
     
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
+            _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
@@ -799,6 +857,8 @@ define(function (require, exports, module) {
     exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
+    exports._getViewState = _getViewState;
+    exports._resetViewStates = _resetViewStates;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
