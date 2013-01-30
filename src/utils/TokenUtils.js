@@ -121,7 +121,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns the mode name string at a given position
+     * Returns the mode object and mode name string at a given position
      * @param {CodeMirror} cm CodeMirror instance
      * @param {line:{number}, ch:{number}} pos Position to query for mode
      * @return {mode:{Object}, name:string}
