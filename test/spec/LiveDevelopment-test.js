@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine*/
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine*/
 
 define(function (require, exports, module) {
     'use strict';
@@ -119,7 +119,7 @@ define(function (require, exports, module) {
 
     describe("Live Development", function () {
         
-        xdescribe("CSS Editing", function () {
+        describe("CSS Editing", function () {
 
             beforeEach(function () {
                 runs(function () {
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
             });
         });
 
-        xdescribe("URL Mapping", function () {
+        describe("URL Mapping", function () {
 
             it("should validate base urls", function () {
                 expect(PreferencesDialogs._validateBaseUrl("http://localhost"))
@@ -510,11 +510,12 @@ define(function (require, exports, module) {
             
             it("should toggle the highlight via a command", function () {
                 var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                cmd.setEnabled(true);
                 
                 // Run our tests in order depending on whether highlighting is on or off
                 // presently. By setting the order like this, we'll also leave highlighting
                 // in the state we found it in.
-                if (cmd.getEnabled()) {
+                if (cmd.getChecked()) {
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
                     
