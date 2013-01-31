@@ -1132,10 +1132,13 @@ define(function (require, exports, module) {
      * Shows or hides the editor within its parent. Does not force its ancestors to
      * become visible.
      * @param {boolean} show true to show the editor, false to hide it
+     * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
      */
-    Editor.prototype.setVisible = function (show) {
+    Editor.prototype.setVisible = function (show, refresh) {
         $(this.getRootElement()).css("display", (show ? "" : "none"));
-        this.refresh();
+        if (show && (refresh || refresh === undefined)) {
+            this.refresh();
+        }
         if (show) {
             this._inlineWidgets.forEach(function (inlineWidget) {
                 inlineWidget.onParentShown();
