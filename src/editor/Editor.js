@@ -232,20 +232,6 @@ define(function (require, exports, module) {
         CodeHintManager.handleKeyEvent(editor, event);
     }
 
-    function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
-
-        if (editor) {
-            editor._selectAllVisible();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
-    }
-    
     /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
      * that affect all editors, e.g. tabbing or color scheme settings.
@@ -618,7 +604,7 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.setOption("onFocus", function () {
             self._focused = true;
-            EditorManager._notifyActiveEditorChanged(self);
+            $(self).triggerHandler("focus", [self]);
         });
         
         this._codeMirror.setOption("onBlur", function () {
@@ -1193,9 +1179,6 @@ define(function (require, exports, module) {
         return _indentUnit;
     };
     
-    // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
     // Define public API
     exports.Editor = Editor;
 });
