@@ -809,11 +809,6 @@ define(function (require, exports, module) {
         return result;
     };
     
-    // Add the sorting functions to StringMatcher for convenience.
-    // (This will eliminate QuickOpen plugins importing this functions from QuickOpen.)
-    StringMatcher.prototype.basicMatchSort = basicMatchSort;
-    StringMatcher.prototype.multiFieldSort = multiFieldSort;
-    
     exports._findSpecialCharacters  = findSpecialCharacters;
     exports._wholeStringSearch      = _wholeStringSearch;
     exports._lastSegmentSearch      = _lastSegmentSearch;

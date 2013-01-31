@@ -107,7 +107,7 @@ define(function (require, exports, module) {
         });
         
         // Sort based on ranking & basic alphabetical order
-        matcher.basicMatchSort(filteredList);
+        QuickOpen.basicMatchSort(filteredList);
 
         return filteredList;
     }

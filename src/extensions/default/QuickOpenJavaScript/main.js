@@ -52,17 +52,17 @@ define(function (require, exports, module) {
         this.functionName = functionName;
     }
 
+    /**
+     * Contains a list of information about functions for a single document.
+     *
+     * @return {?Array.<FileLocation>}
+     */
     function createFunctionList() {
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
         }
 
-        /**
-         * Contains a list of information about functions for a single document. This array is populated
-         * by createFunctionList()
-         * @type {?Array.<FileLocation>}
-         */
         var functionList = [];
         var docText = doc.getText();
         var lines = docText.split("\n");
@@ -79,6 +79,7 @@ define(function (require, exports, module) {
 
     /**
      * @param {string} query what the user is searching for
+     * @param {StringMatch.StringMatcher} matcher object that caches search-in-progress data
      * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query, matcher) {
@@ -99,7 +100,7 @@ define(function (require, exports, module) {
         });
         
         // Sort based on ranking & basic alphabetical order
-        matcher.basicMatchSort(filteredList);
+        QuickOpen.basicMatchSort(filteredList);
 
         return filteredList;
     }
@@ -143,8 +144,8 @@ define(function (require, exports, module) {
         {
             name: "JavaScript functions",
             fileTypes: ["js"],
-            search: search,
             done: function () {},
+            search: search,
             match: match,
             itemFocus: itemFocus,
             itemSelect: itemSelect,

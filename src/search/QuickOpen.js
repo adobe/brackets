@@ -107,7 +107,7 @@ define(function (require, exports, module) {
      * @param { name: string, 
      *          fileTypes:Array.<string>,
      *          done: function(),
-     *          search: function(string):Array.<SearchResult|string>,
+     *          search: function(string, ?StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
      *          itemFocus: function(?SearchResult|string),
      *          itemSelect: funciton(?SearchResult|string),
@@ -116,11 +116,11 @@ define(function (require, exports, module) {
      *
      * Parameter Documentation:
      *
-     * name - plug-in name
+     * name - plug-in name, **must be unique**
      * fileTypes - file types array. Example: ["js", "css", "txt"]. An empty array
      *      indicates all file types.
      * done - called when quick open is complete. Plug-in should clear its internal state.
-     * search - takes a query string and returns an array of strings that match the query.
+     * search - takes a query string and optional StringMatcher and returns an array of strings that match the query.
      * match - takes a query string and returns true if this plug-in wants to provide
      *      results for this query.
      * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
@@ -170,6 +170,23 @@ define(function (require, exports, module) {
         this._filenameMatcher           = new StringMatch.StringMatcher();
         this._matchers                  = {};
     }
+    
+    /**
+     * Handles caching of filename search information for the lifetime of a 
+     * QuickNavigateDialog (a single search until the dialog is dismissed)
+     *
+     * @type {StringMatch.StringMatcher}
+     */
+    QuickNavigateDialog.prototype._filenameMatcher = null;
+    
+    /**
+     * StringMatcher caches for each QuickOpen plugin that keep track of search
+     * information for the lifetime of a QuickNavigateDialog (a single search
+     * until the dialog is dismissed)
+     *
+     * @type {Object.<string, StringMatch.StringMatcher>}
+     */
+    QuickNavigateDialog.prototype._matchers = null;
 
     function _filenameFromPath(path, includeExtension) {
         var end;
@@ -451,7 +468,7 @@ define(function (require, exports, module) {
                 // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
                 if (!queryIsStale(query)) {
                     // We're still the current query. Synchronously re-run the search call and resolve with its results
-                    asyncResult.resolve(searchFileList(matcher, query));
+                    asyncResult.resolve(searchFileList(query, matcher));
                 } else {
                     asyncResult.reject();
                 }
