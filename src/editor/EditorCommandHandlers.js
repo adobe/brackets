@@ -591,8 +591,8 @@ define(function (require, exports, module) {
                     // the line we inserted below.
                     originalSel.start.line--;
                     originalSel.end.line--;
-                    editor.setSelection(originalSel.start, originalSel.end);
                 });
+                editor.setSelection(originalSel.start, originalSel.end);
             }
             break;
         case DIRECTION_DOWN:
