@@ -174,6 +174,8 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_QUIT"                            : "Quit",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Exit",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Edit",
