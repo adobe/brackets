@@ -61,8 +61,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager      = require("editor/EditorManager"),
-        CodeHintManager    = require("editor/CodeHintManager"),
+    var CodeHintManager    = require("editor/CodeHintManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
@@ -604,7 +603,7 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.setOption("onFocus", function () {
             self._focused = true;
-            EditorManager._notifyActiveEditorChanged(self);
+            $(self).triggerHandler("focus", [self]);
         });
         
         this._codeMirror.setOption("onBlur", function () {
