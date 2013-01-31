@@ -228,7 +228,8 @@ define(function (require, exports, module) {
         sessionProvider = null,
         sessionEditor   = null,
         hintList        = null,
-        deferredHints   = null;
+        deferredHints   = null,
+        keyDownEditor   = null;
 
     /**
      * Comparator to sort providers based on their priority
@@ -318,6 +319,7 @@ define(function (require, exports, module) {
     function _endSession() {
         hintList.close();
         hintList = null;
+        keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;
         if (deferredHints) {
@@ -438,6 +440,7 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
+        keyDownEditor = editor;
         if (event.type === "keydown") {
             if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
                 event.preventDefault();
@@ -482,7 +485,8 @@ define(function (require, exports, module) {
      * the lastChar.
      */
     function handleChange(editor) {
-        if (lastChar) {
+        if (lastChar && editor === keyDownEditor) {
+            keyDownEditor = null;
             if (_inSession(editor)) {
                 var charToRetest = lastChar;
                 _updateHintList();
