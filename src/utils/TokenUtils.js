@@ -128,13 +128,13 @@ define(function (require, exports, module) {
      */
     function getModeAt(cm, pos) {
         var outerMode = cm.getMode(),
-            innerModeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos).state),
+            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos).state),
             name;
 
-        name = (innerModeData.mode.name === "xml") ?
-                innerModeData.mode.configuration : innerModeData.mode.name;
+        name = (modeData.mode.name === "xml") ?
+                modeData.mode.configuration : modeData.mode.name;
 
-        return {mode: innerModeData.mode, name: name};
+        return {mode: modeData.mode, name: name};
     }
 
     exports.movePrevToken           = movePrevToken;

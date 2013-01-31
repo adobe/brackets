@@ -104,7 +104,7 @@ define(function (require, exports, module) {
         var mode = ctx.editor.getMode(),
             innerModeData = CodeMirror.innerMode(mode, ctx.token.state);
 
-        return innerModeData.state.tagName || null;
+        return innerModeData.state.tagName;
     }
     
     /**
