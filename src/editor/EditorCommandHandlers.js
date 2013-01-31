@@ -592,6 +592,10 @@ define(function (require, exports, module) {
                     originalSel.start.line--;
                     originalSel.end.line--;
                 });
+                // This selection change needs to be outside the batch above, since that batch is
+                // on the underlying document, not this editor. Putting it inside the batch would
+                // cause the selection to be blown away when the document's changes are synchronized
+                // back to this editor on operation end.
                 editor.setSelection(originalSel.start, originalSel.end);
             }
             break;
