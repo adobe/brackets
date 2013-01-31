@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, CodeMirror */
 
 define(function (require, exports, module) {
     "use strict";
@@ -101,15 +101,10 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _extractTagName(ctx) {
-        if (ctx.token.state.tagName) {
-            return ctx.token.state.tagName;           //XML mode
-        } else if (ctx.token.state.htmlState) {
-            return ctx.token.state.htmlState.tagName; //HTML mode
-        } else if (ctx.token.state.html) {
-            return ctx.token.state.html.tagName;      //HTML mode for PHP files
-        }
-        // Some mixed modes that offer HTML as a nested mode don't actually expose the HTML state
-        return null;
+        var mode = ctx.editor.getMode(),
+            innerModeData = CodeMirror.innerMode(mode, ctx.token.state);
+
+        return innerModeData.state.tagName;
     }
     
     /**

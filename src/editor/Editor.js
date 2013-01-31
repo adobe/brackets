@@ -70,6 +70,7 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
+        TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
@@ -1161,24 +1162,23 @@ define(function (require, exports, module) {
      * @return {?(Object|String)} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
      */
     Editor.prototype.getModeForSelection = function () {
-        var sel = this.getSelection();
-        
-        // Check for mixed mode info (meaning mode varies depending on position)
-        // TODO (#921): this only works for certain mixed modes; some do not expose this info
-        var startState = this._codeMirror.getTokenAt(sel.start).state;
-        if (startState.mode) {
-            var startMode = startState.mode;
-            
+        // Check for mixed mode info
+        var sel         = this.getSelection(),
+            outerMode   = this._codeMirror.getMode(),
+            startMode   = TokenUtils.getModeAt(this._codeMirror, sel.start),
+            isMixed     = (outerMode.name !== startMode.name);
+
+        if (isMixed) {
             // If mixed mode, check that mode is the same at start & end of selection
             if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
-                var endState = this._codeMirror.getTokenAt(sel.end).state;
-                var endMode = endState.mode;
-                if (startMode !== endMode) {
+                var endMode = TokenUtils.getModeAt(this._codeMirror, sel.end);
+                
+                if (startMode.name !== endMode.name) {
                     return null;
                 }
             }
-            return startMode;
-            
+
+            return startMode.name;
         } else {
             // Mode does not vary: just use the editor-wide mode
             return this._codeMirror.getOption("mode");
