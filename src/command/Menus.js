@@ -550,11 +550,16 @@ define(function (require, exports, module) {
         if (!_isHTMLMenu(this.id)) {
             var bindings = KeyBindingManager.getKeyBindings(commandID),
                 binding,
-                bindingStr = "";
+                bindingStr = "",
+                displayStr = "";
             
             if (bindings && bindings.length > 0) {
                 binding = bindings[bindings.length - 1];
                 bindingStr = binding.displayKey || binding.key;
+            }
+            
+            if (bindingStr.length > 0) {
+                displayStr = KeyBindingManager.formatKeyDescriptor(bindingStr);
             }
             
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
@@ -567,15 +572,26 @@ define(function (require, exports, module) {
                 relativeID = relativeID.sectionMarker;
             }
             
-            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, position, relativeID, function (err) {
+            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
                 } else {
-                    // Make sure the name is up to date
+                    // Make sure the name and shortcut are up to date
                     if (!menuItem.isDivider) {
                         brackets.app.setMenuTitle(commandID, name, function (err) {
                             if (err) {
-                                console.error("setMenuTitle() -- error: " + err);
+                                console.error("setMenuTitle() -- error: " + err + " when adding command: " + commandID);
+                            } else {
+                                brackets.app.setMenuItemShortcut(
+                                    commandID,
+                                    bindingStr,
+                                    displayStr,
+                                    function (err) {
+                                        if (err) {
+                                            console.error("setMenuItemShortcut() -- error: " + err + " when adding command: " + commandID);
+                                        }
+                                    }
+                                );
                             }
                         });
                     }
@@ -732,7 +748,16 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM with a keyboard shortcut label
      */
     MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
-        _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        if (this.isNative) {
+            var shortcutKey = keyBinding.displayKey || keyBinding.key;
+            brackets.app.setMenuItemShortcut(this._command.getID(), shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        }
     };
     
     /**
@@ -740,12 +765,20 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM to remove keyboard shortcut label
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
-        var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
-        
-        if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
-            // check for any other bindings
-            if (_addExistingKeyBinding(this) === null) {
-                $shortcut.empty();
+        if (this.isNative) {
+            brackets.app.setMenuItemShortcut(this._command.getID(), "", "", function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
+            
+            if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
+                // check for any other bindings
+                if (_addExistingKeyBinding(this) === null) {
+                    $shortcut.empty();
+                }
             }
         }
     };
@@ -1106,8 +1139,10 @@ define(function (require, exports, module) {
         if (brackets.config.twitter_url) {
             menu.addMenuItem(Commands.HELP_TWITTER);
         }
-        menu.addMenuItem(Commands.HELP_ABOUT);
-
+        // supress redundant about menu item in mac shell
+        if (brackets.platform !== "mac" || brackets.inBrowser) {
+            menu.addMenuItem(Commands.HELP_ABOUT);
+        }
 
         /*
          * Context Menus
