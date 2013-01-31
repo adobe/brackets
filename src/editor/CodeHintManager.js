@@ -440,6 +440,7 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
+        keyDownEditor = editor;
         if (event.type === "keydown") {
             if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
                 event.preventDefault();
@@ -457,12 +458,10 @@ define(function (require, exports, module) {
                          event.keyCode === KeyEvent.DOM_VK_RETURN ||
                          event.keyCode === KeyEvent.DOM_VK_TAB)) {
                 lastChar = String.fromCharCode(event.keyCode);
-                keyDownEditor = editor;
             }
         } else if (event.type === "keypress") {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
-            keyDownEditor = editor;
         } else if (event.type === "keyup") {
             if (_inSession(editor)) {
                 if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
