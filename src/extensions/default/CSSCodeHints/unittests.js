@@ -62,7 +62,7 @@ define(function (require, exports, module) {
             expect(selection.start).toEqual(pos);
         }
         
-        describe("CSS attributes in general (selection of correct attribute based on input)", function () {
+        describe("CSS properties in general (selection of correct property based on input)", function () {
    
             beforeEach(function () {
                 // create Editor instance (containing a CodeMirror instance)
@@ -144,6 +144,10 @@ define(function (require, exports, module) {
             it("should NOT list prop-name hints if previous property is not closed properly", function () {
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
                 expectNoHints(CSSCodeHints.cssPropHintProvider);
+            });
+            it("should NOT list prop-name hints in media type declaration", function () {
+                testEditor.setCursorPos({ line: 0, ch: 1 });
+                expect(CSSCodeHints.cssPropHintProvider.hasHints(testEditor, 'm')).toBe(false);
             });
         });
 
