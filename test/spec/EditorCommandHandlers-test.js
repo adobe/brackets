@@ -1030,6 +1030,16 @@ define(function (require, exports, module) {
         });
       
         describe("Open Line Above and Below", function () {
+            var indentUnit = Editor.getIndentUnit();
+            var indentation = (function () {
+                // generate indent string once
+                var spaces = [];
+                while (spaces.length < indentUnit) {
+                    spaces.push(" ");
+                }
+                return spaces.join("");
+            }());
+            
             beforeEach(setupFullEditor);
 
             it("should insert new line above if no selection", function () {
@@ -1039,23 +1049,43 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
                             
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
                 lines.splice(1, 0, indentation);
-                
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 4});
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+            
+            it("should insert new line above the first line if no selection", function () {
+                // place cursor in the first line
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(0, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 0, ch: 0});
+            });
+            
+            it("should insert new line above the last line if no selection", function () {
+                // place cursor in the last line
+                myEditor.setCursorPos(7, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(7, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 7, ch: indentUnit});
             });
             
             it("should insert new line above with no indentation if no selection", function () {
-                // place cursor in line 0
+                // place cursor in the middle of line 0
                 myEditor.setCursorPos(0, 10);
                 
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
@@ -1075,19 +1105,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
                 lines.splice(1, 0, indentation);
-                
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 4});
+                expectCursorAt({line: 1, ch: indentUnit});
             });
 
             it("should insert new line above when linewise selection", function () {
@@ -1097,19 +1119,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
                 lines.splice(1, 0, indentation);
-                
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 4});
+                expectCursorAt({line: 1, ch: indentUnit});
             });
          
             it("should insert new line above when multiple line selection", function () {
@@ -1119,20 +1133,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                indentUnit *= 2;
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
-                lines.splice(2, 0, indentation);
-                
+                lines.splice(2, 0, "    " + indentation);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 2, ch: 8});
+                expectCursorAt({line: 2, ch: 4 + indentUnit});
             });
 
             it("should insert new line below when no selection", function () {
@@ -1142,24 +1147,44 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
                 lines.splice(1, 0, indentation);
-                
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 4});
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+            
+            it("should insert new line below the first line if no selection", function () {
+                // place cursor in the first line
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+            
+            it("should insert new line below the last line if no selection", function () {
+                // place cursor in the last line
+                myEditor.setCursorPos(7, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(8, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 8, ch: 0});
             });
             
             it("should insert new line below with no indentation if no selection", function () {
-                // place cursor in line 7
-                myEditor.setCursorPos(7, 0);
+                // place cursor in line 7 character 1
+                myEditor.setCursorPos(7, 1);
                 
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
                             
@@ -1178,19 +1203,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
                 lines.splice(1, 0, indentation);
-                
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 1, ch: 4});
+                expectCursorAt({line: 1, ch: indentUnit});
             });
 
             it("should insert new line below when linewise selection", function () {
@@ -1200,20 +1217,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                indentUnit *= 2;
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
-                lines.splice(3, 0, indentation);
-                
+                lines.splice(3, 0, "    " + indentation);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 3, ch: 8});
+                expectCursorAt({line: 3, ch: 4 + indentUnit});
             });
 
             it("should insert new line below when multiple line selection", function () {
@@ -1222,22 +1230,63 @@ define(function (require, exports, module) {
                 
                 CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
 
-                
                 var lines = defaultContent.split("\n");
-                
-                var indentUnit = Editor.getIndentUnit();
-                indentUnit *= 2;
-                var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                var indentation = spaces.join("");
-                lines.splice(5, 0, indentation);
-                
+                lines.splice(5, 0, "    " + indentation);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 5, ch: 8});
+                expectCursorAt({line: 5, ch: 4 + indentUnit});
+            });
+        });
+        
+        describe("Open Line Above and Below - editor with visible range", function () {
+            
+            it("should insert new line above the top line of the visible range", function () {
+                makeEditorWithRange({startLine: 0, endLine: 4});
+                myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 6});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(0, 0, "");
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toBe(0);
+                expect(myEditor._visibleRange.endLine).toBe(5);
+            });
+            
+            it("should insert new line above the last line of the visible range", function () {
+                makeEditorWithRange({startLine: 0, endLine: 0});
+                myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 6});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(0, 0, "");
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toBe(0);
+                expect(myEditor._visibleRange.endLine).toBe(1);
+            });
+
+            it("should insert new line below the first line of the visible range", function () {
+                makeEditorWithRange({startLine: 7, endLine: 7});
+                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 1});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(8, 0, "");
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toBe(7);
+                expect(myEditor._visibleRange.endLine).toBe(8);
+            });
+
+            it("should insert new line below the last line of the visible range", function () {
+                makeEditorWithRange({startLine: 6, endLine: 7});
+                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 1});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(8, 0, "");
+                expect(myDocument.getText()).toEqual(lines.join("\n"));
+                expect(myEditor._visibleRange.startLine).toBe(6);
+                expect(myEditor._visibleRange.endLine).toBe(8);
             });
         });
     });
