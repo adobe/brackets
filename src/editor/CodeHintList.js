@@ -246,20 +246,31 @@ define(function (require, exports, module) {
             var len = Math.min(self.hints.length, self.maxResults),
                 pos;
 
-            // set the initial selection position if necessary
             if (self.selectedIndex < 0) {
-                pos = (distance > 0) ? len - 1 : 0;
-                self._setSelectedIndex(pos);
+                // set the initial selection
+                pos = (distance > 0) ? distance - 1 : len - 1;
+
             } else {
+                // adjust current selection
                 pos = self.selectedIndex;
+
+                // Don't "rotate" until all items have been shown
+                if (distance > 0) {
+                    if (pos === (len - 1)) {
+                        pos = 0;  // wrap
+                    } else {
+                        pos = Math.min(pos + distance, len - 1);
+                    }
+                } else {
+                    if (pos === 0) {
+                        pos = (len - 1);  // wrap
+                    } else {
+                        pos = Math.max(pos + distance, 0);
+                    }
+                }
             }
 
-            // rotate the selection
-            if (distance < 0) {
-                distance %= len;
-                distance += len;
-            }
-            self._setSelectedIndex((pos + distance) % len);
+            self._setSelectedIndex(pos);
         }
 
         // Calculate the number of items per scroll page.

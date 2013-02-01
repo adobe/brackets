@@ -16,7 +16,7 @@ define(function (require, exports, module) {
      */
     function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
-        this.secondaryTriggerKeys = " :;\t\n\r";
+        this.secondaryTriggerKeys = ":";
     }
 
     /**
