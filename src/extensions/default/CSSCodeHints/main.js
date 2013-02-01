@@ -42,16 +42,16 @@ define(function (require, exports, module) {
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
         
-        if (implicitChar === null) {
-            if (this.info.context === CSSUtils.PROP_NAME || this.info.context === CSSUtils.PROP_VALUE) {
-                return true;
-            }
-        } else {
+        if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
+            return false;
+        }
+        
+        if (implicitChar) {
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
         }
         
-        return false;
+        return true;
     };
        
     /**
