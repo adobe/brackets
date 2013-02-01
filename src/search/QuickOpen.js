@@ -107,7 +107,7 @@ define(function (require, exports, module) {
      * @param { name: string, 
      *          fileTypes:Array.<string>,
      *          done: function(),
-     *          search: function(string, ?StringMatch.StringMatcher):Array.<SearchResult|string>,
+     *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
      *          itemFocus: function(?SearchResult|string),
      *          itemSelect: funciton(?SearchResult|string),
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
      * fileTypes - file types array. Example: ["js", "css", "txt"]. An empty array
      *      indicates all file types.
      * done - called when quick open is complete. Plug-in should clear its internal state.
-     * search - takes a query string and optional StringMatcher and returns an array of strings that match the query.
+     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query.
      * match - takes a query string and returns true if this plug-in wants to provide
      *      results for this query.
      * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
