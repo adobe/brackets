@@ -346,7 +346,7 @@ define(function (require, exports, module) {
                     
                     // Correct the selection.
                     if (completeLineSel) {
-                       newSelection = {start: {line: sel.start.line + 1, ch: 0}, end: {line: sel.end.line + 1, ch: 0}};
+                        newSelection = {start: {line: sel.start.line + 1, ch: 0}, end: {line: sel.end.line + 1, ch: 0}};
                     } else {
                         var newSelStart = {line: sel.start.line, ch: sel.start.ch + prefix.length};
                         if (sel.start.line === sel.end.line) {
