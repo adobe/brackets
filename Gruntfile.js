@@ -10,6 +10,8 @@ module.exports = function (grunt) {
                 '!src/thirdparty/**',
                 '!src/widgets/bootstrap-*.js',
                 '!src/extensions/**/unittest-files/**/*.js',
+                '!src/extensions/dev/**',
+                '!src/extensions/disabled/**',
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
