@@ -1051,7 +1051,9 @@ define(function (require, exports, module) {
             changed = (oldHeight !== height),
             isAttached = inlineWidget.info !== undefined;
 
-        if (changed) {
+        // Make sure we set an explicit height on the widget, so children can use things like
+        // min-height if they want.
+        if (changed || !node.style.height) {
             $(node).height(height);
 
             if (isAttached) {
