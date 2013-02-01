@@ -592,5 +592,44 @@ define(function (require, exports, module) {
                 expect(result.scoreDebug.lastSegment).toBeGreaterThan(0);
             });
         });
+        
+        describe("StringMatcher", function () {
+            it("should manage its caches properly", function () {
+                this.addMatchers({
+                    toBeInCache: function (matcher, cacheName) {
+                        var value = matcher[cacheName][this.actual];
+                        var notText = this.isNot ? " not" : "";
+                        
+                        this.message = function () {
+                            return "Expected " + cacheName + " to" + notText + " contain key " + this.actual;
+                        };
+                        
+                        return value !== undefined;
+                    }
+                });
+                
+                var matcher = new StringMatch.StringMatcher();
+                expect(matcher._noMatchCache).toEqual({});
+                expect(matcher._specialsCache).toEqual({});
+                
+                matcher.match("test/spec/LiveDevelopment-test.js", "spec/live");
+                expect("test/spec/LiveDevelopment-test.js").toBeInCache(matcher, "_specialsCache");
+                expect("test/spec/LiveDevelopment-test.js").not.toBeInCache(matcher, "_noMatchCache");
+                
+                matcher.match("foo", "spec/live");
+                expect("foo").toBeInCache(matcher, "_specialsCache");
+                expect("foo").toBeInCache(matcher, "_noMatchCache");
+                
+                matcher.match("test/spec/LiveDevelopment-test.js", "spec/lived");
+                // verify that the noMatchCache is still populated
+                expect("foo").toBeInCache(matcher, "_noMatchCache");
+                
+                // a shorter/different string should invalidate the noMatchCache
+                // but not the specialsCache
+                matcher.match("test/spec/LiveDevelopment-test.js", "spec/liv");
+                expect("foo").toBeInCache(matcher, "_specialsCache");
+                expect("foo").not.toBeInCache(matcher, "_noMatchCache");
+            });
+        });
     });
 });
