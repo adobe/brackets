@@ -160,7 +160,7 @@ define(function (require, exports, module) {
         this.editors.forEach(function (editor) {
             // HACK: We use height:auto on inline CodeMirror instances to prop
             // the line widget height. However, using auto confuses CodeMirror
-            // during the intial render, resulting in a viewport too small and
+            // during the initial render, resulting in a viewport too small and
             // skipping rendering until the highlightWorker kicks in.
             // As a workaround, scrolling will force CodeMirror to recompute
             // the viewport and redraw the full contents of the inline editor
