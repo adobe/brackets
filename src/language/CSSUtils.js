@@ -67,9 +67,7 @@ define(function (require, exports, module) {
         }
         
         lastToken = state.stack[state.stack.length - 1];
-        return (lastToken === "{") ||
-                (lastToken === "rule" &&
-                (ctx.token.className === "variable" || ctx.token.className === "tag"));
+        return (lastToken === "{" || lastToken === "rule");
     }
     
     /**
@@ -81,7 +79,7 @@ define(function (require, exports, module) {
     function _isInPropValue(ctx) {
         var state;
         if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment" ||
-                ctx.token.className === "variable" || ctx.token.className === "tag") {
+                ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
             return false;
         }
 
@@ -90,7 +88,7 @@ define(function (require, exports, module) {
         if (!state.stack || state.stack.length < 2) {
             return false;
         }
-        return (state.stack[state.stack.length - 1] === "rule");
+        return (state.stack[state.stack.length - 1] === "propertyValue" && state.stack[state.stack.length - 2] === "rule");
     }
     
     /**
@@ -138,13 +136,14 @@ define(function (require, exports, module) {
         do {
             // If we get a property name or "{" or ";" before getting a colon, then we don't 
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.className === "variable" || ctxClone.token.string === "{" || ctxClone.token.string === ";") {
+            if (ctxClone.token.className === "property" || ctxClone.token.className === "property error" ||
+                    ctxClone.token.string === "{" || ctxClone.token.string === ";") {
                 return "";
             }
         } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
         
         if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
-                ctxClone.token.className === "variable") {
+                (ctxClone.token.className === "property" || ctxClone.token.className === "property error")) {
             return ctxClone.token.string;
         }
         
@@ -163,7 +162,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
                     ctx.token.string === ":" || ctx.token.string === "{" ||
                     ctx.token.string === ";") {
                 break;
@@ -216,7 +215,7 @@ define(function (require, exports, module) {
             }
             // If we're already in the next rule, then we don't want to add the last value
             // since it is the property name of the next rule.
-            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
                     ctx.token.string === ":") {
                 lastValue = "";
                 break;
@@ -362,11 +361,11 @@ define(function (require, exports, module) {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                     testToken = editor._codeMirror.getTokenAt(testPos);
                 
-                if (testToken.className === "variable" || testToken.className === "tag") {
+                if (testToken.className === "property" || testToken.className === "property error" || testToken.className === "tag") {
                     propName = testToken.string;
                     offset = 0;
                 }
-            } else if (ctx.token.className === "variable" || ctx.token.className === "tag") {
+            } else if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
                 propName = ctx.token.string;
             }
             

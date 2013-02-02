@@ -22,7 +22,8 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine */
+/*unittests: FindReplace*/
 
 define(function (require, exports, module) {
     'use strict';
@@ -63,6 +64,7 @@ define(function (require, exports, module) {
             var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
             myDocument = mocks.doc;
             myEditor = mocks.editor;
+            myEditor.centerOnCursor = jasmine.createSpy("centering");
             
             myEditor.focus();
         }
@@ -82,11 +84,6 @@ define(function (require, exports, module) {
         
         // Helper functions for testing cursor position / selection range
         // TODO: duplicated from EditorCommandHandlers-test
-        function expectCursorAt(pos) {
-            var selection = myEditor.getSelection();
-            expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
-        }
         function expectSelection(sel) {
             expect(myEditor.getSelection()).toEqual(sel);
         }
@@ -134,9 +131,11 @@ define(function (require, exports, module) {
                 
                 enterSearchText("foo");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -145,6 +144,7 @@ define(function (require, exports, module) {
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
             it("should find all case-sensitive matches", function () {
@@ -176,10 +176,12 @@ define(function (require, exports, module) {
                 expectSearchBarClosed();
                 
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
                 
                 // Simple linear Find Next
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -228,10 +230,10 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 expectSearchBarOpen();
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
             });
             
             it("should open search bar on Find Next with no previous search", function () {
@@ -240,7 +242,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 
                 expectSearchBarOpen();
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
             });
             
         });
@@ -296,7 +298,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
                 enterSearchText("requireX");
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, CH_REQUIRE_PAREN);
             });
         });
         
@@ -347,7 +349,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
@@ -362,7 +364,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
@@ -380,10 +382,10 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
                 
             });
             
@@ -391,12 +393,12 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
 
                 pressEnter();
                 
                 expectSearchBarClosed();
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
             });
         });
         
@@ -460,7 +462,7 @@ define(function (require, exports, module) {
                 // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
                 enterSearchText("/+/");
                 expect($(".modal-bar .error").length).toBe(1);
-                expectCursorAt({line: 0, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(0, 0); // no change
             });
             
             it("shouldn't choke on empty regexp", function () {
@@ -469,7 +471,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("//");
-                expectCursorAt({line: 0, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(0, 0); // no change
             });
         });
     });

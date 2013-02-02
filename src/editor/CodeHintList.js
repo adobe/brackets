@@ -209,8 +209,8 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype._calcHintListLocation = function () {
         var cursor = this.editor._codeMirror.cursorCoords(),
-            posTop  = cursor.y,
-            posLeft = cursor.x,
+            posTop  = cursor.top,
+            posLeft = cursor.left,
             $window = $(window),
             $menuWindow = this.$hintMenu.children("ul");
 

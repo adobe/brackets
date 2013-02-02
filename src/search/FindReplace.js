@@ -23,6 +23,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, doReplace */
+/*unittests: FindReplace*/
 
 
 /*
@@ -77,7 +78,8 @@ define(function (require, exports, module) {
         }
     }
 
-    function findNext(cm, rev) {
+    function findNext(editor, rev) {
+        var cm = editor._codeMirror;
         var found = true;
         cm.operation(function () {
             var state = getSearchState(cm);
@@ -93,7 +95,7 @@ define(function (require, exports, module) {
                     return;
                 }
             }
-            cm.setSelection(cursor.from(), cursor.to());
+            editor.setSelection(cursor.from(), cursor.to(), true);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
@@ -142,10 +144,12 @@ define(function (require, exports, module) {
      * If no search pending, opens the search dialog. If search is already open, moves to
      * next/prev result (depending on 'rev')
      */
-    function doSearch(cm, rev, initialQuery) {
+    function doSearch(editor, rev, initialQuery) {
+        var cm = editor._codeMirror;
         var state = getSearchState(cm);
         if (state.query) {
-            return findNext(cm, rev);
+            findNext(editor, rev);
+            return;
         }
         
         // Use the selection start as the searchStartPos. This way if you
@@ -172,12 +176,12 @@ define(function (require, exports, module) {
                 if (cm.lineCount() < 2000) { // This is too expensive on big documents.
                     var cursor = getSearchCursor(cm, query);
                     while (cursor.findNext()) {
-                        state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
+                        state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
                     }
                 }
                 
                 state.posFrom = state.posTo = searchStartPos;
-                var foundAny = findNext(cm, rev);
+                var foundAny = findNext(editor, rev);
                 
                 if (modalBar) {
                     getDialogTextField().toggleClass("no-results", !foundAny);
@@ -231,7 +235,8 @@ define(function (require, exports, module) {
             '</button> <button id="replace-no"' + style + '>' + Strings.BUTTON_NO +
             '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
-    function replace(cm, all) {
+    function replace(editor, all) {
+        var cm = editor._codeMirror;
         createModalBar(replaceQueryDialog, true);
         $(modalBar).on("closeOk", function (e, query) {
             if (!query) {
@@ -272,7 +277,7 @@ define(function (require, exports, module) {
                                 return;
                             }
                         }
-                        cm.setSelection(cursor.from(), cursor.to());
+                        editor.setSelection(cursor.from(), cursor.to(), true);
                         createModalBar(doReplaceConfirm, true);
                         modalBar.getRoot().on("click", function (e) {
                             modalBar.close();
@@ -298,7 +303,7 @@ define(function (require, exports, module) {
             .attr("value", cm.getSelection())
             .get(0).select();
     }
-
+    
     function _launchFind() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
@@ -306,28 +311,28 @@ define(function (require, exports, module) {
 
             // Bring up CodeMirror's existing search bar UI
             clearSearch(codeMirror);
-            doSearch(codeMirror, false, codeMirror.getSelection());
+            doSearch(editor, false, codeMirror.getSelection());
         }
     }
 
     function _findNext() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            doSearch(editor._codeMirror);
+            doSearch(editor);
         }
     }
 
     function _findPrevious() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            doSearch(editor._codeMirror, true);
+            doSearch(editor, true);
         }
     }
 
     function _replace() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            replace(editor._codeMirror);
+            replace(editor);
         }
     }
 
