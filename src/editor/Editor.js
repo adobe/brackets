@@ -730,8 +730,10 @@ define(function (require, exports, module) {
         // of the editor height).
         if (screenCursorPosition < editorHeight * CENTERING_MARGIN ||
                 screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)) {
-            this.setScrollPos(null, documentCursorPosition -
-                                editorHeight / 2 + statusBarHeight);
+
+            var pos = documentCursorPosition - editorHeight / 2 + statusBarHeight;
+            pos = Math.max(pos, 0);
+            this.setScrollPos(null, pos);
         }
     };
 
