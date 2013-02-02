@@ -163,7 +163,7 @@ define(function (require, exports, module) {
             // during the intial render, resulting in a viewport too small and
             // skipping rendering until the highlightWorker kicks in.
             // As a workaround, scrolling will force CodeMirror to recompute
-            // the viewport and redraw the full contents of hte inline editor
+            // the viewport and redraw the full contents of the inline editor
             editor._codeMirror.scrollTo(0, 0);
         });
 
