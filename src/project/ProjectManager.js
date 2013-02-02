@@ -534,7 +534,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry && entry.isFile && ($(event.target).closest("li").find('input').length === 0)) {
+                    if (entry && entry.isFile) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
