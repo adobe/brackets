@@ -343,9 +343,12 @@ define(function (require, exports, module) {
         _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
         
         if (_currentEditor) {
-            $(_currentEditor.getRootElement()).height(editorAreaHt);
-            if (!skipRefresh) {
-                _currentEditor.refreshAll(true);
+            var curRoot = _currentEditor.getRootElement();
+            if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+                $(curRoot).height(editorAreaHt);
+                if (!skipRefresh) {
+                    _currentEditor.refreshAll(true);
+                }
             }
         }
     }
