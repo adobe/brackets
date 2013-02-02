@@ -158,7 +158,13 @@ define(function (require, exports, module) {
         InlineTextEditor.prototype.parentClass.onAdded.apply(this, arguments);
         
         this.editors.forEach(function (editor) {
-            editor.refresh();
+            // HACK: We use height:auto on inline CodeMirror instances to prop
+            // the line widget height. However, using auto confuses CodeMirror
+            // during the intial render, resulting in a viewport too small and
+            // skipping rendering until the highlightWorker kicks in.
+            // As a workaround, scrolling will force CodeMirror to recompute
+            // the viewport and redraw the full contents of hte inline editor
+            editor._codeMirror.scrollTo(0, 0);
         });
 
         // Update display of inline editors when the hostEditor signals a redraw
