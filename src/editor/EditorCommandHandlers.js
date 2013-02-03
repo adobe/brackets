@@ -99,6 +99,7 @@ define(function (require, exports, module) {
         var containsUncommented = _containsUncommented(editor, startLine, endLine);
         var i;
         var line;
+        var updateSelection = false;
         
         // Make the edit
         doc.batchOperation(function () {
@@ -111,8 +112,7 @@ define(function (require, exports, module) {
                 
                 // Make sure selection includes "//" that was added at start of range
                 if (sel.start.ch === 0 && hasSelection) {
-                    // use *current* selection end, which has been updated for our text insertions
-                    editor.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
+                    updateSelection = true;
                 }
                 
             } else {
@@ -127,6 +127,12 @@ define(function (require, exports, module) {
             }
         });
         
+        // Update the selection after the document batch so it's not blown away on resynchronization
+        // if this editor is not the master editor.
+        if (updateSelection) {
+            // use *current* selection end, which has been updated for our text insertions
+            editor.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
+        }
     }
     
     
@@ -217,7 +223,8 @@ define(function (require, exports, module) {
             suffixPos      = null,
             canComment     = false,
             invalidComment = false,
-            lineUncomment  = false;
+            lineUncomment  = false,
+            newSelection;
         
         var result, text, line;
         
@@ -339,13 +346,13 @@ define(function (require, exports, module) {
                     
                     // Correct the selection.
                     if (completeLineSel) {
-                        editor.setSelection({line: sel.start.line + 1, ch: 0}, {line: sel.end.line + 1, ch: 0});
+                        newSelection = {start: {line: sel.start.line + 1, ch: 0}, end: {line: sel.end.line + 1, ch: 0}};
                     } else {
                         var newSelStart = {line: sel.start.line, ch: sel.start.ch + prefix.length};
                         if (sel.start.line === sel.end.line) {
-                            editor.setSelection(newSelStart, {line: sel.end.line, ch: sel.end.ch + prefix.length});
+                            newSelection = {start: newSelStart, end: {line: sel.end.line, ch: sel.end.ch + prefix.length}};
                         } else {
-                            editor.setSelection(newSelStart, {line: sel.end.line, ch: sel.end.ch});
+                            newSelection = {start: newSelStart, end: {line: sel.end.line, ch: sel.end.ch}};
                         }
                     }
                 
@@ -379,6 +386,12 @@ define(function (require, exports, module) {
                     }
                 }
             });
+            
+            // Update the selection after the document batch so it's not blown away on resynchronization
+            // if this editor is not the master editor.
+            if (newSelection) {
+                editor.setSelection(newSelection.start, newSelection.end);
+            }
         }
     }
     
@@ -591,8 +604,11 @@ define(function (require, exports, module) {
                     // the line we inserted below.
                     originalSel.start.line--;
                     originalSel.end.line--;
-                    editor.setSelection(originalSel.start, originalSel.end);
                 });
+    
+                // Update the selection after the document batch so it's not blown away on resynchronization
+                // if this editor is not the master editor.
+                editor.setSelection(originalSel.start, originalSel.end);
             }
             break;
         case DIRECTION_DOWN:

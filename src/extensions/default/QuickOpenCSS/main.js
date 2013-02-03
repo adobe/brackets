@@ -36,29 +36,19 @@ define(function (require, exports, module) {
 
 
     /**
-     * Contains a list of information about selectors for a single document. This array is populated
+     * Returns a list of information about selectors for a single document. This array is populated
      * by createSelectorList()
-     * @type {?Array.<FileLocation>}
+     * @return {?Array.<FileLocation>}
      */
-    var selectorList = null;
-
-    /** clears selectorList */
-    function done() {
-        selectorList = null;
-    }
-
-    // create function list and caches it in FileIndexMangager
     function createSelectorList() {
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
         }
 
-        if (!selectorList) {
-            selectorList = [];
-            var docText = doc.getText();
-            selectorList = CSSUtils.extractAllSelectors(docText);
-        }
+        var selectorList = [];
+        var docText = doc.getText();
+        return CSSUtils.extractAllSelectors(docText);
     }
 
 
@@ -66,13 +56,17 @@ define(function (require, exports, module) {
      * @param {string} query what the user is searching for
      * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
-    function search(query) {
-        createSelectorList();
+    function search(query, matcher) {
+        var selectorList = matcher.selectorList;
+        if (!selectorList) {
+            selectorList = createSelectorList();
+            matcher.selectorList = selectorList;
+        }
         query = query.slice(query.indexOf("@") + 1, query.length);
         
         // Filter and rank how good each match is
         var filteredList = $.map(selectorList, function (itemInfo) {
-            var searchResult = QuickOpen.stringMatch(itemInfo.selector, query);
+            var searchResult = matcher.match(itemInfo.selector, query);
             if (searchResult) {
                 searchResult.selectorInfo = itemInfo;
             }
@@ -123,7 +117,7 @@ define(function (require, exports, module) {
         {
             name: "CSS Selectors",
             fileTypes: ["css"],
-            done: done,
+            done: function () {},
             search: search,
             match: match,
             itemFocus: itemFocus,

@@ -5,13 +5,9 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        Editor          = brackets.getModule("editor/Editor").Editor,
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         CSSCodeHints    = require("main");
-    
-    /* set indentation to one, to make use of tabs for the following testContent */
-    Editor.setIndentUnit(1);
-    
+       
     describe("CSS Code Hinting", function () {
 
         var defaultContent = "@media screen { \n" +
@@ -66,7 +62,7 @@ define(function (require, exports, module) {
             expect(selection.start).toEqual(pos);
         }
         
-        describe("CSS attributes in general (selection of correct attribute based on input)", function () {
+        describe("CSS properties in general (selection of correct property based on input)", function () {
    
             beforeEach(function () {
                 // create Editor instance (containing a CodeMirror instance)
@@ -149,6 +145,10 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
                 expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
+            it("should NOT list prop-name hints in media type declaration", function () {
+                testEditor.setCursorPos({ line: 0, ch: 1 });
+                expect(CSSCodeHints.cssPropHintProvider.hasHints(testEditor, 'm')).toBe(false);
+            });
         });
 
         describe("CSS attribute insertHint", function () {
@@ -175,12 +175,11 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 7, ch: 8 });
             });
             
-            it("should insert semicolon followed by newline after prop-value selected", function () {
-                // insert semicolon after previous rule to avoid incorrect tokenizing
+            it("should not insert semicolon after prop-value selected", function () {
                 testDocument.replaceRange(";", { line: 12, ch: 5 });
                 testEditor.setCursorPos({ line: 13, ch: 10 });   // cursor after 'display: '
                 selectHint(CSSCodeHints.cssPropHintProvider, "block");
-                expect(testDocument.getLine(13)).toBe(" display: block;");
+                expect(testDocument.getLine(13)).toBe(" display: block");
             });
             
             it("should insert prop-name directly after semicolon", function () {
