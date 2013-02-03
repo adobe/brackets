@@ -178,6 +178,8 @@ define({
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_QUIT"                            : "Beenden",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Beenden",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Bearbeiten",
