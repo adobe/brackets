@@ -491,7 +491,7 @@ define(function (require, exports, module) {
                     }
                     cm.setValue(newText);
                 } else {
-                    cm.replaceRange(newText, change.from, change.to);
+                    cm.replaceRange(newText, change.from, change.to, change.origin);
                 }
                 
             }

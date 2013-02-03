@@ -34,6 +34,8 @@ define(function (require, exports, module) {
     /** @const @type {number} */
     var MAX_USED_COLORS = 7;
     
+    /** Unique ID used to identify edits from this inline widget for undo batching. */
+    var lastOriginId = 1;
     
     /**
      * Inline widget containing a ColorEditor control
@@ -47,6 +49,7 @@ define(function (require, exports, module) {
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
+        this._origin = "*InlineColorEditor_" + (lastOriginId++);
 
         this._handleColorChange = this._handleColorChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
@@ -151,7 +154,7 @@ define(function (require, exports, module) {
             if (!this._isHostChange) {
                 // Replace old color in code with the picker's color, and select it
                 this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(colorString, range.start, range.end);
+                this.hostEditor.document.replaceRange(colorString, range.start, range.end, this._origin);
                 this._isOwnChange = false;
                 this.hostEditor.setSelection(range.start, {
                     line: range.start.line,
