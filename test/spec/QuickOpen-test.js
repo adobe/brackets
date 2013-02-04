@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
@@ -87,8 +87,10 @@ define(function (require, exports, module) {
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keyup", getSearchField()[0]);
         }
 
-        
-        it("can open a file and jump to a line, centering that line on the screen", function () {
+        // TODO: fix me!
+        // This test is currently turned off due to failures on Windows 7
+        // See https://github.com/adobe/brackets/issues/2696
+        xit("can open a file and jump to a line, centering that line on the screen", function () {
             var err = false;
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);

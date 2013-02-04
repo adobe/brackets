@@ -509,15 +509,25 @@ define(function (require, exports, module) {
             });
             
             it("should toggle the highlight via a command", function () {
-                // force command to be enabled (see LiveDevelopment/main::_setupGoLiveMenu())
                 var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
                 cmd.setEnabled(true);
                 
-                CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
-                expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
-                
-                CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
-                expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+                // Run our tests in order depending on whether highlighting is on or off
+                // presently. By setting the order like this, we'll also leave highlighting
+                // in the state we found it in.
+                if (cmd.getChecked()) {
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
+                    
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+                } else {
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
+                    
+                    CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
+                    expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
+                }
             });
             
             it("should redraw highlights when the document changes", function () {

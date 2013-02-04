@@ -326,9 +326,7 @@ define(function (require, exports, module) {
             "Esc": function (instance) {
                 self.removeAllInlineWidgets();
             },
-            "Cmd-Left": "goLineStartSmart",
-            "'>'": function (cm) { cm.closeTag(cm, '>'); },
-            "'/'": function (cm) { cm.closeTag(cm, '/'); }
+            "Cmd-Left": "goLineStartSmart"
         };
         
         // We'd like null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
@@ -348,7 +346,12 @@ define(function (require, exports, module) {
             lineNumbers: true,
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
-            extraKeys: codeMirrorKeyMap
+            extraKeys: codeMirrorKeyMap,
+            autoCloseTags: {
+                whenOpening: true,
+                whenClosing: true,
+                indentTags: []
+            }
         });
         
         // Can't get CodeMirror's focused state without searching for
@@ -1048,7 +1051,9 @@ define(function (require, exports, module) {
             changed = (oldHeight !== height),
             isAttached = inlineWidget.info !== undefined;
 
-        if (changed) {
+        // Make sure we set an explicit height on the widget, so children can use things like
+        // min-height if they want.
+        if (changed || !node.style.height) {
             $(node).height(height);
 
             if (isAttached) {
