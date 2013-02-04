@@ -250,10 +250,10 @@ define(function (require, exports, module) {
                 }
                 
                 deferred.always(function () {
-                    _disableCache().always(function () {
-                        // Signal that Brackets is loaded
-                        AppInit._dispatchReady(AppInit.APP_READY);
-                    });
+                    // Signal that Brackets is loaded
+                    AppInit._dispatchReady(AppInit.APP_READY);
+                    // Disable the cache to make reloads work
+                    _disableCache();
                     
                     PerfUtils.addMeasurement("Application Startup");
                 });
