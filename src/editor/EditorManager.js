@@ -343,9 +343,12 @@ define(function (require, exports, module) {
         _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
         
         if (_currentEditor) {
-            $(_currentEditor.getRootElement()).height(editorAreaHt);
-            if (!skipRefresh) {
-                _currentEditor.refreshAll(true);
+            var curRoot = _currentEditor.getRootElement();
+            if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+                $(curRoot).height(editorAreaHt);
+                if (!skipRefresh) {
+                    _currentEditor.refreshAll(true);
+                }
             }
         }
     }
@@ -384,7 +387,8 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        _currentEditor.setVisible(true);
+        // skip refreshing the editor since we're going to refresh it in resizeEditor() later
+        _currentEditor.setVisible(true, false);
         _currentEditor.focus();
         
         // Window may have been resized since last time editor was visible, so kick it now
