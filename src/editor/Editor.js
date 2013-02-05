@@ -732,7 +732,8 @@ define(function (require, exports, module) {
                 screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)) {
 
             var pos = documentCursorPosition - editorHeight / 2 + statusBarHeight;
-            pos = Math.max(pos, 0);
+            var info = this._codeMirror.getScrollInfo();
+            pos = Math.min(Math.max(pos, 0), (info.height - info.clientHeight));
             this.setScrollPos(null, pos);
         }
     };
