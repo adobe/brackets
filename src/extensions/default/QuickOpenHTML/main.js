@@ -52,45 +52,36 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Contains a list of information about ID's for a single document. This array is populated
+     * Returns a list of information about ID's for a single document. This array is populated
      * by createIDList()
      * @type {?Array.<FileLocation>}
      */
-    var idList = null;
-
-    /** clears idList */
-    function done() {
-        idList = null;
-    }
-
-    // create list of ids found in html file
     function createIDList() {
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
         }
+        
+        var idList = [];
+        var docText = doc.getText();
+        var lines = docText.split("\n");
 
-        if (!idList) {
-            idList = [];
-            var docText = doc.getText();
-            var lines = docText.split("\n");
-
-            var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
-            var id, chFrom, chTo, i, line;
-            for (i = 0; i < lines.length; i++) {
-                line = lines[i];
-                var info;
-                while ((info = regex.exec(line)) !== null) {
-                    id = info[1];
-                    // TODO: this doesn't handle id's that share the 
-                    // same portion of a name on the same line or when
-                    // the id and value are on different lines
-                    chFrom = line.indexOf(id);
-                    chTo = chFrom + id.length;
-                    idList.push(new FileLocation(null, i, chFrom, chTo, id));
-                }
+        var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
+        var id, chFrom, chTo, i, line;
+        for (i = 0; i < lines.length; i++) {
+            line = lines[i];
+            var info;
+            while ((info = regex.exec(line)) !== null) {
+                id = info[1];
+                // TODO: this doesn't handle id's that share the 
+                // same portion of a name on the same line or when
+                // the id and value are on different lines
+                chFrom = line.indexOf(id);
+                chTo = chFrom + id.length;
+                idList.push(new FileLocation(null, i, chFrom, chTo, id));
             }
         }
+        return idList;
     }
 
 
@@ -98,13 +89,17 @@ define(function (require, exports, module) {
      * @param {string} query what the user is searching for
      * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
-    function search(query) {
-        createIDList();
+    function search(query, matcher) {
+        var idList = matcher.idList;
+        if (!idList) {
+            idList = createIDList();
+            matcher.idList = idList;
+        }
         query = query.slice(query.indexOf("@") + 1, query.length);
         
         // Filter and rank how good each match is
         var filteredList = $.map(idList, function (fileLocation) {
-            var searchResult = QuickOpen.stringMatch(fileLocation.id, query);
+            var searchResult = matcher.match(fileLocation.id, query);
             if (searchResult) {
                 searchResult.fileLocation = fileLocation;
             }
@@ -155,7 +150,7 @@ define(function (require, exports, module) {
         {
             name: "html ids",
             fileTypes: ["html"],
-            done: done,
+            done: function () {},
             search: search,
             match: match,
             itemFocus: itemFocus,

@@ -34,6 +34,19 @@ Before submitting any pull request, please make sure to:
 1. if your change is nontrivial or might have affected the UI, run through the [Brackets smoke tests](Brackets-Smoke-Tests) and possibly the [Brackets server smoke tests](Brackets-Server-Smoke-Tests).
 1. review the [Pull Request Checklist](https://github.com/adobe/brackets/wiki/Pull-Request-Checklist) for additional guidance.
  
+## Reviewing Code, Committing
+
+In general code reviews can be performed by anyone who knows his/her limits, is familiar with the feature area and the architecture, 
+where the code, being reviewed, is added or altered.
+To submit changes one needs commit rights - those are limited to ensure sustainable high quality. Committers are tasked with taking 
+a leading role in the project by making code contributions, assisting others with their contributions in the form 
+of reviewing and merging pull requests, and providing feedback and suggestions on the direction of the project.
+
+Please refer to the [Committer Policy](https://github.com/adobe/brackets/wiki/Brackets-Committer-Policy) for more information.
+If you want to perform reviews, but don't have commit rights yet, we encourage you to do so. Please add a note that you start reviewing.
+After you have finished your review ping us at IRC or leave a comment that your review has been completed. A committer will submit the pull request based on 
+priority. If a pull request already shows an assignee, please check with him/her first.
+
 ##Additional Resources
 
 * [the Brackets github issue tracker](https://github.com/adobe/brackets/issues)
