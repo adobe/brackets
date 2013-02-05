@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar;
     
-    var modalBar;
+    var modalBar,
+        isFindFirst = false;
     
     function SearchState() {
         this.posFrom = this.posTo = this.query = null;
@@ -95,7 +96,7 @@ define(function (require, exports, module) {
                     return;
                 }
             }
-            editor.setSelection(cursor.from(), cursor.to(), true);
+            editor.setSelection(cursor.from(), cursor.to(), true, isFindFirst);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
@@ -161,6 +162,7 @@ define(function (require, exports, module) {
         // Called each time the search query changes while being typed. Jumps to the first matching
         // result, starting from the original cursor position
         function findFirst(query) {
+            isFindFirst = true;
             cm.operation(function () {
                 if (!query) {
                     return;
@@ -187,6 +189,7 @@ define(function (require, exports, module) {
                     getDialogTextField().toggleClass("no-results", !foundAny);
                 }
             });
+            isFindFirst = false;
         }
         
         if (modalBar) {

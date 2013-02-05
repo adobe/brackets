@@ -712,7 +712,7 @@ define(function (require, exports, module) {
      *
      * This does not alter the horizontal scroll position.
      */
-    Editor.prototype.centerOnCursor = function () {
+    Editor.prototype.centerOnCursor = function (isFindFirst) {
         var $scrollerElement = $(this.getScrollerElement());
         var editorHeight = $scrollerElement.height();
         
@@ -728,7 +728,10 @@ define(function (require, exports, module) {
         // not being within CENTERING_MARGIN of the top or bottom
         // of the editor (where CENTERING_MARGIN is a percentage
         // of the editor height).
-        if (screenCursorPosition < editorHeight * CENTERING_MARGIN ||
+        // For finding the first item (i.e. find while typing), do
+        // not center if hit is in first half of screen because this
+        // appears to be an unnecesary scroll.
+        if ((!isFindFirst && screenCursorPosition < editorHeight * CENTERING_MARGIN) ||
                 screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)) {
 
             var pos = documentCursorPosition - editorHeight / 2 + statusBarHeight;
@@ -798,10 +801,10 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} end
      * @param {boolean} center true to center the viewport
      */
-    Editor.prototype.setSelection = function (start, end, center) {
+    Editor.prototype.setSelection = function (start, end, center, isFindFirst) {
         this._codeMirror.setSelection(start, end);
         if (center) {
-            this.centerOnCursor();
+            this.centerOnCursor(isFindFirst);
         }
     };
 
