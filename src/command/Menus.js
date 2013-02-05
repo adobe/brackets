@@ -1129,6 +1129,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
+        project_cmenu.addMenuItem(Commands.FILE_REFRESH);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
 
