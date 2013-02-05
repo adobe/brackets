@@ -180,6 +180,7 @@ define({
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
+    "CMD_FILE_REFRESH"                    : "Refresh",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",

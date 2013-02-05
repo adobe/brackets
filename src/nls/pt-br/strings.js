@@ -166,6 +166,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salvar Tudo",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_FILE_RENAME"                     : "Renomear",
+    "CMD_FILE_REFRESH"                    : "Atualizar",
     "CMD_QUIT"                            : "Sair",
 
     // Edit menu commands
