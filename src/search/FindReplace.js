@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
+        Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar;
     
@@ -85,6 +86,7 @@ define(function (require, exports, module) {
         cm.operation(function () {
             var state = getSearchState(cm);
             var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
+
             if (!cursor.find(rev)) {
                 // If no result found before hitting edge of file, try wrapping around
                 cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
@@ -96,7 +98,9 @@ define(function (require, exports, module) {
                     return;
                 }
             }
-            editor.setSelection(cursor.from(), cursor.to(), true, isFindFirst);
+
+            var centerOptions = (isFindFirst) ? Editor.BOUNDARY_IGNORE_TOP : Editor.BOUNDARY_CHECK_NORMAL;
+            editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
@@ -280,7 +284,7 @@ define(function (require, exports, module) {
                                 return;
                             }
                         }
-                        editor.setSelection(cursor.from(), cursor.to(), true);
+                        editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
                         createModalBar(doReplaceConfirm, true);
                         modalBar.getRoot().on("click", function (e) {
                             modalBar.close();
