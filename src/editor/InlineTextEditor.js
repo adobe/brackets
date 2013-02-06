@@ -223,7 +223,7 @@ define(function (require, exports, module) {
         $filenameInfo.click(function () {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
                 .done(function () {
-                    EditorManager.getCurrentFullEditor().setCursorPos(startLine);
+                    EditorManager.getCurrentFullEditor().setCursorPos(startLine, 0, true);
                 });
         });
 

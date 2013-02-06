@@ -152,7 +152,7 @@ define(function (require, exports, module) {
                             $selectedRow = $row;
                             
                             var editor = EditorManager.getCurrentFullEditor();
-                            editor.setCursorPos(item.line - 1, item.character - 1);
+                            editor.setCursorPos(item.line - 1, item.character - 1, true);
                             EditorManager.focusEditor();
                         };
                         $row.click(clickCallback);
