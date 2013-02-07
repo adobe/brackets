@@ -87,7 +87,11 @@ define(function (require, exports, module) {
     
     /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
     var _indentUnit = _prefs.getValue("indentUnit");
-    
+
+    /** @type {number}  Constant: ignore upper boundary when centering text */
+    var BOUNDARY_CHECK_NORMAL   = 0,
+        BOUNDARY_IGNORE_TOP     = 1;
+
     /**
      * @private
      * Handle Tab key press.
@@ -246,7 +250,18 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-    
+
+    /**
+     * Helper functions to check options.
+     * @param {number} options BOUNDARY_CHECK_NORMAL or BOUNDARY_IGNORE_TOP
+     */
+    function _checkTopBoundary(options) {
+        return (options !== BOUNDARY_IGNORE_TOP);
+    }
+    function _checkBottomBoundary(options) {
+        return true;
+    }
+
     /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
      * that affect all editors, e.g. tabbing or color scheme settings.
@@ -711,8 +726,10 @@ define(function (require, exports, module) {
      * entirely outside the viewport.
      *
      * This does not alter the horizontal scroll position.
+     *
+     * @param {number} centerOptions Option value, or 0 for no options.
      */
-    Editor.prototype.centerOnCursor = function () {
+    Editor.prototype.centerOnCursor = function (centerOptions) {
         var $scrollerElement = $(this.getScrollerElement());
         var editorHeight = $scrollerElement.height();
         
@@ -728,10 +745,16 @@ define(function (require, exports, module) {
         // not being within CENTERING_MARGIN of the top or bottom
         // of the editor (where CENTERING_MARGIN is a percentage
         // of the editor height).
-        if (screenCursorPosition < editorHeight * CENTERING_MARGIN ||
-                screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)) {
-            this.setScrollPos(null, documentCursorPosition -
-                                editorHeight / 2 + statusBarHeight);
+        // For finding the first item (i.e. find while typing), do
+        // not center if hit is in first half of screen because this
+        // appears to be an unnecesary scroll.
+        if ((_checkTopBoundary(centerOptions) && (screenCursorPosition < editorHeight * CENTERING_MARGIN)) ||
+                (_checkBottomBoundary(centerOptions) && (screenCursorPosition > editorHeight * (1 - CENTERING_MARGIN)))) {
+
+            var pos = documentCursorPosition - editorHeight / 2 + statusBarHeight;
+            var info = this._codeMirror.getScrollInfo();
+            pos = Math.min(Math.max(pos, 0), (info.height - info.clientHeight));
+            this.setScrollPos(null, pos);
         }
     };
 
@@ -794,11 +817,12 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} start
      * @param {!{line:number, ch:number}} end
      * @param {boolean} center true to center the viewport
+     * @param {number} centerOptions Option value, or 0 for no options.
      */
-    Editor.prototype.setSelection = function (start, end, center) {
+    Editor.prototype.setSelection = function (start, end, center, centerOptions) {
         this._codeMirror.setSelection(start, end);
         if (center) {
-            this.centerOnCursor();
+            this.centerOnCursor(centerOptions);
         }
     };
 
@@ -1307,5 +1331,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
 
     // Define public API
-    exports.Editor = Editor;
+    exports.Editor                  = Editor;
+    exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;
+    exports.BOUNDARY_IGNORE_TOP     = BOUNDARY_IGNORE_TOP;
 });
