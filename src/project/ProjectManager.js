@@ -359,6 +359,16 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns false when the event occured without any input present in the li closest to the event.target
+     *
+     * @param {event} event to check
+     * @return boolean true if an input field is present
+     */
+    function isInRename(event) {
+        return ($(event.target).closest("li").find("input").length === 0);
+    }
+
+    /**
      * @private
      * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
      * (replacing any existing file tree that was previously displayed). This input could be
@@ -534,7 +544,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry && entry.isFile) {
+                    if (entry && entry.isFile && !isInRename(event)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
@@ -1356,4 +1366,5 @@ define(function (require, exports, module) {
     exports.renameItemInline         = renameItemInline;
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
+    exports.isInRename               = isInRename;
 });
