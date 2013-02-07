@@ -434,7 +434,7 @@ define(function LiveDevelopment(require, exports, module) {
         // Load agents
         _setStatus(STATUS_LOADING_AGENTS);
         var promises = loadAgents();
-        $.when.apply(undefined, promises).then(_onLoad, _onError);
+        $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
         
         // Load the right document (some agents are waiting for the page's load event)
         var doc = _getCurrentDocument();
@@ -457,7 +457,7 @@ define(function LiveDevelopment(require, exports, module) {
         unloadAgents();
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
-        $.when.apply(undefined, promises).then(_onLoad, _onError);
+        $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
     }
 
     /** Open the Connection and go live */
@@ -512,7 +512,7 @@ define(function LiveDevelopment(require, exports, module) {
             var url = doc.root.url;
 
             _setStatus(STATUS_CONNECTING);
-            Inspector.connectToURL(url).then(result.resolve, function onConnectFail(err) {
+            Inspector.connectToURL(url).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -531,7 +531,7 @@ define(function LiveDevelopment(require, exports, module) {
                                 .done(function () {
                                     browserStarted = false;
                                     window.setTimeout(function () {
-                                        open().then(result.resolve, result.reject);
+                                        open().done(result.resolve).fail(result.reject);
                                     });
                                 })
                                 .fail(function (err) {
@@ -591,7 +591,7 @@ define(function LiveDevelopment(require, exports, module) {
                     
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(url).then(result.resolve, onConnectFail);
+                        Inspector.connectToURL(url).done(result.resolve).fail(onConnectFail);
                     }, 500);
                 }
             });

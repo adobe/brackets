@@ -54,8 +54,8 @@ define(function (require, exports, module) {
     function _adjustFontSize(direction) {
         var styleId = "codemirror-dynamic-fonts";
 
-        var fsStyle = $(".CodeMirror-scroll").css("font-size");
-        var lhStyle = $(".CodeMirror-scroll").css("line-height");
+        var fsStyle = $(".CodeMirror").css("font-size");
+        var lhStyle = $(".CodeMirror").css("line-height");
 
         var validFont = /^[\d\.]+(px|em)$/;
         
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         // It's necessary to inject a new rule to address all editors.
         _removeDynamicFontSize(false);
         var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
-        style.html(".CodeMirror-scroll {" +
+        style.html(".CodeMirror {" +
                    "font-size: "   + fsStr + " !important;" +
                    "line-height: " + lhStr + " !important;}");
         $("head").append(style);

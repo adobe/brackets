@@ -22,7 +22,8 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine */
+/*unittests: FindReplace*/
 
 define(function (require, exports, module) {
     'use strict';
@@ -74,6 +75,7 @@ define(function (require, exports, module) {
             var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
             myDocument = mocks.doc;
             myEditor = mocks.editor;
+            myEditor.centerOnCursor = jasmine.createSpy("centering");
             
             myEditor.focus();
         }
@@ -93,11 +95,6 @@ define(function (require, exports, module) {
         
         // Helper functions for testing cursor position / selection range
         // TODO: duplicated from EditorCommandHandlers-test
-        function expectCursorAt(pos) {
-            var selection = myEditor.getSelection();
-            expect(selection.start).toEqual(selection.end);
-            expect(selection.start).toEqual(pos);
-        }
         function expectSelection(sel) {
             expect(myEditor.getSelection()).toEqual(sel);
         }
@@ -121,7 +118,7 @@ define(function (require, exports, module) {
             
             // Verify that editor UI doesn't have extra ranges left highlighted from earlier
             // (note: this only works for text that's short enough to not get virtualized)
-            var lineDiv = $(".CodeMirror-lines > div > div:last-child");
+            var lineDiv = $(".CodeMirror-lines > div").children()[2];
             var actualHighlights = $(".CodeMirror-searching", lineDiv);
             if (expectedDOMHighlightCount === undefined) {
                 expectedDOMHighlightCount = selections.length;
@@ -173,8 +170,11 @@ define(function (require, exports, module) {
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
+
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -184,6 +184,7 @@ define(function (require, exports, module) {
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
             it("should find all case-sensitive matches", function () {
@@ -222,10 +223,12 @@ define(function (require, exports, module) {
                 expectSearchBarClosed();
                 
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
                 
                 // Simple linear Find Next
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
@@ -274,10 +277,10 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 expectSearchBarOpen();
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
             });
             
             it("should open search bar on Find Next with no previous search", function () {
@@ -286,7 +289,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 
                 expectSearchBarOpen();
-                expectCursorAt({line: 0, ch: 0});
+                expect(myEditor).toHaveCursorPosition(0, 0);
             });
             
             it("should select-all without affecting search state if Find invoked while search bar open", function () {  // #2478
@@ -300,7 +303,7 @@ define(function (require, exports, module) {
                 // since reopening the bar will just prepopulate it with selected text from first search's result
                 enterSearchText("foobar");
                 
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 11});  // cursor left at end of last good match ("foo")
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 11);  // cursor left at end of last good match ("foo")
                 
                 // Invoke Find a 2nd time - this time while search bar is open
                 CommandManager.execute(Commands.EDIT_FIND);
@@ -309,7 +312,7 @@ define(function (require, exports, module) {
                 expect(getSearchField().val()).toEqual("foobar");
                 expect(getSearchField()[0].selectionStart).toBe(0);
                 expect(getSearchField()[0].selectionEnd).toBe(6);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 11});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 11);
             });
             
         });
@@ -387,7 +390,7 @@ define(function (require, exports, module) {
                 
                 enterSearchText("requireX");
                 expectHighlightedMatches([]);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, CH_REQUIRE_PAREN);
             });
             
             it("should clear selection, return cursor to start after backspacing to empty query", function () {
@@ -399,7 +402,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
                 enterSearchText("");
-                expectCursorAt({line: 2, ch: 0});
+                expect(myEditor).toHaveCursorPosition(2, 0);
             });
         });
         
@@ -452,7 +455,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
@@ -467,7 +470,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
@@ -485,10 +488,10 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
                 
             });
             
@@ -496,12 +499,12 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
                 CommandManager.execute(Commands.EDIT_FIND);
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0});
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
 
                 pressEnter();
                 
                 expectSearchBarClosed();
-                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
             });
         });
         
@@ -589,7 +592,7 @@ define(function (require, exports, module) {
                 enterSearchText("/+/");
                 expect($(".modal-bar .error").length).toBe(1);
                 expectHighlightedMatches([]);
-                expectCursorAt({line: 0, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(0, 0); // no change
             });
             
             it("shouldn't choke on empty regexp", function () {
@@ -599,7 +602,7 @@ define(function (require, exports, module) {
                 
                 enterSearchText("//");
                 expectHighlightedMatches([]);
-                expectCursorAt({line: 0, ch: 0}); // no change
+                expect(myEditor).toHaveCursorPosition(0, 0); // no change
             });
 
             it("shouldn't freeze on /.*/ regexp", function () {
