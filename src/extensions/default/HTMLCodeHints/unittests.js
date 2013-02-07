@@ -451,7 +451,8 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 9, ch: 27 });   // cursor between space and >
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
                 
-                verifyAttrHints(hintList, "accept");  // expect no filtering (see note above)
+                // "accept" will get filtered and won't be the first one in the hints.
+                verifyAttrHints(hintList);
             });
             
         });
