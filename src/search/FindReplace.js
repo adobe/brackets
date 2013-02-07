@@ -170,16 +170,17 @@ define(function (require, exports, module) {
                 }
                 state.query = parseQuery(query);
                 if (!state.query) {
+                    cm.setCursor(searchStartPos);
                     return;
                 }
                 
-                // Temporarily change selection color to improve highlighting - see LESS code for details
-                $(cm.getWrapperElement()).addClass("findHighlightingOn");
-
                 // Highlight all matches
-                // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
+                // (Except on huge documents, where this is too expensive)
                 if (cm.getValue().length < 500000) {
-                    // This is too expensive on big documents.
+                    // Temporarily change selection color to improve highlighting - see LESS code for details
+                    $(cm.getWrapperElement()).addClass("findHighlightingOn");
+                    
+                    // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
@@ -328,7 +329,7 @@ define(function (require, exports, module) {
         if (editor) {
             var codeMirror = editor._codeMirror;
 
-            // Bring up CodeMirror's existing search bar UI
+            // Create a new instance of the search bar UI
             clearSearch(codeMirror);
             doSearch(codeMirror, false, codeMirror.getSelection());
         }

@@ -55,6 +55,17 @@ define(function (require, exports, module) {
         var CH_REQUIRE_START = 14;
         var CH_REQUIRE_PAREN = CH_REQUIRE_START + "require".length;
         
+        var fooExpectedMatches = [
+            {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
+            {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
+            {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}},
+            {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}}
+        ];
+        var barExpectedMatches = [
+            {start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}},
+            {start: {line: LINE_FIRST_REQUIRE + 1, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 34}}
+        ];
+        
 
         var myDocument, myEditor, $myToolbar;
         
@@ -90,7 +101,7 @@ define(function (require, exports, module) {
         function expectSelection(sel) {
             expect(myEditor.getSelection()).toEqual(sel);
         }
-        function expectHighlightedMatches(selections) {
+        function expectHighlightedMatches(selections, expectedDOMHighlightCount) {
             var cm = myEditor._codeMirror;
             var searchState = cm._searchState;
             
@@ -112,7 +123,10 @@ define(function (require, exports, module) {
             // (note: this only works for text that's short enough to not get virtualized)
             var lineDiv = $(".CodeMirror-lines > div > div:last-child");
             var actualHighlights = $(".CodeMirror-searching", lineDiv);
-            expect(actualHighlights.length).toEqual(selections.length);
+            if (expectedDOMHighlightCount === undefined) {
+                expectedDOMHighlightCount = selections.length;
+            }
+            expect(actualHighlights.length).toEqual(expectedDOMHighlightCount);
         }
         
         
@@ -152,30 +166,24 @@ define(function (require, exports, module) {
             beforeEach(setupFullEditor);
             
             it("should find all case-insensitive matches", function () {
-                var expectedSelections = [
-                    {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
-                    {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
-                    {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}},
-                    {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}}
-                ];
                 myEditor.setCursorPos(0, 0);
 
                 CommandManager.execute(Commands.EDIT_FIND);
 
                 enterSearchText("foo");
-                expectHighlightedMatches(expectedSelections);
-                expectSelection(expectedSelections[0]);
+                expectHighlightedMatches(fooExpectedMatches);
+                expectSelection(fooExpectedMatches[0]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection(expectedSelections[1]);
+                expectSelection(fooExpectedMatches[1]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection(expectedSelections[2]);
+                expectSelection(fooExpectedMatches[2]);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection(expectedSelections[3]);
-                expectHighlightedMatches(expectedSelections);
+                expectSelection(fooExpectedMatches[3]);
+                expectHighlightedMatches(fooExpectedMatches);  // no change in highlights
 
                 // wraparound
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection(expectedSelections[0]);
+                expectSelection(fooExpectedMatches[0]);
             });
             
             it("should find all case-sensitive matches", function () {
@@ -281,6 +289,29 @@ define(function (require, exports, module) {
                 expectCursorAt({line: 0, ch: 0});
             });
             
+            it("should select-all without affecting search state if Find invoked while search bar open", function () {  // #2478
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_FIND);
+                
+                enterSearchText("foo");  // position cursor first
+                
+                // Search for something that doesn't exist; otherwise we can't tell whether search state is cleared or bar is reopened,
+                // since reopening the bar will just prepopulate it with selected text from first search's result
+                enterSearchText("foobar");
+                
+                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 11});  // cursor left at end of last good match ("foo")
+                
+                // Invoke Find a 2nd time - this time while search bar is open
+                CommandManager.execute(Commands.EDIT_FIND);
+                
+                expectSearchBarOpen();
+                expect(getSearchField().val()).toEqual("foobar");
+                expect(getSearchField()[0].selectionStart).toBe(0);
+                expect(getSearchField()[0].selectionEnd).toBe(6);
+                expectCursorAt({line: LINE_FIRST_REQUIRE, ch: 11});
+            });
+            
         });
         
         
@@ -293,10 +324,18 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("baz");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 2, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 11}});
+                
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
+                ];
+                expectSelection(expectedSelections[0]);
+                expectHighlightedMatches(expectedSelections);
                 
                 enterSearchText("bar");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}});
+                
+                expectSelection(barExpectedMatches[0]);  // selection one line earlier than previous selection
+                expectHighlightedMatches(barExpectedMatches);
             });
             
             it("should re-search from original position when text changes, even after Find Next", function () {
@@ -305,15 +344,15 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_FIND);
                 
                 enterSearchText("foo");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                expectSelection(fooExpectedMatches[0]);
                 
                 // get search highlight down below where the "bar" match will be
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
                 CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
+                expectSelection(fooExpectedMatches[2]);
                 
                 enterSearchText("bar");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}});
+                expectSelection(barExpectedMatches[0]);
             });
             
             it("should extend original selection when appending to prepopulated text", function () {
@@ -321,20 +360,46 @@ define(function (require, exports, module) {
                 
                 CommandManager.execute(Commands.EDIT_FIND);
                 expect(getSearchField().val()).toEqual("require");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
+                
+                var requireExpectedMatches = [
+                    {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
+                    {start: {line: LINE_FIRST_REQUIRE,     ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE,     ch: CH_REQUIRE_PAREN}},
+                    {start: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_PAREN}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_PAREN}}
+                ];
+                expectHighlightedMatches(requireExpectedMatches);
+                expectSelection(requireExpectedMatches[1]);  // cursor was below 1st match, so 2nd match is selected
                 
                 enterSearchText("require(");
-                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN + 1}});
+                requireExpectedMatches.shift();  // first result no longer matches
+                requireExpectedMatches[0].end.ch++;  // other results now include one more char
+                requireExpectedMatches[1].end.ch++;
+                requireExpectedMatches[2].end.ch++;
+                expectHighlightedMatches(requireExpectedMatches, 6);  // expect 2x DOM highlights because each match spans 2 tokens
+                expectSelection(requireExpectedMatches[0]);
             });
             
-            it("should clear selection when appending to prepopulated text causes no result", function () {
+            it("should collapse selection when appending to prepopulated text causes no result", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
                 
                 CommandManager.execute(Commands.EDIT_FIND);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
                 enterSearchText("requireX");
+                expectHighlightedMatches([]);
                 expectCursorAt({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
+            });
+            
+            it("should clear selection, return cursor to start after backspacing to empty query", function () {
+                myEditor.setCursorPos(2, 0);
+                
+                CommandManager.execute(Commands.EDIT_FIND);
+                
+                enterSearchText("require");
+                expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
+                
+                enterSearchText("");
+                expectCursorAt({line: 2, ch: 0});
             });
         });
         
