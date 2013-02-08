@@ -764,9 +764,20 @@ a, img {
     }
 }
 
+// Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
+// blended on TOP of the selection color. The "current" search result is indicated by selection,
+// so we want the selection visible underneath the highlight. To do this, the highlight must be
+// transparent; it has to look good atop both the selection color AND the regular text bg color.
 .CodeMirror-searching {
-    background-color: inherit;
+    // Highlight color, overlaid on top of the .find-highlighting color
+    background-color: rgba(244, 237, 98, 0.7);
 }
+.CodeMirror.find-highlighting div.CodeMirror-selected {
+    // Selection color while highlighting shown - ALWAYS has the .CodeMirror-searching color
+    // blended atop it
+    background: rgb(255, 108, 0);
+}
+
 
 
 /* Quick Open search bar & dropdown */

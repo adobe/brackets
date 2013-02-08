@@ -67,7 +67,11 @@ define(function (require, exports, module) {
         $(".modal-bar .message").css("display", "inline-block");
         $(".modal-bar .error").css("display", "none");
         try {
-            return isRE ? new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i") : query;
+            if (isRE && isRE[1]) {  // non-empty regexp
+                return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
+            } else {
+                return query;
+            }
         } catch (e) {
             $(".modal-bar .message").css("display", "none");
             $(".modal-bar .error")
@@ -101,20 +105,22 @@ define(function (require, exports, module) {
         return found;
     }
 
+    function clearHighlights(state) {
+        state.marked.forEach(function (markedRange) {
+            markedRange.clear();
+        });
+        state.marked.length = 0;
+    }
+
     function clearSearch(cm) {
         cm.operation(function () {
-            var state = getSearchState(cm),
-                i;
+            var state = getSearchState(cm);
             if (!state.query) {
                 return;
             }
             state.query = null;
-            
-            // Clear highlights
-            for (i = 0; i < state.marked.length; ++i) {
-                state.marked[i].clear();
-            }
-            state.marked.length = 0;
+
+            clearHighlights(state);
         });
     }
     
@@ -158,21 +164,33 @@ define(function (require, exports, module) {
         // result, starting from the original cursor position
         function findFirst(query) {
             cm.operation(function () {
-                if (!query) {
+                if (state.query) {
+                    clearHighlights(getSearchState(cm));
+                }
+                state.query = parseQuery(query);
+                if (!state.query) {
+                    cm.setCursor(searchStartPos);
                     return;
                 }
                 
-                if (state.query) {
-                    clearSearch(cm);  // clear highlights from previous query
-                }
-                state.query = parseQuery(query);
-                
                 // Highlight all matches
-                // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
-                if (cm.lineCount() < 2000) { // This is too expensive on big documents.
-                    var cursor = getSearchCursor(cm, query);
+                // (Except on huge documents, where this is too expensive)
+                if (cm.getValue().length < 500000) {
+                    // Temporarily change selection color to improve highlighting - see LESS code for details
+                    $(cm.getWrapperElement()).addClass("find-highlighting");
+                    
+                    // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
+                    var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
+
+                        //Remove this section when https://github.com/marijnh/CodeMirror/issues/1155 will be fixed
+                        if (cursor.pos.match && cursor.pos.match[0] === "") {
+                            if (cursor.to().line + 1 === cm.lineCount()) {
+                                break;
+                            }
+                            cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
+                        }
                     }
                 }
                 
@@ -202,7 +220,13 @@ define(function (require, exports, module) {
                 findFirst(query);
             }
         });
-    
+        $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
+            clearHighlights(state);
+            
+            // As soon as focus goes back to the editor, restore normal selection color
+            $(cm.getWrapperElement()).removeClass("find-highlighting");
+        });
+        
         var $input = getDialogTextField();
         $input.on("input", function () {
             findFirst($input.attr("value"));
@@ -304,7 +328,7 @@ define(function (require, exports, module) {
         if (editor) {
             var codeMirror = editor._codeMirror;
 
-            // Bring up CodeMirror's existing search bar UI
+            // Create a new instance of the search bar UI
             clearSearch(codeMirror);
             doSearch(codeMirror, false, codeMirror.getSelection());
         }
