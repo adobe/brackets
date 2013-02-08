@@ -259,13 +259,11 @@ define(function (require, exports, module) {
         // Filter for documents that contain the named function
         var result              = new $.Deferred(),
             matchedDocuments    = [],
-            rangeResults        = [],
-            functionsInDocument;
+            rangeResults        = [];
         
         docEntries.forEach(function (docEntry) {
-            functionsInDocument = docEntry.functions[functionName];
-            
-            if (functionsInDocument) {
+            if (docEntry.functions.hasOwnProperty(functionName)) {
+                var functionsInDocument = docEntry.functions[functionName];
                 matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
             }
         });
@@ -360,7 +358,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return all functions that have the specified name.
+     * Return all functions that have the specified name, searching across all the given files.
      *
      * @param {!String} functionName The name to match.
      * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
