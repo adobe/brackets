@@ -464,7 +464,17 @@ define(function (require, exports, module) {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
         } else if (event.type === "keyup" && _inSession(editor)) {
-            _updateHintList();
+            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
+                // End the session if the user presses any key with a modifier (other than Ctrl+Space).
+                _endSession();
+            } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
+                       event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                       event.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
+                // Update the list after a simple navigation.
+                // We do this in "keyup" because we want the cursor position to be updated before
+                // we redraw the list.
+                _updateHintList();
+            }
         }
     }
     
