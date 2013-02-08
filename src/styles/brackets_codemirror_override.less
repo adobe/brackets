@@ -82,6 +82,10 @@
          * (e.g. matchingbracket).
          */
         z-index: 3;
+    }
+
+    .CodeMirror-lines {
+        padding: @code-padding 0;
         
         /* This is necessary for issue #2780. It seems that because the cursor is in front of the code, it can
          * interfere with the mouseup when the user clicks on the code and the cursor moves underneath the mouse
@@ -89,10 +93,11 @@
          */
         pointer-events: none;
     }
-
-    .CodeMirror-lines {
-        padding: @code-padding 0;
+    
+    .CodeMirror-linewidget {
+        pointer-events: auto;
     }
+    
     .CodeMirror-gutters {
         background-color: @background-color-3;
         border-right: none;
@@ -153,6 +158,10 @@
     
     .CodeMirror .CodeMirror-vscrollbar, .CodeMirror .CodeMirror-hscrollbar {
         cursor: default;
+    }
+    
+    .CodeMirror-lines {
+        pointer-events: none;
     }
 }
 
