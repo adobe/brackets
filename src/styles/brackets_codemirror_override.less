@@ -82,6 +82,12 @@
          * (e.g. matchingbracket).
          */
         z-index: 3;
+        
+        /* This is necessary for issue #2780. It seems that because the cursor is in front of the code, it can
+         * interfere with the mouseup when the user clicks on the code and the cursor moves underneath the mouse
+         * position.
+         */
+        pointer-events: none;
     }
 
     .CodeMirror-lines {
