@@ -163,7 +163,12 @@ define(function (require, exports, module) {
 
         // Update display of inline editors when the hostEditor signals a redraw
         CodeMirror.on(this.info, "redraw", function () {
-            self.editors[0].refresh();
+            // At the point where we get the redraw, CodeMirror might not yet have actually
+            // re-added the widget to the DOM. This is filed as https://github.com/marijnh/CodeMirror/issues/1226.
+            // For now, we can work around it by doing the refresh on a setTimeout().
+            window.setTimeout(function () {
+                self.editors[0].refresh();
+            }, 0);
         });
         
         _syncGutterWidths(this.hostEditor);
