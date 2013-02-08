@@ -87,14 +87,18 @@
     .CodeMirror-lines {
         padding: @code-padding 0;
         
-        /* This is necessary for issue #2780. It seems that because the cursor is in front of the code, it can
-         * interfere with the mouseup when the user clicks on the code and the cursor moves underneath the mouse
-         * position.
+        /* This is necessary for issue #2780. The logic for closing dropdowns depends on "click" events. Now
+         * that each line has a separate div element, there is a good chance that mouseDown and mouseUp events
+         * occur on different elements, which means a click event will not be sent. By disabling pointer events here,
+         * we are guaranteed that the mouse event will be captured by our parent div, and click events will 
+         * be dispatched.
          */
         pointer-events: none;
     }
     
     .CodeMirror-linewidget {
+        /* Re-enable pointer events for line widget. Pointer events are disabled for "CodeMirror-lines", which is the
+         * parent of line widgets, so they need to be explicitly re-enabled here in order for selection to work. */
         pointer-events: auto;
     }
     
