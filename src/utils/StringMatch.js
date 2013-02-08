@@ -655,9 +655,10 @@ define(function (require, exports, module) {
      * 
      * @param {string} str  The string to search
      * @param {string} query  The query string to find in string
+     * @param {?Object} (optional) the specials data from findSpecialCharacters, if already known
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    function stringMatch(str, query) {
+    function stringMatch(str, query, special) {
         var result;
 
         // No query? Short circuit the normal work done and just
@@ -678,7 +679,9 @@ define(function (require, exports, module) {
         
         // Locate the special characters and then use orderedCompare to do the real
         // work.
-        var special = findSpecialCharacters(str);
+        if (!special) {
+            special = findSpecialCharacters(str);
+        }
         var lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
         var matchList = _wholeStringSearch(query, str, special.specials,
                               special.lastSegmentSpecialsIndex);
@@ -747,6 +750,65 @@ define(function (require, exports, module) {
         multiFieldSort(searchResults, { matchGoodness: 0, label: 1 });
     }
     
+    /**
+     * A StringMatcher provides an interface to the stringMatch function with built-in
+     * caching. You should use a StringMatcher for the lifetime of queries over a
+     * single data set.
+     *
+     * You are free to store other data on this object to assist in higher-level caching.
+     * (This object's caches are all stored in "_" prefixed properties.)
+     */
+    function StringMatcher() {
+        // We keep track of the last query to know when we need to invalidate.
+        this._lastQuery = null;
+        
+        // The specials information does not change for a given string, so we can cache it
+        // easily.
+        this._specialsCache = {};
+        
+        // If we find that a string doesn't match a query, we know that it won't match for
+        // any queries with the same prefix, so we cache those non-matches.
+        this._noMatchCache = {};
+    }
+    
+    /**
+     * Performs a single match using the stringMatch function. See stringMatch for full documentation.
+     *
+     * @param {string} str  The string to search
+     * @param {string} query  The query string to find in string
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     */
+    StringMatcher.prototype.match = function (str, query) {
+        
+        // If the query is not just added characters from the previous query, we invalidate
+        // the no match cache and will re-match everything.
+        if (this._lastQuery !== null && (this._lastQuery !== query.substring(0, this._lastQuery.length))) {
+            this._noMatchCache = {};
+        }
+        
+        this._lastQuery = query;
+        
+        // Check for a known non-matching string.
+        if (this._noMatchCache[str]) {
+            return undefined;
+        }
+        
+        // Load up the cached specials information (or build it if this is our first time through).
+        var special = this._specialsCache[str];
+        if (special === undefined) {
+            special = findSpecialCharacters(str);
+            this._specialsCache[str] = special;
+        }
+        
+        var result = stringMatch(str, query, special);
+        
+        // If this query was not a match, we cache that fact for next time.
+        if (!result) {
+            this._noMatchCache[str] = true;
+        }
+        return result;
+    };
+    
     exports._findSpecialCharacters  = findSpecialCharacters;
     exports._wholeStringSearch      = _wholeStringSearch;
     exports._lastSegmentSearch      = _lastSegmentSearch;
@@ -761,4 +823,5 @@ define(function (require, exports, module) {
     exports.stringMatch             = stringMatch;
     exports.basicMatchSort          = basicMatchSort;
     exports.multiFieldSort          = multiFieldSort;
+    exports.StringMatcher           = StringMatcher;
 });
