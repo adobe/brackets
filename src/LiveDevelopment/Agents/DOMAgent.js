@@ -293,6 +293,9 @@ define(function DOMAgent(require, exports, module) {
                 if (n.location > node.location) {
                     n.location += delta;
                 }
+                if (n.closeLocation !== undefined && n.closeLocation > node.location) {
+                    n.closeLocation += delta;
+                }
             });
         }
     }
