@@ -209,7 +209,9 @@ define(function DOMAgent(require, exports, module) {
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
-        exports.url = _cleanURL(res.frame.url);
+        if (!res.frame.parentId) {
+            exports.url = _cleanURL(res.frame.url);
+        }
     }
 
      // WebInspector Event: DOM.documentUpdated
