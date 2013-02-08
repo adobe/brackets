@@ -359,13 +359,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns false when the event occured without any input present in the li closest to the event.target
+     * Returns false when the event occured without any input present in the li closest to the DOM object
      *
      * @param {event} event to check
      * @return boolean true if an input field is present
      */
-    function isInRename(event) {
-        return ($(event.target).closest("li").find("input").length === 0);
+    function _isInRename(element) {
+        return ($(element).closest("li").find("input").length > 0);
     }
 
     /**
@@ -544,7 +544,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry && entry.isFile && !isInRename(event)) {
+                    if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
@@ -1366,5 +1366,4 @@ define(function (require, exports, module) {
     exports.renameItemInline         = renameItemInline;
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
-    exports.isInRename               = isInRename;
 });
