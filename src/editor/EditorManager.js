@@ -84,6 +84,11 @@ define(function (require, exports, module) {
     var _lastFocusedEditor = null;
     
     /**
+     * Last known editor area width, used to detect when the window is resized horizontally.
+     */
+    var _lastEditorWidth = null;
+    
+    /**
      * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
      * @type {Array.<function(...)>}
      */
@@ -343,12 +348,17 @@ define(function (require, exports, module) {
         _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
         
         if (_currentEditor) {
-            var curRoot = _currentEditor.getRootElement();
+            var curRoot = _currentEditor.getRootElement(),
+                curWidth = $(curRoot).width();
             if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
                 $(curRoot).height(editorAreaHt);
-                if (!skipRefresh) {
-                    _currentEditor.refreshAll(true);
-                }
+            } else if (curWidth === _lastEditorWidth) {
+                skipRefresh = true;
+            }
+            _lastEditorWidth = curWidth;
+
+            if (!skipRefresh) {
+                _currentEditor.refreshAll(true);
             }
         }
     }
