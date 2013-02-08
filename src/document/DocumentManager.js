@@ -825,6 +825,7 @@ define(function (require, exports, module) {
      *     they are close enough together in time.
      *     If origin starts with "*", then all consecutive edit with the same origin will be batched for
      *     undo.
+     *     Edits with origins starting with other characters will not be batched.
      *     (Note that this is a higher level of batching than batchOperation(), which already batches all
      *     edits within it for undo. Origin batching works across operations.)
      */

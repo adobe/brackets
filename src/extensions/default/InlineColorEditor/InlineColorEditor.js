@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     /** @const @type {number} */
     var MAX_USED_COLORS = 7;
     
-    /** Unique ID used to identify edits from this inline widget for undo batching. */
+    /** @type {number} Global var used to provide a unique ID for each color editor instance's _origin field. */
     var lastOriginId = 1;
     
     /**
@@ -92,6 +92,9 @@ define(function (require, exports, module) {
     
     /** @type {boolean} True while we're syncing a code editor change into the color picker */
     InlineColorEditor.prototype._isHostChange = null;
+    
+    /** @type {number} ID used to identify edits coming from this inline widget for undo batching */
+    InlineColorEditor.prototype._origin = null;
     
     
     /**
