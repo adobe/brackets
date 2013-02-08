@@ -794,6 +794,9 @@ define(function (require, exports, module) {
     
     beforeEach(function () {
         this.addMatchers({
+            /**
+             * Expects the given editor's selection to be a cursor at the given position (no range selected)
+             */
             toHaveCursorPosition: function (line, ch) {
                 var editor = this.actual;
                 var selection = editor.getSelection();
