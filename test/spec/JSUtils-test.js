@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     };
 
     var simpleJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/simple.js");
+    var trickyJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/tricky.js");
     var invalidJsFileEntry  = new NativeFileSystem.FileEntry(testPath + "/invalid.js");
     var jQueryJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/jquery-1.7.js");
     var braceEndJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/braceEnd.js");
@@ -248,6 +249,17 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "unicodeEscapedIdentifierPart\u02b8", [ {start: 115, end: 116} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeTabBefore", [ {start: 118, end: 119} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeTabAfter", [ {start: 121, end: 122} ]);
+                });
+            });
+            
+            it("should work when colliding with prototype properties", function () {
+                runs(function () {
+                    init(this, trickyJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "toString", [ {start: 1, end: 3} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "length", [ {start: 6, end: 8} ]);
                 });
             });
             

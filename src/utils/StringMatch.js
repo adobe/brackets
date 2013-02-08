@@ -762,14 +762,23 @@ define(function (require, exports, module) {
         // We keep track of the last query to know when we need to invalidate.
         this._lastQuery = null;
         
-        // The specials information does not change for a given string, so we can cache it
-        // easily.
         this._specialsCache = {};
-        
-        // If we find that a string doesn't match a query, we know that it won't match for
-        // any queries with the same prefix, so we cache those non-matches.
         this._noMatchCache = {};
     }
+    
+    /**
+     * Map from search-result string to the findSpecialCharacters() result for that string - easy to cache
+     * since this info doesn't change as the query changes.
+     * @type {Object.<string, {specials:Array.<number>, lastSegmentSpecialsIndex:number}>}
+     */
+    StringMatcher.prototype._specialsCache = null;
+    
+    /**
+     * Set of search-result strings that we know don't match the query _lastQuery - or any other query with
+     * that prefix.
+     * @type {Object.<string, boolean>}
+     */
+    StringMatcher.prototype._noMatchCache = null;
     
     /**
      * Performs a single match using the stringMatch function. See stringMatch for full documentation.
@@ -789,12 +798,12 @@ define(function (require, exports, module) {
         this._lastQuery = query;
         
         // Check for a known non-matching string.
-        if (this._noMatchCache[str]) {
+        if (this._noMatchCache.hasOwnProperty(str)) {
             return undefined;
         }
         
         // Load up the cached specials information (or build it if this is our first time through).
-        var special = this._specialsCache[str];
+        var special = this._specialsCache.hasOwnProperty(str) ? this._specialsCache[str] : undefined;
         if (special === undefined) {
             special = findSpecialCharacters(str);
             this._specialsCache[str] = special;

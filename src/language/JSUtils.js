@@ -58,7 +58,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Return an Array with names and offsets for all functions in the specified text
+     * Return an object mapping function name to offset info for all functions in the specified text.
+     * Offset info is an array, since multiple functions of the same name can exist.
      * @param {!string} text Document text
      * @return {Object.<string, Array.<{offsetStart: number, offsetEnd: number}>}
      */
