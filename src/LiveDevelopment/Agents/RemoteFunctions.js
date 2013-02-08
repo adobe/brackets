@@ -297,6 +297,12 @@ function RemoteFunctions(experimental) {
             for (i = 0; i < highlights.length; i++) {
                 body.removeChild(highlights[i]);
             }
+
+            if (this.trigger) {
+                for (i = 0; i < this.elements.length; i++) {
+                    _trigger(this.elements[i], "highlight", 0);
+                }
+            }
             
             this.elements = [];
         },
