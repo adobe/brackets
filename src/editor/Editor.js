@@ -347,7 +347,8 @@ define(function (require, exports, module) {
             lineNumbers: true,
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
-            extraKeys: codeMirrorKeyMap
+            extraKeys: codeMirrorKeyMap,
+            closeTagIndent: []
         });
         
         // Can't get CodeMirror's focused state without searching for
