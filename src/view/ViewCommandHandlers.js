@@ -126,7 +126,55 @@ define(function (require, exports, module) {
         _removeDynamicFontSize(true);
     }
     
+    
+    /**
+     * @private
+     * Scroll the viewport one line up or down.
+     * @param {number} -1 to scroll one line up; 1 to scroll one line down.
+     */
+    function _scrollLine(direction) {
+        var editor        = EditorManager.getCurrentFullEditor(),
+            scrollPos     = editor.getScrollPos(),
+            totalHeight   = $("#editor-holder").height(), // editor.getTotalHeight();
+            textHeight    = editor.getTextHeight(),
+            visibleLines  = Math.floor(totalHeight / textHeight),
+            firstLine     = Math.floor(scrollPos.y / textHeight),
+            lastLine      = firstLine + visibleLines - 1,
+            cursorPos     = editor.getCursorPos(),
+            hasSelecction = editor.hasSelection();
+        
+        // If there is no selection move the cursor so that is always visible
+        if (!hasSelecction) {
+            // Move the cursor to the first visible line
+            if (direction > 0 && cursorPos.line < firstLine) {
+                editor.setCursorPos({line: firstLine + 1, ch: cursorPos.ch});
+            
+            // Move the cursor to the last visible line
+            } else if (direction < 0 && cursorPos.line > lastLine) {
+                editor.setCursorPos({line: lastLine - 1, ch: cursorPos.ch});
+            
+            // Move the cursor up or down using CodeMirror function
+            } else if ((direction > 0 && cursorPos.line === firstLine) || (direction < 0 && cursorPos.line === lastLine)) {
+                editor._codeMirror.moveV(direction, "line");
+            }
+        }
+        
+        // Scroll the editor
+        editor.setScrollPos(scrollPos.x, scrollPos.y + (textHeight * direction));
+    }
+    
+    function _handleScrollLineUp() {
+        _scrollLine(-1);
+    }
+    
+    function _handleScrollLineDown() {
+        _scrollLine(1);
+    }
+    
+    
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 });
