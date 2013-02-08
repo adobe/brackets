@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         $(".modal-bar .message").css("display", "inline-block");
         $(".modal-bar .error").css("display", "none");
         try {
-            if (isRE && isRE[1]) { // Not a regexp or an empty one
+            if (isRE && isRE[1]) {  // non-empty regexp
                 return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
             } else {
                 return query;
@@ -113,10 +113,9 @@ define(function (require, exports, module) {
     }
 
     function clearHighlights(state) {
-        var i;
-        for (i = 0; i < state.marked.length; ++i) {
-            state.marked[i].clear();
-        }
+        state.marked.forEach(function (markedRange) {
+            markedRange.clear();
+        });
         state.marked.length = 0;
     }
 
@@ -188,7 +187,7 @@ define(function (require, exports, module) {
                 // (Except on huge documents, where this is too expensive)
                 if (cm.getValue().length < 500000) {
                     // Temporarily change selection color to improve highlighting - see LESS code for details
-                    $(cm.getWrapperElement()).addClass("findHighlightingOn");
+                    $(cm.getWrapperElement()).addClass("find-highlighting");
                     
                     // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
                     var cursor = getSearchCursor(cm, state.query);
@@ -236,7 +235,7 @@ define(function (require, exports, module) {
             clearHighlights(state);
             
             // As soon as focus goes back to the editor, restore normal selection color
-            $(cm.getWrapperElement()).removeClass("findHighlightingOn");
+            $(cm.getWrapperElement()).removeClass("find-highlighting");
         });
         
         var $input = getDialogTextField();
