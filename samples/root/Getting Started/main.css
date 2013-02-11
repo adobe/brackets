@@ -28,7 +28,10 @@ samp
 
 img
 {
-    padding: 10px;
+    background: dimgray;
+    border: 1px solid black;
+    border-radius: 2px;
+    padding: 15px 10px 10px;
     margin: 10px 0;
     max-width: 95%;
 }
