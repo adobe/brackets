@@ -120,7 +120,7 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        return new Editor(doc, makeMasterEditor, doc.getLanguage().mode, container, additionalKeys, range);
+        return new Editor(doc, makeMasterEditor, doc.getLanguage().mode, container, range);
     }
     
     /**
