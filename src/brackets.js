@@ -150,43 +150,6 @@ define(function (require, exports, module) {
         });
     }
 
-    /**
-     * Disables Brackets' cache via the remote debugging protocol.
-     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
-     */
-    function _disableCache() {
-        var result = new $.Deferred();
-        
-        if (brackets.inBrowser) {
-            result.resolve();
-        } else {
-            var Inspector = require("LiveDevelopment/Inspector/Inspector");
-            Inspector.getAvailableSockets("127.0.0.1", "9234")
-                .fail(result.reject)
-                .done(function (response) {
-                    var page = response[0];
-                    if (!page || !page.webSocketDebuggerUrl) {
-                        result.reject();
-                        return;
-                    }
-                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
-                    // Disable the cache
-                    _socket.onopen = function _onConnect() {
-                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
-                    };
-                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                    _socket.onmessage = function _onMessage(e) {
-                        _socket.close();
-                        result.resolve();
-                    };
-                    // In case of an error
-                    _socket.onerror = result.reject;
-                });
-        }
-            
-        return result.promise();
-    }
-    
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
         
@@ -252,8 +215,6 @@ define(function (require, exports, module) {
                 deferred.always(function () {
                     // Signal that Brackets is loaded
                     AppInit._dispatchReady(AppInit.APP_READY);
-                    // Disable the cache to make reloads work
-                    _disableCache();
                     
                     PerfUtils.addMeasurement("Application Startup");
                 });
