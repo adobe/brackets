@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         AppInit                 = brackets.getModule("utils/AppInit"),
         Strings                 = brackets.getModule("strings"),
         SidebarView             = brackets.getModule("project/SidebarView"),
-        Menus                   = brackets.getModule("command/Menus"),
+        MenuManager             = brackets.getModule("command/MenuManager"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
@@ -260,7 +260,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        Menus.closeAll();
+        MenuManager.closeAll();
         
         // TODO: Can't just use Bootstrap 1.4 dropdowns for this since they're hard-coded to
         // assume that the dropdown is inside a top-level menubar created using <li>s.

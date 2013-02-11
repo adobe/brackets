@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
-        Menus               = require("command/Menus"),
+        MenuManager         = require("command/MenuManager"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
         FileViewController  = require("project/FileViewController"),
@@ -484,7 +484,7 @@ define(function (require, exports, module) {
                 "scroll.jstree",
                 function (e) {
                     // close all dropdowns on scroll
-                    Menus.closeAll();
+                    MenuManager.closeAll();
                 }
             ).bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
