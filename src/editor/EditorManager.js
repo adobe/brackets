@@ -337,9 +337,11 @@ define(function (require, exports, module) {
      * the Editor is swapped, and on window resize. But anyone who changes size/visiblity of editor
      * area siblings (toolbar, status bar, bottom panels) *must* manually call resizeEditor().
      *
-     * @param {boolean=} skipRefresh For internal use, to avoid redundant refresh()es during window resize
+     * @param {string=} refreshFlag Set to "force" to ensure the editor will refresh, "skip" 
+     *    to ensure the editor does not refresh, or leave undefined to let resizeEditor() determine 
+     *    whether it needs to refresh.
      */
-    function resizeEditor(skipRefresh) {
+    function resizeEditor(refreshFlag) {
         if (!_editorHolder) {
             return;  // still too early during init
         }
@@ -352,12 +354,17 @@ define(function (require, exports, module) {
                 curWidth = $(curRoot).width();
             if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
                 $(curRoot).height(editorAreaHt);
-            } else if (curWidth === _lastEditorWidth) {
-                skipRefresh = true;
+                if (refreshFlag === undefined) {
+                    refreshFlag = "force";
+                }
+            } else if (curWidth !== _lastEditorWidth) {
+                if (refreshFlag === undefined) {
+                    refreshFlag = "force";
+                }
             }
             _lastEditorWidth = curWidth;
 
-            if (!skipRefresh) {
+            if (refreshFlag === "force") {
                 _currentEditor.refreshAll(true);
             }
         }
@@ -368,8 +375,8 @@ define(function (require, exports, module) {
      * height.
      */
     function _updateEditorDuringResize() {
-        // skipRefresh=true since CodeMirror will call refresh() itself when it sees the resize event
-        resizeEditor(true);
+        // always skip the refresh since CodeMirror will call refresh() itself when it sees the resize event
+        resizeEditor("skip");
     }
     
     
@@ -401,8 +408,9 @@ define(function (require, exports, module) {
         _currentEditor.setVisible(true, false);
         _currentEditor.focus();
         
-        // Window may have been resized since last time editor was visible, so kick it now
-        resizeEditor();
+        // Window may have been resized since last time editor was visible, so kick it now.
+        // Force the refresh since we skipped it in setVisible().
+        resizeEditor("force");
     }
 
     /**
@@ -789,6 +797,7 @@ define(function (require, exports, module) {
     exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
+    exports._doShow = _doShow;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
