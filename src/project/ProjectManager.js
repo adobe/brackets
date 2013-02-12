@@ -493,7 +493,7 @@ define(function (require, exports, module) {
                         // select the current document if it becomes visible when this folder is opened
                         var curDoc = DocumentManager.getCurrentDocument();
                         
-                        if (_hasFileSelectionFocus() && curDoc) {
+                        if (_hasFileSelectionFocus() && curDoc && data) {
                             var entry = data.rslt.obj.data("entry");
                             
                             if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
