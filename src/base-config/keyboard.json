@@ -131,10 +131,10 @@
         }
     ],
     "edit.openLineAbove":  [
-        "Ctrl-Enter"
+        "Ctrl-Shift-Enter"
     ],
     "edit.openLineBelow":  [
-        "Ctrl-Shift-Enter"
+        "Ctrl-Enter"
     ],
     "edit.lineComment":  [
         "Ctrl-/"

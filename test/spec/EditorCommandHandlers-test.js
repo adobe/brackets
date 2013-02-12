@@ -1031,13 +1031,12 @@ define(function (require, exports, module) {
       
         describe("Open Line Above and Below", function () {
             var indentUnit = Editor.getIndentUnit();
+            
             var indentation = (function () {
                 // generate indent string once
                 var spaces = [];
-                while (spaces.length < indentUnit) {
-                    spaces.push(" ");
-                }
-                return spaces.join("");
+                spaces.length = indentUnit + 1;
+                return spaces.join(" ");
             }());
             
             beforeEach(setupFullEditor);

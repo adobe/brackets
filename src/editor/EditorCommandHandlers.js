@@ -687,6 +687,7 @@ define(function (require, exports, module) {
     /**
      * Inserts a new and smart indented line above the selected text, or current line if no selection.
      * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
      */
     function openLineAbove(editor) {
         openLine(editor, DIRECTION_UP);
@@ -695,6 +696,7 @@ define(function (require, exports, module) {
     /**
      * Inserts a new and smart indented line below the selected text, or current line if no selection.
      * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
      */
     function openLineBelow(editor) {
         openLine(editor, DIRECTION_DOWN);
