@@ -199,7 +199,8 @@ define(function (require, exports, module) {
             hasEndQuote = attrInfo.hasEndQuote,
             strLength = ctx.token.string.length;
         
-        if (ctx.token.className === "string" && ctx.pos.ch === ctx.token.end && strLength > 1) {
+        if ((ctx.token.className === "string" || ctx.token.className === "error") &&
+                ctx.pos.ch === ctx.token.end && strLength > 1) {
             var firstChar = ctx.token.string[0],
                 lastChar = ctx.token.string[strLength - 1];
             
@@ -396,14 +397,17 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            if (!tokenType) {
-                tokenType = TAG_NAME;
-                offset--; //need to take off 1 for the leading "<"
+            // Make sure the cursor is not after an equal sign or a quote before we report the context as a tag.
+            if (ctx.token.string !== "=" && ctx.token.string.match(/^["']/) === null) {
+                if (!tokenType) {
+                    tokenType = TAG_NAME;
+                    offset--; //need to take off 1 for the leading "<"
+                }
+                
+                // We're actually in the tag, just return that as we have no relevant 
+                // info about what attr is selected
+                return createTagInfo(tokenType, offset, _extractTagName(ctx));
             }
-            
-            // We're actually in the tag, just return that as we have no relevant 
-            // info about what attr is selected
-            return createTagInfo(tokenType, offset, _extractTagName(ctx));
         }
         
         if (ctx.token.string === "=") {
