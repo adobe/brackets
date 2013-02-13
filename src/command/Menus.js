@@ -1113,12 +1113,18 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
 
 
-        menu.addMenuDivider();
+        var hasAboutItem = (brackets.platform !== "mac" || brackets.inBrowser);
+        
+        // Add final divider only if we have a twitter URL or about item
+        if (hasAboutItem || brackets.config.twitter_url) {
+            menu.addMenuDivider();
+        }
+        
         if (brackets.config.twitter_url) {
             menu.addMenuItem(Commands.HELP_TWITTER);
         }
         // supress redundant about menu item in mac shell
-        if (brackets.platform !== "mac" || brackets.inBrowser) {
+        if (hasAboutItem) {
             menu.addMenuItem(Commands.HELP_ABOUT);
         }
 

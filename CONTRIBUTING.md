@@ -5,6 +5,10 @@ With this file we want to provide some general guidance how to contribute to Bra
 
 Issues starting Brackets the first time? Please review the [Troubleshooting Page](https://github.com/adobe/brackets/wiki/Troubleshooting).         
 
+## Starter Bugs
+
+If you need some inspiration for a **starter bug**, we have some for you either as [GitHub Issue](https://github.com/adobe/brackets/issues?labels=starter+bug&page=1&state=open) or on the [Trello Board](https://trello.com/board/brackets/4f90a6d98f77505d7940ce88) (there, choose on the right hand sidebar "Filter Cards" and then click on "Starter Feature").
+
 ## Getting Started
 
 Before you start coding, post to the [brackets-dev Google group](http://groups.google.com/group/brackets-dev) or the [#brackets IRC channel on freenode](http://freenode.net) about what you're thinking of working on, so you can get early feedback. 

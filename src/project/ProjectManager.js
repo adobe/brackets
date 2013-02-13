@@ -359,6 +359,16 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns false when the event occured without any input present in the li closest to the DOM object
+     *
+     * @param {event} event to check
+     * @return boolean true if an input field is present
+     */
+    function _isInRename(element) {
+        return ($(element).closest("li").find("input").length > 0);
+    }
+
+    /**
      * @private
      * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
      * (replacing any existing file tree that was previously displayed). This input could be
@@ -483,7 +493,7 @@ define(function (require, exports, module) {
                         // select the current document if it becomes visible when this folder is opened
                         var curDoc = DocumentManager.getCurrentDocument();
                         
-                        if (_hasFileSelectionFocus() && curDoc) {
+                        if (_hasFileSelectionFocus() && curDoc && data) {
                             var entry = data.rslt.obj.data("entry");
                             
                             if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
@@ -534,7 +544,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry && entry.isFile) {
+                    if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
