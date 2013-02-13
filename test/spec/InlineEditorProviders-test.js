@@ -138,14 +138,22 @@ define(function (require, exports, module) {
         
         
         // Utilities for testing Editor state
+        function getInlineRangeFromText(inlineEditor, text) {
+            return text.split("\n")
+                .slice(inlineEditor.getFirstVisibleLine(), inlineEditor.getLastVisibleLine() + 1)
+                .join("\n");
+        }
+        
         function expectText(editor) {
             return expect(editor._codeMirror.getValue());
         }
         
-        function expectTextToBeEqual(editor1, editor2) {
-            expect(editor1._codeMirror.getValue()).toBe(editor2._codeMirror.getValue());
+        // Test that the range in the given inline editor matches the appropriate range of
+        // text from the given full editor.
+        function expectTextToBeConsistent(inlineEditor, fullEditor) {
+            expect(getInlineRangeFromText(inlineEditor, fullEditor._codeMirror.getValue()))
+                .toBe(inlineEditor._codeMirror.getValue());
         }
-        
 
 
         /*
@@ -181,59 +189,26 @@ define(function (require, exports, module) {
                     toHaveInlineEditorRange: function (range) {
                         var i = 0,
                             editor = this.actual,
-                            hidden,
-                            lineCount = editor.lineCount(),
-                            shouldHide = [],
-                            shouldShow = [],
                             startLine = range.startLine,
                             endLine = range.endLine,
                             visibleRangeCheck;
                         
-                        for (i = 0; i < lineCount; i++) {
-                            hidden = isLineHidden(editor._codeMirror, i);
-                            
-                            if (i < startLine) {
-                                if (!hidden) {
-                                    shouldHide.push(i); // lines above start line should be hidden
-                                }
-                            } else if ((i >= startLine) && (i <= endLine)) {
-                                if (hidden) {
-                                    shouldShow.push(i); // lines in the range should be visible
-                                }
-                            } else if (i > endLine) {
-                                if (!hidden) {
-                                    shouldHide.push(i); // lines below end line should be hidden
-                                }
-                            }
-                        }
-                        
-                        visibleRangeCheck = (editor._visibleRange.startLine === startLine) &&
-                            (editor._visibleRange.endLine === endLine);
+                        visibleRangeCheck = (editor.getFirstVisibleLine() === startLine) &&
+                            (editor.getLastVisibleLine() === endLine);
                         
                         this.message = function () {
-                            var msg = "";
-                            
-                            if (shouldHide.length > 0) {
-                                msg += "Expected inline editor to hide [" + shouldHide.toString() + "].\n";
-                            }
-                            
-                            if (shouldShow.length > 0) {
-                                msg += "Expected inline editor to show [" + shouldShow.toString() + "].\n";
-                            }
-                            
+                            var msg;
                             if (!visibleRangeCheck) {
                                 msg += "Editor._visibleRange [" +
-                                    editor._visibleRange.startLine + "," +
-                                    editor._visibleRange.endLine + "] should be [" +
+                                    editor.getFirstVisibleLine() + "," +
+                                    editor.getLastVisibleLine() + "] should be [" +
                                     startLine + "," + endLine + "].";
                             }
                             
                             return msg;
                         };
                         
-                        return (shouldHide.length === 0) &&
-                            (shouldShow.length === 0) &&
-                            visibleRangeCheck;
+                        return visibleRangeCheck;
                     }
                 });
             });
@@ -714,7 +689,7 @@ define(function (require, exports, module) {
                         expect(fullEditor._codeMirror).not.toBe(inlineEditor._codeMirror);
                         
                         // compare inline editor to full editor
-                        expectTextToBeEqual(inlineEditor, fullEditor);
+                        expectTextToBeConsistent(inlineEditor, fullEditor);
                         
                         // make sure the text was inserted
                         expect(fullEditor._codeMirror.getValue().indexOf(newInlineText)).toBeGreaterThan(0);
@@ -724,7 +699,7 @@ define(function (require, exports, module) {
                             newInlineText,
                             inlineEditor.getCursorPos()
                         );
-                        expectTextToBeEqual(inlineEditor, fullEditor);
+                        expectTextToBeConsistent(inlineEditor, fullEditor);
                     });
                 });
             });
@@ -1020,7 +995,7 @@ define(function (require, exports, module) {
                             text,
                             editor.getCursorPos()
                         );
-                        expectTextToBeEqual(inlineEditor, fullEditor);
+                        expectTextToBeConsistent(inlineEditor, fullEditor);
                     }
                 });
             
@@ -1053,26 +1028,26 @@ define(function (require, exports, module) {
                     editedText = inlineEditor._codeMirror.getValue();
                     
                     // compare inline editor to full editor
-                    expectTextToBeEqual(inlineEditor, fullEditor);
+                    expectTextToBeConsistent(inlineEditor, fullEditor);
                     
                     // undo the inline editor
                     inlineEditor._codeMirror.undo();
-                    expectTextToBeEqual(inlineEditor, fullEditor);
-                    expectText(inlineEditor).toBe(originalText);
+                    expectTextToBeConsistent(inlineEditor, fullEditor);
+                    expectText(inlineEditor).toBe(getInlineRangeFromText(inlineEditor, originalText));
                     
                     // redo the inline editor
                     inlineEditor._codeMirror.redo();
-                    expectTextToBeEqual(inlineEditor, fullEditor);
-                    expectText(inlineEditor).toBe(editedText);
+                    expectTextToBeConsistent(inlineEditor, fullEditor);
+                    expectText(inlineEditor).toBe(getInlineRangeFromText(inlineEditor, originalText));
                     
                     // undo the full editor
                     fullEditor._codeMirror.undo();
-                    expectTextToBeEqual(inlineEditor, fullEditor);
+                    expectTextToBeConsistent(inlineEditor, fullEditor);
                     expectText(fullEditor).toBe(originalText);
                     
                     // redo the full editor
                     fullEditor._codeMirror.redo();
-                    expectTextToBeEqual(inlineEditor, fullEditor);
+                    expectTextToBeConsistent(inlineEditor, fullEditor);
                     expectText(fullEditor).toBe(editedText);
                 });
                 

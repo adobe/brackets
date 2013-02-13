@@ -365,7 +365,8 @@ define(function (require, exports, module) {
             tabSize: _tabSize,
             indentUnit: _indentUnit,
             lineNumbers: true,
-            matchBrackets: true,
+            // TODO: matchBrackets causes a lot of unit test failures when we switch to linked docs. Needs investigation.
+            //matchBrackets: true,
             dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap,
             autoCloseTags: {
@@ -721,7 +722,8 @@ define(function (require, exports, module) {
      * @returns {!number}
      */
     Editor.prototype.lineCount = function () {
-        return this._codeMirror.lineCount();
+        // We need to get the lineCount from the document's master editor in case this is a subdocument.
+        return this.document._masterEditor._codeMirror.lineCount();
     };
     
     /**
