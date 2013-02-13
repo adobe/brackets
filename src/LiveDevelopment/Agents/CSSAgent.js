@@ -102,13 +102,13 @@ define(function CSSAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        $(Inspector.Page).on("loadEventFired.CSSAgent", _onLoadEventFired);
+        Inspector.on("actualPageLoad.CSSAgent", _onLoadEventFired);
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".CSSAgent");
+        Inspector.off(".CSSAgent");
     }
 
     // Export public functions

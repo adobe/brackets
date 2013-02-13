@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, PathUtils */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -74,6 +74,7 @@ define(function LiveDevelopment(require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils");
+        
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -426,10 +427,28 @@ define(function LiveDevelopment(require, exports, module) {
         // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
         // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
     }
+    
+    /** Triggered by Page.loadEventFired */
+    function _onLoadEventFired(event, res) {
+        // Determine what page was actually opened in the browser, so we know it's
+        // the page that corresponds to the current document, rather than something
+        // spurious like the interstitial loading page.
+        Inspector.Runtime.evaluate("window.location.href", function (res) {
+            var doc = _getCurrentDocument(), // this calculates doc.url as a side-effect
+                url = PathUtils.parseUrl(res.result.value).hrefNoSearch;
+            if (doc.url === url) {
+                console.log("Got actual page load, url: " + url);
+                Inspector.triggerActualPageLoad();
+            } else {
+                console.log("Got spurious page load, url: " + url + ", doc.url: " + doc.url);
+            }
+        });
+    }
 
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         $(Inspector.Inspector).on("detached", _onDetached);
+        $(Inspector.Page).on("loadEventFired", _onLoadEventFired);
         
         // Load agents
         _setStatus(STATUS_LOADING_AGENTS);
@@ -448,6 +467,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
         $(Inspector.Inspector).off("detached", _onDetached);
+        $(Inspector.Page).off("loadEventFired", _onLoadEventFired);
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
