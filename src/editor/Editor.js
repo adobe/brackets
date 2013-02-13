@@ -69,7 +69,6 @@ define(function (require, exports, module) {
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
-        TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
@@ -299,14 +298,8 @@ define(function (require, exports, module) {
         this.document = document;
         document.addRef();
         
-        if (range) {    // attach this first: want range updated before we process a change
-            this._visibleRange = new TextRange(document, range.startLine, range.endLine);
-        }
-        
         // store this-bound version of listeners so we can remove them later
-        this._handleDocumentChange = this._handleDocumentChange.bind(this);
         this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
-        $(document).on("change", this._handleDocumentChange);
         $(document).on("deleted", this._handleDocumentDeleted);
         
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
@@ -350,10 +343,23 @@ define(function (require, exports, module) {
         if (!mode) {
             mode = "text/plain";
         }
+
+        // If this is not the master editor, then link to the CodeMirror doc underlying the
+        // document's existing master editor.
+        var cmDoc;
+        if (!makeMasterEditor) {
+            document._ensureMasterEditor();
+            cmDoc = document._masterEditor._codeMirror.getDoc().linkedDoc({
+                sharedHist: true,
+                from: range && range.startLine,
+                to: range && range.endLine + 1
+            });
+        }
         
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
+            value: cmDoc || document.getText(),
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
             indentWithTabs: _useTabChar,
             tabSize: _tabSize,
@@ -383,28 +389,6 @@ define(function (require, exports, module) {
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
         
-        // Initially populate with text. This will send a spurious change event, so need to make
-        // sure this is understood as a 'sync from document' case, not a genuine edit
-        this._duringSync = true;
-        this._resetText(document.getText());
-        this._duringSync = false;
-        
-        if (range) {
-            // Hide all lines other than those we want to show. We do this rather than trimming the
-            // text itself so that the editor still shows accurate line numbers.
-            this._codeMirror.operation(function () {
-                if (range.startLine > 0) {
-                    self._hideLines(0, range.startLine);
-                }
-                
-                var end = range.endLine + 1;
-                if (end < self.lineCount()) {
-                    self._hideLines(end, self.lineCount());
-                }
-            });
-            this.setCursorPos(range.startLine, 0);
-        }
-
         // Now that we're fully initialized, we can point the document back at us if needed
         if (makeMasterEditor) {
             document._makeEditable(this);
@@ -432,12 +416,7 @@ define(function (require, exports, module) {
         
         // Disconnect from Document
         this.document.releaseRef();
-        $(this.document).off("change", this._handleDocumentChange);
         $(this.document).off("deleted", this._handleDocumentDeleted);
-        
-        if (this._visibleRange) {   // TextRange also refs the Document
-            this._visibleRange.dispose();
-        }
         
         // If we're the Document's master editor, disconnecting from it has special meaning
         if (this.document._masterEditor === this) {
@@ -468,123 +447,10 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Ensures that the lines that are actually hidden in the inline editor correspond to
-     * the desired visible range.
-     */
-    Editor.prototype._updateHiddenLines = function () {
-        if (this._visibleRange) {
-            var cm = this._codeMirror,
-                self = this;
-            cm.operation(function () {
-                // TODO: could make this more efficient by only iterating across the min-max line
-                // range of the union of all changes
-                self._hideLines(0, self._visibleRange.startLine);
-                self._hideLines(self._visibleRange.endLine + 1, self.lineCount());
-            });
-        }
-    };
-    
-    Editor.prototype._applyChanges = function (changeList) {
-        // _visibleRange has already updated via its own Document listener. See if this change caused
-        // it to lose sync. If so, our whole view is stale - signal our owner to close us.
-        if (this._visibleRange) {
-            if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                $(this).triggerHandler("lostContent");
-                return;
-            }
-        }
-        
-        // Apply text changes to CodeMirror editor
-        var cm = this._codeMirror;
-        cm.operation(function () {
-            var change, newText;
-            for (change = changeList; change; change = change.next) {
-                newText = change.text.join('\n');
-                if (!change.from || !change.to) {
-                    if (change.from || change.to) {
-                        console.error("Change record received with only one end undefined--replacing entire text");
-                    }
-                    cm.setValue(newText);
-                } else {
-                    cm.replaceRange(newText, change.from, change.to, change.origin);
-                }
-                
-            }
-        });
-        
-        // The update above may have inserted new lines - must hide any that fall outside our range
-        this._updateHiddenLines();
-    };
-    
-    /**
-     * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
-     * There are several cases where we want to ignore a CodeMirror change:
-     *  - if we're the master editor, editor changes can be ignored because Document is already listening
-     *    for our changes
-     *  - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
-     *    to a Document change
+     * Responds to changes in the CodeMirror editor's text.
      */
     Editor.prototype._handleEditorChange = function (event, editor, changeList) {
-        // we're currently syncing from the Document, so don't echo back TO the Document
-        if (this._duringSync) {
-            return;
-        }
-        
-        // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
-        this.document._ensureMasterEditor();
-        
-        if (this.document._masterEditor !== this) {
-            // Secondary editor:
-            // we're not the ground truth; if we got here, this was a real editor change (not a
-            // sync from the real ground truth), so we need to sync from us into the document
-            // (which will directly push the change into the master editor).
-            // FUTURE: Technically we should add a replaceRange() method to Document and go through
-            // that instead of talking to its master editor directly. It's not clear yet exactly
-            // what the right Document API would be, though.
-            this._duringSync = true;
-            this.document._masterEditor._applyChanges(changeList);
-            this._duringSync = false;
-            
-            // Update which lines are hidden inside our editor, since we're not going to go through
-            // _applyChanges() in our own editor.
-            this._updateHiddenLines();
-        }
-        // Else, Master editor:
-        // we're the ground truth; nothing else to do, since Document listens directly to us
-        // note: this change might have been a real edit made by the user, OR this might have
-        // been a change synced from another editor
-        
         CodeHintManager.handleChange(this);
-    };
-    
-    /**
-     * Responds to changes in the Document's text, syncing the changes into our CodeMirror instance.
-     * There are several cases where we want to ignore a Document change:
-     *  - if we're the master editor, Document changes should be ignored becuase we already have the right
-     *    text (either the change originated with us, or it has already been set into us by Document)
-     *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
-     *    the document an editor change that originated with us
-     */
-    Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
-        var change;
-        
-        // we're currently syncing to the Document, so don't echo back FROM the Document
-        if (this._duringSync) {
-            return;
-        }
-        
-        if (this.document._masterEditor !== this) {
-            // Secondary editor:
-            // we're not the ground truth; and if we got here, this was a Document change that
-            // didn't come from us (e.g. a sync from another editor, a direct programmatic change
-            // to the document, or a sync from external disk changes)... so sync from the Document
-            this._duringSync = true;
-            this._applyChanges(changeList);
-            this._duringSync = false;
-        }
-        // Else, Master editor:
-        // we're the ground truth; nothing to do since Document change is just echoing our
-        // editor changes
     };
     
     /**
@@ -863,7 +729,7 @@ define(function (require, exports, module) {
      * @returns {number} The 0-based index of the first visible line.
      */
     Editor.prototype.getFirstVisibleLine = function () {
-        return (this._visibleRange ? this._visibleRange.startLine : 0);
+        return this._codeMirror.getDoc().firstLine();
     };
     
     /**
@@ -871,25 +737,7 @@ define(function (require, exports, module) {
      * @returns {number} The 0-based index of the last visible line.
      */
     Editor.prototype.getLastVisibleLine = function () {
-        return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
-    };
-
-    /* Hides the specified line number in the editor
-     * @param {!from} line to start hiding from (inclusive)
-     * @param {!to} line to end hiding at (exclusive)
-     */
-    Editor.prototype._hideLines = function (from, to) {
-        if (to <= from) {
-            return;
-        }
-        
-        var value = this._codeMirror.markText(
-            {line: from, ch: 0},
-            {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
-            {collapsed: true, inclusiveLeft: true, inclusiveRight: true}
-        );
-        
-        return value;
+        return this._codeMirror.getDoc().lastLine();
     };
 
     /**
@@ -1242,13 +1090,6 @@ define(function (require, exports, module) {
     Editor.prototype.document = null;
     
     /**
-     * If true, we're in the middle of syncing to/from the Document. Used to ignore spurious change
-     * events caused by us (vs. change events caused by others, which we need to pay attention to).
-     * @type {!boolean}
-     */
-    Editor.prototype._duringSync = false;
-    
-    /**
      * @private
      * NOTE: this is actually "semi-private": EditorManager also accesses this field... as well as
      * a few other modules. However, we should try to gradually move most code away from talking to
@@ -1263,13 +1104,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype._inlineWidgets = null;
 
-    /**
-     * @private
-     * @type {?TextRange}
-     */
-    Editor.prototype._visibleRange = null;
-    
-    
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
 

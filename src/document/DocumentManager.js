@@ -37,12 +37,9 @@
  *
  * To get a Document, call getDocumentForPath(); never new up a Document yourself.
  * 
- * Secretly, a Document may use an Editor instance to act as the model for its internal state. (This
- * is unavoidable because CodeMirror does not separate its model from its UI). Documents are not
- * modifiable until they have a backing 'master Editor'. Creation of the backing Editor is owned by
- * EditorManager. A Document only gets a backing Editor if it becomes the currentDocument, or if edits
- * occur in any Editor (inline or full-sized) bound to the Document; there is currently no other way
- * to ensure a Document is modifiable.
+ * Under the hood, Document relies on the CodeMirror Doc object to serve as its internal model. Due
+ * to the way CodeMirror manages change events, we also keep a "master editor" for a given document
+ * that we use to fire change events from the document.
  *
  * A non-modifiable Document may still dispatch change notifications, if the Document was changed
  * externally on disk.
