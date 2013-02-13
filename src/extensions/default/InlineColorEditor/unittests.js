@@ -281,6 +281,18 @@ define(function (require, exports, module) {
                 
             });
             
+            describe("edit batching", function () {
+                it("should combine multiple edits within the same inline editor into a single undo in the host editor", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        inline.colorEditor.setColorFromString("#010101");
+                        inline.colorEditor.setColorFromString("#123456");
+                        inline.colorEditor.setColorFromString("#bdafe0");
+                        testDocument._masterEditor._codeMirror.undo();
+                        expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#abcdef");
+                    });
+                });
+            });
         });
         
         describe("Inline editor - HTML", function () {
