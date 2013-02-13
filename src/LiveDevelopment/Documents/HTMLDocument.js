@@ -123,7 +123,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (this._highlight) {
             this._highlight.clear();
         }
-        this._highlight = codeMirror.markText(from, to, "highlight");
+        this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
     // Export the class

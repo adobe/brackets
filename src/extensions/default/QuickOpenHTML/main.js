@@ -138,7 +138,7 @@ define(function (require, exports, module) {
         
         var from = {line: fileLocation.line, ch: fileLocation.chFrom};
         var to = {line: fileLocation.line, ch: fileLocation.chTo};
-        EditorManager.getCurrentFullEditor().setSelection(from, to);
+        EditorManager.getCurrentFullEditor().setSelection(from, to, true);
     }
 
     function itemSelect(selectedItem) {

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, CodeMirror */
 
 define(function (require, exports, module) {
     "use strict";
@@ -101,15 +101,10 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _extractTagName(ctx) {
-        if (ctx.token.state.tagName) {
-            return ctx.token.state.tagName;           //XML mode
-        } else if (ctx.token.state.htmlState) {
-            return ctx.token.state.htmlState.tagName; //HTML mode
-        } else if (ctx.token.state.html) {
-            return ctx.token.state.html.tagName;      //HTML mode for PHP files
-        }
-        // Some mixed modes that offer HTML as a nested mode don't actually expose the HTML state
-        return null;
+        var mode = ctx.editor.getMode(),
+            innerModeData = CodeMirror.innerMode(mode, ctx.token.state);
+
+        return innerModeData.state.tagName;
     }
     
     /**
@@ -126,6 +121,9 @@ define(function (require, exports, module) {
         if (editor.getModeForSelection() === "html") {
             if (backwardCtx.token && backwardCtx.token.className !== "tag") {
                 while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.className !== "tag") {
+                    if (backwardCtx.token.className === "error" && backwardCtx.token.string.indexOf("<") === 0) {
+                        break;
+                    }
                     if (backwardCtx.token.className === "attribute") {
                         attrs.push(backwardCtx.token.string);
                     }
@@ -140,6 +138,9 @@ define(function (require, exports, module) {
                         }
                         attrs.push(forwardCtx.token.string);
                     } else if (forwardCtx.token.className === "error") {
+                        if (forwardCtx.token.string.indexOf("<") === 0 || forwardCtx.token.string.indexOf(">") === 0) {
+                            break;
+                        }
                         // If we type the first letter of the next attribute, it comes as an error
                         // token. We need to double check for possible invalidated attributes.
                         if (forwardCtx.token.string.trim() !== "" &&
@@ -198,7 +199,8 @@ define(function (require, exports, module) {
             hasEndQuote = attrInfo.hasEndQuote,
             strLength = ctx.token.string.length;
         
-        if (ctx.token.className === "string" && ctx.pos.ch === ctx.token.end && strLength > 1) {
+        if ((ctx.token.className === "string" || ctx.token.className === "error") &&
+                ctx.pos.ch === ctx.token.end && strLength > 1) {
             var firstChar = ctx.token.string[0],
                 lastChar = ctx.token.string[strLength - 1];
             
@@ -317,7 +319,7 @@ define(function (require, exports, module) {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
 
-                if (ctx.token.className === "tag") {
+                if (ctx.token.className === "tag" || ctx.token.className === "error") {
                     // Check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
@@ -383,7 +385,7 @@ define(function (require, exports, module) {
             }
         }
         
-        if (ctx.token.className === "tag") {
+        if (ctx.token.className === "tag" || ctx.token.className === "error") {
             // Check if the user just typed a white space after "<" that made an existing tag invalid.
             if (ctx.token.string.match(/^<\s+/) && offset !== 1) {
                 return createTagInfo();
@@ -395,14 +397,17 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            if (!tokenType) {
-                tokenType = TAG_NAME;
-                offset--; //need to take off 1 for the leading "<"
+            // Make sure the cursor is not after an equal sign or a quote before we report the context as a tag.
+            if (ctx.token.string !== "=" && ctx.token.string.match(/^["']/) === null) {
+                if (!tokenType) {
+                    tokenType = TAG_NAME;
+                    offset--; //need to take off 1 for the leading "<"
+                }
+                
+                // We're actually in the tag, just return that as we have no relevant 
+                // info about what attr is selected
+                return createTagInfo(tokenType, offset, _extractTagName(ctx));
             }
-            
-            // We're actually in the tag, just return that as we have no relevant 
-            // info about what attr is selected
-            return createTagInfo(tokenType, offset, _extractTagName(ctx));
         }
         
         if (ctx.token.string === "=") {
