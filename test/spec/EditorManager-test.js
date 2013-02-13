@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, spyOn: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
+/*global define, describe, it, spyOn, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror */
 
 define(function (require, exports, module) {
     'use strict';
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("force");
+                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("force");
+                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("force");
+                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("force");
+                EditorManager.resizeEditor(EditorManager.REFRESH_FORCE);
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
 
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor(); // cache the width
                                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("skip");
+                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("skip");
+                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -150,7 +150,7 @@ define(function (require, exports, module) {
                 $root.height(300); // change the height (to be different from content div)
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("skip");
+                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
 
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
                 $root.width(300); // change the width
                 
                 spyOn(testEditor, "refreshAll");
-                EditorManager.resizeEditor("skip");
+                EditorManager.resizeEditor(EditorManager.REFRESH_SKIP);
                 expect(testEditor.refreshAll).not.toHaveBeenCalled();
             });
             
