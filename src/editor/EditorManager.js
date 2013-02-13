@@ -418,12 +418,12 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        // skip refreshing the editor since we're going to refresh it in resizeEditor() later
+        // Skip refreshing the editor since we're going to refresh it in resizeEditor() later.
         _currentEditor.setVisible(true, false);
         _currentEditor.focus();
         
-        // Window may have been resized since last time editor was visible, so kick it now.
-        // Force the refresh since we skipped it in setVisible().
+        // Resize and refresh the editor, since it might have changed size or had other edits applied
+        // since it was last visible.
         resizeEditor(REFRESH_FORCE);
     }
 
