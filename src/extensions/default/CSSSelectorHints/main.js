@@ -121,7 +121,13 @@ define(function (require, exports, module) {
                                 query = selector.slice(quoteIndex + 1, this.info.offset);
                                 query = query.trim();
                                 if (query.length && query[query.length - 1] === quote) {
-                                    query = query.slice(0, query.length - 1);
+                                    // If cursor is after the closing quote, then set query to an empty string.
+                                    // Otherwise, remove the closing quote.
+                                    if (this.info.offset === this.info.name.length) {
+                                        query = "";
+                                    } else {
+                                        query = query.slice(0, query.length - 1);
+                                    }
                                 }
                             } else {
                                 query = selector.slice(equalIndex + 1, this.info.offset);
@@ -218,12 +224,12 @@ define(function (require, exports, module) {
                     quote = (quoteIndex === -1) ? null : "\"";
                 }
                 if (quote) {
-                    if (offset > (quoteIndex + 1)) {
+                    if (offset >= (quoteIndex + 1)) {
                         offset -= (quoteIndex + 1);
                         charCount -= (quoteIndex + 1);
                     } else {
                         offset = 0;
-                        charCount = 0;
+                        charCount = (charCount > offset) ? (charCount - offset) : 0;
                     }
                     // If we have the closing quote, then subtract one to avoid overwriting it.
                     if (charCount && quoteIndex !== (selector.length - 1) && selector[selector.length - 1] === quote) {
@@ -240,9 +246,9 @@ define(function (require, exports, module) {
 
         if (hint !== this.info.name) {
             if (start.ch !== end.ch) {
-                this.editor.document.replaceRange(hint, start, end);
+                this.editor._codeMirror.replaceRange(hint, start, end);
             } else {
-                this.editor.document.replaceRange(hint, start);
+                this.editor._codeMirror.replaceRange(hint, start);
             }
             if (hint[0] === ":" && hint[hint.length - 1] === ")") {
                 this.editor.setCursorPos(start.line, start.ch + hint.length - 1);

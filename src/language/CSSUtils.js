@@ -423,7 +423,8 @@ define(function (require, exports, module) {
         var lastValue = "",
             curValue = ctx.token.string,
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos);
+            testToken = editor._codeMirror.getTokenAt(testPos),
+            length;
         
         // If the cursor is on the right of a whitespace and we also have non-whitespace character on the right of 
         // the cursor, then move cursor to the next token, set offset to 0 and get the selector from next token.
@@ -458,7 +459,11 @@ define(function (require, exports, module) {
                 offset++;
             }
         } else {
-            while (curValue.length && !_isSelectorStartChar(curValue[0])) {
+            if (curValue.match(/[~|\|]?=$/) && testToken.string.match(/\S/) && testToken.string !== "]") {
+                curValue += testToken.string;
+            }
+            length = curValue.length;
+            while (length > 0 && !_isSelectorStartChar(curValue[0])) {
                 lastValue = curValue;
                 if (!TokenUtils.movePrevToken(ctx)) {
                     break;
@@ -471,15 +476,19 @@ define(function (require, exports, module) {
                 }
     
                 curValue = ctx.token.string;
-                if (curValue.length) {
-                    offset += curValue.length;
+                length = curValue.length;
+                if (length) {
+                    offset += length;
                     curValue += lastValue;
+                    length = curValue.length;
                 }
             }
             
-            if (offset < curValue.length && curValue.match(/[~|\|]?=.*\]$/)) {
+            if (offset < length && curValue.match(/[~|\|]?=.*\]$/)) {
                 curValue = curValue.replace(/\]$/, "");
-                offset--;
+                if (offset === length) {
+                    offset--;
+                }
             }
             
             // Handle the case where the cursor is in the text after the two colons as in "::a|fter"
