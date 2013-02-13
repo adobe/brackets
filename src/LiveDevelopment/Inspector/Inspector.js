@@ -226,6 +226,14 @@ define(function Inspector(require, exports, module) {
     function off(name, handler) {
         $exports.off(name, handler);
     }
+    
+    /** 
+     * Notify agents that the correct page (corresponding to the current document in Brackets) has
+     * been loaded in the browser.
+     */
+    function triggerActualPageLoad() {
+        $exports.triggerHandler("actualPageLoad");
+    }
 
     /** Disconnect from the remote debugger WebSocket */
     function disconnect() {
@@ -322,5 +330,6 @@ define(function Inspector(require, exports, module) {
     exports.connect = connect;
     exports.connectToURL = connectToURL;
     exports.connected = connected;
+    exports.triggerActualPageLoad = triggerActualPageLoad;
     exports.init = init;
 });
