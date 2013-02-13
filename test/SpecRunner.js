@@ -55,6 +55,7 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     
+    
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
     // extensions need these to be required up front. We need a better solution for this eventually.
     require("utils/ExtensionUtils");

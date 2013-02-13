@@ -305,7 +305,7 @@ define(function (require, exports, module) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
                                     .done(function (doc) {
                                         // Opened document is now the current main editor
-                                        EditorManager.getCurrentFullEditor().setSelection(match.start, match.end);
+                                        EditorManager.getCurrentFullEditor().setSelection(match.start, match.end, true);
                                     });
                             });
                             resultsDisplayed++;
