@@ -373,6 +373,8 @@ define(function (require, exports, module) {
     
     describe("JS Parsing: ", function () {
         
+        this.category = "integration";
+        
         var lastJsCode,
             match,
             expectParseError;

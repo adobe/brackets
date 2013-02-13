@@ -40,6 +40,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("InlineEditorProviders", function () {
+        
+        this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
             tempPath = SpecRunnerUtils.getTempDirectory(),
