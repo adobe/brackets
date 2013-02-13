@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Menus           = require("command/Menus"),
+    var MenuManager     = require("command/MenuManager"),
         StringUtils     = require("utils/StringUtils"),
         PopUpManager    = require("widgets/PopUpManager"),
         ViewUtils       = require("utils/ViewUtils"),
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
      *          selectInitial: boolean>} hintObj
      */
     CodeHintList.prototype.open = function (hintObj) {
-        Menus.closeAll();
+        MenuManager.closeAll();
         this._buildListView(hintObj);
 
         if (this.hints.length) {

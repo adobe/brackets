@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     var CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Menus               = brackets.getModule("command/Menus");
+        MenuManager         = brackets.getModule("command/MenuManager");
 
     // Define the functions that Commands will execute
     function TestCommand1() {
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         var editor = EditorManager.getFocusedEditor();
         command3.setEnabled(editor && editor.getSelectedText() !== "");
     };
-    var editor_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+    var editor_cmenu = MenuManager.getContextMenu(MenuManager.ContextMenuIds.EDITOR_MENU);
     $(editor_cmenu).on("beforeContextMenuOpen", updateEnabledState);
 
     

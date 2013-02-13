@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
         FileUtils               = require("file/FileUtils"),
-        Menus                   = require("command/Menus"),
+        MenuManager             = require("command/MenuManager"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,

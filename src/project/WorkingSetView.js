@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     var DocumentManager       = require("document/DocumentManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
-        Menus                 = require("command/Menus"),
+        MenuManager           = require("command/MenuManager"),
         FileViewController    = require("project/FileViewController"),
         ViewUtils             = require("utils/ViewUtils");
     
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
             
             // Once the movement is greater than 3 pixels, it is assumed that the user wantes to reorder files and not open
             if (!moved && Math.abs(top) > 3) {
-                Menus.closeAll();
+                MenuManager.closeAll();
                 moved = true;
             }
         }

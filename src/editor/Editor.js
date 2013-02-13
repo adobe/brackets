@@ -65,7 +65,7 @@ define(function (require, exports, module) {
         CodeHintManager    = require("editor/CodeHintManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
-        Menus              = require("command/Menus"),
+        MenuManager        = require("command/MenuManager"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
@@ -628,7 +628,7 @@ define(function (require, exports, module) {
             // (We don't want to do this if we're just scrolling in a non-visible editor
             // in response to some document change event.)
             if (self.isFullyVisible()) {
-                Menus.closeAll();
+                MenuManager.closeAll();
             }
 
             $(self).triggerHandler("scroll", [self]);

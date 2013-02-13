@@ -39,7 +39,7 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var CommandManager      = brackets.getModule("command/CommandManager"),
-        Menus               = brackets.getModule("command/Menus"),
+        MenuManager         = brackets.getModule("command/MenuManager"),
         Dialogs             = brackets.getModule("widgets/Dialogs");
 
     // Load an html fragment using the require text plugin. Mustache will later
@@ -66,8 +66,8 @@ define(function (require, exports, module) {
     var myCommandID = "localizationExample.command";
     var command = CommandManager.register(Strings.COMMAND_NAME, myCommandID, testCommand);
 
-    var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
-    menu.addMenuItem(myCommandID, null, Menus.AFTER, myCommandID);
+    var menu = MenuManager.getMenu(MenuManager.AppMenuBar.EDIT_MENU);
+    menu.addMenuItem(myCommandID, null, MenuManager.AFTER, myCommandID);
    
     // Localize the dialog using Strings as the datasource and insert it into the DOM
     var localizedHTML = $(Mustache.render(browserWrapperHtml, Strings));
