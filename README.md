@@ -25,7 +25,7 @@ Brackets is early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be
 incomplete or not as useful as you'd want. But if you like the direction
 it's going, the [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) 
-file contains some useful links to help you getting started, please contribute!    
+file contains some useful links to help you get started. Please contribute!    
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
