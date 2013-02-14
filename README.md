@@ -29,9 +29,9 @@ file contains some useful links to help you getting started, please contribute!
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
-taking our pull requests :) See 
+taking our pull requests, implementing feature requests and fixing bugs! See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
-for info on upcoming things we're planning to contribute to CodeMirror.
+for info on how we're using CodeMirror.
 
 How to run Brackets
 -------------------
