@@ -50,11 +50,11 @@ The native shell for Brackets lives in a separate repo,
 The Brackets native shell currently runs on Mac and Windows.
 The community has started working on a Linux port, and is making great progress;
 if you're interested, check out the
-[discussion thread](https://groups.google.com/forum/?fromgroups=#!topic/brackets-dev/29vOJ6tvl8A)
-on the brackets-dev Google Group.
+[Linux Version](https://github.com/adobe/brackets/wiki/Linux-Version) wiki page.
 
-You can download "stable" builds of Brackets from 
-[download.brackets.io](http://download.brackets.io). If you want to pull the repo directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
+You can download stable builds of Brackets from 
+[download.brackets.io](http://download.brackets.io). If you want to pull the repo 
+directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
 for instructions on how to get everything. 
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
