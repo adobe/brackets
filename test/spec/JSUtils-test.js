@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     };
 
     var simpleJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/simple.js");
+    var trickyJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/tricky.js");
     var invalidJsFileEntry  = new NativeFileSystem.FileEntry(testPath + "/invalid.js");
     var jQueryJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/jquery-1.7.js");
     var braceEndJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/braceEnd.js");
@@ -251,6 +252,17 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should work when colliding with prototype properties", function () { // #1390, #2813
+                runs(function () {
+                    init(this, trickyJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "toString", [ {start: 1, end: 3} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "length", [ {start: 6, end: 8} ]);
+                });
+            });
+            
             it("should fail with invalid function names", function () {
                 runs(function () {
                     init(this, invalidJsFileEntry);
@@ -371,94 +383,98 @@ define(function (require, exports, module) {
         
     }); // describe("JSUtils")
     
-    describe("JS Parsing: ", function () {
+    
+    describe("JS Indexing: ", function () {
         
-        var lastJsCode,
-            match,
-            expectParseError;
+        var functions;  // populated by indexAndFind()
         
-        // Test helper function; tests that parsing plus a simple search won't crash.
-
-        var _match = function (jsCode, tagInfo) {
-            lastJsCode = jsCode;
-            try {
-                return JSUtils.findAllMatchingFunctionsInText(jsCode, tagInfo);
-            } catch (e) {
-                this.fail(e.message + ": " + jsCode);
-                return [];
-            }
-        };
-        
-        
-        // Test helper function: expects CSS parsing to fail at the given 0-based offset within the
-        // jsCode string, with the given error message.
-
-        var _expectParseError = function (jsCode, expectedCodeOffset, expectedErrorMessage) {
-            try {
-                JSUtils.findAllMatchingFunctionsInText(jsCode, null);
-                
-                // shouldn't get here since JSUtils.findAllMatchingFunctionsInText() is expected to throw
-                this.fail("Expected parse error: " + jsCode);
-                
-            } catch (error) {
-                expect(error.index).toBe(expectedCodeOffset);
-                expect(error.message).toBe(expectedErrorMessage);
-            }
-        };
-
-        // To call fail(), these helpers need access to the value of 'this' inside each it()
         beforeEach(function () {
-            match = _match.bind(this);
-            expectParseError = _expectParseError.bind(this);
+            SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                // Load module instances from brackets.test
+                var brackets        = testWindow.brackets;
+                DocumentManager     = brackets.test.DocumentManager;
+                FileIndexManager    = brackets.test.FileIndexManager;
+                FileViewController  = brackets.test.FileViewController;
+                JSUtils             = brackets.test.JSUtils;
+
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            });
         });
 
-        describe("Working with unsaved changes", function () {
-            var brackets;
-    
-            beforeEach(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
-                    // Load module instances from brackets.test
-                    brackets            = testWindow.brackets;
-                    DocumentManager     = brackets.test.DocumentManager;
-                    FileIndexManager    = brackets.test.FileIndexManager;
-                    FileViewController  = brackets.test.FileViewController;
-                    JSUtils             = brackets.test.JSUtils;
+        afterEach(function () {
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
+        function init(fileName) {
+            runs(function () {
+                waitsForDone(
+                    FileViewController.openAndSelectDocument(
+                        testPath + "/" + fileName,
+                        FileViewController.PROJECT_MANAGER
+                    ),
+                    "openAndSelectDocument"
+                );
+            });
+        }
+        
+        /**
+         * Builds a fileInfos index of the project, as required to call findMatchingFunctions(). Calls the
+         * specified 'invoker' function with fileInfos, and populates the 'functions' var once it's done.
+         * Does not need to be wrapped in a runs() block.
+         * @param {function(Array.<FileIndexManager.FileInfo>):$.Promise} invokeFind
+         */
+        function indexAndFind(invokeFind) {
+            runs(function () {
+                var result = new $.Deferred();
+                
+                FileIndexManager.getFileInfoList("all")
+                    .done(function (fileInfos) {
+                        invokeFind(fileInfos)
+                            .done(function (functionsResult) { functions = functionsResult; })
+                            .pipe(result.resolve, result.reject);
+                    });
+                
+                waitsForDone(result, "Index and invoke JSUtils.findMatchingFunctions()");
+            });
+        }
+        
 
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+        describe("Index integrity", function () {
+            it("should handle colliding with prototype properties", function () { // #2813
+                // no init() needed - don't need any editors to be open
+                
+                indexAndFind(function (fileInfos) {
+                    return JSUtils.findMatchingFunctions("toString", fileInfos);
                 });
-            });
-
-            afterEach(function () {
-                SpecRunnerUtils.closeTestWindow();
-            });
-            
-            function fileChangedTest(buildCache) {
-                var doc,
-                    functions = null;
-
                 runs(function () {
-                    waitsForDone(
-                        FileViewController.openAndSelectDocument(
-                            testPath + "/edit.js",
-                            FileViewController.PROJECT_MANAGER
-                        ),
-                        "openAndSelectDocument"
-                    );
+                    expect(functions.length).toBe(1);
+                    expect(functions[0].lineStart).toBe(1);
+                    expect(functions[0].lineEnd).toBe(3);
                 });
+                
+                indexAndFind(function (fileInfos) {
+                    return JSUtils.findMatchingFunctions("length", fileInfos);
+                });
+                runs(function () {
+                    expect(functions.length).toBe(1);
+                    expect(functions[0].lineStart).toBe(6);
+                    expect(functions[0].lineEnd).toBe(8);
+                });
+            });
+        });
+        
+        
+        describe("Working with unsaved changes", function () {
+    
+            function fileChangedTest(buildCache) {
+                init("edit.js");
                 
                 // Populate JSUtils cache
                 if (buildCache) {
-                    runs(function () {
-                        FileIndexManager.getFileInfoList("all")
-                            .done(function (fileInfos) {
-                                // Look for "edit2" function
-                                JSUtils.findMatchingFunctions("edit2", fileInfos)
-                                    .done(function (result) { functions = result; });
-                            });
+                    // Look for "edit2" function
+                    indexAndFind(function (fileInfos) {
+                        return JSUtils.findMatchingFunctions("edit2", fileInfos);
                     });
-                    
-                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
-                    
                     runs(function () {
                         expect(functions.length).toBe(1);
                         expect(functions[0].lineStart).toBe(7);
@@ -466,25 +482,16 @@ define(function (require, exports, module) {
                     });
                 }
                 
+                // Add several blank lines at the beginning of the text
                 runs(function () {
                     var doc = DocumentManager.getCurrentDocument();
-                    
-                    // Add several blank lines at the beginning of the text
                     doc.setText("\n\n\n\n" + doc.getText());
-
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (fileInfos) {
-                            // JSUtils cache should update with new offsets
-                            functions = null;
-                            
-                            // Look for "edit2" function
-                            JSUtils.findMatchingFunctions("edit2", fileInfos)
-                                .done(function (result) { functions = result; });
-                        });
                 });
                 
-                waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
-                
+                // Look for function again, expecting line offsets to have changed
+                indexAndFind(function (fileInfos) {
+                    return JSUtils.findMatchingFunctions("edit2", fileInfos);
+                });
                 runs(function () {
                     expect(functions.length).toBe(1);
                     expect(functions[0].lineStart).toBe(11);
@@ -501,61 +508,29 @@ define(function (require, exports, module) {
             });
             
             function insertFunctionTest(buildCache) {
-                var functions = null;
-                
-                runs(function () {
-                    waitsForDone(
-                        FileViewController.openAndSelectDocument(
-                            testPath + "/edit.js",
-                            FileViewController.PROJECT_MANAGER
-                        ),
-                        "openAndSelectDocument"
-                    );
-                });
+                init("edit.js");
                 
                 // Populate JSUtils cache
                 if (buildCache) {
-                    runs(function () {
-                        // Look for the selector we're about to create--we shouldn't find it yet
-                        FileIndexManager.getFileInfoList("all")
-                            .done(function (fileInfos) {
-                                // Look for "TESTFUNCTION" function
-                                JSUtils.findMatchingFunctions("TESTFUNCTION", fileInfos)
-                                    .done(function (result) {
-                                        functions = result;
-                                    });
-                            });
+                    // Look for function that doesn't exist yet
+                    indexAndFind(function (fileInfos) {
+                        return JSUtils.findMatchingFunctions("TESTFUNCTION", fileInfos);
                     });
-                    
-                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
-                    
                     runs(function () {
                         expect(functions.length).toBe(0);
                     });
                 }
                 
+                // Add a new function to the file
                 runs(function () {
-                    // reset result functions array
-                    functions = null;
-                    
                     var doc = DocumentManager.getCurrentDocument();
-                    // Add a new function to the file
                     doc.setText(doc.getText() + "\n\nfunction TESTFUNCTION() {\n    return true;\n}\n");
-                    
-                    // Look for the selector we just created
-                    FileIndexManager.getFileInfoList("all")
-                        .done(function (fileInfos) {
-
-                            // Look for "TESTFUNCTION" function
-                            JSUtils.findMatchingFunctions("TESTFUNCTION", fileInfos)
-                                .done(function (result) {
-                                    functions = result;
-                                });
-                        });
                 });
                 
-                waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
-                
+                // Look for the function we just created
+                indexAndFind(function (fileInfos) {
+                    return JSUtils.findMatchingFunctions("TESTFUNCTION", fileInfos);
+                });
                 runs(function () {
                     expect(functions.length).toBe(1);
                     expect(functions[0].lineStart).toBe(33);
@@ -571,5 +546,5 @@ define(function (require, exports, module) {
                 insertFunctionTest(true);
             });
         });
-    }); //describe("JS Parsing")
+    }); //describe("JS Indexing")
 });

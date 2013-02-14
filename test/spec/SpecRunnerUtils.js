@@ -113,7 +113,7 @@ define(function (require, exports, module) {
     
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
-     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
      * the runs() that generates the promise.
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
