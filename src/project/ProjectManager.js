@@ -914,6 +914,8 @@ define(function (require, exports, module) {
             .done(function ($node) {
                 // jsTree will automatically expand parent nodes to ensure visible
                 _projectTree.jstree("select_node", $node, false);
+                _lastSelected = entry;
+                _redraw(true, true);
             });
     }
     

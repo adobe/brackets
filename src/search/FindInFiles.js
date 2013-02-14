@@ -306,6 +306,7 @@ define(function (require, exports, module) {
                                     .done(function (doc) {
                                         // Opened document is now the current main editor
                                         EditorManager.getCurrentFullEditor().setSelection(match.start, match.end, true);
+                                        ProjectManager.showInTree(doc.file);
                                     });
                             });
                             resultsDisplayed++;
