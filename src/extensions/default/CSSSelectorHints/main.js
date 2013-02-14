@@ -111,7 +111,8 @@ define(function (require, exports, module) {
                                     return key;
                                 }
                             }).sort();
-                        } else {
+                        } else if (this.info.offset > equalIndex) {
+                            // The cursor is after the equal sign. So get hints for attribute values.
                             quoteIndex = selector.indexOf("'", equalIndex);
                             if (quoteIndex === -1) {
                                 quoteIndex = selector.indexOf("\"", equalIndex);
@@ -121,10 +122,10 @@ define(function (require, exports, module) {
                                 query = selector.slice(quoteIndex + 1, this.info.offset);
                                 query = query.trim();
                                 if (query.length && query[query.length - 1] === quote) {
-                                    // If cursor is after the closing quote, then set query to an empty string.
-                                    // Otherwise, remove the closing quote.
+                                    // If the cursor is after the closing quote, return null.
+                                    // Otherwise, remove the closing quote from query string.
                                     if (this.info.offset === this.info.name.length) {
-                                        query = "";
+                                        return null;
                                     } else {
                                         query = query.slice(0, query.length - 1);
                                     }
@@ -197,6 +198,7 @@ define(function (require, exports, module) {
             selector,
             quoteIndex,
             equalIndex,
+            bracketIndex,
             quote = "'";
 
         this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
@@ -234,6 +236,16 @@ define(function (require, exports, module) {
                     // If we have the closing quote, then subtract one to avoid overwriting it.
                     if (charCount && quoteIndex !== (selector.length - 1) && selector[selector.length - 1] === quote) {
                         charCount--;
+                    } else {
+                        if (charCount) {
+                            // We're inside an unclosed string. So make sure we don't replace the string past the closing bracket.
+                            bracketIndex = selector.indexOf("]", selector.length - charCount);
+                            if (bracketIndex !== -1) {
+                                charCount = bracketIndex - (quoteIndex + 1);
+                            }
+                        }
+                        // Auto append the closing quote.
+                        hint += quote;
                     }
                 } else {
                     offset -= (equalIndex + 1);

@@ -140,7 +140,8 @@ define(function (require, exports, module) {
             }
         }
         
-        if ((ctxClone.token.className === null || ctxClone.token.className === "string-2") &&
+        if ((ctxClone.token.className === null || ctxClone.token.className === "string-2" ||
+                ctxClone.token.className === "operator") &&
                 ctxClone.token.string.length && _isSelectorStartChar(ctxClone.token.string[0])) {
             return !testNextToken || (testNextToken && ctxClone.token.string[0] === ":");
         }
