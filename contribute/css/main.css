@@ -138,7 +138,8 @@ body > footer {
   text-align: center;
 }
 #getting-started h2,
-#get-coding h2 {
+#get-coding h2,
+#committers h2 {
   font-size: 36px;
   color: #333;
   margin-bottom: 20px;
@@ -181,7 +182,7 @@ body > footer {
   display: inline-block;
   margin-right: 6px;
 }
-#get-coding p.description {
+#get-coding .description, #committers .description {
   width: 400px;
   display: inline-block;
   text-align: left;
@@ -244,6 +245,34 @@ body > footer {
   position: relative;
   margin: 0 auto;
 }
+#committers {
+  width: 100%;
+  clear: both;
+  text-align: center;
+  padding-top: 50px;
+}
+#committers ul {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  margin: 0 auto;
+  text-align: left;
+  list-style: none;
+  padding-top: 20px;
+}
+#committers li {
+  padding: 10px 20px;
+  background: white;
+  border: 1px solid #ccc;
+  margin-top: -1px;
+}
+#committers li img {
+  vertical-align: -35%;
+  border: 1px solid #ccc;
+  margin-right: 5px;
+  width: 20px;
+  height: 20px;
+}
 @media only screen and (max-width:820px) {
   #starter-issues,
   #starter-features {
@@ -268,7 +297,7 @@ body > footer {
   #getting-started iframe {
     width: 100%;
   }
-  #get-coding p.description {
+  #get-coding .description {
     width: 96%;
   }
   #getting-started article,
