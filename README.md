@@ -1,4 +1,4 @@
-Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png)](https://travis-ci.org/adobe/brackets)
+Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
 Installers for the latest build can be [downloaded here](http://download.brackets.io/).
