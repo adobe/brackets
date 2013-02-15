@@ -34,13 +34,13 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var DocumentManager         = brackets.getModule("document/DocumentManager"),
-        EditorUtils             = brackets.getModule("editor/EditorUtils"),
-        FileUtils               = brackets.getModule("file/FileUtils"),
-        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
-        ProjectManager          = brackets.getModule("project/ProjectManager"),
-        HintUtils               = require("HintUtils"),
-        Scope                   = require("Scope");
+    var DocumentManager     = brackets.getModule("document/DocumentManager"),
+        EditorUtils         = brackets.getModule("editor/EditorUtils"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
+        HintUtils           = require("HintUtils"),
+        Scope               = require("Scope");
 
     var pendingRequest      = null,     // information about a deferred scope request
         fileState           = {},       // directory -> file -> state
@@ -48,6 +48,9 @@ define(function (require, exports, module) {
             var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
             return new Worker(path + "parser-worker.js");
         }());
+
+    var MAX_TEXT_LENGTH     = 1000000, // about 1MB
+        MAX_FILES_IN_DIR    = 100;
 
     /* 
      * Initialize state for a given directory and file name
@@ -106,6 +109,10 @@ define(function (require, exports, module) {
      * Request a new outer scope object from the parser worker, if necessary
      */
     function refreshOuterScope(dir, file, text) {
+
+        if (text.length > MAX_TEXT_LENGTH) {
+            return;
+        }
 
         var state = getFileState(dir, file);
        
@@ -278,15 +285,15 @@ define(function (require, exports, module) {
             // in the scope of innerScope, but that list doesn't have the
             // accumulated position information.
             var identifiersForScope = filterByScope(state.identifiers, innerScope),
-                propertiesForFile = mergeProperties(dir),
+                propertiesForFile   = mergeProperties(dir),
                 associationsForFile = mergeAssociations(dir);
             
             return {
-                scope: innerScope,
-                identifiers: identifiersForScope,
-                globals: state.globals,
-                literals: state.literals,
-                properties: propertiesForFile,
+                scope       : innerScope,
+                identifiers : identifiersForScope,
+                globals     : state.globals,
+                literals    : state.literals,
+                properties  : propertiesForFile,
                 associations: associationsForFile
             };
         }
@@ -348,9 +355,9 @@ define(function (require, exports, module) {
             reader      = dirEntry.createReader();
         
         markFileDirty(dir, file);
-        
+
         reader.readEntries(function (entries) {
-            entries.forEach(function (entry) {
+            entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {
                     var path    = entry.fullPath,
                         split   = HintUtils.splitPath(path),
