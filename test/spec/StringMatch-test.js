@@ -630,6 +630,18 @@ define(function (require, exports, module) {
                 expect("foo").toBeInCache(matcher, "_specialsCache");
                 expect("foo").not.toBeInCache(matcher, "_noMatchCache");
             });
+            
+            it("should handle collisions with built-in members", function () {
+                var matcher = new StringMatch.StringMatcher();
+                
+                // Object.prototype has toString
+                var toStringResult = matcher.match("toString", "t");
+                expect(toStringResult).toBeTruthy();
+                
+                // Array.prototype has length
+                var lengthResult = matcher.match("length", "l");
+                expect(lengthResult).toBeTruthy();
+            });
         });
     });
 });
