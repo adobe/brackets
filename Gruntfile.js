@@ -80,6 +80,10 @@ module.exports = function (grunt) {
             }
         }
     });
+    
+    function writeJSON(path, obj) {
+        grunt.file.write(path, JSON.stringify(obj, null, "    "));
+    }
 
     // load dependencies
     grunt.loadNpmTasks('grunt-contrib-jasmine');
@@ -101,7 +105,18 @@ module.exports = function (grunt) {
             }
         });
 
-        grunt.file.write("src/config.json", JSON.stringify(appConfigJSON, null, "    "));
+        writeJSON("src/config.json", appConfigJSON);
+    });
+    
+    // task: set-version
+    grunt.registerTask('set-sprint', function () {
+        var path        = "package.json",
+            packageJSON = grunt.file.readJSON(path),
+            sprint      = grunt.option("sprint") || 0;
+        
+        packageJSON.version = "0." + sprint + ".0-0";
+
+        writeJSON(path, packageJSON);
     });
 
     // task: test
