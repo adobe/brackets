@@ -597,7 +597,7 @@ define(function (require, exports, module) {
                 doc.batchOperation(function () {
                     var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
                     
-                    if (sel.end.line === downLastLine + 1) {
+                    if (sel.end.line === downLastLine) {
                         prevText = "\n" + prevText.substring(0, prevText.length - 1);
                     }
                     
