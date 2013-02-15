@@ -65,6 +65,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
+        EditorManager       = require("editor/EditorManager"),
         KeyEvent            = require("utils/KeyEvent");
     
     /**
@@ -446,6 +447,8 @@ define(function (require, exports, module) {
                         if (!suppressToggleOpen) {
                             _projectTree.jstree("toggle_node", data.rslt.obj);
                         }
+                        
+                        EditorManager.focusEditor();
                     }
                     
                     suppressToggleOpen = false;
