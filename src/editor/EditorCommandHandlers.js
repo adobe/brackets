@@ -663,25 +663,28 @@ define(function (require, exports, module) {
         
         // Insert the new line
         var doc = editor.document;
-        var line;
+        var cm = editor._codeMirror;
         
         switch (direction) {
         case DIRECTION_UP:
-            line = sel.start.line;
+            if (sel.start.line !== editor.getFirstVisibleLine()) {
+                --sel.start.line;
+                editor.setCursorPos(sel.start.line, doc.getLine(sel.start.line).length);
+                cm.execCommand("newlineAndIndent");
+            } else {
+                doc.replaceRange("\n", {line: sel.start.line, ch: 0});
+                editor.setCursorPos(sel.start.line, 0);
+            }
             break;
         case DIRECTION_DOWN:
             if (hasSelection && sel.end.ch === 0) {
                 // If linewise selection
-                line = sel.end.line;
-            } else {
-                line = ++sel.end.line;
+                --sel.end.line;
             }
+            editor.setCursorPos(sel.end.line, doc.getLine(sel.end.line).length);
+            cm.execCommand("newlineAndIndent");
             break;
         }
-        
-        doc.replaceRange("\n", {line: line, ch: 0});
-        editor._codeMirror.indentLine(line);
-        editor.setCursorPos(line, doc.getLine(line).length);
     }
 
     /**
