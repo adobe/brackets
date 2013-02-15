@@ -25,13 +25,13 @@ Brackets is early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be
 incomplete or not as useful as you'd want. But if you like the direction
 it's going, the [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) 
-file contains some useful links to help you getting started, please contribute!    
+file contains some useful links to help you get started. Please contribute!    
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
-taking our pull requests :) See 
+taking our pull requests, implementing feature requests and fixing bugs! See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
-for info on upcoming things we're planning to contribute to CodeMirror.
+for info on how we're using CodeMirror.
 
 How to run Brackets
 -------------------
@@ -50,11 +50,11 @@ The native shell for Brackets lives in a separate repo,
 The Brackets native shell currently runs on Mac and Windows.
 The community has started working on a Linux port, and is making great progress;
 if you're interested, check out the
-[discussion thread](https://groups.google.com/forum/?fromgroups=#!topic/brackets-dev/29vOJ6tvl8A)
-on the brackets-dev Google Group.
+[Linux Version](https://github.com/adobe/brackets/wiki/Linux-Version) wiki page.
 
-You can download "stable" builds of Brackets from 
-[download.brackets.io](http://download.brackets.io). If you want to pull the repo directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
+You can download stable builds of Brackets from 
+[download.brackets.io](http://download.brackets.io). If you want to pull the repo 
+directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
 for instructions on how to get everything. 
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
