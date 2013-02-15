@@ -276,7 +276,7 @@ define(function (require, exports, module) {
         pseudoSelectors = HintsCollector.getCodeHints(HintsCollector.PSEUDO_SELECTOR);
     
         var cssSelectorHints = new CssSelectorHints();
-        CodeHintManager.registerHintProvider(cssSelectorHints, ["css"], 10);
+        CodeHintManager.registerHintProvider(cssSelectorHints, ["css", "less"], 10);
     
         // For unit testing
         exports.cssSelectorHintProvider = cssSelectorHints;
