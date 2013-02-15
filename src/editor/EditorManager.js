@@ -419,13 +419,6 @@ define(function (require, exports, module) {
             }
             if (viewState.scrollPos) {
                 editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
-                
-                // Force CM.onScroll() to run now, in case refresh() gets called synchronously after this
-                // (as often happens when switching editors, due to JSLint panel)
-                // TODO: why doesn't CM.scrollTo() do this automatically?
-                var event = window.document.createEvent("HTMLEvents");
-                event.initEvent("scroll", true, false);
-                editor._codeMirror.getScrollerElement().dispatchEvent(event);
             }
         }
     }
