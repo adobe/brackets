@@ -178,7 +178,6 @@ define(function (require, exports, module) {
                                   ch: cursor.ch + (hint.length - this.info.name.length) };
                 } else {
                     hint += ":";
-                    end.ch++;       // Add one for the colon that we're appending.
                 }
             }
         } else if (!this.info.isNewItem && this.info.index !== -1) {
