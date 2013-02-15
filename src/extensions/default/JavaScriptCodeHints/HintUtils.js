@@ -161,13 +161,18 @@ define(function (require, exports, module) {
         });
     }
 
+    // TODO 1: The definitions below should be defined in a separate JSON file.
+    // TODO 2: Add properties and associations for the builtin globals.
+
     var KEYWORD_NAMES   = [
         "break", "case", "catch", "continue", "debugger", "default", "delete",
         "do", "else", "finally", "for", "function", "if", "in", "instanceof",
         "new", "return", "switch", "this", "throw", "try", "typeof", "var",
         "void", "while", "with"
     ],
-        KEYWORD_TOKENS  = KEYWORD_NAMES.map(function (t) { return makeToken(t, []); }),
+        KEYWORD_TOKENS  = KEYWORD_NAMES.map(function (t) {
+            return makeToken(t, []);
+        }),
         KEYWORDS        = annotateKeywords(KEYWORD_TOKENS);
     
     var LITERAL_NAMES   = [
@@ -176,7 +181,7 @@ define(function (require, exports, module) {
         LITERAL_TOKENS  = LITERAL_NAMES.map(function (t) { return makeToken(t, []); }),
         LITERALS        = annotateLiterals(LITERAL_TOKENS);
 
-    var JSL_GLOBALS = [
+    var JSL_GLOBAL_NAMES = [
         "clearInterval", "clearTimeout", "document", "event", "frames",
         "history", "Image", "location", "name", "navigator", "Option",
         "parent", "screen", "setInterval", "setTimeout", "window",
@@ -187,10 +192,13 @@ define(function (require, exports, module) {
         "readFile", "readUrl", "runCommand", "seal", "serialize", "spawn",
         "sync", "toint32", "version", "ActiveXObject", "CScript", "Enumerator",
         "System", "VBArray", "WScript"
-    ].reduce(function (prev, curr) {
-        prev[curr] = makeToken(curr);
-        return prev;
-    }, {});
+    ],
+        JSL_GLOBALS = annotateGlobals(JSL_GLOBAL_NAMES.map(function (t) {
+            return makeToken(t, []);
+        })).reduce(function (prev, curr) {
+            prev[curr.value] = curr;
+            return prev;
+        }, {});
 
     var JSL_GLOBALS_BROWSER = [
             JSL_GLOBALS.clearInterval,
@@ -274,6 +282,22 @@ define(function (require, exports, module) {
         windows : JSL_GLOBALS_WINDOWS
     };
     
+    var BUILTIN_GLOBAL_NAMES = [
+        "Array", "Boolean", "Date", "Function", "Iterator", "Number", "Object",
+        "RegExp", "String", "ArrayBuffer", "DataView", "Float32Array",
+        "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array",
+        "Uint32Array", "Uint8Array", "Uint8ClampedArray", "Error", "EvalError",
+        "InternalError", "RangeError", "ReferenceError", "StopIteration",
+        "SyntaxError", "TypeError", "URIError", "decodeURI",
+        "decodeURIComponent", "encodeURI", "encodeURIComponent", "eval",
+        "isFinite", "isNaN", "parseFloat", "parseInt", "uneval", "Infinity",
+        "JSON", "Math", "NaN"
+    ],
+        BUILTIN_GLOBAL_TOKENS = BUILTIN_GLOBAL_NAMES.map(function (t) {
+            return makeToken(t, []);
+        }),
+        BUILTIN_GLOBALS = annotateGlobals(BUILTIN_GLOBAL_TOKENS);
+
     exports.makeToken               = makeToken;
     exports.hintable                = hintable;
     exports.maybeIdentifier         = maybeIdentifier;
@@ -285,6 +309,7 @@ define(function (require, exports, module) {
     exports.annotateWithScope       = annotateWithScope;
     exports.annotateWithAssociation = annotateWithAssociation;
     exports.JSL_GLOBAL_DEFS         = JSL_GLOBAL_DEFS;
+    exports.BUILTIN_GLOBALS         = BUILTIN_GLOBALS;
     exports.KEYWORDS                = KEYWORDS;
     exports.LITERALS                = LITERALS;
     exports.MODE_NAME               = MODE_NAME;

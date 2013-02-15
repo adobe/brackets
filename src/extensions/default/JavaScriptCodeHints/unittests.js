@@ -185,11 +185,11 @@ define(function (require, exports, module) {
                 hintsPresentExact(hintObj, ["A2", "A3", "A1"]);
                 hintsAbsent(hintObj, ["funB"]);
             });
-            
+
             it("should list keywords", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                hintsPresent(hintObj, ["function", "var", "switch"]);
+                hintsPresent(hintObj, ["break", "case", "catch"]);
             });
             
             it("should list explicitly defined globals from JSLint annotations", function () {

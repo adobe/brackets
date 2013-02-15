@@ -162,8 +162,6 @@ function require(url) {
                 }
             });
         }
-
-        globals.sort(function (a, b) { return a.value < b.value; });
         return globals;
     }
 
@@ -210,9 +208,15 @@ function require(url) {
                 comment     : true
             });
 
+            var scope           = new Scope(ast),
+                definedGlobals  = extractGlobals(ast.comments),
+                builtinGlobals  = HintUtils.BUILTIN_GLOBALS,
+                allGlobals      = definedGlobals.concat(builtinGlobals),
+                comparator      = function (a, b) { return a.value < b.value; };
+
             respond(dir, file, text.length, {
-                scope : new Scope(ast),
-                globals : extractGlobals(ast.comments)
+                scope   : scope,
+                globals : allGlobals.sort(comparator)
             });
         } catch (err) {
             // If parsing fails, we can try again after blanking out the line
