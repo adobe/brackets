@@ -33,7 +33,8 @@
 function require(url) {
     "use strict";
 
-    var exports = {};
+    var exports     = {},
+        oldDefine   = self.define;
 
     /*
      * The following function is called by AMD modules when loaded with
@@ -58,6 +59,7 @@ function require(url) {
     };
     self.define.amd = true;
     importScripts(url);
+    self.define = oldDefine;
     return exports;
 }
 
