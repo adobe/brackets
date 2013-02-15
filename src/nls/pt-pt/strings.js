@@ -271,5 +271,5 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "O URL base não pode conter parametros de pesquisa como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "O URL base não pode conter cardinal como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracteres especiais como '{0}' têm que ser %-codificados.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Erro desconhecido na análise do URL base",
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Erro desconhecido na análise do URL base"
 });

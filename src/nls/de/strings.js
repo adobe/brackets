@@ -90,12 +90,12 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}."
-                                                + "<br /><br />"
-                                                + "Welche Version wollen Sie weiter verwenden?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}."
-                                                + "<br /><br />"
-                                                + "Wollen Sie die Änderungen beibehalten?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}." +
+                                                "<br /><br />" +
+                                                "Welche Version wollen Sie weiter verwenden?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}." +
+                                                "<br /><br />" +
+                                                "Wollen Sie die Änderungen beibehalten?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
@@ -178,6 +178,8 @@ define({
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_QUIT"                            : "Beenden",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Beenden",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Bearbeiten",
@@ -218,8 +220,8 @@ define({
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
-    "CMD_GOTO_LINE"                       : "Gehe zu Zeile",
-    "CMD_GOTO_DEFINITION"                 : "Gehe zu Definition",
+    "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
+    "CMD_GOTO_DEFINITION"                 : "Gehe zur Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
