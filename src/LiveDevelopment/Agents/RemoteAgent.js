@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, XMLHttpRequest */
+/*global define, $, XMLHttpRequest, window */
 
 /**
  * RemoteAgent defines and provides an interface for custom remote functions
@@ -42,6 +42,7 @@ define(function RemoteAgent(require, exports, module) {
 
     var _load; // deferred load
     var _objectId; // the object id of the remote object
+    var _intervalId; // interval used to send keepAlive events
 
     // WebInspector Event: Page.loadEventFired
     function _onLoadEventFired(event, res) {
@@ -90,7 +91,7 @@ define(function RemoteAgent(require, exports, module) {
                 args[i] = args[i].resolve();
             }
         }
-        $.when.apply(undefined, args).then(function onResolvedAllNodes() {
+        $.when.apply(undefined, args).done(function onResolvedAllNodes() {
             var i, arg, params = [];
             for (i in arguments) {
                 arg = args[i];
@@ -109,6 +110,11 @@ define(function RemoteAgent(require, exports, module) {
         _load = new $.Deferred();
         $(Inspector.Page).on("loadEventFired.RemoteAgent", _onLoadEventFired);
         $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
+        _load.done(function () {
+            _intervalId = window.setInterval(function () {
+                call("keepAlive");
+            }, 1000);
+        });
         return _load.promise();
     }
 
@@ -116,6 +122,9 @@ define(function RemoteAgent(require, exports, module) {
     function unload() {
         $(Inspector.Page).off(".RemoteAgent");
         $(Inspector.DOM).off(".RemoteAgent");
+        if (_intervalId) {
+            window.clearInterval(_intervalId);
+        }
     }
 
     // Export public functions

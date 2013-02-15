@@ -44,11 +44,13 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/perl/perl");
     require("thirdparty/CodeMirror2/mode/python/python");
     require("thirdparty/CodeMirror2/mode/ruby/ruby");
+    require("thirdparty/CodeMirror2/mode/sass/sass");
     require("thirdparty/CodeMirror2/mode/lua/lua");
     require("thirdparty/CodeMirror2/mode/mysql/mysql");
     require("thirdparty/CodeMirror2/mode/diff/diff");
     require("thirdparty/CodeMirror2/mode/markdown/markdown");
     require("thirdparty/CodeMirror2/mode/yaml/yaml");
+    require("thirdparty/CodeMirror2/mode/haxe/haxe");
 
     /**
      * @private
@@ -91,6 +93,8 @@ define(function (require, exports, module) {
         case "cfm":
         case "cfml":
         case "cfc":
+        case "dhtml":
+        case "xht":
             return "htmlmixed";
 
         case "svg":
@@ -105,6 +109,7 @@ define(function (require, exports, module) {
         case "php5":
         case "phtm":
         case "phtml":
+        case "ctp":
             return "php";
 
         case "cc":
@@ -143,7 +148,12 @@ define(function (require, exports, module) {
             return "ruby";
 
         case "py":
+        case "pyw":
             return "python";
+
+        case "sass":
+        case "scss":
+            return "sass";
         
         case "lua":
             return "lua";
@@ -162,6 +172,9 @@ define(function (require, exports, module) {
         case "yaml":
         case "yml":
             return "yaml";
+        
+        case "hx":
+            return "haxe";
 
         default:
             console.log("Called EditorUtils.js _getModeFromFileExtensions with an unhandled file extension: " + ext);

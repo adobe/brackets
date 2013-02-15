@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     require("spec/DocumentCommandHandlers-test");
     require("spec/Editor-test");
     require("spec/EditorCommandHandlers-test");
+    require("spec/EditorManager-test");
     require("spec/ExtensionUtils-test");
     require("spec/FileIndexManager-test");
     require("spec/FindReplace-test");
@@ -45,8 +46,11 @@ define(function (require, exports, module) {
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
     require("spec/NativeFileSystem-test");
+    require("spec/NativeMenu-test");
     require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");
+    require("spec/QuickOpen-test");
+    require("spec/StringMatch-test");
     require("spec/UpdateNotification-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");

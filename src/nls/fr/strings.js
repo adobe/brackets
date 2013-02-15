@@ -174,9 +174,16 @@ define({
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_QUIT": "Quitter",
+    // Used in native File menu on Windows
+	"CMD_EXIT": "Quitter",
 
     // Edit menu commands
 	"EDIT_MENU": "Modifier",
+	"CMD_UNDO": "Annuler",
+	"CMD_REDO": "Répéter",
+	"CMD_CUT": "Couper",
+	"CMD_COPY": "Copier",
+	"CMD_PASTE": "Coller",
 	"CMD_SELECT_ALL": "Sélectionner tout",
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
 	"CMD_FIND": "Rechercher",
@@ -211,6 +218,7 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
@@ -228,19 +236,25 @@ define({
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
-	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 
     // Help menu commands
 	"HELP_MENU": "Aide",
-	"CMD_ABOUT": "A propos de {APP_TITLE}",
+	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
+	"CMD_HOW_TO_USE_BRACKETS": "Comment utiliser {APP_NAME}",
 	"CMD_FORUM": "Forum {APP_NAME}",
+	"CMD_RELEASE_NOTES": "Notes de mise à jour",
+	"CMD_REPORT_AN_ISSUE": "Signaler un problème",
+	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
+	"CMD_ABOUT": "A propos de {APP_TITLE}",
+
 
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
 	"CMD_ABORT_QUIT": "Annuler la fermeture",
 
     // Strings for main-view.html
-	"EXPERIMENTAL_BUILD": "Version expérimentale",
+	"EXPERIMENTAL_BUILD": "version expérimentale",
+	"DEVELOPMENT_BUILD": "version de développement",
 	"JSLINT_ERRORS": "Erreurs JSLint",
 	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
 	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
@@ -258,7 +272,7 @@ define({
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "version expérimentale sprint {VERSION_MINOR} {VERSION}",
+	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",

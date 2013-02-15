@@ -174,9 +174,16 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_QUIT"                            : "Salir",
-
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Salir",
+    
     // Edit menu commands
     "EDIT_MENU"                           : "Edición",
+    "CMD_UNDO"                            : "Deshacer",
+    "CMD_REDO"                            : "Rehacer",
+    "CMD_CUT"                             : "Cortar",
+    "CMD_COPY"                            : "Copiar",
+    "CMD_PASTE"                           : "Pegar",
     "CMD_SELECT_ALL"                      : "Seleccionar todo",
     "CMD_SELECT_LINE"                     : "Seleccionar línea",
     "CMD_FIND"                            : "Buscar",
@@ -211,6 +218,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a línea",
     "CMD_GOTO_DEFINITION"                 : "Ir a definición",
+    "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",

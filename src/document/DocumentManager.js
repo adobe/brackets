@@ -56,6 +56,8 @@
  *      Document whose flag changed.
  *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
  *      Document that has been saved.
+ *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
+ *      listener is the Document that has been refreshed.
  *
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
  *
@@ -804,6 +806,8 @@ define(function (require, exports, module) {
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
+        
+        $(exports).triggerHandler("documentRefreshed", this);
 
         PerfUtils.addMeasurement(perfTimerName);
     };
@@ -816,10 +820,18 @@ define(function (require, exports, module) {
      * @param {!string} text  Text to insert or replace the range with
      * @param {!{line:number, ch:number}} start  Start of range, inclusive (if 'to' specified) or insertion point (if not)
      * @param {?{line:number, ch:number}} end  End of range, exclusive; optional
+     * @param {?string} origin  Optional string used to batch consecutive edits for undo.
+     *     If origin starts with "+", then consecutive edits with the same origin will be batched for undo if 
+     *     they are close enough together in time.
+     *     If origin starts with "*", then all consecutive edit with the same origin will be batched for
+     *     undo.
+     *     Edits with origins starting with other characters will not be batched.
+     *     (Note that this is a higher level of batching than batchOperation(), which already batches all
+     *     edits within it for undo. Origin batching works across operations.)
      */
-    Document.prototype.replaceRange = function (text, start, end) {
+    Document.prototype.replaceRange = function (text, start, end, origin) {
         this._ensureMasterEditor();
-        this._masterEditor._codeMirror.replaceRange(text, start, end);
+        this._masterEditor._codeMirror.replaceRange(text, start, end, origin);
         // _handleEditorChange() triggers "change" event
     };
     
@@ -853,9 +865,7 @@ define(function (require, exports, module) {
         this._ensureMasterEditor();
         
         var self = this;
-        this._masterEditor._codeMirror.compoundChange(function () {
-            self._masterEditor._codeMirror.operation(doOperation);
-        });
+        self._masterEditor._codeMirror.operation(doOperation);
     };
     
     /**
@@ -867,7 +877,7 @@ define(function (require, exports, module) {
         // On any change, mark the file dirty. In the future, we should make it so that if you
         // undo back to the last saved state, we mark the file clean.
         var wasDirty = this.isDirty;
-        this.isDirty = editor._codeMirror.isDirty();
+        this.isDirty = !editor._codeMirror.isClean();
         
         // If file just became dirty, notify listeners, and add it to working set (if not already there)
         if (wasDirty !== this.isDirty) {
@@ -1094,7 +1104,7 @@ define(function (require, exports, module) {
      * @private
      * Initializes the working set.
      */
-    function _projectOpen() {
+    function _projectOpen(e) {
         _isProjectChanging = false;
         
         // file root is appended for each project
@@ -1124,7 +1134,9 @@ define(function (require, exports, module) {
         }
 
         if (activeFile) {
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
+            var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile });
+            // Add this promise to the event's promises to signal that this handler isn't done yet
+            e.promises.push(promise);
         }
     }
 

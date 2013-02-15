@@ -32,14 +32,7 @@
  */
 
 .project-panel-background {
-    background: rgb(73,77,77); /* Old browsers */
-    background: -moz-linear-gradient(top,  rgb(73,77,77) 0%, rgb(59,63,65) 51%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(73,77,77)), color-stop(51%,rgb(59,63,65))); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* Opera 11.10+ */
-    background: -ms-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* IE10+ */
-    background: linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* W3C */
-    filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#494d4d', endColorstr='#3b3f41',GradientType=0 )";  /* IE6-9 */
+    background: #3C3F41 url("images/propertiespanel_back.png") repeat-x 0 0;
 }
 
 .panel {
@@ -155,6 +148,10 @@
             font-style: italic;
             padding-right: 22px;
         }
+
+        span, a {
+            cursor: default;
+        }
     }
 }
 
@@ -175,6 +172,7 @@
     a {
         color: @bc-black;
         text-shadow: none;
+        cursor: default;
     }
 
     // Menubar item appearance
@@ -290,7 +288,7 @@
             a {
                 // Less padding than on menus. More padding on top than bottom
                 // to center font within its bg highlight better.
-                padding: 2px 0px 0px 0px;
+                padding: 2px 20px 0px 0px;
 
                 // Don't show highlighting on hover for code hints...
                 &:hover {
@@ -316,6 +314,10 @@
 
 .modal {
     width: auto;
+}
+
+.modal .close {
+    cursor: default;
 }
 
 .modal-body, .modal-header {
@@ -369,6 +371,7 @@
 }
 
 .btn {
+    cursor: default;
     font-size: 16px;
     font-weight: @font-weight-semibold;
     color: #454545;

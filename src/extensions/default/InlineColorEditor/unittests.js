@@ -143,6 +143,12 @@ define(function (require, exports, module) {
                 it("should show the correct color when opened on a color in a shorthand property", function () {
                     testOpenColor({line: 41, ch: 27}, "#0f0f0f");
                 });
+                it("should show the correct color when opened on an rgba() color with a leading period in the alpha field", function () {
+                    testOpenColor({line: 45, ch: 18}, "rgba(100, 200, 150, .5)");
+                });
+                it("should show the correct color when opened on an hsla() color with a leading period in the alpha field", function () {
+                    testOpenColor({line: 49, ch: 18}, "hsla(180, 50%, 50%, .5)");
+                });
                 
                 it("should not open when not on a color", function () {
                     makeColorEditor({line: 1, ch: 6});
@@ -275,6 +281,18 @@ define(function (require, exports, module) {
                 
             });
             
+            describe("edit batching", function () {
+                it("should combine multiple edits within the same inline editor into a single undo in the host editor", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        inline.colorEditor.setColorFromString("#010101");
+                        inline.colorEditor.setColorFromString("#123456");
+                        inline.colorEditor.setColorFromString("#bdafe0");
+                        testDocument._masterEditor._codeMirror.undo();
+                        expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#abcdef");
+                    });
+                });
+            });
         });
         
         describe("Inline editor - HTML", function () {

@@ -29,12 +29,12 @@
  * Initializes the global "brackets" variable and it's properties.
  * Modules should not access the global.brackets object until either
  * (a) the module requires this module, i.e. require("utils/Global") or
- * (b) the module receives a "ready" callback from the utils/AppReady module.
+ * (b) the module receives a "appReady" callback from the utils/AppReady module.
  */
 define(function (require, exports, module) {
     "use strict";
     
-    var packageJSON = require("text!package.json");
+    var configJSON = require("text!config.json");
     
     // Define core brackets namespace if it isn't already defined
     //
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     
     // Parse src/config.json
     try {
-        global.brackets.metadata = JSON.parse(packageJSON);
+        global.brackets.metadata = JSON.parse(configJSON);
         global.brackets.config = global.brackets.metadata.config;
     } catch (err) {
         console.log(err);

@@ -35,59 +35,79 @@ define(function (require, exports, module) {
         KeyEvent        = require("utils/KeyEvent");
 
     /**
-     * @constructor
+     * Displays a popup list of hints for a given editor context.
      *
-     * Displays a popup list of code completions.
-     * Currently only HTML tags are supported, but this will greatly be extended in coming sprint
-     * to include: extensibility API, HTML attributes hints, JavaScript hints, CSS hints
+     * @constructor
+     * @param {Editor} editor
      */
     function CodeHintList(editor) {
-        this.displayList = [];
-        this.options = {
-            maxResults: 999
-        };
 
-        this.opened = false;
+        /**
+         * The list of hints to display
+         *
+         * @type {Array<String + jQuery.Object>}
+         */
+        this.hints = [];
+
+        /**
+         * The selected position in the list; otherwise -1.
+         *
+         * @type {number}
+         */
         this.selectedIndex = -1;
+
+        /**
+         * The maximum number of hints to display
+         *
+         * @type {number}
+         */
+        this.maxResults = 999;
+
+        /**
+         * Is the list currently open?
+         *
+         * @type {boolean}
+         */
+        this.opened = false;
+
+        /**
+         * The editor context
+         *
+         * @type {Editor}
+         */
         this.editor = editor;
+
+        /**
+         * The hint selection callback function
+         *
+         * @type {Function}
+         */
         this.handleSelect = null;
+
+        /**
+         * The hint list closure callback function
+         *
+         * @type {Function}
+         */
         this.handleClose = null;
 
-        this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
-        var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
-            .hide();
-
-        this.$hintMenu.append($toggle)
-            .append("<ul class='dropdown-menu'></ul>");
+        /**
+         * The hint list menu object
+         *
+         * @type {jQuery.Object}
+         */
+        this.$hintMenu =
+            $("<li class='dropdown codehint-menu'></li>")
+                .append($("<a href='#' class='dropdown-toggle'></a>")
+                        .hide())
+                .append("<ul class='dropdown-menu'></ul>");
     }
 
     /**
+     * Select the item in the hint list at the specified index, or remove the
+     * selection if index < 0.
+     *
      * @private
-     * Adds a single item to the hint list
-     * @param {string} name
-     */
-    CodeHintList.prototype._addItem = function (name) {
-        var self = this;
-        var displayName = name.replace(
-            new RegExp(StringUtils.regexEscape(this.query.queryStr), "i"),
-            "<strong>$&</strong>"
-        );
-
-        var $item = $("<li><a href='#'><span class='codehint-item'>" + displayName + "</span></a></li>")
-            .on("click", function (e) {
-                // Don't let the click propagate upward (otherwise it will hit the close handler in
-                // bootstrap-dropdown).
-                e.stopPropagation();
-                self.handleSelect(name);
-            });
-
-        this.$hintMenu.find("ul.dropdown-menu")
-            .append($item);
-    };
-    
-    /**
-     * @private
-     * Selects the item in the hint list specified by index
      * @param {number} index
      */
     CodeHintList.prototype._setSelectedIndex = function (index) {
@@ -100,10 +120,10 @@ define(function (require, exports, module) {
         if (this.selectedIndex !== -1) {
             $(items[this.selectedIndex]).find("a").removeClass("highlight");
         }
-        
-        // Highlight the new selected item
+
         this.selectedIndex = index;
 
+        // Highlight the new selected item, if necessary
         if (this.selectedIndex !== -1) {
             var $item = $(items[this.selectedIndex]);
             var $view = this.$hintMenu.find("ul.dropdown-menu");
@@ -112,63 +132,85 @@ define(function (require, exports, module) {
             $item.find("a").addClass("highlight");
         }
     };
-            
+
     /**
+     * Rebuilds the list items for the hint list.
+     *
      * @private
-     * Rebuilds the list items for the hint list based on this.displayList
      */
-    CodeHintList.prototype._buildListView = function () {
-        var self = this;
+    CodeHintList.prototype._buildListView = function (hintObj) {
+        var self            = this,
+            match           = hintObj.match,
+            selectInitial   = hintObj.selectInitial,
+            _addHint;
+
+        this.hints = hintObj.hints;
+
+        // add a formatted hint to the hint list
+        function _addListItem(hint, formattedHint) {
+            var $spanItem = $("<span class='codehint-item'>").append(formattedHint),
+                $anchorItem = $("<a href='#'>").append($spanItem),
+                $listItem = $("<li>").append($anchorItem)
+                    .on("click", function (e) {
+                        // Don't let the click propagate upward (otherwise it will
+                        // hit the close handler in bootstrap-dropdown).
+                        e.stopPropagation();
+                        if (self.handleSelect) {
+                            self.handleSelect(hint);
+                        }
+                    });
+
+            self.$hintMenu.find("ul.dropdown-menu")
+                .append($listItem);
+        }
+
+        // if there is no match, assume name is already a formatted jQuery
+        // object; otherwise, use match to format name for display.
+        if (match) {
+            _addHint = function (name) {
+                var displayName = $("<span>")
+                    .append(name.replace(
+                        new RegExp(StringUtils.regexEscape(match), "i"),
+                        "<strong>$&</strong>"
+                    ));
+                _addListItem(name, displayName);
+            };
+        } else {
+            _addHint = function (name) {
+                _addListItem(name, name);
+            };
+        }
 
         // clear the list 
         this.$hintMenu.find("li").remove();
 
-        $.each(this.displayList, function (index, item) {
-            if (index > self.options.maxResults) {
-                return false;
+        // if there are no hints then close the list; otherwise add them and
+        // set the selection
+        if (this.hints.length === 0) {
+            if (this.handleClose) {
+                this.handleClose();
             }
-            self._addItem(item);
-        });
-
-        if (this.displayList.length === 0) {
-            this.handleClose();
         } else {
-            this._setSelectedIndex(this.initialSelect ? 0 : -1);
+            $.each(this.hints, function (index, item) {
+                if (index > self.maxResults) {
+                    return false;
+                }
+                _addHint(item);
+            });
+            this._setSelectedIndex(selectInitial ? 0 : -1);
         }
     };
 
     /**
-     * @private
-     * Calculate the number of items per scroll page. Used for PageUp and PageDown.
-     * @return {number}
-     */
-    CodeHintList.prototype._getItemsPerPage = function () {
-        var itemsPerPage = 1,
-            $items = this.$hintMenu.find("li"),
-            $view = this.$hintMenu.find("ul.dropdown-menu"),
-            itemHeight;
-
-        if ($items.length !== 0) {
-            itemHeight = $($items[0]).height();
-            if (itemHeight) {
-                // round down to integer value
-                itemsPerPage = Math.floor($view.height() / itemHeight);
-                itemsPerPage = Math.max(1, Math.min(itemsPerPage, $items.length));
-            }
-        }
-
-        return itemsPerPage;
-    };
-
-    /**
-     * @private
      * Computes top left location for hint list so that the list is not clipped by the window
-     * @return {Object.<left: number, top: number> }
+     *
+     * @private
+     * @return {{left: number, top: number}}
      */
     CodeHintList.prototype._calcHintListLocation = function () {
         var cursor = this.editor._codeMirror.cursorCoords(),
-            posTop  = cursor.y,
-            posLeft = cursor.x,
+            posTop  = cursor.top,
+            posLeft = cursor.left,
             $window = $(window),
             $menuWindow = this.$hintMenu.children("ul");
 
@@ -191,8 +233,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Handles key presses when the hint list is being displayed
-     * @param {Editor} editor
+     * Convert keydown events into hint list navigation actions.
+     *
      * @param {KeyBoardEvent} keyEvent
      */
     CodeHintList.prototype.handleKeyEvent = function (event) {
@@ -201,23 +243,53 @@ define(function (require, exports, module) {
 
         // positive distance rotates down; negative distance rotates up
         function _rotateSelection(distance) {
-            var len = Math.min(self.displayList.length, self.options.maxResults),
+            var len = Math.min(self.hints.length, self.maxResults),
                 pos;
 
-            // set the initial selection position if necessary
             if (self.selectedIndex < 0) {
-                pos = (distance > 0) ? len - 1 : 0;
-                self._setSelectedIndex(pos);
+                // set the initial selection
+                pos = (distance > 0) ? distance - 1 : len - 1;
+
             } else {
+                // adjust current selection
                 pos = self.selectedIndex;
+
+                // Don't "rotate" until all items have been shown
+                if (distance > 0) {
+                    if (pos === (len - 1)) {
+                        pos = 0;  // wrap
+                    } else {
+                        pos = Math.min(pos + distance, len - 1);
+                    }
+                } else {
+                    if (pos === 0) {
+                        pos = (len - 1);  // wrap
+                    } else {
+                        pos = Math.max(pos + distance, 0);
+                    }
+                }
             }
 
-            // rotate the selection
-            if (distance < 0) {
-                distance %= len;
-                distance += len;
+            self._setSelectedIndex(pos);
+        }
+
+        // Calculate the number of items per scroll page.
+        function _itemsPerPage() {
+            var itemsPerPage = 1,
+                $items = self.$hintMenu.find("li"),
+                $view = self.$hintMenu.find("ul.dropdown-menu"),
+                itemHeight;
+    
+            if ($items.length !== 0) {
+                itemHeight = $($items[0]).height();
+                if (itemHeight) {
+                    // round down to integer value
+                    itemsPerPage = Math.floor($view.height() / itemHeight);
+                    itemsPerPage = Math.max(1, Math.min(itemsPerPage, $items.length));
+                }
             }
-            self._setSelectedIndex((pos + distance) % len);
+
+            return itemsPerPage;
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
@@ -229,9 +301,9 @@ define(function (require, exports, module) {
             } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
-                _rotateSelection.call(this, -this._getItemsPerPage());
+                _rotateSelection.call(this, -_itemsPerPage());
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
-                _rotateSelection.call(this, this._getItemsPerPage());
+                _rotateSelection.call(this, _itemsPerPage());
             } else if (this.selectedIndex !== -1 &&
                     (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
                 // Trigger a click handler to commmit the selected item
@@ -246,7 +318,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Return true if the CodeHintList is open.
+     * Is the CodeHintList open?
+     *
      * @return {boolean}
      */
     CodeHintList.prototype.isOpen = function () {
@@ -259,20 +332,18 @@ define(function (require, exports, module) {
         
         return this.opened;
     };
-    
+
     /**
      * Displays the hint list at the current cursor position
-     * @param {Editor} editor
+     *
+     * @param {Object<hints: Array<String + jQuery.Object>, match: String,
+     *          selectInitial: boolean>} hintObj
      */
-    CodeHintList.prototype.open = function (response) {
-        this.query = {queryStr: response.match};
-        this.displayList = response.hints;
-        this.initialSelect = response.selectInitial;
-
+    CodeHintList.prototype.open = function (hintObj) {
         Menus.closeAll();
-        this._buildListView();
-    
-        if (this.displayList.length) {
+        this._buildListView(hintObj);
+
+        if (this.hints.length) {
             // Need to add the menu to the DOM before trying to calculate its ideal location.
             $("#codehint-menu-bar > ul").append(this.$hintMenu);
             
@@ -287,17 +358,16 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Gets the new query from the current provider and rebuilds the hint list based on the new one.
+     * Updates the (already open) hint list window with new hints
+     *
+     * @param {Object<hints: Array<String + jQuery.Object>, match: String,
+     *          selectInitial: boolean>} hintObj
      */
-    CodeHintList.prototype.update = function (response) {
-        this.query = {queryStr: response.match};
-        this.displayList = response.hints;
-        this.initialSelect = response.selectInitial;
-
-        this._buildListView();
+    CodeHintList.prototype.update = function (hintObj) {
+        this._buildListView(hintObj);
 
         // Update the CodeHintList location
-        if (this.displayList.length) {
+        if (this.hints.length) {
             var hintPos = this._calcHintListLocation();
             this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
         }
@@ -313,11 +383,21 @@ define(function (require, exports, module) {
         PopUpManager.removePopUp(this.$hintMenu);
         this.$hintMenu.remove();
     };
-        
+
+    /**
+     * Set the hint list selection callback function
+     *
+     * @param {Function} callback
+     */
     CodeHintList.prototype.onSelect = function (callback) {
         this.handleSelect = callback;
     };
 
+    /**
+     * Set the hint list closure callback function
+     *
+     * @param {Function} callback
+     */
     CodeHintList.prototype.onClose = function (callback) {
         // TODO: Due to #1381, this won't get called if the user clicks out of
         // the code hint menu. That's (sort of) okay right now since it doesn't

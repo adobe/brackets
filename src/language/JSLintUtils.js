@@ -72,6 +72,27 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * @type {function()}
+     * Holds a pointer to the function that selects the first error in the 
+     * list. Stored when running JSLint and used by the "Go to First JSLint
+     * Error" command
+     */
+    var _gotoFirstErrorFunction = null;
+    
+    /**
+     * @private
+     * Enable or disable the "Go to First JSLint Error" command
+     * @param {boolean} gotoEnabled Whether it is enabled.
+     */
+    function _setGotoEnabled(gotoEnabled) {
+        CommandManager.get(Commands.NAVIGATE_GOTO_JSLINT_ERROR).setEnabled(gotoEnabled);
+        if (!gotoEnabled) {
+            _gotoFirstErrorFunction = null;
+        }
+    }
+    
+    /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
      * a gold star when no errors are found.
      */
@@ -123,7 +144,7 @@ define(function (require, exports, module) {
                             .append(makeCell(item.evidence || ""))
                             .appendTo($errorTable);
                         
-                        $row.click(function () {
+                        var clickCallback = function () {
                             if ($selectedRow) {
                                 $selectedRow.removeClass("selected");
                             }
@@ -131,9 +152,13 @@ define(function (require, exports, module) {
                             $selectedRow = $row;
                             
                             var editor = EditorManager.getCurrentFullEditor();
-                            editor.setCursorPos(item.line - 1, item.character - 1);
+                            editor.setCursorPos(item.line - 1, item.character - 1, true);
                             EditorManager.focusEditor();
-                        });
+                        };
+                        $row.click(clickCallback);
+                        if (i === 0) { // first result, so store callback for goto command
+                            _gotoFirstErrorFunction = clickCallback;
+                        }
                     }
                 });
 
@@ -147,12 +172,23 @@ define(function (require, exports, module) {
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(module.id, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
-                    StatusBar.updateIndicator(module.id, true, "jslint-errors", StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, JSLINT.errors.length));
+                    //return the number of non-null errors
+                    var numberOfErrors = JSLINT.errors.filter(function (err) { return err !== null; }).length;
+                    //if there was a null value it means there was a stop notice and an indertiminate
+                    //upper bound on the number of JSLint errors, which we'll represent by appending a '+'
+                    if (numberOfErrors !== JSLINT.errors.length) {
+                        //first discard the stop notice
+                        numberOfErrors -= 1;
+                        numberOfErrors += "+";
+                    }
+                    StatusBar.updateIndicator(module.id, true, "jslint-errors", StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, numberOfErrors));
                 }
+                _setGotoEnabled(true);
             } else {
                 $lintResults.hide();
                 $goldStar.show();
                 StatusBar.updateIndicator(module.id, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
+                _setGotoEnabled(false);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
@@ -163,6 +199,7 @@ define(function (require, exports, module) {
             $lintResults.hide();
             $goldStar.hide();
             StatusBar.updateIndicator(module.id, true, "jslint-disabled", Strings.JSLINT_DISABLED);
+            _setGotoEnabled(false);
         }
         
         EditorManager.resizeEditor();
@@ -179,7 +216,7 @@ define(function (require, exports, module) {
                 .on("currentDocumentChange.jslint", function () {
                     run();
                 })
-                .on("documentSaved.jslint", function (event, document) {
+                .on("documentSaved.jslint documentRefreshed.jslint", function (event, document) {
                     if (document === DocumentManager.getCurrentDocument()) {
                         run();
                     }
@@ -215,8 +252,17 @@ define(function (require, exports, module) {
         setEnabled(!getEnabled());
     }
     
+    /** Command to go to the first JSLint Error */
+    function _handleGotoJSLintError() {
+        run();
+        if (_gotoFirstErrorFunction) {
+            _gotoFirstErrorFunction();
+        }
+    }
+    
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
+    CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, Commands.NAVIGATE_GOTO_JSLINT_ERROR, _handleGotoJSLintError);
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);

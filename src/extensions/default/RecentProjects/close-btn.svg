@@ -6,10 +6,8 @@
 		<polygon id="cross" points="12.207,4.207 10.793,2.793 7.5,6.086 4.207,2.793 2.793,4.207 6.086,7.5 2.793,10.793 4.207,12.207 7.5,8.914 10.793,12.207 12.207,10.793 8.914,7.5"/>
 	</defs>
 
-	<use xlink:href="#cross" y="1" filter="url(#blur)" opacity=".5"/>
-	<use xlink:href="#cross" fill="#868686"/>
-	<use xlink:href="#cross" x="15" y="1" filter="url(#blur)" opacity=".5"/>
-	<use xlink:href="#cross" x="15" fill="#9f9f9f"/>
-	<circle cx="37" cy="8" r="3" filter="url(#blur)" opacity=".5"/>
-	<circle fill="#868686" cx="37" cy="7" r="3"/>
+	<use xlink:href="#cross" y="1" filter="url(#blur)" opacity=".1"/>
+	<use xlink:href="#cross" fill="#454545" opacity="0.8"/>
+	<use xlink:href="#cross" x="15" y="1" filter="url(#blur)" opacity=".2"/>
+	<use xlink:href="#cross" x="15" fill="#454545" opacity="1"/>
 </svg>

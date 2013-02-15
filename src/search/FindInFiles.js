@@ -59,7 +59,9 @@ define(function (require, exports, module) {
     var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100,
-        maxHitsFoundInFile = false;
+        maxHitsFoundInFile = false,
+        currentQuery = "",
+        currentScope;
     
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
@@ -251,7 +253,7 @@ define(function (require, exports, module) {
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 searchResults.length,
                 (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
-                query,
+                StringUtils.htmlEscape(query),
                 scope ? _labelForScope(scope) : ""
             );
             
@@ -303,7 +305,7 @@ define(function (require, exports, module) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
                                     .done(function (doc) {
                                         // Opened document is now the current main editor
-                                        EditorManager.getCurrentFullEditor().setSelection(match.start, match.end);
+                                        EditorManager.getCurrentFullEditor().setSelection(match.start, match.end, true);
                                     });
                             });
                             resultsDisplayed++;
@@ -362,13 +364,16 @@ define(function (require, exports, module) {
         // Default to searching for the current selection
         var currentEditor = EditorManager.getActiveEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
-        
+
+        currentQuery = "";
+        currentScope = scope;
         searchResults = [];
         maxHitsFoundInFile = false;
                             
         dialog.showDialog(initialString, scope)
             .done(function (query) {
                 if (query) {
+                    currentQuery = query;
                     var queryExpr = _getQueryRegExp(query);
                     if (!queryExpr) {
                         return;
@@ -442,7 +447,7 @@ define(function (require, exports, module) {
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
             });
-            _showSearchResults(searchResults);
+            _showSearchResults(searchResults, currentQuery, currentScope);
         }
     }
     

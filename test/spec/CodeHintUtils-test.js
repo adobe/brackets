@@ -43,7 +43,7 @@ define(function (require, exports, module) {
             // init Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
             myDocument = SpecRunnerUtils.createMockDocument("");
-            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
+            myEditor = new Editor(myDocument, true, "", $("#editor").get(0));
         });
 
         afterEach(function () {
@@ -331,6 +331,16 @@ define(function (require, exports, module) {
                     [ "</div>", "</body>", "</html>"]);
                 var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
                 expect(attrs.sort()).toEqual(["id", "class", "lang", "align", "title"].sort());
+            });
+            
+            it("should not find attributes of other tags on an opened tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>"],
+                    "<div ", "",
+                    ["<div id='foo' class='clazz'>", "</div>", "</body>", "</html>"]);
+                var attrs = HTMLUtils.getTagAttributes(myEditor, pos);
+                expect(attrs).toEqual([]);
             });
         });
     });

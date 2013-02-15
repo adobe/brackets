@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
@@ -38,8 +39,8 @@ define(function (require, exports, module) {
         StringUtils         = brackets.getModule("utils/StringUtils"),
         HTMLTags            = require("text!HtmlTags.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
-        tags                = JSON.parse(HTMLTags),
-        attributes          = JSON.parse(HTMLAttributes);
+        tags,
+        attributes;
 
     /**
      * @constructor
@@ -182,8 +183,7 @@ define(function (require, exports, module) {
 
     /**
      * Helper function for search(). Create a list of urls to existing files based on the query.
-     * @param {Object.<queryStr: string, ...} query -- a query object with a required property queryStr 
-     *     that will be used to filter out code hints
+     * @param {{queryStr: string}} query -- a query object, used to filter the code hints
      * @return {Array.<string>}
      */
     AttrHints.prototype._getUrlList = function (query) {
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
     /**
      * Helper function that determins the possible value hints for a given html tag/attribute name pair
      * 
-     * @param {String} query
+     * @param {{queryStr: string}} query
      * The current query
      *
      * @param {String} tagName 
@@ -605,6 +605,11 @@ define(function (require, exports, module) {
         }
 
         if (!this.closeOnSelect) {
+            // If we append the missing quote, then we need to adjust the cursor postion
+            // to keep the code hint list open.
+            if (tokenType === HTMLUtils.ATTR_VALUE && !tagInfo.attr.hasEndQuote) {
+                this.editor.setCursorPos(start.line, start.ch + completion.length - 1);
+            }
             return true;
         }
         
@@ -622,12 +627,19 @@ define(function (require, exports, module) {
         return false;
     };
 
-    var tagHints = new TagHints();
-    var attrHints = new AttrHints();
-    CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
-    CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
+    AppInit.appReady(function () {
+        // Parse JSON files
+        tags = JSON.parse(HTMLTags);
+        attributes = JSON.parse(HTMLAttributes);
+        
+        // Register code hint providers
+        var tagHints = new TagHints();
+        var attrHints = new AttrHints();
+        CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
+        CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
     
-    // For unit testing
-    exports.tagHintProvider = tagHints;
-    exports.attrHintProvider = attrHints;
+        // For unit testing
+        exports.tagHintProvider = tagHints;
+        exports.attrHintProvider = attrHints;
+    });
 });

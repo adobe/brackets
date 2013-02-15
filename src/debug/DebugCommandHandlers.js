@@ -47,7 +47,11 @@ define(function (require, exports, module) {
         var queryString = spec ? "?spec=" + spec : "";
         if (_testWindow) {
             try {
-                _testWindow.location.reload(true);
+                if (_testWindow.location.search !== queryString) {
+                    _testWindow.location.href = "../test/SpecRunner.html" + queryString;
+                } else {
+                    _testWindow.location.reload(true);
+                }
             } catch (e) {
                 _testWindow = null;  // the window was probably closed
             }
@@ -250,10 +254,7 @@ define(function (require, exports, module) {
                 // enable the menu item
                 CommandManager.get(Commands.DEBUG_RUN_UNIT_TESTS).setEnabled(true);
             },
-            function (error) {
-                // Error getting metadata. 
-                // The menu item is already disabled, so there is nothing to do here.
-            }
+            function (error) {} /* menu already disabled, ignore errors */
         );
     }
     

@@ -336,6 +336,11 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
             });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
             
             it("should find the selector at a document pos", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 9, ch: 0});
@@ -372,6 +377,11 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
             });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
             
             it("should ignore rules inside comments", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 45, ch: 22});
@@ -398,6 +408,11 @@ define(function (require, exports, module) {
                 runs(function () {
                     editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
             });
             
             it("should find a simple pseudo selector", function () {
@@ -431,6 +446,11 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
             });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
             
             it("should find pseudo selectors", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 72, ch: 0});
@@ -462,6 +482,11 @@ define(function (require, exports, module) {
                 runs(function () {
                     editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
                 });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
             });
             
             it("should find selector when pos is at beginning of selector name", function () {
