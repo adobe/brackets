@@ -179,8 +179,13 @@ define(function (require, exports, module) {
     function createMockEditor(initialContent, mode, visibleRange) {
         mode = mode || "";
         
-        // Initialize EditorManager
-        var $editorHolder = $("<div id='mock-editor-holder'/>");
+        // Initialize EditorManager and position the editor-holder offscreen
+        var $editorHolder = $("<div id='mock-editor-holder'/>")
+            .css({
+                position: "absolute",
+                left: "-10000px",
+                top: "-10000px"
+            });
         EditorManager.setEditorHolder($editorHolder);
         EditorManager._init();
         $("body").append($editorHolder);
