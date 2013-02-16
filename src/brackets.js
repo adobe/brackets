@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
+/*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache, WebSocket */
 
 require.config({
     paths: {
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-            
+
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
         
