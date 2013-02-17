@@ -659,13 +659,12 @@ define(function (require, exports, module) {
         }
         
         var sel = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-        
-        // Insert the new line
-        var cm = editor._codeMirror,
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            cm = editor._codeMirror,
             doc = editor.document,
             line;
         
+        // Insert the new line
         switch (direction) {
         case DIRECTION_UP:
             line = sel.start.line;
@@ -679,10 +678,10 @@ define(function (require, exports, module) {
             break;
         }
         
-        cm.operation(function () {
+        doc.batchOperation(function () {
             doc.replaceRange("\n", {line: line, ch: 0});
             cm.indentLine(line);
-            editor.setCursorPos(line, doc.getLine(line).length);
+            editor.setSelection({line: line, ch: null});
         });
     }
 
