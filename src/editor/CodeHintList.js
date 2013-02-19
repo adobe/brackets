@@ -205,7 +205,7 @@ define(function (require, exports, module) {
      * Computes top left location for hint list so that the list is not clipped by the window
      *
      * @private
-     * @return {Object.<left: number, top: number> }
+     * @return {{left: number, top: number}}
      */
     CodeHintList.prototype._calcHintListLocation = function () {
         var cursor = this.editor._codeMirror.cursorCoords(),
