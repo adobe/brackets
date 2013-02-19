@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -67,8 +67,8 @@ function require(url) {
     "use strict";
 
     var Scope       = require("Scope.js"),
-        HintUtils   = require('HintUtils.js'),
-        esprima     = require('thirdparty/esprima/esprima.js');
+        HintUtils   = require("HintUtils.js"),
+        esprima     = require("thirdparty/esprima/esprima.js");
 
     var MAX_RETRIES = 100;
 

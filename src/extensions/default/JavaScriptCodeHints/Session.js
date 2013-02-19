@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
     Session.prototype._getPreviousToken = function (cursor) {
         var token   = this.getToken(cursor),
             prev    = token,
-            doc;
+            doc     = this.editor.document;
 
         do {
             if (prev.start < cursor.ch) {
@@ -122,7 +122,6 @@ define(function (require, exports, module) {
             } else if (prev.start > 0) {
                 cursor.ch = prev.start - 1;
             } else if (cursor.line > 0) {
-                doc = this.editor.document;
                 cursor.ch = doc.getLine(cursor.line - 1).length;
                 cursor.line--;
             } else {
@@ -180,8 +179,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Get the type of the type of the current session, i.e., whether it is a
-     * property lookup and, if so, what the context of the lookup is. 
+     * Get the type of the current session, i.e., whether it is a property
+     * lookup and, if so, what the context of the lookup is.
      */
     Session.prototype.getType = function () {
         var propertyLookup  = false,
@@ -227,7 +226,7 @@ define(function (require, exports, module) {
              * Compute the minimum distance between a token, with which is 
              * associated a sorted list of positions, and a given offset.
              */
-            function mindist(pos, token) {
+            function minDistToPos(pos, token) {
                 var arr     = token.positions,
                     low     = 0,
                     high    = arr.length,
@@ -275,26 +274,26 @@ define(function (require, exports, module) {
                     if (token.distToPos >= 0) {
                         dist = token.distToPos;
                     } else {
-                        dist = mindist(pos, token);
+                        dist = minDistToPos(pos, token);
                         token.distToPos = dist;
                     }
                     return dist;
                 }
 
-                var adist = getDistToPos(a),
-                    bdist = getDistToPos(b);
+                var aDist = getDistToPos(a),
+                    bDist = getDistToPos(b);
 
-                if (adist === Infinity) {
-                    if (bdist === Infinity) {
+                if (aDist === Infinity) {
+                    if (bDist === Infinity) {
                         return 0;
                     } else {
                         return 1;
                     }
                 } else {
-                    if (bdist === Infinity) {
+                    if (bDist === Infinity) {
                         return -1;
                     } else {
-                        return adist - bdist;
+                        return aDist - bDist;
                     }
                 }
             };

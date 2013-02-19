@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -230,8 +230,8 @@ define(function (require, exports, module) {
                 break;
 
             case "NewExpression":
-                if (tree['arguments']) { // pacifies JSLint
-                    tree['arguments'].forEach(function (t) {
+                if (tree["arguments"]) { // pacifies JSLint
+                    tree["arguments"].forEach(function (t) {
                         _buildScope(t, parent);
                     });
                 }
@@ -257,7 +257,7 @@ define(function (require, exports, module) {
                 break;
 
             case "CallExpression":
-                tree['arguments'].forEach(function (t) {
+                tree["arguments"].forEach(function (t) {
                     _buildScope(t, parent);
                 });
                 _buildScope(tree.callee, parent);
@@ -523,35 +523,35 @@ define(function (require, exports, module) {
      * Traverse identifier declarations in the scope down via children
      */
     Scope.prototype.walkDownDeclarations = function (add, init) {
-        return this.walkDownList(add, init, 'idDeclarations');
+        return this.walkDownList(add, init, "idDeclarations");
     };
 
     /*
      * Traverse identifier occurrences in the scope down via children
      */
     Scope.prototype.walkDownIdentifiers = function (add, init) {
-        return this.walkDownList(add, init, 'idOccurrences');
+        return this.walkDownList(add, init, "idOccurrences");
     };
 
     /*
      * Traverse property occurrences in the scope down via children
      */
     Scope.prototype.walkDownProperties = function (add, init) {
-        return this.walkDownList(add, init, 'propOccurrences');
+        return this.walkDownList(add, init, "propOccurrences");
     };
 
     /*
      * Traverse associations in the scope down via children
      */
     Scope.prototype.walkDownAssociations = function (add, init) {
-        return this.walkDownList(add, init, 'associations');
+        return this.walkDownList(add, init, "associations");
     };
 
     /*
      * Traverse literals in the scope down via children
      */
     Scope.prototype.walkDownLiterals = function (add, init) {
-        return this.walkDownList(add, init, 'literals');
+        return this.walkDownList(add, init, "literals");
     };
     
     /**
@@ -576,35 +576,35 @@ define(function (require, exports, module) {
      * Traverse identifier declarations in the scope up via the parent
      */
     Scope.prototype.walkUpDeclarations = function (add, init) {
-        return this.walkUp(add, init, 'idDeclarations');
+        return this.walkUp(add, init, "idDeclarations");
     };
     
     /**
      * Traverse identifier occurrences in the scope up via the parent
      */
     Scope.prototype.walkUpIdentifiers = function (add, init) {
-        return this.walkUp(add, init, 'idOccurrences');
+        return this.walkUp(add, init, "idOccurrences");
     };
 
     /**
      * Traverse property occurrences in the scope up via the parent
      */
     Scope.prototype.walkUpProperties = function (add, init) {
-        return this.walkUp(add, init, 'propOccurrences');
+        return this.walkUp(add, init, "propOccurrences");
     };
 
     /**
      * Traverse associations in the scope up via the parent
      */
     Scope.prototype.walkUpAssociations = function (add, init) {
-        return this.walkUp(add, init, 'associations');
+        return this.walkUp(add, init, "associations");
     };
     
     /**
      * Traverse literal occurrences in the scope up via the parent
      */
     Scope.prototype.walkUpLiterals = function (add, init) {
-        return this.walkUp(add, init, 'literals');
+        return this.walkUp(add, init, "literals");
     };
     
     /**

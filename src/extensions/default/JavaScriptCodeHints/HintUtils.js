@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -33,9 +33,7 @@ define(function (require, exports, module) {
         DOUBLE_QUOTE    = "\"";
 
     function makeToken(value, positions) {
-        if (positions === undefined) {
-            positions = [];
-        }
+        positions = positions || [];
 
         return {
             value: value,
@@ -48,7 +46,8 @@ define(function (require, exports, module) {
      */
     function maybeIdentifier(key) {
         return (/[0-9a-z_.\$]/i).test(key) ||
-            (key.indexOf("\"") === 0) || (key.indexOf("\'") === 0);
+            (key.indexOf(SINGLE_QUOTE) === 0) ||
+            (key.indexOf(DOUBLE_QUOTE) === 0);
     }
 
     /**
@@ -178,7 +177,9 @@ define(function (require, exports, module) {
     var LITERAL_NAMES   = [
         "true", "false", "null", "undefined"
     ],
-        LITERAL_TOKENS  = LITERAL_NAMES.map(function (t) { return makeToken(t, []); }),
+        LITERAL_TOKENS  = LITERAL_NAMES.map(function (t) {
+            return makeToken(t, []);
+        }),
         LITERALS        = annotateLiterals(LITERAL_TOKENS);
 
     var JSL_GLOBAL_NAMES = [
@@ -193,12 +194,13 @@ define(function (require, exports, module) {
         "sync", "toint32", "version", "ActiveXObject", "CScript", "Enumerator",
         "System", "VBArray", "WScript"
     ],
-        JSL_GLOBALS = annotateGlobals(JSL_GLOBAL_NAMES.map(function (t) {
+        JSL_GLOBAL_TOKENS = annotateGlobals(JSL_GLOBAL_NAMES.map(function (t) {
             return makeToken(t, []);
-        })).reduce(function (prev, curr) {
+        })),
+        JSL_GLOBALS = JSL_GLOBAL_TOKENS.reduce(function (prev, curr) {
             prev[curr.value] = curr;
             return prev;
-        }, {});
+        }, {}); // builds an object from the array of tokens.
 
     var JSL_GLOBALS_BROWSER = [
             JSL_GLOBALS.clearInterval,
