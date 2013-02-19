@@ -65,7 +65,6 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
-        EditorManager       = require("editor/EditorManager"),
         KeyEvent            = require("utils/KeyEvent");
     
     /**
@@ -386,7 +385,8 @@ define(function (require, exports, module) {
         
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
-        $projectTreeContainer.hide();
+        $projectTreeContainer.hide()
+            .addClass("no-focus");
         _projectTree = $projectTreeContainer
             .jstree({
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],
@@ -447,8 +447,6 @@ define(function (require, exports, module) {
                         if (!suppressToggleOpen) {
                             _projectTree.jstree("toggle_node", data.rslt.obj);
                         }
-                        
-                        EditorManager.focusEditor();
                     }
                     
                     suppressToggleOpen = false;
