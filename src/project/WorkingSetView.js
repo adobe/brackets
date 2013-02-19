@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window  */
+/*global define, $, window, brackets  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -255,8 +255,9 @@ define(function (require, exports, module) {
         }
         
         
-        // Only drag with the left mouse button, end the drop in other cases
-        if (event.which !== 1) {
+        // Only drag with the left mouse button, and control key is not down
+        // on Mac, end the drop in other cases
+        if (event.which !== 1 || (event.ctrlKey && brackets.platform === "mac")) {
             drop();
             return;
         }
