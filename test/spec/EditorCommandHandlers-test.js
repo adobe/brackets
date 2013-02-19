@@ -584,7 +584,6 @@ define(function (require, exports, module) {
                                       "*/\n" +
                                       "}";
             
-            /*  TODO (#2887): disabled due to https://github.com/marijnh/CodeMirror/issues/1255
             it("should block uncomment, cursor in whitespace within block comment", function () {
                 myDocument.setText(BLOCK_CONTAINING_WS);
 
@@ -616,7 +615,6 @@ define(function (require, exports, module) {
                 expect(myDocument.getText()).toEqual(expectedText);
                 expectSelection({start: {line: 2, ch: 0}, end: {line: 2, ch: 4}});
             });
-            */
             
             // Selections mixing whitespace and existing block comments
             
