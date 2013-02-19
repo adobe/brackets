@@ -56,7 +56,9 @@ define(function (require, exports, module) {
      * @private
      * Given a file URL, determines the mode to use based
      * off the file's extension.
-     * @param {string} fileUrl  A cannonical file URL to extract the extension from
+     * @param {string} fileUrl  A canonical file URL to extract the extension from
+     * @return {(string|Object)} Name of syntax-highlighting mode, or object containing a "name" property
+     *     naming the mode along with configuration options required by the mode. 
      */
     function getModeFromFileExtension(fileUrl) {
         var ext = PathUtils.filenameExtension(fileUrl);
@@ -95,7 +97,11 @@ define(function (require, exports, module) {
         case "cfc":
         case "dhtml":
         case "xht":
-            return "htmlmixed";
+            return {
+                name: "htmlmixed",
+                scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
+                               mode: null}]
+            };
 
         case "svg":
         case "xml":
