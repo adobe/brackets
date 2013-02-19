@@ -37,6 +37,8 @@ define(function (require, exports, module) {
 
 
     describe("Menus", function () {
+        
+        this.category = "integration";
 
         var testWindow;
 

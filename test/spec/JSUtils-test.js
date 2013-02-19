@@ -386,6 +386,8 @@ define(function (require, exports, module) {
     
     describe("JS Indexing: ", function () {
         
+        this.category = "integration";
+        
         var functions;  // populated by indexAndFind()
         
         beforeEach(function () {
