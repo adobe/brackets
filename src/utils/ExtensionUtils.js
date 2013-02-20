@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, CodeMirror, less */
+/*global define, $, brackets, less */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
