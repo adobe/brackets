@@ -248,14 +248,30 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Checks wheter a path is affected by a rename operation.
+     * A path is affected if the object being renamed is a file and the given path refers
+     * to that file or if the object being renamed is a directory and a prefix of the path.
+     * Always checking for prefixes can create conflicts:
+     * renaming file "foo" should not affect file "foobar/baz" even though "foo" is a prefix of "foobar".
+     * @param {!string} path The path potentially affected
+     * @param {!string} oldName An object's name before renaming
+     * @param {!string} newName An object's name after renaming
+     * @param {?boolean} isFolder Whether the renamed object is a folder or not
+     */
+    function isAffectedWhenRenaming(path, oldName, newName, isFolder) {
+        isFolder = isFolder || oldName.slice(-1) === "/";
+        return (isFolder && path.indexOf(oldName) === 0) || (!isFolder && path === oldName);
+    }
+    
+	/**
      * Update a file entry path after a file/folder name change.
      * @param {FileEntry} entry The FileEntry or DirectoryEntry to update
      * @param {string} oldName The full path of the old name
      * @param {string} newName The full path of the new name
      * @return {boolean} Returns true if the file entry was updated
      */
-    function updateFileEntryPath(entry, oldName, newName) {
-        if (entry.fullPath.indexOf(oldName) === 0) {
+    function updateFileEntryPath(entry, oldName, newName, isFolder) {
+        if (isAffectedWhenRenaming(entry.fullPath, oldName, newName, isFolder)) {
             var fullPath = entry.fullPath.replace(oldName, newName);
             
             entry.fullPath = fullPath;
@@ -276,7 +292,7 @@ define(function (require, exports, module) {
         
         return false;
     }
-
+    
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
@@ -327,6 +343,7 @@ define(function (require, exports, module) {
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
+    exports.isAffectedWhenRenaming         = isAffectedWhenRenaming;
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
