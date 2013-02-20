@@ -1226,7 +1226,7 @@ define(function (require, exports, module) {
                 
                 for (i = 0; i < nodes.length; i++) {
                     var node = $(nodes[i]);
-                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName);
+                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName, isFolder);
                 }
                 
                 // Notify that one of the project files has changed
