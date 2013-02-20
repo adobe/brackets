@@ -55,3 +55,4 @@ priority. If a pull request already shows an assignee, please check with him/her
 
 * [the Brackets github issue tracker](https://github.com/adobe/brackets/issues)
 * [Brackets wiki](https://github.com/adobe/brackets/wiki/Resources)
+* [Contribute Page](http://brackets.io/contribute/)

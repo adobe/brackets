@@ -119,6 +119,8 @@ define(function (require, exports, module) {
 
     describe("Live Development", function () {
         
+        this.category = "integration";
+        
         describe("CSS Editing", function () {
 
             beforeEach(function () {

@@ -283,7 +283,9 @@ define(function (require, exports, module) {
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
      *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
      *          secondary editor.
-     * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
+     * @param {!(string|Object)} mode  Syntax-highlighting language mode; "" means plain-text mode.
+     *          May either be a string naming the mode, or an object containing a "name" property
+     *          naming the mode along with configuration options required by the mode. 
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
@@ -1041,7 +1043,9 @@ define(function (require, exports, module) {
      * an *approximation* of whether the mode is consistent across the whole range (a pattern like
      * A-B-A would return A as the mode, not null).
      *
-     * @return {?(Object|String)} Object or Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
+     *     naming the mode along with configuration options required by the mode. 
+     *     See {@link EditorUtils#getModeFromFileExtension()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1079,7 +1083,8 @@ define(function (require, exports, module) {
     /**
      * Sets the syntax-highlighting mode for the document.
      *
-     * @param {string} mode Name of syntax highlighting mode.
+     * @param {(string|Object)} mode Name of syntax highlighting mode, or object containing a "name"
+     *     property naming the mode along with configuration options required by the mode.
      */
     Editor.prototype.setModeForDocument = function (mode) {
         this._codeMirror.setOption("mode", mode);

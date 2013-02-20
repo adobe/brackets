@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, window */
+/*global define, $, brackets, PathUtils, WebSocket, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -510,6 +510,43 @@ define(function (require, exports, module) {
     
 
     /**
+     * Disables Brackets' cache via the remote debugging protocol.
+     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
+     */
+    function _disableCache() {
+        var result = new $.Deferred();
+        
+        if (brackets.inBrowser) {
+            result.resolve();
+        } else {
+            var Inspector = require("LiveDevelopment/Inspector/Inspector");
+            Inspector.getAvailableSockets("127.0.0.1", "9234")
+                .fail(result.reject)
+                .done(function (response) {
+                    var page = response[0];
+                    if (!page || !page.webSocketDebuggerUrl) {
+                        result.reject();
+                        return;
+                    }
+                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                    // Disable the cache
+                    _socket.onopen = function _onConnect() {
+                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                    };
+                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                    _socket.onmessage = function _onMessage(e) {
+                        _socket.close();
+                        result.resolve();
+                    };
+                    // In case of an error
+                    _socket.onerror = result.reject;
+                });
+        }
+            
+        return result.promise();
+    }
+    
+    /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
      *
@@ -702,7 +739,17 @@ define(function (require, exports, module) {
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 _windowGoingAway = true;
+                
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
+                
                 PreferencesManager.savePreferences();
+                
                 postCloseHandler();
             })
             .fail(function () {
@@ -769,7 +816,10 @@ define(function (require, exports, module) {
     /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
         return _handleWindowGoingAway(commandData, function () {
-            window.location.reload(true);
+            // Disable the cache to make reloads work
+            _disableCache().always(function () {
+                window.location.reload(true);
+            });
         });
     }
     

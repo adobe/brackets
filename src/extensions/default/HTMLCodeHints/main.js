@@ -183,8 +183,7 @@ define(function (require, exports, module) {
 
     /**
      * Helper function for search(). Create a list of urls to existing files based on the query.
-     * @param {Object.<queryStr: string, ...} query -- a query object with a required property queryStr 
-     *     that will be used to filter out code hints
+     * @param {{queryStr: string}} query -- a query object, used to filter the code hints
      * @return {Array.<string>}
      */
     AttrHints.prototype._getUrlList = function (query) {
@@ -341,7 +340,7 @@ define(function (require, exports, module) {
     /**
      * Helper function that determins the possible value hints for a given html tag/attribute name pair
      * 
-     * @param {String} query
+     * @param {{queryStr: string}} query
      * The current query
      *
      * @param {String} tagName 

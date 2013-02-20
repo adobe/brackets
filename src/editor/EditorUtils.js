@@ -44,6 +44,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/perl/perl");
     require("thirdparty/CodeMirror2/mode/python/python");
     require("thirdparty/CodeMirror2/mode/ruby/ruby");
+    require("thirdparty/CodeMirror2/mode/sass/sass");
     require("thirdparty/CodeMirror2/mode/lua/lua");
     require("thirdparty/CodeMirror2/mode/mysql/mysql");
     require("thirdparty/CodeMirror2/mode/diff/diff");
@@ -55,7 +56,9 @@ define(function (require, exports, module) {
      * @private
      * Given a file URL, determines the mode to use based
      * off the file's extension.
-     * @param {string} fileUrl  A cannonical file URL to extract the extension from
+     * @param {string} fileUrl  A canonical file URL to extract the extension from
+     * @return {(string|Object)} Name of syntax-highlighting mode, or object containing a "name" property
+     *     naming the mode along with configuration options required by the mode. 
      */
     function getModeFromFileExtension(fileUrl) {
         var ext = PathUtils.filenameExtension(fileUrl);
@@ -94,7 +97,11 @@ define(function (require, exports, module) {
         case "cfc":
         case "dhtml":
         case "xht":
-            return "htmlmixed";
+            return {
+                name: "htmlmixed",
+                scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
+                               mode: null}]
+            };
 
         case "svg":
         case "xml":
@@ -149,6 +156,10 @@ define(function (require, exports, module) {
         case "py":
         case "pyw":
             return "python";
+
+        case "sass":
+        case "scss":
+            return "sass";
         
         case "lua":
             return "lua";
