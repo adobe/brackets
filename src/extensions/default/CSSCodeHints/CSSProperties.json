@@ -90,7 +90,7 @@
     "flex-wrap":                   {"values": ["nowrap", "wrap", "wrap-reverse"]},
     "float":                       {"values": ["left", "right", "none", "inherit"]},
     "font":                        {"values": []},
-    "font-family":                 {"values": [{"display":"Edge Web Fonts...", "dialog":"((edge-web-fonts))"}] },
+    "font-family":                 {"values": []},
     "font-feature-settings":       {"values": ["normal"]},
     "font-kerning":                {"values": ["auto", "none", "normal"]},
     "font-language-override":      {"values": ["normal"]},
