@@ -138,9 +138,11 @@ define(function (require, exports, module) {
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath),
-		    editor = new Editor(doc, makeMasterEditor, mode, container, range);
+            editor = new Editor(doc, makeMasterEditor, mode, container, range);
 
-        $(editor).on("focus", _notifyActiveEditorChanged);
+        $(editor).on("focus", function () {
+            _notifyActiveEditorChanged(this);
+        });
         
         return editor;
     }
