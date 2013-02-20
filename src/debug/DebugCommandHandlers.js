@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         PerfUtils               = require("utils/PerfUtils"),
         NativeApp               = require("utils/NativeApp"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem;
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        NodeDebugUtils          = require("debug/NodeDebugUtils");
     
     function handleShowDeveloperTools(commandData) {
         brackets.app.showDeveloperTools();
@@ -271,6 +272,12 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
+    
+    
+    // Node-related Commands
+    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, Commands.DEBUG_ENABLE_NODE_DEBUGGER, NodeDebugUtils.enableDebugger);
+    CommandManager.register(Strings.CMD_LOG_NODE_STATE, Commands.DEBUG_LOG_NODE_STATE, NodeDebugUtils.logNodeState);
+    CommandManager.register(Strings.CMD_RESTART_NODE, Commands.DEBUG_RESTART_NODE, NodeDebugUtils.restartNode);
     
     _enableRunTestsMenuItem();
     
