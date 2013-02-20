@@ -34,6 +34,7 @@ define(function (require, exports, module) {
 
 
     describe("Extension Utils", function () {
+        this.category = "integration";
 
         var testWindow;
 

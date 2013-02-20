@@ -219,6 +219,15 @@ define(function (require, exports, module) {
                     
                     PerfUtils.addMeasurement("Application Startup");
                 });
+                
+                // See if any startup files were passed to the application
+                if (brackets.app.getPendingFilesToOpen) {
+                    brackets.app.getPendingFilesToOpen(function (err, files) {
+                        files.forEach(function (filename) {
+                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
+                        });
+                    });
+                }
             });
         });
         

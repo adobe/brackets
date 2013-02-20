@@ -1314,6 +1314,8 @@ define(function (require, exports, module) {
 
 
         describe("Working with real public CSSUtils API", function () {
+            this.category = "integration";
+            
             var CSSUtils;
             
             beforeEach(function () {
@@ -1349,6 +1351,8 @@ define(function (require, exports, module) {
         
         
         describe("Working with unsaved changes", function () {
+            this.category = "integration";
+            
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
                 CSSUtils,
                 DocumentManager,
