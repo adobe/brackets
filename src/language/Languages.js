@@ -141,7 +141,7 @@ define(function (require, exports, module) {
 
     /**
      * Resolves a language ID to a Language object.
-     * @param {!string} id Identifier for this language, use only letter a-z (i.e. "cpp")
+     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
      * @return {Language} The language with the provided identifier or undefined
      */
     function getLanguage(id) {
@@ -197,13 +197,15 @@ define(function (require, exports, module) {
      * @constructor
      * Model for a language.
      *
-     * @param {!string} id Identifier for this language, use only letter a-z (i.e. "cpp")
+     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
      * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      */
     function Language(id, name) {
         _validateString(id, "Language ID");
-        if (!id.match(/^[a-z]+$/)) {
-            throw new Error("Invalid language ID \"" + id + "\": Only letters a-z are allowed");
+        // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
+        // Hence we use _ instead of "." since this makes it easier to parse a file name containing a language ID
+        if (!id.match(/^[a-z]+(\.[a-z]+)*$/)) {
+            throw new Error("Invalid language ID \"" + id + "\": Only groups of letters a-z are allowed, separated by _ (i.e. \"cpp\" or \"foo_bar\")");
         }
         
         _validateNonEmptyString(name, "name");
@@ -347,7 +349,7 @@ define(function (require, exports, module) {
     /**
      * Defines a language.
      *
-     * @param {!string}        id                        Unique identifier for this language, use only letter a-z (i.e. "cpp")
+     * @param {!string}        id                        Unique identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
      * @param {!Object}        definition                An object describing the language
      * @param {!string}        definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      * @param {Array.<string>} definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
