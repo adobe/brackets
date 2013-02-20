@@ -706,7 +706,7 @@ define(function (require, exports, module) {
                 // Give everyone a chance to save their state - but don't let any problems block
                 // us from quitting
                 try {
-                    $(ProjectManager).trigger("beforeAppClose");
+                    $(ProjectManager).triggerHandler("beforeAppClose");
                 } catch (ex) {
                     console.error(ex);
                 }

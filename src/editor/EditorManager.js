@@ -86,7 +86,7 @@ define(function (require, exports, module) {
     /**
      * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
      * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
-     * @type {Object<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}}
+     * @type {Object<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
      */
     var _viewStateCache = {};
     
