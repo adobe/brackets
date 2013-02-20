@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      * and cursor position. Applies to currently focused Editor.
      * 
      * If all non-whitespace lines are already commented out, then we uncomment; otherwise we comment
-     * out. Commenting out adds prefix to at column 0 of every line. Uncommenting removes the first prefix
+     * out. Commenting out adds the prefix at column 0 of every line. Uncommenting removes the first prefix
      * on each line (if any - empty lines might not have one).
      */
     function lineCommentPrefix(editor, prefix) {
@@ -204,9 +204,9 @@ define(function (require, exports, module) {
      * the lines in the selection are line-commented.
      *
      * @param {!Editor} editor
-     * @param {!String} prefix
-     * @param {!String} suffix
-     * @param {boolean=} slashComment - true if the mode also supports "//" comments
+     * @param {!string} prefix, e.g. "<!--"
+     * @param {!string} suffix, e.g. "-->"
+     * @param {?string} linePrefix, e.g. "//"
      */
     function blockCommentPrefixSuffix(editor, prefix, suffix, linePrefix) {
         
@@ -724,6 +724,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
     CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
+    
     CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             handleUndo);
     CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             handleRedo);
     CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
