@@ -236,20 +236,6 @@ define(function (require, exports, module) {
         CodeHintManager.handleKeyEvent(editor, event);
     }
 
-    function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
-
-        if (editor) {
-            editor.selectAllNoScroll();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
-    }
-
     /**
      * Helper functions to check options.
      * @param {number} options BOUNDARY_CHECK_NORMAL or BOUNDARY_IGNORE_TOP
@@ -1331,9 +1317,6 @@ define(function (require, exports, module) {
         return _indentUnit;
     };
     
-    // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;
