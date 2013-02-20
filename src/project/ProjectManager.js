@@ -31,6 +31,7 @@
  *
  * This module dispatches these events:
  *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after  _projectRoot changes
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.
@@ -359,6 +360,16 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns false when the event occured without any input present in the li closest to the DOM object
+     *
+     * @param {event} event to check
+     * @return boolean true if an input field is present
+     */
+    function _isInRename(element) {
+        return ($(element).closest("li").find("input").length > 0);
+    }
+
+    /**
      * @private
      * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
      * (replacing any existing file tree that was previously displayed). This input could be
@@ -483,7 +494,7 @@ define(function (require, exports, module) {
                         // select the current document if it becomes visible when this folder is opened
                         var curDoc = DocumentManager.getCurrentDocument();
                         
-                        if (_hasFileSelectionFocus() && curDoc) {
+                        if (_hasFileSelectionFocus() && curDoc && data) {
                             var entry = data.rslt.obj.data("entry");
                             
                             if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
@@ -534,7 +545,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry && entry.isFile) {
+                    if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
@@ -695,9 +706,12 @@ define(function (require, exports, module) {
      * or the one for the current build.
      */
     function isWelcomeProjectPath(path) {
+        var canonPath = FileUtils.canonicalizeFolderPath(path);
+        if (canonPath === _getWelcomeProjectPath()) {
+            return true;
+        }
         var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
-        welcomeProjects.push(_getWelcomeProjectPath());
-        return welcomeProjects.indexOf(FileUtils.canonicalizeFolderPath(path)) !== -1;
+        return welcomeProjects.indexOf(canonPath) !== -1;
     }
     
     /**
@@ -755,6 +769,7 @@ define(function (require, exports, module) {
                     var rootEntry = fs.root;
                     var projectRootChanged = (!_projectRoot || !rootEntry) ||
                         _projectRoot.fullPath !== rootEntry.fullPath;
+                    var i;
 
                     // Success!
                     var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
@@ -1328,9 +1343,26 @@ define(function (require, exports, module) {
 
     // Init PreferenceStorage
     var defaults = {
-        projectPath:      _getWelcomeProjectPath()  /* initialize to brackets source */
+        projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+        
+    if (!_prefs.getValue("welcomeProjectsFixed")) {
+        // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where
+        // we would add lots of duplicate entries here.
+        var welcomeProjects = _prefs.getValue("welcomeProjects");
+        if (welcomeProjects) {
+            var newWelcomeProjects = [];
+            var i;
+            for (i = 0; i < welcomeProjects.length; i++) {
+                if (newWelcomeProjects.indexOf(welcomeProjects[i]) === -1) {
+                    newWelcomeProjects.push(welcomeProjects[i]);
+                }
+            }
+            _prefs.setValue("welcomeProjects", newWelcomeProjects);
+            _prefs.setValue("welcomeProjectsFixed", true);
+        }
+    }
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

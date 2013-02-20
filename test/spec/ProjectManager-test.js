@@ -32,6 +32,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("ProjectManager", function () {
+        
+        this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files"),
             brackets;

@@ -655,9 +655,10 @@ define(function (require, exports, module) {
      * 
      * @param {string} str  The string to search
      * @param {string} query  The query string to find in string
+     * @param {?Object} (optional) the specials data from findSpecialCharacters, if already known
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    function stringMatch(str, query) {
+    function stringMatch(str, query, special) {
         var result;
 
         // No query? Short circuit the normal work done and just
@@ -678,7 +679,9 @@ define(function (require, exports, module) {
         
         // Locate the special characters and then use orderedCompare to do the real
         // work.
-        var special = findSpecialCharacters(str);
+        if (!special) {
+            special = findSpecialCharacters(str);
+        }
         var lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
         var matchList = _wholeStringSearch(query, str, special.specials,
                               special.lastSegmentSpecialsIndex);
@@ -747,6 +750,74 @@ define(function (require, exports, module) {
         multiFieldSort(searchResults, { matchGoodness: 0, label: 1 });
     }
     
+    /**
+     * A StringMatcher provides an interface to the stringMatch function with built-in
+     * caching. You should use a StringMatcher for the lifetime of queries over a
+     * single data set.
+     *
+     * You are free to store other data on this object to assist in higher-level caching.
+     * (This object's caches are all stored in "_" prefixed properties.)
+     */
+    function StringMatcher() {
+        // We keep track of the last query to know when we need to invalidate.
+        this._lastQuery = null;
+        
+        this._specialsCache = {};
+        this._noMatchCache = {};
+    }
+    
+    /**
+     * Map from search-result string to the findSpecialCharacters() result for that string - easy to cache
+     * since this info doesn't change as the query changes.
+     * @type {Object.<string, {specials:Array.<number>, lastSegmentSpecialsIndex:number}>}
+     */
+    StringMatcher.prototype._specialsCache = null;
+    
+    /**
+     * Set of search-result strings that we know don't match the query _lastQuery - or any other query with
+     * that prefix.
+     * @type {Object.<string, boolean>}
+     */
+    StringMatcher.prototype._noMatchCache = null;
+    
+    /**
+     * Performs a single match using the stringMatch function. See stringMatch for full documentation.
+     *
+     * @param {string} str  The string to search
+     * @param {string} query  The query string to find in string
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
+     */
+    StringMatcher.prototype.match = function (str, query) {
+        
+        // If the query is not just added characters from the previous query, we invalidate
+        // the no match cache and will re-match everything.
+        if (this._lastQuery !== null && (this._lastQuery !== query.substring(0, this._lastQuery.length))) {
+            this._noMatchCache = {};
+        }
+        
+        this._lastQuery = query;
+        
+        // Check for a known non-matching string.
+        if (this._noMatchCache.hasOwnProperty(str)) {
+            return undefined;
+        }
+        
+        // Load up the cached specials information (or build it if this is our first time through).
+        var special = this._specialsCache.hasOwnProperty(str) ? this._specialsCache[str] : undefined;
+        if (special === undefined) {
+            special = findSpecialCharacters(str);
+            this._specialsCache[str] = special;
+        }
+        
+        var result = stringMatch(str, query, special);
+        
+        // If this query was not a match, we cache that fact for next time.
+        if (!result) {
+            this._noMatchCache[str] = true;
+        }
+        return result;
+    };
+    
     exports._findSpecialCharacters  = findSpecialCharacters;
     exports._wholeStringSearch      = _wholeStringSearch;
     exports._lastSegmentSearch      = _lastSegmentSearch;
@@ -761,4 +832,5 @@ define(function (require, exports, module) {
     exports.stringMatch             = stringMatch;
     exports.basicMatchSort          = basicMatchSort;
     exports.multiFieldSort          = multiFieldSort;
+    exports.StringMatcher           = StringMatcher;
 });

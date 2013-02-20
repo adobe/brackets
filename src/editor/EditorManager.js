@@ -84,6 +84,18 @@ define(function (require, exports, module) {
     var _lastFocusedEditor = null;
     
     /**
+     * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
+     * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
+     * @type {Object<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
+     */
+    var _viewStateCache = {};
+    
+    /**
+     * Last known editor area width, used to detect when the window is resized horizontally.
+     */
+    var _lastEditorWidth = null;
+    
+    /**
      * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
      * @type {Array.<function(...)>}
      */
@@ -166,7 +178,7 @@ define(function (require, exports, module) {
         if (inlineWidget.hasFocus()) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
             // If cursor's already on that line, leave it be to preserve column position
-            var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineWidget.id).line;
+            var widgetLine = hostEditor._codeMirror.getLineNumber(inlineWidget.info.line);
             var cursorLine = hostEditor.getCursorPos().line;
             if (cursorLine !== widgetLine) {
                 hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
@@ -326,15 +338,31 @@ define(function (require, exports, module) {
         return Math.max(availableHt, 0);
     }
     
+    /**
+     * Flag for resizeEditor() to always force refresh.
+     * @const
+     * @type {string}
+     */
+    var REFRESH_FORCE = "force";
+    
+    /**
+     * Flag for resizeEditor() to never refresh.
+     * @const
+     * @type {string}
+     */
+    var REFRESH_SKIP = "skip";
+
     /** 
      * Resize the editor. This must be called any time the contents of the editor area are swapped
      * or any time the editor area might change height. EditorManager takes care of calling this when
      * the Editor is swapped, and on window resize. But anyone who changes size/visiblity of editor
      * area siblings (toolbar, status bar, bottom panels) *must* manually call resizeEditor().
      *
-     * @param {boolean=} skipRefresh For internal use, to avoid redundant refresh()es during window resize
+     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
+     *    "skip" to ensure the editor does not refresh, or leave undefined to let resizeEditor() determine 
+     *    whether it needs to refresh.
      */
-    function resizeEditor(skipRefresh) {
+    function resizeEditor(refreshFlag) {
         if (!_editorHolder) {
             return;  // still too early during init
         }
@@ -343,9 +371,22 @@ define(function (require, exports, module) {
         _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
         
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(editorAreaHt);
-            if (!skipRefresh) {
-                _currentEditor.refresh(true);
+            var curRoot = _currentEditor.getRootElement(),
+                curWidth = $(curRoot).width();
+            if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+                $(curRoot).height(editorAreaHt);
+                if (refreshFlag === undefined) {
+                    refreshFlag = REFRESH_FORCE;
+                }
+            } else if (curWidth !== _lastEditorWidth) {
+                if (refreshFlag === undefined) {
+                    refreshFlag = REFRESH_FORCE;
+                }
+            }
+            _lastEditorWidth = curWidth;
+
+            if (refreshFlag === REFRESH_FORCE) {
+                _currentEditor.refreshAll(true);
             }
         }
     }
@@ -355,8 +396,44 @@ define(function (require, exports, module) {
      * height.
      */
     function _updateEditorDuringResize() {
-        // skipRefresh=true since CodeMirror will call refresh() itself when it sees the resize event
-        resizeEditor(true);
+        // always skip the refresh since CodeMirror will call refresh() itself when it sees the resize event
+        resizeEditor(REFRESH_SKIP);
+    }
+    
+    
+    /** Updates _viewStateCache from the given editor's actual current state */
+    function _saveEditorViewState(editor) {
+        _viewStateCache[editor.document.file.fullPath] = {
+            selection: editor.getSelection(),
+            scrollPos: editor.getScrollPos()
+        };
+    }
+    
+    /** Updates the given editor's actual state from _viewStateCache, if any state stored */
+    function _restoreEditorViewState(editor) {
+        // We want to ignore the current state of the editor, so don't call _getViewState()
+        var viewState = _viewStateCache[editor.document.file.fullPath];
+        if (viewState) {
+            if (viewState.selection) {
+                editor.setSelection(viewState.selection.start, viewState.selection.end);
+            }
+            if (viewState.scrollPos) {
+                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
+            }
+        }
+    }
+    
+    /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
+    function _getViewState(fullPath) {
+        if (_currentEditorsDocument && _currentEditorsDocument.file.fullPath === fullPath) {
+            _saveEditorViewState(_currentEditor);
+        }
+        return _viewStateCache[fullPath];
+    }
+    
+    /** Removes all cached view state info and replaces it with the given mapping */
+    function _resetViewStates(viewStates) {
+        _viewStateCache = viewStates;
     }
     
     
@@ -384,11 +461,13 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        _currentEditor.setVisible(true);
+        // Skip refreshing the editor since we're going to refresh it in resizeEditor() later.
+        _currentEditor.setVisible(true, false);
         _currentEditor.focus();
         
-        // Window may have been resized since last time editor was visible, so kick it now
-        resizeEditor();
+        // Resize and refresh the editor, since it might have changed size or had other edits applied
+        // since it was last visible.
+        resizeEditor(REFRESH_FORCE);
     }
 
     /**
@@ -401,23 +480,31 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#not-editor").css("display", "none");
         } else {
+            _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
         // Ensure a main editor exists for this document to show in the UI
+        var createdNewEditor = false;
         if (!document._masterEditor) {
+            createdNewEditor = true;
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
         
         _doShow(document);
+        
+        if (createdNewEditor) {
+            _restoreEditorViewState(document._masterEditor);
+        }
     }
     
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
+            _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
@@ -775,6 +862,12 @@ define(function (require, exports, module) {
     exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
+    exports._getViewState = _getViewState;
+    exports._resetViewStates = _resetViewStates;
+    exports._doShow = _doShow;
+    
+    exports.REFRESH_FORCE = REFRESH_FORCE;
+    exports.REFRESH_SKIP = REFRESH_SKIP;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;

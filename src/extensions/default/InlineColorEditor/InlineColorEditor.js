@@ -34,6 +34,8 @@ define(function (require, exports, module) {
     /** @const @type {number} */
     var MAX_USED_COLORS = 7;
     
+    /** @type {number} Global var used to provide a unique ID for each color editor instance's _origin field. */
+    var lastOriginId = 1;
     
     /**
      * Inline widget containing a ColorEditor control
@@ -47,6 +49,7 @@ define(function (require, exports, module) {
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
+        this._origin = "*InlineColorEditor_" + (lastOriginId++);
 
         this._handleColorChange = this._handleColorChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
@@ -89,6 +92,9 @@ define(function (require, exports, module) {
     
     /** @type {boolean} True while we're syncing a code editor change into the color picker */
     InlineColorEditor.prototype._isHostChange = null;
+    
+    /** @type {number} ID used to identify edits coming from this inline widget for undo batching */
+    InlineColorEditor.prototype._origin = null;
     
     
     /**
@@ -151,7 +157,7 @@ define(function (require, exports, module) {
             if (!this._isHostChange) {
                 // Replace old color in code with the picker's color, and select it
                 this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(colorString, range.start, range.end);
+                this.hostEditor.document.replaceRange(colorString, range.start, range.end, this._origin);
                 this._isOwnChange = false;
                 this.hostEditor.setSelection(range.start, {
                     line: range.start.line,

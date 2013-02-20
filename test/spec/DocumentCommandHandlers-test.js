@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     
     
     describe("DocumentCommandHandlers", function () {
+        this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow;

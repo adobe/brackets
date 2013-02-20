@@ -702,7 +702,17 @@ define(function (require, exports, module) {
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 _windowGoingAway = true;
+                
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
+                
                 PreferencesManager.savePreferences();
+                
                 postCloseHandler();
             })
             .fail(function () {
@@ -843,7 +853,13 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
     CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
-    CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
+
+    if (brackets.platform === "win") {
+        CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
+    } else {
+        CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
+    }
+
     CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
     CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
     

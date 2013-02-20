@@ -84,29 +84,40 @@ define(function (require, exports, module) {
         });
             
         describe("File extension to mode mapping", function () {
+            beforeEach(function () {
+                this.addMatchers({
+                    toSpecifyModeNamed: function (expected) {
+                        if (typeof this.actual === "string") {
+                            return this.actual === expected;
+                        } else {
+                            return this.actual.name === expected;
+                        }
+                    }
+                });
+            });
             
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
                 var mode = EditorUtils.getModeFromFileExtension("file:///only/testing/the/path.html");
-                expect(mode).toEqual("htmlmixed");
+                expect(mode).toSpecifyModeNamed("htmlmixed");
             });
             
             it("should switch modes even if the url has a query string", function () {
                 // verify editor content
                 var mode = EditorUtils.getModeFromFileExtension("http://only.org/testing/the/path.css?v=2");
-                expect(mode).toEqual("css");
+                expect(mode).toSpecifyModeNamed("css");
             });
             
             it("should accept just a file name too", function () {
                 // verify editor content
                 var mode = EditorUtils.getModeFromFileExtension("path.js");
-                expect(mode).toEqual("javascript");
+                expect(mode).toSpecifyModeNamed("javascript");
             });
 
             it("should default to plaintext for unknown file extensions", function () {
                 // verify editor content
                 var mode = EditorUtils.getModeFromFileExtension("test.foo");
-                expect(mode).toEqual("");
+                expect(mode).toSpecifyModeNamed("");
             });
         });
         

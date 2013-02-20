@@ -525,29 +525,7 @@ define(function (require, exports, module) {
             var $relativeElement = this._getRelativeMenuItem(relativeID, position);
             _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
                           $menuItem, position, $relativeElement);
-        }
-
-        // Initialize MenuItem state
-        if (!menuItem.isDivider) {
-            if (keyBindings) {
-                // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
-                if (!Array.isArray(keyBindings)) {
-                    keyBindings = [keyBindings];
-                }
-            }
-                
-            // Note that keyBindings passed during MenuItem creation take precedent over any existing key bindings
-            KeyBindingManager.addBinding(commandID, keyBindings);
-            
-            // Look for existing key bindings
-            _addExistingKeyBinding(menuItem, commandID);
-
-            menuItem._checkedChanged();
-            menuItem._enabledChanged();
-            menuItem._nameChanged();
-        }
-
-        if (!_isHTMLMenu(this.id)) {
+        } else {
             var bindings = KeyBindingManager.getKeyBindings(commandID),
                 binding,
                 bindingStr = "",
@@ -575,29 +553,29 @@ define(function (require, exports, module) {
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
                 if (err) {
                     console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
-                } else {
-                    // Make sure the name and shortcut are up to date
-                    if (!menuItem.isDivider) {
-                        brackets.app.setMenuTitle(commandID, name, function (err) {
-                            if (err) {
-                                console.error("setMenuTitle() -- error: " + err + " when adding command: " + commandID);
-                            } else {
-                                brackets.app.setMenuItemShortcut(
-                                    commandID,
-                                    bindingStr,
-                                    displayStr,
-                                    function (err) {
-                                        if (err) {
-                                            console.error("setMenuItemShortcut() -- error: " + err + " when adding command: " + commandID);
-                                        }
-                                    }
-                                );
-                            }
-                        });
-                    }
                 }
             });
             menuItem.isNative = true;
+        }
+
+        // Initialize MenuItem state
+        if (!menuItem.isDivider) {
+            if (keyBindings) {
+                // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
+                if (!Array.isArray(keyBindings)) {
+                    keyBindings = [keyBindings];
+                }
+            }
+                
+            // Note that keyBindings passed during MenuItem creation take precedent over any existing key bindings
+            KeyBindingManager.addBinding(commandID, keyBindings);
+            
+            // Look for existing key bindings
+            _addExistingKeyBinding(menuItem, commandID);
+
+            menuItem._checkedChanged();
+            menuItem._enabledChanged();
+            menuItem._nameChanged();
         }
         
         return menuItem;
@@ -1135,12 +1113,18 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
 
 
-        menu.addMenuDivider();
+        var hasAboutItem = (brackets.platform !== "mac" || brackets.inBrowser);
+        
+        // Add final divider only if we have a twitter URL or about item
+        if (hasAboutItem || brackets.config.twitter_url) {
+            menu.addMenuDivider();
+        }
+        
         if (brackets.config.twitter_url) {
             menu.addMenuItem(Commands.HELP_TWITTER);
         }
         // supress redundant about menu item in mac shell
-        if (brackets.platform !== "mac" || brackets.inBrowser) {
+        if (hasAboutItem) {
             menu.addMenuItem(Commands.HELP_ABOUT);
         }
 

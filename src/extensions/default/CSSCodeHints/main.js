@@ -42,16 +42,16 @@ define(function (require, exports, module) {
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
         
-        if (implicitChar === null) {
-            if (this.info.context === CSSUtils.PROP_NAME || this.info.context === CSSUtils.PROP_VALUE) {
-                return true;
-            }
-        } else {
+        if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
+            return false;
+        }
+        
+        if (implicitChar) {
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
         }
         
-        return false;
+        return true;
     };
        
     /**
@@ -178,7 +178,6 @@ define(function (require, exports, module) {
                                   ch: cursor.ch + (hint.length - this.info.name.length) };
                 } else {
                     hint += ":";
-                    end.ch++;       // Add one for the colon that we're appending.
                 }
             }
         } else if (!this.info.isNewItem && this.info.index !== -1) {
@@ -189,7 +188,11 @@ define(function (require, exports, module) {
             end.ch = start.ch;
         }
         
-        this.editor.document.replaceRange(hint, start, end);
+        // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
+        // directly to replace the range instead of using the Document, as we should. The
+        // reason is due to a flaw in our current document synchronization architecture when
+        // inline editors are open.
+        this.editor._codeMirror.replaceRange(hint, start, end);
         
         if (adjustCursor) {
             this.editor.setCursorPos(newCursor);
