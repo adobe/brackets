@@ -702,7 +702,17 @@ define(function (require, exports, module) {
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 _windowGoingAway = true;
+                
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
+                
                 PreferencesManager.savePreferences();
+                
                 postCloseHandler();
             })
             .fail(function () {

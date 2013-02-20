@@ -66,19 +66,25 @@ define(function (require, exports, module) {
     var fileListPromise;
 
     /**
-     * Remembers the current document that was displayed when showDialog() was called
-     * The current document is restored if the user presses escape
-     * @type {string} full path
+     * Remembers the current document that was displayed when showDialog() was called.
+     * TODO: in the future, if focusing an item can switch documents, need to restore this on Escape.
+     * @type {?string} full path
      */
     var origDocPath;
 
     /**
-     * Remembers the selection in the document origDocPath that was present when showDialog() was called.
-     * Focusing on an item can cause the current and and/or selection to change, so this variable restores it.
-     * The cursor position is restored if the user presses escape.
-     * @type ?{start:{line:number, ch:number}, end:{line:number, ch:number}}
+     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
+     * item can change the selection; we restore this original selection if the user presses Escape. Null if
+     * no document was open when Quick Open was invoked.
+     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     var origSelection;
+    
+    /**
+     * Remembers the scroll position in origDocPath when showDialog() was called (see origSelection above).
+     * @type {?{x:number, y:number}}
+     */
+    var origScrollPos;
 
     /** @type {boolean} */
     var dialogOpen = false;
@@ -343,17 +349,14 @@ define(function (require, exports, module) {
             var self = this;
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    // Restore original document & selection / scroll pos
-                    if (origDocPath) {
-                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
-                            .done(function () {
-                                if (origSelection) {
-                                    EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end, true);
-                                }
-                            });
-                    }
-    
-                    self._close();
+                    self._close()
+                        .done(function () {
+                            // Restore original selection / scroll pos
+                            if (origSelection) {
+                                EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
+                                EditorManager.getCurrentFullEditor().setScrollPos(origScrollPos.x, origScrollPos.y);
+                            }
+                        });
                     
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls _close() too
@@ -406,10 +409,11 @@ define(function (require, exports, module) {
     /**
      * Closes the search dialog and notifies all quick open plugins that
      * searching is done.
+     * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
     QuickNavigateDialog.prototype._close = function () {
         if (!dialogOpen) {
-            return;
+            return new $.Deferred().reject();
         }
         dialogOpen = false;
 
@@ -432,14 +436,18 @@ define(function (require, exports, module) {
         // (because it's a later handler of the event that just triggered _close()), and that code expects to
         // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
         // So we wait until after this call chain is complete before actually closing the dialog.
+        var result = new $.Deferred();
         var self = this;
         setTimeout(function () {
             self.modalBar.close();
+            result.resolve();
         }, 0);
         
         $(".smart_autocomplete_container").remove();
 
         $(window.document).off("mousedown", this._handleDocumentMouseDown);
+        
+        return result.promise();
     };
     
     /**
@@ -730,12 +738,15 @@ define(function (require, exports, module) {
         //JSLintUtils.setEnabled(false);
 
         // Record current document & cursor pos so we can restore it if search is canceled
+        // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed
         var curDoc = DocumentManager.getCurrentDocument();
         origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
             origSelection = EditorManager.getCurrentFullEditor().getSelection();
+            origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
         } else {
             origSelection = null;
+            origScrollPos = null;
         }
 
         // Show the search bar ("dialog")
