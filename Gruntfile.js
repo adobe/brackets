@@ -102,10 +102,6 @@ module.exports = function (grunt) {
             }
         }
     });
-    
-    function writeJSON(path, obj) {
-        grunt.file.write(path, JSON.stringify(obj, null, "    "));
-    }
 
     // load dependencies
     grunt.loadTasks('tasks');
