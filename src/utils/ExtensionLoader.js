@@ -39,7 +39,9 @@ define(function (require, exports, module) {
         Async               = require("utils/Async");
     
     var _init       = false,
+        /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
+        /** @type {Object<string, string>}  Stores what entry points where used to load an extension (usually "main" to load main.js) */
         entryPoints = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
@@ -53,9 +55,14 @@ define(function (require, exports, module) {
             "mode" : srcPath + "/thirdparty/CodeMirror2/mode"
         };
     
+    // Add a require.js plugin to allow for extensions to be dependend on one another.
+    // An extension can call require("extension!LESSSupport") and thereby influence the order extensions are loaded in.
+    // However, this only works right now before the contexts for all extensions are already defined
+    // before extensions are actually loaded.
     define("extension", {
         load: function requireExtension(name, req, onLoad, config) {
-            var context = contexts[name], entryPoint = entryPoints[name];
+            var context = contexts[name],
+                entryPoint = entryPoints[name];
             if (context && entryPoint) {
                 context([entryPoint], onLoad);
             }
