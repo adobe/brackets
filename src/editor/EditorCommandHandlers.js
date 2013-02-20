@@ -753,5 +753,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
     CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
     CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, 		_handleSelectAll);
+    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,       _handleSelectAll);
 });
