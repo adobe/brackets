@@ -36,9 +36,11 @@ define(function (require, exports, module) {
     var AppInit        = require("utils/AppInit"),
         CommandManager = require("command/CommandManager"),
         KeyEvent       = require("utils/KeyEvent"),
-        Strings        = require("strings");
+        Strings        = require("strings"),
+        FileUtils      = require("file/FileUtils");
 
-    var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+    var BaseConfig = JSON.parse(require("text!base-config/keyboard.json")),
+        mergedConfig = $.extend({}, BaseConfig);
     
     /**
      * Maps normalized shortcut descriptor to key binding info.
@@ -56,14 +58,6 @@ define(function (require, exports, module) {
      * Allow clients to toggle key binding
      */
     var _enabled = true;
-
-    /**
-     * @private
-     */
-    function _reset() {
-        _keyMap = {};
-        _commandMap = {};
-    }
 
     /**
      * @private
@@ -294,6 +288,31 @@ define(function (require, exports, module) {
     function _isKeyAssigned(key) {
         return (_keyMap[key] !== undefined);
     }
+    
+    /**
+     * @private
+     * Convert Ctrl to Cmd for generic key bindings
+     * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
+     * @param {?string} platform - undefined indicates all platforms
+     * @return {string|{{key: string, displayKey: string}}}
+     */
+    function transformBinding(keyBinding, explicitPlatform) {
+        var key;
+        
+        if (brackets.platform === "mac" && explicitPlatform === undefined) {
+            key = (keyBinding.key || keyBinding).replace("Ctrl", "Cmd");
+            
+            if (keyBinding.key) {
+                keyBinding.key = key;
+            }
+            
+            if (keyBinding.displayKey !== undefined) {
+                keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
+            }
+        }
+        
+        return keyBinding.key ? keyBinding : key;
+    }
 
     /**
      * Remove a key binding from _keymap
@@ -306,6 +325,7 @@ define(function (require, exports, module) {
             return;
         }
 
+        key = transformBinding(key, platform);
         var normalizedKey = normalizeKeyDescriptorString(key);
         
         if (!normalizedKey) {
@@ -332,6 +352,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Removes all key bindings
+     */
+    function _reset() {
+        Object.keys(_keyMap).forEach(function (key) {
+            removeBinding(key);
+        });
+    }
+
+    /**
      * @private
      *
      * @param {string} commandID
@@ -354,13 +383,8 @@ define(function (require, exports, module) {
         
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
+        keyBinding = transformBinding(keyBinding, explicitPlatform);
         key = (keyBinding.key) || keyBinding;
-        if (brackets.platform === "mac" && explicitPlatform === undefined) {
-            key = key.replace("Ctrl", "Cmd");
-            if (keyBinding.displayKey !== undefined) {
-                keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
-            }
-        }
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
@@ -559,6 +583,17 @@ define(function (require, exports, module) {
         var bindings = _commandMap[commandID];
         return bindings || [];
     }
+
+    /**
+     * @private
+     */
+    function _addBindingForCommand(bindings, commandId) {
+        var defaults = bindings[commandId];
+        
+        if (defaults) {
+            addBinding(commandId, defaults);
+        }
+    }
     
     /**
      * Adds default key bindings when commands are registered to CommandManager
@@ -566,15 +601,42 @@ define(function (require, exports, module) {
      * @param {Command} command Newly registered command
      */
     function _handleCommandRegistered(event, command) {
-        var commandId   = command.getID(),
-            defaults    = KeyboardPrefs[commandId];
-        
-        if (defaults) {
-            addBinding(commandId, defaults);
-        }
+        _addBindingForCommand(mergedConfig, command.getID());
+    }
+
+    /**
+     * Loads a key binding file and merges it with base key bindings. 
+     * @param {string} path Native file path to load key bindings JSON file
+     */
+    function loadKeyBindingsFile(path) {
+        FileUtils.resolvePath(path).done(function (entry) {
+            FileUtils.readAsText(entry).done(function (text) {
+                var defaults;
+                
+                try {
+                    // attempt to parse JSON
+                    mergedConfig = $.extend(BaseConfig, JSON.parse(text));
+                
+                    // clear all keybindings
+                    _reset();
+                    
+                    // add bindings for all existing commands
+                    CommandManager.getAll().forEach(function (commandId) {
+                        _addBindingForCommand(mergedConfig, commandId);
+                    });
+                } catch (err) {
+                    // do nothing
+                }
+            });
+        });
     }
 
     AppInit.htmlReady(function () {
+        // TODO (jasonsanjose): user configurable path to key binding file
+        // Read keyboard.json preference file from the user's preferences
+        var pathToKeyBindingsJSON = brackets.app.getApplicationSupportDirectory() + "/keyboard.json";
+        loadKeyBindingsFile(pathToKeyBindingsJSON);
+
         // Install keydown event listener.
         window.document.body.addEventListener(
             "keydown",
@@ -591,6 +653,7 @@ define(function (require, exports, module) {
             (brackets.platform !== "win");
     });
     
+    // add key bindings as commands are registered
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
     // unit test only
@@ -604,6 +667,7 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
+    exports.loadKeyBindingsFile = loadKeyBindingsFile;
     
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux). 
