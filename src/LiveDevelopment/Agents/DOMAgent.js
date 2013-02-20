@@ -298,9 +298,10 @@ define(function DOMAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
+        Inspector
+            .on("actualPageLoad.DOMAgent", _onLoadEventFired);
         $(Inspector.Page)
-            .on("frameNavigated.DOMAgent", _onFrameNavigated)
-            .on("loadEventFired.DOMAgent", _onLoadEventFired);
+            .on("frameNavigated.DOMAgent", _onFrameNavigated);
         $(Inspector.DOM)
             .on("documentUpdated.DOMAgent", _onDocumentUpdated)
             .on("setChildNodes.DOMAgent", _onSetChildNodes)
@@ -313,6 +314,7 @@ define(function DOMAgent(require, exports, module) {
 
     /** Clean up */
     function unload() {
+        Inspector.off(".DOMAgent");
         $(Inspector.Page).off(".DOMAgent");
         $(Inspector.DOM).off(".DOMAgent");
     }

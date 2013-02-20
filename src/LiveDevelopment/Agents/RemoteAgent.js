@@ -108,7 +108,7 @@ define(function RemoteAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        $(Inspector.Page).on("loadEventFired.RemoteAgent", _onLoadEventFired);
+        Inspector.on("actualPageLoad.RemoteAgent", _onLoadEventFired);
         $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
         _load.done(function () {
             _intervalId = window.setInterval(function () {
@@ -120,6 +120,7 @@ define(function RemoteAgent(require, exports, module) {
 
     /** Clean up */
     function unload() {
+        Inspector.off(".RemoteAgent");
         $(Inspector.Page).off(".RemoteAgent");
         $(Inspector.DOM).off(".RemoteAgent");
         if (_intervalId) {
