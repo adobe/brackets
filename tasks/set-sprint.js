@@ -34,6 +34,6 @@ module.exports = function (grunt) {
         
         packageJSON.version = "0." + sprint + ".0-0";
 
-        common.writeJSON(path, packageJSON);
+        common.writeJSON(grunt, path, packageJSON);
     });
 };

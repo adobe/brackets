@@ -37,6 +37,6 @@ module.exports = function (grunt) {
             }
         });
 
-        common.writeJSON("src/config.json", appConfigJSON);
+        common.writeJSON(grunt, "src/config.json", appConfigJSON);
     });
 };

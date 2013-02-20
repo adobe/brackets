@@ -22,7 +22,7 @@
  */
  /*global module, require*/
 
-function writeJSON(path, obj) {
+function writeJSON(grunt, path, obj) {
     grunt.file.write(path, JSON.stringify(obj, null, "    "));
 }
 
