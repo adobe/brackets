@@ -228,7 +228,8 @@ define(function (require, exports, module) {
         sessionProvider = null,
         sessionEditor   = null,
         hintList        = null,
-        deferredHints   = null;
+        deferredHints   = null,
+        keyDownEditor   = null;
 
     /**
      * Comparator to sort providers based on their priority
@@ -318,6 +319,7 @@ define(function (require, exports, module) {
     function _endSession() {
         hintList.close();
         hintList = null;
+        keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;
         if (deferredHints) {
@@ -438,6 +440,7 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
+        keyDownEditor = editor;
         if (event.type === "keydown") {
             if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
                 event.preventDefault();
@@ -450,28 +453,27 @@ define(function (require, exports, module) {
             } else if (_inSession(editor) && hintList.isOpen()) {
                 // Pass event to the hint list, if it's open
                 hintList.handleKeyEvent(event);
-            } else if (!(event.ctrlKey || event.altKey || event.metaKey) &&
-                        (event.keyCode === KeyEvent.DOM_VK_ENTER ||
-                         event.keyCode === KeyEvent.DOM_VK_RETURN ||
-                         event.keyCode === KeyEvent.DOM_VK_TAB)) {
+            }
+            if (!(event.ctrlKey || event.altKey || event.metaKey) &&
+                    (event.keyCode === KeyEvent.DOM_VK_ENTER ||
+                     event.keyCode === KeyEvent.DOM_VK_RETURN ||
+                     event.keyCode === KeyEvent.DOM_VK_TAB)) {
                 lastChar = String.fromCharCode(event.keyCode);
             }
         } else if (event.type === "keypress") {
             // Last inserted character, used later by handleChange
             lastChar = String.fromCharCode(event.charCode);
-        } else if (event.type === "keyup") {
-            if (_inSession(editor)) {
-                if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
-                    // End the session if the user presses any key with a modifier (other than Ctrl+Space).
-                    _endSession();
-                } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
-                           event.keyCode === KeyEvent.DOM_VK_RIGHT ||
-                           event.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-                    // Update the list after a simple navigation.
-                    // We do this in "keyup" because we want the cursor position to be updated before
-                    // we redraw the list.
-                    _updateHintList();
-                }
+        } else if (event.type === "keyup" && _inSession(editor)) {
+            if ((event.keyCode !== 32 && event.ctrlKey) || event.altKey || event.metaKey) {
+                // End the session if the user presses any key with a modifier (other than Ctrl+Space).
+                _endSession();
+            } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
+                       event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                       event.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
+                // Update the list after a simple navigation.
+                // We do this in "keyup" because we want the cursor position to be updated before
+                // we redraw the list.
+                _updateHintList();
             }
         }
     }
@@ -482,7 +484,8 @@ define(function (require, exports, module) {
      * the lastChar.
      */
     function handleChange(editor) {
-        if (lastChar) {
+        if (lastChar && editor === keyDownEditor) {
+            keyDownEditor = null;
             if (_inSession(editor)) {
                 var charToRetest = lastChar;
                 _updateHintList();

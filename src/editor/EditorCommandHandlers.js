@@ -99,6 +99,7 @@ define(function (require, exports, module) {
         var containsUncommented = _containsUncommented(editor, startLine, endLine);
         var i;
         var line;
+        var updateSelection = false;
         
         // Make the edit
         doc.batchOperation(function () {
@@ -111,8 +112,7 @@ define(function (require, exports, module) {
                 
                 // Make sure selection includes "//" that was added at start of range
                 if (sel.start.ch === 0 && hasSelection) {
-                    // use *current* selection end, which has been updated for our text insertions
-                    editor.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
+                    updateSelection = true;
                 }
                 
             } else {
@@ -127,6 +127,12 @@ define(function (require, exports, module) {
             }
         });
         
+        // Update the selection after the document batch so it's not blown away on resynchronization
+        // if this editor is not the master editor.
+        if (updateSelection) {
+            // use *current* selection end, which has been updated for our text insertions
+            editor.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
+        }
     }
     
     
@@ -217,7 +223,8 @@ define(function (require, exports, module) {
             suffixPos      = null,
             canComment     = false,
             invalidComment = false,
-            lineUncomment  = false;
+            lineUncomment  = false,
+            newSelection;
         
         var result, text, line;
         
@@ -339,13 +346,13 @@ define(function (require, exports, module) {
                     
                     // Correct the selection.
                     if (completeLineSel) {
-                        editor.setSelection({line: sel.start.line + 1, ch: 0}, {line: sel.end.line + 1, ch: 0});
+                        newSelection = {start: {line: sel.start.line + 1, ch: 0}, end: {line: sel.end.line + 1, ch: 0}};
                     } else {
                         var newSelStart = {line: sel.start.line, ch: sel.start.ch + prefix.length};
                         if (sel.start.line === sel.end.line) {
-                            editor.setSelection(newSelStart, {line: sel.end.line, ch: sel.end.ch + prefix.length});
+                            newSelection = {start: newSelStart, end: {line: sel.end.line, ch: sel.end.ch + prefix.length}};
                         } else {
-                            editor.setSelection(newSelStart, {line: sel.end.line, ch: sel.end.ch});
+                            newSelection = {start: newSelStart, end: {line: sel.end.line, ch: sel.end.ch}};
                         }
                     }
                 
@@ -379,6 +386,12 @@ define(function (require, exports, module) {
                     }
                 }
             });
+            
+            // Update the selection after the document batch so it's not blown away on resynchronization
+            // if this editor is not the master editor.
+            if (newSelection) {
+                editor.setSelection(newSelection.start, newSelection.end);
+            }
         }
     }
     
@@ -564,8 +577,11 @@ define(function (require, exports, module) {
         
         var doc = editor.document,
             sel = editor.getSelection(),
-            originalSel = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+            originalSel  = editor.getSelection(),
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            inlineWidget = EditorManager.getFocusedInlineWidget(),
+            firstLine    = editor.getFirstVisibleLine(),
+            lastLine     = editor.getLastVisibleLine();
         
         sel.start.ch = 0;
         // The end of the selection becomes the start of the next line, if it isn't already
@@ -576,11 +592,11 @@ define(function (require, exports, module) {
         // Make the move
         switch (direction) {
         case DIRECTION_UP:
-            if (sel.start.line !== 0) {
+            if (sel.start.line !== firstLine) {
                 doc.batchOperation(function () {
                     var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
                     
-                    if (sel.end.line === editor.lineCount()) {
+                    if (sel.end.line === lastLine + 1) {
                         prevText = "\n" + prevText.substring(0, prevText.length - 1);
                     }
                     
@@ -591,17 +607,20 @@ define(function (require, exports, module) {
                     // the line we inserted below.
                     originalSel.start.line--;
                     originalSel.end.line--;
-                    editor.setSelection(originalSel.start, originalSel.end);
                 });
+    
+                // Update the selection after the document batch so it's not blown away on resynchronization
+                // if this editor is not the master editor.
+                editor.setSelection(originalSel.start, originalSel.end);
             }
             break;
         case DIRECTION_DOWN:
-            if (sel.end.line < editor.lineCount()) {
+            if (sel.end.line <= lastLine + (inlineWidget ? -1 : 1)) {
                 doc.batchOperation(function () {
                     var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
                     
                     var deletionStart = sel.end;
-                    if (sel.end.line === editor.lineCount() - 1) {
+                    if (!inlineWidget && sel.end.line === lastLine) {
                         nextText += "\n";
                         deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
                     }
