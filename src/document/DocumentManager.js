@@ -599,15 +599,13 @@ define(function (require, exports, module) {
         this.file = file;
         this.refreshText(rawText, initialTimestamp);
         
+        this._updateLanguage();
+        // TODO: remove this listener when the document object is obsolete.
+        // But when is this the case? When _refCount === 0?
+        $(this.file).on("rename", this._updateLanguage.bind(this));
+        
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
-        
-        var _this = this;
-        $(module.exports).on("fileNameChange", function (e, oldName, newName) {
-            if (file.fullPath === newName) {
-                _this.language = null;
-            }
-        });
     }
     
     /**
@@ -945,16 +943,25 @@ define(function (require, exports, module) {
     
     /**
      * Returns the language this document is written in.
-     * The language returned is based on the file extension and is set in the constructor.
+     * The language returned is based on the file extension.
      * @return {Language} An object describing the language used in this document
      */
     Document.prototype.getLanguage = function () {
-        if (!this.language) {
-            var ext = PathUtils.filenameExtension(this.file.fullPath);
-            this.language = Languages.getLanguageForFileExtension(ext);
-        }
         return this.language;
     };
+
+    /**
+     * Updates the language according to the file extension
+     */
+    Document.prototype._updateLanguage = function () {
+        var oldLanguage = this.language;
+        var ext = PathUtils.filenameExtension(this.file.fullPath);
+        this.language = Languages.getLanguageForFileExtension(ext);
+        
+        if (oldLanguage && oldLanguage !== this.language) {
+            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+        }
+    }
     
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
@@ -1193,14 +1200,6 @@ define(function (require, exports, module) {
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
-        
-        // If the renamed file is shown in the current full editor, re-open that
-        // This way everything that depends on the language will be updated (editor mode, JSLint, ...)
-        var doc = getCurrentDocument();
-        if (doc && doc.file.fullPath === newName) {
-            closeFullEditor(doc.file);
-            setCurrentDocument(doc);
-        }
     }
 
     // Define public API

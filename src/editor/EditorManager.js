@@ -109,8 +109,8 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     /**
-     * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
-     * document's language. The editor is appended to the given container as a visible child.
+     * Creates a new Editor bound to the given Document.
+     * The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        return new Editor(doc, makeMasterEditor, doc.getLanguage().mode, container, range);
+        return new Editor(doc, makeMasterEditor, container, range);
     }
     
     /**
@@ -250,8 +250,8 @@ define(function (require, exports, module) {
 
     
     /**
-     * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
-     * based on the document's language. The editor is not yet visible or attached to a host editor.
+     * Creates a new inline Editor instance for the given Document.
+     * The editor is not yet visible or attached to a host editor.
      * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.

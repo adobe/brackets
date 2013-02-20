@@ -292,7 +292,7 @@ define(function (require, exports, module) {
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      */
-    function Editor(document, makeMasterEditor, mode, container, range) {
+    function Editor(document, makeMasterEditor, container, range) {
         var self = this;
         
         _instances.push(this);
@@ -308,8 +308,12 @@ define(function (require, exports, module) {
         // store this-bound version of listeners so we can remove them later
         this._handleDocumentChange = this._handleDocumentChange.bind(this);
         this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
+        this._handleDocumentLanguageChanged = this._handleDocumentLanguageChanged.bind(this);
         $(document).on("change", this._handleDocumentChange);
         $(document).on("deleted", this._handleDocumentDeleted);
+        $(document).on("languageChanged", this._handleDocumentLanguageChanged);
+
+        var mode = this._getModeFromDocument();
         
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
@@ -345,13 +349,6 @@ define(function (require, exports, module) {
             },
             "Cmd-Left": "goLineStartSmart"
         };
-        
-        // We'd like null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
-        // unrecognized mode, but it complains on the console in that fallback case: so, convert
-        // here so we're always explicit, avoiding console noise.
-        if (!mode) {
-            mode = "text/plain";
-        }
         
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
@@ -436,6 +433,7 @@ define(function (require, exports, module) {
         this.document.releaseRef();
         $(this.document).off("change", this._handleDocumentChange);
         $(this.document).off("deleted", this._handleDocumentDeleted);
+        $(this.document).off("languageChanged", this._handleDocumentLanguageChanged);
         
         if (this._visibleRange) {   // TextRange also refs the Document
             this._visibleRange.dispose();
@@ -451,6 +449,18 @@ define(function (require, exports, module) {
         this._inlineWidgets.forEach(function (inlineWidget) {
             inlineWidget.onClosed();
         });
+    };
+    
+    /**
+     * Determine the mode to use from the document's language
+     * Uses "text/plain" if the language does not define a mode
+     * @return string The mode to use
+     */
+    Editor.prototype._getModeFromDocument = function () {
+        // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
+        // unrecognized mode, but it complains on the console in that fallback case: so, convert
+        // here so we're always explicit, avoiding console noise.
+        return this.document.getLanguage().mode || "text/plain";
     };
     
         
@@ -596,6 +606,14 @@ define(function (require, exports, module) {
     Editor.prototype._handleDocumentDeleted = function (event) {
         // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
         $(this).triggerHandler("lostContent", [event]);
+    };
+    
+    /**
+     * Responds to language changes, for instance when the file extension is changed.
+     */
+    Editor.prototype._handleDocumentLanguageChanged = function (event) {
+        var mode = this._getModeFromDocument();
+        this._codeMirror.setOption("mode", this._getModeFromDocument());
     };
     
     
