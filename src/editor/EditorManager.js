@@ -98,22 +98,6 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     /**
-     * @private
-     * @param {?Editor} current
-     */
-    function _notifyActiveEditorChanged(current) {
-        // Skip if the Editor that gained focus was already the most recently focused editor.
-        // This may happen e.g. if the window loses then regains focus.
-        if (_lastFocusedEditor === current) {
-            return;
-        }
-        var previous = _lastFocusedEditor;
-        _lastFocusedEditor = current;
-        
-        $(exports).triggerHandler("activeEditorChange", [current, previous]);
-    }
-    
-    /**
      * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
      * file extension. The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
@@ -126,11 +110,8 @@ define(function (require, exports, module) {
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
-        var editor = new Editor(doc, makeMasterEditor, mode, container, range);
         
-        $(editor).on("focus", _notifyActiveEditorChanged());
-        
-        return editor;
+        return new Editor(doc, makeMasterEditor, mode, container, range);
     }
     
     /**
@@ -376,6 +357,23 @@ define(function (require, exports, module) {
     function _updateEditorDuringResize() {
         // skipRefresh=true since CodeMirror will call refresh() itself when it sees the resize event
         resizeEditor(true);
+    }
+    
+    
+    /**
+     * @private
+     * @param {?Editor} current
+     */
+    function _notifyActiveEditorChanged(current) {
+        // Skip if the Editor that gained focus was already the most recently focused editor.
+        // This may happen e.g. if the window loses then regains focus.
+        if (_lastFocusedEditor === current) {
+            return;
+        }
+        var previous = _lastFocusedEditor;
+        _lastFocusedEditor = current;
+        
+        $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
     
     /**
@@ -774,6 +772,7 @@ define(function (require, exports, module) {
     // For unit tests and internal use only
     exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
+    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     
