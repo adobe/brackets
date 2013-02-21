@@ -13,7 +13,6 @@
     "html": {
         "name": "HTML",
         "mode": "htmlmixed",
-        "modeAliases": ["html"],
         "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht"],
         "blockComment": ["<!--", "-->"]
     },

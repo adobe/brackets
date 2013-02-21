@@ -65,6 +65,7 @@
  *     language.modeReady.done(function () {
  *         // ...
  *     });
+ * Note that this will never fire for languages without a mode.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -152,12 +153,12 @@ define(function (require, exports, module) {
      * @private
      */
     function _setLanguageForMode(mode, language) {
-        if (!_modeMap[mode]) {
-            _modeMap[mode] = [];
-        } else {
-            console.warn("Multiple languages are using the CodeMirror mode \"" + mode + "\"", _modeMap[mode]);
+        if (_modeMap[mode]) {
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeMap[mode].name + ", won't register for " + language.name);
+            return;
         }
-        _modeMap[mode].push(language);
+
+        _modeMap[mode] = language;
     }
 
     /**
@@ -184,7 +185,7 @@ define(function (require, exports, module) {
         
         var language = _fileExtensionsMap[extension];
         if (!language) {
-            console.log("Called Languages.js getLanguageForFileExtension with an unhandled file extension: " + extension);
+            console.log("Called LanguageManager.getLanguageForFileExtension with an unhandled file extension: " + extension);
         }
         
         return language || _fallbackLanguage;
@@ -196,22 +197,13 @@ define(function (require, exports, module) {
      * @return {Language} The language for the provided mode or the fallback language
      */
     function getLanguageForMode(mode) {
-        var languages = _modeMap[mode],
-            i;
-        
-        if (languages) {
-            // Prefer languages that don't just have the mode as an alias
-            for (i = 0; i < languages.length; i++) {
-                if (languages[i].mode === mode) {
-                    return languages[i];
-                }
-            }
-            // If all available languages only use this mode as an alias, just use the first one
-            return languages[0];
+        var language = _modeMap[mode];
+        if (language) {
+            return language;
         }
         
         // In case of unsupported languages
-        console.log("Called Languages.js getLanguageForMode with an unhandled mode:", mode);
+        console.log("Called LanguageManager.getLanguageForMode with a mode for which no language has been registered:", mode);
         return _fallbackLanguage;
     }
 
@@ -258,14 +250,13 @@ define(function (require, exports, module) {
     Language.prototype.modeReady = null;
     
     /**
-     * Sets the mode and optionally aliases for this language.
+     * Sets the mode for this language.
      * 
      * @param {string|Array.<string>} definition.mode        CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                       Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
-     * @param {Array.<string>}        definition.modeAliases Names of high level CodeMirror modes or MIME modes that are only used as submodes (i.e. ["html"])
      * @return {Language} This language
      */
-    Language.prototype._setMode = function (mode, modeAliases) {
+    Language.prototype._setMode = function (mode) {
         if (!mode) {
             return;
         }
@@ -273,15 +264,15 @@ define(function (require, exports, module) {
         var language = this;
         // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
         var mimeMode;
-        if (Object.prototype.toString.call(mode) === '[object Array]') {
+        if ($.isArray(mode)) {
+            if (mode.length !== 2) {
+                throw new Error("Mode must either be a string or an array containing two strings");
+            }
             mimeMode = mode[1];
             mode = mode[0];
         }
 
         _validateNonEmptyString(mode, "mode");
-        if (modeAliases) {
-            _validateArray(modeAliases, "modeAliases", _validateNonEmptyString);
-        }
         
         var finish = function () {
             var i;
@@ -304,13 +295,6 @@ define(function (require, exports, module) {
             // The base mode was only necessary to load the proper mode file
             language.mode = mimeMode || mode;
             _setLanguageForMode(language.mode, language);
-            
-            if (modeAliases) {
-                language.modeAliases = modeAliases;
-                for (i = 0; i < modeAliases.length; i++) {
-                    _setLanguageForMode(modeAliases[i], language);
-                }
-            }
             
             language._modeReady.resolve(language);
         };
@@ -383,23 +367,13 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns whether the provided mode is used by this language.
-     * True if the languages's mode is the same as the provided one
-     * or included in the mode aliases.
-     * @return {boolean} Whether the mode is used directly or as an alias
-     */
-    Language.prototype.usesMode = function (mode) {
-        return mode === this.mode || this.modeAliases.indexOf(mode) !== -1;
-    };
-    
-    /**
      * Returns either a language associated with the mode or the fallback language.
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
-     * @return {Language} This language if it uses the mode, or whatever {@link Languages#getLanguageForMode} returns
+     * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#getLanguageForMode} returns
      */
     Language.prototype.getLanguageForMode = function (mode) {
-        if (this.usesMode(mode)) {
+        if (mode === this.mode) {
             return this;
         }
 
@@ -415,8 +389,8 @@ define(function (require, exports, module) {
      * @private
      */
     Language.prototype._setLanguageForMode = function (mode, language) {
-        if (this.usesMode(mode) && language !== this) {
-            throw new Error("A language must always map its mode and mode aliases to itself");
+        if (mode === this.mode && language !== this) {
+            throw new Error("A language must always map its mode to itself");
         }
         this._modeMap[mode] = language;
         
@@ -435,7 +409,6 @@ define(function (require, exports, module) {
      * @param {string}                definition.lineComment    Line comment prefix (i.e. "//")
      * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
-     * @param {Array.<string>}        definition.modeAliases    Names of high level CodeMirror modes or MIME modes that are only used as submodes (i.e. ["html"])
      *
      * @return {Language} The new language
      **/
@@ -460,10 +433,10 @@ define(function (require, exports, module) {
             language.setLineComment(lineComment);
         }
         
-        var mode        = definition.mode,
-            modeAliases = definition.modeAliases;
-        
-        language._setMode(mode, modeAliases);
+        var mode = definition.mode;
+        if (mode) {
+            language._setMode(mode);
+        }
         
         return language;
     }
@@ -481,7 +454,18 @@ define(function (require, exports, module) {
     // Load the default languages
     $.each(JSON.parse(_defaultLanguagesJSON), defineLanguage);
     
-    // The fallback language
+    // Get the object for HTML
+    var html = getLanguage("html");
+    
+    // The htmlmixed mode uses the xml mode internally for the HTML parts, so we map it to HTML
+    html._setLanguageForMode("xml", html);
+    
+    // Currently we override the above mentioned "xml" in TokenUtils.getModeAt, instead returning "html".
+    // When the CSSInlineEditor and the hint providers are no longer based on moded, this can be changed.
+    // But for now, we need to associate this madeup "html" mode with our HTML language object.
+    _setLanguageForMode("html", html);
+    
+    // The fallback language for unknown modes and file extensions
     _fallbackLanguage = getLanguage("unknown");
     
     
