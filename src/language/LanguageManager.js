@@ -25,6 +25,47 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, CodeMirror, toString, window */
 
+/**
+ * LanguageManager provides access to the languages supported by Brackets
+ *
+ * To find out which languages we support by default, have a look at languages.json.
+ *
+ * To get access to an existing language, call getLanguage():
+ *     var language = LanguageManager.getLanguage("<id>");
+ *
+ * To define your own languages, call defineLanguage():
+ *     var language = LanguageManager.defineLanguage("haskell", {
+ *         name: "Haskell",
+ *         mode: "haskell",
+ *         fileExtensions: ["hs"],
+ *         blockComment: ["{-", "-}"],
+ *         lineComment: "--"
+ *     });
+ *
+ * You can also refine an existing language. Currently you can only set the comment styles:
+ *     language.setLineComment("--");
+ *     language.setBlockComment("{-", "-}");
+ *
+ * Some CodeMirror modes define variations of themselves. The are called MIME modes.
+ * To find out existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
+ * For instance, C++, C# and Java all use the clike mode.
+ * You can refine the mode definition by specifying the MIME mode as well:
+ *     var language = LanguageManager.defineLanguage("csharp", {
+ *         name: "C#",
+ *         mode: ["clike", "text/x-csharp"],
+ *         ...
+ *     });
+ * Definining the base mode is still necessary to know which file to load.
+ * However, language.mode will only refer to the MIME mode, or the base mode if no MIME mode has been specified.
+ *
+ * If a mode is not shipped with our CodeMirror distribution, you need to first load it yourself.
+ * If the mode is part of our CodeMirror distribution, it gets loaded automatically.
+ *
+ * To wait until the mode is loaded and set, use the language.modeReady promise:
+ *     language.modeReady.done(function () {
+ *         // ...
+ *     });
+ */
 define(function (require, exports, module) {
     "use strict";
     
@@ -101,27 +142,6 @@ define(function (require, exports, module) {
             _original_CodeMirror_defineMode.apply(CodeMirror, arguments);
         }
         CodeMirror.defineMode = _wrapped_CodeMirror_defineMode;
-    }
-    
-    /**
-     * Checks whether the provided mode or MIME mode is known to CodeMirror.
-     * @param {!string} mode Mode to check for
-     * @return {boolean} True if this mode or MIME mode has been loaded, false otherwise
-     */
-    function _hasMode(mode) {
-        return Boolean(CodeMirror.modes[mode] || CodeMirror.mimeModes[mode]);
-    }
-
-    /**
-     * Check whether mode is a non-empty string and loaded by CodeMirror.
-     * @param {!string} mode        Value to validate as a mode string
-     * @param {!string} description A helpful identifier for origin of mode when reporting errors
-     */
-    function _validateMode(mode, description) {
-        _validateNonEmptyString(mode, description);
-        if (!_hasMode(mode)) {
-            throw new Error("CodeMirror mode \"" + mode + "\" is not loaded");
-        }
     }
     
     /**
@@ -207,7 +227,10 @@ define(function (require, exports, module) {
         if (!id.match(/^[a-z]+(\.[a-z]+)*$/)) {
             throw new Error("Invalid language ID \"" + id + "\": Only groups of letters a-z are allowed, separated by _ (i.e. \"cpp\" or \"foo_bar\")");
         }
-        
+        if (_languages[id]) {
+            throw new Error("Language \"" + id + "\" is already defined");
+        }
+
         _validateNonEmptyString(name, "name");
         
         this.id   = id;
@@ -215,34 +238,86 @@ define(function (require, exports, module) {
         
         this._fileExtensions = [];
         this._modeMap = {};
+        
+        // Since setting the mode is asynchronous when the mode hasn't been loaded yet, offer a reliable way to wait until it is ready
+        this._modeReady = new $.Deferred();
+        this.modeReady = this._modeReady.promise();
+        
+        _languages[id] = this;
     }
+    
+    /** @type {string} Identifier for this language */
+    Language.prototype.id = null;
+
+    /** @type {string} Human-readable name of the language */
+    Language.prototype.name = null;
+    
+    /** @type {$.Promise} Promise that resolves when the mode has been loaded and set */
+    Language.prototype.modeReady = null;
     
     /**
      * Sets the mode and optionally aliases for this language.
-     *
      * 
-     * @param {!string} mode Name of a CodeMirror mode or MIME mode that is already loaded
-     * @param {Array.<string>} modeAliases Names of CodeMirror modes or MIME modes that are only used as submodes
+     * @param {string|Array.<string>} definition.mode        CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     *                                                       Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     * @param {Array.<string>}        definition.modeAliases Names of high level CodeMirror modes or MIME modes that are only used as submodes (i.e. ["html"])
      * @return {Language} This language
      */
     Language.prototype._setMode = function (mode, modeAliases) {
-        var i;
-        
-        _validateMode(mode, "mode");
-        
-        this.mode = mode;
-        _setLanguageForMode(mode, this);
-
-        if (modeAliases) {
-            _validateArray(modeAliases, "modeAliases", _validateNonEmptyString);
-            
-            this.modeAliases = modeAliases;
-            for (i = 0; i < modeAliases.length; i++) {
-                _setLanguageForMode(modeAliases[i], this);
-            }
+        if (!mode) {
+            return;
         }
         
-        return this;
+        var language = this;
+        // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
+        var mimeMode;
+        if (Object.prototype.toString.call(mode) === '[object Array]') {
+            mimeMode = mode[1];
+            mode = mode[0];
+        }
+
+        _validateNonEmptyString(mode, "mode");
+        if (modeAliases) {
+            _validateArray(modeAliases, "modeAliases", _validateNonEmptyString);
+        }
+        
+        var finish = function () {
+            var i;
+            
+            if (!CodeMirror.modes[mode]) {
+                throw new Error("CodeMirror mode \"" + mode + "\" is not loaded");
+            }
+            
+            if (mimeMode) {
+                var modeConfig = CodeMirror.mimeModes[mimeMode];
+                if (!modeConfig) {
+                    throw new Error("CodeMirror MIME mode \"" + mimeMode + "\" not found");
+                }
+                if (modeConfig.name !== mode) {
+                    throw new Error("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
+                }
+            }
+            
+            // This mode is now only about what to tell CodeMirror
+            // The base mode was only necessary to load the proper mode file
+            language.mode = mimeMode || mode;
+            _setLanguageForMode(language.mode, language);
+            
+            if (modeAliases) {
+                language.modeAliases = modeAliases;
+                for (i = 0; i < modeAliases.length; i++) {
+                    _setLanguageForMode(modeAliases[i], language);
+                }
+            }
+            
+            language._modeReady.resolve(language);
+        };
+        
+        if (CodeMirror.modes[mode]) {
+            finish();
+        } else {
+            require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
+        }
     };
     
     /**
@@ -349,24 +424,23 @@ define(function (require, exports, module) {
     /**
      * Defines a language.
      *
-     * @param {!string}        id                        Unique identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
-     * @param {!Object}        definition                An object describing the language
-     * @param {!string}        definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
-     * @param {Array.<string>} definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
-     * @param {Array.<string>} definition.blockComment   Array with two entries defining the block comment prefix and suffix (i.e. ["<!--", "-->"])
-     * @param {string}         definition.lineComment    Line comment prefix (i.e. "//")
-     * @param {string}         definition.mode           Low level CodeMirror mode for this language (i.e. "clike")
-     * @param {string}         definition.mimeMode       High level CodeMirror mode or MIME mode for this language (i.e. "text/x-c++src")
-     * @param {Array.<string>} definition.modeAliases    Names of high level CodeMirror modes or MIME modes that are only used as submodes (i.e. ["html"])
+     * @param {!string}               id                        Unique identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
+     * @param {!Object}               definition                An object describing the language
+     * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
+     * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
+     * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (i.e. ["<!--", "-->"])
+     * @param {string}                definition.lineComment    Line comment prefix (i.e. "//")
+     * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     * @param {Array.<string>}        definition.modeAliases    Names of high level CodeMirror modes or MIME modes that are only used as submodes (i.e. ["html"])
+     *
+     * @return {Language} The new language
      **/
     function defineLanguage(id, definition) {
-        if (_languages[id]) {
-            throw new Error("Language \"" + id + "\" is already defined");
-        }
+        var language = new Language(id, definition.name);
         
-        var i, language = new Language(id, definition.name);
-        
-        var fileExtensions = definition.fileExtensions;
+        var fileExtensions = definition.fileExtensions,
+            i;
         if (fileExtensions) {
             for (i = 0; i < fileExtensions.length; i++) {
                 language._addFileExtension(fileExtensions[i]);
@@ -383,23 +457,10 @@ define(function (require, exports, module) {
             language.setLineComment(lineComment);
         }
         
-        var mode = definition.mode, mimeMode = definition.mimeMode, modeAliases = definition.modeAliases;
-        if (mode) {
-            
-            var setMode = function () {
-                language._setMode(mimeMode || mode, modeAliases);
-            };
-            
-            if (_hasMode(mode)) {
-                setMode();
-            } else {
-                require(["mode/" + mode + "/" + mode], function () {
-                    setMode();
-                });
-            }
-        }
+        var mode        = definition.mode,
+            modeAliases = definition.modeAliases;
         
-        _languages[id] = language;
+        language._setMode(mode, modeAliases);
         
         return language;
     }

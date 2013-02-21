@@ -28,8 +28,7 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n",
-        "mode"      : "thirdparty/CodeMirror2/mode"
+        "i18n"      : "thirdparty/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to

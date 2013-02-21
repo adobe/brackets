@@ -28,8 +28,7 @@
     
     "json": {
         "name": "JSON",
-        "mode": "javascript",
-        "mimeMode": "application/json",
+        "mode": ["javascript", "application/json"],
         "fileExtensions": ["json"]
     },
     
@@ -47,22 +46,19 @@
     
     "cpp": {
         "name": "C++",
-        "mode": "clike",
-        "mimeMode": "text/x-c++src",
+        "mode": ["clike", "text/x-c++src"],
         "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii", "c", "h", "i"]
     },
     
-    "cs": {
+    "csharp": {
         "name": "C#",
-        "mode": "clike",
-        "mimeMode": "text/x-csharp",
+        "mode": ["clike", "text/x-csharp"],
         "fileExtensions": ["cs"]
     },
 
     "java": {
         "name": "Java",
-        "mode": "clike",
-        "mimeMode": "text/x-java",
+        "mode": ["clike", "text/x-java"],
         "fileExtensions": ["java"]
     },
 

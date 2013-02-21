@@ -49,10 +49,9 @@ define(function (require, exports, module) {
     // load the text and i18n modules.
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
 
-    var globalConfig        = {
+    var globalConfig = {
             "text" : srcPath + "/thirdparty/text",
-            "i18n" : srcPath + "/thirdparty/i18n",
-            "mode" : srcPath + "/thirdparty/CodeMirror2/mode"
+            "i18n" : srcPath + "/thirdparty/i18n"
         };
     
     /**

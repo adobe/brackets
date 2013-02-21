@@ -21,17 +21,16 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, document */
+/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
     
-    require("mode/less/less");
+    var LanguageManager = brackets.getModule("language/LanguageManager");
     
-    var Languages = brackets.getModule("language/Languages");
-    
-    var language = Languages.defineLanguage("less", {
+    var language = LanguageManager.defineLanguage("less", {
         name: "LESS",
         mode: "less",
         fileExtensions: ["less"],

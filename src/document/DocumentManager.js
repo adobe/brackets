@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         CollectionUtils     = require("utils/CollectionUtils"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
-        Languages           = require("language/Languages");
+        LanguageManager     = require("language/LanguageManager");
     
     /**
      * Unique PreferencesManager clientID
@@ -956,12 +956,12 @@ define(function (require, exports, module) {
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
         var ext = PathUtils.filenameExtension(this.file.fullPath);
-        this.language = Languages.getLanguageForFileExtension(ext);
+        this.language = LanguageManager.getLanguageForFileExtension(ext);
         
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
         }
-    }
+    };
     
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
