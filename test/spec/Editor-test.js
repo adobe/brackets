@@ -99,7 +99,7 @@ define(function (require, exports, module) {
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
                 var mode = LanguageManager.getLanguageForFileExtension("file:///only/testing/the/path.html").mode;
-                expect(mode).toSpecifyModeNamed("htmlmixed");
+                expect(mode).toSpecifyModeNamed("text/x-brackets-html");
             });
             
             it("should switch modes even if the url has a query string", function () {
@@ -165,8 +165,8 @@ define(function (require, exports, module) {
                 expect(myEditor.getModeForSelection()).toBe("javascript");
             });
             
-            it("should get mode in htmlmixed file", function () {
-                createTestEditor(htmlContent, "htmlmixed");
+            it("should get mode in HTML file", function () {
+                createTestEditor(htmlContent, "html");
                 
                 // Mode at point
                 myEditor.setCursorPos(0, 0);    // first char in text
