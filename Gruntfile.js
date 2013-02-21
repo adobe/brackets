@@ -117,7 +117,7 @@ module.exports = function (grunt) {
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
-    grunt.renameTask('set-sprint', 'set-sprint-alias')
+    grunt.renameTask('set-sprint', 'set-sprint-alias');
     grunt.registerTask('set-sprint', ['set-sprint-alias', 'write-config']);
 
     // Default task.
