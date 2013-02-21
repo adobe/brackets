@@ -100,7 +100,7 @@ define(function (require, exports, module) {
             return {
                 name: "htmlmixed",
                 scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
-                               mode: null}]
+                               mode: "htmlmixed"}]
             };
 
         case "svg":
