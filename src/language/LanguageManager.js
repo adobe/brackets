@@ -336,6 +336,7 @@ define(function (require, exports, module) {
      * @private
      */
     Language.prototype._addFileExtension = function (extension) {
+        extension = extension.toLowerCase();
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
