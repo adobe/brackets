@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, CodeMirror, window */
+/*global define, $, brackets, CodeMirror, PathUtils, window */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -56,7 +56,21 @@
  *         ...
  *     });
  * Definining the base mode is still necessary to know which file to load.
- * However, language.mode will only refer to the MIME mode, or the base mode if no MIME mode has been specified.
+ * Later however, language.mode will either refer to the MIME mode,
+ * or the base mode if no MIME mode has been specified.
+ *
+ * If you need to configure a mode, you can just create a new MIME mode and use that:
+ *     CodeMirror.defineMIME("text/x-brackets-html", {
+ *         "name": "htmlmixed",
+ *         "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
+ *                        "mode": null}]
+ *     });
+ *
+ *     var language = LanguageManager.defineLanguage("html", {
+ *         name: "HTML",
+ *         mode: ["htmlmixed", "text/x-brackets-html"],
+ *         ...
+ *     });
  *
  * If a mode is not shipped with our CodeMirror distribution, you need to first load it yourself.
  * If the mode is part of our CodeMirror distribution, it gets loaded automatically.
@@ -172,10 +186,12 @@ define(function (require, exports, module) {
     
     /**
      * Resolves a file extension to a Language object
-     * @param {!string} extension File extension to find a language for
+     * @param {!string} path Path to or extension of the file to find a language for
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageForFileExtension(extension) {
+    function getLanguageForFileExtension(path) {
+        var extension = PathUtils.filenameExtension(path);
+    
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
         }
@@ -445,12 +461,13 @@ define(function (require, exports, module) {
     // Prevent modes from being overwritten by extensions
     _patchCodeMirror();
     
-    _defaultLanguagesJSON.html.mode = {
+    // Define a custom MIME mode here because JSON files must not contain regular expressions, and so far 
+    CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
         "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
                        "mode": null}]
-    };
-    
+    });
+ 
     // Load the default languages
     $.each(JSON.parse(_defaultLanguagesJSON), defineLanguage);
     
