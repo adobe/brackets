@@ -196,17 +196,18 @@ define(function (require, exports, module) {
      * @return {Language} The language for the provided mode or the fallback language
      */
     function getLanguageForMode(mode) {
-        var i, modes = _modeMap[mode];
+        var languages = _modeMap[mode],
+            i;
         
-        if (modes) {
+        if (languages) {
             // Prefer languages that don't just have the mode as an alias
-            for (i = 0; i < modes.length; i++) {
-                if (modes[i].mode === mode) {
-                    return modes[i];
+            for (i = 0; i < languages.length; i++) {
+                if (languages[i].mode === mode) {
+                    return languages[i];
                 }
             }
             // If all available languages only use this mode as an alias, just use the first one
-            return modes[0];
+            return languages[0];
         }
         
         // In case of unsupported languages
