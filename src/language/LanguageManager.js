@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, CodeMirror, toString, window */
+/*global define, $, brackets, CodeMirror, window */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -112,7 +112,8 @@ define(function (require, exports, module) {
      * @param {!string} description   A helpful identifier for value
      */
     function _validateString(value, description) {
-        if (toString.call(value) !== '[object String]') {
+        // http://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript
+        if (Object.prototype.toString.call(value) !== "[object String]") {
             throw new Error(description + " must be a string");
         }
     }
