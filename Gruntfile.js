@@ -12,6 +12,7 @@ module.exports = function (grunt) {
                 '!src/extensions/**/unittest-files/**/*.js',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
+                '!src/extensions/**/node_modules/**/*.js',
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
