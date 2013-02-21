@@ -121,6 +121,9 @@ define(function (require, exports, module) {
     
     _nodeConnection = new NodeConnection();
     _nodeConnection.connect(true);
+    
+    // TODO: It would be nice to add a menu item that allows the user
+    // to enable/disable forwarding of node logs to the console.
     $(_nodeConnection).on("base.log", handleLogEvent);
     
     exports.logNodeState = logNodeState;

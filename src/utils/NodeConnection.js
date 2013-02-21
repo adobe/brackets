@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -101,15 +101,11 @@ define(function (require, exports, module) {
      * Provides an interface for interacting with the node server.
      */
     function NodeConnection() {
-        if (!(this instanceof NodeConnection)) {
-            return new NodeConnection();
-        } else {
-            this.domains = {};
-            this._registeredModules = [];
-            this._pendingInterfaceRefreshDeferreds = [];
-            this._pendingCommandDeferreds = [];
-            $(this).on("base.newDomains", this._refreshInterface.bind(this));
-        }
+        this.domains = {};
+        this._registeredModules = [];
+        this._pendingInterfaceRefreshDeferreds = [];
+        this._pendingCommandDeferreds = [];
+        $(this).on("base.newDomains", this._refreshInterface.bind(this));
     }
     
     /**
@@ -315,7 +311,7 @@ define(function (require, exports, module) {
     /**
      * Load domains into the server by path
      * @param {Array.<string>} List of absolute paths to load
-     * @param {autoReload} Whether to auto-reload the domains if the server
+     * @param {boolean} autoReload Whether to auto-reload the domains if the server
      *    fails and restarts. Note that the reload is initiated by the
      *    client, so it will only happen after the client reconnects.
      * @return {jQuery.Promise} Promise that resolves after the load has
@@ -366,21 +362,35 @@ define(function (require, exports, module) {
      */
     NodeConnection.prototype._send = function (m) {
         if (this.connected()) {
+
+            // Convert the message to a string
+            var messageString = null;
             if (typeof m === "string") {
-                this._ws.send(m);
+                messageString = m;
             } else {
-                this._ws.send(JSON.stringify(m));
+                try {
+                    messageString = JSON.stringify(m);
+                } catch (stringifyError) {
+                    console.error("[NodeConnection] Unable to stringify message in order to send: " + stringifyError.message);
+                }
+            }
+            
+            // If we succeded in making a string, try to send it
+            if (messageString) {
+                try {
+                    this._ws.send(messageString);
+                } catch (sendError) {
+                    console.error("[NodeConnection] Error sending message: " + sendError.message);
+                }
             }
         } else {
-            throw new Error(
-                "NodeConnection not connected to node, unable to send."
-            );
+            console.error("[NodeConnection] Not connected to node, unable to send.");
         }
     };
 
     /**
      * @private
-     * Handler for receive events on the WebSocket. Parses the message
+     * Handler for receiving events on the WebSocket. Parses the message
      * and dispatches it appropriately.
      * @param {WebSocket.Message} message Message object from WebSocket
      */

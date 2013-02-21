@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -31,8 +31,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Windows sockets are slow to realize they've disconnected (or failed
-    // to connect, so the unit tests that rely on checking disconnect/reconnect
-    // need a longe timeout. To make sure that unit tests run as fast as
+    // to connect), so the unit tests that rely on checking disconnect/reconnect
+    // need a long timeout. To make sure that unit tests run as fast as
     // possible, we should make sure that any waitsFor functions that use this
     // timeout are expected to succeed in waiting (i.e. return "true" as fast
     // as possible).
