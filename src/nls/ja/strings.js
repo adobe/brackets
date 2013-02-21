@@ -77,7 +77,7 @@ define({
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開いてください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
-	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この以前のバージョンの {APP_NAME} では、<strong>Google Chrome</strong> のみでライブプレビューが機能し、<strong>CSS ファイル</strong>の編集時にライブ更新が行われます。HTML または JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
+	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS ファイル</strong>の編集時にのみライブ更新が行われます。HTML または JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
 	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a class=\"clickable-link\" data-href=\"{0}\">Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "ライブプレビュー",
