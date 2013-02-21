@@ -70,7 +70,7 @@ function require(url) {
         HintUtils   = require("HintUtils.js"),
         esprima     = require("thirdparty/esprima/esprima.js");
 
-    var MAX_RETRIES = 100;
+    var MAX_RETRIES = 10;
 
     function _log(msg) {
         self.postMessage({log: msg });
@@ -135,30 +135,27 @@ function require(url) {
 
         if (comments) {
             comments.forEach(function (c) {
-                if (c.type === "Block") {
-                    if (c.value) {
-                        if (c.value.indexOf("global") === 0) {
-                            c.value.substring(7).split(",").forEach(function (g) {
-                                var index = g.indexOf(":");
+                if (c.type === "Block" && c.value) {
+                    if (c.value.indexOf("global") === 0) {
+                        c.value.substring(7).split(",").forEach(function (g) {
+                            var index = g.indexOf(":");
 
-                                if (index >= 0) {
-                                    g = g.substring(0, index);
-                                }
-                                globals.push(HintUtils.makeToken(g.trim()));
-                            });
-                        } else if (c.value.indexOf("jslint") === 0) {
-                            c.value.substring(7).split(",").forEach(function (e) {
-                                var index = e.indexOf(":"),
-                                    prop = (index >= 0) ? e.substring(0, index).trim() : "",
-                                    val = (index >= 0) ? e.substring(index + 1, e.length).trim() : "";
+                            if (index >= 0) {
+                                g = g.substring(0, index);
+                            }
+                            globals.push(HintUtils.makeToken(g.trim()));
+                        });
+                    } else if (c.value.indexOf("jslint") === 0) {
+                        c.value.substring(7).split(",").forEach(function (e) {
+                            var index = e.indexOf(":"),
+                                prop = (index >= 0) ? e.substring(0, index).trim() : "",
+                                val = (index >= 0) ? e.substring(index + 1, e.length).trim() : "";
 
-                                if (val === "true" && HintUtils.JSL_GLOBAL_DEFS.hasOwnProperty(prop)) {
-                                    globals = globals.concat(HintUtils.JSL_GLOBAL_DEFS[prop]);
-                                }
-                            });
-                        }
+                            if (val === "true" && HintUtils.JSL_GLOBAL_DEFS.hasOwnProperty(prop)) {
+                                globals = globals.concat(HintUtils.JSL_GLOBAL_DEFS[prop]);
+                            }
+                        });
                     }
-                    
                 }
             });
         }
@@ -242,7 +239,7 @@ function require(url) {
                         removed = lines.splice(lineno, 1, newline);
                         if (removed && removed.length > 0) {
                             setTimeout(function () {
-                                parse(dir, file, text.length, lines.join("\n"), --retries);
+                                parse(dir, file, lines.join("\n"), --retries);
                             }, 0);
                             return;
                         }

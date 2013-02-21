@@ -189,21 +189,23 @@ define(function (require, exports, module) {
                     }
                 }
 
-                obj2.forEach(function (token) { addToObj(obj1, token); });
+                obj2.forEach(function (token) {
+                    addToObj(obj1, token);
+                });
             }
             
             var stateMap    = getFileState(dir),
-                propobj     = merge(stateMap, "properties", addPropObjs),
-                proplist    = [],
-                propname;
+                propObj     = merge(stateMap, "properties", addPropObjs),
+                propList    = [],
+                propName;
 
-            for (propname in propobj) {
-                if (Object.prototype.hasOwnProperty.call(propobj, propname)) {
-                    proplist.push(propobj[propname]);
+            for (propName in propObj) {
+                if (Object.prototype.hasOwnProperty.call(propObj, propName)) {
+                    propList.push(propObj[propName]);
                 }
             }
 
-            return proplist;
+            return propList;
         }
 
         /* 
@@ -463,24 +465,24 @@ define(function (require, exports, module) {
     // relocate scope information on file rename
     $(DocumentManager)
         .on(HintUtils.eventName("fileNameChange"),
-            function (event, oldname, newname) {
-                var oldsplit    = HintUtils.splitPath(oldname),
-                    olddir      = oldsplit.dir,
-                    oldfile     = oldsplit.file,
-                    newsplit    = HintUtils.splitPath(newname),
-                    newdir      = newsplit.dir,
-                    newfile     = newsplit.file;
+            function (event, oldName, newName) {
+                var oldSplit    = HintUtils.splitPath(oldName),
+                    oldDir      = oldSplit.dir,
+                    oldFile     = oldSplit.file,
+                    newSplit    = HintUtils.splitPath(newName),
+                    newDir      = newSplit.dir,
+                    newFile     = newSplit.file;
         
                 /*
                  * Move property obj[olddir][oldfile] to obj[newdir][newfile]
                  */
                 function moveProp(obj) {
-                    if (obj.hasOwnProperty(olddir) && obj[olddir].hasOwnProperty(oldfile)) {
-                        if (!obj.hasOwnProperty(newdir)) {
-                            obj[newdir] = {};
+                    if (obj.hasOwnProperty(oldDir) && obj[oldDir].hasOwnProperty(oldFile)) {
+                        if (!obj.hasOwnProperty(newDir)) {
+                            obj[newDir] = {};
                         }
-                        obj[newdir][newfile] = obj[olddir][oldfile];
-                        delete obj[olddir][oldfile];
+                        obj[newDir][newFile] = obj[oldDir][oldFile];
+                        delete obj[oldDir][oldFile];
                     }
                 }
                 
