@@ -1087,6 +1087,10 @@ define(function (require, exports, module) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
             menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.DEBUG_ENABLE_NODE_DEBUGGER);
+            menu.addMenuItem(Commands.DEBUG_LOG_NODE_STATE);
+            menu.addMenuItem(Commands.DEBUG_RESTART_NODE);
         }
 
         /*

@@ -91,6 +91,7 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
+        NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils");
             
     // Load modules that self-register and just need to get included in the main project
