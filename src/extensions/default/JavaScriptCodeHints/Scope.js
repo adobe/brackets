@@ -309,7 +309,7 @@ define(function (require, exports, module) {
             this.parent = parent;
         }
 
-        this.idDeclarations = [];
+        this.idDeclarations = {};
         this.idOccurrences = [];
         this.propOccurrences = [];
         this.associations = [];
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
      * Add an identifier declaration
      */
     Scope.prototype.addDeclaration = function (id) {
-        this.idDeclarations.push(id);
+        this.idDeclarations[id.name] = id;
         this.addIdOccurrence(id);
     };
     
@@ -373,7 +373,7 @@ define(function (require, exports, module) {
     Scope.prototype.addAllDeclarations = function (ids) {
         var that = this;
         ids.forEach(function (i) {
-            that.idDeclarations.push(i);
+            that.addDeclaration(i);
         });
     };
     
@@ -435,14 +435,7 @@ define(function (require, exports, module) {
      * Is the symbol declared in this scope?
      */
     Scope.prototype.member = function (sym) {
-        var i;
-        
-        for (i = 0; i < this.idDeclarations.length; i++) {
-            if (this.idDeclarations[i].name === sym) {
-                return true;
-            }
-        }
-        return false;
+        return Object.prototype.hasOwnProperty.call(this.idDeclarations, sym);
     };
     
     /*
@@ -517,13 +510,6 @@ define(function (require, exports, module) {
         }
         
         return this.walkDown(addList, init);
-    };
-       
-    /*
-     * Traverse identifier declarations in the scope down via children
-     */
-    Scope.prototype.walkDownDeclarations = function (add, init) {
-        return this.walkDownList(add, init, "idDeclarations");
     };
 
     /*
