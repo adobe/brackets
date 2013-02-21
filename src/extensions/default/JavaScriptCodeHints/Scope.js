@@ -27,6 +27,31 @@
 define(function (require, exports, module) {
     "use strict";
 
+    /*
+     * Performs a binary search among an array of scope objects for one with a
+     * range that contains pos. The array must be non-empty and sorted
+     * ascending according to the objects' (disjoint) ranges.
+     */
+    function binaryRangeSearch(arr, pos) {
+        var low     = 0,
+            high    = arr.length,
+            middle  = Math.floor(high / 2);
+
+        // binary search for the position among the sorted ranges
+        while (low < middle && middle < high) {
+            if (arr[middle].range.end < pos) {
+                low = middle;
+                middle += Math.floor((high - middle) / 2);
+            } else if (arr[middle].range.start > pos) {
+                high = middle;
+                middle = low + Math.floor((middle - low) / 2);
+            } else {
+                break;
+            }
+        }
+        return arr[middle];
+    }
+
     function Scope(tree, parent) {
 
         /*
@@ -47,7 +72,7 @@ define(function (require, exports, module) {
                     object.name = "this";
                     parent.addAssociation(object, property);
                 } else {
-                    // most likely a call expression or a literal
+                    // most likely a literal
                     return;
                 }
             } else {
@@ -410,27 +435,7 @@ define(function (require, exports, module) {
         }
         this.children.splice(i, 0, child);
     };
-    
-    /*
-     * Find the child scope of the current scope for a given position
-     */
-    Scope.prototype.findChild = function (pos) {
-        var i;
-        
-        if (this.range.start <= pos && pos <= this.range.end) {
-            for (i = 0; i < this.children.length; i++) {
-                if (this.children[i].range.start <= pos &&
-                        pos <= this.children[i].range.end) {
-                    return this.children[i].findChild(pos);
-                }
-            }
-            // if no child has a matching range, this is the most precise scope
-            return this;
-        } else {
-            return null;
-        }
-    };
-    
+
     /* 
      * Is the symbol declared in this scope?
      */
@@ -468,23 +473,41 @@ define(function (require, exports, module) {
      * Does this scope, but not its children, contain the given position? 
      */
     Scope.prototype.containsPositionImmediate = function (pos) {
-        var children = this.children,
-            i;
-        
-        // is in the scope's range...
         if (this.containsPosition(pos)) {
-            for (i = 0; i < children.length; i++) {
-                // but not in a child's scope
-                if (children[i].containsPosition(pos)) {
-                    return false;
-                }
+            if (this.children.length === 0) {
+                // contains the position and there are no children
+                return true;
+            } else {
+                var child = binaryRangeSearch(this.children, pos);
+                // contains the position if the nearest child does not
+                return !child.containsPosition(pos);
             }
-            return true;
         } else {
+            // does not contain the position
             return false;
         }
     };
     
+    /*
+     * Find the child scope of the current scope for a given position
+     */
+    Scope.prototype.findChild = function (pos) {
+        if (this.containsPosition(pos)) {
+            if (this.children.length === 0) {
+                // there are no children, so this is the most precise scope
+                return this;
+            } else {
+                var child = binaryRangeSearch(this.children, pos);
+                // the most precise scope is the most precise scope of the child,
+                // unless no child contains the position, in which case this is
+                // the most precise scope
+                return child.findChild(pos) || this;
+            }
+        } else {
+            return null;
+        }
+    };
+
     /**
      * Traverse the scope down via children
      */
