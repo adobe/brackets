@@ -31,6 +31,10 @@ module.exports = function (grunt) {
         var path        = "package.json",
             packageJSON = grunt.file.readJSON(path),
             sprint      = grunt.option("sprint") || 0;
+
+        if (!sprint) {
+            grunt.fail.fatal("Please specify a sprint. e.g. grunt set-sprint --sprint=21");
+        }
         
         packageJSON.version = "0." + sprint + ".0-0";
 
