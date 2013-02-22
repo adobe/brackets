@@ -39,14 +39,17 @@ define(function (require, exports, module) {
         Async               = require("utils/Async");
     
     var _init       = false,
+        /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
+        /** @type {Object<string, string>}  Stores what entry points where used to load an extension (usually "main" to load main.js) */
+        entryPoints = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
     // The native directory path ends with either "test" or "src". We need "src" to
     // load the text and i18n modules.
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
 
-    var globalConfig        = {
+    var globalConfig = {
             "text" : srcPath + "/thirdparty/text",
             "i18n" : srcPath + "/thirdparty/i18n"
         };
@@ -93,6 +96,7 @@ define(function (require, exports, module) {
                 locale: brackets.getLocale()
             });
         contexts[name] = extensionRequire;
+        entryPoints[name] = entryPoint;
 
         // console.log("[Extension] starting to load " + config.baseUrl);
         

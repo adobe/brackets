@@ -43,7 +43,7 @@ define(function (require, exports, module) {
             // init Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
             myDocument = SpecRunnerUtils.createMockDocument("");
-            myEditor = new Editor(myDocument, true, "", $("#editor").get(0));
+            myEditor = new Editor(myDocument, true, $("#editor").get(0));
         });
 
         afterEach(function () {
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 // tell CodeMirror this is html content as the mode is
                 //used in determining the hints
-                myEditor._codeMirror.setOption("mode", "htmlmixed");
+                myEditor._codeMirror.setOption("mode", "text/x-brackets-html");
             });
     
             it("should not find attribute hints in an empty editor", function () {

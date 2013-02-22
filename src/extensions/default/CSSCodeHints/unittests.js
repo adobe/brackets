@@ -272,7 +272,7 @@ define(function (require, exports, module) {
                     
             beforeEach(function () {
                 // create dummy Document for the Editor
-                var mock = SpecRunnerUtils.createMockEditor(defaultContent, "htmlmixed");
+                var mock = SpecRunnerUtils.createMockEditor(defaultContent, "html");
                 testEditor = mock.editor;
                 testDocument = mock.doc;
             });

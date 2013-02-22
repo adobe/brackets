@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, PathUtils */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -92,7 +92,8 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         CollectionUtils     = require("utils/CollectionUtils"),
         PerfUtils           = require("utils/PerfUtils"),
-        Commands            = require("command/Commands");
+        Commands            = require("command/Commands"),
+        LanguageManager     = require("language/LanguageManager");
     
     /**
      * Unique PreferencesManager clientID
@@ -598,6 +599,11 @@ define(function (require, exports, module) {
         this.file = file;
         this.refreshText(rawText, initialTimestamp);
         
+        this._updateLanguage();
+        // TODO: remove this listener when the document object is obsolete.
+        // But when is this the case? When _refCount === 0?
+        $(this.file).on("rename", this._updateLanguage.bind(this));
+        
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
     }
@@ -613,6 +619,12 @@ define(function (require, exports, module) {
      * @type {!FileEntry}
      */
     Document.prototype.file = null;
+
+    /**
+     * The Language for this document. Will be resolved by file extension in the constructor
+     * @type {!Language}
+     */
+    Document.prototype.language = null;
     
     /**
      * Whether this document has unsaved changes or not.
@@ -930,6 +942,28 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns the language this document is written in.
+     * The language returned is based on the file extension.
+     * @return {Language} An object describing the language used in this document
+     */
+    Document.prototype.getLanguage = function () {
+        return this.language;
+    };
+
+    /**
+     * Updates the language according to the file extension
+     */
+    Document.prototype._updateLanguage = function () {
+        var oldLanguage = this.language;
+        var ext = PathUtils.filenameExtension(this.file.fullPath);
+        this.language = LanguageManager.getLanguageForFileExtension(ext);
+        
+        if (oldLanguage && oldLanguage !== this.language) {
+            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+        }
+    };
+    
+    /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
      * get Documents; do not call the Document constructor directly. This method is safe to call
@@ -1136,7 +1170,7 @@ define(function (require, exports, module) {
         var keysToDelete = [];
         for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {
-                if (path.indexOf(oldName) === 0) {
+                if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
                     // Copy value to new key
                     var newKey = path.replace(oldName, newName);
                     
@@ -1144,8 +1178,8 @@ define(function (require, exports, module) {
                     keysToDelete.push(path);
                     
                     // Update document file
-                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName);
-                        
+                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName, isFolder);
+                    
                     if (!isFolder) {
                         // If the path name is a file, there can only be one matched entry in the open document
                         // list, which we just updated. Break out of the for .. in loop. 
@@ -1161,13 +1195,13 @@ define(function (require, exports, module) {
         
         // Update working set
         for (i = 0; i < _workingSet.length; i++) {
-            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName);
+            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName, isFolder);
         }
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
     }
-    
+
     // Define public API
     exports.Document                    = Document;
     exports.getCurrentDocument          = getCurrentDocument;
