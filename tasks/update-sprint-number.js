@@ -26,17 +26,18 @@ module.exports = function (grunt) {
 
     var common = require("./lib/common");
     
-    // task: set-version
-    grunt.registerTask('set-sprint', function () {
+    // task: update-sprint-number
+    // Updates the version property in package.json
+    grunt.registerTask('update-sprint-number', function () {
         var path        = "package.json",
             packageJSON = grunt.file.readJSON(path),
             sprint      = grunt.option("sprint") || 0;
 
         if (!sprint) {
-            grunt.fail.fatal("Please specify a sprint. e.g. grunt set-sprint --sprint=21");
+            grunt.fail.fatal("Please specify a sprint. e.g. grunt update-sprint-number --sprint=21");
         }
         
-        packageJSON.version = "0." + sprint + ".0-0";
+        packageJSON.version = packageJSON.version.replace(/([0-9]+\.)([0-9]+)([\.\-a-zA-Z0-9]*)?/, "$1" + sprint + "$3");
 
         common.writeJSON(grunt, path, packageJSON);
     });
