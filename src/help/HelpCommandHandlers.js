@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window, PathUtils, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -38,11 +38,73 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
         StringUtils             = require("utils/StringUtils"),
-        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html");
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
     var buildInfo;
-
+    
+    // PreferenceStorage
+    var _prefs = PreferencesManager.getPreferenceStorage(module.id);
+    
+    // Last time the contributorsInfo was fetched
+    var _lastContributorsFetchTime = _prefs.getValue("lastContributorsFetchTime");
+    
+    
+    /**
+     * @private
+     * Gets a data structure that has information for all the contributors of Brackets.
+     * The information is fetched from brackets.config.contributors_url using github API.
+     * If more than 24 hours have passed since the last fetch, or if cached data can't be found, 
+     * the data is fetched again.
+     * @return {$.Promise} jQuery Promise object that is resolved or rejected after the information is fetched.
+     */
+    function _getContributorsInformation() {
+        var result = new $.Deferred();
+        var fetchData = false;
+        var data;
+        
+        // If we don't have data saved in prefs, fetch
+        data = _prefs.getValue("contributorsInfo");
+        if (!data) {
+            fetchData = true;
+        }
+        
+        // If more than 24 hours have passed since our last fetch, fetch again
+        if ((new Date()).getTime() > _lastContributorsFetchTime + (1000 * 60 * 60 * 24)) {
+            fetchData = true;
+        }
+        
+        if (fetchData) {
+            $.getJSON(brackets.config.contributors_url + "?callback=?", function (contributorsInfo) {
+                data = [];
+                
+                // Save only the required data for the template
+                $.each(contributorsInfo.data, function (index, element) {
+                    data.push({
+                        GITHUB_URL : element.html_url,
+                        AVATAR_URL : element.avatar_url,
+                        NAME       : element.login
+                    });
+                });
+                _lastContributorsFetchTime = (new Date()).getTime();
+                _prefs.setValue("lastContributorsFetchTime", _lastContributorsFetchTime);
+                _prefs.setValue("contributorsInfo", data);
+                
+                result.resolve(data);
+            
+            }).error(function () {
+                result.reject();
+            });
+        } else {
+            result.resolve(data);
+        }
+        
+        return result.promise();
+    }
+    
+    
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
@@ -70,6 +132,29 @@ define(function (require, exports, module) {
             BUILD_INFO          : buildInfo || ""
         }, Strings);
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+        
+        
+        // Get all the project contributors and add them to the dialog
+        _getContributorsInformation().done(function (contributorsInfo) {
+            
+            // Populate the contributors data
+            var $dlg = $(".about-dialog.instance");
+            var $updateList = $dlg.find(".about-contributors");
+            
+            templateVars = $.extend({CONTRIBUTORS: contributorsInfo}, Strings);
+            $updateList.html(Mustache.to_html(ContributorsTemplate, templateVars));
+            
+            $dlg.on("click", "img", function (e) {
+                var url = $(e.target).data("url");
+                
+                if (url) {
+                    // Make sure the URL has a domain that we know about
+                    if (/(github\.com)$/i.test(PathUtils.parseUrl(url).hostname)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                    }
+                }
+            });
+        });
     }
 
     // Read "build number" SHAs off disk immediately at APP_READY, instead
