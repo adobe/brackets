@@ -55,6 +55,7 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     
+    
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
     // extensions need these to be required up front. We need a better solution for this eventually.
     require("utils/ExtensionUtils");
@@ -160,13 +161,14 @@ define(function (require, exports, module) {
         
         // Create a top-level filter to show/hide performance and extensions tests
         var isPerfSuite = (suite === "PerformanceTestSuite"),
-            isExtSuite = (suite === "ExtensionTestSuite");
+            isExtSuite = (suite === "ExtensionTestSuite"),
+            isIntegrationSuite = (suite === "IntegrationTestSuite");
         
         var topLevelFilter = function (spec) {
             var suite = spec.suite;
             
             // unit test suites have no category
-            if (!isPerfSuite && !isExtSuite) {
+            if (!isPerfSuite && !isExtSuite && !isIntegrationSuite) {
                 if (spec.category !== undefined) {
                     // if an individualy spec has a category, filter it out
                     return false;
@@ -184,7 +186,15 @@ define(function (require, exports, module) {
                 return true;
             }
             
-            var category = (isPerfSuite) ? "performance" : "extension";
+            var category;
+            
+            if (isPerfSuite) {
+                category = "performance";
+            } else if (isIntegrationSuite) {
+                category = "integration";
+            } else {
+                category = "extension";
+            }
             
             if (spec.category === category) {
                 return true;

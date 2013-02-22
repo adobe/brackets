@@ -113,7 +113,7 @@ define(function (require, exports, module) {
     
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
-     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
      * the runs() that generates the promise.
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
@@ -791,7 +791,43 @@ define(function (require, exports, module) {
 
         return deferred.promise();
     }
-
+    
+    beforeEach(function () {
+        this.addMatchers({
+            /**
+             * Expects the given editor's selection to be a cursor at the given position (no range selected)
+             */
+            toHaveCursorPosition: function (line, ch) {
+                var editor = this.actual;
+                var selection = editor.getSelection();
+                var notString = this.isNot ? "not " : "";
+                
+                var start = selection.start;
+                var end = selection.end;
+                var selectionMoreThanOneCharacter = start.line !== end.line || start.ch !== end.ch;
+                
+                this.message = function () {
+                    var message = "Expected the cursor to " + notString + "be at (" + line + ", " + ch +
+                        ") but it was actually at (" + start.line + ", " + start.ch + ")";
+                    if (!this.isNot && selectionMoreThanOneCharacter) {
+                        message += " and more than one character was selected.";
+                    }
+                    return message;
+                };
+                
+                var positionsMatch = start.line === line && start.ch === ch;
+                
+                // when adding the not operator, it's confusing to check both the size of the
+                // selection and the position. We just check the position in that case.
+                if (this.isNot) {
+                    return positionsMatch;
+                } else {
+                    return !selectionMoreThanOneCharacter && positionsMatch;
+                }
+            }
+        });
+    });
+    
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
     exports.chmod                           = chmod;

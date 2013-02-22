@@ -37,8 +37,8 @@
   <!-- Keep in sync with Gruntfile.js jasmine vendor dependencies -->
   <script src="../src/thirdparty/jquery-1.7.min.js"></script>
   <script src="../src/thirdparty/CodeMirror2/lib/codemirror.js"></script>
-  <script src="../src/thirdparty/CodeMirror2/lib/util/dialog.js"></script>
-  <script src="../src/thirdparty/CodeMirror2/lib/util/searchcursor.js"></script>
+  <script src="../src/thirdparty/CodeMirror2/addon/search/searchcursor.js"></script>
+  <script src="../src/thirdparty/CodeMirror2/addon/edit/closetag.js"></script>
   <script src="../src/thirdparty/mustache/mustache.js"></script>
   <script src="thirdparty/bootstrap2/js/bootstrap.min.js"></script>
     
@@ -61,6 +61,7 @@
           <div class="nav-collapse">
             <ul class="nav">
               <li><a id="UnitTestSuite" href="?suite=UnitTestSuite">Unit</a></li>
+              <li><a id="IntegrationTestSuite" href="?suite=IntegrationTestSuite">Integration</a></li>
               <li><a id="PerformanceTestSuite" href="?suite=PerformanceTestSuite">Performance</a></li>
               <li><a id="ExtensionSuite" href="?suite=ExtensionTestSuite">Extensions</a></li>
               <li><a id="reload" href="#">Reload</a></li>

@@ -562,6 +562,13 @@ a, img {
 /* Styles for inline editors */
 .inline-widget {
     background-color:   @inline-background-color-1;
+    min-width: 250px;
+    cursor: default;
+    
+    .CodeMirror {
+        /* remove CodeMirror default height: 300px */
+        height: auto;
+    }
     
     .inline-editor-header {
         padding: 10px 10px 0px 10px;
@@ -609,9 +616,11 @@ a, img {
     }
     
     .CodeMirror-scroll {
-        /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
-        overflow-x: hidden;
         background-color: transparent;
+        
+        .CodeMirror-linenumbers {
+            background-color: @inline-background-color-1;
+        }
     }
 }
 
@@ -619,12 +628,13 @@ a, img {
 .related-container {
     @top-margin: 12px;
     
-    /*width: 0;*/
+    float: right;
+    position: relative;
+    min-height: 100%;
     font-family: @fontstack-sans-serif;
-    position: fixed;
     width: 250px;
+    max-width: 50%;
     overflow: hidden;
-    /*-webkit-transition: width 0.15s ease-out;*/
     background: @inline-background-color-2;
     
     .selection {
@@ -702,6 +712,9 @@ a, img {
     .code-font();
 }
 
+.platform-mac .dummy-text {
+    .code-font-mac();
+}
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 

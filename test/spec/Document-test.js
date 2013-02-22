@@ -37,7 +37,8 @@ define(function (require, exports, module) {
     
     
     describe("Document", function () {
-
+        this.category = "integration";
+        
         var testPath = SpecRunnerUtils.getTestPath("/spec/Document-test-files"),
             testWindow;
 
