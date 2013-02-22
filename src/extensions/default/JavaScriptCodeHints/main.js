@@ -48,6 +48,10 @@ define(function (require, exports, module) {
      * Creates a hint response object. Filters the hint list using the query
      * string, formats the hints for display, and returns a hint response
      * object according to the CodeHintManager's API for code hint providers.
+     *
+     * @param {Array<Object>} hints - hints to be included in the response
+     * @param {String} query - querystring with which to filter the hint list
+     * @return {Object} - hint response as defined by the CodeHintManager API 
      */
     function getHintResponse(hints, query) {
 
@@ -56,13 +60,22 @@ define(function (require, exports, module) {
             formattedHints;
 
         /*
-         * Filter a list of tokens using a given query string
+         * Filter a list of tokens using the query string in the closure.
+         * 
+         * @param {Array<Object>} tokens - list of hints to filter
+         * @param {Number} limit - maximum numberof tokens to return
+         * @return {Array<Object>} - filtered list of hints
          */
         function filterWithQuery(tokens, limit) {
 
             /*
              * Filter arr using test, returning at most limit results from the
              * front of the array.
+             * 
+             * @param {Array} arr - array to filter
+             * @param {Function} test - test to determine if an element should
+             *      be included in the results
+             * @param {Number} limit - the maximum number of elements to return
              */
             function filterArrayPrefix(arr, test, limit) {
                 var i = 0,
@@ -107,7 +120,14 @@ define(function (require, exports, module) {
         }
 
         /*
-         * Returns a formatted list of hints with the query substring highlighted
+         * Returns a formatted list of hints with the query substring
+         * highlighted.
+         * 
+         * @param {Array<Object>} hints - the list of hints to format
+         * @param {String} query - querystring used for highlighting matched
+         *      poritions of each hint
+         * @param {Array<jQuery.Object>} - array of hints formatted as jQuery
+         *      objects
          */
         function formatHints(hints, query) {
             return hints.map(function (token) {
@@ -197,6 +217,10 @@ define(function (require, exports, module) {
 
     /**
      * Determine whether hints are available for a given editor context
+     * 
+     * @param {Editor} editor - the current editor context
+     * @param {String} key - charCode of the last pressed key
+     * @param {Boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
         if ((key === null) || HintUtils.maybeIdentifier(key)) {
@@ -228,6 +252,10 @@ define(function (require, exports, module) {
     /** 
       * Return a list of hints, possibly deferred, for the current editor 
       * context
+      * 
+      * @param {String} key - charCode of the last pressed key
+      * @return {Object + jQuery.Deferred} - hint response (immediate or
+      *     deferred) as defined by the CodeHintManager API
       */
     JSHints.prototype.getHints = function (key) {
         var cursor = session.getCursor(),
@@ -293,9 +321,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Enters the code completion text into the editor
+     * Inserts the hint selected by the user into the current editor.
      * 
-     * @param {string} hint - text to insert into current code editor
+     * @param {jQuery.Object} hint - hint object to insert into current editor
+     * @return {Boolean} - should a new hinting session be requested 
+     *      immediately after insertion?
      */
     JSHints.prototype.insertHint = function ($hintObj) {
         var hint        = $hintObj.data("token"),
@@ -348,6 +378,8 @@ define(function (require, exports, module) {
         /*
          * When the editor is changed, reset the hinting session and cached 
          * information, and reject any pending deferred requests.
+         * 
+         * @param {Editor} editor - editor context to be initialized.
          */
         function initializeSession(editor) {
             ScopeManager.handleEditorChange(editor.document);
@@ -360,6 +392,9 @@ define(function (require, exports, module) {
 
         /*
          * Install editor change listeners
+         * 
+         * @param {Editor} editor - editor context on which to listen for
+         *      changes
          */
         function installEditorListeners(editor) {
             if (!editor) {
@@ -377,6 +412,9 @@ define(function (require, exports, module) {
 
         /*
          * Uninstall editor change listeners
+         * 
+         * @param {Editor} editor - editor context on which to stop listening
+         *      for changes
          */
         function uninstallEditorListeners(editor) {
             $(editor)
@@ -387,6 +425,10 @@ define(function (require, exports, module) {
          * Handle the activeEditorChange event fired by EditorManager.
          * Uninstalls the change listener on the previous editor
          * and installs a change listener on the new editor.
+         * 
+         * @param {Event} event - editor change event (ignored)
+         * @param {Editor} current - the new current editor context
+         * @param {Editor} previous - the previous editor context
          */
         function handleActiveEditorChange(event, current, previous) {
             uninstallEditorListeners(previous);

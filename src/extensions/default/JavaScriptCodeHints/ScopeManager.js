@@ -52,8 +52,11 @@ define(function (require, exports, module) {
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
         MAX_FILES_IN_DIR    = 100;
 
-    /* 
+    /** 
      * Initialize state for a given directory and file name
+     *
+     * @param {String} dir - the directory name to initialize
+     * @param {String} file - the file name to initialize
      */
     function initFileState(dir, file) {
         // initialize outerScope, etc. at dir
@@ -95,6 +98,17 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Get the file state for a given path. If just the directory is given
+     * instead of the whole path, a set of file states is returned, one for
+     * each (known) file in the directory.
+     * 
+     * @param {String} dir - the directory name for which state is desired
+     * @param {String} file - the file name for which state is desired
+     * @return {Object} - a file state object (as documented within 
+     *      intializeFileState above), or a set of file state objects if
+     *      file is omitted.
+     */
     function getFileState(dir, file) {
         initFileState(dir, file);
 
@@ -107,6 +121,13 @@ define(function (require, exports, module) {
 
     /**
      * Request a new outer scope object from the parser worker, if necessary
+     *
+     * @param {String} dir - the directory name for which the outer scope is to
+     *      be refreshed
+     * @param {String} file - the file name for which the outer scope is to be
+     *      refreshed
+     * @param {String} text - the text of the file for which the outer scope is
+     *      to be refreshed
      */
     function refreshOuterScope(dir, file, text) {
 
@@ -142,12 +163,31 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Recompute the inner scope for a given cursor position, if necessary
+     * Get inner scope information for a given file and offset if a suitable
+     * global scope object is availble; otherwise, return a promise for such
+     * information, resolved when a suitable global scope object becomes 
+     * available.
+     *
+     * @param {String} dir - the directory name for which the inner scope is to
+     *      be refreshed
+     * @param {String} file - the file name for which the inner scope is to be
+     *      refreshed
+     * @param {Number} offset - offset into the text at which the inner scope
+     *      is to be refreshed
+     * @param {Object + jQuery.Promise} - inner scope information, or a promise
+     *      for such information, including the local scope object and lists of
+     *      identifiers, properties, globals, literals and associations.
      */
     function refreshInnerScope(dir, file, offset) {
 
         /*
          * Filter a list of tokens using a given scope object
+         *
+         * @param {Array<Object>} tokens - a list of identifier tokens
+         * @param {Scope} scope - a scope object
+         * @return {Array<Object>} - the sublist of the input list that
+         *      contains all and only the identifier tokens in scope
+         *      w.r.t. to the given scope
          */
         function filterByScope(tokens, scope) {
             return tokens.filter(function (id) {
@@ -157,16 +197,24 @@ define(function (require, exports, module) {
         }
         
         /*
-         * Combine a set of sets using the add operation
+         * Combine a particular property from a set of sets using a given add
+         * operation
+         * 
+         * @param {Object} sets - a set of sets
+         * @param {String} propName - the property to pick out from each set
+         * @param {Function} add - the function that combines properties from
+         *      each set
+         * @return {Object}- the result of combining each set's property using
+         *      the add function
          */
-        function merge(sets, property, add) {
+        function merge(sets, propName, add) {
             var combinedSet = {},
                 nextSet,
                 file;
 
             for (file in sets) {
                 if (sets.hasOwnProperty(file)) {
-                    nextSet = sets[file][property];
+                    nextSet = sets[file][propName];
                     if (nextSet) {
                         add(combinedSet, nextSet);
                     }
@@ -178,7 +226,11 @@ define(function (require, exports, module) {
 
         /*
          * Combine properties from files in the current file's directory into
-         * one sorted list. 
+         * a single list.
+         * 
+         * @param {String} dir - the directory name of the files for which
+         *      property lists should be merged
+         * @param {Array<Object>} - the combined list of property tokens
          */
         function mergeProperties(dir) {
             
@@ -209,7 +261,12 @@ define(function (require, exports, module) {
         }
 
         /* 
-         * Combine association objects from multiple files
+         * Combine association set objects from all of the files in a given 
+         * directory
+         * 
+         * @param {String} dir - the directory name of the files for which
+         *      association sets should be merged
+         * @param {Object} - the combined association set object
          */
         function mergeAssociations(dir) {
             function addAssocSets(list1, list2) {
@@ -303,13 +360,20 @@ define(function (require, exports, module) {
     
     /**
      * Get a new inner scope and related info, if possible. If there is no
-     * outer scope for the given file, a deferred object will be returned
-     * instead.
+     * outer scope for the given file, a promise will be returned instead. 
+     * (See refreshInnerScope above.)
      *
      * Note that successive calls to getScope may return the same objects, so
      * clients that wish to modify those objects (e.g., by annotating them based
      * on some temporary context) should copy them first. See, e.g.,
      * Session.getHints().
+     * 
+     * @param {Document} document - the document for which scope info is 
+     *      desired
+     * @param {Number} offset - the offset into the document at which scope
+     *      info is desired
+     * @param {Object + jQuery.Promise} - the inner scope info, or a promise 
+     *      for such info. (See refreshInnerScope above.)
      */
     function getScopeInfo(document, offset) {
         var path    = document.file.fullPath,
@@ -323,6 +387,10 @@ define(function (require, exports, module) {
     /**
      * Is the inner scope dirty? (It is if the outer scope has changed since
      * the last inner scope request)
+     * 
+     * @param {Document} document - the document for which the last requested
+     *      inner scope may or may not be dirty
+     * @return {Boolean} - is the inner scope dirty?
      */
     function isScopeDirty(document) {
         var path    = document.file.fullPath,
@@ -335,8 +403,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Mark a file as dirty, which causes an outer scope request to trigger
-     * a reparse request. 
+     * Mark a file as dirty, which may cause a later outer scope request to
+     * trigger a reparse request. 
+     * 
+     * @param {String} dir - the directory name of the file to be marked dirty
+     * @param {String} file - the file name of the file to be marked dirty
      */
     function markFileDirty(dir, file) {
         var state = getFileState(dir, file);
@@ -345,8 +416,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Refresh the outer scopes of the given file as well as of the other files
-     * in the given directory.
+     * Called each time a new editor becomes active. Refreshes the outer scopes
+     * of the given file as well as of the other files in the given directory.
+     * 
+     * @param {Document} document - the document of the editor that has changed
      */
     function handleEditorChange(document) {
         var path        = document.file.fullPath,
@@ -383,7 +456,10 @@ define(function (require, exports, module) {
     }
 
     /*
-     * When a file changes, mark it as being dirty and refresh its outer scope.
+     * Called each time the file associated with the active edtor changes.
+     * Marks the file as being dirty and refresh its outer scope.
+     * 
+     * @param {Document} document - the document that has changed
      */
     function handleFileChange(document) {
         var path    = document.file.fullPath,
@@ -396,7 +472,12 @@ define(function (require, exports, module) {
     }
 
     /*
-     * Receive an outer scope object from the parser worker
+     * Receive an outer scope object from the parser worker and resolves any
+     * deferred inner scope requests.
+     * 
+     * @param {Object} response - the parser response object, which includes 
+     *      the global scope and lists of identifiers, properties, globals, 
+     *      literals and associations.
      */
     function handleOuterScope(response) {
         var dir     = response.dir,
@@ -444,6 +525,7 @@ define(function (require, exports, module) {
         }
     }
 
+    // handle response objects, otherwise log the message
     outerScopeWorker.addEventListener("message", function (e) {
         var response = e.data,
             type = response.type;
@@ -473,25 +555,19 @@ define(function (require, exports, module) {
                     newDir      = newSplit.dir,
                     newFile     = newSplit.file;
         
-                /*
-                 * Move property obj[olddir][oldfile] to obj[newdir][newfile]
-                 */
-                function moveProp(obj) {
-                    if (obj.hasOwnProperty(oldDir) && obj[oldDir].hasOwnProperty(oldFile)) {
-                        if (!obj.hasOwnProperty(newDir)) {
-                            obj[newDir] = {};
-                        }
-                        obj[newDir][newFile] = obj[oldDir][oldFile];
-                        delete obj[oldDir][oldFile];
+                if (fileState.hasOwnProperty(oldDir) &&
+                        fileState[oldDir].hasOwnProperty(oldFile)) {
+                    if (!fileState.hasOwnProperty(newDir)) {
+                        fileState[newDir] = {};
                     }
+                    fileState[newDir][newFile] = fileState[oldDir][oldFile];
+                    delete fileState[oldDir][oldFile];
                 }
-                
-                moveProp(fileState);
             });
+
     
     exports.handleEditorChange = handleEditorChange;
     exports.handleFileChange = handleFileChange;
     exports.getScopeInfo = getScopeInfo;
     exports.isScopeDirty = isScopeDirty;
-
 });

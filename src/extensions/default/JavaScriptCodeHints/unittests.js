@@ -43,9 +43,12 @@ define(function (require, exports, module) {
     /**
      * Returns an Editor suitable for use in isolation: i.e., a Document that
      * will never be set as the currentDocument or added to the working set.
-     * @return {!Editor}
+     *
+     * @param {Document} doc - the document to be contained by the new Editor
+     * @param {String} mode - the CodeMirror mode of the new Editor
+     * @return {Editor} - the mock editor object
      */
-    function createMockEditor(doc, mode, visibleRange) {
+    function createMockEditor(doc, mode) {
         mode = mode || "";
         
         // Initialize EditorManager
@@ -55,14 +58,23 @@ define(function (require, exports, module) {
         $("body").append($editorHolder);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), visibleRange);
+        var editor = new Editor(doc, true, mode, $editorHolder.get(0));
         
         return editor;
     }
 
     describe("JavaScript Code Hinting", function () {
 
-        // Ask provider for hints at current cursor position; expect it to return some
+        /*
+         * Ask provider for hints at current cursor position; expect it to
+         * return some
+         * 
+         * @param {Object} provider - a CodeHintProvider object
+         * @param {String} key - the charCode of a key press that triggers the
+         *      CodeHint provider
+         * @return {Boolean} - whether the provider has hints in the context of
+         *      the test editor
+         */
         function expectHints(provider, key) {
             if (key === undefined) {
                 key = null;
@@ -72,7 +84,14 @@ define(function (require, exports, module) {
             return provider.getHints(null);
         }
         
-        // Ask provider for hints at current cursor position; expect it NOT to return any
+        /*
+         * Ask provider for hints at current cursor position; expect it NOT to
+         * return any
+         * 
+         * @param {Object} provider - a CodeHintProvider object
+         * @param {String} key - the charCode of a key press that triggers the
+         *      CodeHint provider
+         */
         function expectNoHints(provider, key) {
             
             if (key === undefined) {
@@ -82,6 +101,14 @@ define(function (require, exports, module) {
             expect(provider.hasHints(testEditor, key)).toBe(false);
         }
 
+        /*
+         * Return the index at which hint occurs in hintList
+         * 
+         * @param {Array<Object>} hintList - the list of hints
+         * @param {String} hint - the hint to search for
+         * @return {Number} - the index into hintList at which the hint occurs,
+         * or -1 if it does not
+         */
         function _indexOf(hintList, hint) {
             var index = -1,
                 counter = 0;
@@ -95,6 +122,15 @@ define(function (require, exports, module) {
             return index;
         }
         
+        /*
+         * Wait for a hint response object to resolve, then apply a callback
+         * to the result
+         * 
+         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+         *      possibly deferred
+         * @param {Function} callback - the callback to apply to the resolved
+         *      hint response object
+         */
         function _waitForHints(hintObj, callback) {
             var complete = false,
                 hintList = null;
@@ -115,17 +151,34 @@ define(function (require, exports, module) {
 
             runs(function () { callback(hintList); });
         }
-        
-        
-        function hintsAbsent(hintObj, expectedHints) {
+
+        /*
+         * Expect a given list of hints to be absent from a given hint
+         * response object
+         * 
+         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+         *      possibly deferred
+         * @param {Array<String>} absentHints - a list of hints that should not
+         *      be present in the hint response
+         */
+        function hintsAbsent(hintObj, absentHints) {
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
-                expectedHints.forEach(function (expectedHint) {
-                    expect(_indexOf(hintList, expectedHint)).toBe(-1);
+                absentHints.forEach(function (absentHint) {
+                    expect(_indexOf(hintList, absentHint)).toBe(-1);
                 });
             });
         }
 
+        /*
+         * Expect a given list of hints to be present in a given hint
+         * response object
+         * 
+         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+         *      possibly deferred
+         * @param {Array<String>} absentHints - a list of hints that should be
+         *      present in the hint response
+         */
         function hintsPresent(hintObj, expectedHints) {
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
@@ -135,6 +188,15 @@ define(function (require, exports, module) {
             });
         }
 
+        /*
+         * Expect a given list of hints to be present in the given order in a
+         * given hint response object
+         * 
+         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+         *      possibly deferred
+         * @param {Array<String>} absentHints - a list of hints that should be
+         *      present in the given order in the hint response
+         */
         function hintsPresentOrdered(hintObj, expectedHints) {
             var prevIndex = -1,
                 currIndex;
@@ -148,7 +210,16 @@ define(function (require, exports, module) {
                 });
             });
         }
-        
+
+        /*
+         * Expect a given list of hints to be present in a given hint
+         * response object, and no more.
+         * 
+         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+         *      possibly deferred
+         * @param {Array<String>} absentHints - a list of hints that should be
+         *      present in the hint response, and no more.
+         */
         function hintsPresentExact(hintObj, expectedHints) {
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
@@ -157,7 +228,18 @@ define(function (require, exports, module) {
                 });
             });
         }
-        
+
+        /*
+         * Simulation of selection of a particular hint in a hint list.
+         * Presumably results in side effects in the hint provider's 
+         * current editor context.
+         * 
+         * @param {Object} provider - a CodeHint provider object
+         * @param {Object} hintObj - a hint response object from that provider,
+         *      possibly deferred
+         * @param {Number} index - the index into the hint list at which a hint
+         *      is to be selected
+         */
         function selectHint(provider, hintObj, index) {
             var hintList = expectHints(provider);
             _waitForHints(hintObj, function (hintList) {
@@ -166,7 +248,7 @@ define(function (require, exports, module) {
                 expect(provider.insertHint(hintList[index])).toBe(false);
             });
         }
-        
+
         describe("JavaScript Code Hinting", function () {
    
             beforeEach(function () {

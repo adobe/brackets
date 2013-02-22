@@ -32,6 +32,15 @@ define(function (require, exports, module) {
         SINGLE_QUOTE    = "\'",
         DOUBLE_QUOTE    = "\"";
 
+    /**
+     * Create a hint token with name value that occurs at the given list of
+     * positions.
+     * 
+     * @param {String} value - name of the new hint token
+     * @param {?Array<Number>} positions - optional list of positions at which
+     *      the token occurs
+     * @return {Object} - a new hint token
+     */
     function makeToken(value, positions) {
         positions = positions || [];
 
@@ -43,6 +52,9 @@ define(function (require, exports, module) {
 
     /**
      * Is the string key perhaps a valid JavaScript identifier?
+     * 
+     * @param {String} key - the string to test
+     * @return {Boolean} - could key be a valid identifier?
      */
     function maybeIdentifier(key) {
         return (/[0-9a-z_.\$]/i).test(key) ||
@@ -51,7 +63,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Is the token's class hintable?
+     * Is the token's class hintable? (A very conservative test.) 
+     * 
+     * @param {Object} token - the token to test for hintability
+     * @return {Boolean} - could the token be hintable?
      */
     function hintable(token) {
         switch (token.className) {
@@ -66,6 +81,10 @@ define(function (require, exports, module) {
     
     /**
      * Divide a path into directory and filename parts
+     * 
+     * @param {String} path - a URI with directories separated by /
+     * @return {Object<dir: String, file: String>} - a pair of strings that
+     *      correspond to the directory and filename of the given path.
      */
     function splitPath(path) {
         var index   = path.lastIndexOf("/"),
@@ -76,7 +95,11 @@ define(function (require, exports, module) {
     }
     
     /*
-     * Get a JS-hints-specific event name
+     * Get a JS-hints-specific event name. Used to prevent event namespace
+     * pollution.
+     * 
+     * @param {String} name - the unqualified event name
+     * @return {String} - the qualified event name
      */
     function eventName(name) {
         var EVENT_TAG = "brackets-js-hints";
@@ -84,7 +107,15 @@ define(function (require, exports, module) {
     }
 
     /*
-     * Annotate list of identifiers with their scope level
+     * Annotate list of identifiers with their scope level.
+     * 
+     * @param {Array<Object>} identifiers - list of identifier tokens to be
+     *      annotated
+     * @param {Scope} scope - scope object used to determine the scope level of
+     *      each identifier token in the previous list.
+     * @return {Array<Object>} - the input array; to each object in the array a
+     *      new level {Number} property has been added to indicate its scope
+     *      level. 
      */
     function annotateWithScope(identifiers, scope) {
         return identifiers.map(function (t) {
@@ -101,6 +132,13 @@ define(function (require, exports, module) {
 
     /*
      * Annotate a list of properties with their association level
+     * 
+     * @param {Array<Object>} properties - list of property tokens
+     * @param {Association} association - an object that maps property
+     *      names to the number of times it occurs in a particular context
+     * @return {Array<Object>} - the input array; to each object in the array a
+     *      new level {Number} property has been added to indicate the number
+     *      of times the property has occurred in the association context.
      */
     function annotateWithAssociation(properties, association) {
         return properties.map(function (t) {
@@ -113,6 +151,11 @@ define(function (require, exports, module) {
 
     /*
      * Annotate a list of tokens as being global variables
+     * 
+     * @param {Array<Object>} globals - list of identifier tokens
+     * @return {Array<Object>} - the input array; to each object in the array a
+     *      new global {Boolean} property has been added to indicate that it is
+     *      a global variable.
      */
     function annotateGlobals(globals) {
         return globals.map(function (t) {
@@ -124,15 +167,26 @@ define(function (require, exports, module) {
     /*
      * Annotate a list of tokens as literals of a particular kind;
      * if string literals, annotate with an appropriate delimiter. 
+     * 
+     * @param {Array<Object>} literals - list of hint tokens
+     * @param {String} kind - the kind of literals in the list (e.g., "string")
+     * @return {Array<Object>} - the input array; to each object in the array a
+     *      new literal {Boolean} property has been added to indicate that it
+     *      is a literal hint, and also a new kind {String} property to indicate
+     *      the literal kind. For string literals, a delimiter property is also
+     *      added to indicate what the default delimiter should be (viz. a 
+     *      single or double quotation mark).
      */
     function annotateLiterals(literals, kind) {
         return literals.map(function (t) {
             t.literal = true;
             t.kind = kind;
-            if (/[\\\\]*[^\\]"/.test(t.value)) {
-                t.delimeter = SINGLE_QUOTE;
-            } else {
-                t.delimeter = DOUBLE_QUOTE;
+            if (kind === "string") {
+                if (/[\\\\]*[^\\]"/.test(t.value)) {
+                    t.delimeter = SINGLE_QUOTE;
+                } else {
+                    t.delimeter = DOUBLE_QUOTE;
+                }
             }
             return t;
         });
@@ -140,6 +194,11 @@ define(function (require, exports, module) {
 
     /* 
      * Annotate a list of tokens as keywords
+     * 
+     * @param {Array<Object>} keyword - list of keyword tokens
+     * @return {Array<Object>} - the input array; to each object in the array a
+     *      new keyword {Boolean} property has been added to indicate that the
+     *      hint is a keyword.
      */
     function annotateKeywords(keywords) {
         return keywords.map(function (t) {
@@ -149,7 +208,13 @@ define(function (require, exports, module) {
     }
 
     /* 
-     * Annotate a list of tokens as keywords
+     * Annotate a list of tokens with a path name
+     * 
+     * @param {Array<Object>} tokens - list of hint tokens
+     * @param {String} dir - directory with which to annotate the hints
+     * @param {String} file - file name with which to annotate the hints
+     * @return {Array<Object>} - the input array; to each object in the array a
+     *      new path {String} property has been added, equal to dir + file.
      */
     function annotateWithPath(tokens, dir, file) {
         var path = dir + file;
@@ -202,6 +267,7 @@ define(function (require, exports, module) {
             return prev;
         }, {}); // builds an object from the array of tokens.
 
+    // Predefined sets of globals as defined by JSLint
     var JSL_GLOBALS_BROWSER = [
             JSL_GLOBALS.clearInterval,
             JSL_GLOBALS.clearTimeout,
