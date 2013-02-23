@@ -142,7 +142,7 @@ define(function (require, exports, module) {
             var $updateList = $dlg.find(".about-contributors");
             
             templateVars = $.extend({CONTRIBUTORS: contributorsInfo}, Strings);
-            $updateList.html(Mustache.to_html(ContributorsTemplate, templateVars));
+            $updateList.html(Mustache.render(ContributorsTemplate, templateVars));
             
             $dlg.on("click", "img", function (e) {
                 var url = $(e.target).data("url");
