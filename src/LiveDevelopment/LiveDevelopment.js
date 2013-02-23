@@ -68,6 +68,7 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
+        HttpServerManager   = require("LiveDevelopment/HttpServerManager"),
         NativeFileError     = require("file/NativeFileError"),
         NativeApp           = require("utils/NativeApp"),
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
@@ -125,7 +126,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a URL to a local full file path */
     function _urlToPath(url) {
         var path,
-            baseUrl = ProjectManager.getBaseUrl();
+            baseUrl = HttpServerManager.getBaseUrl(url);
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
             // Use base url to translate to local file path.
@@ -145,7 +146,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a local full file path to a URL */
     function _pathToUrl(path) {
         var url,
-            baseUrl = ProjectManager.getBaseUrl();
+            baseUrl = HttpServerManager.getBaseUrl(path);
 
         // See if base url has been specified and path is within project
         if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
@@ -499,7 +500,7 @@ define(function LiveDevelopment(require, exports, module) {
         } else {
             if (!exports.config.experimental) {
                 if (FileUtils.isServerHtmlFileExt(doc.extension)) {
-                    if (!ProjectManager.getBaseUrl()) {
+                    if (!HttpServerManager.getBaseUrl(doc.url)) {
                         showNeedBaseUrlError();
                         return promise;
                     }
