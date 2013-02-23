@@ -36815,7 +36815,7 @@ define('editor/EditorCommandHandlers',['require','exports','module','command/Com
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window */
 
-define('debug/DebugCommandHandlers',['require','exports','module','command/Commands','command/CommandManager','editor/Editor','strings','utils/PerfUtils','utils/NativeApp','file/NativeFileSystem','file/FileUtils','utils/UpdateNotification'],function (require, exports, module) {
+define(['require','exports','module','command/Commands','command/CommandManager','editor/Editor','strings','utils/PerfUtils','utils/NativeApp','file/NativeFileSystem','file/FileUtils','utils/UpdateNotification'],function (require, exports, module) {
     
     
     var Commands                = require("command/Commands"),
@@ -37941,7 +37941,7 @@ require.config({
  *      htmlContentLoadComplete - sent when the HTML DOM is fully loaded. Modules should not touch
  *      or modify DOM elements before this event is sent.
  */
-define('brackets',['require','exports','module','widgets/bootstrap-dropdown','widgets/bootstrap-modal','thirdparty/path-utils/path-utils.min','thirdparty/smart-auto-complete/jquery.smart_autocomplete','LiveDevelopment/main','project/ProjectManager','document/DocumentManager','editor/EditorManager','editor/CSSInlineEditor','language/JSUtils','project/WorkingSetView','document/DocumentCommandHandlers','project/FileViewController','project/FileSyncManager','command/KeyBindingManager','command/Commands','command/CommandManager','utils/BuildInfoUtils','editor/CodeHintManager','language/JSLintUtils','utils/PerfUtils','project/FileIndexManager','search/QuickOpen','command/Menus','file/FileUtils','text!htmlContent/main-view.html','strings','widgets/Dialogs','utils/ExtensionLoader','project/SidebarView','utils/Async','utils/UpdateNotification','utils/UrlParams','document/ChangedDocumentTracker','editor/EditorCommandHandlers','debug/DebugCommandHandlers','view/ViewCommandHandlers','search/FindInFiles','search/FindReplace','utils/ExtensionUtils','utils/ShellAPI','preferences/PreferencesManager','command/CommandManager','language/CSSUtils','LiveDevelopment/LiveDevelopment','LiveDevelopment/Inspector/Inspector','utils/NativeApp','utils/ExtensionUtils','utils/UpdateNotification'],function (require, exports, module) {
+define('brackets',['require','exports','module','widgets/bootstrap-dropdown','widgets/bootstrap-modal','thirdparty/path-utils/path-utils.min','thirdparty/smart-auto-complete/jquery.smart_autocomplete','LiveDevelopment/main','project/ProjectManager','document/DocumentManager','editor/EditorManager','editor/CSSInlineEditor','language/JSUtils','project/WorkingSetView','document/DocumentCommandHandlers','project/FileViewController','project/FileSyncManager','command/KeyBindingManager','command/Commands','command/CommandManager','utils/BuildInfoUtils','editor/CodeHintManager','language/JSLintUtils','utils/PerfUtils','project/FileIndexManager','search/QuickOpen','command/Menus','file/FileUtils','text!htmlContent/main-view.html','strings','widgets/Dialogs','utils/ExtensionLoader','project/SidebarView','utils/Async','utils/UpdateNotification','utils/UrlParams','document/ChangedDocumentTracker','editor/EditorCommandHandlers','view/ViewCommandHandlers','search/FindInFiles','search/FindReplace','utils/ExtensionUtils','utils/ShellAPI','preferences/PreferencesManager','command/CommandManager','language/CSSUtils','LiveDevelopment/LiveDevelopment','LiveDevelopment/Inspector/Inspector','utils/NativeApp','utils/ExtensionUtils','utils/UpdateNotification'],function (require, exports, module) {
     
     
     // Load dependent non-module scripts
@@ -37994,7 +37994,6 @@ define('brackets',['require','exports','module','widgets/bootstrap-dropdown','wi
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
-    require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
@@ -75069,7 +75068,7 @@ define('editor/EditorCommandHandlers',['require','exports','module','command/Com
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window */
 
-define('debug/DebugCommandHandlers',['require','exports','module','command/Commands','command/CommandManager','editor/Editor','strings','utils/PerfUtils','utils/NativeApp','file/NativeFileSystem','file/FileUtils','utils/UpdateNotification'],function (require, exports, module) {
+define(['require','exports','module','command/Commands','command/CommandManager','editor/Editor','strings','utils/PerfUtils','utils/NativeApp','file/NativeFileSystem','file/FileUtils','utils/UpdateNotification'],function (require, exports, module) {
     
     
     var Commands                = require("command/Commands"),
@@ -76195,7 +76194,7 @@ require.config({
  *      htmlContentLoadComplete - sent when the HTML DOM is fully loaded. Modules should not touch
  *      or modify DOM elements before this event is sent.
  */
-define('brackets',['require','exports','module','widgets/bootstrap-dropdown','widgets/bootstrap-modal','thirdparty/path-utils/path-utils.min','thirdparty/smart-auto-complete/jquery.smart_autocomplete','LiveDevelopment/main','project/ProjectManager','document/DocumentManager','editor/EditorManager','editor/CSSInlineEditor','language/JSUtils','project/WorkingSetView','document/DocumentCommandHandlers','project/FileViewController','project/FileSyncManager','command/KeyBindingManager','command/Commands','command/CommandManager','utils/BuildInfoUtils','editor/CodeHintManager','language/JSLintUtils','utils/PerfUtils','project/FileIndexManager','search/QuickOpen','command/Menus','file/FileUtils','text!htmlContent/main-view.html','strings','widgets/Dialogs','utils/ExtensionLoader','project/SidebarView','utils/Async','utils/UpdateNotification','utils/UrlParams','document/ChangedDocumentTracker','editor/EditorCommandHandlers','debug/DebugCommandHandlers','view/ViewCommandHandlers','search/FindInFiles','search/FindReplace','utils/ExtensionUtils','utils/ShellAPI','preferences/PreferencesManager','command/CommandManager','language/CSSUtils','LiveDevelopment/LiveDevelopment','LiveDevelopment/Inspector/Inspector','utils/NativeApp','utils/ExtensionUtils','utils/UpdateNotification'],function (require, exports, module) {
+define('brackets',['require','exports','module','widgets/bootstrap-dropdown','widgets/bootstrap-modal','thirdparty/path-utils/path-utils.min','thirdparty/smart-auto-complete/jquery.smart_autocomplete','LiveDevelopment/main','project/ProjectManager','document/DocumentManager','editor/EditorManager','editor/CSSInlineEditor','language/JSUtils','project/WorkingSetView','document/DocumentCommandHandlers','project/FileViewController','project/FileSyncManager','command/KeyBindingManager','command/Commands','command/CommandManager','utils/BuildInfoUtils','editor/CodeHintManager','language/JSLintUtils','utils/PerfUtils','project/FileIndexManager','search/QuickOpen','command/Menus','file/FileUtils','text!htmlContent/main-view.html','strings','widgets/Dialogs','utils/ExtensionLoader','project/SidebarView','utils/Async','utils/UpdateNotification','utils/UrlParams','document/ChangedDocumentTracker','editor/EditorCommandHandlers','view/ViewCommandHandlers','search/FindInFiles','search/FindReplace','utils/ExtensionUtils','utils/ShellAPI','preferences/PreferencesManager','command/CommandManager','language/CSSUtils','LiveDevelopment/LiveDevelopment','LiveDevelopment/Inspector/Inspector','utils/NativeApp','utils/ExtensionUtils','utils/UpdateNotification'],function (require, exports, module) {
     
     
     // Load dependent non-module scripts
@@ -76248,7 +76247,6 @@ define('brackets',['require','exports','module','widgets/bootstrap-dropdown','wi
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
-    require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
