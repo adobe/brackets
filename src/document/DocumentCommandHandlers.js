@@ -900,8 +900,6 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
     }
 
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload)
-        .setEnabled(brackets.config.show_debug_menu);
     CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
     
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
@@ -911,5 +909,7 @@ define(function (require, exports, module) {
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
+    
+    exports.handleFileReload = handleFileReload;
 });
 

@@ -28,15 +28,21 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        Editor                  = require("editor/Editor").Editor,
-        FileUtils               = require("file/FileUtils"),
-        Strings                 = require("strings"),
-        PerfUtils               = require("utils/PerfUtils"),
-        NativeApp               = require("utils/NativeApp"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        NodeDebugUtils          = require("debug/NodeDebugUtils");
+    var Commands                = brackets.getModule("command/Commands"),
+        CommandManager          = brackets.getModule("command/CommandManager"),
+        DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
+        Editor                  = brackets.getModule("editor/Editor").Editor,
+        FileUtils               = brackets.getModule("file/FileUtils"),
+        Menus                   = brackets.getModule("command/Menus"),
+        Strings                 = brackets.getModule("strings"),
+        PerfUtils               = brackets.getModule("utils/PerfUtils"),
+        NativeApp               = brackets.getModule("utils/NativeApp"),
+        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        NodeDebugUtils          = require("NodeDebugUtils");
+    
+    /** @const {string} Brackets Application Menu Constant */
+    var DEBUG_MENU = "debug-menu";
+    
     
     function handleShowDeveloperTools(commandData) {
         brackets.app.showDeveloperTools();
@@ -259,11 +265,13 @@ define(function (require, exports, module) {
         );
     }
     
+    
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
-        .setEnabled(!!brackets.app.showDeveloperTools && brackets.config.show_debug_menu);
+        .setEnabled(!!brackets.app.showDeveloperTools);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,      Commands.DEBUG_REFRESH_WINDOW,         DocumentCommandHandlers.handleFileReload);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
@@ -275,11 +283,30 @@ define(function (require, exports, module) {
     
     
     // Node-related Commands
-    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, Commands.DEBUG_ENABLE_NODE_DEBUGGER, NodeDebugUtils.enableDebugger);
-    CommandManager.register(Strings.CMD_LOG_NODE_STATE, Commands.DEBUG_LOG_NODE_STATE, NodeDebugUtils.logNodeState);
-    CommandManager.register(Strings.CMD_RESTART_NODE, Commands.DEBUG_RESTART_NODE, NodeDebugUtils.restartNode);
+    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, Commands.DEBUG_ENABLE_NODE_DEBUGGER,  NodeDebugUtils.enableDebugger);
+    CommandManager.register(Strings.CMD_LOG_NODE_STATE,       Commands.DEBUG_LOG_NODE_STATE,        NodeDebugUtils.logNodeState);
+    CommandManager.register(Strings.CMD_RESTART_NODE,         Commands.DEBUG_RESTART_NODE,          NodeDebugUtils.restartNode);
     
     _enableRunTestsMenuItem();
+    
+    
+    /*
+     * Debug menu
+     */
+    var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
+    menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
+    menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW);
+    menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
+    menu.addMenuDivider();
+    menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
+    menu.addMenuDivider();
+    menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
+    menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
+    menu.addMenuDivider();
+    menu.addMenuItem(Commands.DEBUG_ENABLE_NODE_DEBUGGER);
+    menu.addMenuItem(Commands.DEBUG_LOG_NODE_STATE);
+    menu.addMenuItem(Commands.DEBUG_RESTART_NODE);
+    
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;
