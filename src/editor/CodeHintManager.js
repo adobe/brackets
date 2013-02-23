@@ -510,11 +510,11 @@ define(function (require, exports, module) {
 
     function registerDialog(id, callback) {
         // TODO: write something to console if already defined
-        dialogMap.id = callback;
+        dialogMap[id] = callback;
     }
 
     function lookupDialog(id) {
-        return dialogMap.id;
+        return dialogMap[id];
     }
 
     /**
