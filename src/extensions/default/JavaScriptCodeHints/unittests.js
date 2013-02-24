@@ -345,7 +345,7 @@ define(function (require, exports, module) {
                 hintsAbsent(hintObj, ["D1", "D2", "funE", "E1", "E2"]);
             });
             
-            it("should NOT property names on value lookups", function () {
+            it("should NOT list property names on value lookups", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["propA", "propB", "propC"]);
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
                 hintsPresent(hintObj, ["use strict"]);
             });
             
-            it("should NOT list string literals that other files", function () {
+            it("should NOT list string literals from other files", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["a very nice string"]);
@@ -398,9 +398,9 @@ define(function (require, exports, module) {
                 expectNoHints(JSCodeHints.jsHintProvider, "{");
             });
             
-            it("should list implicit hints when typing variable names", function () {
+            it("should list explicit hints for variable and function names", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider, null);
                 hintsPresentExact(hintObj, ["A2", "A3", "funB", "A1"]);
             });
             
@@ -419,14 +419,14 @@ define(function (require, exports, module) {
                 expectHints(JSCodeHints.jsHintProvider, "\"");
             });
             
-            it("should give priority to property names with associated with the current context", function () {
+            it("should give priority to property names associated with the current context", function () {
                 testEditor.setCursorPos({ line: 19, ch: 11 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresentOrdered(hintObj, ["propB", "propA"]);
                 hintsPresentOrdered(hintObj, ["propB", "propC"]);
             });
             
-            it("should give priority to property names with associated with the current context from other files", function () {
+            it("should give priority to property names associated with the current context from other files", function () {
                 testEditor.setCursorPos({ line: 20, ch: 16 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresentOrdered(hintObj, ["log", "propA"]);
