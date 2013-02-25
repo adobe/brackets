@@ -23,23 +23,26 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, WebSocket */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands                = brackets.getModule("command/Commands"),
-        CommandManager          = brackets.getModule("command/CommandManager"),
-        DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
-        Editor                  = brackets.getModule("editor/Editor").Editor,
-        FileUtils               = brackets.getModule("file/FileUtils"),
-        Menus                   = brackets.getModule("command/Menus"),
-        Strings                 = brackets.getModule("strings"),
-        PerfUtils               = brackets.getModule("utils/PerfUtils"),
-        NativeApp               = brackets.getModule("utils/NativeApp"),
-        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
-        NodeDebugUtils          = require("NodeDebugUtils");
+    var Commands           = brackets.getModule("command/Commands"),
+        CommandManager     = brackets.getModule("command/CommandManager"),
+        Editor             = brackets.getModule("editor/Editor").Editor,
+        FileUtils          = brackets.getModule("file/FileUtils"),
+        KeyBindingManager  = brackets.getModule("command/KeyBindingManager"),
+		Menus              = brackets.getModule("command/Menus"),
+        Strings            = brackets.getModule("strings"),
+        PerfUtils          = brackets.getModule("utils/PerfUtils"),
+        NativeApp          = brackets.getModule("utils/NativeApp"),
+        NativeFileSystem   = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        NodeDebugUtils     = require("NodeDebugUtils");
     
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+	
+	
     /** @const {string} Brackets Application Menu Constant */
     var DEBUG_MENU = "debug-menu";
     
@@ -264,6 +267,54 @@ define(function (require, exports, module) {
             function (error) {} /* menu already disabled, ignore errors */
         );
     }
+	
+	
+	/**
+     * Disables Brackets' cache via the remote debugging protocol.
+     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
+     */
+    function _disableCache() {
+        var result = new $.Deferred();
+        
+        if (brackets.inBrowser) {
+            result.resolve();
+        } else {
+            var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
+            Inspector.getAvailableSockets("127.0.0.1", "9234")
+                .fail(result.reject)
+                .done(function (response) {
+                    var page = response[0];
+                    if (!page || !page.webSocketDebuggerUrl) {
+                        result.reject();
+                        return;
+                    }
+                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                    // Disable the cache
+                    _socket.onopen = function _onConnect() {
+                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                    };
+                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                    _socket.onmessage = function _onMessage(e) {
+                        _socket.close();
+                        result.resolve();
+                    };
+                    // In case of an error
+                    _socket.onerror = result.reject;
+                });
+        }
+            
+        return result.promise();
+    }
+	
+	/** Does a full reload of the browser window */
+    function handleFileReload(commandData) {
+        return brackets.handleWindowGoingAway(commandData, function () {
+            // Disable the cache to make reloads work
+            _disableCache().always(function () {
+                window.location.reload(true);
+            });
+        });
+    }
     
     
     /* Register all the command handlers */
@@ -271,7 +322,7 @@ define(function (require, exports, module) {
     // Show Developer Tools (optionally enabled)
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
         .setEnabled(!!brackets.app.showDeveloperTools);
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,      Commands.DEBUG_REFRESH_WINDOW,         DocumentCommandHandlers.handleFileReload);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,      Commands.DEBUG_REFRESH_WINDOW,         handleFileReload);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
@@ -281,12 +332,15 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
     
-    
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, Commands.DEBUG_ENABLE_NODE_DEBUGGER,  NodeDebugUtils.enableDebugger);
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       Commands.DEBUG_LOG_NODE_STATE,        NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         Commands.DEBUG_RESTART_NODE,          NodeDebugUtils.restartNode);
     
+	
+	KeyBindingManager.addBinding(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
+	KeyBindingManager.addBinding(Commands.DEBUG_REFRESH_WINDOW,       KeyboardPrefs.refreshWindow);
+	
     _enableRunTestsMenuItem();
     
     

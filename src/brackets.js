@@ -57,9 +57,12 @@ define(function (require, exports, module) {
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
     
     // Load dependent modules
-    var Global                  = require("utils/Global"),
-        AppInit                 = require("utils/AppInit"),
+    var Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
         ProjectManager          = require("project/ProjectManager"),
+		PreferencesManager      = require("preferences/PreferencesManager"),
+		Global                  = require("utils/Global"),
+        AppInit                 = require("utils/AppInit"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
@@ -70,8 +73,6 @@ define(function (require, exports, module) {
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
         KeyBindingManager       = require("command/KeyBindingManager"),
-        Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -88,7 +89,6 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),

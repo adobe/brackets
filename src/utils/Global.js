@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 /**
  * Initializes the global "brackets" variable and it's properties.
@@ -34,8 +34,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var configJSON = require("text!config.json");
+    var CommandManager      = require("command/CommandManager"),
+		Commands            = require("command/Commands"),
+		ProjectManager      = require("project/ProjectManager"),
+		PreferencesManager  = require("preferences/PreferencesManager"),
+		configJSON          = require("text!config.json");
     
+	
     // Define core brackets namespace if it isn't already defined
     //
     // We can't simply do 'brackets = {}' to define it in the global namespace because
@@ -108,6 +113,42 @@ define(function (require, exports, module) {
     // the same thing as 'require' in AMD-wrapped modules. The extension will
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
+	
+	
+	// Tracks our closing state if we get called again
+    global.brackets.windowGoingAway = false;
+    
+    // Common implementation for close/quit/reload which all mostly
+    // the same except for the final step
+    global.brackets.handleWindowGoingAway = function (commandData, postCloseHandler, failHandler) {
+        if (global.brackets.windowGoingAway) {
+            //if we get called back while we're closing, then just return
+            return (new $.Deferred()).reject().promise();
+        }
 
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
+            .done(function () {
+                global.brackets.windowGoingAway = true;
+                
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
+                
+                PreferencesManager.savePreferences();
+                
+                postCloseHandler();
+            })
+            .fail(function () {
+                global.brackets.windowGoingAway = false;
+                if (failHandler) {
+                    failHandler();
+                }
+            });
+    };
+	
     exports.global = global;
 });
