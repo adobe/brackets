@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Editor             = brackets.getModule("editor/Editor").Editor,
         FileUtils          = brackets.getModule("file/FileUtils"),
         KeyBindingManager  = brackets.getModule("command/KeyBindingManager"),
-		Menus              = brackets.getModule("command/Menus"),
+        Menus              = brackets.getModule("command/Menus"),
         Strings            = brackets.getModule("strings"),
         PerfUtils          = brackets.getModule("utils/PerfUtils"),
         NativeApp          = brackets.getModule("utils/NativeApp"),
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
     }
 	
 	
-	/**
+    /**
      * Disables Brackets' cache via the remote debugging protocol.
      * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
      */
@@ -306,7 +306,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
 	
-	/** Does a full reload of the browser window */
+    /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
         return brackets.handleWindowGoingAway(commandData, function () {
             // Disable the cache to make reloads work
@@ -337,10 +337,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       Commands.DEBUG_LOG_NODE_STATE,        NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         Commands.DEBUG_RESTART_NODE,          NodeDebugUtils.restartNode);
     
-	
-	KeyBindingManager.addBinding(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
-	KeyBindingManager.addBinding(Commands.DEBUG_REFRESH_WINDOW,       KeyboardPrefs.refreshWindow);
-	
+    
+    KeyBindingManager.addBinding(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
+    KeyBindingManager.addBinding(Commands.DEBUG_REFRESH_WINDOW,       KeyboardPrefs.refreshWindow);
+    
     _enableRunTestsMenuItem();
     
     

@@ -682,7 +682,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-	/**
+    /**
      * @private
      * Implementation for abortQuit callback to reset quit sequence settings
      */

@@ -35,10 +35,10 @@ define(function (require, exports, module) {
     "use strict";
     
     var CommandManager      = require("command/CommandManager"),
-		Commands            = require("command/Commands"),
-		ProjectManager      = require("project/ProjectManager"),
-		PreferencesManager  = require("preferences/PreferencesManager"),
-		configJSON          = require("text!config.json");
+        Commands            = require("command/Commands"),
+        ProjectManager      = require("project/ProjectManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        configJSON          = require("text!config.json");
     
 	
     // Define core brackets namespace if it isn't already defined
@@ -113,9 +113,9 @@ define(function (require, exports, module) {
     // the same thing as 'require' in AMD-wrapped modules. The extension will
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
-	
-	
-	// Tracks our closing state if we get called again
+    
+    
+    // Tracks our closing state if we get called again
     global.brackets.windowGoingAway = false;
     
     // Common implementation for close/quit/reload which all mostly
