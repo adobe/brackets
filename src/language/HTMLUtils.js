@@ -469,7 +469,7 @@ define(function (require, exports, module) {
         while (TokenUtils.moveNextToken(ctx)) {
             if (inStyleBlock) {
                 // Check for end of this <style> block
-                if (ctx.token.state.mode !== "css") {
+                if (TokenUtils.getModeAt(editor._codeMirror, ctx.pos) !== "css") {
                     // currentStyleBlock.end is already set to pos of the last CSS token by now
                     currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
                     inStyleBlock = false;
@@ -478,7 +478,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 // Check for start of a <style> block
-                if (ctx.token.state.mode === "css") {
+                if (TokenUtils.getModeAt(editor._codeMirror, ctx.pos) === "css") {
                     currentStyleBlock = {
                         start: { line: ctx.pos.line, ch: ctx.pos.ch }
                     };
