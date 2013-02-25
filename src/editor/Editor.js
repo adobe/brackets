@@ -608,7 +608,6 @@ define(function (require, exports, module) {
      * Responds to language changes, for instance when the file extension is changed.
      */
     Editor.prototype._handleDocumentLanguageChanged = function (event) {
-        var mode = this._getModeFromDocument();
         this._codeMirror.setOption("mode", this._getModeFromDocument());
     };
     
@@ -1209,7 +1208,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link Languages#getLanguageFromFileExtension()} and {@link Language#mode}.
+     *     See {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1242,7 +1241,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link Languages#getLanguageFromFileExtension()} and {@link Language#mode}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");

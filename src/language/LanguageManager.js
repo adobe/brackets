@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, CodeMirror, PathUtils, window */
+/*global define, $, CodeMirror, PathUtils */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -79,7 +79,7 @@
  *     language.modeReady.done(function () {
  *         // ...
  *     });
- * Note that this will never fire for languages without a mode.
+ * Note that this will never resolve for languages without a mode.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -90,36 +90,13 @@ define(function (require, exports, module) {
     
     
     // State
-    var _fallbackLanguage  = null,
-        _languages         = {},
-        _fileExtensionsMap = {},
-        _modeMap           = {};
+    var _fallbackLanguage            = null,
+        _languages                   = {},
+        _fileExtensionsToLanguageMap = {},
+        _modeToLanguageMap           = {};
     
     
     // Helper functions
-    
-    /**
-     * Checks whether value is an array. Optionally checks its contents, too.
-     * Throws an exception in case of a validation error.
-     * @param {*}                   value         The value to validate
-     * @param {!string}             description   A helpful identifier for value
-     * @param {function(*, !string) validateEntry A function to validate the array's entries with
-     */
-    function _validateArray(value, description, validateEntry) {
-        var i, entry;
-        if (!$.isArray(value)) {
-            throw new Error(description + " must be an array");
-        }
-        if (value.length === 0) {
-            throw new Error(description + " must not be empty");
-        }
-        if (validateEntry) {
-            for (i = 0; i < value.length; i++) {
-                entry = value[i];
-                validateEntry(entry, description + "[" + i + "]");
-            }
-        }
-    }
     
     /**
      * Checks whether value is a string. Throws an exception otherwise.
@@ -167,12 +144,12 @@ define(function (require, exports, module) {
      * @private
      */
     function _setLanguageForMode(mode, language) {
-        if (_modeMap[mode]) {
-            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeMap[mode].name + ", won't register for " + language.name);
+        if (_modeToLanguageMap[mode]) {
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode].name + ", won't register for " + language.name);
             return;
         }
 
-        _modeMap[mode] = language;
+        _modeToLanguageMap[mode] = language;
     }
 
     /**
@@ -199,7 +176,7 @@ define(function (require, exports, module) {
         // Make checks below case-INsensitive
         extension = extension.toLowerCase();
         
-        var language = _fileExtensionsMap[extension];
+        var language = _fileExtensionsToLanguageMap[extension];
         if (!language) {
             console.log("Called LanguageManager.getLanguageForFileExtension with an unhandled file extension: " + extension);
         }
@@ -212,14 +189,14 @@ define(function (require, exports, module) {
      * @param {!string} mode CodeMirror mode
      * @return {Language} The language for the provided mode or the fallback language
      */
-    function getLanguageForMode(mode) {
-        var language = _modeMap[mode];
+    function _getLanguageForMode(mode) {
+        var language = _modeToLanguageMap[mode];
         if (language) {
             return language;
         }
         
         // In case of unsupported languages
-        console.log("Called LanguageManager.getLanguageForMode with a mode for which no language has been registered:", mode);
+        console.log("Called LanguageManager._getLanguageForMode with a mode for which no language has been registered:", mode);
         return _fallbackLanguage;
     }
 
@@ -246,8 +223,8 @@ define(function (require, exports, module) {
         this.id   = id;
         this.name = name;
         
-        this._fileExtensions = [];
-        this._modeMap = {};
+        this._fileExtensions    = [];
+        this._modeToLanguageMap = {};
         
         // Since setting the mode is asynchronous when the mode hasn't been loaded yet, offer a reliable way to wait until it is ready
         this._modeReady = new $.Deferred();
@@ -332,6 +309,9 @@ define(function (require, exports, module) {
     
     /**
      * Adds a file extension to this language.
+     * Private for now since dependent code would need to by kept in sync with such changes.
+     * In case we ever open this up, we should think about whether we want to make this
+     * configurable by the user. If so, the user has to be able to override these calls.
      * @param {!string} extension A file extension used by this language
      * @return {Language} This language
      * @private
@@ -341,11 +321,11 @@ define(function (require, exports, module) {
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
-            var language = _fileExtensionsMap[extension];
+            var language = _fileExtensionsToLanguageMap[extension];
             if (language) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this.name + ", it already belongs to " + language.name);
             } else {
-                _fileExtensionsMap[extension] = this;
+                _fileExtensionsToLanguageMap[extension] = this;
             }
         }
             
@@ -386,14 +366,14 @@ define(function (require, exports, module) {
      * Returns either a language associated with the mode or the fallback language.
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
-     * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#getLanguageForMode} returns
+     * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#_getLanguageForMode} returns
      */
     Language.prototype.getLanguageForMode = function (mode) {
         if (mode === this.mode) {
             return this;
         }
 
-        return this._modeMap[mode] || getLanguageForMode(mode);
+        return this._modeToLanguageMap[mode] || _getLanguageForMode(mode);
     };
 
     /**
@@ -408,7 +388,7 @@ define(function (require, exports, module) {
         if (mode === this.mode && language !== this) {
             throw new Error("A language must always map its mode to itself");
         }
-        this._modeMap[mode] = language;
+        this._modeToLanguageMap[mode] = language;
         
         return this;
     };
@@ -425,6 +405,8 @@ define(function (require, exports, module) {
      * @param {string}                definition.lineComment    Line comment prefix (i.e. "//")
      * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     *                                                          {@link Language#modeReady} is a promise that resolves when a mode has been loaded and set.
+     *                                                          It will not resolve when no mode is specified.
      *
      * @return {Language} The new language
      **/
@@ -492,7 +474,6 @@ define(function (require, exports, module) {
     module.exports = {
         defineLanguage:              defineLanguage,
         getLanguage:                 getLanguage,
-        getLanguageForFileExtension: getLanguageForFileExtension,
-        getLanguageForMode:          getLanguageForMode
+        getLanguageForFileExtension: getLanguageForFileExtension
     };
 });
