@@ -76,6 +76,7 @@ define(function (require, exports, module) {
         switch (ext) {
 
         case "js":
+        case "jsx":
             return "javascript";
 
         case "json":
