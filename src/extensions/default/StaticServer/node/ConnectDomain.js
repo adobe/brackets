@@ -52,7 +52,20 @@ maxerr: 50, node: true */
      * @param {function(?string, ?httpServer)} cb Callback function that receives
      *    either an error string or the newly created server. 
      */
-    function createServer(path, cb) {
+    function createServer(path, createCompleteCallback) {
+        function requestRoot(server, cb) {
+            var address = server.address();
+            var req = http.get(
+                {host: address.address, port: address.port},
+                function (res) {
+                    cb(null, res);
+                }
+            );
+            req.on('error', function (err) {
+                cb(err, null);
+            });
+        }
+        
         var app = connect();
         app.use(connect.favicon())
             .use(connect["static"](path))
@@ -60,7 +73,16 @@ maxerr: 50, node: true */
 
         var server = http.createServer(app);
         server.listen(0, '127.0.0.1', function () {
-            cb(null, server);
+            requestRoot(
+                server,
+                function (err, res) {
+                    if (err) {
+                        createCompleteCallback("Could not GET root after launching server", null);
+                    } else {
+                        createCompleteCallback(null, server);
+                    }
+                }
+            );
         });
     }
 
