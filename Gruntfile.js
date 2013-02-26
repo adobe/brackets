@@ -77,6 +77,9 @@ module.exports = function (grunt) {
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min'
                 ],
+                helpers : [
+                    'test/spec/PhantomHelper.js'
+                ],
                 template : require('grunt-template-jasmine-requirejs'),
                 templateOptions: {
                     requireConfig : {
