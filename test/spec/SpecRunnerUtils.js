@@ -324,7 +324,7 @@ define(function (require, exports, module) {
             output  = [],
             i       = 0,
             line    = 0,
-            char    = 0,
+            charAt  = 0,
             ch      = 0,
             length  = text.length,
             exec    = null,
@@ -349,10 +349,10 @@ define(function (require, exports, module) {
             }
             
             if (!found) {
-                char = text.substr(i, 1);
-                output.push(char);
+                charAt = text.substr(i, 1);
+                output.push(charAt);
                 
-                if (char === '\n') {
+                if (charAt === '\n') {
                     line++;
                     ch = 0;
                 } else {

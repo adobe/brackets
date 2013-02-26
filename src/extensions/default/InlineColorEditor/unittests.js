@@ -743,11 +743,11 @@ define(function (require, exports, module) {
                     
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");
 
-                    var orig = getParam();
+                    var before = getParam();
                     colorEditor[opts.item].trigger(makeKeyEvent(opts));
                     
-                    var final = getParam();
-                    checkNear(final, orig + opts.delta, opts.tolerance);
+                    var after = getParam();
+                    checkNear(after, before + opts.delta, opts.tolerance);
                 }
                 
                 /**
