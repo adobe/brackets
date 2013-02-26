@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      * Connection to node
      */
     var _nodeConnection = null,
-        baseUrlMap      = {};
+        _baseUrl        = "";
 
     /**
      * @private
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
                 projectPath
             ).then(function (address) {
                 // TODO: need to make protocol configurable?
-                baseUrlMap[projectPath] = "http://" + address.address + ":" + address.port + "/";
+                _baseUrl = "http://" + address.address + ":" + address.port + "/";
             });
         }
     }
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
             return true;
         }
 
-        // TODO: do a MIME Type lookup on file extension
+        // FUTURE: do a MIME Type lookup on file extension
         return FileUtils.isStaticHtmlFileExt(url);
     };
 
@@ -99,15 +99,13 @@ define(function (require, exports, module) {
      * Base url for current project.
      */
     StaticHttpServerProvider.prototype.getBaseUrl = function () {
-        return baseUrlMap[ProjectManager.getProjectRoot().fullPath];
+        return _baseUrl;
     };
 
     // TODO: instead of opening a server for every project, should we
     // close old one so there's only 1 open?
     function _projectOpen() {
-        if (!baseUrlMap[ProjectManager.getProjectRoot().fullPath]) {
-            startServer();
-        }
+        startServer();
     }
 
     AppInit.appReady(function () {
