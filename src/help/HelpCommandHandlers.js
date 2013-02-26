@@ -71,8 +71,8 @@ define(function (require, exports, module) {
             fetchData = true;
         }
         
-        // If more than 24 hours have passed since our last fetch, fetch again
-        if ((new Date()).getTime() > _lastContributorsFetchTime + (1000 * 60 * 60 * 24)) {
+        // If more than 2 weeks have passed since our last fetch, fetch again
+        if ((new Date()).getTime() > _lastContributorsFetchTime + (14 * 24 * 60 * 60 * 24)) {
             fetchData = true;
         }
         
@@ -131,18 +131,26 @@ define(function (require, exports, module) {
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
             BUILD_INFO          : buildInfo || ""
         }, Strings);
+        
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
-        
-        
+            
         // Get all the project contributors and add them to the dialog
         _getContributorsInformation().done(function (contributorsInfo) {
             
             // Populate the contributors data
             var $dlg = $(".about-dialog.instance");
-            var $updateList = $dlg.find(".about-contributors");
+            var $contributors = $dlg.find(".about-contributors");
             
             templateVars = $.extend({CONTRIBUTORS: contributorsInfo}, Strings);
-            $updateList.html(Mustache.render(ContributorsTemplate, templateVars));
+            $contributors.html(Mustache.render(ContributorsTemplate, templateVars));
+            
+            $dlg.find("img").one("load", function () {
+                $(this).css("opacity", 1);
+            }).each(function () {
+                if (this.complete) {
+                    $(this).load();
+                }
+            });
             
             $dlg.on("click", "img", function (e) {
                 var url = $(e.target).data("url");
