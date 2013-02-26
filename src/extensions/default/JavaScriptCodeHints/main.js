@@ -50,7 +50,7 @@ define(function (require, exports, module) {
      * object according to the CodeHintManager's API for code hint providers.
      *
      * @param {Array<Object>} hints - hints to be included in the response
-     * @param {String} query - querystring with which to filter the hint list
+     * @param {string} query - querystring with which to filter the hint list
      * @return {Object} - hint response as defined by the CodeHintManager API 
      */
     function getHintResponse(hints, query) {
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
          * Filter a list of tokens using the query string in the closure.
          * 
          * @param {Array<Object>} tokens - list of hints to filter
-         * @param {Number} limit - maximum numberof tokens to return
+         * @param {number} limit - maximum numberof tokens to return
          * @return {Array<Object>} - filtered list of hints
          */
         function filterWithQuery(tokens, limit) {
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
              * @param {Array} arr - array to filter
              * @param {Function} test - test to determine if an element should
              *      be included in the results
-             * @param {Number} limit - the maximum number of elements to return
+             * @param {number} limit - the maximum number of elements to return
              */
             function filterArrayPrefix(arr, test, limit) {
                 var i = 0,
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
          * highlighted.
          * 
          * @param {Array<Object>} hints - the list of hints to format
-         * @param {String} query - querystring used for highlighting matched
+         * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
          * @param {Array<jQuery.Object>} - array of hints formatted as jQuery
          *      objects
@@ -219,8 +219,8 @@ define(function (require, exports, module) {
      * Determine whether hints are available for a given editor context
      * 
      * @param {Editor} editor - the current editor context
-     * @param {String} key - charCode of the last pressed key
-     * @param {Boolean} - can the provider provide hints for this session?
+     * @param {string} key - charCode of the last pressed key
+     * @param {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
         if ((key === null) || HintUtils.maybeIdentifier(key)) {
@@ -253,7 +253,7 @@ define(function (require, exports, module) {
       * Return a list of hints, possibly deferred, for the current editor 
       * context
       * 
-      * @param {String} key - charCode of the last pressed key
+      * @param {string} key - charCode of the last pressed key
       * @return {Object + jQuery.Deferred} - hint response (immediate or
       *     deferred) as defined by the CodeHintManager API
       */
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
      * Inserts the hint selected by the user into the current editor.
      * 
      * @param {jQuery.Object} hint - hint object to insert into current editor
-     * @return {Boolean} - should a new hinting session be requested 
+     * @return {boolean} - should a new hinting session be requested 
      *      immediately after insertion?
      */
     JSHints.prototype.insertHint = function ($hintObj) {

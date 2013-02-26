@@ -28,7 +28,7 @@
  * Loads a file that contains an AMD module definition using the web worker
  * importScripts global function.
  *
- * @param {String} url - the URL of the module to load
+ * @param {string} url - the URL of the module to load
  * @return {Object} - the module imported from the aforementioned URL
  */
 function require(url) {
@@ -45,7 +45,7 @@ function require(url) {
      * function expects require, exports and module arguments; in the latter
      * case, the wrapper function expects only an exports arguments.
      * 
-     * @param {?Array<String>} bindings - an optional list of resources 
+     * @param {?Array<string>} bindings - an optional list of resources 
      *      required by the module
      * @param {Function} wrapper - the function that defines the module
      */
@@ -81,7 +81,7 @@ function require(url) {
     /**
      * Send a log message back from the worker to the main thread
      * 
-     * @param {String} msg - the log message
+     * @param {string} msg - the log message
      */
     function _log(msg) {
         self.postMessage({log: msg });
@@ -92,7 +92,7 @@ function require(url) {
      * list of their positions in the file.
      * 
      * @param {Function} walk - the function used to walk over an implicit scope
-     * @param {String} keyProp - the property of the implicit scope to walk over
+     * @param {string} keyProp - the property of the implicit scope to walk over
      * @param {Array<Object>} - a list of hint tokens for the implicit scope,
      *      including the positions at which they occur.
      */
@@ -154,7 +154,7 @@ function require(url) {
     /**
      * Parse JSLint globals annotations from an array of JavaScript comments
      * 
-     * @param {Array<String>} comments - list of JavaScript comments
+     * @param {Array<string>} comments - list of JavaScript comments
      * @return {Array<Object>} - a list of global hint objects as described by
      *      JSLint annotations found in the comments.
      */
@@ -195,9 +195,9 @@ function require(url) {
      * Send the scope and associated parse information back to the caller.
      * Called by the parse function below. 
      * 
-     * @param {String} dir - the directory name of the parsed file
-     * @param {String} file - the file name of the parsed file
-     * @param {Number} length - the length of the parsed file
+     * @param {string} dir - the directory name of the parsed file
+     * @param {string} file - the file name of the parsed file
+     * @param {number} length - the length of the parsed file
      * @param {Object} parseObj - scope and token data from the parsed file
      */
     function respond(dir, file, length, parseObj) {
@@ -234,10 +234,10 @@ function require(url) {
      * called asynchronously; the respond function above is called with the 
      * results of parsing.
      * 
-     * @param {String} dir - the directory name of the file to parse
-     * @param {String} file - the file name of the file to parse
-     * @param {String} text - the text of the file to parse
-     * @param {Number} retries - the number of times an unparseable text should
+     * @param {string} dir - the directory name of the file to parse
+     * @param {string} file - the file name of the file to parse
+     * @param {string} text - the text of the file to parse
+     * @param {number} retries - the number of times an unparseable text should
      *      be retried, after blanking whatever lines are causing the parsing
      *      errors.
      */

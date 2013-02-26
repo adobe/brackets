@@ -55,8 +55,8 @@ define(function (require, exports, module) {
     /** 
      * Initialize state for a given directory and file name
      *
-     * @param {String} dir - the directory name to initialize
-     * @param {String} file - the file name to initialize
+     * @param {string} dir - the directory name to initialize
+     * @param {string} file - the file name to initialize
      */
     function initFileState(dir, file) {
         // initialize outerScope, etc. at dir
@@ -103,8 +103,8 @@ define(function (require, exports, module) {
      * instead of the whole path, a set of file states is returned, one for
      * each (known) file in the directory.
      * 
-     * @param {String} dir - the directory name for which state is desired
-     * @param {String} file - the file name for which state is desired
+     * @param {string} dir - the directory name for which state is desired
+     * @param {string} file - the file name for which state is desired
      * @return {Object} - a file state object (as documented within 
      *      intializeFileState above), or a set of file state objects if
      *      file is omitted.
@@ -122,11 +122,11 @@ define(function (require, exports, module) {
     /**
      * Request a new outer scope object from the parser worker, if necessary
      *
-     * @param {String} dir - the directory name for which the outer scope is to
+     * @param {string} dir - the directory name for which the outer scope is to
      *      be refreshed
-     * @param {String} file - the file name for which the outer scope is to be
+     * @param {string} file - the file name for which the outer scope is to be
      *      refreshed
-     * @param {String} text - the text of the file for which the outer scope is
+     * @param {string} text - the text of the file for which the outer scope is
      *      to be refreshed
      */
     function refreshOuterScope(dir, file, text) {
@@ -168,11 +168,11 @@ define(function (require, exports, module) {
      * information, resolved when a suitable global scope object becomes 
      * available.
      *
-     * @param {String} dir - the directory name for which the inner scope is to
+     * @param {string} dir - the directory name for which the inner scope is to
      *      be refreshed
-     * @param {String} file - the file name for which the inner scope is to be
+     * @param {string} file - the file name for which the inner scope is to be
      *      refreshed
-     * @param {Number} offset - offset into the text at which the inner scope
+     * @param {number} offset - offset into the text at which the inner scope
      *      is to be refreshed
      * @param {Object + jQuery.Promise} - inner scope information, or a promise
      *      for such information, including the local scope object and lists of
@@ -201,7 +201,7 @@ define(function (require, exports, module) {
          * operation
          * 
          * @param {Object} sets - a set of sets
-         * @param {String} propName - the property to pick out from each set
+         * @param {string} propName - the property to pick out from each set
          * @param {Function} add - the function that combines properties from
          *      each set
          * @return {Object}- the result of combining each set's property using
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
          * Combine properties from files in the current file's directory into
          * a single list.
          * 
-         * @param {String} dir - the directory name of the files for which
+         * @param {string} dir - the directory name of the files for which
          *      property lists should be merged
          * @param {Array<Object>} - the combined list of property tokens
          */
@@ -264,7 +264,7 @@ define(function (require, exports, module) {
          * Combine association set objects from all of the files in a given 
          * directory
          * 
-         * @param {String} dir - the directory name of the files for which
+         * @param {string} dir - the directory name of the files for which
          *      association sets should be merged
          * @param {Object} - the combined association set object
          */
@@ -370,7 +370,7 @@ define(function (require, exports, module) {
      * 
      * @param {Document} document - the document for which scope info is 
      *      desired
-     * @param {Number} offset - the offset into the document at which scope
+     * @param {number} offset - the offset into the document at which scope
      *      info is desired
      * @param {Object + jQuery.Promise} - the inner scope info, or a promise 
      *      for such info. (See refreshInnerScope above.)
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
      * 
      * @param {Document} document - the document for which the last requested
      *      inner scope may or may not be dirty
-     * @return {Boolean} - is the inner scope dirty?
+     * @return {boolean} - is the inner scope dirty?
      */
     function isScopeDirty(document) {
         var path    = document.file.fullPath,
@@ -406,8 +406,8 @@ define(function (require, exports, module) {
      * Mark a file as dirty, which may cause a later outer scope request to
      * trigger a reparse request. 
      * 
-     * @param {String} dir - the directory name of the file to be marked dirty
-     * @param {String} file - the file name of the file to be marked dirty
+     * @param {string} dir - the directory name of the file to be marked dirty
+     * @param {string} file - the file name of the file to be marked dirty
      */
     function markFileDirty(dir, file) {
         var state = getFileState(dir, file);

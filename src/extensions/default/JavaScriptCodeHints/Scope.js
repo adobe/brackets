@@ -476,8 +476,8 @@ define(function (require, exports, module) {
     /* 
      * Is the symbol declared in this scope?
      * 
-     * @param {String} sym - a symbol name
-     * @return {Boolean} - whether a symbol with that name is declared in this
+     * @param {string} sym - a symbol name
+     * @return {boolean} - whether a symbol with that name is declared in this
      *      immediate scope
      */
     Scope.prototype.member = function (sym) {
@@ -487,8 +487,8 @@ define(function (require, exports, module) {
     /*
      * Is the symbol declared in this scope or a parent scope?
      *
-     * @param {String} sym - a symbol name
-     * @return {Boolean} - whether a symbol with that name is declared in this
+     * @param {string} sym - a symbol name
+     * @return {boolean} - whether a symbol with that name is declared in this
      *      immediate scope or a parent scope
      */
     Scope.prototype.contains = function (sym) {
@@ -510,8 +510,8 @@ define(function (require, exports, module) {
     /*
      * Does this scope, or its children, contain the given position?
      * 
-     * @param {Number} pos - the position to test for inclusion in the scope
-     * @return {Boolean} - is the position included in the scope?
+     * @param {number} pos - the position to test for inclusion in the scope
+     * @return {boolean} - is the position included in the scope?
      */
     Scope.prototype.containsPosition = function (pos) {
         return this.range.start <= pos && pos <= this.range.end;
@@ -520,8 +520,8 @@ define(function (require, exports, module) {
     /*
      * Does this scope, but not its children, contain the given position? 
      * 
-     * @param {Number} pos - the position to test for inclusion in the scope
-     * @return {Boolean} - is the position directly included in the scope?
+     * @param {number} pos - the position to test for inclusion in the scope
+     * @return {boolean} - is the position directly included in the scope?
      */
     Scope.prototype.containsPositionImmediate = function (pos) {
         if (this.containsPosition(pos)) {
@@ -542,7 +542,7 @@ define(function (require, exports, module) {
     /*
      * Find the child scope of the current scope for a given position
      *
-     * @param {Number} pos - the position at which to find a child scope
+     * @param {number} pos - the position at which to find a child scope
      * @return {?Scope} - the child scope for the given position, or null
      *      if none exists
      */
@@ -586,7 +586,7 @@ define(function (require, exports, module) {
      *
      * @param {Function} addItem - the item accumulation function
      * @param {Object} init - an initial value for the accumulation function
-     * @param {String} listName - the name of a Scope property
+     * @param {string} listName - the name of a Scope property
      * @return {Object} - the result of of accumulating the given property for
      *      the current scope along with all of its children
      */

@@ -36,8 +36,8 @@ define(function (require, exports, module) {
      * Create a hint token with name value that occurs at the given list of
      * positions.
      * 
-     * @param {String} value - name of the new hint token
-     * @param {?Array<Number>} positions - optional list of positions at which
+     * @param {string} value - name of the new hint token
+     * @param {?Array<number>} positions - optional list of positions at which
      *      the token occurs
      * @return {Object} - a new hint token
      */
@@ -53,8 +53,8 @@ define(function (require, exports, module) {
     /**
      * Is the string key perhaps a valid JavaScript identifier?
      * 
-     * @param {String} key - the string to test
-     * @return {Boolean} - could key be a valid identifier?
+     * @param {string} key - the string to test
+     * @return {boolean} - could key be a valid identifier?
      */
     function maybeIdentifier(key) {
         return (/[0-9a-z_.\$]/i).test(key) ||
@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      * Is the token's class hintable? (A very conservative test.) 
      * 
      * @param {Object} token - the token to test for hintability
-     * @return {Boolean} - could the token be hintable?
+     * @return {boolean} - could the token be hintable?
      */
     function hintable(token) {
         switch (token.className) {
@@ -82,8 +82,8 @@ define(function (require, exports, module) {
     /**
      * Divide a path into directory and filename parts
      * 
-     * @param {String} path - a URI with directories separated by /
-     * @return {Object<dir: String, file: String>} - a pair of strings that
+     * @param {string} path - a URI with directories separated by /
+     * @return {Object<dir: string, file: string>} - a pair of strings that
      *      correspond to the directory and filename of the given path.
      */
     function splitPath(path) {
@@ -98,8 +98,8 @@ define(function (require, exports, module) {
      * Get a JS-hints-specific event name. Used to prevent event namespace
      * pollution.
      * 
-     * @param {String} name - the unqualified event name
-     * @return {String} - the qualified event name
+     * @param {string} name - the unqualified event name
+     * @return {string} - the qualified event name
      */
     function eventName(name) {
         var EVENT_TAG = "brackets-js-hints";
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
      * @param {Scope} scope - scope object used to determine the scope level of
      *      each identifier token in the previous list.
      * @return {Array<Object>} - the input array; to each object in the array a
-     *      new level {Number} property has been added to indicate its scope
+     *      new level {number} property has been added to indicate its scope
      *      level. 
      */
     function annotateWithScope(identifiers, scope) {
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
      * @param {Association} association - an object that maps property
      *      names to the number of times it occurs in a particular context
      * @return {Array<Object>} - the input array; to each object in the array a
-     *      new level {Number} property has been added to indicate the number
+     *      new level {number} property has been added to indicate the number
      *      of times the property has occurred in the association context.
      */
     function annotateWithAssociation(properties, association) {
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
      * 
      * @param {Array<Object>} globals - list of identifier tokens
      * @return {Array<Object>} - the input array; to each object in the array a
-     *      new global {Boolean} property has been added to indicate that it is
+     *      new global {boolean} property has been added to indicate that it is
      *      a global variable.
      */
     function annotateGlobals(globals) {
@@ -169,10 +169,10 @@ define(function (require, exports, module) {
      * if string literals, annotate with an appropriate delimiter. 
      * 
      * @param {Array<Object>} literals - list of hint tokens
-     * @param {String} kind - the kind of literals in the list (e.g., "string")
+     * @param {string} kind - the kind of literals in the list (e.g., "string")
      * @return {Array<Object>} - the input array; to each object in the array a
-     *      new literal {Boolean} property has been added to indicate that it
-     *      is a literal hint, and also a new kind {String} property to indicate
+     *      new literal {boolean} property has been added to indicate that it
+     *      is a literal hint, and also a new kind {string} property to indicate
      *      the literal kind. For string literals, a delimiter property is also
      *      added to indicate what the default delimiter should be (viz. a 
      *      single or double quotation mark).
@@ -197,7 +197,7 @@ define(function (require, exports, module) {
      * 
      * @param {Array<Object>} keyword - list of keyword tokens
      * @return {Array<Object>} - the input array; to each object in the array a
-     *      new keyword {Boolean} property has been added to indicate that the
+     *      new keyword {boolean} property has been added to indicate that the
      *      hint is a keyword.
      */
     function annotateKeywords(keywords) {
@@ -211,10 +211,10 @@ define(function (require, exports, module) {
      * Annotate a list of tokens with a path name
      * 
      * @param {Array<Object>} tokens - list of hint tokens
-     * @param {String} dir - directory with which to annotate the hints
-     * @param {String} file - file name with which to annotate the hints
+     * @param {string} dir - directory with which to annotate the hints
+     * @param {string} file - file name with which to annotate the hints
      * @return {Array<Object>} - the input array; to each object in the array a
-     *      new path {String} property has been added, equal to dir + file.
+     *      new path {string} property has been added, equal to dir + file.
      */
     function annotateWithPath(tokens, dir, file) {
         var path = dir + file;

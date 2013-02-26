@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      * will never be set as the currentDocument or added to the working set.
      *
      * @param {Document} doc - the document to be contained by the new Editor
-     * @param {String} mode - the CodeMirror mode of the new Editor
+     * @param {string} mode - the CodeMirror mode of the new Editor
      * @return {Editor} - the mock editor object
      */
     function createMockEditor(doc, mode) {
@@ -70,9 +70,9 @@ define(function (require, exports, module) {
          * return some
          * 
          * @param {Object} provider - a CodeHintProvider object
-         * @param {String} key - the charCode of a key press that triggers the
+         * @param {string} key - the charCode of a key press that triggers the
          *      CodeHint provider
-         * @return {Boolean} - whether the provider has hints in the context of
+         * @return {boolean} - whether the provider has hints in the context of
          *      the test editor
          */
         function expectHints(provider, key) {
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
          * return any
          * 
          * @param {Object} provider - a CodeHintProvider object
-         * @param {String} key - the charCode of a key press that triggers the
+         * @param {string} key - the charCode of a key press that triggers the
          *      CodeHint provider
          */
         function expectNoHints(provider, key) {
@@ -105,8 +105,8 @@ define(function (require, exports, module) {
          * Return the index at which hint occurs in hintList
          * 
          * @param {Array<Object>} hintList - the list of hints
-         * @param {String} hint - the hint to search for
-         * @return {Number} - the index into hintList at which the hint occurs,
+         * @param {string} hint - the hint to search for
+         * @return {number} - the index into hintList at which the hint occurs,
          * or -1 if it does not
          */
         function _indexOf(hintList, hint) {
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<String>} absentHints - a list of hints that should not
+         * @param {Array<string>} absentHints - a list of hints that should not
          *      be present in the hint response
          */
         function hintsAbsent(hintObj, absentHints) {
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<String>} absentHints - a list of hints that should be
+         * @param {Array<string>} absentHints - a list of hints that should be
          *      present in the hint response
          */
         function hintsPresent(hintObj, expectedHints) {
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<String>} absentHints - a list of hints that should be
+         * @param {Array<string>} absentHints - a list of hints that should be
          *      present in the given order in the hint response
          */
         function hintsPresentOrdered(hintObj, expectedHints) {
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<String>} absentHints - a list of hints that should be
+         * @param {Array<string>} absentHints - a list of hints that should be
          *      present in the hint response, and no more.
          */
         function hintsPresentExact(hintObj, expectedHints) {
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
          * @param {Object} provider - a CodeHint provider object
          * @param {Object} hintObj - a hint response object from that provider,
          *      possibly deferred
-         * @param {Number} index - the index into the hint list at which a hint
+         * @param {number} index - the index into the hint list at which a hint
          *      is to be selected
          */
         function selectHint(provider, hintObj, index) {
