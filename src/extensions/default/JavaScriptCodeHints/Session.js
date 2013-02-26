@@ -217,7 +217,7 @@ define(function (require, exports, module) {
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
-     * @return {Object.<property: boolean, context: string>} - a pair consisting
+     * @return {{property: boolean, context: string}} - a pair consisting
      *      of a {boolean} "property" that indicates whether or not the type of
      *      the session is a property lookup, and a {string} "context" that
      *      indicates the object context (as described in getContext above) of

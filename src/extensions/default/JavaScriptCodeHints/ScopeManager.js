@@ -372,7 +372,7 @@ define(function (require, exports, module) {
      *      desired
      * @param {number} offset - the offset into the document at which scope
      *      info is desired
-     * @param {Object + jQuery.Promise} - the inner scope info, or a promise 
+     * @return {Object + jQuery.Promise} - the inner scope info, or a promise 
      *      for such info. (See refreshInnerScope above.)
      */
     function getScopeInfo(document, offset) {

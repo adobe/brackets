@@ -217,7 +217,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array.<string>} absentHints - a list of hints that should be
+         * @param {Array.<string>} expectedHints - a list of hints that should be
          *      present in the hint response, and no more.
          */
         function hintsPresentExact(hintObj, expectedHints) {

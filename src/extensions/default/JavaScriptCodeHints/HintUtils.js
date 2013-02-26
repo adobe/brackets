@@ -83,7 +83,7 @@ define(function (require, exports, module) {
      * Divide a path into directory and filename parts
      * 
      * @param {string} path - a URI with directories separated by /
-     * @return {Object.<dir: string, file: string>} - a pair of strings that
+     * @return {{dir: string, file: string}} - a pair of strings that
      *      correspond to the directory and filename of the given path.
      */
     function splitPath(path) {
