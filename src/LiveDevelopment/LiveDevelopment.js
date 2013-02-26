@@ -461,7 +461,6 @@ define(function LiveDevelopment(require, exports, module) {
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
-        _httpServerProvider = null;
     }
 
     function _onReconnect() {
