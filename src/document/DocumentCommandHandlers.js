@@ -683,7 +683,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-	/**
+    /**
      * @private - tracks our closing state if we get called again
      */
     var _windowGoingAway = false;
