@@ -141,8 +141,7 @@ define(function (require, exports, module) {
             var $dlg = $(".about-dialog.instance");
             var $contributors = $dlg.find(".about-contributors");
             
-            templateVars = $.extend({CONTRIBUTORS: contributorsInfo}, Strings);
-            $contributors.html(Mustache.render(ContributorsTemplate, templateVars));
+            $contributors.html(Mustache.render(ContributorsTemplate, {CONTRIBUTORS: contributorsInfo}));
             
             // This is used to create an opacity transition when each image is loaded
             $dlg.find("img").one("load", function () {
@@ -155,7 +154,6 @@ define(function (require, exports, module) {
             
             $dlg.on("click", "img", function (e) {
                 var url = $(e.target).data("url");
-                
                 if (url) {
                     // Make sure the URL has a domain that we know about
                     if (/(github\.com)$/i.test(PathUtils.parseUrl(url).hostname)) {
