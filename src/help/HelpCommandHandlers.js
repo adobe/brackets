@@ -81,7 +81,7 @@ define(function (require, exports, module) {
                 data = [];
                 
                 // Save only the required data for the template
-                $.each(contributorsInfo.data, function (index, element) {
+                contributorsInfo.data.forEach(function (index, element) {
                     data.push({
                         GITHUB_URL : element.html_url,
                         AVATAR_URL : element.avatar_url,
