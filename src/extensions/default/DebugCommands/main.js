@@ -47,6 +47,18 @@ define(function (require, exports, module) {
     /** @const {string} Brackets Application Menu Constant */
     var DEBUG_MENU = "debug-menu";
     
+     /** @const {string} Debug commands IDs */
+    var DEBUG_REFRESH_WINDOW        = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
+        DEBUG_SHOW_DEVELOPER_TOOLS  = "debug.showDeveloperTools",
+        DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests",
+        DEBUG_SHOW_PERF_DATA        = "debug.showPerfData",
+        DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow",
+        DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage",
+        DEBUG_ENABLE_NODE_DEBUGGER  = "debug.enableNodeDebugger",
+        DEBUG_LOG_NODE_STATE        = "debug.logNodeState",
+        DEBUG_RESTART_NODE          = "debug.restartNode";
+    
+    
     
     function handleShowDeveloperTools(commandData) {
         brackets.app.showDeveloperTools();
@@ -198,7 +210,7 @@ define(function (require, exports, module) {
                         }
                         brackets.setLocale(locale);
                         
-                        CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
+                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
                     })
                     .attr("disabled", "disabled")
                     .appendTo($footer);
@@ -263,7 +275,7 @@ define(function (require, exports, module) {
             function (metadata) {
                 // If we sucessfully got the metadata for the SpecRunner.html file, 
                 // enable the menu item
-                CommandManager.get(Commands.DEBUG_RUN_UNIT_TESTS).setEnabled(true);
+                CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
             },
             function (error) {} /* menu already disabled, ignore errors */
         );
@@ -329,26 +341,22 @@ define(function (require, exports, module) {
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
-    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
+    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,       DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
         .setEnabled(!!brackets.app.showDeveloperTools);
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,      Commands.DEBUG_REFRESH_WINDOW,         handleFileReload);
-    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,       DEBUG_REFRESH_WINDOW,         handleFileReload);
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,  DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
-    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
     
     // Node-related Commands
-    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, Commands.DEBUG_ENABLE_NODE_DEBUGGER,  NodeDebugUtils.enableDebugger);
-    CommandManager.register(Strings.CMD_LOG_NODE_STATE,       Commands.DEBUG_LOG_NODE_STATE,        NodeDebugUtils.logNodeState);
-    CommandManager.register(Strings.CMD_RESTART_NODE,         Commands.DEBUG_RESTART_NODE,          NodeDebugUtils.restartNode);
-    
-    
-    KeyBindingManager.addBinding(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
-    KeyBindingManager.addBinding(Commands.DEBUG_REFRESH_WINDOW,       KeyboardPrefs.refreshWindow);
+    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
+    CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
+    CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
     _enableRunTestsMenuItem();
     
@@ -357,18 +365,18 @@ define(function (require, exports, module) {
      * Debug menu
      */
     var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
-    menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
-    menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW);
-    menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
+    menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
+    menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
+    menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
-    menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
+    menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
     menu.addMenuDivider();
-    menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
-    menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
+    menu.addMenuItem(DEBUG_RUN_UNIT_TESTS);
+    menu.addMenuItem(DEBUG_SHOW_PERF_DATA);
     menu.addMenuDivider();
-    menu.addMenuItem(Commands.DEBUG_ENABLE_NODE_DEBUGGER);
-    menu.addMenuItem(Commands.DEBUG_LOG_NODE_STATE);
-    menu.addMenuItem(Commands.DEBUG_RESTART_NODE);
+    menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
+    menu.addMenuItem(DEBUG_LOG_NODE_STATE);
+    menu.addMenuItem(DEBUG_RESTART_NODE);
     
     
     // exposed for convenience, but not official API
