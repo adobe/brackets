@@ -95,17 +95,6 @@ define(function (require, exports, module) {
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
 
-    // Debug
-    exports.DEBUG_REFRESH_WINDOW        = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
-    exports.DEBUG_SHOW_DEVELOPER_TOOLS  = "debug.showDeveloperTools";
-    exports.DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests";
-    exports.DEBUG_SHOW_PERF_DATA        = "debug.showPerfData";
-    exports.DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow";
-    exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
-    exports.DEBUG_ENABLE_NODE_DEBUGGER  = "debug.enableNodeDebugger";
-    exports.DEBUG_LOG_NODE_STATE        = "debug.logNodeState";
-    exports.DEBUG_RESTART_NODE          = "debug.restartNode";
-
     // Help
     exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";
     exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";

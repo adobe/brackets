@@ -23,20 +23,42 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, WebSocket */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        Editor                  = require("editor/Editor").Editor,
-        FileUtils               = require("file/FileUtils"),
-        Strings                 = require("strings"),
-        PerfUtils               = require("utils/PerfUtils"),
-        NativeApp               = require("utils/NativeApp"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        NodeDebugUtils          = require("debug/NodeDebugUtils");
+    var Commands           = brackets.getModule("command/Commands"),
+        CommandManager     = brackets.getModule("command/CommandManager"),
+        Editor             = brackets.getModule("editor/Editor").Editor,
+        FileUtils          = brackets.getModule("file/FileUtils"),
+        KeyBindingManager  = brackets.getModule("command/KeyBindingManager"),
+        Menus              = brackets.getModule("command/Menus"),
+        Strings            = brackets.getModule("strings"),
+        PerfUtils          = brackets.getModule("utils/PerfUtils"),
+        ProjectManager     = brackets.getModule("project/ProjectManager"),
+        NativeApp          = brackets.getModule("utils/NativeApp"),
+        NativeFileSystem   = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        NodeDebugUtils     = require("NodeDebugUtils");
+    
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+	
+	
+    /** @const {string} Brackets Application Menu Constant */
+    var DEBUG_MENU = "debug-menu";
+    
+     /** @const {string} Debug commands IDs */
+    var DEBUG_REFRESH_WINDOW        = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
+        DEBUG_SHOW_DEVELOPER_TOOLS  = "debug.showDeveloperTools",
+        DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests",
+        DEBUG_SHOW_PERF_DATA        = "debug.showPerfData",
+        DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow",
+        DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage",
+        DEBUG_ENABLE_NODE_DEBUGGER  = "debug.enableNodeDebugger",
+        DEBUG_LOG_NODE_STATE        = "debug.logNodeState",
+        DEBUG_RESTART_NODE          = "debug.restartNode";
+    
+    
     
     function handleShowDeveloperTools(commandData) {
         brackets.app.showDeveloperTools();
@@ -188,7 +210,7 @@ define(function (require, exports, module) {
                         }
                         brackets.setLocale(locale);
                         
-                        CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
+                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
                     })
                     .attr("disabled", "disabled")
                     .appendTo($footer);
@@ -253,33 +275,109 @@ define(function (require, exports, module) {
             function (metadata) {
                 // If we sucessfully got the metadata for the SpecRunner.html file, 
                 // enable the menu item
-                CommandManager.get(Commands.DEBUG_RUN_UNIT_TESTS).setEnabled(true);
+                CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
             },
             function (error) {} /* menu already disabled, ignore errors */
         );
     }
+	
+	
+    /**
+     * Disables Brackets' cache via the remote debugging protocol.
+     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
+     */
+    function _disableCache() {
+        var result = new $.Deferred();
+        
+        if (brackets.inBrowser) {
+            result.resolve();
+        } else {
+            var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
+            Inspector.getAvailableSockets("127.0.0.1", "9234")
+                .fail(result.reject)
+                .done(function (response) {
+                    var page = response[0];
+                    if (!page || !page.webSocketDebuggerUrl) {
+                        result.reject();
+                        return;
+                    }
+                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                    // Disable the cache
+                    _socket.onopen = function _onConnect() {
+                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                    };
+                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                    _socket.onmessage = function _onMessage(e) {
+                        _socket.close();
+                        result.resolve();
+                    };
+                    // In case of an error
+                    _socket.onerror = result.reject;
+                });
+        }
+            
+        return result.promise();
+    }
+	
+    /** Does a full reload of the browser window */
+    function handleFileReload(commandData) {
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
+            // Give everyone a chance to save their state - but don't let any problems block
+            // us from quitting
+            try {
+                $(ProjectManager).triggerHandler("beforeAppClose");
+            } catch (ex) {
+                console.error(ex);
+            }
+            
+            // Disable the cache to make reloads work
+            _disableCache().always(function () {
+                window.location.reload(true);
+            });
+        });
+    }
+    
     
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
-    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
-        .setEnabled(!!brackets.app.showDeveloperTools && brackets.config.show_debug_menu);
-    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,       DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
+        .setEnabled(!!brackets.app.showDeveloperTools);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,       DEBUG_REFRESH_WINDOW,         handleFileReload);
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,  DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
-    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
-    
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
     
     // Node-related Commands
-    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, Commands.DEBUG_ENABLE_NODE_DEBUGGER, NodeDebugUtils.enableDebugger);
-    CommandManager.register(Strings.CMD_LOG_NODE_STATE, Commands.DEBUG_LOG_NODE_STATE, NodeDebugUtils.logNodeState);
-    CommandManager.register(Strings.CMD_RESTART_NODE, Commands.DEBUG_RESTART_NODE, NodeDebugUtils.restartNode);
+    CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
+    CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
+    CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
     _enableRunTestsMenuItem();
+    
+    
+    /*
+     * Debug menu
+     */
+    var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
+    menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
+    menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
+    menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
+    menu.addMenuDivider();
+    menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
+    menu.addMenuDivider();
+    menu.addMenuItem(DEBUG_RUN_UNIT_TESTS);
+    menu.addMenuItem(DEBUG_SHOW_PERF_DATA);
+    menu.addMenuDivider();
+    menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
+    menu.addMenuItem(DEBUG_LOG_NODE_STATE);
+    menu.addMenuItem(DEBUG_RESTART_NODE);
+    
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;

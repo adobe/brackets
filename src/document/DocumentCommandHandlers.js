@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, WebSocket, window */
+/*global define, $, brackets, PathUtils, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -508,43 +508,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-
-    /**
-     * Disables Brackets' cache via the remote debugging protocol.
-     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
-     */
-    function _disableCache() {
-        var result = new $.Deferred();
-        
-        if (brackets.inBrowser) {
-            result.resolve();
-        } else {
-            var Inspector = require("LiveDevelopment/Inspector/Inspector");
-            Inspector.getAvailableSockets("127.0.0.1", "9234")
-                .fail(result.reject)
-                .done(function (response) {
-                    var page = response[0];
-                    if (!page || !page.webSocketDebuggerUrl) {
-                        result.reject();
-                        return;
-                    }
-                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
-                    // Disable the cache
-                    _socket.onopen = function _onConnect() {
-                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
-                    };
-                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                    _socket.onmessage = function _onMessage(e) {
-                        _socket.close();
-                        result.resolve();
-                    };
-                    // In case of an error
-                    _socket.onerror = result.reject;
-                });
-        }
-            
-        return result.promise();
-    }
     
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
@@ -721,14 +684,14 @@ define(function (require, exports, module) {
     }
     
     /**
-    * @private - tracks our closing state if we get called again
-    */
+     * @private - tracks our closing state if we get called again
+     */
     var _windowGoingAway = false;
     
     /**
-    * @private
-    * Common implementation for close/quit/reload which all mostly
-    * the same except for the final step
+     * @private
+     * Common implementation for close/quit/reload which all mostly
+     * the same except for the final step
     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
@@ -759,11 +722,11 @@ define(function (require, exports, module) {
                 }
             });
     }
-
+	
     /**
-    * @private
-    * Implementation for abortQuit callback to reset quit sequence settings
-    */
+     * @private
+     * Implementation for abortQuit callback to reset quit sequence settings
+     */
     function _handleAbortQuit() {
         _windowGoingAway = false;
     }
@@ -813,16 +776,6 @@ define(function (require, exports, module) {
         );
     }
 
-    /** Does a full reload of the browser window */
-    function handleFileReload(commandData) {
-        return _handleWindowGoingAway(commandData, function () {
-            // Disable the cache to make reloads work
-            _disableCache().always(function () {
-                window.location.reload(true);
-            });
-        });
-    }
-    
     
     /** Are we already listening for a keyup to call detectDocumentNavEnd()? */
     var _addedNavKeyHandler = false;
@@ -900,8 +853,6 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
     }
 
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload)
-        .setEnabled(brackets.config.show_debug_menu);
     CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
     
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
@@ -911,5 +862,5 @@ define(function (require, exports, module) {
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
-});
 
+});
