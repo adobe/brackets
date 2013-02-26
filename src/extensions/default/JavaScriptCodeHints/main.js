@@ -49,7 +49,7 @@ define(function (require, exports, module) {
      * string, formats the hints for display, and returns a hint response
      * object according to the CodeHintManager's API for code hint providers.
      *
-     * @param {Array<Object>} hints - hints to be included in the response
+     * @param {Array.<Object>} hints - hints to be included in the response
      * @param {string} query - querystring with which to filter the hint list
      * @return {Object} - hint response as defined by the CodeHintManager API 
      */
@@ -62,9 +62,9 @@ define(function (require, exports, module) {
         /*
          * Filter a list of tokens using the query string in the closure.
          * 
-         * @param {Array<Object>} tokens - list of hints to filter
+         * @param {Array.<Object>} tokens - list of hints to filter
          * @param {number} limit - maximum numberof tokens to return
-         * @return {Array<Object>} - filtered list of hints
+         * @return {Array.<Object>} - filtered list of hints
          */
         function filterWithQuery(tokens, limit) {
 
@@ -76,6 +76,7 @@ define(function (require, exports, module) {
              * @param {Function} test - test to determine if an element should
              *      be included in the results
              * @param {number} limit - the maximum number of elements to return
+             * @return {Array.<Object>} - new array of filtered elements
              */
             function filterArrayPrefix(arr, test, limit) {
                 var i = 0,
@@ -123,10 +124,10 @@ define(function (require, exports, module) {
          * Returns a formatted list of hints with the query substring
          * highlighted.
          * 
-         * @param {Array<Object>} hints - the list of hints to format
+         * @param {Array.<Object>} hints - the list of hints to format
          * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
-         * @param {Array<jQuery.Object>} - array of hints formatted as jQuery
+         * @param {Array.<jQuery.Object>} - array of hints formatted as jQuery
          *      objects
          */
         function formatHints(hints, query) {
@@ -220,7 +221,7 @@ define(function (require, exports, module) {
      * 
      * @param {Editor} editor - the current editor context
      * @param {string} key - charCode of the last pressed key
-     * @param {boolean} - can the provider provide hints for this session?
+     * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
         if ((key === null) || HintUtils.maybeIdentifier(key)) {

@@ -71,7 +71,7 @@ define(function (require, exports, module) {
     /**
      * Get the current cursor position.
      *
-     * @return Object<line: number, ch, number> - the current cursor position
+     * @return {{line: number, ch: number}} - the current cursor position
      */
     Session.prototype.getCursor = function () {
         return this.editor.getCursorPos();
@@ -93,9 +93,9 @@ define(function (require, exports, module) {
      * Get the token at the given cursor position, or at the current cursor
      * if none is given.
      * 
-     * @param {?Object<line: number, ch, number>} cursor - the cursor position
+     * @param {?{line: number, ch: number}} cursor - the cursor position
      *      at which to retrieve a token
-     * @param {Object} - the CodeMirror token at the given cursor position
+     * @return {Object} - the CodeMirror token at the given cursor position
      */
     Session.prototype.getToken = function (cursor) {
         var cm = this.editor._codeMirror;
@@ -110,7 +110,7 @@ define(function (require, exports, module) {
     /**
      * Get the next cursor position on the line, or null if there isn't one.
      * 
-     * @return {?Object<line: number, ch, number>} - the cursor position
+     * @return {?{line: number, ch: number}} - the cursor position
      *      immediately following the current cursor position, or null if
      *      none exists.
      */
@@ -132,7 +132,7 @@ define(function (require, exports, module) {
     /**
      * Get the token before the one at the given cursor position
      * 
-     * @param {Object<line: number, ch, number>} cursor - cursor position after
+     * @param {{line: number, ch: number}} cursor - cursor position after
      *      which a token should be retrieved
      * @return {Object} - the CodeMirror token before the one at the given
      *      cursor position
@@ -184,10 +184,11 @@ define(function (require, exports, module) {
      * Find the context of a property lookup. For example, for a lookup 
      * foo(bar, baz(quux)).prop, foo is the context.
      * 
-     * @param {Object<line: number, ch, number>} cursor - the cursor position
+     * @param {{line: number, ch: number}} cursor - the cursor position
      *      at which context information is to be retrieved
      * @param {number} depth - the current depth of the parenthesis stack, or
      *      undefined if the depth is 0.
+     * @return {string} - the context for the property that was looked up
      */
     Session.prototype.getContext = function (cursor, depth) {
         var token = this.getToken(cursor);
@@ -216,7 +217,7 @@ define(function (require, exports, module) {
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
-     * @return {Object<property: boolean, context: string>} - a pair consisting
+     * @return {Object.<property: boolean, context: string>} - a pair consisting
      *      of a {boolean} "property" that indicates whether or not the type of
      *      the session is a property lookup, and a {string} "context" that
      *      indicates the object context (as described in getContext above) of
@@ -256,7 +257,7 @@ define(function (require, exports, module) {
      * Get a list of hints for the current session using the current scope
      * information. 
      * 
-     * @return {Array<Object>} - the sorted list of hints for the current 
+     * @return {Array.<Object>} - the sorted list of hints for the current 
      *      session.
      */
     Session.prototype.getHints = function () {
@@ -392,7 +393,7 @@ define(function (require, exports, module) {
          * Comparator for sorting tokens by name
          * 
          * @param {Object} a - a token
-         * @param {Object} a - another token
+         * @param {Object} b - another token
          * @return {number} - comparator value that indicates whether the name
          *      of token a is lexicographically lower than the name of token b
          */
@@ -512,8 +513,8 @@ define(function (require, exports, module) {
          * Clone a list of hints. (Used so that later annotations are not 
          * preserved when scope information changes.)
          * 
-         * @param {Array<Object>} hints - an array of hint tokens
-         * @return {Array<Object>} - a new array of objects that are clones of
+         * @param {Array.<Object>} hints - an array of hint tokens
+         * @return {Array.<Object>} - a new array of objects that are clones of
          *      the objects in the input array
          */
         function copyHints(hints) {

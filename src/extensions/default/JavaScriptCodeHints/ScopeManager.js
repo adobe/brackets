@@ -104,7 +104,7 @@ define(function (require, exports, module) {
      * each (known) file in the directory.
      * 
      * @param {string} dir - the directory name for which state is desired
-     * @param {string} file - the file name for which state is desired
+     * @param {string=} file - the file name for which state is desired
      * @return {Object} - a file state object (as documented within 
      *      intializeFileState above), or a set of file state objects if
      *      file is omitted.
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
      *      refreshed
      * @param {number} offset - offset into the text at which the inner scope
      *      is to be refreshed
-     * @param {Object + jQuery.Promise} - inner scope information, or a promise
+     * @return {Object + jQuery.Promise} - inner scope information, or a promise
      *      for such information, including the local scope object and lists of
      *      identifiers, properties, globals, literals and associations.
      */
@@ -183,9 +183,9 @@ define(function (require, exports, module) {
         /*
          * Filter a list of tokens using a given scope object
          *
-         * @param {Array<Object>} tokens - a list of identifier tokens
+         * @param {Array.<Object>} tokens - a list of identifier tokens
          * @param {Scope} scope - a scope object
-         * @return {Array<Object>} - the sublist of the input list that
+         * @return {Array.<Object>} - the sublist of the input list that
          *      contains all and only the identifier tokens in scope
          *      w.r.t. to the given scope
          */
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
          * 
          * @param {string} dir - the directory name of the files for which
          *      property lists should be merged
-         * @param {Array<Object>} - the combined list of property tokens
+         * @param {Array.<Object>} - the combined list of property tokens
          */
         function mergeProperties(dir) {
             

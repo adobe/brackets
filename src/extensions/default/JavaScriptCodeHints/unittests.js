@@ -104,7 +104,7 @@ define(function (require, exports, module) {
         /*
          * Return the index at which hint occurs in hintList
          * 
-         * @param {Array<Object>} hintList - the list of hints
+         * @param {Array.<Object>} hintList - the list of hints
          * @param {string} hint - the hint to search for
          * @return {number} - the index into hintList at which the hint occurs,
          * or -1 if it does not
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<string>} absentHints - a list of hints that should not
+         * @param {Array.<string>} absentHints - a list of hints that should not
          *      be present in the hint response
          */
         function hintsAbsent(hintObj, absentHints) {
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<string>} absentHints - a list of hints that should be
+         * @param {Array.<string>} expectedHints - a list of hints that should be
          *      present in the hint response
          */
         function hintsPresent(hintObj, expectedHints) {
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<string>} absentHints - a list of hints that should be
+         * @param {Array.<string>} expectedHints - a list of hints that should be
          *      present in the given order in the hint response
          */
         function hintsPresentOrdered(hintObj, expectedHints) {
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
          * 
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {Array<string>} absentHints - a list of hints that should be
+         * @param {Array.<string>} absentHints - a list of hints that should be
          *      present in the hint response, and no more.
          */
         function hintsPresentExact(hintObj, expectedHints) {

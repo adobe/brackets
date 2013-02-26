@@ -37,7 +37,7 @@ define(function (require, exports, module) {
      * positions.
      * 
      * @param {string} value - name of the new hint token
-     * @param {?Array<number>} positions - optional list of positions at which
+     * @param {?Array.<number>=} positions - optional list of positions at which
      *      the token occurs
      * @return {Object} - a new hint token
      */
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
      * Divide a path into directory and filename parts
      * 
      * @param {string} path - a URI with directories separated by /
-     * @return {Object<dir: string, file: string>} - a pair of strings that
+     * @return {Object.<dir: string, file: string>} - a pair of strings that
      *      correspond to the directory and filename of the given path.
      */
     function splitPath(path) {
@@ -109,11 +109,11 @@ define(function (require, exports, module) {
     /*
      * Annotate list of identifiers with their scope level.
      * 
-     * @param {Array<Object>} identifiers - list of identifier tokens to be
+     * @param {Array.<Object>} identifiers - list of identifier tokens to be
      *      annotated
      * @param {Scope} scope - scope object used to determine the scope level of
      *      each identifier token in the previous list.
-     * @return {Array<Object>} - the input array; to each object in the array a
+     * @return {Array.<Object>} - the input array; to each object in the array a
      *      new level {number} property has been added to indicate its scope
      *      level. 
      */
@@ -133,10 +133,10 @@ define(function (require, exports, module) {
     /*
      * Annotate a list of properties with their association level
      * 
-     * @param {Array<Object>} properties - list of property tokens
+     * @param {Array.<Object>} properties - list of property tokens
      * @param {Association} association - an object that maps property
      *      names to the number of times it occurs in a particular context
-     * @return {Array<Object>} - the input array; to each object in the array a
+     * @return {Array.<Object>} - the input array; to each object in the array a
      *      new level {number} property has been added to indicate the number
      *      of times the property has occurred in the association context.
      */
@@ -152,8 +152,8 @@ define(function (require, exports, module) {
     /*
      * Annotate a list of tokens as being global variables
      * 
-     * @param {Array<Object>} globals - list of identifier tokens
-     * @return {Array<Object>} - the input array; to each object in the array a
+     * @param {Array.<Object>} globals - list of identifier tokens
+     * @return {Array.<Object>} - the input array; to each object in the array a
      *      new global {boolean} property has been added to indicate that it is
      *      a global variable.
      */
@@ -168,9 +168,9 @@ define(function (require, exports, module) {
      * Annotate a list of tokens as literals of a particular kind;
      * if string literals, annotate with an appropriate delimiter. 
      * 
-     * @param {Array<Object>} literals - list of hint tokens
+     * @param {Array.<Object>} literals - list of hint tokens
      * @param {string} kind - the kind of literals in the list (e.g., "string")
-     * @return {Array<Object>} - the input array; to each object in the array a
+     * @return {Array.<Object>} - the input array; to each object in the array a
      *      new literal {boolean} property has been added to indicate that it
      *      is a literal hint, and also a new kind {string} property to indicate
      *      the literal kind. For string literals, a delimiter property is also
@@ -195,8 +195,8 @@ define(function (require, exports, module) {
     /* 
      * Annotate a list of tokens as keywords
      * 
-     * @param {Array<Object>} keyword - list of keyword tokens
-     * @return {Array<Object>} - the input array; to each object in the array a
+     * @param {Array.<Object>} keyword - list of keyword tokens
+     * @return {Array.<Object>} - the input array; to each object in the array a
      *      new keyword {boolean} property has been added to indicate that the
      *      hint is a keyword.
      */
@@ -210,10 +210,10 @@ define(function (require, exports, module) {
     /* 
      * Annotate a list of tokens with a path name
      * 
-     * @param {Array<Object>} tokens - list of hint tokens
+     * @param {Array.<Object>} tokens - list of hint tokens
      * @param {string} dir - directory with which to annotate the hints
      * @param {string} file - file name with which to annotate the hints
-     * @return {Array<Object>} - the input array; to each object in the array a
+     * @return {Array.<Object>} - the input array; to each object in the array a
      *      new path {string} property has been added, equal to dir + file.
      */
     function annotateWithPath(tokens, dir, file) {

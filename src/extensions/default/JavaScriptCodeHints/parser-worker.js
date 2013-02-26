@@ -45,7 +45,7 @@ function require(url) {
      * function expects require, exports and module arguments; in the latter
      * case, the wrapper function expects only an exports arguments.
      * 
-     * @param {?Array<string>} bindings - an optional list of resources 
+     * @param {?Array.<string>} bindings - an optional list of resources 
      *      required by the module
      * @param {Function} wrapper - the function that defines the module
      */
@@ -93,7 +93,7 @@ function require(url) {
      * 
      * @param {Function} walk - the function used to walk over an implicit scope
      * @param {string} keyProp - the property of the implicit scope to walk over
-     * @param {Array<Object>} - a list of hint tokens for the implicit scope,
+     * @return {Array.<Object>} - a list of hint tokens for the implicit scope,
      *      including the positions at which they occur.
      */
     function siftPositions(walk, keyProp) {
@@ -127,7 +127,7 @@ function require(url) {
      * Walk the scope to compute all available association objects
      * 
      * @param {Function} walk - the function used to walk over an implicit scope
-     * @param {Object} - a set of association objects: each property is a
+     * @return {Object} - a set of association objects: each property is a
      *      property name; each value is an association, which indicates the
      *      number of times the property occurs w.r.t. to a particular lookup
      *      context.
@@ -154,8 +154,8 @@ function require(url) {
     /**
      * Parse JSLint globals annotations from an array of JavaScript comments
      * 
-     * @param {Array<string>} comments - list of JavaScript comments
-     * @return {Array<Object>} - a list of global hint objects as described by
+     * @param {Array.<string>} comments - list of JavaScript comments
+     * @return {Array.<Object>} - a list of global hint objects as described by
      *      JSLint annotations found in the comments.
      */
     function extractGlobals(comments) {

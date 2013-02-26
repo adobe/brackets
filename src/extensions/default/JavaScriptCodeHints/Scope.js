@@ -31,6 +31,11 @@ define(function (require, exports, module) {
      * Performs a binary search among an array of scope objects for one with a
      * range that contains pos. The array must be non-empty and sorted
      * ascending according to the objects' (disjoint) ranges.
+     *
+     * @param {Array.<Object>} arr - the sorted array of scope objects to
+     *      search
+     * @param {number} pos - the position to search for in arr
+     * @return {Object} - the scope object containing pos
      */
     function binaryRangeSearch(arr, pos) {
         var low     = 0,
@@ -58,7 +63,7 @@ define(function (require, exports, module) {
      * @constructor
      * @param {AST} tree - an AST as described at 
             https://developer.mozilla.org/en-US/docs/SpiderMonkey/Parser_API
-     * @param {?Scope} parent - the (optional) parent of the new Scope
+     * @param {?Scope=} parent - the (optional) parent of the new Scope
      */
     function Scope(tree, parent) {
 
@@ -420,7 +425,7 @@ define(function (require, exports, module) {
     /*
      * Add a list of identifier declarations
      * 
-     * @param {Array<AST>} ids - a list of identifier AST nodes
+     * @param {Array.<AST>} ids - a list of identifier AST nodes
      */
     Scope.prototype.addAllDeclarations = function (ids) {
         var that = this;
@@ -441,7 +446,7 @@ define(function (require, exports, module) {
     /* 
      * Add an association object
      * 
-     * @param {AST} obj - a identifer AST node 
+     * @param {AST} obj - an identifier AST node 
      * @param {AST} prop - a property AST node
      */
     Scope.prototype.addAssociation = function (obj, prop) {
@@ -568,7 +573,7 @@ define(function (require, exports, module) {
      * 
      * @param {Function} add - the Scope accumulation function
      * @param {Object} init - an initial value for the accumulation function
-     * @return {Object} - the result of of accumulating the current scope along
+     * @return {Object} - the result of accumulating the current scope along
      *      with all of its children
      */
     Scope.prototype.walkDown = function (add, init) {
@@ -587,7 +592,7 @@ define(function (require, exports, module) {
      * @param {Function} addItem - the item accumulation function
      * @param {Object} init - an initial value for the accumulation function
      * @param {string} listName - the name of a Scope property
-     * @return {Object} - the result of of accumulating the given property for
+     * @return {Object} - the result of accumulating the given property for
      *      the current scope along with all of its children
      */
     Scope.prototype.walkDownList = function (addItem, init, listName) {
@@ -606,7 +611,7 @@ define(function (require, exports, module) {
      *
      * @param {Function} add - the identifier accumulation function
      * @param {Object} init - an initial value for the accumulation function
-     * @return {Object} - the result of of accumulating identifier occurrences
+     * @return {Object} - the result of accumulating identifier occurrences
      *      for the current scope along with all of its children
      */
     Scope.prototype.walkDownIdentifiers = function (add, init) {
@@ -654,6 +659,7 @@ define(function (require, exports, module) {
      *
      * @param {Function} add - the Scope accumulation function
      * @param {Object} init - an initial value for the accumulation function
+     * @param {string} prop - the property name to combine scope information for
      * @return {Object} - the result of of accumulating the current scope along
      *      with its parents
      */
