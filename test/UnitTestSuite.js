@@ -41,6 +41,7 @@ define(function (require, exports, module) {
     require("spec/FindReplace-test");
     require("spec/InlineEditorProviders-test");
     require("spec/KeyBindingManager-test");
+    require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
     require("spec/LowLevelFileIO-test");
     require("spec/Menu-test");
