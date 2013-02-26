@@ -41,10 +41,8 @@
                 fToBind = this,
                 FNOP = function () {},
                 fBound = function () {
-                    return fToBind.apply(this instanceof FNOP && oThis
-                        ? this
-                        : oThis,
-                        aArgs.concat(Array.prototype.slice.call(arguments)));
+                    return fToBind.apply(this instanceof FNOP && oThis ?
+                            this : oThis, aArgs.concat(Array.prototype.slice.call(arguments)));
                 };
             
             FNOP.prototype = this.prototype;
