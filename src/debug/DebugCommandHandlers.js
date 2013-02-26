@@ -263,7 +263,7 @@ define(function (require, exports, module) {
     
     // Show Developer Tools (optionally enabled)
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
-        .setEnabled(!!brackets.app.showDeveloperTools);
+        .setEnabled(!!brackets.app.showDeveloperTools && brackets.config.show_debug_menu);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
