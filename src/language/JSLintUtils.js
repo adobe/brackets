@@ -106,7 +106,7 @@ define(function (require, exports, module) {
         var $lintResults = $("#jslint-results");
         var $goldStar = $("#gold-star");
         
-        if (getEnabled() && /^(\.js|\.htm|\.html)$/i.test(ext)) {
+        if (getEnabled() && /^\.js$/i.test(ext)) {
             perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
             var text = currentDoc.getText();
             
