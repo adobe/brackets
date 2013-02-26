@@ -66,6 +66,10 @@ define(function (require, exports, module) {
         
         $projectTitle.html(displayName);
         $projectTitle.attr("title", fullPath);
+        
+        // Trigger a scroll on the project files container to 
+        // reposition the scroller shadows and avoid issue #2255
+        $projectFilesContainer.trigger("scroll");
     }
     
     /**

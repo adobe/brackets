@@ -98,7 +98,6 @@ define(function (require, exports, module) {
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
     require("view/ViewCommandHandlers");
-    require("debug/DebugCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
