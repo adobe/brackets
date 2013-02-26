@@ -29,25 +29,15 @@
  * order of descending priority by way their canServe methods.
  *
  *
- * # HttpServerManager.canServe(url)
+ * # HttpServerManager.getProvider(url)
  *  
- * Determines whether we can serve url.
+ * Returns highest priority provider that can serve the url.
  * 
  * @param {String} url 
  * A url to file being served.
  *
- * @return {Boolean} 
- * true for yes, otherwise false.
- *
- * # HttpServerManager.getBaseUrl(url)
- *
- * Determines base url.
- *
- * @param {String} url 
- * A url to file being served.
- *
- * @return {String}
- * Base url for current project.
+ * @return {HttpServerProvider}
+ * Provider or null.
  *
  *
  * HttpServerProvider Overview:
@@ -61,9 +51,8 @@
  *
  * # HttpServerProvider.canServe(url)
  *
- * The method by which a provider indicates intent to serbver a url.
- * The manager calls this method when...
- *
+ * The method by which a provider indicates intent to serve a url.
+ * The manager calls this method when querying providers
  * 
  * param {String} url
  * A url for the page to be served.
@@ -109,7 +98,7 @@ define(function (require, exports, module) {
      * @return {HttpServerProvider} 
      * true for yes, otherwise false.
      */
-    function _providerCanServe(url) {
+    function getProvider(url) {
 
         var provider, i;
         
@@ -121,57 +110,6 @@ define(function (require, exports, module) {
         }
         
         return null;
-    }
-
-
-    /**    
-     * Determines whether we can serve url.
-     * 
-     * @param {String} url 
-     * A url to file being served.
-     *
-     * @return {Boolean} 
-     * true for yes, otherwise false.
-     */
-    function canServe(url) {
-
-        if (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(url)) {
-            return true;
-        }
-
-        if (_providerCanServe(url)) {
-            return true;
-        }
-        
-        return false;
-    }
-
-    /**    
-     * Determines base url.
-     *
-     * @param {String} url 
-     * A url to file being served.
-     *
-     * @return {String}
-     * Base url for current project.
-     */
-    function getBaseUrl(url) {
-
-        // First, use ProjectManager base url specified by user
-        var userBaseUrl = ProjectManager.getBaseUrl();
-        if (userBaseUrl) {
-            return userBaseUrl;
-        }
-
-        // Next, query all registered providers and getting base url
-        // from highest priority provider that can serve file type.
-        var provider = _providerCanServe(url);
-        if (provider) {
-            return provider.getBaseUrl();
-        }
-
-        // Otherwise, return empty string
-        return "";
     }
 
     /**    
@@ -195,7 +133,6 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.canServe            = canServe;
-    exports.getBaseUrl          = getBaseUrl;
+    exports.getProvider         = getProvider;
     exports.registerProvider    = registerProvider;
 });

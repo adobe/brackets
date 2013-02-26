@@ -61,12 +61,12 @@ define(function (require, exports, module) {
         }
     }
 
-    
+
     /**
      * @constructor
      */
     function StaticHttpServerProvider() {}
-    
+
     /**
      * Determines whether we can serve file type.
      * 
@@ -77,16 +77,21 @@ define(function (require, exports, module) {
      * true for yes, otherwise false.
      */
     StaticHttpServerProvider.prototype.canServe = function (url) {
+
+        if (!ProjectManager.isWithinProject(url)) {
+            return false;
+        }
+
         // url ending in / implies default file, which is usually
         // index.html, so HttpServerManager we can server it
         if (url.match(/\/$/)) {
             return true;
         }
-        
+
         // TODO: do a MIME Type lookup on file extension
         return FileUtils.isStaticHtmlFileExt(url);
     };
-       
+
     /**
      * Returns a base url for current project. 
      *

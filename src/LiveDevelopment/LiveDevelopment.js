@@ -115,8 +115,9 @@ define(function LiveDevelopment(require, exports, module) {
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
-    var _liveDocument; // the document open for live editing.
-    var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
+    var _liveDocument;        // the document open for live editing.
+    var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
+    var _httpServerProvider;  // http server provider
 
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -126,7 +127,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a URL to a local full file path */
     function _urlToPath(url) {
         var path,
-            baseUrl = HttpServerManager.getBaseUrl(url);
+            baseUrl = "";
+
+        if (_httpServerProvider) {
+            baseUrl = _httpServerProvider.getBaseUrl(url);
+        }
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
             // Use base url to translate to local file path.
@@ -146,7 +151,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a local full file path to a URL */
     function _pathToUrl(path) {
         var url,
-            baseUrl = HttpServerManager.getBaseUrl(path);
+            baseUrl = "";
+
+        if (_httpServerProvider) {
+            baseUrl = _httpServerProvider.getBaseUrl(url);
+        }
 
         // See if base url has been specified and path is within project
         if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
@@ -452,6 +461,7 @@ define(function LiveDevelopment(require, exports, module) {
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
+        _httpServerProvider = null;
     }
 
     function _onReconnect() {
@@ -498,12 +508,11 @@ define(function LiveDevelopment(require, exports, module) {
             showWrongDocError();
 
         } else {
-            if (!exports.config.experimental) {
+            _httpServerProvider = HttpServerManager.getProvider(doc.file.fullPath);
+            if (!exports.config.experimental && !_httpServerProvider) {
                 if (FileUtils.isServerHtmlFileExt(doc.extension)) {
-                    if (!HttpServerManager.getBaseUrl(doc.url)) {
-                        showNeedBaseUrlError();
-                        return promise;
-                    }
+                    showNeedBaseUrlError();
+                    return promise;
                 } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
                     showWrongDocError();
                     return promise;
@@ -608,6 +617,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
+        _httpServerProvider = null;
     }
     
     /** Enable highlighting */
@@ -682,6 +692,44 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /**
+     * @constructor
+     */
+    function UserServerProvider() {}
+
+    /**
+     * Determines whether we can serve file type.
+     *
+     * @param {String} url
+     * A url to file being served.
+     *
+     * @return {Boolean}
+     * true for yes, otherwise false.
+     */
+    UserServerProvider.prototype.canServe = function (url) {
+
+        var baseUrl = ProjectManager.getBaseUrl();
+        if (!baseUrl) {
+            return false;
+        }
+
+        if (!ProjectManager.isWithinProject(url)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    /**
+     * Returns a base url for current project.
+     *
+     * @return {String}
+     * Base url for current project.
+     */
+    UserServerProvider.prototype.getBaseUrl = function () {
+        return ProjectManager.getBaseUrl();
+    };
+
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -691,6 +739,10 @@ define(function LiveDevelopment(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
+
+        // Register user defined server provider
+        var userServerProvider = new UserServerProvider();
+        HttpServerManager.registerProvider(userServerProvider, 99);
     }
 
     // For unit testing
