@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Menus              = brackets.getModule("command/Menus"),
         Strings            = brackets.getModule("strings"),
         PerfUtils          = brackets.getModule("utils/PerfUtils"),
+        ProjectManager     = brackets.getModule("project/ProjectManager"),
         NativeApp          = brackets.getModule("utils/NativeApp"),
         NativeFileSystem   = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         NodeDebugUtils     = require("NodeDebugUtils");
@@ -308,7 +309,15 @@ define(function (require, exports, module) {
 	
     /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
-        return brackets.handleWindowGoingAway(commandData, function () {
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
+            // Give everyone a chance to save their state - but don't let any problems block
+            // us from quitting
+            try {
+                $(ProjectManager).triggerHandler("beforeAppClose");
+            } catch (ex) {
+                console.error(ex);
+            }
+            
             // Disable the cache to make reloads work
             _disableCache().always(function () {
                 window.location.reload(true);

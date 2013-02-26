@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent");
     
@@ -682,17 +683,57 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+	/**
+     * @private - tracks our closing state if we get called again
+     */
+    var _windowGoingAway = false;
+    
+    /**
+     * @private
+     * Common implementation for close/quit/reload which all mostly
+     * the same except for the final step
+    */
+    function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
+        if (_windowGoingAway) {
+            //if we get called back while we're closing, then just return
+            return (new $.Deferred()).reject().promise();
+        }
+
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
+            .done(function () {
+                _windowGoingAway = true;
+                
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
+                
+                PreferencesManager.savePreferences();
+                
+                postCloseHandler();
+            })
+            .fail(function () {
+                _windowGoingAway = false;
+                if (failHandler) {
+                    failHandler();
+                }
+            });
+    }
+	
     /**
      * @private
      * Implementation for abortQuit callback to reset quit sequence settings
      */
     function _handleAbortQuit() {
-        brackets.windowGoingAway = false;
+        _windowGoingAway = false;
     }
     
     /** Confirms any unsaved changes, then closes the window */
     function handleFileCloseWindow(commandData) {
-        return brackets.handleWindowGoingAway(
+        return _handleWindowGoingAway(
             commandData,
             function () {
                 window.close();
@@ -720,7 +761,7 @@ define(function (require, exports, module) {
 
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
-        return brackets.handleWindowGoingAway(
+        return _handleWindowGoingAway(
             commandData,
             function () {
                 brackets.app.quit();
