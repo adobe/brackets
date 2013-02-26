@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * Initializes the global "brackets" variable and it's properties.
@@ -36,7 +36,6 @@ define(function (require, exports, module) {
     
     var configJSON = require("text!config.json");
     
-	
     // Define core brackets namespace if it isn't already defined
     //
     // We can't simply do 'brackets = {}' to define it in the global namespace because
@@ -109,7 +108,6 @@ define(function (require, exports, module) {
     // the same thing as 'require' in AMD-wrapped modules. The extension will
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
-    
-	
+
     exports.global = global;
 });
