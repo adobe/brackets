@@ -174,7 +174,9 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_QUIT"                            : "Salir",
-
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Salir",
+    
     // Edit menu commands
     "EDIT_MENU"                           : "Edición",
     "CMD_UNDO"                            : "Deshacer",

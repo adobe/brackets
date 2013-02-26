@@ -451,9 +451,33 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 9, ch: 27 });   // cursor between space and >
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
                 
-                verifyAttrHints(hintList, "accept");  // expect no filtering (see note above)
+                // "accept" will get filtered and won't be the first one in the hints.
+                verifyAttrHints(hintList);
             });
             
+            it("should list attribute value hints for an attribute that follows a valueless attribute", function () {  // (bug #2804)
+                testDocument.replaceRange("  <input checked accept='' >\n", { line: 9, ch: 0 });  // insert new line
+                
+                // cursor between quotes of accept attribute
+                testEditor.setCursorPos({ line: 9, ch: 25 });
+                var hintList = expectHints(HTMLCodeHints.attrHintProvider);
+                
+                verifyAttrHints(hintList, "application/msexcel");
+
+                // cursor between equal sign and opening quote of accept attribute
+                testEditor.setCursorPos({ line: 9, ch: 24 });
+                hintList = expectHints(HTMLCodeHints.attrHintProvider);
+                
+                verifyAttrHints(hintList, "application/msexcel");
+            });
+
+            it("should NOT list attribute value hints when the cursor is after the end quote of an attribute value", function () {
+                testDocument.replaceRange("  <input checked accept='' >\n", { line: 9, ch: 0 });  // insert new line
+                
+                // Set cursor after the closing quote of accept attribute
+                testEditor.setCursorPos({ line: 9, ch: 26 });
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
         });
         
         

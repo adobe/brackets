@@ -34,6 +34,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     describe("FileIndexManager", function () {
+        
+        this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/FileIndexManager-test-files");
         var brackets;
