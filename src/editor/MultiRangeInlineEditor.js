@@ -446,9 +446,6 @@ define(function (require, exports, module) {
         // Size the code mirror editors height to the editor content
         // We use "call" rather than "apply" here since ensureVisibility was an argument added just for this override.
         MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
-
-        // Reset height to auto to re-layout
-        this.$editorsDiv.height("auto");
         
         // Size the widget height to the max between the editor content and the related ranges list
         var widgetHeight = Math.max(this.$related.height(), this.$editorsDiv.height());
