@@ -41,16 +41,14 @@ define(function (require, exports, module) {
         testEditor;
 
     /**
-     * Returns an Editor suitable for use in isolation: i.e., a Document that
-     * will never be set as the currentDocument or added to the working set.
+     * Returns an Editor suitable for use in isolation, given a Document. (Unlike
+     * SpecRunnerUtils.createMockEditor(), which is given text and creates the Document
+     * for you).
      *
      * @param {Document} doc - the document to be contained by the new Editor
-     * @param {string} mode - the CodeMirror mode of the new Editor
      * @return {Editor} - the mock editor object
      */
-    function createMockEditor(doc, mode) {
-        mode = mode || "";
-        
+    function createMockEditor(doc) {
         // Initialize EditorManager
         var $editorHolder = $("<div id='mock-editor-holder'/>");
         EditorManager.setEditorHolder($editorHolder);
@@ -58,7 +56,7 @@ define(function (require, exports, module) {
         $("body").append($editorHolder);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0));
+        var editor = new Editor(doc, true, $editorHolder.get(0));
         
         return editor;
     }
@@ -263,7 +261,7 @@ define(function (require, exports, module) {
                 
                 // create Editor instance (containing a CodeMirror instance)
                 runs(function () {
-                    testEditor = createMockEditor(testDoc, "javascript");
+                    testEditor = createMockEditor(testDoc);
                     JSCodeHints.initializeSession(testEditor);
                 });
             });
