@@ -54,9 +54,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Gets a data structure that has information for all the contributors of Brackets.
-     * The information is fetched from brackets.config.contributors_url using github API.
-     * If more than 24 hours have passed since the last fetch, or if cached data can't be found, 
+     * Gets a data structure that has the information for all the contributors of Brackets.
+     * The information is fetched from brackets.config.contributors_url using the github API.
+     * If more than 2 weeks have passed since the last fetch, or if cached data can't be found, 
      * the data is fetched again.
      * @return {$.Promise} jQuery Promise object that is resolved or rejected after the information is fetched.
      */
@@ -144,6 +144,7 @@ define(function (require, exports, module) {
             templateVars = $.extend({CONTRIBUTORS: contributorsInfo}, Strings);
             $contributors.html(Mustache.render(ContributorsTemplate, templateVars));
             
+            // This is used to create an opacity transition when each image is loaded
             $dlg.find("img").one("load", function () {
                 $(this).css("opacity", 1);
             }).each(function () {
