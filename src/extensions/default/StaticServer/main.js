@@ -46,10 +46,15 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Handler for "Serve Project Directory" menu item.
      * Calls connect.startServer to start a new server at the project root
+     *
+     * @return promise which is resolved:
+     *      - immediately if there is no node connection
+     *      - when connect.startServer() callback returns
      */
     function startServer() {
+        var deferred = $.Deferred();
+
         if (_nodeConnection) {
             var projectPath = ProjectManager.getProjectRoot().fullPath;
             _nodeConnection.domains.connect.startServer(
@@ -57,8 +62,13 @@ define(function (require, exports, module) {
             ).then(function (address) {
                 // TODO: need to make protocol configurable?
                 _baseUrl = "http://" + address.address + ":" + address.port + "/";
+                deferred.resolve();
             });
+        } else {
+            deferred.reject();
         }
+
+        return deferred.promise();
     }
 
 
@@ -104,8 +114,9 @@ define(function (require, exports, module) {
 
     // TODO: instead of opening a server for every project, should we
     // close old one so there's only 1 open?
-    function _projectOpen() {
-        startServer();
+    function _projectOpen(e) {
+        var promise = startServer();
+        e.promises.push(promise);
     }
 
     AppInit.appReady(function () {
