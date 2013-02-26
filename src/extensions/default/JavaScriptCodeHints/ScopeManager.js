@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorUtils         = brackets.getModule("editor/EditorUtils"),
+        LanguageManager     = brackets.getModule("language/LanguageManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
@@ -440,7 +440,7 @@ define(function (require, exports, module) {
                         file    = split.file;
                     
                     if (file.indexOf(".") > 1) { // ignore /.dotfiles
-                        var mode = EditorUtils.getModeFromFileExtension(entry.fullPath);
+                        var mode = LanguageManager.getLanguageForFileExtension(entry.fullPath).mode;
                         if (mode === HintUtils.MODE_NAME) {
                             DocumentManager.getDocumentForPath(path).done(function (document) {
                                 refreshOuterScope(dir, file, document.getText());
