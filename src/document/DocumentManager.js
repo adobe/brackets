@@ -1136,7 +1136,7 @@ define(function (require, exports, module) {
         var keysToDelete = [];
         for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {
-                if (path.indexOf(oldName) === 0) {
+                if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
                     // Copy value to new key
                     var newKey = path.replace(oldName, newName);
                     
@@ -1144,8 +1144,8 @@ define(function (require, exports, module) {
                     keysToDelete.push(path);
                     
                     // Update document file
-                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName);
-                        
+                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName, isFolder);
+                    
                     if (!isFolder) {
                         // If the path name is a file, there can only be one matched entry in the open document
                         // list, which we just updated. Break out of the for .. in loop. 
@@ -1161,7 +1161,7 @@ define(function (require, exports, module) {
         
         // Update working set
         for (i = 0; i < _workingSet.length; i++) {
-            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName);
+            FileUtils.updateFileEntryPath(_workingSet[i], oldName, newName, isFolder);
         }
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
