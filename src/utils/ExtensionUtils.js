@@ -75,7 +75,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} code LESS code to parse
      * @param {?string} url URL to the file containing the code
-     * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed.
+     * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
      */
     function parseLessCode(code, url) {
         var result = new $.Deferred(),

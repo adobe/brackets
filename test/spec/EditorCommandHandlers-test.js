@@ -1455,7 +1455,7 @@ define(function (require, exports, module) {
                               "</html>";
 
             beforeEach(function () {
-                setupFullEditor(htmlContent, "htmlmixed");
+                setupFullEditor(htmlContent, "html");
             });
 
             // Correct behavior for line and block comment commands

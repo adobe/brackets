@@ -60,7 +60,6 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         KeyEvent            = require("utils/KeyEvent"),
-        EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         StatusBar           = require("widgets/StatusBar"),
         Strings             = require("strings"),
@@ -102,7 +101,7 @@ define(function (require, exports, module) {
     var _inlineEditProviders = [];
     
     /* StatusBar indicators */
-    var $modeInfo,
+    var $languageInfo,
         $cursorInfo,
         $fileInfo,
         $indentType,
@@ -110,8 +109,8 @@ define(function (require, exports, module) {
         $indentWidthInput;
     
     /**
-     * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
-     * file extension. The editor is appended to the given container as a visible child.
+     * Creates a new Editor bound to the given Document.
+     * The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
@@ -121,9 +120,7 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
-        
-        return new Editor(doc, makeMasterEditor, mode, container, range);
+        return new Editor(doc, makeMasterEditor, container, range);
     }
     
     /**
@@ -253,8 +250,8 @@ define(function (require, exports, module) {
 
     
     /**
-     * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
-     * based on the file extension. The editor is not yet visible or attached to a host editor.
+     * Creates a new inline Editor instance for the given Document.
+     * The editor is not yet visible or attached to a host editor.
      * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
@@ -694,8 +691,8 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function _updateModeInfo(editor) {
-        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForDocument()));
+    function _updateLanguageInfo(editor) {
+        $languageInfo.text(editor.document.getLanguage().name);
     }
     
     function _updateFileInfo(editor) {
@@ -779,30 +776,17 @@ define(function (require, exports, module) {
             });
             
             _updateCursorInfo(null, current);
-            _updateModeInfo(current);
+            _updateLanguageInfo(current);
             _updateFileInfo(current);
             _updateIndentType();
             _updateIndentSize();
         }
     }
     
-    function _onFileNameChange(event, oldName, newName) {
-        
-        // The current document file entry has already been updated.
-        // We only need to update the editor mode to match the new file extension 
-        var editor = getCurrentFullEditor();
-        
-        if (editor && editor.document.file.fullPath === newName) {
-            editor.setModeForDocument(
-                EditorUtils.getModeFromFileExtension(editor.document.file.fullPath)
-            );
-        }
-    }
-
     function _init() {
         StatusBar.init($(".main-view .content"));
 
-        $modeInfo           = $("#status-mode");
+        $languageInfo       = $("#status-language");
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
         $indentType         = $("#indent-type");
@@ -845,7 +829,6 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
-    $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
