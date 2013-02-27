@@ -34,7 +34,7 @@
  *     var language = LanguageManager.getLanguage("<id>");
  *
  * To define your own languages, call defineLanguage():
- *     var language = LanguageManager.defineLanguage("haskell", {
+ *     LanguageManager.defineLanguage("haskell", {
  *         name: "Haskell",
  *         mode: "haskell",
  *         fileExtensions: ["hs"],
@@ -42,7 +42,13 @@
  *         lineComment: "--"
  *     });
  *
+ * To use that language, wait for the returned promise to be resolved:
+ *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
+ *         console.log("Language " + language.name + " is now available!");
+ *     });
+ *
  * You can also refine an existing language. Currently you can only set the comment styles:
+ *     var language = LanguageManager.getLanguage("haskell");
  *     language.setLineComment("--");
  *     language.setBlockComment("{-", "-}");
  *
@@ -74,12 +80,6 @@
  *
  * If a mode is not shipped with our CodeMirror distribution, you need to first load it yourself.
  * If the mode is part of our CodeMirror distribution, it gets loaded automatically.
- *
- * To wait until the mode is loaded and set, use the language.modeReady promise:
- *     language.modeReady.done(function () {
- *         // ...
- *     });
- * Note that this will never resolve for languages without a mode.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -226,10 +226,6 @@ define(function (require, exports, module) {
         this._fileExtensions    = [];
         this._modeToLanguageMap = {};
         
-        // Since setting the mode is asynchronous when the mode hasn't been loaded yet, offer a reliable way to wait until it is ready
-        this._modeReady = new $.Deferred();
-        this.modeReady = this._modeReady.promise();
-        
         _languages[id] = this;
     }
     
@@ -239,25 +235,21 @@ define(function (require, exports, module) {
     /** @type {string} Human-readable name of the language */
     Language.prototype.name = null;
     
-    /** @type {$.Promise} Promise that resolves when the mode has been loaded and set */
-    Language.prototype.modeReady = null;
-    
     /**
-     * Sets the mode for this language.
+     * Loads a mode and sets it for this language.
      * 
-     * @param {string|Array.<string>} definition.mode        CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
-     *                                                       Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
-     * @return {Language} This language
+     * @param {string|Array.<string>} mode CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     *                                     Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     *
+     * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
-    Language.prototype._setMode = function (mode) {
-        if (!mode) {
-            return;
-        }
+    Language.prototype._loadAndSetMode = function (mode) {
+        var result = new $.Deferred();
         
         var language = this;
         // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
         var mimeMode;
-        if ($.isArray(mode)) {
+        if (Array.isArray(mode)) {
             if (mode.length !== 2) {
                 throw new Error("Mode must either be a string or an array containing two strings");
             }
@@ -265,12 +257,12 @@ define(function (require, exports, module) {
             mode = mode[0];
         }
 
-        _validateNonEmptyString(mode, "mode");
+        _validateString(mode, "mode");
         
         var finish = function () {
             var i;
             
-            if (!CodeMirror.modes[mode]) {
+            if (mode !== "" && !CodeMirror.modes[mode]) {
                 throw new Error("CodeMirror mode \"" + mode + "\" is not loaded");
             }
             
@@ -289,14 +281,16 @@ define(function (require, exports, module) {
             language.mode = mimeMode || mode;
             _setLanguageForMode(language.mode, language);
             
-            language._modeReady.resolve(language);
+            result.resolve();
         };
         
-        if (CodeMirror.modes[mode]) {
+        if (mode === "" || CodeMirror.modes[mode]) {
             finish();
         } else {
             require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
         }
+        
+        return result.promise();
     };
     
     /**
@@ -313,7 +307,6 @@ define(function (require, exports, module) {
      * In case we ever open this up, we should think about whether we want to make this
      * configurable by the user. If so, the user has to be able to override these calls.
      * @param {!string} extension A file extension used by this language
-     * @return {Language} This language
      * @private
      */
     Language.prototype._addFileExtension = function (extension) {
@@ -328,15 +321,12 @@ define(function (require, exports, module) {
                 _fileExtensionsToLanguageMap[extension] = this;
             }
         }
-            
-        return this;
     };
 
     /**
      * Sets the prefix and suffix to use for blocks comments in this language.
      * @param {!string} prefix Prefix string to use for block comments (i.e. "<!--")
      * @param {!string} suffix Suffix string to use for block comments (i.e. "-->")
-     * @return {Language} This language
      * @private
      */
     Language.prototype.setBlockComment = function (prefix, suffix) {
@@ -344,22 +334,17 @@ define(function (require, exports, module) {
         _validateNonEmptyString(suffix, "suffix");
         
         this.blockComment = { prefix: prefix, suffix: suffix };
-        
-        return this;
     };
 
     /**
      * Sets the prefix to use for line comments in this language.
      * @param {!string} prefix Prefix string to use for block comments (i.e. "//")
-     * @return {Language} This language
      * @private
      */
     Language.prototype.setLineComment = function (prefix) {
         _validateNonEmptyString(prefix, "prefix");
         
         this.lineComment = { prefix: prefix };
-        
-        return this;
     };
     
     /**
@@ -381,7 +366,6 @@ define(function (require, exports, module) {
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
      * @param {!Language} language The language to associate with the mode
-     * @return {Language} This language
      * @private
      */
     Language.prototype._setLanguageForMode = function (mode, language) {
@@ -389,8 +373,6 @@ define(function (require, exports, module) {
             throw new Error("A language must always map its mode to itself");
         }
         this._modeToLanguageMap[mode] = language;
-        
-        return this;
     };
     
     
@@ -405,12 +387,12 @@ define(function (require, exports, module) {
      * @param {string}                definition.lineComment    Line comment prefix (i.e. "//")
      * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
-     *                                                          {@link Language#modeReady} is a promise that resolves when a mode has been loaded and set.
-     *                                                          It will not resolve when no mode is specified.
      *
-     * @return {Language} The new language
+     * @return {$.Promise} A promise object that will be resolved with a Language object
      **/
     function defineLanguage(id, definition) {
+        var result = new $.Deferred();
+        
         var language = new Language(id, definition.name);
         
         var fileExtensions = definition.fileExtensions,
@@ -431,14 +413,15 @@ define(function (require, exports, module) {
             language.setLineComment(lineComment);
         }
         
-        var mode = definition.mode;
-        if (mode) {
-            language._setMode(mode);
-        } else {
-            language._modeReady.reject();
-        }
+        language._loadAndSetMode(definition.mode)
+            .done(function () {
+                result.resolve(language);
+            })
+            .fail(function (error) {
+                result.reject(error);
+            });
         
-        return language;
+        return result.promise();
     }
     
    

@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     var LanguageManager = brackets.getModule("language/LanguageManager");
     
-    var language = LanguageManager.defineLanguage("less", {
+    LanguageManager.defineLanguage("less", {
         name: "LESS",
         mode: "less",
         fileExtensions: ["less"],

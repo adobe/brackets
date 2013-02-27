@@ -1,6 +1,7 @@
 {
     "unknown": {
-        "name": "Text"
+        "name": "Text",
+        "mode": ""
     },
 
     "css": {
