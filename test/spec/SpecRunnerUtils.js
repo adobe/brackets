@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
-        UrlParams           = require("utils/UrlParams").UrlParams;
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
@@ -144,9 +145,11 @@ define(function (require, exports, module) {
      * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
      * never be set as the currentDocument or added to the working set.
      */
-    function createMockDocument(initialContent, createEditor) {
+    function createMockDocument(initialContent, languageId) {
+        var language = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript");
+        
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
+        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_." + language._fileExtensions[0]);
         
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), initialContent);
         
@@ -176,9 +179,7 @@ define(function (require, exports, module) {
      * currentDocument or added to the working set.
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
-    function createMockEditor(initialContent, mode, visibleRange) {
-        mode = mode || "";
-        
+    function createMockEditor(initialContent, languageId, visibleRange) {
         // Initialize EditorManager
         var $editorHolder = $("<div id='mock-editor-holder'/>");
         EditorManager.setEditorHolder($editorHolder);
@@ -186,10 +187,10 @@ define(function (require, exports, module) {
         $("body").append($editorHolder);
         
         // create dummy Document for the Editor
-        var doc = createMockDocument(initialContent);
+        var doc = createMockDocument(initialContent, languageId);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), visibleRange);
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
         
         return { doc: doc, editor: editor };
     }
@@ -324,7 +325,7 @@ define(function (require, exports, module) {
             output  = [],
             i       = 0,
             line    = 0,
-            char    = 0,
+            charAt  = 0,
             ch      = 0,
             length  = text.length,
             exec    = null,
@@ -349,10 +350,10 @@ define(function (require, exports, module) {
             }
             
             if (!found) {
-                char = text.substr(i, 1);
-                output.push(char);
+                charAt = text.substr(i, 1);
+                output.push(charAt);
                 
-                if (char === '\n') {
+                if (charAt === '\n') {
                     line++;
                     ch = 0;
                 } else {
