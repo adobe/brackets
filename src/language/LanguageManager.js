@@ -123,6 +123,23 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Makes the file extension all lowercase and ensures it doesn't start with a dot
+     * @param {!string} extension The file extension
+     * @return {string} The normalized file extension
+     */
+    function _normalizeFileExtension(extension) {
+        // Remove a leading dot if present
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
+        
+        return extension;
+    }
+    
+    /**
      * Monkey-patch CodeMirror to prevent modes from being overwritten by extensions.
      * We may rely on the tokens provided by some of these modes.
      */
@@ -141,7 +158,6 @@ define(function (require, exports, module) {
      * Adds a global mode-to-language association.
      * @param {!string} mode The mode to associate the language with
      * @param {!Language} language The language to associate with the mode
-     * @private
      */
     function _setLanguageForMode(mode, language) {
         if (_modeToLanguageMap[mode]) {
@@ -168,13 +184,7 @@ define(function (require, exports, module) {
      */
     function getLanguageForFileExtension(path) {
         var extension = PathUtils.filenameExtension(path);
-    
-        if (extension.charAt(0) === ".") {
-            extension = extension.substr(1);
-        }
-        
-        // Make checks below case-INsensitive
-        extension = extension.toLowerCase();
+        extension = _normalizeFileExtension(extension);
         
         var language = _fileExtensionsToLanguageMap[extension];
         if (!language) {
@@ -310,7 +320,8 @@ define(function (require, exports, module) {
      * @private
      */
     Language.prototype._addFileExtension = function (extension) {
-        extension = extension.toLowerCase();
+        extension = _normalizeFileExtension(extension);
+        
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
@@ -327,7 +338,6 @@ define(function (require, exports, module) {
      * Sets the prefix and suffix to use for blocks comments in this language.
      * @param {!string} prefix Prefix string to use for block comments (i.e. "<!--")
      * @param {!string} suffix Suffix string to use for block comments (i.e. "-->")
-     * @private
      */
     Language.prototype.setBlockComment = function (prefix, suffix) {
         _validateNonEmptyString(prefix, "prefix");
@@ -339,7 +349,6 @@ define(function (require, exports, module) {
     /**
      * Sets the prefix to use for line comments in this language.
      * @param {!string} prefix Prefix string to use for block comments (i.e. "//")
-     * @private
      */
     Language.prototype.setLineComment = function (prefix) {
         _validateNonEmptyString(prefix, "prefix");
