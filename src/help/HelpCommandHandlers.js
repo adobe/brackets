@@ -58,20 +58,20 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         var data = [];
         
-		$.getJSON(brackets.config.contributors_url + "?callback=?", function (contributorsInfo) {
-			// Save only the required data for the template
-			contributorsInfo.data.forEach(function (contributor) {
-				data.push({
-					GITHUB_URL : contributor.html_url,
-					AVATAR_URL : contributor.avatar_url,
-					NAME       : contributor.login
-				});
-			});
-			result.resolve(data);
-		
-		}).error(function () {
-			result.reject();
-		});
+        $.getJSON(brackets.config.contributors_url + "?callback=?", function (contributorsInfo) {
+            // Save only the required data for the template
+            contributorsInfo.data.forEach(function (contributor) {
+                data.push({
+                    GITHUB_URL : contributor.html_url,
+                    AVATAR_URL : contributor.avatar_url,
+                    NAME       : contributor.login
+                });
+            });
+            result.resolve(data);
+            
+        }).error(function () {
+            result.reject();
+        });
         
         return result.promise();
     }
