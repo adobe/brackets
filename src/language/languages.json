@@ -20,7 +20,7 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js"],
+        "fileExtensions": ["js", "jsx"],
         "blockComment": ["/*", "*/"],
         "lineComment": "//"
     },
@@ -46,7 +46,9 @@
     "cpp": {
         "name": "C++",
         "mode": ["clike", "text/x-c++src"],
-        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii", "c", "h", "i"]
+        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii", "c", "h", "i"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
     },
     
     "csharp": {
@@ -54,7 +56,14 @@
         "mode": ["clike", "text/x-csharp"],
         "fileExtensions": ["cs"]
     },
-
+    
+    "clike": {
+        "name": "C",
+        "mode": "clike",
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+    },
+    
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
@@ -125,5 +134,11 @@
         "name": "YAML",
         "mode": "yaml",
         "fileExtensions": ["yaml", "yml"]
+    },
+    
+    "hx": {
+        "name": "Haxe",
+        "mode": "haxe",
+        "fileExtensions": ["hx"]
     }
 }
