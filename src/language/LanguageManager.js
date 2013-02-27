@@ -62,7 +62,7 @@
  *         ...
  *     });
  * Definining the base mode is still necessary to know which file to load.
- * Later however, language.mode will either refer to the MIME mode,
+ * Later however, language.getMode() will either refer to the MIME mode,
  * or the base mode if no MIME mode has been specified.
  *
  * If you need to configure a mode, you can just create a new MIME mode and use that:
@@ -91,10 +91,10 @@ define(function (require, exports, module) {
     
     
     // State
-    var _fallbackLanguage            = null,
-        _languages                   = {},
-        _fileExtensionsToLanguageMap = {},
-        _modeToLanguageMap           = {};
+    var _fallbackLanguage           = null,
+        _languages                  = {},
+        _fileExtensionToLanguageMap = {},
+        _modeToLanguageMap          = {};
     
     
     // Helper functions
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
         var extension = PathUtils.filenameExtension(path);
         extension = _normalizeFileExtension(extension);
         
-        var language = _fileExtensionsToLanguageMap[extension];
+        var language = _fileExtensionToLanguageMap[extension];
         if (!language) {
             console.log("Called LanguageManager.getLanguageForFileExtension with an unhandled file extension: " + extension);
         }
@@ -231,8 +231,8 @@ define(function (require, exports, module) {
 
         _validateNonEmptyString(name, "name");
         
-        this.id   = id;
-        this.name = name;
+        this._id   = id;
+        this._name = name;
         
         this._fileExtensions    = [];
         this._modeToLanguageMap = {};
@@ -241,10 +241,37 @@ define(function (require, exports, module) {
     }
     
     /** @type {string} Identifier for this language */
-    Language.prototype.id = null;
+    Language.prototype._id = null;
+    
+    /**
+     * Returns the identifier for this language.
+     * @return {string} The identifier
+     */
+    Language.prototype.getId = function () {
+        return this._id;
+    };
 
-    /** @type {string} Human-readable name of the language */
-    Language.prototype.name = null;
+    /** @type {string} Human-readable name of this language */
+    Language.prototype._name = null;
+    
+    /**
+     * Returns the human-readable name of this language
+     * @return {string} The name
+     */
+    Language.prototype.getName = function () {
+        return this._name;
+    };
+    
+    /** @type {string} CodeMirror mode for this language */
+    Language.prototype._mode = null;
+    
+    /**
+     * Returns the CodeMirror mode for this language
+     * @return {string} The mode
+     */
+    Language.prototype.getMode = function () {
+        return this._mode;
+    };
     
     /**
      * Loads a mode and sets it for this language.
@@ -289,8 +316,8 @@ define(function (require, exports, module) {
             
             // This mode is now only about what to tell CodeMirror
             // The base mode was only necessary to load the proper mode file
-            language.mode = mimeMode || mode;
-            _setLanguageForMode(language.mode, language);
+            language._mode = mimeMode || mode;
+            _setLanguageForMode(language._mode, language);
             
             result.resolve();
         };
@@ -304,6 +331,9 @@ define(function (require, exports, module) {
         return result.promise();
     };
     
+    /** @type {Array.<string>} File extensions that use this language */
+    Language.prototype._fileExtensions = null;
+    
     /**
      * Returns an array of file extensions for this language.
      * @return {Array.<string>} File extensions used by this language
@@ -311,7 +341,7 @@ define(function (require, exports, module) {
     Language.prototype.getFileExtensions = function () {
         return this._fileExtensions.concat();
     };
-    
+
     /**
      * Adds a file extension to this language.
      * Private for now since dependent code would need to by kept in sync with such changes.
@@ -326,36 +356,96 @@ define(function (require, exports, module) {
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
-            var language = _fileExtensionsToLanguageMap[extension];
+            var language = _fileExtensionToLanguageMap[extension];
             if (language) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this.name + ", it already belongs to " + language.name);
             } else {
-                _fileExtensionsToLanguageMap[extension] = this;
+                _fileExtensionToLanguageMap[extension] = this;
             }
         }
     };
 
+    /** @type {{ prefix: string }} Line comment syntax */
+    Language.prototype._lineCommentSyntax = null;
+
     /**
-     * Sets the prefix and suffix to use for blocks comments in this language.
-     * @param {!string} prefix Prefix string to use for block comments (i.e. "<!--")
-     * @param {!string} suffix Suffix string to use for block comments (i.e. "-->")
+     * Returns whether the line comment syntax is defined for this language
+     * @return {boolean} Whether line comments are supported
      */
-    Language.prototype.setBlockComment = function (prefix, suffix) {
-        _validateNonEmptyString(prefix, "prefix");
-        _validateNonEmptyString(suffix, "suffix");
-        
-        this.blockComment = { prefix: prefix, suffix: suffix };
+    Language.prototype.hasLineCommentSyntax = function () {
+        return Boolean(this._lineCommentSyntax);
+    };
+    
+    /**
+     * Returns the prefix to use for line comments
+     * @return {string} The prefix
+     */
+    Language.prototype.getLineCommentPrefix = function () {
+        if (!this._lineCommentSyntax) {
+            return null;
+        }
+        return this._lineCommentSyntax.prefix;
     };
 
     /**
      * Sets the prefix to use for line comments in this language.
      * @param {!string} prefix Prefix string to use for block comments (i.e. "//")
      */
-    Language.prototype.setLineComment = function (prefix) {
+    Language.prototype.setLineCommentSyntax = function (prefix) {
         _validateNonEmptyString(prefix, "prefix");
         
-        this.lineComment = { prefix: prefix };
+        this._lineCommentSyntax = { prefix: prefix };
     };
+    
+
+    /** @type {{ prefix: string, suffix: string }} Block comment syntax */
+    Language.prototype._blockCommentSyntax = null;
+    
+    /**
+     * Returns whether the block comment syntax is defined for this language
+     * @return {boolean} Whether block comments are supported
+     */
+    Language.prototype.hasBlockCommentSyntax = function () {
+        return Boolean(this._blockCommentSyntax);
+    };
+    
+    /**
+     * Returns the prefix to use for block comments
+     * @return {string} The prefix
+     */
+    Language.prototype.getBlockCommentPrefix = function () {
+        if (!this._blockCommentSyntax) {
+            return null;
+        }
+        return this._blockCommentSyntax.prefix;
+    };
+
+    /**
+     * Returns the suffix to use for block comments
+     * @return {string} The suffix
+     */
+    Language.prototype.getBlockCommentSuffix = function () {
+        if (!this._blockCommentSyntax) {
+            return null;
+        }
+        return this._blockCommentSyntax.suffix;
+    };
+    
+    /**
+     * Sets the prefix and suffix to use for blocks comments in this language.
+     * @param {!string} prefix Prefix string to use for block comments (i.e. "<!--")
+     * @param {!string} suffix Suffix string to use for block comments (i.e. "-->")
+     */
+    Language.prototype.setBlockCommentSyntax = function (prefix, suffix) {
+        _validateNonEmptyString(prefix, "prefix");
+        _validateNonEmptyString(suffix, "suffix");
+        
+        this._blockCommentSyntax = { prefix: prefix, suffix: suffix };
+    };
+
+    
+    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
+    Language.prototype._modeToLanguageMap = null;
     
     /**
      * Returns either a language associated with the mode or the fallback language.
@@ -364,7 +454,7 @@ define(function (require, exports, module) {
      * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#_getLanguageForMode} returns
      */
     Language.prototype.getLanguageForMode = function (mode) {
-        if (mode === this.mode) {
+        if (mode === this._mode) {
             return this;
         }
 
@@ -379,7 +469,7 @@ define(function (require, exports, module) {
      * @private
      */
     Language.prototype._setLanguageForMode = function (mode, language) {
-        if (mode === this.mode && language !== this) {
+        if (mode === this._mode && language !== this) {
             throw new Error("A language must always map its mode to itself");
         }
         this._modeToLanguageMap[mode] = language;
@@ -415,12 +505,12 @@ define(function (require, exports, module) {
         
         var blockComment = definition.blockComment;
         if (blockComment) {
-            language.setBlockComment(blockComment[0], blockComment[1]);
+            language.setBlockCommentSyntax(blockComment[0], blockComment[1]);
         }
         
         var lineComment = definition.lineComment;
         if (lineComment) {
-            language.setLineComment(lineComment);
+            language.setLineCommentSyntax(lineComment);
         }
         
         language._loadAndSetMode(definition.mode)
@@ -438,9 +528,9 @@ define(function (require, exports, module) {
     // Prevent modes from being overwritten by extensions
     _patchCodeMirror();
     
-    // Define a custom MIME mode here because JSON files must not contain regular expressions
-    // Also, all other modes so far were strings, so we spare us the trouble of allowing
-    // more complex mode values.
+    // Define a custom MIME mode here instead of putting it directly into languages.json
+    // because JSON files must not contain regular expressions. Also, all other modes so
+    // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
         "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,

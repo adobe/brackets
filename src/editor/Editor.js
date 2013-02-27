@@ -456,7 +456,7 @@ define(function (require, exports, module) {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert
         // here so we're always explicit, avoiding console noise.
-        return this.document.getLanguage().mode || "text/plain";
+        return this.document.getLanguage().getMode() || "text/plain";
     };
     
         
