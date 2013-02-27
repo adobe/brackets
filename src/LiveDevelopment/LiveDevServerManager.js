@@ -62,7 +62,7 @@
  * A url for the page to be served.
  *
  * return {Boolean}
- * Determines whether the current provider is able to server the url.
+ * Determines whether the current provider is able to serve the url.
  *
  *
  * # LiveDevServerProvider.getBaseUrl()
@@ -138,10 +138,10 @@ define(function (require, exports, module) {
      * A non-negative number used to break ties among providers for a
      * particular url. Providers that register with a higher priority will
      * have the opportunity to provide a given url before those with a
-     * lower priority. Brackets default providers have priority zero.
+     * lower priority. The higher the number, the higher the priority.
      */
-    function registerProvider(providerInfo, priority) {
-        var providerObj = { provider: providerInfo,
+    function registerProvider(provider, priority) {
+        var providerObj = { provider: provider,
                             priority: priority || 0 };
 
         _serverProviders.push(providerObj);

@@ -130,7 +130,7 @@ define(function LiveDevelopment(require, exports, module) {
             baseUrl = "";
 
         if (_serverProvider) {
-            baseUrl = _serverProvider.getBaseUrl(url);
+            baseUrl = _serverProvider.getBaseUrl();
         }
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
@@ -154,7 +154,7 @@ define(function LiveDevelopment(require, exports, module) {
             baseUrl = "";
 
         if (_serverProvider) {
-            baseUrl = _serverProvider.getBaseUrl(url);
+            baseUrl = _serverProvider.getBaseUrl();
         }
 
         // See if base url has been specified and path is within project
@@ -720,6 +720,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @constructor
+     *
+     * LiveDevServerProvider for user specified server as defined with Live Preview Base Url
+     * Project setting. In a clean installation of Brackets, this is the highest priority
+     * server provider, if defined.
      */
     function UserServerProvider() {}
 

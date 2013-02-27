@@ -57,9 +57,9 @@ define(function (require, exports, module) {
      * @private
      * Calls connect.startServer to start a new server at the project root
      *
-     * @return promise which is resolved:
-     *      - immediately if there is no node connection
-     *      - when staticServer.startServer() callback returns
+     * @return promise which is:
+     *      - rejected if there is no node connection
+     *      - resolved when staticServer.startServer() callback returns
      */
     function startServer() {
         var deferred = $.Deferred();
@@ -68,10 +68,12 @@ define(function (require, exports, module) {
             var projectPath = ProjectManager.getProjectRoot().fullPath;
             _nodeConnection.domains.staticServer.getServer(
                 projectPath
-            ).then(function (address) {
-                // TODO: need to make protocol configurable?
+            ).done(function (address) {
                 _baseUrl = "http://" + address.address + ":" + address.port + "/";
                 deferred.resolve();
+            }).fail(function (address) {
+                _baseUrl = "";
+                deferred.reject();
             });
         } else {
             deferred.reject();
@@ -101,8 +103,8 @@ define(function (require, exports, module) {
             return false;
         }
 
-        // url ending in / implies default file, which is usually
-        // index.html, so LiveDevServerManager we can server it
+        // Url ending in "/" implies default file, which is usually index.html.
+        // Return true to indicate that we can serve it.
         if (url.match(/\/$/)) {
             return true;
         }
@@ -135,9 +137,8 @@ define(function (require, exports, module) {
     };
     
     
-    // TODO: instead of opening a server for every project, should we
-    // close old one so there's only 1 open?
-    function _projectOpen(e) {
+    // projectOpen event handler
+    function _projectOpen() {
         _serverStartupPromise = startServer();
     }
 
