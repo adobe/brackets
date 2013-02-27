@@ -34,14 +34,17 @@ define(function (require, exports, module) {
         LanguageManager = require("language/LanguageManager");
     
     var langNames = {
-        css:        {mode: "css", lang: "CSS"},
-        javascript: {mode: "javascript", lang: "JavaScript"},
-        html:       {mode: "html", lang: "HTML"}
+        css:        {mode: "css",           langName: "CSS"},
+        javascript: {mode: "javascript",    langName: "JavaScript"},
+        html:       {mode: "html",          langName: "HTML"},
+        unknown:    {mode: null,            langName: "Text"}
     };
     
     function compareMode(expected, actual) {
         if (typeof actual === "string") {
             return actual === expected;
+        } else if (actual === null) {
+            return expected === null;
         }
         
         return actual.name === expected;
@@ -49,7 +52,7 @@ define(function (require, exports, module) {
     
     function expectModeAndLang(editor, lang) {
         expect(editor.getModeForSelection()).toSpecifyModeNamed(lang.mode);
-        expect(editor.getLanguageForSelection()).toBe(lang.lang);
+        expect(editor.getLanguageForSelection().name).toBe(lang.langName);
     }
 
     describe("Editor", function () {
@@ -207,7 +210,7 @@ define(function (require, exports, module) {
                 
                 // Mode for range - mix of modes
                 myEditor.setSelection({line: 2, ch: 4}, {line: 3, ch: 7});
-                expectModeAndLang(myEditor, null);
+                expectModeAndLang(myEditor, langNames.unknown);
                 
                 // Mode for range - mix of modes where start & endpoints are same mode
                 // Known limitation of getModeForSelection() that it does not spot where the mode
