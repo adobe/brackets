@@ -43,10 +43,18 @@
         "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"]
     },
     
+    "c": {
+        "name": "C",
+        "mode": ["clike", "text/x-csrc"],
+        "fileExtensions": ["c", "h", "i"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+    },
+    
     "cpp": {
         "name": "C++",
         "mode": ["clike", "text/x-c++src"],
-        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii", "c", "h", "i"],
+        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii"],
         "blockComment": ["/*", "*/"],
         "lineComment": "//"
     },
@@ -54,11 +62,13 @@
     "csharp": {
         "name": "C#",
         "mode": ["clike", "text/x-csharp"],
-        "fileExtensions": ["cs"]
+        "fileExtensions": ["cs"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
     },
     
     "clike": {
-        "name": "C",
+        "name": "clike",
         "mode": "clike",
         "blockComment": ["/*", "*/"],
         "lineComment": "//"
