@@ -86,7 +86,8 @@ define(function (require, exports, module) {
     
     
     // Dependencies
-    var _defaultLanguagesJSON = require("text!language/languages.json");
+    var CollectionUtils       = require("utils/CollectionUtils"),
+        _defaultLanguagesJSON = require("text!language/languages.json");
     
     
     // State
@@ -447,7 +448,9 @@ define(function (require, exports, module) {
     });
  
     // Load the default languages
-    $.each(JSON.parse(_defaultLanguagesJSON), defineLanguage);
+    CollectionUtils.forEach(JSON.parse(_defaultLanguagesJSON), function (definition, id) {
+        defineLanguage(id, definition);
+    });
     
     // Get the object for HTML
     var html = getLanguage("html");
