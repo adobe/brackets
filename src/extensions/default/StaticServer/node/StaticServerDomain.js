@@ -102,6 +102,8 @@ maxerr: 50, node: true */
      *    port: number})} cb Callback that should receive the address information
      *    for the server. First argument is the error string (or null if no error),
      *    second argument is the address object (or null if there was an error).
+     *    The "family" property of the address indicates whether the address is,
+     *    for example, IPv4, IPv6, or a UNIX socket.
      */
     function _cmdGetServer(path, cb) {
         // TODO: should we have a maximum number of servers open at once?

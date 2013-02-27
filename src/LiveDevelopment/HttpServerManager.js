@@ -28,6 +28,9 @@
  * providers. Providers are queried for their ability to serve a page in
  * order of descending priority by way their canServe methods.
  *
+ * NOTE: This API is currently experimental and intented to be internal-only.
+ * It is very likely that it will be changed in the near future and/or
+ * removed entirely.
  *
  * # HttpServerManager.getProvider(url)
  *  
@@ -47,7 +50,7 @@
  * HttpServerProvider.canServe(url)
  * HttpServerProvider.getBaseUrl()
  *
- * The behavior of these three functions is described in detail below.
+ * The behavior of these two functions is described in detail below.
  *
  * # HttpServerProvider.canServe(url)
  *
