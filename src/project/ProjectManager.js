@@ -739,22 +739,25 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
+     * @param {bool} isUpdating Indicates if it's just an update attempt to the
+     *  tree or if another project is being loaded.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-    function _loadProject(rootPath) {
-        if (_projectRoot) {
-            // close current project
-            $(exports).triggerHandler("beforeProjectClose", _projectRoot);
+    function _loadProject(rootPath, isUpdating) {
+        if (!isUpdating) {
+            if (_projectRoot) {
+                // close current project
+                $(exports).triggerHandler("beforeProjectClose", _projectRoot);
+            }
+
+            // close all the old files
+            DocumentManager.closeAll();
+
+            // reset tree node id's
+            _projectInitialLoad.id = 0;
         }
-
-        // close all the old files
-        DocumentManager.closeAll();
-
-        // reset tree node id's
-        _projectInitialLoad.id = 0;
-
         var result = new $.Deferred(),
             resultRenderTree;
 
@@ -840,6 +843,15 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Reloads the project's file tree
+     * @return {$.Promise} A promise object that will be resolved when the
+     *  project tree is reloaded, or rejected if the project path
+     *  fails to reload.
+     */
+    function refreshFileTree() {
+        return _loadProject(getProjectRoot().fullPath, true);
+    }
     
     /**
      * Finds the tree node corresponding to the given file/folder (rejected if the path lies
@@ -941,7 +953,7 @@ define(function (require, exports, module) {
             .done(function () {
                 if (path) {
                     // use specified path
-                    _loadProject(path).pipe(result.resolve, result.reject);
+                    _loadProject(path, false).pipe(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
                     NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
@@ -1373,6 +1385,7 @@ define(function (require, exports, module) {
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
+    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
@@ -1390,4 +1403,5 @@ define(function (require, exports, module) {
     exports.renameItemInline         = renameItemInline;
     exports.forceFinishRename        = forceFinishRename;
     exports.showInTree               = showInTree;
+    exports.refreshFileTree          = refreshFileTree;
 });
