@@ -41,8 +41,6 @@ define(function (require, exports, module) {
     var _init       = false,
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
-        /** @type {Object<string, string>}  Stores what entry points where used to load an extension (usually "main" to load main.js) */
-        entryPoints = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
     // The native directory path ends with either "test" or "src". We need "src" to
@@ -96,7 +94,6 @@ define(function (require, exports, module) {
                 locale: brackets.getLocale()
             });
         contexts[name] = extensionRequire;
-        entryPoints[name] = entryPoint;
 
         // console.log("[Extension] starting to load " + config.baseUrl);
         
