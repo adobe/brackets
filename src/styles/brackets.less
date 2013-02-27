@@ -91,20 +91,28 @@ a, img {
 
     .sidebar {
         height: 100%;
-        .vbox;
-        width: @sidebar-width;
-        float: left;
+        width: @project-panel-width;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 4;
     }
 
     .content {
         height: 100%;
-        position: relative;
+        width: 100%;
+        position: absolute;
+        padding: 0 @toolbar-width @status-bar-height @project-panel-width;
+        box-sizing: border-box;
+        top: 0;
+        left: 0;
+        z-index: 1;
     }
 }
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: @z-index-brackets-toolbar;
+    z-index: 2;
 }
 
 .busyCursor {
@@ -122,7 +130,10 @@ a, img {
 }
 
 #status-bar {
-    position: relative;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+
     background-color: @background-color-3;
     border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
     box-sizing: border-box;
@@ -131,13 +142,15 @@ a, img {
     font-size: 0.9em;
     line-height: 1;
     
-    height: 20px;
+    height: @status-bar-height;
     overflow: hidden;
-    padding: 3px 20px 3px 10px;
+    padding: 0 0 0 @project-panel-width;
+    width: 100%;
+    z-index: 3;
 }
     
 #status-info {
-    position: absolute;
+    float: left;
     left: 8px;
     background-color: @background-color-3;
     white-space: nowrap;
@@ -362,6 +375,8 @@ a, img {
 
 
 /* Project panel */
+
+
 
 #sidebar-resizer {
     position: absolute;

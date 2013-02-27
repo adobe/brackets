@@ -800,7 +800,7 @@ define(function (require, exports, module) {
     }
 
     function _init() {
-        StatusBar.init($(".main-view .content"));
+        StatusBar.init($(".main-view"));
 
         $modeInfo           = $("#status-mode");
         $cursorInfo         = $("#status-cursor");
