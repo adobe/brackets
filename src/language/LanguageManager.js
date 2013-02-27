@@ -211,7 +211,7 @@ define(function (require, exports, module) {
         _validateString(id, "Language ID");
         // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
         // Hence we use _ instead of "." since this makes it easier to parse a file name containing a language ID
-        if (!id.match(/^[a-z]+(\.[a-z]+)*$/)) {
+        if (!id.match(/^[a-z]+(_[a-z]+)*$/)) {
             throw new Error("Invalid language ID \"" + id + "\": Only groups of letters a-z are allowed, separated by _ (i.e. \"cpp\" or \"foo_bar\")");
         }
         if (_languages[id]) {
