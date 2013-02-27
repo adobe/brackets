@@ -434,6 +434,8 @@ define(function (require, exports, module) {
         var mode = definition.mode;
         if (mode) {
             language._setMode(mode);
+        } else {
+            language._modeReady.reject();
         }
         
         return language;

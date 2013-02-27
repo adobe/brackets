@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, CodeMirror, jasmine, beforeEach, afterEach, it, xit, runs, waitsFor, expect, waitsForDone */
+/*global define, $, describe, CodeMirror, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail */
 
 define(function (require, exports, module) {
     'use strict';
@@ -76,7 +76,11 @@ define(function (require, exports, module) {
             }
             
             // using async waitsFor is ok if it's the last block in a spec
-            waitsForDone(actual.modeReady, '"' + expected.mode + '" mode loading', 10000);
+            if (expected.mode) {
+                waitsForDone(actual.modeReady, '"' + expected.mode + '" mode loading', 10000);
+            } else {
+                waitsForFail(actual.modeReady, '"' + expected.mode + '" should not load', 10000);
+            }
         }
         
         describe("built-in languages", function () {
@@ -126,7 +130,7 @@ define(function (require, exports, module) {
 
         describe("defineLanguage", function () {
             
-            xit("should create a basic language", function () {
+            it("should create a basic language", function () {
                 var def     = { id: "one", name: "One" },
                     lang    = defineLanguage(def);
                 
@@ -197,16 +201,16 @@ define(function (require, exports, module) {
             });
             
             it("should load a built-in CodeMirror mode", function () {
-                var id = "haxe";
+                var id = "erlang";
                 
                 runs(function () {
-                    // haxe is not defined in the default set of languages in languages.json
+                    // erlang is not defined in the default set of languages in languages.json
                     expect(CodeMirror.modes[id]).toBe(undefined);
                     
-                    var def     = { id: id, name: "HaXe", fileExtensions: ["haxe"], mode: "haxe" },
+                    var def     = { id: id, name: "erlang", fileExtensions: ["erlang"], mode: "erlang" },
                         lang    = defineLanguage(def);
                     
-                    expect(LanguageManager.getLanguageForFileExtension("file.haxe")).toBe(lang);
+                    expect(LanguageManager.getLanguageForFileExtension("file.erlang")).toBe(lang);
                     
                     validateLanguage(def, lang);
                 });
