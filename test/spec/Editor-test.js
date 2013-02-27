@@ -34,15 +34,17 @@ define(function (require, exports, module) {
         LanguageManager = require("language/LanguageManager");
     
     var langNames = {
-        css:        {mode: "css", lang: "CSS"},
-        javascript: {mode: "javascript", lang: "JavaScript"},
-        html:       {mode: "html", lang: "HTML"},
-        unknown:    {mode: null, lang: "Text"}
+        css:        {mode: "css",           langName: "CSS"},
+        javascript: {mode: "javascript",    langName: "JavaScript"},
+        html:       {mode: "html",          langName: "HTML"},
+        unknown:    {mode: null,            langName: "Text"}
     };
     
     function compareMode(expected, actual) {
-        if (actual && actual.name) {
-            return actual.name === expected;
+        if (typeof actual === "string") {
+            return actual === expected;
+        } else if (actual === null) {
+            return expected === null;
         }
         
         return actual === expected;
@@ -50,7 +52,7 @@ define(function (require, exports, module) {
     
     function expectModeAndLang(editor, lang) {
         expect(editor.getModeForSelection()).toSpecifyModeNamed(lang.mode);
-        expect(editor.getLanguageForSelection().getName()).toBe(lang.lang);
+        expect(editor.getLanguageForSelection().name).toBe(lang.langName);
     }
 
     describe("Editor", function () {
