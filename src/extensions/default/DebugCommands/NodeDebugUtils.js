@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var NodeConnection = require("utils/NodeConnection");
+    var NodeConnection = brackets.getModule("utils/NodeConnection");
     
     /**
      * @private
