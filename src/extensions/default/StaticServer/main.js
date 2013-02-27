@@ -41,8 +41,17 @@ define(function (require, exports, module) {
      * @type{NodeConnection}
      * Connection to node
      */
-    var _nodeConnection = null,
-        _baseUrl        = "";
+    var _nodeConnection = null;
+
+    var _baseUrl = "";
+    
+    /**
+     * @private
+     * @type{?jQuery.Promise}
+     * Holds the most recent promise from startServer(). Used in
+     * StaticHttpServerProvider.readyToServe
+     */
+    var _serverStartupPromise = null;
 
     /**
      * @private
@@ -112,11 +121,24 @@ define(function (require, exports, module) {
         return _baseUrl;
     };
 
+    /**
+     * # HttpServerProvider.readyToServe()
+     *
+     * Used to check if the server has finished launching after opening
+     * the project.
+     *
+     * @return {boolean + jQuery.Promise} Whether the server is ready
+     *    (possibly as a promise that resolves/rejects when ready/failed)
+     */
+    StaticHttpServerProvider.prototype.readyToServe = function () {
+        return _serverStartupPromise || false;
+    };
+    
+    
     // TODO: instead of opening a server for every project, should we
     // close old one so there's only 1 open?
     function _projectOpen(e) {
-        var promise = startServer();
-        e.promises.push(promise);
+        _serverStartupPromise = startServer();
     }
 
     AppInit.appReady(function () {

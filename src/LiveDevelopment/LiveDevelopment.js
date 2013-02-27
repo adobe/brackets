@@ -503,21 +503,18 @@ define(function LiveDevelopment(require, exports, module) {
                 });
         }
 
-        if (!doc || !doc.root) {
-            showWrongDocError();
-
-        } else {
-            _httpServerProvider = HttpServerManager.getProvider(doc.file.fullPath);
-            if (!exports.config.experimental && !_httpServerProvider) {
-                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
-                    showNeedBaseUrlError();
-                    return promise;
-                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
-                    showWrongDocError();
-                    return promise;
-                }
-            }
-
+        function showLiveDevServerNotReadyError() {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
+            );
+            result.reject();
+        }
+        
+        // helper function that actually does the launch once we are sure we have
+        // a doc and the server for that doc is up and running.
+        function doLaunchAfterServerReady() {
             var url = doc.root.url;
 
             _setStatus(STATUS_CONNECTING);
@@ -604,6 +601,36 @@ define(function LiveDevelopment(require, exports, module) {
                     }, 500);
                 }
             });
+        }
+        
+        if (!doc || !doc.root) {
+            showWrongDocError();
+
+        } else {
+            _httpServerProvider = HttpServerManager.getProvider(doc.file.fullPath);
+            if (!exports.config.experimental && !_httpServerProvider) {
+                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
+                    showNeedBaseUrlError();
+                    return promise;
+                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
+                    showWrongDocError();
+                    return promise;
+                }
+            } else {
+                var isReady = _httpServerProvider.readyToServe();
+                if (typeof isReady === "boolean" && isReady) {
+                    doLaunchAfterServerReady();
+                } else if (isReady) { // isReady is truthy and is not a boolean, so it must be a Promise
+                    isReady.then(
+                        doLaunchAfterServerReady,
+                        showLiveDevServerNotReadyError
+                    );
+                } else { // isReady is falsy, so it must be a boolean
+                    showLiveDevServerNotReadyError();
+                }
+            }
+
+            
         }
 
         return promise;

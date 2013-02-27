@@ -45,12 +45,13 @@
  *
  * HttpServerProvider Overview:
  *
- * An http server provider must implement the following two functions:
+ * An http server provider must implement the following three functions:
  *
  * HttpServerProvider.canServe(url)
  * HttpServerProvider.getBaseUrl()
+ * HttpServerProvider.readyToServe()
  *
- * The behavior of these two functions is described in detail below.
+ * The behavior of these three functions is described in detail below.
  *
  * # HttpServerProvider.canServe(url)
  *
@@ -70,6 +71,18 @@
  * Brackets project.
  *
  * return {String}
+ *
+ *
+ * # HttpServerProvider.readyToServe()
+ *
+ * This method is called when Live Development is starting to check if the
+ * provider that has been selected is ready to serve. The provider can
+ * return a boolean or a jQuery promise. If a promise is returned, the Live 
+ * Development launch process waits until the promise resolves/rejects.
+ * If "false" is returned, or the promise rejects, an error window is shown
+ * and Live Development does not start.
+ *
+ * return {boolean + jQuery.Promise}
  *
  */
 
