@@ -133,7 +133,7 @@ define(function (require, exports, module) {
      *    (possibly as a promise that resolves/rejects when ready/failed)
      */
     StaticServerProvider.prototype.readyToServe = function () {
-        return _serverStartupPromise || false;
+        return _serverStartupPromise;
     };
     
     

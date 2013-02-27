@@ -617,16 +617,17 @@ define(function LiveDevelopment(require, exports, module) {
                     return promise;
                 }
             } else {
-                var isReady = _serverProvider.readyToServe();
-                if (typeof isReady === "boolean" && isReady) {
+                var readyPromise = _serverProvider.readyToServe();
+                if (!readyPromise || readyPromise.isRejected()) {
+                    showLiveDevServerNotReadyError();
+                } else if (readyPromise.isResolved()) {
                     doLaunchAfterServerReady();
-                } else if (isReady) { // isReady is truthy and is not a boolean, so it must be a Promise
-                    isReady.then(
+                } else {
+                     // readyPromise is not yet resolved
+                    readyPromise.then(
                         doLaunchAfterServerReady,
                         showLiveDevServerNotReadyError
                     );
-                } else { // isReady is falsy, so it must be a boolean
-                    showLiveDevServerNotReadyError();
                 }
             }
 
@@ -758,6 +759,19 @@ define(function LiveDevelopment(require, exports, module) {
      */
     UserServerProvider.prototype.getBaseUrl = function () {
         return ProjectManager.getBaseUrl();
+    };
+
+    /**
+     * # LiveDevServerProvider.readyToServe()
+     *
+     * Used to check if the server has finished launching after opening
+     * the project. User is required to make sure their external sever
+     * is ready, so indicate that we're always ready.
+     *
+     * @return {jQuery.Promise} Promise that is already resolved
+     */
+    UserServerProvider.prototype.readyToServe = function () {
+        return $.Deferred().resolve();
     };
 
     /** Initialize the LiveDevelopment Session */
