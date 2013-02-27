@@ -50,14 +50,14 @@ define(function (require, exports, module) {
      *
      * @return promise which is resolved:
      *      - immediately if there is no node connection
-     *      - when connect.startServer() callback returns
+     *      - when staticServer.startServer() callback returns
      */
     function startServer() {
         var deferred = $.Deferred();
 
         if (_nodeConnection) {
             var projectPath = ProjectManager.getProjectRoot().fullPath;
-            _nodeConnection.domains.connect.startServer(
+            _nodeConnection.domains.staticServer.getServer(
                 projectPath
             ).then(function (address) {
                 // TODO: need to make protocol configurable?
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
         _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
             _nodeConnection.loadDomains(
-                [ExtensionUtils.getModulePath(module, "node/ConnectDomain")],
+                [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
                 true
             ).then(
                 startServer,

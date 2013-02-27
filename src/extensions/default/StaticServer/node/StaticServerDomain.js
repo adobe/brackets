@@ -33,10 +33,10 @@ maxerr: 50, node: true */
 
     /**
      * @private
-     * @type {?http.Server}
-     * The current HTTP server, or null if there isn't one.
+     * @type {Object.<string, http.Server>}
+     * A map from root paths to server instances.
      */
-    var _server = null;
+    var _servers = {};
     
     /**
      * @private
@@ -50,11 +50,16 @@ maxerr: 50, node: true */
      * Helper function to create a new server.
      * @param {string} path The absolute path that should be the document root
      * @param {function(?string, ?httpServer)} cb Callback function that receives
-     *    either an error string or the newly created server. 
+     *    an error (or null if there was no error) and the server (or null if there
+     *    was an error). 
      */
-    function createServer(path, createCompleteCallback) {
+    function _createServer(path, createCompleteCallback) {
         function requestRoot(server, cb) {
             var address = server.address();
+            
+            // Request the root file from the project in order to ensure that the
+            // server is actually initialized. If we don't do this, it seems like
+            // connect takes time to warm up the server.
             var req = http.get(
                 {host: address.address, port: address.port},
                 function (res) {
@@ -67,9 +72,10 @@ maxerr: 50, node: true */
         }
         
         var app = connect();
+        // JSLint complains if we use `connect.static` because static is a
+        // reserved word.
         app.use(connect.favicon())
-            .use(connect["static"](path))
-            .use(connect.directory(path));
+            .use(connect["static"](path));
 
         var server = http.createServer(app);
         server.listen(0, '127.0.0.1', function () {
@@ -88,50 +94,46 @@ maxerr: 50, node: true */
 
     /**
      * @private
-     * Handler function for the connect.startServer command. Stops any
-     * currently running server, and then starts a new server at the
-     * specified path
+     * Handler function for the staticServer.getServer command. If a server
+     * already exists for the given path, returns that, otherwise starts a new
+     * one.
      * @param {string} path The absolute path that should be the document root
      * @param {function(?string, ?{address: string, family: string,
-     *    port: number})} cb Callback which sends response to
-     *    the requesting client connection. First argument is the error string,
-     *    second argument is the address object.
+     *    port: number})} cb Callback that should receive the address information
+     *    for the server. First argument is the error string (or null if no error),
+     *    second argument is the address object (or null if there was an error).
      */
-    function cmdStartServer(path, cb) {
-        if (_server) {
-            try {
-                // NOTE: close() stops the server from listening/accepting new
-                // connections, but does not close already-open "keep alive"
-                // connections
-                _server.close();
-            } catch (e) { }
-            _server = null;
+    function _cmdGetServer(path, cb) {
+        // TODO: should we have a maximum number of servers open at once?
+        if (_servers[path]) {
+            cb(null, _servers[path].address());
+        } else {
+            _createServer(path, function (err, server) {
+                if (err) {
+                    cb(err, null);
+                } else {
+                    _servers[path] = server;
+                    cb(null, server.address());
+                }
+            });
         }
-        createServer(path, function (err, server) {
-            if (err) {
-                cb(err, null);
-            } else {
-                _server = server;
-                cb(null, server.address());
-            }
-        });
     }
     
     /**
-     * Initializes the test domain with several test commands.
+     * Initializes the StaticServer domain with its commands.
      * @param {DomainManager} DomainManager The DomainManager for the server
      */
     function init(DomainManager) {
         _domainManager = DomainManager;
-        if (!_domainManager.hasDomain("connect")) {
-            _domainManager.registerDomain("connect", {major: 0, minor: 1});
+        if (!_domainManager.hasDomain("staticServer")) {
+            _domainManager.registerDomain("staticServer", {major: 0, minor: 1});
         }
         _domainManager.registerCommand(
-            "connect",
-            "startServer",
-            cmdStartServer,
+            "staticServer",
+            "getServer",
+            _cmdGetServer,
             true,
-            "Starts a server at the specified path",
+            "Starts or returns an existing server for the given path.",
             [{name: "path", type: "string"}],
             [{name: "address", type: "{address: string, family: string, port: number}"}]
         );
