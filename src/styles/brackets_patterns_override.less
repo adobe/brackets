@@ -447,9 +447,7 @@
             overflow: auto;
         }
         .about-contributors {
-            min-width: 395px;
             min-height: 100px;
-            background-color: whiteSmoke;
         }
         .about-contributors img {
             opacity: 0;
@@ -457,6 +455,16 @@
             -moz-transition: opacity 1s;
             -o-transition: opacity 1s;
             transition: opacity 1s;
+        }
+        .about-spinner {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -2px;
+            margin-left: 10px;
+            width: 12px;
+            height: 12px;
+            background: url("images/small_spinner.svg") no-repeat;
+            -webkit-animation: rotating 1.5s linear infinite;
         }
     }
     

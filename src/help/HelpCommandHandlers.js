@@ -45,13 +45,7 @@ define(function (require, exports, module) {
     
     var buildInfo;
     
-    // PreferenceStorage
-    var _prefs = PreferencesManager.getPreferenceStorage(module.id);
-    
-    // Last time the contributorsInfo was fetched
-    var _lastContributorsFetchTime = _prefs.getValue("lastContributorsFetchTime");
-    
-    
+	
     /**
      * @private
      * Gets a data structure that has the information for all the contributors of Brackets.
@@ -62,44 +56,22 @@ define(function (require, exports, module) {
      */
     function _getContributorsInformation() {
         var result = new $.Deferred();
-        var fetchData = false;
-        var data;
+        var data = [];
         
-        // If we don't have data saved in prefs, fetch
-        data = _prefs.getValue("contributorsInfo");
-        if (!data) {
-            fetchData = true;
-        }
-        
-        // If more than 2 weeks have passed since our last fetch, fetch again
-        if ((new Date()).getTime() > _lastContributorsFetchTime + (14 * 24 * 60 * 60 * 24)) {
-            fetchData = true;
-        }
-        
-        if (fetchData) {
-            $.getJSON(brackets.config.contributors_url + "?callback=?", function (contributorsInfo) {
-                data = [];
-                
-                // Save only the required data for the template
-                contributorsInfo.data.forEach(function (index, element) {
-                    data.push({
-                        GITHUB_URL : element.html_url,
-                        AVATAR_URL : element.avatar_url,
-                        NAME       : element.login
-                    });
-                });
-                _lastContributorsFetchTime = (new Date()).getTime();
-                _prefs.setValue("lastContributorsFetchTime", _lastContributorsFetchTime);
-                _prefs.setValue("contributorsInfo", data);
-                
-                result.resolve(data);
-            
-            }).error(function () {
-                result.reject();
-            });
-        } else {
-            result.resolve(data);
-        }
+		$.getJSON(brackets.config.contributors_url + "?callback=?", function (contributorsInfo) {
+			// Save only the required data for the template
+			contributorsInfo.data.forEach(function (contributor) {
+				data.push({
+					GITHUB_URL : contributor.html_url,
+					AVATAR_URL : contributor.avatar_url,
+					NAME       : contributor.login
+				});
+			});
+			result.resolve(data);
+		
+		}).error(function () {
+			result.reject();
+		});
         
         return result.promise();
     }
@@ -140,18 +112,27 @@ define(function (require, exports, module) {
             // Populate the contributors data
             var $dlg = $(".about-dialog.instance");
             var $contributors = $dlg.find(".about-contributors");
+            var totalContributors = contributorsInfo.length;
+            var contributorsCount = 0;
             
             $contributors.html(Mustache.render(ContributorsTemplate, {CONTRIBUTORS: contributorsInfo}));
             
             // This is used to create an opacity transition when each image is loaded
             $dlg.find("img").one("load", function () {
                 $(this).css("opacity", 1);
+                
+                // Count the contributors loaded and hide the spinner once all are loaded
+                contributorsCount++;
+                if (contributorsCount >= totalContributors) {
+                    $dlg.find(".about-spinner").css("display", "none");
+                }
             }).each(function () {
                 if (this.complete) {
                     $(this).load();
                 }
             });
             
+            // Create a link for each contributor image to their github account
             $dlg.on("click", "img", function (e) {
                 var url = $(e.target).data("url");
                 if (url) {
