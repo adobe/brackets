@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             ).done(function (address) {
                 _baseUrl = "http://" + address.address + ":" + address.port + "/";
                 deferred.resolve();
-            }).fail(function (address) {
+            }).fail(function () {
                 _baseUrl = "";
                 deferred.reject();
             });
@@ -89,28 +89,28 @@ define(function (require, exports, module) {
     function StaticServerProvider() {}
 
     /**
-     * Determines whether we can serve file type.
+     * Determines whether we can serve local file.
      * 
-     * @param {String} url 
-     * A url to file being served.
+     * @param {String} localPath
+     * A local path to file being served.
      *
      * @return {Boolean} 
      * true for yes, otherwise false.
      */
-    StaticServerProvider.prototype.canServe = function (url) {
+    StaticServerProvider.prototype.canServe = function (localPath) {
 
-        if (!ProjectManager.isWithinProject(url)) {
+        if (!ProjectManager.isWithinProject(localPath)) {
             return false;
         }
 
         // Url ending in "/" implies default file, which is usually index.html.
         // Return true to indicate that we can serve it.
-        if (url.match(/\/$/)) {
+        if (localPath.match(/\/$/)) {
             return true;
         }
 
         // FUTURE: do a MIME Type lookup on file extension
-        return FileUtils.isStaticHtmlFileExt(url);
+        return FileUtils.isStaticHtmlFileExt(localPath);
     };
 
     /**

@@ -728,22 +728,22 @@ define(function LiveDevelopment(require, exports, module) {
     function UserServerProvider() {}
 
     /**
-     * Determines whether we can serve file type.
+     * Determines whether we can serve local file.
      *
-     * @param {String} url
-     * A url to file being served.
+     * @param {String} localPath
+     * A local path to file being served.
      *
      * @return {Boolean}
      * true for yes, otherwise false.
      */
-    UserServerProvider.prototype.canServe = function (url) {
+    UserServerProvider.prototype.canServe = function (localPath) {
 
         var baseUrl = ProjectManager.getBaseUrl();
         if (!baseUrl) {
             return false;
         }
 
-        if (!ProjectManager.isWithinProject(url)) {
+        if (!ProjectManager.isWithinProject(localPath)) {
             return false;
         }
 
@@ -775,9 +775,14 @@ define(function LiveDevelopment(require, exports, module) {
         LiveDevServerManager.registerProvider(userServerProvider, 99);
     }
 
+    function _setServerProvider(serverProvider) {
+        _serverProvider = serverProvider;
+    }
+
     // For unit testing
     exports._pathToUrl          = _pathToUrl;
     exports._urlToPath          = _urlToPath;
+    exports._setServerProvider  = _setServerProvider;
 
     // Export public functions
     exports.agents              = agents;

@@ -32,9 +32,9 @@
  * It is very likely that it will be changed in the near future and/or
  * removed entirely.
  *
- * # LiveDevServerManager.getProvider(url)
+ * # LiveDevServerManager.getProvider(localPath)
  *
- * Returns highest priority provider that can serve the url.
+ * Returns highest priority provider that can serve the local file.
  *
  * @param {String} url
  * A url to file being served.
@@ -47,15 +47,15 @@
  *
  * A Live Development server provider must implement the following three functions:
  *
- * LiveDevServerProvider.canServe(url)
+ * LiveDevServerProvider.canServe(localPath)
  * LiveDevServerProvider.getBaseUrl()
  * LiveDevServerProvider.readyToServe()
  *
  * The behavior of these three functions is described in detail below.
  *
- * # LiveDevServerProvider.canServe(url)
+ * # LiveDevServerProvider.canServe(localPath)
  *
- * The method by which a provider indicates intent to serve a url.
+ * The method by which a provider indicates intent to serve a local file.
  * The manager calls this method when querying providers
  *
  * param {String} url
@@ -106,21 +106,21 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Determines which provider can serve a url.
+     * Determines which provider can serve a file with a local path.
      *
-     * @param {String} url
-     * A url to file being served.
+     * @param {String} localPath
+     * A local path to file being served.
      *
      * @return {LiveDevServerProvider}
      * true for yes, otherwise false.
      */
-    function getProvider(url) {
+    function getProvider(localPath) {
 
         var provider, i;
 
         for (i = 0; i < _serverProviders.length; i++) {
             provider = _serverProviders[i].provider;
-            if (provider.canServe(url)) {
+            if (provider.canServe(localPath)) {
                 return provider;
             }
         }
