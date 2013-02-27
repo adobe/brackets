@@ -293,7 +293,8 @@ define(function (require, exports, module) {
             result.resolve();
         } else {
             var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
-            Inspector.getAvailableSockets("127.0.0.1", "9234")
+            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
+            Inspector.getAvailableSockets("127.0.0.1", port)
                 .fail(result.reject)
                 .done(function (response) {
                     var page = response[0];
