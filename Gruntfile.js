@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
- /*global module, require*/
+/*global module, require*/
 module.exports = function (grunt) {
     'use strict';
 
@@ -49,6 +49,7 @@ module.exports = function (grunt) {
             /* specs that can run in phantom.js */
             specs : [
                 'test/spec/CommandManager-test.js',
+                'test/spec/LanguageManager-test.js',
                 'test/spec/PreferencesManager-test.js',
                 'test/spec/ViewUtils-test.js'
             ]
@@ -74,7 +75,11 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
-                    'src/thirdparty/mustache/mustache.js'
+                    'src/thirdparty/mustache/mustache.js',
+                    'src/thirdparty/path-utils/path-utils.min'
+                ],
+                helpers : [
+                    'test/spec/PhantomHelper.js'
                 ],
                 template : require('grunt-template-jasmine-requirejs'),
                 templateOptions: {
