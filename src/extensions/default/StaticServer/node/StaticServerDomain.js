@@ -75,7 +75,8 @@ maxerr: 50, node: true */
         // JSLint complains if we use `connect.static` because static is a
         // reserved word.
         app.use(connect.favicon())
-            .use(connect["static"](path));
+            .use(connect["static"](path))
+            .use(connect.directory(path));
 
         var server = http.createServer(app);
         server.listen(0, '127.0.0.1', function () {
