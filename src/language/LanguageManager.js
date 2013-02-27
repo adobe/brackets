@@ -52,16 +52,19 @@
  *     language.setLineComment("--");
  *     language.setBlockComment("{-", "-}");
  *
+ * Currently, languages are also accessible this way right after calling defineLanguage,
+ * even before the promise has resolved. Note, however, that their mode hasn't yet been set then.
+ *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
- * To find out existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
- * For instance, C++, C# and Java all use the clike mode.
+ * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
+ * For instance, C++, C# and Java all use the clike (C-like) mode.
  * You can refine the mode definition by specifying the MIME mode as well:
  *     var language = LanguageManager.defineLanguage("csharp", {
  *         name: "C#",
  *         mode: ["clike", "text/x-csharp"],
  *         ...
  *     });
- * Definining the base mode is still necessary to know which file to load.
+ * Defining the base mode is still necessary to know which file to load.
  * Later however, language.getMode() will either refer to the MIME mode,
  * or the base mode if no MIME mode has been specified.
  *
@@ -124,7 +127,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Makes the file extension all lowercase and ensures it doesn't start with a dot
+     * Lowercases the file extension and ensures it doesn't start with a dot.
      * @param {!string} extension The file extension
      * @return {string} The normalized file extension
      */
@@ -179,24 +182,23 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Resolves a file extension to a Language object
+     * Resolves a file extension to a Language object.
      * @param {!string} path Path to or extension of the file to find a language for
      * @return {Language} The language for the provided file type or the fallback language
      */
     function getLanguageForFileExtension(path) {
-        var extension = PathUtils.filenameExtension(path);
-        extension = _normalizeFileExtension(extension);
+        var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
+            language  = _fileExtensionToLanguageMap[extension];
         
-        var language = _fileExtensionToLanguageMap[extension];
         if (!language) {
-            console.log("Called LanguageManager.getLanguageForFileExtension with an unhandled file extension: " + extension);
+            console.log("Called LanguageManager.getLanguageForFileExtension with an unhandled file extension:", extension);
         }
         
         return language || _fallbackLanguage;
     }
     
     /**
-     * Resolves a CodeMirror mode to a Language object
+     * Resolves a CodeMirror mode to a Language object.
      * @param {!string} mode CodeMirror mode
      * @return {Language} The language for the provided mode or the fallback language
      */
@@ -221,7 +223,7 @@ define(function (require, exports, module) {
     function Language(id, name) {
         _validateString(id, "Language ID");
         // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
-        // Hence we use _ instead of "." since this makes it easier to parse a file name containing a language ID
+        // Hence we use "_" instead of "." since the latter often has special meaning
         if (!id.match(/^[a-z]+(_[a-z]+)*$/)) {
             throw new Error("Invalid language ID \"" + id + "\": Only groups of letters a-z are allowed, separated by _ (i.e. \"cpp\" or \"foo_bar\")");
         }
@@ -240,6 +242,7 @@ define(function (require, exports, module) {
         _languages[id] = this;
     }
     
+    
     /** @type {string} Identifier for this language */
     Language.prototype._id = null;
     
@@ -251,22 +254,24 @@ define(function (require, exports, module) {
         return this._id;
     };
 
+    
     /** @type {string} Human-readable name of this language */
     Language.prototype._name = null;
     
     /**
-     * Returns the human-readable name of this language
+     * Returns the human-readable name of this language.
      * @return {string} The name
      */
     Language.prototype.getName = function () {
         return this._name;
     };
     
+    
     /** @type {string} CodeMirror mode for this language */
     Language.prototype._mode = null;
     
     /**
-     * Returns the CodeMirror mode for this language
+     * Returns the CodeMirror mode for this language.
      * @return {string} The mode
      */
     Language.prototype.getMode = function () {
@@ -301,16 +306,19 @@ define(function (require, exports, module) {
             var i;
             
             if (mode !== "" && !CodeMirror.modes[mode]) {
-                throw new Error("CodeMirror mode \"" + mode + "\" is not loaded");
+                result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
+                return;
             }
             
             if (mimeMode) {
                 var modeConfig = CodeMirror.mimeModes[mimeMode];
                 if (!modeConfig) {
-                    throw new Error("CodeMirror MIME mode \"" + mimeMode + "\" not found");
+                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
+                    return;
                 }
                 if (modeConfig.name !== mode) {
-                    throw new Error("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
+                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
+                    return;
                 }
             }
             
@@ -331,6 +339,7 @@ define(function (require, exports, module) {
         return result.promise();
     };
     
+    
     /** @type {Array.<string>} File extensions that use this language */
     Language.prototype._fileExtensions = null;
     
@@ -339,14 +348,14 @@ define(function (require, exports, module) {
      * @return {Array.<string>} File extensions used by this language
      */
     Language.prototype.getFileExtensions = function () {
+        // Use concat to create a copy of this array, preventing external modification
         return this._fileExtensions.concat();
     };
 
     /**
      * Adds a file extension to this language.
      * Private for now since dependent code would need to by kept in sync with such changes.
-     * In case we ever open this up, we should think about whether we want to make this
-     * configurable by the user. If so, the user has to be able to override these calls.
+     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension A file extension used by this language
      * @private
      */
@@ -364,12 +373,13 @@ define(function (require, exports, module) {
             }
         }
     };
+    
 
     /** @type {{ prefix: string }} Line comment syntax */
     Language.prototype._lineCommentSyntax = null;
 
     /**
-     * Returns whether the line comment syntax is defined for this language
+     * Returns whether the line comment syntax is defined for this language.
      * @return {boolean} Whether line comments are supported
      */
     Language.prototype.hasLineCommentSyntax = function () {
@@ -377,7 +387,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns the prefix to use for line comments
+     * Returns the prefix to use for line comments.
      * @return {string} The prefix
      */
     Language.prototype.getLineCommentPrefix = function () {
@@ -402,7 +412,7 @@ define(function (require, exports, module) {
     Language.prototype._blockCommentSyntax = null;
     
     /**
-     * Returns whether the block comment syntax is defined for this language
+     * Returns whether the block comment syntax is defined for this language.
      * @return {boolean} Whether block comments are supported
      */
     Language.prototype.hasBlockCommentSyntax = function () {
@@ -410,7 +420,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns the prefix to use for block comments
+     * Returns the prefix to use for block comments.
      * @return {string} The prefix
      */
     Language.prototype.getBlockCommentPrefix = function () {
@@ -421,7 +431,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns the suffix to use for block comments
+     * Returns the suffix to use for block comments.
      * @return {string} The suffix
      */
     Language.prototype.getBlockCommentSuffix = function () {
