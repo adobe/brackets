@@ -48,7 +48,6 @@ define(function (require, exports, module) {
         EDIT_MENU       : "edit-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
-        DEBUG_MENU      : "debug-menu",     // Note: not present in some configurations of Brackets (getMenu() will return null)
         HELP_MENU       : "help-menu"
     };
 
@@ -1073,25 +1072,6 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
-
-        /*
-         * Debug menu
-         */
-        if (brackets.config.show_debug_menu) {
-            menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
-            menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
-            menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW);
-            menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
-            menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_ENABLE_NODE_DEBUGGER);
-            menu.addMenuItem(Commands.DEBUG_LOG_NODE_STATE);
-            menu.addMenuItem(Commands.DEBUG_RESTART_NODE);
-        }
 
         /*
          * Help menu

@@ -272,8 +272,8 @@ define(function (require, exports, module) {
      */
     function updateFileEntryPath(entry, oldName, newName, isFolder) {
         if (isAffectedWhenRenaming(entry.fullPath, oldName, newName, isFolder)) {
-            var fullPath = entry.fullPath.replace(oldName, newName);
-            
+            var oldFullPath = entry.fullPath;
+            var fullPath = oldFullPath.replace(oldName, newName);
             entry.fullPath = fullPath;
             
             // TODO: Should this be a method on Entry instead?
@@ -286,6 +286,8 @@ define(function (require, exports, module) {
                     entry.name = pathParts.pop();
                 }
             }
+            
+            $(entry).triggerHandler("rename", [oldFullPath, fullPath]);
             
             return true;
         }

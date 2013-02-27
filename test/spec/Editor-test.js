@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     var Editor          = require("editor/Editor").Editor,
         EditorManager   = require("editor/EditorManager"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        EditorUtils     = require("editor/EditorUtils");
+        LanguageManager = require("language/LanguageManager");
 
     describe("Editor", function () {
         var defaultContent = 'Brackets is going to be awesome!\n';
@@ -98,26 +98,26 @@ define(function (require, exports, module) {
             
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
-                var mode = EditorUtils.getModeFromFileExtension("file:///only/testing/the/path.html");
-                expect(mode).toSpecifyModeNamed("htmlmixed");
+                var mode = LanguageManager.getLanguageForFileExtension("file:///only/testing/the/path.html").mode;
+                expect(mode).toSpecifyModeNamed("text/x-brackets-html");
             });
             
             it("should switch modes even if the url has a query string", function () {
                 // verify editor content
-                var mode = EditorUtils.getModeFromFileExtension("http://only.org/testing/the/path.css?v=2");
+                var mode = LanguageManager.getLanguageForFileExtension("http://only.org/testing/the/path.css?v=2").mode;
                 expect(mode).toSpecifyModeNamed("css");
             });
             
             it("should accept just a file name too", function () {
                 // verify editor content
-                var mode = EditorUtils.getModeFromFileExtension("path.js");
+                var mode = LanguageManager.getLanguageForFileExtension("path.js").mode;
                 expect(mode).toSpecifyModeNamed("javascript");
             });
 
             it("should default to plaintext for unknown file extensions", function () {
                 // verify editor content
-                var mode = EditorUtils.getModeFromFileExtension("test.foo");
-                expect(mode).toSpecifyModeNamed("");
+                var mode = LanguageManager.getLanguageForFileExtension("test.foo").mode;
+                expect(mode).toBe(undefined);
             });
         });
         
@@ -165,8 +165,8 @@ define(function (require, exports, module) {
                 expect(myEditor.getModeForSelection()).toBe("javascript");
             });
             
-            it("should get mode in htmlmixed file", function () {
-                createTestEditor(htmlContent, "htmlmixed");
+            it("should get mode in HTML file", function () {
+                createTestEditor(htmlContent, "html");
                 
                 // Mode at point
                 myEditor.setCursorPos(0, 0);    // first char in text
