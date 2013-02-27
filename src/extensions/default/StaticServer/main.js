@@ -29,12 +29,12 @@ maxerr: 50, browser: true */
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        HttpServerManager   = brackets.getModule("LiveDevelopment/HttpServerManager"),
-        NodeConnection      = brackets.getModule("utils/NodeConnection"),
-        ProjectManager      = brackets.getModule("project/ProjectManager");
+    var AppInit              = brackets.getModule("utils/AppInit"),
+        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
+        FileUtils            = brackets.getModule("file/FileUtils"),
+        LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
+        NodeConnection       = brackets.getModule("utils/NodeConnection"),
+        ProjectManager       = brackets.getModule("project/ProjectManager");
 
     /**
      * @private
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
      * @private
      * @type{?jQuery.Promise}
      * Holds the most recent promise from startServer(). Used in
-     * StaticHttpServerProvider.readyToServe
+     * StaticServerProvider.readyToServe
      */
     var _serverStartupPromise = null;
 
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
     /**
      * @constructor
      */
-    function StaticHttpServerProvider() {}
+    function StaticServerProvider() {}
 
     /**
      * Determines whether we can serve file type.
@@ -95,14 +95,14 @@ define(function (require, exports, module) {
      * @return {Boolean} 
      * true for yes, otherwise false.
      */
-    StaticHttpServerProvider.prototype.canServe = function (url) {
+    StaticServerProvider.prototype.canServe = function (url) {
 
         if (!ProjectManager.isWithinProject(url)) {
             return false;
         }
 
         // url ending in / implies default file, which is usually
-        // index.html, so HttpServerManager we can server it
+        // index.html, so LiveDevServerManager we can server it
         if (url.match(/\/$/)) {
             return true;
         }
@@ -117,12 +117,12 @@ define(function (require, exports, module) {
      * @return {String}
      * Base url for current project.
      */
-    StaticHttpServerProvider.prototype.getBaseUrl = function () {
+    StaticServerProvider.prototype.getBaseUrl = function () {
         return _baseUrl;
     };
 
     /**
-     * # HttpServerProvider.readyToServe()
+     * # LiveDevServerProvider.readyToServe()
      *
      * Used to check if the server has finished launching after opening
      * the project.
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
      * @return {boolean + jQuery.Promise} Whether the server is ready
      *    (possibly as a promise that resolves/rejects when ready/failed)
      */
-    StaticHttpServerProvider.prototype.readyToServe = function () {
+    StaticServerProvider.prototype.readyToServe = function () {
         return _serverStartupPromise || false;
     };
     
@@ -154,9 +154,9 @@ define(function (require, exports, module) {
             );
         });
 
-        // Register as http server provider
-        var staticHttpServerProvider = new StaticHttpServerProvider();
-        HttpServerManager.registerProvider(staticHttpServerProvider, 5);
+        // Register as a Live Development server provider
+        var staticServerProvider = new StaticServerProvider();
+        LiveDevServerManager.registerProvider(staticServerProvider, 5);
     });
 
     $(ProjectManager).on("projectOpen", _projectOpen);

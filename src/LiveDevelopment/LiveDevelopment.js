@@ -64,17 +64,17 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
     var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
 
-    var Dialogs             = require("widgets/Dialogs"),
-        DocumentManager     = require("document/DocumentManager"),
-        EditorManager       = require("editor/EditorManager"),
-        FileUtils           = require("file/FileUtils"),
-        HttpServerManager   = require("LiveDevelopment/HttpServerManager"),
-        NativeFileError     = require("file/NativeFileError"),
-        NativeApp           = require("utils/NativeApp"),
-        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
-        ProjectManager      = require("project/ProjectManager"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+    var Dialogs              = require("widgets/Dialogs"),
+        DocumentManager      = require("document/DocumentManager"),
+        EditorManager        = require("editor/EditorManager"),
+        FileUtils            = require("file/FileUtils"),
+        LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
+        NativeFileError      = require("file/NativeFileError"),
+        NativeApp            = require("utils/NativeApp"),
+        PreferencesDialogs   = require("preferences/PreferencesDialogs"),
+        ProjectManager       = require("project/ProjectManager"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils");
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -117,7 +117,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
-    var _httpServerProvider;  // http server provider
+    var _serverProvider;      // current LiveDevServerProvider
 
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -129,8 +129,8 @@ define(function LiveDevelopment(require, exports, module) {
         var path,
             baseUrl = "";
 
-        if (_httpServerProvider) {
-            baseUrl = _httpServerProvider.getBaseUrl(url);
+        if (_serverProvider) {
+            baseUrl = _serverProvider.getBaseUrl(url);
         }
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
@@ -153,8 +153,8 @@ define(function LiveDevelopment(require, exports, module) {
         var url,
             baseUrl = "";
 
-        if (_httpServerProvider) {
-            baseUrl = _httpServerProvider.getBaseUrl(url);
+        if (_serverProvider) {
+            baseUrl = _serverProvider.getBaseUrl(url);
         }
 
         // See if base url has been specified and path is within project
@@ -607,8 +607,8 @@ define(function LiveDevelopment(require, exports, module) {
             showWrongDocError();
 
         } else {
-            _httpServerProvider = HttpServerManager.getProvider(doc.file.fullPath);
-            if (!exports.config.experimental && !_httpServerProvider) {
+            _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
+            if (!exports.config.experimental && !_serverProvider) {
                 if (FileUtils.isServerHtmlFileExt(doc.extension)) {
                     showNeedBaseUrlError();
                     return promise;
@@ -617,7 +617,7 @@ define(function LiveDevelopment(require, exports, module) {
                     return promise;
                 }
             } else {
-                var isReady = _httpServerProvider.readyToServe();
+                var isReady = _serverProvider.readyToServe();
                 if (typeof isReady === "boolean" && isReady) {
                     doLaunchAfterServerReady();
                 } else if (isReady) { // isReady is truthy and is not a boolean, so it must be a Promise
@@ -643,7 +643,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
-        _httpServerProvider = null;
+        _serverProvider = null;
     }
     
     /** Enable highlighting */
@@ -768,7 +768,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();
-        HttpServerManager.registerProvider(userServerProvider, 99);
+        LiveDevServerManager.registerProvider(userServerProvider, 99);
     }
 
     // For unit testing
