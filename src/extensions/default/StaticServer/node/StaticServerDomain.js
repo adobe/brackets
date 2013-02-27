@@ -107,15 +107,16 @@ maxerr: 50, node: true */
      *    for example, IPv4, IPv6, or a UNIX socket.
      */
     function _cmdGetServer(path, cb) {
-        // TODO: should we have a maximum number of servers open at once?
-        if (_servers[path]) {
-            cb(null, _servers[path].address());
+        // Make sure the key doesn't conflict with some built-in property of Object.
+        var pathKey = "LiveDev_" + path;
+        if (_servers[pathKey]) {
+            cb(null, _servers[pathKey].address());
         } else {
             _createServer(path, function (err, server) {
                 if (err) {
                     cb(err, null);
                 } else {
-                    _servers[path] = server;
+                    _servers[pathKey] = server;
                     cb(null, server.address());
                 }
             });
