@@ -287,8 +287,6 @@ define(function (require, exports, module) {
                 }
             }
             
-            $(entry).triggerHandler("rename", [oldFullPath, fullPath]);
-            
             return true;
         }
         

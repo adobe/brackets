@@ -600,9 +600,6 @@ define(function (require, exports, module) {
         this.refreshText(rawText, initialTimestamp);
         
         this._updateLanguage();
-        // TODO: remove this listener when the document object is obsolete.
-        // But when is this the case? When _refCount === 0?
-        $(this.file).on("rename", this._updateLanguage.bind(this));
         
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
@@ -963,6 +960,13 @@ define(function (require, exports, module) {
         }
     };
     
+    /** Called when Document.file has been modified (due to a rename) */
+    Document.prototype._notifyFilePathChanged = function () {
+        // File extension may have changed
+        this._updateLanguage();
+    };
+    
+    
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
@@ -1178,7 +1182,9 @@ define(function (require, exports, module) {
                     keysToDelete.push(path);
                     
                     // Update document file
-                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName, isFolder);
+                    var doc = _openDocuments[newKey];
+                    FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
+                    doc._notifyFilePathChanged();
                     
                     if (!isFolder) {
                         // If the path name is a file, there can only be one matched entry in the open document
