@@ -53,13 +53,6 @@ define(function (require, exports, module) {
     var _nodeConnectionDeferred = $.Deferred();
     
     var _baseUrl = "";
-    
-    /**
-     * @private
-     * @type{StaticServerProvider}
-     * Stores the singleton StaticServerProvider for use in unit testing.
-     */
-    var _staticServerProvider;
 
     /**
      * @constructor
@@ -109,7 +102,6 @@ define(function (require, exports, module) {
      * # LiveDevServerProvider.readyToServe()
      *
      * Gets the server details from the StaticServerDomain in node.
-     * Handles connecting to node and installing the domain if necessary.
      * The domain itself handles starting a server if necessary (when
      * the staticServer.getServer command is called).
      *
@@ -152,6 +144,13 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * @type{StaticServerProvider}
+     * Stores the singleton StaticServerProvider for use in unit testing.
+     */
+    var _staticServerProvider = new StaticServerProvider();
+    
+    /**
+     * @private
      * @return {StaticServerProvider} The singleton StaticServerProvider initialized
      * on app ready.
      */
@@ -161,7 +160,6 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
         // Register as a Live Development server provider
-        _staticServerProvider = new StaticServerProvider();
         LiveDevServerManager.registerProvider(_staticServerProvider, 5);
         
         // Start up the node connection, which is held in the
