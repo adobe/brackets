@@ -37,21 +37,22 @@ define(function (require, exports, module) {
         ProjectManager       = brackets.getModule("project/ProjectManager");
 
     /**
-     * @private
-     * @type{NodeConnection}
-     * Connection to node
+     * @const
+     * Amount of time to wait before automatically rejecting the connection
+     * deferred. If we hit this timeout, we'll never have a node connection
+     * for the static server in this run of Brackets.
      */
-    var _nodeConnection = null;
-
-    var _baseUrl = "";
+    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds
     
     /**
      * @private
-     * @type{?jQuery.Promise}
-     * Holds the most recent promise from startServer(). Used in
-     * StaticServerProvider.readyToServe
+     * @type{jQuery.Deferred.<NodeConnection>}
+     * A deferred which is resolved with a NodeConnection or rejected if
+     * we are unable to connect to Node.
      */
-    var _serverStartupPromise = null;
+    var _nodeConnectionDeferred = $.Deferred();
+    
+    var _baseUrl = "";
     
     /**
      * @private
@@ -59,35 +60,6 @@ define(function (require, exports, module) {
      * Stores the singleton StaticServerProvider for use in unit testing.
      */
     var _staticServerProvider;
-
-    /**
-     * @private
-     * Calls staticServer.getServer to start a new server at the project root
-     *
-     * @return promise which is:
-     *      - rejected if there is no node connection
-     *      - resolved when staticServer.getServer() callback returns
-     */
-    function startServer() {
-        var deferred = $.Deferred();
-
-        if (_nodeConnection) {
-            var projectPath = ProjectManager.getProjectRoot().fullPath;
-            _nodeConnection.domains.staticServer.getServer(
-                projectPath
-            ).done(function (address) {
-                _baseUrl = "http://" + address.address + ":" + address.port + "/";
-                deferred.resolve();
-            }).fail(function () {
-                _baseUrl = "";
-                deferred.reject();
-            });
-        } else {
-            deferred.reject();
-        }
-
-        return deferred.promise();
-    }
 
     /**
      * @constructor
@@ -105,6 +77,10 @@ define(function (require, exports, module) {
      */
     StaticServerProvider.prototype.canServe = function (localPath) {
 
+        if (_nodeConnectionDeferred.isRejected()) {
+            return false;
+        }
+        
         if (!ProjectManager.isWithinProject(localPath)) {
             return false;
         }
@@ -143,71 +119,33 @@ define(function (require, exports, module) {
     StaticServerProvider.prototype.readyToServe = function () {
         var readyToServeDeferred = $.Deferred();
 
-        function connectToNode() {
-            var connectToNodeDeferred = $.Deferred();
-            
-            if (!_nodeConnection) {
-                _nodeConnection = new NodeConnection();
-                _nodeConnection.connect(true).then(function () {
-                    _nodeConnection.loadDomains(
-                        [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
-                        true
-                    ).then(
-                        function () {
-                            connectToNodeDeferred.resolve();
-                        },
-                        function () { // Failed to connect
-                            console.error("[StaticServer] Failed to connect to node", arguments);
-                            connectToNodeDeferred.reject();
-                            _nodeConnection = null;
-                        }
-                    );
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                var projectPath = ProjectManager.getProjectRoot().fullPath;
+                nodeConnection.domains.staticServer.getServer(
+                    projectPath
+                ).done(function (address) {
+                    _baseUrl = "http://" + address.address + ":" + address.port + "/";
+                    readyToServeDeferred.resolve();
+                }).fail(function () {
+                    _baseUrl = "";
+                    readyToServeDeferred.reject();
                 });
-            } else if (!_nodeConnection.connected()) {
-                // The connection is set to auto-reconnect. So, if we aren't
-                // currently connected but will be soon, we just need the user
-                // to wait. Unfortunately, we don't have the connection promise
-                // to wait on. So, we just rejecct this promise to show the
-                // error dialog that tells the user to try again. This case 
-                // should be rare -- it might happen if the user clicks the
-                // live development icon repeatedly. In that case, the error message
-                // telling the user to slow down is the right action.
-                connectToNodeDeferred.reject();
-            } else { // we're connected!
-                connectToNodeDeferred.resolve();
-            }
-            
-            return connectToNodeDeferred.promise();
-        }
-        
-        function startServerAfterNodeConnected() {
-            var startServerDeferred = $.Deferred();
-            var projectPath = ProjectManager.getProjectRoot().fullPath;
-            _nodeConnection.domains.staticServer.getServer(
-                projectPath
-            ).done(function (address) {
-                _baseUrl = "http://" + address.address + ":" + address.port + "/";
-                startServerDeferred.resolve();
-            }).fail(function () {
-                _baseUrl = "";
-                startServerDeferred.reject();
-            });
-            return startServerDeferred.promise();
-        }
-
-        // TODO: Clean this chaining up when utils/Async.chain is merged
-        // in to master (pull #2632).
-        connectToNode().then(
-            function () { // we connected to node
-                startServerAfterNodeConnected().then(
-                    function () { readyToServeDeferred.resolve(); },
-                    function () { readyToServeDeferred.reject(); }
-                );
-            },
-            function () { // we failed to connect to node
+            } else { // nodeConnection not currently connected
+                // If we are in this case, then the node process has crashed
+                // and is in the process of restarting. Once that happens, the
+                // node connection will automatically reconnect and reload the
+                // domain. Unfortunately, we don't have any promise to wait on
+                // to know when that happens. The best we can do is reject this
+                // readyToServe so that the user gets an error message to try
+                // again later.
                 readyToServeDeferred.reject();
             }
-        );
+        });
+        
+        _nodeConnectionDeferred.fail(function () {
+            readyToServeDeferred.reject();
+        });
         
         return readyToServeDeferred.promise();
     };
@@ -225,6 +163,31 @@ define(function (require, exports, module) {
         // Register as a Live Development server provider
         _staticServerProvider = new StaticServerProvider();
         LiveDevServerManager.registerProvider(_staticServerProvider, 5);
+        
+        // Start up the node connection, which is held in the
+        // _nodeConnectionDeferred module variable. (Use 
+        // _nodeConnectionDeferred.done() to access it.
+        var connectionTimeout = setTimeout(function () {
+            console.error("[StaticServer] Timed out while trying to connect to node");
+            _nodeConnectionDeferred.reject();
+        }, NODE_CONNECTION_TIMEOUT);
+        
+        var _nodeConnection = new NodeConnection();
+        _nodeConnection.connect(true).then(function () {
+            _nodeConnection.loadDomains(
+                [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
+                true
+            ).then(
+                function () {
+                    clearTimeout(connectionTimeout);
+                    _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
+                },
+                function () { // Failed to connect
+                    console.error("[StaticServer] Failed to connect to node", arguments);
+                    _nodeConnectionDeferred.reject();
+                }
+            );
+        });
     });
 
     // For unit tests only
