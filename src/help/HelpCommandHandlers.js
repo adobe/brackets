@@ -50,28 +50,17 @@ define(function (require, exports, module) {
      * @private
      * Gets a data structure that has the information for all the contributors of Brackets.
      * The information is fetched from brackets.config.contributors_url using the github API.
-     * If more than 2 weeks have passed since the last fetch, or if cached data can't be found, 
-     * the data is fetched again.
      * @return {$.Promise} jQuery Promise object that is resolved or rejected after the information is fetched.
      */
     function _getContributorsInformation() {
         var result = new $.Deferred();
-        var data = [];
         
-        $.getJSON(brackets.config.contributors_url + "?callback=?", function (contributorsInfo) {
-            // Save only the required data for the template
-            contributorsInfo.data.forEach(function (contributor) {
-                data.push({
-                    GITHUB_URL : contributor.html_url,
-                    AVATAR_URL : contributor.avatar_url,
-                    NAME       : contributor.login
-                });
+        $.getJSON(brackets.config.contributors_url)
+            .done(function (data) {
+                result.resolve(data);
+            }).fail(function () {
+                result.reject();
             });
-            result.resolve(data);
-            
-        }).error(function () {
-            result.reject();
-        });
         
         return result.promise();
     }
@@ -115,10 +104,10 @@ define(function (require, exports, module) {
             var totalContributors = contributorsInfo.length;
             var contributorsCount = 0;
             
-            $contributors.html(Mustache.render(ContributorsTemplate, {CONTRIBUTORS: contributorsInfo}));
+            $contributors.html(Mustache.render(ContributorsTemplate, contributorsInfo));
             
             // This is used to create an opacity transition when each image is loaded
-            $dlg.find("img").one("load", function () {
+            $contributors.find("img").one("load", function () {
                 $(this).css("opacity", 1);
                 
                 // Count the contributors loaded and hide the spinner once all are loaded
@@ -128,16 +117,16 @@ define(function (require, exports, module) {
                 }
             }).each(function () {
                 if (this.complete) {
-                    $(this).load();
+                    $(this).trigger("load");
                 }
             });
             
             // Create a link for each contributor image to their github account
-            $dlg.on("click", "img", function (e) {
+            $contributors.on("click", "img", function (e) {
                 var url = $(e.target).data("url");
                 if (url) {
                     // Make sure the URL has a domain that we know about
-                    if (/(github\.com)$/i.test(PathUtils.parseUrl(url).hostname)) {
+                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
                         NativeApp.openURLInDefaultBrowser(url);
                     }
                 }
