@@ -613,6 +613,9 @@ define(function LiveDevelopment(require, exports, module) {
                     showNeedBaseUrlError();
                 } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
                     showWrongDocError();
+                } else {
+                    // fall-back to file://
+                    doLaunchAfterServerReady();
                 }
             } else {
                 var readyPromise = _serverProvider.readyToServe();
