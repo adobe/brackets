@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var LanguageManager = require("language/LanguageManager"),
+        DocumentManager = require("document/DocumentManager"),
         PathUtils       = require("thirdparty/path-utils/path-utils.min"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         FileUtils       = require("file/FileUtils");
@@ -234,11 +235,17 @@ define(function (require, exports, module) {
                 // sanity check language
                 expect(doc.getLanguage()).toBe(javascript);
                 
+                // Documents are only 'active' & maintained while referenced
+                // Undo createMockDocument()'s shimming to allow this
+                doc.addRef = DocumentManager.Document.prototype.addRef;
+                doc.releaseRef = DocumentManager.Document.prototype.releaseRef;
+                doc.addRef();
+                
                 // listen for event
                 $(doc).on("languageChanged", spy);
                 
                 // trigger a rename
-                FileUtils.updateFileEntryPath(doc.file, doc.file.name, "dummy.html", false);
+                DocumentManager.notifyPathNameChanged(doc.file.name, "dummy.html", false);
                 
                 // language should change
                 expect(doc.getLanguage()).toBe(html);
@@ -248,6 +255,9 @@ define(function (require, exports, module) {
                 // check callback args (arg 0 is a jQuery event)
                 expect(spy.mostRecentCall.args[1]).toBe(javascript);
                 expect(spy.mostRecentCall.args[2]).toBe(html);
+                
+                // cleanup
+                doc.releaseRef();
             });
             
         });
