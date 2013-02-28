@@ -32,6 +32,28 @@ define(function (require, exports, module) {
         EditorManager   = require("editor/EditorManager"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         LanguageManager = require("language/LanguageManager");
+    
+    var langNames = {
+        css:        {mode: "css",           langName: "CSS"},
+        javascript: {mode: "javascript",    langName: "JavaScript"},
+        html:       {mode: "html",          langName: "HTML"},
+        unknown:    {mode: null,            langName: "Text"}
+    };
+    
+    function compareMode(expected, actual) {
+        if (typeof actual === "string") {
+            return actual === expected;
+        } else if (actual === null) {
+            return expected === null;
+        }
+        
+        return actual.name === expected;
+    }
+    
+    function expectModeAndLang(editor, lang) {
+        expect(editor.getModeForSelection()).toSpecifyModeNamed(lang.mode);
+        expect(editor.getLanguageForSelection().name).toBe(lang.langName);
+    }
 
     describe("Editor", function () {
         var defaultContent = 'Brackets is going to be awesome!\n';
@@ -43,6 +65,14 @@ define(function (require, exports, module) {
             myDocument = mocks.doc;
             myEditor = mocks.editor;
         }
+        
+        beforeEach(function () {
+            this.addMatchers({
+                toSpecifyModeNamed: function (expected) {
+                    return compareMode(expected, this.actual);
+                }
+            });
+        });
 
         afterEach(function () {
             if (myEditor) {
@@ -84,17 +114,6 @@ define(function (require, exports, module) {
         });
             
         describe("File extension to mode mapping", function () {
-            beforeEach(function () {
-                this.addMatchers({
-                    toSpecifyModeNamed: function (expected) {
-                        if (typeof this.actual === "string") {
-                            return this.actual === expected;
-                        } else {
-                            return this.actual.name === expected;
-                        }
-                    }
-                });
-            });
             
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
@@ -105,13 +124,13 @@ define(function (require, exports, module) {
             it("should switch modes even if the url has a query string", function () {
                 // verify editor content
                 var mode = LanguageManager.getLanguageForFileExtension("http://only.org/testing/the/path.css?v=2").mode;
-                expect(mode).toSpecifyModeNamed("css");
+                expect(mode).toSpecifyModeNamed(langNames.css.mode);
             });
             
             it("should accept just a file name too", function () {
                 // verify editor content
                 var mode = LanguageManager.getLanguageForFileExtension("path.js").mode;
-                expect(mode).toSpecifyModeNamed("javascript");
+                expect(mode).toSpecifyModeNamed(langNames.javascript.mode);
             });
 
             it("should default to plaintext for unknown file extensions", function () {
@@ -147,22 +166,22 @@ define(function (require, exports, module) {
                               "</body></html>";
             
             it("should get mode in homogenous file", function () {
-                createTestEditor(jsContent, "javascript");
+                createTestEditor(jsContent, langNames.javascript.mode);
                 
                 // Mode at point
                 myEditor.setCursorPos(0, 0);    // first char in text
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setCursorPos(0, 8);    // last char in text
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
                 
                 myEditor.setCursorPos(0, 3);    // middle of text
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
                 
                 // Mode for range
                 myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 7});
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelection({line: 0, ch: 0}, {line: 0, ch: 8});  // select all
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
             });
             
             it("should get mode in HTML file", function () {
@@ -170,34 +189,34 @@ define(function (require, exports, module) {
                 
                 // Mode at point
                 myEditor.setCursorPos(0, 0);    // first char in text
-                expect(myEditor.getModeForSelection()).toBe("html");
+                expectModeAndLang(myEditor, langNames.html);
                 myEditor.setCursorPos(6, 14);    // last char in text
-                expect(myEditor.getModeForSelection()).toBe("html");
+                expectModeAndLang(myEditor, langNames.html);
                 
                 myEditor.setCursorPos(5, 7);    // middle of text - html
-                expect(myEditor.getModeForSelection()).toBe("html");
+                expectModeAndLang(myEditor, langNames.html);
                 myEditor.setCursorPos(2, 7);    // middle of text - js
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
                 
                 // Mode for range - homogenous mode
                 myEditor.setSelection({line: 5, ch: 2}, {line: 5, ch: 14});
-                expect(myEditor.getModeForSelection()).toBe("html");
+                expectModeAndLang(myEditor, langNames.html);
                 myEditor.setSelection({line: 5, ch: 0}, {line: 6, ch: 0});  // whole line
-                expect(myEditor.getModeForSelection()).toBe("html");
+                expectModeAndLang(myEditor, langNames.html);
                 myEditor.setSelection({line: 2, ch: 4}, {line: 2, ch: 12});
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelection({line: 2, ch: 0}, {line: 3, ch: 0});  // whole line
-                expect(myEditor.getModeForSelection()).toBe("javascript");
+                expectModeAndLang(myEditor, langNames.javascript);
                 
                 // Mode for range - mix of modes
                 myEditor.setSelection({line: 2, ch: 4}, {line: 3, ch: 7});
-                expect(myEditor.getModeForSelection()).toBeNull();
+                expectModeAndLang(myEditor, langNames.unknown);
                 
                 // Mode for range - mix of modes where start & endpoints are same mode
                 // Known limitation of getModeForSelection() that it does not spot where the mode
                 // differs in mid-selection
                 myEditor.setSelection({line: 0, ch: 0}, {line: 6, ch: 14});  // select all
-                expect(myEditor.getModeForSelection()).toBe("html");
+                expectModeAndLang(myEditor, langNames.html);
             });
             
         });

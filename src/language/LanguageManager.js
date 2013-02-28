@@ -46,7 +46,7 @@
  *     language.setLineComment("--");
  *     language.setBlockComment("{-", "-}");
  *
- * Some CodeMirror modes define variations of themselves. The are called MIME modes.
+ * Some CodeMirror modes define variations of themselves. They are called MIME modes.
  * To find out existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
  * For instance, C++, C# and Java all use the clike mode.
  * You can refine the mode definition by specifying the MIME mode as well:
@@ -434,6 +434,8 @@ define(function (require, exports, module) {
         var mode = definition.mode;
         if (mode) {
             language._setMode(mode);
+        } else {
+            language._modeReady.reject();
         }
         
         return language;
@@ -462,18 +464,15 @@ define(function (require, exports, module) {
     html._setLanguageForMode("xml", html);
     
     // Currently we override the above mentioned "xml" in TokenUtils.getModeAt, instead returning "html".
-    // When the CSSInlineEditor and the hint providers are no longer based on moded, this can be changed.
+    // When the CSSInlineEditor and the hint providers are no longer based on modes, this can be changed.
     // But for now, we need to associate this madeup "html" mode with our HTML language object.
     _setLanguageForMode("html", html);
     
     // The fallback language for unknown modes and file extensions
     _fallbackLanguage = getLanguage("unknown");
     
-    
     // Public methods
-    module.exports = {
-        defineLanguage:              defineLanguage,
-        getLanguage:                 getLanguage,
-        getLanguageForFileExtension: getLanguageForFileExtension
-    };
+    exports.defineLanguage               = defineLanguage;
+    exports.getLanguage                  = getLanguage;
+    exports.getLanguageForFileExtension  = getLanguageForFileExtension;
 });
