@@ -136,7 +136,6 @@ define(function (require, exports, module) {
         return _serverStartupPromise;
     };
     
-    
     // projectOpen event handler
     function _projectOpen() {
         _serverStartupPromise = startServer();
@@ -150,8 +149,13 @@ define(function (require, exports, module) {
                 [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
                 true
             ).then(
-                startServer,
-                function () { console.error(arguments); }
+                function () {
+                    $(ProjectManager).on("projectOpen", _projectOpen);
+                    _projectOpen(); // handle setup for the first project opened
+                },
+                function () {
+                    console.error(arguments);
+                }
             );
         });
 
@@ -160,5 +164,4 @@ define(function (require, exports, module) {
         LiveDevServerManager.registerProvider(staticServerProvider, 5);
     });
 
-    $(ProjectManager).on("projectOpen", _projectOpen);
 });
