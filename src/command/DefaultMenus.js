@@ -31,11 +31,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit = require("utils/AppInit"),
-        Commands = require("command/Commands"),
-        EditorManager = require("editor/EditorManager"),
-        Menus = require("command/Menus"),
-        Strings = require("strings");
+    var AppInit         = require("utils/AppInit"),
+        Commands        = require("command/Commands"),
+        EditorManager   = require("editor/EditorManager"),
+        Menus           = require("command/Menus"),
+        Strings         = require("strings");
     
     AppInit.htmlReady(function () {
         /*
