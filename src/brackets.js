@@ -137,6 +137,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
