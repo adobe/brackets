@@ -38,11 +38,23 @@ define(function (require, exports, module) {
 
     /**
      * @const
+     * @type {number}
      * Amount of time to wait before automatically rejecting the connection
      * deferred. If we hit this timeout, we'll never have a node connection
      * for the static server in this run of Brackets.
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds
+    
+    /**
+     * @const
+     * @type {number}
+     * Amount of time to wait before giving an error that this particular
+     * live development launching has failed. Could timeout if it is taking
+     * an especially long time to create a server due to other high
+     * load on the node process.
+     */
+    var READY_TO_SERVE_TIMEOUT = 3000; // 3 seconds
+    
     
     /**
      * @private
@@ -70,7 +82,9 @@ define(function (require, exports, module) {
      */
     StaticServerProvider.prototype.canServe = function (localPath) {
 
-        if (!_nodeConnectionDeferred.isResolved()) {
+        if (_nodeConnectionDeferred.isRejected()) {
+            // connecting to node has completely failed, so we will
+            // never be able to use this provider
             return false;
         }
         
@@ -111,6 +125,15 @@ define(function (require, exports, module) {
     StaticServerProvider.prototype.readyToServe = function () {
         var readyToServeDeferred = $.Deferred();
 
+        // Setup timeout so that user isn't left waiting forever without feedback
+        var readyToServeTimeout = setTimeout(function () {
+            console.error("[StaticServer] Timed out while trying to start a new server in readyToServe");
+            readyToServeDeferred.reject();
+        }, READY_TO_SERVE_TIMEOUT);
+        readyToServeDeferred.always(function () {
+            clearTimeout(readyToServeTimeout);
+        });
+        
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.staticServer.getServer(
@@ -146,6 +169,7 @@ define(function (require, exports, module) {
             readyToServeDeferred.reject();
         });
         
+        
         return readyToServeDeferred.promise();
     };
 
@@ -176,23 +200,31 @@ define(function (require, exports, module) {
             console.error("[StaticServer] Timed out while trying to connect to node");
             _nodeConnectionDeferred.reject();
         }, NODE_CONNECTION_TIMEOUT);
+        _nodeConnectionDeferred.always(function () {
+            clearTimeout(connectionTimeout);
+        });
         
         var _nodeConnection = new NodeConnection();
-        _nodeConnection.connect(true).then(function () {
-            _nodeConnection.loadDomains(
-                [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
-                true
-            ).then(
-                function () {
-                    clearTimeout(connectionTimeout);
-                    _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
-                },
-                function () { // Failed to connect
-                    console.error("[StaticServer] Failed to connect to node", arguments);
-                    _nodeConnectionDeferred.reject();
-                }
-            );
-        });
+        _nodeConnection.connect(true).then(
+            function () { // Succeeded in connecting, now load domain
+                _nodeConnection.loadDomains(
+                    [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
+                    true
+                ).then(
+                    function () { // Succeeded in loading domain
+                        _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
+                    },
+                    function () { // Failed to load domain
+                        console.error("[StaticServer] Failed to load StaticServerDomain in node", arguments);
+                        _nodeConnectionDeferred.reject();
+                    }
+                );
+            },
+            function () { // Failed to connect
+                console.error("[StaticServer] Failed to connect to node", arguments);
+                _nodeConnectionDeferred.reject();
+            }
+        );
     });
 
     // For unit tests only
