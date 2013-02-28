@@ -44,44 +44,6 @@ define(function (require, exports, module) {
     var _nodeConnection = null;
 
     var _baseUrl = "";
-    
-    /**
-     * @private
-     * @type{?jQuery.Promise}
-     * Holds the most recent promise from startServer(). Used in
-     * StaticServerProvider.readyToServe
-     */
-    var _serverStartupPromise = null;
-
-    /**
-     * @private
-     * Calls staticServer.getServer to start a new server at the project root
-     *
-     * @return promise which is:
-     *      - rejected if there is no node connection
-     *      - resolved when staticServer.getServer() callback returns
-     */
-    function startServer() {
-        var deferred = $.Deferred();
-
-        if (_nodeConnection) {
-            var projectPath = ProjectManager.getProjectRoot().fullPath;
-            _nodeConnection.domains.staticServer.getServer(
-                projectPath
-            ).done(function (address) {
-                _baseUrl = "http://" + address.address + ":" + address.port + "/";
-                deferred.resolve();
-            }).fail(function () {
-                _baseUrl = "";
-                deferred.reject();
-            });
-        } else {
-            deferred.reject();
-        }
-
-        return deferred.promise();
-    }
-
 
     /**
      * @constructor
@@ -126,39 +88,87 @@ define(function (require, exports, module) {
     /**
      * # LiveDevServerProvider.readyToServe()
      *
-     * Used to check if the server has finished launching after opening
-     * the project.
+     * Gets the server details from the StaticServerDomain in node.
+     * Handles connecting to node and installing the domain if necessary.
+     * The domain itself handles starting a server if necessary (when
+     * the staticServer.getServer command is called).
      *
-     * @return {boolean + jQuery.Promise} Whether the server is ready
-     *    (possibly as a promise that resolves/rejects when ready/failed)
+     * @return {jQuery.Promise} A promise that resolves/rejects when 
+     *     the server is ready/failed.
      */
     StaticServerProvider.prototype.readyToServe = function () {
-        return _serverStartupPromise;
+        var readyToServeDeferred = $.Deferred();
+
+        function connectToNode() {
+            var connectToNodeDeferred = $.Deferred();
+            
+            if (!_nodeConnection) {
+                _nodeConnection = new NodeConnection();
+                _nodeConnection.connect(true).then(function () {
+                    _nodeConnection.loadDomains(
+                        [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
+                        true
+                    ).then(
+                        function () {
+                            connectToNodeDeferred.resolve();
+                        },
+                        function () { // Failed to connect
+                            console.error("[StaticServer] Failed to connect to node", arguments);
+                            connectToNodeDeferred.reject();
+                            _nodeConnection = null;
+                        }
+                    );
+                });
+            } else if (!_nodeConnection.connected()) {
+                // The connection is set to auto-reconnect. So, if we aren't
+                // currently connected but will be soon, we just need the user
+                // to wait. Unfortunately, we don't have the connection promise
+                // to wait on. So, we just rejecct this promise to show the
+                // error dialog that tells the user to try again. This case 
+                // should be rare -- it might happen if the user clicks the
+                // live development icon repeatedly. In that case, the error message
+                // telling the user to slow down is the right action.
+                connectToNodeDeferred.reject();
+            } else { // we're connected!
+                connectToNodeDeferred.resolve();
+            }
+            
+            return connectToNodeDeferred.promise();
+        }
+        
+        function startServerAfterNodeConnected() {
+            var startServerDeferred = $.Deferred();
+            var projectPath = ProjectManager.getProjectRoot().fullPath;
+            _nodeConnection.domains.staticServer.getServer(
+                projectPath
+            ).done(function (address) {
+                _baseUrl = "http://" + address.address + ":" + address.port + "/";
+                startServerDeferred.resolve();
+            }).fail(function () {
+                _baseUrl = "";
+                startServerDeferred.reject();
+            });
+            return startServerDeferred.promise();
+        }
+
+        // TODO: Clean this chaining up when utils/Async.chain is merged
+        // in to master (pull #2632).
+        connectToNode().then(
+            function () { // we connected to node
+                startServerAfterNodeConnected().then(
+                    function () { readyToServeDeferred.resolve(); },
+                    function () { readyToServeDeferred.reject(); }
+                );
+            },
+            function () { // we failed to connect to node
+                readyToServeDeferred.reject();
+            }
+        );
+        
+        return readyToServeDeferred.promise();
     };
-    
-    // projectOpen event handler
-    function _projectOpen() {
-        _serverStartupPromise = startServer();
-    }
 
     AppInit.appReady(function () {
-        // Create a new node connection and register our "connect" domain
-        _nodeConnection = new NodeConnection();
-        _nodeConnection.connect(true).then(function () {
-            _nodeConnection.loadDomains(
-                [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
-                true
-            ).then(
-                function () {
-                    $(ProjectManager).on("projectOpen", _projectOpen);
-                    _projectOpen(); // handle setup for the first project opened
-                },
-                function () {
-                    console.error(arguments);
-                }
-            );
-        });
-
         // Register as a Live Development server provider
         var staticServerProvider = new StaticServerProvider();
         LiveDevServerManager.registerProvider(staticServerProvider, 5);
