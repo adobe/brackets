@@ -42,7 +42,7 @@
     .code-font-win();
 }
 
-@code-padding: 1.2em;
+@code-padding: 15px;
 
 .cm-s-default {
     span.cm-keyword {color: @accent-keyword;}
@@ -105,8 +105,7 @@
     .CodeMirror-gutters {
         background-color: @background-color-3;
         border-right: none;
-        padding-top: @code-padding;
-        padding-bottom: @code-padding;
+        padding: @code-padding 0;
         min-width: 2.5em;
     }
     .CodeMirror-linenumber {

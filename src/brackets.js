@@ -95,6 +95,7 @@ define(function (require, exports, module) {
         ExtensionUtils          = require("utils/ExtensionUtils");
             
     // Load modules that self-register and just need to get included in the main project
+    require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
     require("view/ViewCommandHandlers");
@@ -137,6 +138,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
