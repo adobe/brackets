@@ -614,25 +614,19 @@ define(function LiveDevelopment(require, exports, module) {
                 } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
                     showWrongDocError();
                 } else {
-                    // fall-back to file://
-                    doLaunchAfterServerReady();
+                    doLaunchAfterServerReady();   // fall-back to file://
                 }
             } else {
                 var readyPromise = _serverProvider.readyToServe();
-                if (!readyPromise || readyPromise.isRejected()) {
+                if (!readyPromise) {
                     showLiveDevServerNotReadyError();
-                } else if (readyPromise.isResolved()) {
-                    doLaunchAfterServerReady();
                 } else {
-                     // readyPromise is not yet resolved
                     readyPromise.then(
                         doLaunchAfterServerReady,
                         showLiveDevServerNotReadyError
                     );
                 }
             }
-
-            
         }
 
         return promise;
