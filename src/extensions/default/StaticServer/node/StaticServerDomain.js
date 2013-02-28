@@ -32,6 +32,20 @@ maxerr: 50, node: true */
         connect = require('connect');
 
     /**
+     * When Chrome has a css stylesheet replaced over live development,
+     * it re-checks any image urls in the new css stylesheet. If it has
+     * to hit the server to check them, this is asynchronous, so it causes
+     * two re-layouts of the webpage, which causes flickering. By setting
+     * a max age of five seconds, Chrome won't bother to hit the server
+     * on each keystroke. So, flickers will happen at most once every five
+     * seconds.
+     *
+     * @const
+     * @type {number}
+     */
+    var STATIC_CACHE_MAX_AGE = 5000; // 5 seconds
+    
+    /**
      * @private
      * @type {Object.<string, http.Server>}
      * A map from root paths to server instances.
@@ -75,7 +89,7 @@ maxerr: 50, node: true */
         // JSLint complains if we use `connect.static` because static is a
         // reserved word.
         app.use(connect.favicon())
-            .use(connect["static"](path))
+            .use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }))
             .use(connect.directory(path));
 
         var server = http.createServer(app);
