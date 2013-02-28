@@ -70,7 +70,7 @@ define(function (require, exports, module) {
      */
     StaticServerProvider.prototype.canServe = function (localPath) {
 
-        if (_nodeConnectionDeferred.isRejected()) {
+        if (!_nodeConnectionDeferred.isResolved()) {
             return false;
         }
         
@@ -113,9 +113,8 @@ define(function (require, exports, module) {
 
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
-                var projectPath = ProjectManager.getProjectRoot().fullPath;
                 nodeConnection.domains.staticServer.getServer(
-                    projectPath
+                    ProjectManager.getProjectRoot().fullPath
                 ).done(function (address) {
                     _baseUrl = "http://" + address.address + ":" + address.port + "/";
                     readyToServeDeferred.resolve();
@@ -123,7 +122,10 @@ define(function (require, exports, module) {
                     _baseUrl = "";
                     readyToServeDeferred.reject();
                 });
-            } else { // nodeConnection not currently connected
+            } else {
+                // nodeConnection has been connected once (because the deferred
+                // resolved, but is not currently connected).
+                //
                 // If we are in this case, then the node process has crashed
                 // and is in the process of restarting. Once that happens, the
                 // node connection will automatically reconnect and reload the
@@ -131,6 +133,11 @@ define(function (require, exports, module) {
                 // to know when that happens. The best we can do is reject this
                 // readyToServe so that the user gets an error message to try
                 // again later.
+                //
+                // The user will get the error immediately in this state, and
+                // the new node process should start up in a matter of seconds
+                // (assuming there isn't a more widespread error). So, asking
+                // them to retry in a second is reasonable.
                 readyToServeDeferred.reject();
             }
         });
