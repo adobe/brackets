@@ -107,6 +107,7 @@ a, img {
         top: 0;
         left: 0;
         z-index: 1;
+        background: #E6E6E6;
     }
 }
 
@@ -118,11 +119,8 @@ a, img {
 .busyCursor {
     cursor: wait !important;
 }
-#main-toolbar .buttons {
-    vertical-align: middle;
-}
 #main-toolbar .buttons a {
-    margin: 0px 0px 10px 0px !important;
+    margin: 10px 0px 10px 0px !important;
     padding: 0 !important;
     position: static !important;
     top: 0 !important;
@@ -137,7 +135,7 @@ a, img {
     background-color: @background-color-3;
     border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
     box-sizing: border-box;
-    color: @bc-grey;
+    color: #808080;
     font-family: @fontstack-sans-serif;
     font-size: 0.9em;
     line-height: 1;
@@ -154,6 +152,7 @@ a, img {
     left: 8px;
     background-color: @background-color-3;
     white-space: nowrap;
+    margin-top: 5px;
     
     div {
         display: inline;
@@ -163,13 +162,16 @@ a, img {
     
 #status-indicators {
     position: absolute;
-    right: 4px;
+    right: 8px;
     background-color: @background-color-3;
     white-space: nowrap;
+    height: 100%;
     
     &>div {
-        display: inline;
-        margin-left: 20px;
+        display: inline-block;
+        height: 100%;
+        box-sizing: border-box;
+        padding: 5px 9px 0;
         
         &#busy-indicator {
             display: inline-block;
@@ -196,6 +198,11 @@ a, img {
     100% {
         -webkit-transform: rotate(360deg);
     }
+}
+
+#status-indent {
+    border-left: 1px solid #ebebeb;
+    border-right: 1px solid #ebebeb;
 }
 
 #status-indent > * {
