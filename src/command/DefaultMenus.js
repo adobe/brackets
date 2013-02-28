@@ -128,25 +128,6 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
 
         /*
-         * Debug menu
-         */
-        if (brackets.config.show_debug_menu) {
-            menu = Menus.addMenu(Strings.DEBUG_MENU, Menus.AppMenuBar.DEBUG_MENU);
-            menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
-            menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW);
-            menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
-            menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_ENABLE_NODE_DEBUGGER);
-            menu.addMenuItem(Commands.DEBUG_LOG_NODE_STATE);
-            menu.addMenuItem(Commands.DEBUG_RESTART_NODE);
-        }
-
-        /*
          * Help menu
          */
         menu = Menus.addMenu(Strings.HELP_MENU, Menus.AppMenuBar.HELP_MENU);

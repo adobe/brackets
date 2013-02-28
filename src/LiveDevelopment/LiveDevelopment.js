@@ -64,16 +64,17 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
     var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
 
-    var Dialogs             = require("widgets/Dialogs"),
-        DocumentManager     = require("document/DocumentManager"),
-        EditorManager       = require("editor/EditorManager"),
-        FileUtils           = require("file/FileUtils"),
-        NativeFileError     = require("file/NativeFileError"),
-        NativeApp           = require("utils/NativeApp"),
-        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
-        ProjectManager      = require("project/ProjectManager"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+    var Dialogs              = require("widgets/Dialogs"),
+        DocumentManager      = require("document/DocumentManager"),
+        EditorManager        = require("editor/EditorManager"),
+        FileUtils            = require("file/FileUtils"),
+        LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
+        NativeFileError      = require("file/NativeFileError"),
+        NativeApp            = require("utils/NativeApp"),
+        PreferencesDialogs   = require("preferences/PreferencesDialogs"),
+        ProjectManager       = require("project/ProjectManager"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils");
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -114,8 +115,9 @@ define(function LiveDevelopment(require, exports, module) {
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
-    var _liveDocument; // the document open for live editing.
-    var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
+    var _liveDocument;        // the document open for live editing.
+    var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
+    var _serverProvider;      // current LiveDevServerProvider
 
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -125,7 +127,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a URL to a local full file path */
     function _urlToPath(url) {
         var path,
-            baseUrl = ProjectManager.getBaseUrl();
+            baseUrl = "";
+
+        if (_serverProvider) {
+            baseUrl = _serverProvider.getBaseUrl();
+        }
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
             // Use base url to translate to local file path.
@@ -145,7 +151,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a local full file path to a URL */
     function _pathToUrl(path) {
         var url,
-            baseUrl = ProjectManager.getBaseUrl();
+            baseUrl = "";
+
+        if (_serverProvider) {
+            baseUrl = _serverProvider.getBaseUrl();
+        }
 
         // See if base url has been specified and path is within project
         if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
@@ -493,22 +503,18 @@ define(function LiveDevelopment(require, exports, module) {
                 });
         }
 
-        if (!doc || !doc.root) {
-            showWrongDocError();
-
-        } else {
-            if (!exports.config.experimental) {
-                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
-                    if (!ProjectManager.getBaseUrl()) {
-                        showNeedBaseUrlError();
-                        return promise;
-                    }
-                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
-                    showWrongDocError();
-                    return promise;
-                }
-            }
-
+        function showLiveDevServerNotReadyError() {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
+            );
+            result.reject();
+        }
+        
+        // helper function that actually does the launch once we are sure we have
+        // a doc and the server for that doc is up and running.
+        function doLaunchAfterServerReady() {
             var url = doc.root.url;
 
             _setStatus(STATUS_CONNECTING);
@@ -596,6 +602,32 @@ define(function LiveDevelopment(require, exports, module) {
                 }
             });
         }
+        
+        if (!doc || !doc.root) {
+            showWrongDocError();
+
+        } else {
+            _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
+            if (!exports.config.experimental && !_serverProvider) {
+                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
+                    showNeedBaseUrlError();
+                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
+                    showWrongDocError();
+                } else {
+                    doLaunchAfterServerReady();   // fall-back to file://
+                }
+            } else {
+                var readyPromise = _serverProvider.readyToServe();
+                if (!readyPromise) {
+                    showLiveDevServerNotReadyError();
+                } else {
+                    readyPromise.then(
+                        doLaunchAfterServerReady,
+                        showLiveDevServerNotReadyError
+                    );
+                }
+            }
+        }
 
         return promise;
     }
@@ -607,6 +639,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
         Inspector.disconnect();
         _setStatus(STATUS_INACTIVE);
+        _serverProvider = null;
     }
     
     /** Enable highlighting */
@@ -681,6 +714,61 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /**
+     * @constructor
+     *
+     * LiveDevServerProvider for user specified server as defined with Live Preview Base Url
+     * Project setting. In a clean installation of Brackets, this is the highest priority
+     * server provider, if defined.
+     */
+    function UserServerProvider() {}
+
+    /**
+     * Determines whether we can serve local file.
+     *
+     * @param {String} localPath
+     * A local path to file being served.
+     *
+     * @return {Boolean}
+     * true for yes, otherwise false.
+     */
+    UserServerProvider.prototype.canServe = function (localPath) {
+
+        var baseUrl = ProjectManager.getBaseUrl();
+        if (!baseUrl) {
+            return false;
+        }
+
+        if (!ProjectManager.isWithinProject(localPath)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    /**
+     * Returns a base url for current project.
+     *
+     * @return {String}
+     * Base url for current project.
+     */
+    UserServerProvider.prototype.getBaseUrl = function () {
+        return ProjectManager.getBaseUrl();
+    };
+
+    /**
+     * # LiveDevServerProvider.readyToServe()
+     *
+     * Used to check if the server has finished launching after opening
+     * the project. User is required to make sure their external sever
+     * is ready, so indicate that we're always ready.
+     *
+     * @return {jQuery.Promise} Promise that is already resolved
+     */
+    UserServerProvider.prototype.readyToServe = function () {
+        return $.Deferred().resolve().promise();
+    };
+
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -690,11 +778,20 @@ define(function LiveDevelopment(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
+
+        // Register user defined server provider
+        var userServerProvider = new UserServerProvider();
+        LiveDevServerManager.registerProvider(userServerProvider, 99);
+    }
+
+    function _setServerProvider(serverProvider) {
+        _serverProvider = serverProvider;
     }
 
     // For unit testing
     exports._pathToUrl          = _pathToUrl;
     exports._urlToPath          = _urlToPath;
+    exports._setServerProvider  = _setServerProvider;
 
     // Export public functions
     exports.agents              = agents;

@@ -106,7 +106,7 @@ define(function (require, exports, module) {
         var $lintResults = $("#jslint-results");
         var $goldStar = $("#gold-star");
         
-        if (getEnabled() && /^(\.js|\.htm|\.html)$/i.test(ext)) {
+        if (getEnabled() && /^\.js$/i.test(ext)) {
             perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
             var text = currentDoc.getText();
             
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
                             $selectedRow = $row;
                             
                             var editor = EditorManager.getCurrentFullEditor();
-                            editor.setCursorPos(item.line - 1, item.character - 1);
+                            editor.setCursorPos(item.line - 1, item.character - 1, true);
                             EditorManager.focusEditor();
                         };
                         $row.click(clickCallback);

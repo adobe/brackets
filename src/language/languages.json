@@ -1,0 +1,154 @@
+{
+    "unknown": {
+        "name": "Text"
+    },
+
+    "css": {
+        "name": "CSS",
+        "mode": "css",
+        "fileExtensions": ["css"],
+        "blockComment": ["/*", "*/"]
+    },
+    
+    "html": {
+        "name": "HTML",
+        "mode": ["htmlmixed", "text/x-brackets-html"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht"],
+        "blockComment": ["<!--", "-->"]
+    },
+    
+    "javascript": {
+        "name": "JavaScript",
+        "mode": "javascript",
+        "fileExtensions": ["js", "jsx"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+    },
+    
+    "json": {
+        "name": "JSON",
+        "mode": ["javascript", "application/json"],
+        "fileExtensions": ["json"]
+    },
+    
+    "xml": {
+        "name": "XML",
+        "mode": "xml",
+        "fileExtensions": ["svg", "xml", "wxs", "wxl"]
+    },
+    
+    "php": {
+        "name": "PHP",
+        "mode": "php",
+        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"]
+    },
+    
+    "c": {
+        "name": "C",
+        "mode": ["clike", "text/x-csrc"],
+        "fileExtensions": ["c", "h", "i"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+    },
+    
+    "cpp": {
+        "name": "C++",
+        "mode": ["clike", "text/x-c++src"],
+        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+    },
+    
+    "csharp": {
+        "name": "C#",
+        "mode": ["clike", "text/x-csharp"],
+        "fileExtensions": ["cs"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+    },
+    
+    "clike": {
+        "name": "clike",
+        "mode": "clike",
+        "blockComment": ["/*", "*/"],
+        "lineComment": "//"
+    },
+    
+    "java": {
+        "name": "Java",
+        "mode": ["clike", "text/x-java"],
+        "fileExtensions": ["java"]
+    },
+
+    "coffeescript": {
+        "name": "CoffeeScript",
+        "mode": "coffeescript",
+        "fileExtensions": ["coffee"]
+    },
+
+    "clojure": {
+        "name": "Clojure",
+        "mode": "clojure",
+        "fileExtensions": ["clj"]
+    },
+
+    "perl": {
+        "name": "Perl",
+        "mode": "perl",
+        "fileExtensions": ["pl", "pm"]
+    },
+    
+    "ruby": {
+        "name": "Ruby",
+        "mode": "ruby",
+        "fileExtensions": ["rb"]
+    },
+    
+    "python": {
+        "name": "Python",
+        "mode": "python",
+        "fileExtensions": ["py", "pyw"]
+    },
+    
+    "sass": {
+        "name": "SASS",
+        "mode": "sass",
+        "fileExtensions": ["sass", "scss"]
+    },
+
+    "lua": {
+        "name": "Lua",
+        "mode": "lua",
+        "fileExtensions": ["lua"]
+    },
+
+    "sql": {
+        "name": "SQL",
+        "mode": "mysql",
+        "fileExtensions": ["sql"]
+    },
+
+    "diff": {
+        "name": "Diff",
+        "mode": "diff",
+        "fileExtensions": ["diff", "patch"]
+    },
+    
+    "markdown": {
+        "name": "Markdown",
+        "mode": "markdown",
+        "fileExtensions": ["md", "markdown"]
+    },
+    
+    "yaml": {
+        "name": "YAML",
+        "mode": "yaml",
+        "fileExtensions": ["yaml", "yml"]
+    },
+    
+    "hx": {
+        "name": "Haxe",
+        "mode": "haxe",
+        "fileExtensions": ["hx"]
+    }
+}

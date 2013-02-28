@@ -91,6 +91,7 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
+        NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils");
             
     // Load modules that self-register and just need to get included in the main project
@@ -98,7 +99,6 @@ define(function (require, exports, module) {
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
     require("view/ViewCommandHandlers");
-    require("debug/DebugCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
@@ -138,6 +138,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
@@ -219,6 +220,15 @@ define(function (require, exports, module) {
                     
                     PerfUtils.addMeasurement("Application Startup");
                 });
+                
+                // See if any startup files were passed to the application
+                if (brackets.app.getPendingFilesToOpen) {
+                    brackets.app.getPendingFilesToOpen(function (err, files) {
+                        files.forEach(function (filename) {
+                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
+                        });
+                    });
+                }
             });
         });
         

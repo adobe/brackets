@@ -104,7 +104,7 @@ define(function (require, exports, module) {
 
         var from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
         var to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
-        EditorManager.getCurrentFullEditor().setSelection(from, to);
+        EditorManager.getCurrentFullEditor().setSelection(from, to, true);
     }
 
     function itemSelect(selectedItem) {
