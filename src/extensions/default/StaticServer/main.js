@@ -44,6 +44,50 @@ define(function (require, exports, module) {
     var _nodeConnection = null;
 
     var _baseUrl = "";
+    
+    /**
+     * @private
+     * @type{?jQuery.Promise}
+     * Holds the most recent promise from startServer(). Used in
+     * StaticServerProvider.readyToServe
+     */
+    var _serverStartupPromise = null;
+    
+    /**
+     * @private
+     * @type{StaticServerProvider}
+     * Stores the singleton StaticServerProvider for use in unit testing.
+     */
+    var _staticServerProvider;
+
+    /**
+     * @private
+     * Calls staticServer.getServer to start a new server at the project root
+     *
+     * @return promise which is:
+     *      - rejected if there is no node connection
+     *      - resolved when staticServer.getServer() callback returns
+     */
+    function startServer() {
+        var deferred = $.Deferred();
+
+        if (_nodeConnection) {
+            var projectPath = ProjectManager.getProjectRoot().fullPath;
+            _nodeConnection.domains.staticServer.getServer(
+                projectPath
+            ).done(function (address) {
+                _baseUrl = "http://" + address.address + ":" + address.port + "/";
+                deferred.resolve();
+            }).fail(function () {
+                _baseUrl = "";
+                deferred.reject();
+            });
+        } else {
+            deferred.reject();
+        }
+
+        return deferred.promise();
+    }
 
     /**
      * @constructor
@@ -168,10 +212,21 @@ define(function (require, exports, module) {
         return readyToServeDeferred.promise();
     };
 
+    /**
+     * @private
+     * @return {StaticServerProvider} The singleton StaticServerProvider initialized
+     * on app ready.
+     */
+    function _getStaticServerProvider() {
+        return _staticServerProvider;
+    }
+
     AppInit.appReady(function () {
         // Register as a Live Development server provider
-        var staticServerProvider = new StaticServerProvider();
-        LiveDevServerManager.registerProvider(staticServerProvider, 5);
+        _staticServerProvider = new StaticServerProvider();
+        LiveDevServerManager.registerProvider(_staticServerProvider, 5);
     });
 
+    // For unit tests only
+    exports._getStaticServerProvider = _getStaticServerProvider;
 });
