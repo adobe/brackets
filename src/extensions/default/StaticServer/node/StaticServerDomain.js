@@ -28,8 +28,8 @@ maxerr: 50, node: true */
 (function () {
     "use strict";
     
-    var http    = require('http'),
-        connect = require('connect');
+    var http    = require("http"),
+        connect = require("connect");
 
     /**
      * When Chrome has a css stylesheet replaced over live development,
@@ -80,7 +80,7 @@ maxerr: 50, node: true */
                     cb(null, res);
                 }
             );
-            req.on('error', function (err) {
+            req.on("error", function (err) {
                 cb(err, null);
             });
         }
@@ -93,7 +93,7 @@ maxerr: 50, node: true */
             .use(connect.directory(path));
 
         var server = http.createServer(app);
-        server.listen(0, '127.0.0.1', function () {
+        server.listen(0, "127.0.0.1", function () {
             requestRoot(
                 server,
                 function (err, res) {
@@ -107,6 +107,8 @@ maxerr: 50, node: true */
         });
     }
 
+    var PATH_KEY_PREFIX = "LiveDev_";
+    
     /**
      * @private
      * Handler function for the staticServer.getServer command. If a server
@@ -122,7 +124,7 @@ maxerr: 50, node: true */
      */
     function _cmdGetServer(path, cb) {
         // Make sure the key doesn't conflict with some built-in property of Object.
-        var pathKey = "LiveDev_" + path;
+        var pathKey = PATH_KEY_PREFIX + path;
         if (_servers[pathKey]) {
             cb(null, _servers[pathKey].address());
         } else {
@@ -135,6 +137,29 @@ maxerr: 50, node: true */
                 }
             });
         }
+    }
+    
+    /**
+     * @private
+     * Handler function for the staticServer.closeServer command. If a server
+     * exists for the given path, closes it, otherwise does nothing. Note that
+     * this function doesn't wait for the actual socket to close, since the
+     * server will actually wait for all client connections to close (which can
+     * be awhile); but once it returns, you're guaranteed to get a different
+     * server the next time you call getServer() on the same path.
+     *
+     * @param {string} path The absolute path whose server we should close.
+     * @return {boolean} true if there was a server for that path, false otherwise
+     */
+    function _cmdCloseServer(path, cba) {
+        var pathKey = PATH_KEY_PREFIX + path;
+        if (_servers[pathKey]) {
+            var serverToClose = _servers[pathKey];
+            delete _servers[pathKey];
+            serverToClose.close();
+            return true;
+        }
+        return false;
     }
     
     /**
@@ -152,8 +177,33 @@ maxerr: 50, node: true */
             _cmdGetServer,
             true,
             "Starts or returns an existing server for the given path.",
-            [{name: "path", type: "string"}],
-            [{name: "address", type: "{address: string, family: string, port: number}"}]
+            [{
+                name: "path",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "address",
+                type: "{address: string, family: string, port: number}",
+                description: "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
+            }]
+        );
+        _domainManager.registerCommand(
+            "staticServer",
+            "closeServer",
+            _cmdCloseServer,
+            false,
+            "Closes the server for the given path.",
+            [{
+                name: "path",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "result",
+                type: "boolean",
+                description: "indicates whether a server was found for the specific path then closed"
+            }]
         );
     }
     
