@@ -22,19 +22,22 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine*/
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
 
-    var SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        CommandManager,
+    var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+        PreferencesDialogs      = require("preferences/PreferencesDialogs"),
+        Strings                 = require("strings"),
+        StringUtils             = require("utils/StringUtils");
+
+    // The following are all loaded from the test window
+    var CommandManager,
         Commands,
-        NativeApp,      //The following are all loaded from the test window
+        NativeApp,
         LiveDevelopment,
+        LiveDevServerManager,
         DOMAgent,
         Inspector,
         DocumentManager,
@@ -126,15 +129,16 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 runs(function () {
                     SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                        testWindow          = w;
-                        LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
-                        DOMAgent            = testWindow.brackets.test.DOMAgent;
-                        Inspector           = testWindow.brackets.test.Inspector;
-                        DocumentManager     = testWindow.brackets.test.DocumentManager;
-                        CommandManager      = testWindow.brackets.test.CommandManager;
-                        Commands            = testWindow.brackets.test.Commands;
-                        NativeApp           = testWindow.brackets.test.NativeApp;
-                        ProjectManager      = testWindow.brackets.test.ProjectManager;
+                        testWindow           = w;
+                        LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
+                        LiveDevServerManager = testWindow.brackets.test.LiveDevServerManager;
+                        DOMAgent             = testWindow.brackets.test.DOMAgent;
+                        Inspector            = testWindow.brackets.test.Inspector;
+                        DocumentManager      = testWindow.brackets.test.DocumentManager;
+                        CommandManager       = testWindow.brackets.test.CommandManager;
+                        Commands             = testWindow.brackets.test.Commands;
+                        NativeApp            = testWindow.brackets.test.NativeApp;
+                        ProjectManager       = testWindow.brackets.test.ProjectManager;
                     });
 
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -380,8 +384,9 @@ define(function (require, exports, module) {
                 var projectPath     = testPath + "/",
                     outsidePath     = testPath.substr(0, testPath.lastIndexOf("/") + 1),
                     fileProtocol    = (testWindow.brackets.platform === "win") ? "file:///" : "file://",
-                    baseUrl         = "http://localhost/",
-                    fileRelPath     = "subdir/index.html";
+                    fileRelPath     = "subdir/index.html",
+                    baseUrl,
+                    provider;
 
                 // File paths used in tests:
                 //  * file1 - file inside  project
@@ -391,27 +396,63 @@ define(function (require, exports, module) {
                     file2Path       = outsidePath + fileRelPath,
                     file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
                     file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
+                    file1ServerUrl;
+
+                // Should use file url when no server provider
+                runs(function () {
+                    LiveDevelopment._setServerProvider(null);
+                    expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1FileUrl);
+                    expect(LiveDevelopment._urlToPath(file1FileUrl)).toBe(file1Path);
+                    expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                    expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+                });
+
+
+                // Use node server base url
+                runs(function () {
+                    provider = LiveDevServerManager.getProvider(file1Path);
+                    expect(provider).toBeTruthy();
+
+                    // Wait until provider is ready to serve
+                    var promise = (provider) ? provider.readyToServe() : null;
+                    waitsForDone(promise, "Waiting for LiveDevServerProvider to become ready to serve", 1000);
+                });
+
+                runs(function () {
+                    LiveDevelopment._setServerProvider(provider);
+                    baseUrl         = (provider) ? provider.getBaseUrl() : "";
                     file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
 
-                // Should use file url when no base url
-                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1FileUrl);
-                expect(LiveDevelopment._urlToPath(file1FileUrl)).toBe(file1Path);
-                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
-                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+                    // Should use server url with base url
+                    expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
+                    expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
 
-                // Set base url
-                ProjectManager.setBaseUrl(baseUrl);
+                    // File outside project should still use file url
+                    expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                    expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+                });
 
-                // Should use server url with base url
-                expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
-                expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
 
-                // File outside project should still use file url
-                expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
-                expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+                // Set user defined base url, and then get provider
+                runs(function () {
+                    baseUrl         = "http://localhost/";
+                    file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
+                    ProjectManager.setBaseUrl(baseUrl);
+                    provider = LiveDevServerManager.getProvider(file1Path);
+                    expect(provider).toBeTruthy();
+                    LiveDevelopment._setServerProvider(provider);
 
-                // Clear base url
-                ProjectManager.setBaseUrl("");
+                    // Should use server url with base url
+                    expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
+                    expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
+
+                    // File outside project should still use file url
+                    expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
+                    expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
+
+                    // Clear base url
+                    ProjectManager.setBaseUrl("");
+                });
             });
         });
 
