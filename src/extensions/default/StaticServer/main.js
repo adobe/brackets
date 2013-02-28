@@ -165,6 +165,18 @@ define(function (require, exports, module) {
         return _staticServerProvider;
     }
 
+    /**
+     * Allows access to the deferred that manages the node connection. This
+     * is *only* for unit tests. Messing with this not in testing will
+     * potentially break everything.
+     *
+     * @private
+     * @return {jQuery.Deferred} The deferred that manages the node connection
+     */
+    function _getNodeConnectionDeferred() {
+        return _nodeConnectionDeferred;
+    }
+    
     AppInit.appReady(function () {
         // Register as a Live Development server provider
         LiveDevServerManager.registerProvider(_staticServerProvider, 5);
@@ -193,8 +205,13 @@ define(function (require, exports, module) {
                 }
             );
         });
+        
+        if (brackets.test) {
+            brackets.test.extensions.StaticServer = module.exports;
+        }
     });
 
     // For unit tests only
     exports._getStaticServerProvider = _getStaticServerProvider;
+    exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
 });
