@@ -55,11 +55,11 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Calls connect.startServer to start a new server at the project root
+     * Calls staticServer.getServer to start a new server at the project root
      *
      * @return promise which is:
      *      - rejected if there is no node connection
-     *      - resolved when staticServer.startServer() callback returns
+     *      - resolved when staticServer.getServer() callback returns
      */
     function startServer() {
         var deferred = $.Deferred();

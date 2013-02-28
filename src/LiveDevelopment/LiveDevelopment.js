@@ -611,10 +611,8 @@ define(function LiveDevelopment(require, exports, module) {
             if (!exports.config.experimental && !_serverProvider) {
                 if (FileUtils.isServerHtmlFileExt(doc.extension)) {
                     showNeedBaseUrlError();
-                    return promise;
                 } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
                     showWrongDocError();
-                    return promise;
                 }
             } else {
                 var readyPromise = _serverProvider.readyToServe();
@@ -771,7 +769,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {jQuery.Promise} Promise that is already resolved
      */
     UserServerProvider.prototype.readyToServe = function () {
-        return $.Deferred().resolve();
+        return $.Deferred().resolve().promise();
     };
 
     /** Initialize the LiveDevelopment Session */
