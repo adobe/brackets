@@ -52,6 +52,13 @@ define(function (require, exports, module) {
      * StaticServerProvider.readyToServe
      */
     var _serverStartupPromise = null;
+    
+    /**
+     * @private
+     * @type{StaticServerProvider}
+     * Stores the singleton StaticServerProvider for use in unit testing.
+     */
+    var _staticServerProvider;
 
     /**
      * @private
@@ -140,6 +147,15 @@ define(function (require, exports, module) {
     function _projectOpen() {
         _serverStartupPromise = startServer();
     }
+    
+    /**
+     * @private
+     * @return {StaticServerProvider} The singleton StaticServerProvider initialized
+     * on app ready.
+     */
+    function _getStaticServerProvider() {
+        return _staticServerProvider;
+    }
 
     AppInit.appReady(function () {
         // Create a new node connection and register our "connect" domain
@@ -160,8 +176,10 @@ define(function (require, exports, module) {
         });
 
         // Register as a Live Development server provider
-        var staticServerProvider = new StaticServerProvider();
-        LiveDevServerManager.registerProvider(staticServerProvider, 5);
+        _staticServerProvider = new StaticServerProvider();
+        LiveDevServerManager.registerProvider(_staticServerProvider, 5);
     });
 
+    // For unit tests only
+    exports._getStaticServerProvider = _getStaticServerProvider;
 });
