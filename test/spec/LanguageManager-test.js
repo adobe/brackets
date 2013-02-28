@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, CodeMirror, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail */
+/*global define, $, describe, CodeMirror, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
@@ -36,6 +36,10 @@ define(function (require, exports, module) {
     
     describe("LanguageManager", function () {
         
+        beforeEach(function () {
+            waitsForDone(LanguageManager.ready, "LanguageManager ready", 10000);
+        });
+        
         function defineLanguage(definition) {
             var def = $.extend({}, definition);
             
@@ -47,18 +51,7 @@ define(function (require, exports, module) {
                 def.lineComment = def.lineComment.prefix;
             }
             
-            var promise = LanguageManager.defineLanguage(definition.id, def),
-                language;
-            
-            if (definition.id) {
-                try {
-                    language = LanguageManager.getLanguage(definition.id);
-                } catch (e) {
-                    // Ignore errors here, this should be tested seperately
-                }
-            }
-            
-            return { promise: promise, language: language };
+            return LanguageManager.defineLanguage(definition.id, def);
         }
         
         function validateLanguage(expected, actual) {
@@ -70,7 +63,6 @@ define(function (require, exports, module) {
             
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
-            
             expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
             
             if (expected.blockComment) {
@@ -140,18 +132,21 @@ define(function (require, exports, module) {
                 var language,
                     promise,
                     def = { id: "one", name: "One", mode: "" };
+                
+                spyOn(console, "error");
 
                 runs(function () {
-                    defineLanguage(def).promise.done(function (lang) {
+                    defineLanguage(def).done(function (lang) {
                         language = lang;
                     });
                 });
                 
                 waitsFor(function () {
                     return Boolean(language);
-                }, "The language should be resolved", 50);
+                }, "The language should be resolved", 0);
                 
                 runs(function () {
+                    expect(console.error).toHaveBeenCalledWith("Mode must be specified as a built-in CodeMirror mode or 'text/plain'");
                     validateLanguage(def, language);
                 });
             });
@@ -167,30 +162,58 @@ define(function (require, exports, module) {
                 expect(function () { defineLanguage({ id: "three", name: "" }); }).toThrow(new Error("name must not be empty"));
             });
             
-            it("should throw errors for missing mode value", function () {
-                expect(function () { defineLanguage({ id: "four", name: "Four" }); }).toThrow(new Error("mode must be a string"));
+            it("should log errors for missing mode value", function () {
+                spyOn(console, "error");
+                defineLanguage({ id: "four", name: "Four" });
+                expect(console.error).toHaveBeenCalledWith("Mode must be specified as a built-in CodeMirror mode or 'text/plain'");
             });
             
             it("should create a language with file extensions and a mode", function () {
-                var def     = { id: "pascal", name: "Pascal", fileExtensions: ["pas", "p"], mode: "pascal" },
-                    lang    = defineLanguage(def).language;
+                var def = { id: "pascal", name: "Pascal", fileExtensions: ["pas", "p"], mode: "pascal" },
+                    language;
                 
-                expect(LanguageManager.getLanguageForFileExtension("file.p")).toBe(lang);
+                runs(function () {
+                    defineLanguage(def).done(function (lang) {
+                        language = lang;
+                    });
+                });
                 
-                validateLanguage(def, lang);
+                waitsFor(function () {
+                    return Boolean(language);
+                }, "The language should be resolved", 50);
+                
+                runs(function () {
+                    expect(LanguageManager.getLanguageForFileExtension("file.p")).toBe(language);
+                    validateLanguage(def, language);
+                });
             });
             
             it("should allow multiple languages to use the same mode", function () {
-                var xmlBefore   = LanguageManager.getLanguage("xml"),
+                var xmlBefore,
                     def         = { id: "wix", name: "WiX", fileExtensions: ["wix"], mode: "xml" },
-                    lang        = defineLanguage(def).language,
-                    xmlAfter    = LanguageManager.getLanguage("xml");
+                    lang,
+                    xmlAfter;
                 
-                expect(xmlBefore).toBe(xmlAfter);
-                expect(LanguageManager.getLanguageForFileExtension("file.wix")).toBe(lang);
-                expect(LanguageManager.getLanguageForFileExtension("file.xml")).toBe(xmlAfter);
+                runs(function () {
+                    xmlBefore = LanguageManager.getLanguage("xml");
+                    
+                    defineLanguage(def).done(function (language) {
+                        lang = language;
+                        xmlAfter = LanguageManager.getLanguage("xml");
+                    });
+                });
                 
-                validateLanguage(def, lang);
+                waitsFor(function () {
+                    return Boolean(lang);
+                }, "The language should be resolved", 50);
+                
+                runs(function () {
+                    expect(xmlBefore).toBe(xmlAfter);
+                    expect(LanguageManager.getLanguageForFileExtension("file.wix")).toBe(lang);
+                    expect(LanguageManager.getLanguageForFileExtension("file.xml")).toBe(xmlAfter);
+                    
+                    validateLanguage(def, lang);
+                });
             });
             
             // FIXME: Add internal LanguageManager._reset()
@@ -198,48 +221,66 @@ define(function (require, exports, module) {
             it("should return an error if a language is already defined", function () {
                 var def = { id: "pascal", name: "Pascal", fileExtensions: ["pas", "p"], mode: "pascal" };
                 
-                expect(function () { defineLanguage(def); }).toThrow(new Error('Language "pascal" is already defined'));
+                runs(function () {
+                    expect(function () { defineLanguage(def); }).toThrow(new Error('Language "pascal" is already defined'));
+                });
             });
             
             it("should validate comment prefix/suffix", function () {
-                var def     = { id: "coldfusion", name: "ColdFusion", fileExtensions: ["cfml", "cfm"], mode: "xml" },
-                    lang    = defineLanguage(def).language;
+                var def = { id: "coldfusion", name: "ColdFusion", fileExtensions: ["cfml", "cfm"], mode: "xml" },
+                    language;
                 
-                expect(function () { lang.setLineCommentSyntax("");           }).toThrow(new Error("prefix must not be empty"));
-                expect(function () { lang.setBlockCommentSyntax("<!---", ""); }).toThrow(new Error("suffix must not be empty"));
-                expect(function () { lang.setBlockCommentSyntax("", "--->");  }).toThrow(new Error("prefix must not be empty"));
+                runs(function () {
+                    defineLanguage(def).done(function (lang) {
+                        language = lang;
+                    });
+                });
                 
-                def.lineComment = {
-                    prefix: "//"
-                };
-                def.blockComment = {
-                    prefix: "<!---",
-                    suffix: "--->"
-                };
+                waitsFor(function () {
+                    return Boolean(language);
+                }, "The language should be resolved", 50);
                 
-                lang.setLineCommentSyntax(def.lineComment.prefix);
-                lang.setBlockCommentSyntax(def.blockComment.prefix, def.blockComment.suffix);
-                
-                validateLanguage(def, lang);
+                runs(function () {
+                    expect(function () { language.setLineCommentSyntax("");           }).toThrow(new Error("prefix must not be empty"));
+                    expect(function () { language.setBlockCommentSyntax("<!---", ""); }).toThrow(new Error("suffix must not be empty"));
+                    expect(function () { language.setBlockCommentSyntax("", "--->");  }).toThrow(new Error("prefix must not be empty"));
+                    
+                    def.lineComment = {
+                        prefix: "//"
+                    };
+                    def.blockComment = {
+                        prefix: "<!---",
+                        suffix: "--->"
+                    };
+                    
+                    language.setLineCommentSyntax(def.lineComment.prefix);
+                    language.setBlockCommentSyntax(def.blockComment.prefix, def.blockComment.suffix);
+                    
+                    validateLanguage(def, language);
+                });
             });
             
             it("should load a built-in CodeMirror mode", function () {
-                var id = "erlang";
+                var id          = "erlang",
+                    def         = { id: id, name: "erlang", fileExtensions: ["erlang"], mode: "erlang" },
+                    language;
                 
                 runs(function () {
                     // erlang is not defined in the default set of languages in languages.json
                     expect(CodeMirror.modes[id]).toBe(undefined);
                     
-                    var def     = { id: id, name: "erlang", fileExtensions: ["erlang"], mode: "erlang" },
-                        defRes  = defineLanguage(def),
-                        lang    = defRes.language,
-                        promise = defRes.promise;
-                    
-                    expect(LanguageManager.getLanguageForFileExtension("file.erlang")).toBe(lang);
-                    
-                    validateLanguage(def, lang);
-                    
-                    waitsForDone(promise, "should resolve language Erlang", 10000);
+                    defineLanguage(def).done(function (lang) {
+                        language = lang;
+                    });
+                });
+                
+                waitsFor(function () {
+                    return Boolean(language);
+                }, "The language should be resolved", 50);
+                
+                runs(function () {
+                    expect(LanguageManager.getLanguageForFileExtension("file.erlang")).toBe(language);
+                    validateLanguage(def, language);
                 });
                 
                 runs(function () {

@@ -89,7 +89,7 @@ define(function (require, exports, module) {
     
     
     // Dependencies
-    var CollectionUtils       = require("utils/CollectionUtils"),
+    var Async                 = require("utils/Async"),
         _defaultLanguagesJSON = require("text!language/languages.json");
     
     
@@ -97,8 +97,8 @@ define(function (require, exports, module) {
     var _fallbackLanguage           = null,
         _languages                  = {},
         _fileExtensionToLanguageMap = {},
-        _modeToLanguageMap          = {};
-    
+        _modeToLanguageMap          = {},
+        _ready;
     
     // Helper functions
     
@@ -138,9 +138,7 @@ define(function (require, exports, module) {
         }
         
         // Make checks below case-INsensitive
-        extension = extension.toLowerCase();
-        
-        return extension;
+        return extension.toLowerCase();
     }
     
     /**
@@ -224,7 +222,7 @@ define(function (require, exports, module) {
         _validateString(id, "Language ID");
         // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
         // Hence we use "_" instead of "." since the latter often has special meaning
-        if (!id.match(/^[a-z]+(_[a-z]+)*$/)) {
+        if (!id.match(/^[a-zA-Z]+(_[a-zA-Z]+)*$/)) {
             throw new Error("Invalid language ID \"" + id + "\": Only groups of letters a-z are allowed, separated by _ (i.e. \"cpp\" or \"foo_bar\")");
         }
         if (_languages[id]) {
@@ -238,13 +236,29 @@ define(function (require, exports, module) {
         
         this._fileExtensions    = [];
         this._modeToLanguageMap = {};
-        
-        _languages[id] = this;
     }
     
     
     /** @type {string} Identifier for this language */
     Language.prototype._id = null;
+    
+    /** @type {string} Human-readable name of this language */
+    Language.prototype._name = null;
+    
+    /** @type {string} CodeMirror mode for this language */
+    Language.prototype._mode = null;
+    
+    /** @type {Array.<string>} File extensions that use this language */
+    Language.prototype._fileExtensions = null;
+    
+    /** @type {{ prefix: string }} Line comment syntax */
+    Language.prototype._lineCommentSyntax = null;
+    
+    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
+    Language.prototype._modeToLanguageMap = null;
+    
+    /** @type {{ prefix: string, suffix: string }} Block comment syntax */
+    Language.prototype._blockCommentSyntax = null;
     
     /**
      * Returns the identifier for this language.
@@ -254,10 +268,6 @@ define(function (require, exports, module) {
         return this._id;
     };
 
-    
-    /** @type {string} Human-readable name of this language */
-    Language.prototype._name = null;
-    
     /**
      * Returns the human-readable name of this language.
      * @return {string} The name
@@ -265,10 +275,6 @@ define(function (require, exports, module) {
     Language.prototype.getName = function () {
         return this._name;
     };
-    
-    
-    /** @type {string} CodeMirror mode for this language */
-    Language.prototype._mode = null;
     
     /**
      * Returns the CodeMirror mode for this language.
@@ -281,17 +287,17 @@ define(function (require, exports, module) {
     /**
      * Loads a mode and sets it for this language.
      * 
-     * @param {string|Array.<string>} mode CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
-     *                                     Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     * @param {string|Array.<string>} mode            CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     *                                                Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     * @param {Array.<string>}        fileExtensions  List of file extensions used by this language (i.e. ["php", "php3"])
      *
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
-    Language.prototype._loadAndSetMode = function (mode) {
-        var result = new $.Deferred();
+    Language.prototype._loadAndSetMode = function (mode, fileExtensions) {
+        var result      = new $.Deferred(),
+            self        = this,
+            mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
         
-        var language = this;
-        // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
-        var mimeMode;
         if (Array.isArray(mode)) {
             if (mode.length !== 2) {
                 throw new Error("Mode must either be a string or an array containing two strings");
@@ -300,12 +306,16 @@ define(function (require, exports, module) {
             mode = mode[0];
         }
 
-        _validateString(mode, "mode");
+        // special handling for mode, require explicit declaration of "text/plain" if no mode is specified
+        if (!mode || mode === "") {
+            console.error("Mode must be specified as a built-in CodeMirror mode or 'text/plain'");
+            mode = "text/plain";
+        }
         
         var finish = function () {
             var i;
             
-            if (mode !== "" && !CodeMirror.modes[mode]) {
+            if (mode !== "text/plain" && !CodeMirror.modes[mode]) {
                 result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
                 return;
             }
@@ -324,13 +334,23 @@ define(function (require, exports, module) {
             
             // This mode is now only about what to tell CodeMirror
             // The base mode was only necessary to load the proper mode file
-            language._mode = mimeMode || mode;
-            _setLanguageForMode(language._mode, language);
+            self._mode = mimeMode || mode;
+            _setLanguageForMode(self._mode, self);
             
-            result.resolve();
+            // register language file extensions after mode has loaded
+            if (fileExtensions) {
+                for (i = 0; i < fileExtensions.length; i++) {
+                    self._addFileExtension(fileExtensions[i]);
+                }
+            }
+            
+            // finally, store lanuage to _language map
+            _languages[self.getId()] = self;
+            
+            result.resolve(self);
         };
         
-        if (mode === "" || CodeMirror.modes[mode]) {
+        if (mode === "text/plain" || CodeMirror.modes[mode]) {
             finish();
         } else {
             require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
@@ -338,10 +358,6 @@ define(function (require, exports, module) {
         
         return result.promise();
     };
-    
-    
-    /** @type {Array.<string>} File extensions that use this language */
-    Language.prototype._fileExtensions = null;
     
     /**
      * Returns an array of file extensions for this language.
@@ -373,10 +389,6 @@ define(function (require, exports, module) {
             }
         }
     };
-    
-
-    /** @type {{ prefix: string }} Line comment syntax */
-    Language.prototype._lineCommentSyntax = null;
 
     /**
      * Returns whether the line comment syntax is defined for this language.
@@ -406,10 +418,6 @@ define(function (require, exports, module) {
         
         this._lineCommentSyntax = { prefix: prefix };
     };
-    
-
-    /** @type {{ prefix: string, suffix: string }} Block comment syntax */
-    Language.prototype._blockCommentSyntax = null;
     
     /**
      * Returns whether the block comment syntax is defined for this language.
@@ -452,10 +460,6 @@ define(function (require, exports, module) {
         
         this._blockCommentSyntax = { prefix: prefix, suffix: suffix };
     };
-
-    
-    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
-    Language.prototype._modeToLanguageMap = null;
     
     /**
      * Returns either a language associated with the mode or the fallback language.
@@ -501,17 +505,9 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that will be resolved with a Language object
      **/
     function defineLanguage(id, definition) {
-        var result = new $.Deferred();
-        
-        var language = new Language(id, definition.name);
-        
-        var fileExtensions = definition.fileExtensions,
+        var result = new $.Deferred(),
+            language = new Language(id, definition.name),
             i;
-        if (fileExtensions) {
-            for (i = 0; i < fileExtensions.length; i++) {
-                language._addFileExtension(fileExtensions[i]);
-            }
-        }
         
         var blockComment = definition.blockComment;
         if (blockComment) {
@@ -523,15 +519,7 @@ define(function (require, exports, module) {
             language.setLineCommentSyntax(lineComment);
         }
         
-        language._loadAndSetMode(definition.mode)
-            .done(function () {
-                result.resolve(language);
-            })
-            .fail(function (error) {
-                result.reject(error);
-            });
-        
-        return result.promise();
+        return language._loadAndSetMode(definition.mode, definition.fileExtensions);
     }
     
    
@@ -548,25 +536,29 @@ define(function (require, exports, module) {
     });
  
     // Load the default languages
-    CollectionUtils.forEach(JSON.parse(_defaultLanguagesJSON), function (definition, id) {
-        defineLanguage(id, definition);
-    });
+    _defaultLanguagesJSON = JSON.parse(_defaultLanguagesJSON);
+    _ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {
+        return defineLanguage(key, _defaultLanguagesJSON[key]);
+    }, false);
     
     // Get the object for HTML
-    var html = getLanguage("html");
-    
-    // The htmlmixed mode uses the xml mode internally for the HTML parts, so we map it to HTML
-    html._setLanguageForMode("xml", html);
-    
-    // Currently we override the above mentioned "xml" in TokenUtils.getModeAt, instead returning "html".
-    // When the CSSInlineEditor and the hint providers are no longer based on modes, this can be changed.
-    // But for now, we need to associate this madeup "html" mode with our HTML language object.
-    _setLanguageForMode("html", html);
-    
-    // The fallback language for unknown modes and file extensions
-    _fallbackLanguage = getLanguage("unknown");
+    _ready.always(function () {
+        var html = getLanguage("html");
+        
+        // The htmlmixed mode uses the xml mode internally for the HTML parts, so we map it to HTML
+        html._setLanguageForMode("xml", html);
+        
+        // Currently we override the above mentioned "xml" in TokenUtils.getModeAt, instead returning "html".
+        // When the CSSInlineEditor and the hint providers are no longer based on modes, this can be changed.
+        // But for now, we need to associate this madeup "html" mode with our HTML language object.
+        _setLanguageForMode("html", html);
+        
+        // The fallback language for unknown modes and file extensions
+        _fallbackLanguage = getLanguage("unknown");
+    });
     
     // Public methods
+    exports.ready                        = _ready;
     exports.defineLanguage               = defineLanguage;
     exports.getLanguage                  = getLanguage;
     exports.getLanguageForFileExtension  = getLanguageForFileExtension;

@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     
     function expectModeAndLang(editor, lang) {
         expect(editor.getModeForSelection()).toSpecifyModeNamed(lang.mode);
-        expect(editor.getLanguageForSelection().name).toBe(lang.langName);
+        expect(editor.getLanguageForSelection().getName()).toBe(lang.langName);
     }
 
     describe("Editor", function () {
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
                               "</body></html>";
             
             it("should get mode in homogenous file", function () {
-                createTestEditor(jsContent, "javascript");
+                createTestEditor(jsContent, langNames.javascript.mode);
                 
                 // Mode at point
                 myEditor.setCursorPos(0, 0);    // first char in text
