@@ -151,11 +151,12 @@ maxerr: 50, node: true */
      * @param {string} path The absolute path whose server we should close.
      * @return {boolean} true if there was a server for that path, false otherwise
      */
-    function _cmdCloseServer(path, cb) {
+    function _cmdCloseServer(path, cba) {
         var pathKey = PATH_KEY_PREFIX + path;
         if (_servers[pathKey]) {
-            _servers[pathKey].close();
+            var serverToClose = _servers[pathKey];
             delete _servers[pathKey];
+            serverToClose.close();
             return true;
         }
         return false;
@@ -176,8 +177,16 @@ maxerr: 50, node: true */
             _cmdGetServer,
             true,
             "Starts or returns an existing server for the given path.",
-            [{name: "path", type: "string"}],
-            [{name: "address", type: "{address: string, family: string, port: number}"}]
+            [{
+                name: "path",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "address",
+                type: "{address: string, family: string, port: number}",
+                description: "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
+            }]
         );
         _domainManager.registerCommand(
             "staticServer",
@@ -185,8 +194,16 @@ maxerr: 50, node: true */
             _cmdCloseServer,
             false,
             "Closes the server for the given path.",
-            [{name: "path", type: "string"}],
-            [{name: "result", type: "boolean"}]
+            [{
+                name: "path",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "result",
+                type: "boolean",
+                description: "indicates whether a server was found for the specific path then closed"
+            }]
         );
     }
     
