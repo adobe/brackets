@@ -236,6 +236,9 @@ define({
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
+	"CMD_ENABLE_NODE_DEBUGGER": "[6721836] !é=Enable Node Debugger=!",
+	"CMD_LOG_NODE_STATE": "[6721837] !é=Log Node State to Console=!",
+	"CMD_RESTART_NODE": "[6721838] !é=Restart Node=!",
 
     // Help menu commands
 	"HELP_MENU": "Aide",

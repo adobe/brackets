@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         StringUtils          = require("utils/StringUtils"),
         Global               = require("utils/Global"),
-        UpdateDialogTemplate = require("text!htmlContent/update-dialog.html");
+        UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
+        UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
@@ -198,32 +199,9 @@ define(function (require, exports, module) {
         // Populate the update data
         var $dlg = $(".update-dialog.instance");
         var $updateList = $dlg.find(".update-info");
+        var templateVars = $.extend(updates, Strings);
         
-        // TODO: Use a template instead of hand-rolling HTML code
-        updates.forEach(function (item, index) {
-            var $features = $("<ul>");
-            
-            item.newFeatures.forEach(function (feature, index) {
-                $features.append(
-                    "<li><b>" +
-                        StringUtils.htmlEscape(feature.name) +
-                        "</b> - " +
-                        StringUtils.htmlEscape(feature.description) +
-                        "</li>"
-                );
-            });
-            
-            var $item = $("<div>")
-                .append("<h3>" +
-                        StringUtils.htmlEscape(item.versionString) +
-                        " - " +
-                        StringUtils.htmlEscape(item.dateString) +
-                        " (<a href='#' data-url='" + item.releaseNotesURL + "'>" +
-                        Strings.RELEASE_NOTES +
-                        "</a>)</h3>")
-                .append($features)
-                .appendTo($updateList);
-        });
+        $updateList.html(Mustache.render(UpdateListTemplate, templateVars));
         
         $dlg.on("click", "a", function (e) {
             var url = $(e.target).attr("data-url");
