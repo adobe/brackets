@@ -289,11 +289,10 @@ define(function (require, exports, module) {
      * 
      * @param {string|Array.<string>} mode            CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
-     * @param {Array.<string>}        fileExtensions  List of file extensions used by this language (i.e. ["php", "php3"])
      *
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
-    Language.prototype._loadAndSetMode = function (mode, fileExtensions) {
+    Language.prototype._loadAndSetMode = function (mode) {
         var result      = new $.Deferred(),
             self        = this,
             mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
@@ -307,52 +306,44 @@ define(function (require, exports, module) {
         }
 
         // special handling for mode, require explicit declaration of "text/plain" if no mode is specified
-        if (!mode || mode === "") {
-            console.error("Mode must be specified as a built-in CodeMirror mode or 'text/plain'");
-            mode = "text/plain";
+        var isPlainText = (mode === "") && (mimeMode === "text/plain");
+
+        if (!isPlainText && (!mode || mode === "")) {
+            result.reject("Mode must be specified as a built-in CodeMirror mode or [\'\', 'text/plain']");
         }
         
         var finish = function () {
             var i;
             
-            if (mode !== "text/plain" && !CodeMirror.modes[mode]) {
-                result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
-                return;
-            }
-            
-            if (mimeMode) {
-                var modeConfig = CodeMirror.mimeModes[mimeMode];
-                if (!modeConfig) {
-                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
+            if (!isPlainText) {
+                if (!CodeMirror.modes[mode]) {
+                    result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
                     return;
                 }
-                if (modeConfig.name !== mode) {
-                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
-                    return;
+                
+                if (mimeMode) {
+                    var modeConfig = CodeMirror.mimeModes[mimeMode];
+                    if (!modeConfig) {
+                        result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
+                        return;
+                    }
+                    if (modeConfig.name !== mode) {
+                        result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
+                        return;
+                    }
                 }
             }
             
             // This mode is now only about what to tell CodeMirror
             // The base mode was only necessary to load the proper mode file
             self._mode = mimeMode || mode;
-            _setLanguageForMode(self._mode, self);
-            
-            // register language file extensions after mode has loaded
-            if (fileExtensions) {
-                for (i = 0; i < fileExtensions.length; i++) {
-                    self._addFileExtension(fileExtensions[i]);
-                }
-            }
-            
-            // finally, store lanuage to _language map
-            _languages[self.getId()] = self;
             
             result.resolve(self);
         };
         
-        if (mode === "text/plain" || CodeMirror.modes[mode]) {
+        if (isPlainText || CodeMirror.modes[mode]) {
             finish();
-        } else {
+        } else if (mode) {
             require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
         }
         
@@ -507,6 +498,7 @@ define(function (require, exports, module) {
     function defineLanguage(id, definition) {
         var result = new $.Deferred(),
             language = new Language(id, definition.name),
+            fileExtensions = definition.fileExtensions,
             i;
         
         var blockComment = definition.blockComment;
@@ -519,7 +511,27 @@ define(function (require, exports, module) {
             language.setLineCommentSyntax(lineComment);
         }
         
-        return language._loadAndSetMode(definition.mode, definition.fileExtensions);
+        language._loadAndSetMode(definition.mode).done(function () {
+            // register language file extensions after mode has loaded
+            if (fileExtensions) {
+                for (i = 0; i < fileExtensions.length; i++) {
+                    language._addFileExtension(fileExtensions[i]);
+                }
+            }
+                
+            // globally associate mode to language
+            _setLanguageForMode(language.getMode(), language);
+        
+            // finally, store lanuage to _language map
+            _languages[id] = language;
+            
+            result.resolve(language);
+        }).fail(function (error) {
+            console.error(error);
+            result.reject(error);
+        });
+        
+        return result.promise();
     }
     
    
