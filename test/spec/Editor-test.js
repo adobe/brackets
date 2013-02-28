@@ -133,10 +133,12 @@ define(function (require, exports, module) {
                 expect(mode).toSpecifyModeNamed(langNames.javascript.mode);
             });
 
-            it("should default to plaintext for unknown file extensions", function () {
+            it("should default to plain text for unknown file extensions", function () {
                 // verify editor content
                 var mode = LanguageManager.getLanguageForFileExtension("test.foo").getMode();
-                expect(mode).toBe("");
+                
+                // "unknown" mode uses it's MIME type instead
+                expect(mode).toBe("text/plain");
             });
         });
         

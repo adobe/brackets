@@ -131,9 +131,7 @@ define(function (require, exports, module) {
             it("should create a basic language", function () {
                 var language,
                     promise,
-                    def = { id: "one", name: "One", mode: "" };
-                
-                spyOn(console, "error");
+                    def = { id: "one", name: "One", mode: ["", "text/plain"] };
 
                 runs(function () {
                     defineLanguage(def).done(function (lang) {
@@ -146,7 +144,6 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 0);
                 
                 runs(function () {
-                    expect(console.error).toHaveBeenCalledWith("Mode must be specified as a built-in CodeMirror mode or 'text/plain'");
                     validateLanguage(def, language);
                 });
             });
@@ -163,9 +160,15 @@ define(function (require, exports, module) {
             });
             
             it("should log errors for missing mode value", function () {
-                spyOn(console, "error");
-                defineLanguage({ id: "four", name: "Four" });
-                expect(console.error).toHaveBeenCalledWith("Mode must be specified as a built-in CodeMirror mode or 'text/plain'");
+                runs(function () {
+                    spyOn(console, "error");
+                    var promise = defineLanguage({ id: "four", name: "Four" });
+                    waitsForFail(promise, "Promise should fail with missing mode");
+                });
+                
+                runs(function () {
+                    expect(console.error).toHaveBeenCalledWith("Mode must be specified as a built-in CodeMirror mode or ['', 'text/plain']");
+                });
             });
             
             it("should create a language with file extensions and a mode", function () {
