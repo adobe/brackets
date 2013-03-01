@@ -237,9 +237,9 @@ define({
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
-	"CMD_ENABLE_NODE_DEBUGGER": "!能=[6721836] Enable Node Debugger_=!",
-	"CMD_LOG_NODE_STATE": "!能=[6721837] Log Node State to Console_=!",
-	"CMD_RESTART_NODE": "!能=[6721838] Restart Node_=!",
+	"CMD_ENABLE_NODE_DEBUGGER": "ノードデバッガーを有効にする",
+	"CMD_LOG_NODE_STATE": "ノードの状態をコンソールに記録",
+	"CMD_RESTART_NODE": "ノードを再起動",
 
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
