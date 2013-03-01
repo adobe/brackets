@@ -451,6 +451,29 @@
         #about-build-number {
             color: #b0b0b0;
         }
+        .about-info {
+            max-height: 300px;
+            overflow: auto;
+        }
+        .about-contributors {
+            min-height: 100px;
+        }
+        .about-contributors img {
+            opacity: 0;
+            -webkit-transition: opacity 1s;
+            -moz-transition: opacity 1s;
+            -o-transition: opacity 1s;
+            transition: opacity 1s;
+        }
+        .about-spinner {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -2px;
+            width: 12px;
+            height: 12px;
+            background: url("images/small_spinner.svg") no-repeat;
+            -webkit-animation: rotating 1.5s linear infinite;
+        }
     }
     
     h2 {
