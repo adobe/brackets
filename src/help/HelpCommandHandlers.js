@@ -45,17 +45,6 @@ define(function (require, exports, module) {
     var buildInfo;
     
 	
-    /**
-     * @private
-     * Gets a data structure that has the information for all the contributors of Brackets.
-     * The information is fetched from brackets.config.contributors_url using the github API.
-     * @return {$.Promise} jQuery Promise object that is resolved or rejected after the information is fetched.
-     */
-    function _getContributorsInformation() {
-        return $.getJSON(brackets.config.contributors_url);
-    }
-    
-    
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
@@ -86,7 +75,7 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
             
         // Get all the project contributors and add them to the dialog
-        _getContributorsInformation().done(function (contributorsInfo) {
+        $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
             
             // Populate the contributors data
             var $dlg = $(".about-dialog.instance");
