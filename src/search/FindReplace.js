@@ -245,6 +245,12 @@ define(function (require, exports, module) {
 
         // Prepopulate the search field with the current selection, if any.
         if (initialQuery !== undefined) {
+            // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
+            var newline = initialQuery.indexOf("\n");
+            if (newline !== -1) {
+                initialQuery = initialQuery.substr(0, newline);
+            }
+            
             $input
                 .attr("value", initialQuery)
                 .get(0).select();

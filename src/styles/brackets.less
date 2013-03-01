@@ -785,9 +785,12 @@ a, img {
     // Highlight color, overlaid on top of the .find-highlighting color
     background-color: rgba(244, 237, 98, 0.7);
 }
-.CodeMirror.find-highlighting div.CodeMirror-selected {
+.CodeMirror.find-highlighting div.CodeMirror-selected,
+.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
     // Selection color while highlighting shown - ALWAYS has the .CodeMirror-searching color
-    // blended atop it
+    // blended atop it.
+    // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
+    // brackets_codemirror_override.less (see the note about #324).
     background: rgb(255, 108, 0);
 }
 
