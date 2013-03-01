@@ -114,7 +114,7 @@ define(function (require, exports, module) {
             });
         }).fail(function () {
             $dlg.find(".about-spinner").css("display", "none");
-            $contributors.html(Mustache.render("{{ABOUT_TEXT_LINE6}}", Strings));
+            $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
         });
     }
 
