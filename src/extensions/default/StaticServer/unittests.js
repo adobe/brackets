@@ -34,7 +34,9 @@ define(function (require, exports, module) {
         SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils");
     
     var testFolder     = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        
+    
+    var CONNECT_TIMEOUT = 5000;
+    
     describe("StaticServer", function () {
         
         // Unit tests for the underlying node server.
@@ -44,7 +46,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 runs(function () {
                     nodeConnection = new NodeConnection();
-                    waitsForDone(nodeConnection.connect(false), "connecting to node server");
+                    waitsForDone(nodeConnection.connect(false), "connecting to node server", CONNECT_TIMEOUT);
                 });
                 
                 runs(function () {
@@ -215,6 +217,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     StaticServer = brackets.test.extensions.StaticServer;
+                    waitsForDone(StaticServer._getNodeConnectionDeferred(), "connecting to node server", CONNECT_TIMEOUT);
                 });
             });
 
