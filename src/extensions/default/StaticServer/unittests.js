@@ -37,6 +37,8 @@ define(function (require, exports, module) {
     
     var CONNECT_TIMEOUT = 5000;
     
+    var LOCALHOST_PORT_PARSER_RE = /http:\/\/127\.0\.0\.1:(\d+)\//;
+    
     describe("StaticServer", function () {
         
         // Unit tests for the underlying node server.
@@ -237,7 +239,7 @@ define(function (require, exports, module) {
             });
             
             
-            it("shoud only serve html files that are in the project file hierarchy", function () {
+            it("should only serve html files that are in the project file hierarchy", function () {
                 waitsForDone(ProjectManager.openProject(testFolder), "opens test folder in ProjectManager");
                 
                 runs(function () {
@@ -265,15 +267,26 @@ define(function (require, exports, module) {
                 
             });
 
+            it("should be ready to serve a file in the project and return an appropriate baseUrl", function () {
+                waitsForDone(ProjectManager.openProject(testFolder), "opens test folder in ProjectManager");
+                
+                waitsForDone(StaticServer._getStaticServerProvider().readyToServe(), "being ready to serve");
+                    
+                runs(function () {
+                    var baseUrl = StaticServer._getStaticServerProvider().getBaseUrl();
+                    var parsedUrl = LOCALHOST_PORT_PARSER_RE.exec(baseUrl);
+                    expect(parsedUrl).toBeTruthy();
+                    expect(parsedUrl.length).toBe(2);
+                    expect(Number(parsedUrl[1])).toBeGreaterThan(0);
+                });
+            });
+            
             it("should decline serving if not connected to node", function () {
                 var nodeConnectionDeferred;
                 runs(function () {
                     nodeConnectionDeferred = StaticServer._getNodeConnectionDeferred();
+                    waitsForDone(nodeConnectionDeferred, "connecting to node server", CONNECT_TIMEOUT);
                 });
-
-                waitsFor(function () {
-                    return nodeConnectionDeferred.isResolved();
-                }, "should be connected to node");
 
                 runs(function () {
                     nodeConnectionDeferred.done(function (nodeConnection) {
