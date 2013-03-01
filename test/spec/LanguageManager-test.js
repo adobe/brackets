@@ -144,9 +144,10 @@ define(function (require, exports, module) {
             });
             
             it("should throw errors for invalid language id values", function () {
-                expect(function () { defineLanguage({ id: null   }); }).toThrow(new Error("Language ID must be a string"));
-                expect(function () { defineLanguage({ id: "123"  }); }).toThrow(new Error('Invalid language ID "123": Only groups of letters a-z are allowed, separated by _ (i.e. "cpp" or "foo_bar")'));
-                expect(function () { defineLanguage({ id: "html" }); }).toThrow(new Error('Language "html" is already defined'));
+                expect(function () { defineLanguage({ id: null          }); }).toThrow(new Error("Language ID must be a string"));
+                expect(function () { defineLanguage({ id: "HTML5"       }); }).toThrow(new Error("Invalid language ID \"HTML5\": Only groups of lower case letters and numbers are allowed, separated by underscores."));
+                expect(function () { defineLanguage({ id: "_underscore" }); }).toThrow(new Error("Invalid language ID \"_underscore\": Only groups of lower case letters and numbers are allowed, separated by underscores."));
+                expect(function () { defineLanguage({ id: "html"        }); }).toThrow(new Error('Language "html" is already defined'));
             });
             
             it("should throw errors for invalid language name values", function () {
