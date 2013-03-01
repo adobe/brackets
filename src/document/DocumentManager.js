@@ -1175,14 +1175,15 @@ define(function (require, exports, module) {
         for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {
                 if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
+                    var doc = _openDocuments[path];
+                    
                     // Copy value to new key
                     var newKey = path.replace(oldName, newName);
+                    _openDocuments[newKey] = doc;
                     
-                    _openDocuments[newKey] = _openDocuments[path];
                     keysToDelete.push(path);
                     
                     // Update document file
-                    var doc = _openDocuments[newKey];
                     FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
                     doc._notifyFilePathChanged();
                     
