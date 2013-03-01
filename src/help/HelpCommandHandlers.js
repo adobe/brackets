@@ -73,13 +73,15 @@ define(function (require, exports, module) {
         }, Strings);
         
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+        
+        // Get containers
+        var $dlg = $(".about-dialog.instance");
+        var $contributors = $dlg.find(".about-contributors");
             
         // Get all the project contributors and add them to the dialog
         $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
             
             // Populate the contributors data
-            var $dlg = $(".about-dialog.instance");
-            var $contributors = $dlg.find(".about-contributors");
             var totalContributors = contributorsInfo.length;
             var contributorsCount = 0;
             
@@ -111,9 +113,6 @@ define(function (require, exports, module) {
                 }
             });
         }).fail(function () {
-            var $dlg = $(".about-dialog.instance");
-            var $contributors = $dlg.find(".about-contributors");
-
             $dlg.find(".about-spinner").css("display", "none");
             $contributors.html("Lots of people (but we're having trouble loading that data right now).");
         });
