@@ -114,7 +114,7 @@ define(function (require, exports, module) {
             });
         }).fail(function () {
             $dlg.find(".about-spinner").css("display", "none");
-            $contributors.html("Lots of people (but we're having trouble loading that data right now).");
+            $contributors.html(Mustache.render("{{ABOUT_TEXT_LINE6}}", Strings));
         });
     }
 
