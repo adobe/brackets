@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window, PathUtils, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -39,10 +39,32 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
         StringUtils             = require("utils/StringUtils"),
-        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html");
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
     var buildInfo;
-
+    
+	
+    /**
+     * @private
+     * Gets a data structure that has the information for all the contributors of Brackets.
+     * The information is fetched from brackets.config.contributors_url using the github API.
+     * @return {$.Promise} jQuery Promise object that is resolved or rejected after the information is fetched.
+     */
+    function _getContributorsInformation() {
+        var result = new $.Deferred();
+        
+        $.getJSON(brackets.config.contributors_url)
+            .done(function (data) {
+                result.resolve(data);
+            }).fail(function () {
+                result.reject();
+            });
+        
+        return result.promise();
+    }
+    
+    
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
@@ -69,7 +91,46 @@ define(function (require, exports, module) {
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
             BUILD_INFO          : buildInfo || ""
         }, Strings);
+        
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+            
+        // Get all the project contributors and add them to the dialog
+        _getContributorsInformation().done(function (contributorsInfo) {
+            
+            // Populate the contributors data
+            var $dlg = $(".about-dialog.instance");
+            var $contributors = $dlg.find(".about-contributors");
+            var totalContributors = contributorsInfo.length;
+            var contributorsCount = 0;
+            
+            $contributors.html(Mustache.render(ContributorsTemplate, contributorsInfo));
+            
+            // This is used to create an opacity transition when each image is loaded
+            $contributors.find("img").one("load", function () {
+                $(this).css("opacity", 1);
+                
+                // Count the contributors loaded and hide the spinner once all are loaded
+                contributorsCount++;
+                if (contributorsCount >= totalContributors) {
+                    $dlg.find(".about-spinner").css("display", "none");
+                }
+            }).each(function () {
+                if (this.complete) {
+                    $(this).trigger("load");
+                }
+            });
+            
+            // Create a link for each contributor image to their github account
+            $contributors.on("click", "img", function (e) {
+                var url = $(e.target).data("url");
+                if (url) {
+                    // Make sure the URL has a domain that we know about
+                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                    }
+                }
+            });
+        });
     }
 
     // Read "build number" SHAs off disk immediately at APP_READY, instead
