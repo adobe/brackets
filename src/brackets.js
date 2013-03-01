@@ -59,6 +59,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var Global                  = require("utils/Global"),
         AppInit                 = require("utils/AppInit"),
+        LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -181,55 +182,58 @@ define(function (require, exports, module) {
             
             $testDiv.remove();
         }
-        
-        // Load all extensions. This promise will complete even if one or more
-        // extensions fail to load.
-        var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
-        
-        // Load the initial project after extensions have loaded
-        extensionLoaderPromise.always(function () {
-            // Finish UI initialization
-            var initialProjectPath = ProjectManager.getInitialProjectPath();
-            ProjectManager.openProject(initialProjectPath).always(function () {
-                _initTest();
-                
-                // If this is the first launch, and we have an index.html file in the project folder (which should be
-                // the samples folder on first launch), open it automatically. (We explicitly check for the
-                // samples folder in case this is the first time we're launching Brackets after upgrading from
-                // an old version that might not have set the "afterFirstLaunch" pref.)
-                var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
-                    deferred = new $.Deferred();
-                if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
-                    prefs.setValue("afterFirstLaunch", "true");
-                    if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                        var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
-                        
-                        dirEntry.getFile("index.html", {}, function (fileEntry) {
-                            var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                            promise.pipe(deferred.resolve, deferred.reject);
-                        }, deferred.reject);
+
+        // Load default languages
+        LanguageManager.ready.always(function () {
+            // Load all extensions. This promise will complete even if one or more
+            // extensions fail to load.
+            var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
+            
+            // Load the initial project after extensions have loaded
+            extensionLoaderPromise.always(function () {
+                // Finish UI initialization
+                var initialProjectPath = ProjectManager.getInitialProjectPath();
+                ProjectManager.openProject(initialProjectPath).always(function () {
+                    _initTest();
+                    
+                    // If this is the first launch, and we have an index.html file in the project folder (which should be
+                    // the samples folder on first launch), open it automatically. (We explicitly check for the
+                    // samples folder in case this is the first time we're launching Brackets after upgrading from
+                    // an old version that might not have set the "afterFirstLaunch" pref.)
+                    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
+                        deferred = new $.Deferred();
+                    if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
+                        prefs.setValue("afterFirstLaunch", "true");
+                        if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
+                            var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
+                            
+                            dirEntry.getFile("index.html", {}, function (fileEntry) {
+                                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
+                                promise.pipe(deferred.resolve, deferred.reject);
+                            }, deferred.reject);
+                        } else {
+                            deferred.resolve();
+                        }
                     } else {
                         deferred.resolve();
                     }
-                } else {
-                    deferred.resolve();
-                }
-                
-                deferred.always(function () {
-                    // Signal that Brackets is loaded
-                    AppInit._dispatchReady(AppInit.APP_READY);
                     
-                    PerfUtils.addMeasurement("Application Startup");
-                });
-                
-                // See if any startup files were passed to the application
-                if (brackets.app.getPendingFilesToOpen) {
-                    brackets.app.getPendingFilesToOpen(function (err, files) {
-                        files.forEach(function (filename) {
-                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
-                        });
+                    deferred.always(function () {
+                        // Signal that Brackets is loaded
+                        AppInit._dispatchReady(AppInit.APP_READY);
+                        
+                        PerfUtils.addMeasurement("Application Startup");
                     });
-                }
+                    
+                    // See if any startup files were passed to the application
+                    if (brackets.app.getPendingFilesToOpen) {
+                        brackets.app.getPendingFilesToOpen(function (err, files) {
+                            files.forEach(function (filename) {
+                                CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
+                            });
+                        });
+                    }
+                });
             });
         });
         

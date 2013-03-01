@@ -456,7 +456,7 @@ define(function (require, exports, module) {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert
         // here so we're always explicit, avoiding console noise.
-        return this.document.getLanguage().mode || "text/plain";
+        return this.document.getLanguage().getMode() || "text/plain";
     };
     
         
@@ -1208,7 +1208,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
+     *     See {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1241,7 +1241,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");

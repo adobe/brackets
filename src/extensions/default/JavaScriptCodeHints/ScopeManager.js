@@ -440,7 +440,7 @@ define(function (require, exports, module) {
                         file    = split.file;
                     
                     if (file.indexOf(".") > 1) { // ignore /.dotfiles
-                        var mode = LanguageManager.getLanguageForFileExtension(entry.fullPath).mode;
+                        var mode = LanguageManager.getLanguageForFileExtension(entry.fullPath).getMode();
                         if (mode === HintUtils.MODE_NAME) {
                             DocumentManager.getDocumentForPath(path).done(function (document) {
                                 refreshOuterScope(dir, file, document.getText());
