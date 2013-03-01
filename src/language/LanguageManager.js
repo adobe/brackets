@@ -57,7 +57,7 @@
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
- * For instance, C++, C# and Java all use the clike (C-like) mode.
+ * For instance, C++, C# and Java all use the clike (C-like) mode with different settings and a different MIME name.
  * You can refine the mode definition by specifying the MIME mode as well:
  *     var language = LanguageManager.defineLanguage("csharp", {
  *         name: "C#",
@@ -65,8 +65,8 @@
  *         ...
  *     });
  * Defining the base mode is still necessary to know which file to load.
- * Later however, language.getMode() will either refer to the MIME mode,
- * or the base mode if no MIME mode has been specified.
+ * However, language.getMode() will return just the MIME mode if one was
+ * specified.
  *
  * If you need to configure a mode, you can just create a new MIME mode and use that:
  *     CodeMirror.defineMIME("text/x-brackets-html", {
