@@ -52,16 +52,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} jQuery Promise object that is resolved or rejected after the information is fetched.
      */
     function _getContributorsInformation() {
-        var result = new $.Deferred();
-        
-        $.getJSON(brackets.config.contributors_url)
-            .done(function (data) {
-                result.resolve(data);
-            }).fail(function () {
-                result.reject();
-            });
-        
-        return result.promise();
+        return $.getJSON(brackets.config.contributors_url);
     }
     
     
@@ -130,6 +121,12 @@ define(function (require, exports, module) {
                     }
                 }
             });
+        }).fail(function () {
+            var $dlg = $(".about-dialog.instance");
+            var $contributors = $dlg.find(".about-contributors");
+
+            $dlg.find(".about-spinner").css("display", "none");
+            $contributors.html("Lots of people (but we're having trouble loading that data right now).");
         });
     }
 
