@@ -42,7 +42,7 @@
  *         lineComment: "--"
  *     });
  *
- * To use that language, wait for the returned promise to be resolved:
+ * To use that language and it's related mode, wait for the returned promise to be resolved:
  *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
  *         console.log("Language " + language.name + " is now available!");
  *     });
@@ -51,9 +51,6 @@
  *     var language = LanguageManager.getLanguage("haskell");
  *     language.setLineComment("--");
  *     language.setBlockComment("{-", "-}");
- *
- * Currently, languages are also accessible this way right after calling defineLanguage,
- * even before the promise has resolved. Note, however, that their mode hasn't yet been set then.
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
@@ -95,6 +92,7 @@ define(function (require, exports, module) {
     
     // State
     var _fallbackLanguage           = null,
+        _pendingLanguages           = {},
         _languages                  = {},
         _fileExtensionToLanguageMap = {},
         _modeToLanguageMap          = {},
@@ -222,7 +220,7 @@ define(function (require, exports, module) {
         _validateString(id, "Language ID");
         // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
         // Hence we use "_" instead of "." since the latter often has special meaning
-        if (!id.match(/^[a-zA-Z]+(_[a-zA-Z]+)*$/)) {
+        if (!id.match(/^[a-z]+(_[a-z]+)*$/)) {
             throw new Error("Invalid language ID \"" + id + "\": Only groups of letters a-z are allowed, separated by _ (i.e. \"cpp\" or \"foo_bar\")");
         }
         if (_languages[id]) {
@@ -304,33 +302,28 @@ define(function (require, exports, module) {
             mimeMode = mode[1];
             mode = mode[0];
         }
-
-        // special handling for mode, require explicit declaration of "text/plain" if no mode is specified
-        var isPlainText = (mode === "") && (mimeMode === "text/plain");
-
-        if (!isPlainText && (!mode || mode === "")) {
-            result.reject("Mode must be specified as a built-in CodeMirror mode or [\'\', 'text/plain']");
-        }
+        
+        // mode must not be empty. Use "null" (the string "null") mode for plain text
+        _validateNonEmptyString(mode, "mode");
         
         var finish = function () {
-            var i;
+            if (!CodeMirror.modes[mode]) {
+                result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
+                return;
+            }
             
-            if (!isPlainText) {
-                if (!CodeMirror.modes[mode]) {
-                    result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
+            if (mimeMode) {
+                var modeConfig = CodeMirror.mimeModes[mimeMode];
+                
+                if (!modeConfig) {
+                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
                     return;
                 }
                 
-                if (mimeMode) {
-                    var modeConfig = CodeMirror.mimeModes[mimeMode];
-                    if (!modeConfig) {
-                        result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
-                        return;
-                    }
-                    if (modeConfig.name !== mode) {
-                        result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
-                        return;
-                    }
+                // modeConfig can be a string or mode object
+                if (modeConfig !== mode && modeConfig.name !== mode) {
+                    result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
+                    return;
                 }
             }
             
@@ -341,9 +334,9 @@ define(function (require, exports, module) {
             result.resolve(self);
         };
         
-        if (isPlainText || CodeMirror.modes[mode]) {
+        if (CodeMirror.modes[mode]) {
             finish();
-        } else if (mode) {
+        } else {
             require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
         }
         
@@ -394,10 +387,7 @@ define(function (require, exports, module) {
      * @return {string} The prefix
      */
     Language.prototype.getLineCommentPrefix = function () {
-        if (!this._lineCommentSyntax) {
-            return null;
-        }
-        return this._lineCommentSyntax.prefix;
+        return this._lineCommentSyntax && this._lineCommentSyntax.prefix;
     };
 
     /**
@@ -423,10 +413,7 @@ define(function (require, exports, module) {
      * @return {string} The prefix
      */
     Language.prototype.getBlockCommentPrefix = function () {
-        if (!this._blockCommentSyntax) {
-            return null;
-        }
-        return this._blockCommentSyntax.prefix;
+        return this._blockCommentSyntax && this._blockCommentSyntax.prefix;
     };
 
     /**
@@ -434,16 +421,13 @@ define(function (require, exports, module) {
      * @return {string} The suffix
      */
     Language.prototype.getBlockCommentSuffix = function () {
-        if (!this._blockCommentSyntax) {
-            return null;
-        }
-        return this._blockCommentSyntax.suffix;
+        return this._blockCommentSyntax && this._blockCommentSyntax.suffix;
     };
     
     /**
      * Sets the prefix and suffix to use for blocks comments in this language.
-     * @param {!string} prefix Prefix string to use for block comments (i.e. "<!--")
-     * @param {!string} suffix Suffix string to use for block comments (i.e. "-->")
+     * @param {!string} prefix Prefix string to use for block comments (e.g. "<!--")
+     * @param {!string} suffix Suffix string to use for block comments (e.g. "-->")
      */
     Language.prototype.setBlockCommentSyntax = function (prefix, suffix) {
         _validateNonEmptyString(prefix, "prefix");
@@ -496,8 +480,14 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that will be resolved with a Language object
      **/
     function defineLanguage(id, definition) {
-        var result = new $.Deferred(),
-            language = new Language(id, definition.name),
+        var result = new $.Deferred();
+        
+        if (_pendingLanguages[id]) {
+            result.reject("Language \"" + id + "\" is waiting to be resolved.");
+            return result.promise();
+        }
+        
+        var language = new Language(id, definition.name),
             fileExtensions = definition.fileExtensions,
             i;
         
@@ -510,6 +500,9 @@ define(function (require, exports, module) {
         if (lineComment) {
             language.setLineCommentSyntax(lineComment);
         }
+        
+        // track languages that are currently loading
+        _pendingLanguages[id] = language;
         
         language._loadAndSetMode(definition.mode).done(function () {
             // register language file extensions after mode has loaded
@@ -529,6 +522,9 @@ define(function (require, exports, module) {
         }).fail(function (error) {
             console.error(error);
             result.reject(error);
+        }).always(function () {
+            // delete from pending languages after success and failure
+            delete _pendingLanguages[id];
         });
         
         return result.promise();

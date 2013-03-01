@@ -131,21 +131,16 @@ define(function (require, exports, module) {
             it("should create a basic language", function () {
                 var language,
                     promise,
-                    def = { id: "one", name: "One", mode: ["", "text/plain"] };
-
-                runs(function () {
-                    defineLanguage(def).done(function (lang) {
-                        language = lang;
-                    });
+                    def = { id: "one", name: "One", mode: ["null", "text/plain"] };
+                
+                // mode already exists, this test is completely synchronous
+                promise = defineLanguage(def).done(function (lang) {
+                    language = lang;
                 });
                 
-                waitsFor(function () {
-                    return Boolean(language);
-                }, "The language should be resolved", 0);
+                expect(promise.isResolved()).toBeTruthy();
                 
-                runs(function () {
-                    validateLanguage(def, language);
-                });
+                validateLanguage(def, language);
             });
             
             it("should throw errors for invalid language id values", function () {
@@ -160,15 +155,8 @@ define(function (require, exports, module) {
             });
             
             it("should log errors for missing mode value", function () {
-                runs(function () {
-                    spyOn(console, "error");
-                    var promise = defineLanguage({ id: "four", name: "Four" });
-                    waitsForFail(promise, "Promise should fail with missing mode");
-                });
-                
-                runs(function () {
-                    expect(console.error).toHaveBeenCalledWith("Mode must be specified as a built-in CodeMirror mode or ['', 'text/plain']");
-                });
+                expect(function () { defineLanguage({ id: "four", name: "Four" });           }).toThrow(new Error("mode must be a string"));
+                expect(function () { defineLanguage({ id: "five", name: "Five", mode: "" }); }).toThrow(new Error("mode must not be empty"));
             });
             
             it("should create a language with file extensions and a mode", function () {

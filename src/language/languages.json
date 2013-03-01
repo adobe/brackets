@@ -1,7 +1,7 @@
 {
     "unknown": {
         "name": "Text",
-        "mode": ["", "text/plain"]
+        "mode": ["null", "text/plain"]
     },
 
     "css": {
