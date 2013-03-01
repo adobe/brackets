@@ -1208,6 +1208,16 @@ define(function (require, exports, module) {
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
     }
+    
+    /**
+     * @private
+     * Update document
+     */
+    function _handleLanguageAdded(event, language) {
+        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+            doc._updateLanguage();
+        });
+    }
 
     // Define public API
     exports.Document                    = Document;
@@ -1239,6 +1249,10 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Handle project change events
-    $(ProjectManager).on("projectOpen", _projectOpen);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _savePreferences);
+    var $ProjectManager = $(ProjectManager);
+    $ProjectManager.on("projectOpen", _projectOpen);
+    $ProjectManager.on("beforeProjectClose beforeAppClose", _savePreferences);
+    
+    // Handle Language change events
+    $(LanguageManager).on("languageAdded", _handleLanguageAdded);
 });
