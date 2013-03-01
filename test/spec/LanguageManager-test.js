@@ -236,7 +236,7 @@ define(function (require, exports, module) {
                 expect(doc.getLanguage()).toBe(javascript);
                 
                 // Documents are only 'active' while referenced; they won't be maintained by DocumentManager
-                // for global upates like rename otherwise.
+                // for global updates like rename otherwise.
                 // Undo createMockDocument()'s shimming to allow this.
                 doc.addRef = DocumentManager.Document.prototype.addRef;
                 doc.releaseRef = DocumentManager.Document.prototype.releaseRef;
