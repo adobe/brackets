@@ -45,26 +45,6 @@ define(function (require, exports, module) {
     var buildInfo;
     
 	
-    /**
-     * @private
-     * Gets a data structure that has the information for all the contributors of Brackets.
-     * The information is fetched from brackets.config.contributors_url using the github API.
-     * @return {$.Promise} jQuery Promise object that is resolved or rejected after the information is fetched.
-     */
-    function _getContributorsInformation() {
-        var result = new $.Deferred();
-        
-        $.getJSON(brackets.config.contributors_url)
-            .done(function (data) {
-                result.resolve(data);
-            }).fail(function () {
-                result.reject();
-            });
-        
-        return result.promise();
-    }
-    
-    
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
@@ -93,13 +73,15 @@ define(function (require, exports, module) {
         }, Strings);
         
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+        
+        // Get containers
+        var $dlg = $(".about-dialog.instance");
+        var $contributors = $dlg.find(".about-contributors");
             
         // Get all the project contributors and add them to the dialog
-        _getContributorsInformation().done(function (contributorsInfo) {
+        $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
             
             // Populate the contributors data
-            var $dlg = $(".about-dialog.instance");
-            var $contributors = $dlg.find(".about-contributors");
             var totalContributors = contributorsInfo.length;
             var contributorsCount = 0;
             
@@ -130,6 +112,9 @@ define(function (require, exports, module) {
                     }
                 }
             });
+        }).fail(function () {
+            $dlg.find(".about-spinner").css("display", "none");
+            $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
         });
     }
 
