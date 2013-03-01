@@ -468,8 +468,9 @@ define(function (require, exports, module) {
         
         var language = editor.getLanguageForSelection();
         
-        if (language.blockComment) {
-            blockCommentPrefixSuffix(editor, language.blockComment.prefix, language.blockComment.suffix, language.lineComment ? language.lineComment.prefix : null);
+        if (language.hasBlockCommentSyntax()) {
+            // getLineCommentPrefix returns null if no line comment syntax is defined
+            blockCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), language.getLineCommentPrefix());
         }
     }
     
@@ -485,10 +486,10 @@ define(function (require, exports, module) {
         
         var language = editor.getLanguageForSelection();
         
-        if (language.lineComment) {
-            lineCommentPrefix(editor, language.lineComment.prefix);
-        } else if (language.blockComment) {
-            lineCommentPrefixSuffix(editor, language.blockComment.prefix, language.blockComment.suffix);
+        if (language.hasLineCommentSyntax()) {
+            lineCommentPrefix(editor, language.getLineCommentPrefix());
+        } else if (language.hasBlockCommentSyntax()) {
+            lineCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix());
         }
     }
     
