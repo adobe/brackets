@@ -370,6 +370,11 @@ define(function (require, exports, module) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this.name + ", it already belongs to " + language.name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
+                
+                // TODO (issue #2966) Allow extensions to add new file extensions to existing languages
+                // Notify on the Language and on LanguageManager?
+                // $(this).triggerHandler("fileExtensionAdded", [extension]);
+                // $(exports).triggerHandler("fileExtensionAdded", [extension, this]);
             }
         }
     };
@@ -464,6 +469,16 @@ define(function (require, exports, module) {
         this._modeToLanguageMap[mode] = language;
     };
     
+    /**
+     * @private
+     * Notify listeners when a language is added
+     * @param {!Language} language The new language
+     */
+    function _triggerLanguageAdded(language) {
+        // finally, store language to _language map
+        _languages[language.getId()] = language;
+        $(exports).triggerHandler("languageAdded", [language]);
+    }
     
     /**
      * Defines a language.
@@ -514,9 +529,9 @@ define(function (require, exports, module) {
                 
             // globally associate mode to language
             _setLanguageForMode(language.getMode(), language);
-        
-            // finally, store lanuage to _language map
-            _languages[id] = language;
+            
+            // fire an event to notify DocumentManager of the new language
+            _triggerLanguageAdded(language);
             
             result.resolve(language);
         }).fail(function (error) {
