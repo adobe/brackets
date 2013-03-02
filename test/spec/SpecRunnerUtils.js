@@ -142,21 +142,17 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
-     * never be set as the currentDocument or added to the working set.
+     * Returns a Document suitable for use with an Editor in isolation, but
+     * maintained active for global updates like name and language changes.
      */
-    function createMockDocument(initialContent, languageId) {
-        var language = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript");
+    function createMockActiveDocument(options) {
+        var language    = options.language || LanguageManager.getLanguage("javascript"),
+            filename    = options.filename || "_unitTestDummyFile_." + language._fileExtensions[0],
+            content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_." + language._fileExtensions[0]);
-        
-        var docToShim = new DocumentManager.Document(dummyFile, new Date(), initialContent);
-        
-        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
-        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
-        docToShim.addRef = function () {};
-        docToShim.releaseRef = function () {};
+        var dummyFile = new NativeFileSystem.FileEntry(filename);
+        var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
@@ -170,6 +166,24 @@ define(function (require, exports, module) {
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
         };
+        
+        return docToShim;
+    }
+    
+    /**
+     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
+     * never be set as the currentDocument or added to the working set.
+     */
+    function createMockDocument(initialContent, languageId) {
+        var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
+            options     = { language: language, content: initialContent },
+            docToShim   = createMockActiveDocument(options);
+        
+        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
+        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
+        docToShim.addRef = function () {};
+        docToShim.releaseRef = function () {};
+        
         return docToShim;
     }
     
@@ -838,6 +852,7 @@ define(function (require, exports, module) {
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.createMockDocument              = createMockDocument;
+    exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;

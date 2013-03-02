@@ -321,6 +321,89 @@ define(function (require, exports, module) {
                 doc.releaseRef();
             });
             
+            it("should update the document's language when a language is added", function () {
+                var javascript  = LanguageManager.getLanguage("javascript"),
+                    html        = LanguageManager.getLanguage("html"),
+                    doc         = SpecRunnerUtils.createMockActiveDocument({ filename: "foo.js", language: "javascript" }),
+                    spy         = jasmine.createSpy("languageChanged event handler");
+                
+                // sanity check language
+                expect(doc.getLanguage()).toBe(javascript);
+                
+                // make active
+                doc.addRef();
+                
+                // listen for event
+                $(doc).on("languageChanged", spy);
+                
+                // trigger a rename
+                DocumentManager.notifyPathNameChanged(doc.file.name, "dummy.html", false);
+                
+                // language should change
+                expect(doc.getLanguage()).toBe(html);
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toEqual(1);
+                
+                // check callback args (arg 0 is a jQuery event)
+                expect(spy.mostRecentCall.args[1]).toBe(javascript);
+                expect(spy.mostRecentCall.args[2]).toBe(html);
+                
+                // cleanup
+                doc.releaseRef();
+            });
+            
+            it("should update the document's language when a language is added", function () {
+                var unknown,
+                    doc,
+                    spy,
+                    shellLanguage,
+                    promise;
+                
+                runs(function () {
+                    // Create a shell script file
+                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: "build.sh" });
+                    
+                    // Initial language will be unknown (shell is not a default language)
+                    unknown = LanguageManager.getLanguage("unknown");
+                    
+                    // listen for event
+                    spy = jasmine.createSpy("languageChanged event handler");
+                    $(doc).on("languageChanged", spy);
+                    
+                    // sanity check language
+                    expect(doc.getLanguage()).toBe(unknown);
+                    
+                    // make active
+                    doc.addRef();
+                    
+                    // Add the shell language, DocumentManager should update all open documents
+                    promise = LanguageManager.defineLanguage("shell", {
+                        name: "Shell",
+                        mode: "shell",
+                        fileExtensions: ["sh"],
+                        lineComment: "#"
+                    }).done(function (language) {
+                        shellLanguage = language;
+                    });
+                
+                    waitsForDone(promise, "loading shell mode", 1000);
+                });
+                
+                runs(function () {
+                    // language should change
+                    expect(doc.getLanguage()).toBe(shellLanguage);
+                    expect(spy).toHaveBeenCalled();
+                    expect(spy.callCount).toEqual(1);
+                    
+                    // check callback args (arg 0 is a jQuery event)
+                    expect(spy.mostRecentCall.args[1]).toBe(unknown);
+                    expect(spy.mostRecentCall.args[2]).toBe(shellLanguage);
+                    
+                    // cleanup
+                    doc.releaseRef();
+                });
+            });
+            
         });
     });
 });
