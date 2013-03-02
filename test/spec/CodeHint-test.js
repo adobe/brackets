@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         initCodeHintTest;
 
     describe("Code Hint Menus", function () {
+        this.category = "integration";
 
         /**
          * Performs setup for a code hint test. Opens a file and set pos.

@@ -31,6 +31,7 @@
  *
  * This module dispatches these events:
  *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after  _projectRoot changes
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.
@@ -1225,7 +1226,7 @@ define(function (require, exports, module) {
                 
                 for (i = 0; i < nodes.length; i++) {
                     var node = $(nodes[i]);
-                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName);
+                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName, isFolder);
                 }
                 
                 // Notify that one of the project files has changed
@@ -1296,7 +1297,9 @@ define(function (require, exports, module) {
                     }
                     
                     var oldName = selected.data("entry").fullPath;
-                    var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + "$");
+                    // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
+                    var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
+                    var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + oldNameEndPattern);
                     var newName = oldName.replace(oldNameRegex, data.rslt.new_name);
                     
                     renameItem(oldName, newName, isFolder)

@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     
     
     describe("DocumentCommandHandlers", function () {
+        this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow;
@@ -307,13 +308,7 @@ define(function (require, exports, module) {
                     editor.redo();
                     expect(doc.isDirty).toBe(false);
                     expect(doc.getText()).toBe(TEST_JS_NEW_CONTENT);
-                });
-                
-                // Wait > 400ms, else setText() below gets merged with earlier setText() despite intervening undo/redo
-                // TODO (#1994): remove this once we're using CodeMirror v3
-                waits(500);
-                
-                runs(function () {
+                    
                     // Add another change
                     doc.setText(TEST_JS_SECOND_NEW_CONTENT);
                     expect(doc.getText()).toBe(TEST_JS_SECOND_NEW_CONTENT);
