@@ -49,9 +49,9 @@ define(function (require, exports, module) {
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {number} -1 to make the font smaller; 1 to make it bigger.
+     * @param {number} negative number to make the font smaller; positive number to make it bigger.
      */
-    function _adjustFontSize(direction) {
+    function _adjustFontSize(adjustment) {
         var styleId = "codemirror-dynamic-fonts";
 
         var fsStyle = $(".CodeMirror").css("font-size");
@@ -72,13 +72,8 @@ define(function (require, exports, module) {
         var fsOld = parseFloat(fsStyle.substring(0, fsStyle.length - 2));
         var lhOld = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
 
-        var fsDelta = (fsUnits === "px") ? 1 : 0.1;
-        var lhDelta = (lhUnits === "px") ? 1 : 0.1;
-
-        if (direction === -1) {
-            fsDelta *= -1;
-            lhDelta *= -1;
-        }
+        var fsDelta = (fsUnits === "px") ? adjustment : (0.1 * adjustment);
+        var lhDelta = (lhUnits === "px") ? adjustment : (0.1 * adjustment);
 
         var fsNew = fsOld + fsDelta;
         var lhNew = lhOld + lhDelta;
@@ -87,7 +82,7 @@ define(function (require, exports, module) {
         var lhStr = lhNew + lhUnits;
 
         // Don't let the fonts get too small.
-        if (direction === -1 && ((fsUnits === "px" && fsNew <= 1) || (fsUnits === "em" && fsNew <= 0.1))) {
+        if ((fsUnits === "px" && fsNew <= 1) || (fsUnits === "em" && fsNew <= 0.1)) {
             return;
         }
 
@@ -108,10 +103,13 @@ define(function (require, exports, module) {
             var scrollPos = editor.getScrollPos();
             var scrollDeltaX = Math.round(scrollPos.x / lhOld);
             var scrollDeltaY = Math.round(scrollPos.y / lhOld);
-            editor.setScrollPos(scrollPos.x + (scrollDeltaX * direction),
-                                scrollPos.y + (scrollDeltaY * direction));
-        }
 
+            scrollDeltaX = (adjustment >= 0 ? scrollDeltaX : -scrollDeltaX);
+            scrollDeltaY = (adjustment >= 0 ? scrollDeltaY : -scrollDeltaY);
+
+            editor.setScrollPos((scrollPos.x + scrollDeltaX),
+                                (scrollPos.y + scrollDeltaY));
+        }
     }
 
     function _handleIncreaseFontSize() {
