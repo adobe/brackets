@@ -87,6 +87,9 @@ define(function (require, exports, module) {
     
     /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
     var _indentUnit = _prefs.getValue("indentUnit");
+    
+    /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
+    var _duringFocus = false;
 
     /** @type {number}  Constant: ignore upper boundary when centering text */
     var BOUNDARY_CHECK_NORMAL   = 0,
@@ -1127,7 +1130,21 @@ define(function (require, exports, module) {
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
-        this._codeMirror.focus();
+        // Focusing an editor synchronously triggers focus/blur handlers. If a blur handler attemps to focus
+        // another editor, we'll put CM in a bad state (because CM assumes programmatically focusing itself
+        // will always succeed, and if you're in the middle of another focus change that appears to be untrue).
+        // So instead, we simply ignore reentrant focus attempts.
+        // See bug #2951 for an example of this happening and badly hosing things.
+        if (_duringFocus) {
+            return;
+        }
+        
+        _duringFocus = true;
+        try {
+            this._codeMirror.focus();
+        } finally {
+            _duringFocus = false;
+        }
     };
     
     /** Returns true if the editor has focus */
