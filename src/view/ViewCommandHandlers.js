@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -26,13 +26,13 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         Strings                 = require("strings"),
         ProjectManager          = require("project/ProjectManager"),
         EditorManager           = require("editor/EditorManager");
-    
+
     /**
      * @const
      * @type {string}
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
             EditorManager.getCurrentFullEditor().refreshAll();
         }
     }
-    
+
     /**
      * @private
      * Increases or decreases the editor's font size.
@@ -58,13 +58,13 @@ define(function (require, exports, module) {
         var lhStyle = $(".CodeMirror").css("line-height");
 
         var validFont = /^[\d\.]+(px|em)$/;
-        
+
         // Make sure the font size and line height are expressed in terms
         // we can handle (px or em). If not, simply bail.
         if (fsStyle.search(validFont) === -1 || lhStyle.search(validFont) === -1) {
             return;
         }
-        
+
         // Guaranteed to work by the validation above.
         var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length);
         var lhUnits = lhStyle.substring(lhStyle.length - 2, lhStyle.length);
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
 
         var fsNew = fsOld + fsDelta;
         var lhNew = lhOld + lhDelta;
-        
+
         var fsStr = fsNew + fsUnits;
         var lhStr = lhNew + lhUnits;
 
@@ -98,10 +98,10 @@ define(function (require, exports, module) {
                    "font-size: "   + fsStr + " !important;" +
                    "line-height: " + lhStr + " !important;}");
         $("head").append(style);
-        
+
         var editor = EditorManager.getCurrentFullEditor();
         editor.refreshAll();
-        
+
         // Scroll the document back to its original position. This can only happen
         // if the font size is specified in pixels (which it currently is).
         if (fsUnits === "px") {
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
         }
 
     }
-    
+
     function _handleIncreaseFontSize() {
         _adjustFontSize(1);
     }
@@ -121,11 +121,11 @@ define(function (require, exports, module) {
     function _handleDecreaseFontSize() {
         _adjustFontSize(-1);
     }
-    
+
     function _handleRestoreFontSize() {
         _removeDynamicFontSize(true);
     }
-    
+
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
