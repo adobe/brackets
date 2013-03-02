@@ -31,13 +31,35 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         Strings                 = require("strings"),
         ProjectManager          = require("project/ProjectManager"),
-        EditorManager           = require("editor/EditorManager");
+        EditorManager           = require("editor/EditorManager"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        AppInit                 = require("utils/AppInit");
 
     /**
      * @const
      * @type {string}
      */
     var DYNAMIC_FONT_STYLE_ID = "codemirror-dynamic-fonts";
+
+    /**
+     * @const
+     * @private
+     * Unique PreferencesManager clientID
+     * @type {string}
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
+
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = {};
+
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _defaultPrefs = { fontSizeAdjustment: 0 };
 
     function _removeDynamicFontSize(refresh) {
         $("#" + DYNAMIC_FONT_STYLE_ID).remove();
@@ -110,21 +132,34 @@ define(function (require, exports, module) {
             editor.setScrollPos((scrollPos.x + scrollDeltaX),
                                 (scrollPos.y + scrollDeltaY));
         }
+
     }
 
     function _handleIncreaseFontSize() {
         _adjustFontSize(1);
+        _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
     }
 
     function _handleDecreaseFontSize() {
         _adjustFontSize(-1);
+        _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
     }
 
     function _handleRestoreFontSize() {
         _removeDynamicFontSize(true);
+        _prefs.setValue("fontSizeAdjustment", 0);
     }
 
+    // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
+
+    // Init PreferenceStorage
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
+
+    AppInit.appReady(function () {
+        _removeDynamicFontSize(false);
+        _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
+    });
 });
