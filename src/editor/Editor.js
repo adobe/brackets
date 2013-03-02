@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id,
         defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
     
     /** Editor preferences */

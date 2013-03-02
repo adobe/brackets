@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
     
-    var PREFERENCES_KEY = "com.adobe.brackets.preferences";
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
 
     // Private Properties
     var preferencesKey,
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
 
     if (!preferencesKey) {
         // use default key if none is found
-        preferencesKey = PREFERENCES_KEY;
+        preferencesKey = PREFERENCES_CLIENT_ID;
         doLoadPreferences = true;
     } else {
         // using a non-default key, check for additional settings

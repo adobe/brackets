@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
     
-    var PREFERENCES_CLIENT_ID = module.id,
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id,
         defaultPrefs = { };
 	
     /**

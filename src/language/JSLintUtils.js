@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         StatusBar               = require("widgets/StatusBar");
         
-    var PREFERENCES_CLIENT_ID = module.id,
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id,
         defaultPrefs = { enabled: !!brackets.config.enable_jslint };
     
     /**

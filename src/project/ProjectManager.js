@@ -129,7 +129,7 @@ define(function (require, exports, module) {
     /**
      * Unique PreferencesManager clientID
      */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
     
     /**
      * @private

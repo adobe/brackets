@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings");
         
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.WorkingSetSort",
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id,
         defaultPrefs = {
             currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
             automaticSort: false

@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PREFERENCES_KEY = "com.adobe.brackets.brackets-recent-projects";
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
     
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
      * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
      */
     function getRecentProjects() {
-        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
             recentProjects = prefs.getValue("recentProjects") || [],
             i;
         for (i = 0; i < recentProjects.length; i++) {
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
      */
     function add() {
         var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
-            prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+            prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         if (index !== -1) {
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                 e.stopPropagation();
                 
                 // Remove the project from the preferences.
-                var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+                var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
                     recentProjects = getRecentProjects(),
                     index = recentProjects.indexOf($(this).data("path")),
                     newProjects = [],
