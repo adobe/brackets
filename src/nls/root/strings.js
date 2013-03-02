@@ -132,7 +132,7 @@ define({
     /**
      * ProjectManager
      */
-
+    "PROJECT_LOADING" : "Loading ...",
     "UNTITLED" : "Untitled",
 
     /**
