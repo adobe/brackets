@@ -35,7 +35,7 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl"],
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -85,7 +85,8 @@
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee"]
+        "fileExtensions": ["coffee", "cf", "cson"],
+        "fileNames": ["Cakefile"]
     },
 
     "clojure": {
@@ -103,7 +104,7 @@
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
-        "fileExtensions": ["rb"]
+        "fileExtensions": ["rb", "ru", "gemspec", "rake"]
     },
     
     "python": {
@@ -135,11 +136,25 @@
         "mode": "diff",
         "fileExtensions": ["diff", "patch"]
     },
+            
+    "makefile": {
+        "name": "Makefile",
+        "mode": "makefile",
+        "fileExtensions": ["make"],
+        "fileNames": ["GNUmakefile", "makefile", "Makefile", "OCamlMakefile"],
+        "lineComment": "#"
+    },        
     
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
         "fileExtensions": ["md", "markdown"]
+    },
+            
+    "typescript": {
+        "name": "TypeScript",
+        "mode": ["javascript", "application/typescript"],
+        "fileExtensions": ["typescript", "ts", "str"]
     },
     
     "yaml": {

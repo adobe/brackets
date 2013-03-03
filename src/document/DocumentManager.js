@@ -952,8 +952,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
-        var ext = PathUtils.filenameExtension(this.file.fullPath);
-        this.language = LanguageManager.getLanguageForFileExtension(ext);
+        this.language = LanguageManager.getLanguageFromFilePath(this.file.fullPath);
         
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
