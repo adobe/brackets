@@ -195,7 +195,7 @@ define(function (require, exports, module) {
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
 
-    // Update UI when a document changes
+    // Update UI closing a document or changing from one document to another
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
     // Update UI when Brackets finishes loading
