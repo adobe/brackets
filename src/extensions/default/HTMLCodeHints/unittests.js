@@ -54,11 +54,11 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             // create dummy Document for the Editor
-            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
+            testDocument = SpecRunnerUtils.createMockDocument(defaultContent, "html");
             
             // create Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
-            testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0));
+            testEditor = new Editor(testDocument, true, $("#editor").get(0));
         });
         
         afterEach(function () {

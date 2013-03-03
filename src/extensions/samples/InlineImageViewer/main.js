@@ -55,12 +55,12 @@ define(function (require, exports, module) {
             var string = token.string;
             
             // Strip quotes
-            var char = string[0];
-            if (char === "\"" || char === "'") {
+            var ch = string[0];
+            if (ch === "\"" || ch === "'") {
                 string = string.substr(1);
             }
-            char = string[string.length - 1];
-            if (char === "\"" || char === "'") {
+            ch = string[string.length - 1];
+            if (ch === "\"" || ch === "'") {
                 string = string.substr(0, string.length - 1);
             }
             
