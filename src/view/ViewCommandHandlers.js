@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         ProjectManager          = require("project/ProjectManager"),
         EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
-        AppInit                 = require("utils/AppInit");
+        DocumentManager         = require("document/DocumentManager");
 
     /**
      * @const
@@ -60,6 +60,12 @@ define(function (require, exports, module) {
      * @type {PreferenceStorage}
      */
     var _defaultPrefs = { fontSizeAdjustment: 0 };
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    var _fontSizePrefsLoaded = false;
 
     function _removeDynamicFontSize(refresh) {
         $("#" + DYNAMIC_FONT_STYLE_ID).remove();
@@ -159,8 +165,20 @@ define(function (require, exports, module) {
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
 
-    AppInit.appReady(function () {
-        _removeDynamicFontSize(false);
-        _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
+    // Register Listener
+    $(DocumentManager).on("currentDocumentChange", function () {
+        if (DocumentManager.getCurrentDocument() !== null) {
+            console.log("ENABLE the Font Size Commands, Shortcuts, and View Menu");
+
+            // Font Size preferences only need to be loaded one time
+            if (!_fontSizePrefsLoaded) {
+                _removeDynamicFontSize(false);
+                _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
+                _fontSizePrefsLoaded = true;
+            }
+
+        } else {
+            console.log("DISABLE the Font Size Commands, Shortcuts, and View Menu");
+        }
     });
 });
