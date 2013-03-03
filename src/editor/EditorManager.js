@@ -692,7 +692,7 @@ define(function (require, exports, module) {
     }
     
     function _updateLanguageInfo(editor) {
-        $languageInfo.text(editor.document.getLanguage().name);
+        $languageInfo.text(editor.document.getLanguage().getName());
     }
     
     function _updateFileInfo(editor) {
