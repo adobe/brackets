@@ -105,6 +105,8 @@ define(function (require, exports, module) {
 
         // Don't let the fonts get too small.
         if ((fsUnits === "px" && fsNew <= 1) || (fsUnits === "em" && fsNew <= 0.1)) {
+            // Roll back the font size adjustment value in the persisted data
+            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
             return;
         }
 
@@ -132,22 +134,21 @@ define(function (require, exports, module) {
             editor.setScrollPos((scrollPos.x + scrollDeltaX),
                                 (scrollPos.y + scrollDeltaY));
         }
-
     }
 
     function _handleIncreaseFontSize() {
-        _adjustFontSize(1);
         _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
+        _adjustFontSize(1);
     }
 
     function _handleDecreaseFontSize() {
-        _adjustFontSize(-1);
         _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
+        _adjustFontSize(-1);
     }
 
     function _handleRestoreFontSize() {
-        _removeDynamicFontSize(true);
         _prefs.setValue("fontSizeAdjustment", 0);
+        _removeDynamicFontSize(true);
     }
 
     // Register command handlers
