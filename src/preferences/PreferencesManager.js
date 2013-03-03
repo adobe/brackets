@@ -141,6 +141,7 @@ define(function (require, exports, module) {
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
+    exports.handleClientIdChange    = handleClientIdChange;
 
     // Unit test use only
     exports._reset                  = _reset;
