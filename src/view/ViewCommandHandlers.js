@@ -33,7 +33,8 @@ define(function (require, exports, module) {
         ProjectManager          = require("project/ProjectManager"),
         EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
-        DocumentManager         = require("document/DocumentManager");
+        DocumentManager         = require("document/DocumentManager"),
+        AppInit                 = require("utils/AppInit");
 
     /**
      * @const
@@ -157,16 +158,12 @@ define(function (require, exports, module) {
         _removeDynamicFontSize(true);
     }
 
-    // Register command handlers
-    CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
-    CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
-    CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
-
-    // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
-
-    // Register Listener
-    $(DocumentManager).on("currentDocumentChange", function () {
+    /**
+     * @private
+     * Updates the user interface appropriately based on whether or not a document is
+     * currently open in the editor.
+     */
+    function _updateUI() {
         if (DocumentManager.getCurrentDocument() !== null) {
             if (!CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).getEnabled()) {
                 // If one is disabled then they all are disabled, so enable them all
@@ -188,5 +185,19 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(false);
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
-    });
+    }
+
+    // Register command handlers
+    CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
+    CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
+    CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
+
+    // Init PreferenceStorage
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
+
+    // Update UI when a document changes
+    $(DocumentManager).on("currentDocumentChange", _updateUI);
+
+    // Update UI when Brackets finishes loading
+    AppInit.appReady(_updateUI);
 });
