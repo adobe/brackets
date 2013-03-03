@@ -96,6 +96,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
+    "FIND_RESULT_COUNT"                 : "{0} results",
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
