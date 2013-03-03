@@ -168,7 +168,12 @@ define(function (require, exports, module) {
     // Register Listener
     $(DocumentManager).on("currentDocumentChange", function () {
         if (DocumentManager.getCurrentDocument() !== null) {
-            console.log("ENABLE the Font Size Commands, Shortcuts, and View Menu");
+            if (!CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).getEnabled()) {
+                // If one is disabled then they all are disabled, so enable them all
+                CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).setEnabled(true);
+                CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(true);
+                CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(true);
+            }
 
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
@@ -178,7 +183,10 @@ define(function (require, exports, module) {
             }
 
         } else {
-            console.log("DISABLE the Font Size Commands, Shortcuts, and View Menu");
+            // No current document so disable all of the Font Size commands
+            CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).setEnabled(false);
+            CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(false);
+            CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
     });
 });
