@@ -265,12 +265,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, Commands.NAVIGATE_GOTO_JSLINT_ERROR, _handleGotoJSLintError);
     
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     //TODO: Remove preferences migration code
-    if(!_prefs.getValue("newClientID")) {
-        PreferencesManager.handleClientIdChange(_prefs, PreferencesManager.getPreferenceStorage(module.id));
-        _prefs.setValue("newClientID", true);
-    }
+    PreferencesManager.handleClientIdChange(_prefs, module.id, defaultPrefs);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {

@@ -114,18 +114,32 @@ define(function (require, exports, module) {
      * This method handles the copy of all old prefs to the new prefs
      * TODO: remove All calls to this function and the function itself
      * 
-     * @param {PreferenceStorage} newPrefs The new PreferenceStorage
-     * @param {PreferenceStorage} oldPrefs The old PreferenceStorage
+     * @param {!PreferenceStorage} newPrefs The new PreferenceStorage
+     * @param {!string} oldID The id of the old PreferenceStorage
+     * @param {?obj} defaults The defaults to add
      */
-    function handleClientIdChange(newPrefs, oldPrefs) {
-        var data = oldPrefs.getAllValues();
-        newPrefs.setAllValues(data, false);
+    function handleClientIdChange(newPrefs, oldID, defaults) {
+        var oldPrefs = getPreferenceStorage(oldID);
+        
+        defaults = defaults || {};
+        
+        if (!newPrefs.getValue("newClientID")) {
+            var data = oldPrefs.getAllValues();
+
+            if ($.isEmptyObject(data)) {
+                data = defaults;
+            }
+            
+            newPrefs.setAllValues(data, false);
+            newPrefs.setValue("newClientID", true);
+        }
+        delete prefStorage[oldID];
     }
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
     preferencesKey = localStorage.getItem("preferencesKey");
-
+    
     if (!preferencesKey) {
         // use default key if none is found
         preferencesKey = PREFERENCES_CLIENT_ID;
@@ -135,6 +149,12 @@ define(function (require, exports, module) {
         doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
     }
 
+    //TODO: remove this preferences migration code
+    if (!localStorage.getItem("newClientID")) {
+        var oldPrefs = localStorage.getItem("com.adobe.brackets.preferences");
+        localStorage.setItem(preferencesKey, oldPrefs);
+        localStorage.setItem("newClientID", true);
+    }
     // Use localStorage by default
     _initStorage(localStorage);
 

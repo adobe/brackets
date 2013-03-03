@@ -77,12 +77,9 @@ define(function (require, exports, module) {
         defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     //TODO: Remove preferences migration code
-    if(!_prefs.getValue("newClientID")) {
-        PreferencesManager.handleClientIdChange(_prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.Editor"));
-        _prefs.setValue("newClientID", true);
-    }
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor", defaultPrefs);
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");

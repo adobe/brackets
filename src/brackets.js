@@ -203,10 +203,8 @@ define(function (require, exports, module) {
                     var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
                         deferred = new $.Deferred();
                     //TODO: Remove preferences migration code
-                    if(!prefs.getValue("newClientID")) {
-                        PreferencesManager.handleClientIdChange(prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.startup"));
-                        prefs.setValue("newClientID", true);
-                    }
+                    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");
+                    
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {

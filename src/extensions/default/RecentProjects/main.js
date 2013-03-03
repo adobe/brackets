@@ -50,10 +50,7 @@ define(function (require, exports, module) {
     
     var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     //TODO: Remove preferences migration code
-    if(!prefs.getValue("newClientID")) {
-        PreferencesManager.handleClientIdChange(prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.brackets-recent-projects"));
-        prefs.setValue("newClientID", true);
-    }
+    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.brackets-recent-projects");
     
     var MAX_PROJECTS = 20;
 

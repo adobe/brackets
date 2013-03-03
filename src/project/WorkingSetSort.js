@@ -349,12 +349,9 @@ define(function (require, exports, module) {
     
     
     // Initialize PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     //TODO: Remove preferences migration code
-    if(!_prefs.getValue("newClientID")) {
-        PreferencesManager.handleClientIdChange(_prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.WorkingSetSort"));
-        _prefs.setValue("newClientID", true);
-    }
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.WorkingSetSort", defaultPrefs);
     
     // Initialize items dependent on extensions/workingSet
     AppInit.appReady(function () {

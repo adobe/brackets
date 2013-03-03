@@ -1347,12 +1347,10 @@ define(function (require, exports, module) {
     var defaults = {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     //TODO: Remove preferences migration code
-    if(!_prefs.getValue("newClientID")) {
-        PreferencesManager.handleClientIdChange(_prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.ProjectManager"));
-        _prefs.setValue("newClientID", true);
-    }
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager", defaults);
+    
     if (!_prefs.getValue("welcomeProjectsFixed")) {
         // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where
         // we would add lots of duplicate entries here.
