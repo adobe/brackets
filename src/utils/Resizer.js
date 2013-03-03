@@ -390,6 +390,11 @@ define(function (require, exports, module) {
 	
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    //TODO: Remove preferences migration code
+    if(!_prefs.getValue("newClientID")) {
+        PreferencesManager.handleClientIdChange(_prefs, PreferencesManager.getPreferenceStorage(module.id));
+        _prefs.setValue("newClientID", true);
+    }
     
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {

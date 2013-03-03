@@ -109,6 +109,18 @@ define(function (require, exports, module) {
             _reset();
         }
     }
+    
+    /**
+     * This method handles the copy of all old prefs to the new prefs
+     * TODO: remove All calls to this function and the function itself
+     * 
+     * @param {PreferenceStorage} newPrefs The new PreferenceStorage
+     * @param {PreferenceStorage} oldPrefs The old PreferenceStorage
+     */
+    function handleClientIdChange(newPrefs, oldPrefs) {
+        var data = oldPrefs.getAllValues();
+        newPrefs.setAllValues(data, false);
+    }
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.

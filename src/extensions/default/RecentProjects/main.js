@@ -48,14 +48,20 @@ define(function (require, exports, module) {
         $dropdown,
         $settings;
     
+    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    //TODO: Remove preferences migration code
+    if(!prefs.getValue("newClientID")) {
+        PreferencesManager.handleClientIdChange(prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.brackets-recent-projects"));
+        prefs.setValue("newClientID", true);
+    }
+    
     var MAX_PROJECTS = 20;
 
     /**
      * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
      */
     function getRecentProjects() {
-        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
-            recentProjects = prefs.getValue("recentProjects") || [],
+        var recentProjects = prefs.getValue("recentProjects") || [],
             i;
         for (i = 0; i < recentProjects.length; i++) {
             recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
@@ -68,7 +74,6 @@ define(function (require, exports, module) {
      */
     function add() {
         var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
-            prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         if (index !== -1) {
@@ -108,8 +113,7 @@ define(function (require, exports, module) {
                 e.stopPropagation();
                 
                 // Remove the project from the preferences.
-                var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
-                    recentProjects = getRecentProjects(),
+                var recentProjects = getRecentProjects(),
                     index = recentProjects.indexOf($(this).data("path")),
                     newProjects = [],
                     i;

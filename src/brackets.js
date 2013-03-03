@@ -202,6 +202,11 @@ define(function (require, exports, module) {
                     // an old version that might not have set the "afterFirstLaunch" pref.)
                     var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
                         deferred = new $.Deferred();
+                    //TODO: Remove preferences migration code
+                    if(!prefs.getValue("newClientID")) {
+                        PreferencesManager.handleClientIdChange(prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.startup"));
+                        prefs.setValue("newClientID", true);
+                    }
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {

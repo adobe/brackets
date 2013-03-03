@@ -221,6 +221,11 @@ define(function main(require, exports, module) {
     
     // init prefs
     prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, {highlight: true});
+    //TODO: Remove preferences migration code
+    if(!prefs.getValue("newClientID")) {
+        PreferencesManager.handleClientIdChange(prefs, PreferencesManager.getPreferenceStorage("com.adobe.brackets.live-development"));
+        prefs.setValue("newClientID", true);
+    }
     config.highlight = prefs.getValue("highlight");
    
     // init commands
