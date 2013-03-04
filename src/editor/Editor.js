@@ -63,6 +63,7 @@ define(function (require, exports, module) {
     
     var EditorManager      = require("editor/EditorManager"),
         CodeHintManager    = require("editor/CodeHintManager"),
+        ProjectManager     = require("project/ProjectManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
@@ -73,20 +74,24 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor";
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, {});
     
-    /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = _prefs.getValue("useTabChar");
+    /**
+     * The default tab settings used to set the project tabs settings when the project doesnt have any saved
+     * @const {{indentWithTabs: boolean, tabSize: number, indentUnit: number}}
+     */
+    var DEFAULT_TABS = {
+        indentWithTabs: false,
+        tabSize: 4,
+        indentUnit: 4
+    };
     
-    /** @type {boolean}  Global setting: Tab size */
-    var _tabSize = _prefs.getValue("tabSize");
+    /** @type {{indentWithTabs: boolean, tabSize: number, indentUnit: number}}  The current project tab settings */
+    var _projectTabs = null;
     
-    /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
-    var _indentUnit = _prefs.getValue("indentUnit");
     
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
@@ -94,7 +99,17 @@ define(function (require, exports, module) {
     /** @type {number}  Constant: ignore upper boundary when centering text */
     var BOUNDARY_CHECK_NORMAL   = 0,
         BOUNDARY_IGNORE_TOP     = 1;
-
+    
+    
+    /**
+     * @private
+     * Sets the project tabs settings from the saved values or the default ones
+     */
+    function _setProjectTabs() {
+        var preferences = _prefs.getValue("projectTabs_" + ProjectManager.getProjectRoot());
+        _projectTabs = $.extend(_projectTabs, preferences || DEFAULT_TABS);
+    }
+    
     /**
      * @private
      * Handle Tab key press.
@@ -141,7 +156,7 @@ define(function (require, exports, module) {
             if (instance.getOption("indentWithTabs")) {
                 CodeMirror.commands.insertTab(instance);
             } else {
-                var i, ins = "", numSpaces = _indentUnit;
+                var i, ins = "", numSpaces = instance.getOption("indentUnit");
                 numSpaces -= to.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
@@ -162,12 +177,13 @@ define(function (require, exports, module) {
     function _handleSoftTabNavigation(instance, direction, functionName) {
         var handled = false;
         if (!instance.getOption("indentWithTabs")) {
-            var cursor = instance.getCursor(),
-                jump = cursor.ch % _indentUnit,
+            var indentUnit = instance.getOption("indentUnit"),
+                cursor = instance.getCursor(),
+                jump = cursor.ch % indentUnit,
                 line = instance.getLine(cursor.line);
 
             if (direction === 1) {
-                jump = _indentUnit - jump;
+                jump = indentUnit - jump;
 
                 if (cursor.ch + jump > line.length) { // Jump would go beyond current line
                     return false;
@@ -186,7 +202,7 @@ define(function (require, exports, module) {
                 // If we are on the tab boundary, jump by the full amount, 
                 // but not beyond the start of the line.
                 if (jump === 0) {
-                    jump = _indentUnit;
+                    jump = indentUnit;
                 }
 
                 // Search backwards to the first non-space character
@@ -353,9 +369,9 @@ define(function (require, exports, module) {
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            indentWithTabs: _useTabChar,
-            tabSize: _tabSize,
-            indentUnit: _indentUnit,
+            indentWithTabs: this._getTabPreference("indentWithTabs"),
+            tabSize: this._getTabPreference("tabSize"),
+            indentUnit: this._getTabPreference("indentUnit"),
             lineNumbers: true,
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
@@ -705,7 +721,7 @@ define(function (require, exports, module) {
         
         if (expandTabs) {
             var line    = this._codeMirror.getRange({line: cursor.line, ch: 0}, cursor),
-                tabSize = Editor.getTabSize(),
+                tabSize = this.getTabSize(),
                 column  = 0,
                 i;
 
@@ -1299,62 +1315,83 @@ define(function (require, exports, module) {
     Editor.prototype._visibleRange = null;
     
     
-    // Global settings that affect all Editor instances (both currently open Editors as well as those created
-    // in the future)
-
+    /**
+     * @private
+     * Sets the given preference option to the current editor and changes the global project settings and all other 
+     * opened project files if the preference given is the same as the project saved preference
+     */
+    Editor.prototype._setTabPreference = function (preference, value) {
+        var oldPref = this._codeMirror.getOption(preference);
+        this._codeMirror.setOption(preference, value);
+        _prefs.setValue(preference + "_" + this.document.file.fullPath, value);
+        
+        if (ProjectManager.isWithinProject(this.document.file.fullPath) &&
+                (oldPref !== undefined || _projectTabs[preference] === oldPref)) {
+            _projectTabs[preference] = value;
+            
+            _instances.forEach(function (editor) {
+                var path = editor.document.file.fullPath;
+                if (_prefs.getValue(preference + "_" + path) === undefined && ProjectManager.isWithinProject(path)) {
+                    editor._codeMirror.setOption(preference, value);
+                }
+            });
+            _prefs.setValue("projectTabs_" + ProjectManager.getProjectRoot(), _projectTabs);
+        }
+    };
+    
+    /**
+     * @private
+     * Returns the value for the given preference id first checking with the file settings and then with the project settings
+     * @return {number|boolean}
+     */
+    Editor.prototype._getTabPreference = function (preference) {
+        var value = _prefs.getValue(preference + "_" + this.document.file.fullPath);
+        return value !== undefined ? value : _projectTabs[preference];
+    };
+    
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value
      */
-    Editor.setUseTabChar = function (value) {
-        _useTabChar = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentWithTabs", _useTabChar);
-        });
-        
-        _prefs.setValue("useTabChar", Boolean(_useTabChar));
+    Editor.prototype.setUseTabChar = function (value) {
+        this._setTabPreference("indentWithTabs", Boolean(value));
     };
     
     /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function (value) {
-        return _useTabChar;
+    Editor.prototype.getUseTabChar = function () {
+        return this._codeMirror.getOption("indentWithTabs");
     };
 
     /**
      * Sets tab character width. Affects all Editors.
      * @param {number} value
      */
-    Editor.setTabSize = function (value) {
-        _tabSize = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("tabSize", _tabSize);
-        });
-        
-        _prefs.setValue("tabSize", _tabSize);
+    Editor.prototype.setTabSize = function (value) {
+        this._setTabPreference("tabSize", value);
     };
     
     /** @type {number} Get indent unit  */
-    Editor.getTabSize = function (value) {
-        return _tabSize;
+    Editor.prototype.getTabSize = function (value) {
+        return this._codeMirror.getOption("tabSize");
     };
 
     /**
      * Sets indentation width. Affects all Editors.
      * @param {number} value
      */
-    Editor.setIndentUnit = function (value) {
-        _indentUnit = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentUnit", _indentUnit);
-        });
-        
-        _prefs.setValue("indentUnit", _indentUnit);
+    Editor.prototype.setIndentUnit = function (value) {
+        this._setTabPreference("indentUnit", value);
     };
     
     /** @type {number} Get indentation width */
-    Editor.getIndentUnit = function (value) {
-        return _indentUnit;
+    Editor.prototype.getIndentUnit = function (value) {
+        return this._codeMirror.getOption("indentUnit");
     };
+    
+    
+    // Handle project change events
+    $(ProjectManager).on("projectOpen", _setProjectTabs);
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);

@@ -700,14 +700,15 @@ define(function (require, exports, module) {
     }
     
     function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
+        var indentWithTabs = getActiveEditor().getUseTabChar();
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
         $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
     }
 
     function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
+        var editor = getActiveEditor();
+        return editor.getUseTabChar() ? editor.getTabSize() : editor.getIndentUnit();
     }
     
     function _updateIndentSize() {
@@ -717,7 +718,8 @@ define(function (require, exports, module) {
     }
     
     function _toggleIndentType() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
+        var editor = getActiveEditor();
+        editor.setUseTabChar(!editor.getUseTabChar());
         _updateIndentType();
         _updateIndentSize();
     }
@@ -745,10 +747,11 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
+        var editor = getActiveEditor();
+        if (editor.getUseTabChar()) {
+            editor.setTabSize(Math.max(Math.min(value, 10), 1));
         } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
+            editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
         }
 
         // update indicator
