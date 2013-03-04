@@ -106,6 +106,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE);
         menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
         menu.addMenuItem(Commands.TOGGLE_JSLINT);
 
         /*

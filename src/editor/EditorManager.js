@@ -691,6 +691,16 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * @private
+     * Activates/Deactivates the automatic close brackets option
+     */
+    function _toggleCloseBrackets() {
+        Editor.setCloseBrackets(!Editor.getCloseBrackets());
+        CommandManager.get(Commands.TOGGLE_CLOSE_BRACKETS).setChecked(Editor.getCloseBrackets());
+    }
+    
+    
     function _updateLanguageInfo(editor) {
         $languageInfo.text(editor.document.getLanguage().getName());
     }
@@ -824,6 +834,9 @@ define(function (require, exports, module) {
 
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
+    CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _toggleCloseBrackets)
+        .setChecked(Editor.getCloseBrackets());
+    
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
