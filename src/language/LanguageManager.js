@@ -64,7 +64,7 @@
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
  * For instance, C++, C# and Java all use the clike (C-like) mode with different settings and a different MIME name.
  * You can refine the mode definition by specifying the MIME mode as well:
- *     var language = LanguageManager.defineLanguage("csharp", {
+ *     LanguageManager.defineLanguage("csharp", {
  *         name: "C#",
  *         mode: ["clike", "text/x-csharp"],
  *         ...
@@ -80,7 +80,7 @@
  *                        "mode": null}]
  *     });
  *
- *     var language = LanguageManager.defineLanguage("html", {
+ *     LanguageManager.defineLanguage("html", {
  *         name: "HTML",
  *         mode: ["htmlmixed", "text/x-brackets-html"],
  *         ...
@@ -110,24 +110,15 @@ define(function (require, exports, module) {
     // Helper functions
     
     /**
-     * Checks whether value is a string. Throws an exception otherwise.
-     * @param {*}       value         The value to validate
-     * @param {!string} description   A helpful identifier for value
-     */
-    function _validateString(value, description) {
-        // http://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript
-        if (Object.prototype.toString.call(value) !== "[object String]") {
-            throw new Error(description + " must be a string");
-        }
-    }
-        
-    /**
      * Checks whether value is a non-empty string. Throws an exception otherwise.
      * @param {*}       value         The value to validate
      * @param {!string} description   A helpful identifier for value
      */
     function _validateNonEmptyString(value, description) {
-        _validateString(value, description);
+        // http://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript
+        if (Object.prototype.toString.call(value) !== "[object String]") {
+            throw new Error(description + " must be a string");
+        }
         if (value === "") {
             throw new Error(description + " must not be empty");
         }
@@ -248,7 +239,7 @@ define(function (require, exports, module) {
      * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      */
     function Language(id, name) {
-        _validateString(id, "Language ID");
+        _validateNonEmptyString(id, "Language ID");
         // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
         // Hence we use "_" instead of "." since the latter often has special meaning
         if (!id.match(/^[a-z0-9]+(_[a-z0-9]+)*$/)) {
