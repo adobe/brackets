@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.preferences";
 
     // Private Properties
     var preferencesKey,
@@ -149,12 +149,6 @@ define(function (require, exports, module) {
         doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
     }
 
-    //TODO: remove this preferences migration code
-    if (!localStorage.getItem("newClientID")) {
-        var oldPrefs = localStorage.getItem("com.adobe.brackets.preferences");
-        localStorage.setItem(preferencesKey, oldPrefs);
-        localStorage.setItem("newClientID", true);
-    }
     // Use localStorage by default
     _initStorage(localStorage);
 
