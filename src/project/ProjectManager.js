@@ -35,6 +35,7 @@
  *    - projectOpen        -- after  _projectRoot changes
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.
+ *    - projectTabsChange  -- sent when the project tab settings are changed
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -67,6 +68,9 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent");
+    
+    /** @const The default values of the project Tab Settings */
+    var DEFAULT_TAB_SETTINGS = {indentWithTabs: false, tabSize: 4, indentUnit: 4};
     
     /**
      * @private
@@ -125,6 +129,12 @@ define(function (require, exports, module) {
      * @ see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
+    
+    /**
+     * @private
+     * @ see getTabSettings(), setTabSettings()
+     */
+    var _projectTabSettings = "";
 
     /**
      * Unique PreferencesManager clientID
@@ -258,6 +268,47 @@ define(function (require, exports, module) {
         }
 
         _prefs.setValue(_getBaseUrlKey(), _projectBaseUrl);
+    }
+    
+    /**
+     * @private
+     */
+    function _getTabsSettingsKey() {
+        return "projectTabSettings_" + _projectRoot;
+    }
+    
+    /**
+     * @private
+     * Sets the project Tab Settings to the saved values or the default ones
+     */
+    function _loadTabSettings() {
+        _projectTabSettings = $.extend(_projectTabSettings, _prefs.getValue(_getTabsSettingsKey()) || DEFAULT_TAB_SETTINGS);
+    }
+    
+    /**
+     * Returns the Tab Settings of the currently loaded project, or null if no project
+     * is open (during startup, or running outside of app shell).
+     * @return {?{indentWithTabs: boolean, tabSize: number, indentUnit: number}}
+     */
+    function getTabSettings() {
+        return _projectTabSettings;
+    }
+
+    /**
+     * Sets the Tab Settings of the currently loaded project.
+     * @param {boolean} indentWithTabs
+     * @param {number} indentSize
+     */
+    function setTabSettings(indentWithTabs, indentSize) {
+        indentSize = Math.max(Math.min(indentSize, 10), 1);
+        _projectTabSettings = {
+            indentWithTabs: indentWithTabs,
+            tabSize:        indentWithTabs  ? indentSize : _projectTabSettings.tabSize,
+            indentUnit:     !indentWithTabs ? indentSize : _projectTabSettings.indentUnit
+        };
+
+        _prefs.setValue(_getTabsSettingsKey(), _projectTabSettings);
+        $(exports).triggerHandler("projectTabsChange");
     }
     
     /**
@@ -777,6 +828,7 @@ define(function (require, exports, module) {
 
                     _projectRoot = rootEntry;
                     _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+                    _loadTabSettings();
 
                     // If this is the current welcome project, record it. In future launches, we always 
                     // want to substitute the welcome project for the current build instead of using an
@@ -977,7 +1029,7 @@ define(function (require, exports, module) {
      * Invoke project settings dialog.
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl());
+        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl(), null, getTabSettings());
     }
 
     /**
@@ -1378,6 +1430,8 @@ define(function (require, exports, module) {
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;
     exports.setBaseUrl               = setBaseUrl;
+    exports.getTabSettings           = getTabSettings;
+    exports.setTabSettings           = setTabSettings;
     exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow               = shouldShow;

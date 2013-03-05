@@ -79,19 +79,6 @@ define(function (require, exports, module) {
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     
-    /**
-     * The default tabs settings used to set the project tabs settings when the project doesn't have any setting saved
-     * @const {{indentWithTabs: boolean, tabSize: number, indentUnit: number}}
-     */
-    var DEFAULT_TABS = {
-        indentWithTabs: false,
-        tabSize: 4,
-        indentUnit: 4
-    };
-    
-    /** @type {{indentWithTabs: boolean, tabSize: number, indentUnit: number}}  The current project's tabs settings */
-    var _projectTabs = null;
-    
     
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
@@ -99,16 +86,6 @@ define(function (require, exports, module) {
     /** @type {number}  Constant: ignore upper boundary when centering text */
     var BOUNDARY_CHECK_NORMAL   = 0,
         BOUNDARY_IGNORE_TOP     = 1;
-    
-    
-    /**
-     * @private
-     * Sets the project tabs settings from the saved project values or the default ones
-     */
-    function _setProjectTabs() {
-        var preferences = _prefs.getValue("projectTabs_" + ProjectManager.getProjectRoot());
-        _projectTabs = $.extend(_projectTabs, preferences || DEFAULT_TABS);
-    }
     
     /**
      * @private
@@ -1317,41 +1294,24 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets the given preference option to the current editor and changes the global project settings and all other 
-     * opened project files if the file is within the project and if the old file saved preference is undefined or
-     * equal to the saved project preference
+     * Sets the given preference option to the current editor and saves it
      * @param {string} preference
      * @param {number|boolean} value
      */
     Editor.prototype._setTabPreference = function (preference, value) {
-        var fullPath = this.document.file.fullPath;
-        var oldPref  = _prefs.getValue(preference + "_" + fullPath);
-        
         this._codeMirror.setOption(preference, value);
-        _prefs.setValue(preference + "_" + fullPath, value);
-        
-        if (ProjectManager.isWithinProject(fullPath) && (oldPref === undefined || _projectTabs[preference] === oldPref)) {
-            _projectTabs[preference] = value;
-            
-            _instances.forEach(function (editor) {
-                fullPath = editor.document.file.fullPath;
-                if (_prefs.getValue(preference + "_" + fullPath) === undefined && ProjectManager.isWithinProject(fullPath)) {
-                    editor._codeMirror.setOption(preference, value);
-                }
-            });
-            _prefs.setValue("projectTabs_" + ProjectManager.getProjectRoot(), _projectTabs);
-        }
+        _prefs.setValue(preference + "_" + this.document.file.fullPath, value);
     };
     
     /**
      * @private
-     * Returns the value for the given preference id first checking with the file settings and then with the project settings
+     * Returns the value for the given preference key first checking with the file settings and then with the project settings
      * @param {string} preference
      * @return {number|boolean}
      */
     Editor.prototype._getTabPreference = function (preference) {
         var value = _prefs.getValue(preference + "_" + this.document.file.fullPath);
-        return value !== undefined ? value : _projectTabs[preference];
+        return value !== undefined ? value : ProjectManager.getTabSettings()[preference];
     };
     
     
@@ -1395,8 +1355,27 @@ define(function (require, exports, module) {
     };
     
     
-    // Handle project change events
-    $(ProjectManager).on("projectOpen", _setProjectTabs);
+    /**
+     * @private
+     * Changes the Tab Settings of all the opened editors within the project with no saved tab preferences after a 
+     * tab preference change and triggers a StatusBar update
+     */
+    function _setProjectTabs() {
+        var preferences = ProjectManager.getTabSettings();
+        _instances.forEach(function (editor) {
+            if (ProjectManager.isWithinProject(editor.document.file.fullPath)) {
+                $.each(preferences, function (key, value) {
+                    if (_prefs.getValue(key + "_" + editor.document.file.fullPath) === undefined) {
+                        editor._codeMirror.setOption(key, value);
+                    }
+                });
+            }
+        });
+        $(EditorManager).triggerHandler("activeEditorChange", [EditorManager.getActiveEditor(), null]);
+    }
+    
+    // Initialize: register listeners
+    $(ProjectManager).on("projectTabsChange", Editor.setProjectTabs);
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
