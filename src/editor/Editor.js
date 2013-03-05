@@ -77,10 +77,10 @@ define(function (require, exports, module) {
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor";
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, {});
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     
     /**
-     * The default tab settings used to set the project tabs settings when the project doesnt have any saved
+     * The default tabs settings used to set the project tabs settings when the project doesn't have any setting saved
      * @const {{indentWithTabs: boolean, tabSize: number, indentUnit: number}}
      */
     var DEFAULT_TABS = {
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         indentUnit: 4
     };
     
-    /** @type {{indentWithTabs: boolean, tabSize: number, indentUnit: number}}  The current project tab settings */
+    /** @type {{indentWithTabs: boolean, tabSize: number, indentUnit: number}}  The current project's tabs settings */
     var _projectTabs = null;
     
     
@@ -103,7 +103,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets the project tabs settings from the saved values or the default ones
+     * Sets the project tabs settings from the saved project values or the default ones
      */
     function _setProjectTabs() {
         var preferences = _prefs.getValue("projectTabs_" + ProjectManager.getProjectRoot());
@@ -1318,20 +1318,24 @@ define(function (require, exports, module) {
     /**
      * @private
      * Sets the given preference option to the current editor and changes the global project settings and all other 
-     * opened project files if the preference given is the same as the project saved preference
+     * opened project files if the file is within the project and if the old file saved preference is undefined or
+     * equal to the saved project preference
+     * @param {string} preference
+     * @param {number|boolean} value
      */
     Editor.prototype._setTabPreference = function (preference, value) {
-        var oldPref = this._codeMirror.getOption(preference);
-        this._codeMirror.setOption(preference, value);
-        _prefs.setValue(preference + "_" + this.document.file.fullPath, value);
+        var fullPath = this.document.file.fullPath;
+        var oldPref  = _prefs.getValue(preference + "_" + fullPath);
         
-        if (ProjectManager.isWithinProject(this.document.file.fullPath) &&
-                (oldPref !== undefined || _projectTabs[preference] === oldPref)) {
+        this._codeMirror.setOption(preference, value);
+        _prefs.setValue(preference + "_" + fullPath, value);
+        
+        if (ProjectManager.isWithinProject(fullPath) && (oldPref === undefined || _projectTabs[preference] === oldPref)) {
             _projectTabs[preference] = value;
             
             _instances.forEach(function (editor) {
-                var path = editor.document.file.fullPath;
-                if (_prefs.getValue(preference + "_" + path) === undefined && ProjectManager.isWithinProject(path)) {
+                fullPath = editor.document.file.fullPath;
+                if (_prefs.getValue(preference + "_" + fullPath) === undefined && ProjectManager.isWithinProject(fullPath)) {
                     editor._codeMirror.setOption(preference, value);
                 }
             });
@@ -1342,6 +1346,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Returns the value for the given preference id first checking with the file settings and then with the project settings
+     * @param {string} preference
      * @return {number|boolean}
      */
     Editor.prototype._getTabPreference = function (preference) {
