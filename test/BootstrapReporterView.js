@@ -336,6 +336,9 @@ define(function (require, exports, module) {
         
         // Remove file:// prefix and :line:ch suffix, then convert that "clean" URI to a native path
         var path = uri.substring("file://".length, uri.length - lineData.length - chData.length - 2);
+        if (path.indexOf("localhost") === 0) {      // Macs also bizarrely prepend the URI with "localhost"
+            path = path.substring("localhost".length);
+        }
         path = FileUtils.convertToNativePath(path);
         
         // Convert from symlinked path to real path - otherwise Brackets will think they are two separate files.
