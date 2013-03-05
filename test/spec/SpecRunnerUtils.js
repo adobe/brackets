@@ -210,6 +210,7 @@ define(function (require, exports, module) {
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        EditorManager._notifyActiveEditorChanged(editor);
         
         return { doc: doc, editor: editor };
     }

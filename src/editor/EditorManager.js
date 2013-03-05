@@ -852,6 +852,7 @@ define(function (require, exports, module) {
     exports._getViewState = _getViewState;
     exports._resetViewStates = _resetViewStates;
     exports._doShow = _doShow;
+    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
     exports.REFRESH_SKIP = REFRESH_SKIP;
