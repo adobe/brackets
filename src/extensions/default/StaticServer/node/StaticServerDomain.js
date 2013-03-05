@@ -54,13 +54,6 @@ maxerr: 50, node: true */
     
     /**
      * @private
-     * @type {DomainManager}
-     * The DomainManager passed in at init.
-     */
-    var _domainManager = null;
-
-    /**
-     * @private
      * Helper function to create a new server.
      * @param {string} path The absolute path that should be the document root
      * @param {function(?string, ?httpServer)} cb Callback function that receives
@@ -164,14 +157,13 @@ maxerr: 50, node: true */
     
     /**
      * Initializes the StaticServer domain with its commands.
-     * @param {DomainManager} DomainManager The DomainManager for the server
+     * @param {DomainManager} domainManager The DomainManager for the server
      */
-    function init(DomainManager) {
-        _domainManager = DomainManager;
-        if (!_domainManager.hasDomain("staticServer")) {
-            _domainManager.registerDomain("staticServer", {major: 0, minor: 1});
+    function init(domainManager) {
+        if (!domainManager.hasDomain("staticServer")) {
+            domainManager.registerDomain("staticServer", {major: 0, minor: 1});
         }
-        _domainManager.registerCommand(
+        domainManager.registerCommand(
             "staticServer",
             "getServer",
             _cmdGetServer,
@@ -188,7 +180,7 @@ maxerr: 50, node: true */
                 description: "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
             }]
         );
-        _domainManager.registerCommand(
+        domainManager.registerCommand(
             "staticServer",
             "closeServer",
             _cmdCloseServer,
