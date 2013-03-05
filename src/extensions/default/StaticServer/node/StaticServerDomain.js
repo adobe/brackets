@@ -157,7 +157,7 @@ maxerr: 50, node: true */
     
     /**
      * Initializes the StaticServer domain with its commands.
-     * @param {DomainManager} DomainManager The DomainManager for the server
+     * @param {DomainManager} domainManager The DomainManager for the server
      */
     function init(domainManager) {
         if (!domainManager.hasDomain("staticServer")) {
