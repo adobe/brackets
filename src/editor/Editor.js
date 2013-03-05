@@ -1225,7 +1225,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link LanguageManager#getLanguageFromFilePath()} and {@link Language#getMode()}.
+     *     See {@link LanguageManager#getLanguageFromPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1258,7 +1258,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageFromFilePath()} and {@link Language#getMode()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageFromPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");

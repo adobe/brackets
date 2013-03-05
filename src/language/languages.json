@@ -135,26 +135,12 @@
         "name": "Diff",
         "mode": "diff",
         "fileExtensions": ["diff", "patch"]
-    },
-            
-    "makefile": {
-        "name": "Makefile",
-        "mode": "makefile",
-        "fileExtensions": ["make"],
-        "fileNames": ["GNUmakefile", "makefile", "Makefile", "OCamlMakefile"],
-        "lineComment": "#"
-    },        
+    },       
     
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
         "fileExtensions": ["md", "markdown"]
-    },
-            
-    "typescript": {
-        "name": "TypeScript",
-        "mode": ["javascript", "application/typescript"],
-        "fileExtensions": ["typescript", "ts", "str"]
     },
     
     "yaml": {

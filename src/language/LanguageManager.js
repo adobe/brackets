@@ -162,7 +162,7 @@ define(function (require, exports, module) {
      */
     function _setLanguageForMode(mode, language) {
         if (_modeToLanguageMap[mode]) {
-            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode].name + ", won't register for " + language.name);
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + ", won't register for " + language._name);
             return;
         }
 
@@ -183,15 +183,15 @@ define(function (require, exports, module) {
      * @param {!string} path Path to the file to find a language for
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageFromFilePath(path) {
+    function getLanguageFromPath(path) {
         var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
             filename  = PathUtils.filename(path),
             language  = extension ? _fileExtensionToLanguageMap[extension] 
                                   : _fileNameToLanguageMap[filename];
         
         if (!language) {
-            extension ? console.log("Called LanguageManager.getLanguageFromFilePath with an unhandled file extension:", extension)
-                      : console.log("Called LanguageManager.getLanguageFromFilePath with an unhandled file name:", filename);
+            extension ? console.log("Called LanguageManager.getLanguageFromPath with an unhandled file extension:", extension)
+                      : console.log("Called LanguageManager.getLanguageFromPath with an unhandled file name:", filename);
         }
         
         return language || _fallbackLanguage;
@@ -384,7 +384,7 @@ define(function (require, exports, module) {
             
             var language = _fileExtensionToLanguageMap[extension];
             if (language) {
-                console.warn("Cannot register file extension \"" + extension + "\" for " + this.name + ", it already belongs to " + language.name);
+                console.warn("Cannot register file extension \"" + extension + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
                 
@@ -409,7 +409,7 @@ define(function (require, exports, module) {
             
             var language = _fileNameToLanguageMap[name];
             if (language) {
-                console.warn("Cannot register file name \"" + name + "\" for " + this.name + ", it already belongs to " + language.name);
+                console.warn("Cannot register file name \"" + name + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileNameToLanguageMap[name] = this;
                 
@@ -573,7 +573,7 @@ define(function (require, exports, module) {
             
             // register language file names after mode has loaded
             if (fileNames) {
-                for (i = 0, l= fileNames.length; i < l; i++) {
+                for (i = 0, l = fileNames.length; i < l; i++) {
                     language._addFileName(fileNames[i]);
                 }
             }
@@ -632,8 +632,8 @@ define(function (require, exports, module) {
     });
     
     // Public methods
-    exports.ready                        = _ready;
-    exports.defineLanguage               = defineLanguage;
-    exports.getLanguage                  = getLanguage;
-    exports.getLanguageFromFilePath      = getLanguageFromFilePath;
+    exports.ready                   = _ready;
+    exports.defineLanguage          = defineLanguage;
+    exports.getLanguage             = getLanguage;
+    exports.getLanguageFromPath     = getLanguageFromPath;
 });
