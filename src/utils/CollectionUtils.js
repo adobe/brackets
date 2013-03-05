@@ -50,7 +50,7 @@ define(function (require, exports, module) {
      * Iterates over all the properties in an object or elements in an array. Differs from
      * $.each in that it iterates over array-like objects like regular objects.
      * @param {*} object The object or array to iterate over.
-     * @param {function(index, value)} callback The function that will be executed on every object.
+     * @param {function(value, key)} callback The function that will be executed on every object.
      */
     function forEach(object, callback) {
         var keys = Object.keys(object),

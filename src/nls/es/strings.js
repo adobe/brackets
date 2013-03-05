@@ -76,6 +76,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Desarrollo en Vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML para poder iniciar el modo de Desarrollo en Vivo.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Desarrollo en Vivo con archivos de servidor.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Desarrollo en Vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS</strong> y únicamente con <strong>Google Chrome</strong>. ¡Pronto estará disponible también para HTML y JavaScript!<br /><br />(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Consulta <a class=\"clickable-link\" data-href=\"{0}\">Resolución de Problemas de conexión en Desarrollo en Vivo</a> para más información.",
@@ -236,7 +237,10 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Nueva ventana de {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
     "CMD_SWITCH_LANGUAGE"                 : "Cambiar idioma",
-
+    "CMD_ENABLE_NODE_DEBUGGER"            : "Habilitar depuración de Node",
+    "CMD_LOG_NODE_STATE"                  : "Mostrar estado de Node en Consola",
+    "CMD_RESTART_NODE"                    : "Reiniciar Node",
+    
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
     "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",

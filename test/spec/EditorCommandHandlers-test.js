@@ -46,12 +46,12 @@ define(function (require, exports, module) {
 
         var myDocument, myEditor;
         
-        function setupFullEditor(content, mode) {
+        function setupFullEditor(content, languageId) {
             content = content || defaultContent;
-            mode = mode || "javascript";
+            languageId = languageId || "javascript";
             
             // create dummy Document and Editor
-            var mocks = SpecRunnerUtils.createMockEditor(content, mode);
+            var mocks = SpecRunnerUtils.createMockEditor(content, languageId);
             myDocument = mocks.doc;
             myEditor = mocks.editor;
             
@@ -1455,7 +1455,7 @@ define(function (require, exports, module) {
                               "</html>";
 
             beforeEach(function () {
-                setupFullEditor(htmlContent, "htmlmixed");
+                setupFullEditor(htmlContent, "html");
             });
 
             // Correct behavior for line and block comment commands
