@@ -86,13 +86,20 @@ define(function (require, exports, module) {
     }
     
     WrappedChannel.prototype.subscribe = function (topic, callback, options) {
+        options = options || {};
+        options.extensionName = this._ext.extensionName;
         var sub = this._channel.subscribe(topic, callback, options);
         this._ext._addSubscription(sub);
         return sub;
     };
     
     WrappedChannel.prototype.publish = function (topic, data) {
-        this._channel.publish(topic, data);
+		var envelope = arguments.length === 1 ?
+		                (Object.prototype.toString.call(topic) === '[object String]' ?
+	                        { topic: topic } : topic) : { topic : topic, data : data };
+		envelope.channel = this._channel.channel;
+        envelope.extensionName = this._ext.extensionName;
+		return postal.configuration.bus.publish(envelope);
     };
     
     function ExtensionData(extensionName, metadata) {
@@ -124,6 +131,15 @@ define(function (require, exports, module) {
     ExtensionData.prototype._addSubscription = function (sub) {
         this._subscriptions.push(sub);
     };
+    
+    ExtensionData.prototype._unregister = function () {
+        this._sharedData.forEach(function (name) {
+            delete sharedData[name];
+        });
+        this._subscriptions.forEach(function (sub) {
+            sub.unsubscribe();
+        });
+    };
         
     function registerExtension(extensionName, metadata) {
         var ed = new ExtensionData(extensionName);
@@ -131,7 +147,14 @@ define(function (require, exports, module) {
         return ed;
     }
     
+    function unregisterExtension(extensionName) {
+        var ed = extensions[extensionName];
+        ed._unregister();
+    }
+    
+    var core = exports.core = registerExtension("core");
+    
     exports.registerExtension = registerExtension;
-    exports.core = registerExtension("core");
+    exports.unregisterExtension = unregisterExtension;
     exports._logMessages = "";
 });

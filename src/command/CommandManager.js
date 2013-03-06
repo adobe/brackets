@@ -254,14 +254,22 @@ define(function (require, exports, module) {
     
     var postalChannel = core.channel("postal");
     var commandChannel = core.channel("command");
+    
+    // CommandManager is, theoretically, not even needed. Menu items
+    // can just publish the command event directly.
     postalChannel.subscribe("subscription.created", function (info, envelope) {
         if (info.channel !== "command") {
             return;
         }
-        
-        console.log("registering " + info.topic);
         register(info.options.name, info.topic, function (data) {
             commandChannel.publish(info.topic, data);
         });
+    });
+    
+    postalChannel.subscribe("subscription.removed", function (info, envelope) {
+        if (info.channel !== "command") {
+            return;
+        }
+        delete _commands[info.topic];
     });
 });

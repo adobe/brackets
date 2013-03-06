@@ -1007,14 +1007,50 @@ define(function (require, exports, module) {
     var core = require("utils/ExtensionData").core;
     var menuChannel = core.channel("menu");
     var commandChannel = core.channel("command");
+    var extensionChannel = core.channel("extension");
     
-    menuChannel.subscribe("addMenu", function (data) {
+    var extensionMenuItems = {};
+    
+    menuChannel.subscribe("addMenu", function (data, envelope) {
         addMenu(data.name, data.id, data.position, data.relativeID);
     });
     
-    menuChannel.subscribe("addItem", function (data) {
+    menuChannel.subscribe("addItem", function (data, envelope) {
         var menu = getMenu(data.menu);
         menu.addMenuItem(data.command, data.keybindings,
                          data.position, data.relativeID);
+        var extensionName = envelope.extensionName;
+        var itemsList = extensionMenuItems[extensionName];
+        if (!itemsList) {
+            itemsList = [];
+            extensionMenuItems[extensionName] = itemsList;
+        }
+        itemsList.push({
+            menu: data.menu,
+            command: data.command
+        });
+    });
+    
+    var extensionsMenu = addMenu("Extensions", "extensions-menu", "last");
+    
+    extensionChannel.subscribe("initialized", function (data) {
+        extensionsMenu.addMenuItem("extension.unload." + data.name, undefined,
+                                   "last");
+        extensionsMenu.addMenuItem("extension.reload." + data.name, undefined,
+                                   "last");
+    });
+    
+    extensionChannel.subscribe("unloading", function (data) {
+        var extensionName = data.name;
+        var itemsList = extensionMenuItems[extensionName];
+        if (itemsList) {
+            itemsList.forEach(function (item) {
+                var menu = getMenu(item.menu);
+                menu.removeMenuItem(item.command);
+            });
+            delete extensionMenuItems[extensionName];
+        }
+        extensionsMenu.removeMenuItem("extension.unload." + extensionName);
+        extensionsMenu.removeMenuItem("extension.reload." + extensionName);
     });
 });

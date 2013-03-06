@@ -41,8 +41,10 @@ define(function (require, exports, module) {
     
     var _init       = false,
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
-        contexts    = {},
-        srcPath     = FileUtils.getNativeBracketsDirectoryPath();
+        contexts         = {},
+        extensionChannel = ExtensionData.core.channel("extension"),
+        srcPath          = FileUtils.getNativeBracketsDirectoryPath(),
+        loadExtension;
     
     // The native directory path ends with either "test" or "src". We need "src" to
     // load the text and i18n modules.
@@ -74,20 +76,55 @@ define(function (require, exports, module) {
         return contexts[name];
     }
     
-    function _hackifyExtension(name, baseUrl, extensionRequire, mainModule) {
+    function _hackifyExtension(name, config, entryPoint, extensionRequire, mainModule) {
         // old fashioned extension
         if (!mainModule.init) {
             return;
         }
-        extensionRequire(["text!" + baseUrl + "/package.json"],
+        extensionRequire(["text!" + config.baseUrl + "/package.json"],
             function (metadataText) {
                 var metadata = JSON.parse(metadataText);
                 metadata.extensionName = name;
                 var ext = ExtensionData.registerExtension(name, metadata);
                 mainModule.init(ext);
+                // registering this command in the context of the
+                // extension so that it gets removed automatically
+                var commandChannel = ext.channel("command");
+                commandChannel.subscribe("extension.unload." + name, function () {
+                    extensionChannel.publish("unloading", {
+                        name: name
+                    });
+                    ExtensionData.unregisterExtension(name);
+                    delete contexts[name];
+                    extensionRequire.undef(entryPoint);
+                    extensionChannel.publish("unload", {
+                        name: name
+                    });
+                }, {
+                    name: "Unload " + name,
+                    id: "extension.unload." + name
+                });
+                
+                commandChannel.subscribe("extension.reload." + name, function () {
+                    var sub = extensionChannel.subscribe("unload", function (data) {
+                        if (data.name === name) {
+                            loadExtension(name, config, entryPoint, true);
+                            sub.unsubscribe();
+                        }
+                    });
+                    commandChannel.publish("extension.unload." + name, {});
+                    
+                }, {
+                    name: "Reload " + name,
+                    id: "extension.reload." + name
+                });
+                
+                extensionChannel.publish("initialized", {
+                    name: name
+                });
             },
             function (err) {
-                console.error("[Extension] is missing package.json " + baseUrl, err);
+                console.error("[Extension] hit an exception " + config.baseUrl, err);
             });
     }
     
@@ -101,14 +138,20 @@ define(function (require, exports, module) {
      *              if the extension fails to load or throws an exception immediately when loaded.
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
-    function loadExtension(name, config, entryPoint) {
+    loadExtension = function loadExtension(name, config, entryPoint, cacheBust) {
+        var urlArgs;
+        if (cacheBust) {
+            urlArgs = "bust=" + (new Date()).getTime();
+        }
+        
         var result = new $.Deferred(),
             extensionRequire = brackets.libRequire.config({
                 context: name,
                 baseUrl: config.baseUrl,
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
                 paths: globalConfig,
-                locale: brackets.getLocale()
+                locale: brackets.getLocale(),
+                urlArgs: urlArgs
             });
         contexts[name] = extensionRequire;
 
@@ -117,7 +160,7 @@ define(function (require, exports, module) {
         extensionRequire([entryPoint],
             function (mainModule) {
                 // console.log("[Extension] finished loading " + config.baseUrl);
-                _hackifyExtension(name, config.baseUrl, extensionRequire, mainModule);
+                _hackifyExtension(name, config, entryPoint, extensionRequire, mainModule);
                 result.resolve();
             },
             function errback(err) {
@@ -130,7 +173,7 @@ define(function (require, exports, module) {
             });
         
         return result.promise();
-    }
+    };
 
     /**
      * Runs unit tests for the extension that lives at baseUrl into its own Require.js context
