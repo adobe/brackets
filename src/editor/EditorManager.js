@@ -108,6 +108,22 @@ define(function (require, exports, module) {
         $indentWidthLabel,
         $indentWidthInput;
     
+	/**
+     * @private
+     * @param {?Editor} current
+     */
+    function _notifyActiveEditorChanged(current) {
+        // Skip if the Editor that gained focus was already the most recently focused editor.
+        // This may happen e.g. if the window loses then regains focus.
+        if (_lastFocusedEditor === current) {
+            return;
+        }
+        var previous = _lastFocusedEditor;
+        _lastFocusedEditor = current;
+        
+        $(exports).triggerHandler("activeEditorChange", [current, previous]);
+    }
+	
     /**
      * Creates a new Editor bound to the given Document.
      * The editor is appended to the given container as a visible child.
@@ -120,7 +136,13 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        return new Editor(doc, makeMasterEditor, container, range);
+        var editor = new Editor(doc, makeMasterEditor, container, range);
+
+        $(editor).on("focus", function () {
+            _notifyActiveEditorChanged(this);
+        });
+        
+        return editor;
     }
     
     /**
@@ -432,24 +454,7 @@ define(function (require, exports, module) {
     function _resetViewStates(viewStates) {
         _viewStateCache = viewStates;
     }
-    
-    
-    /**
-     * @private
-     * @param {?Editor} current
-     */
-    function _notifyActiveEditorChanged(current) {
-        // Skip if the Editor that gained focus was already the most recently focused editor.
-        // This may happen e.g. if the window loses then regains focus.
-        if (_lastFocusedEditor === current) {
-            return;
-        }
-        var previous = _lastFocusedEditor;
-        _lastFocusedEditor = current;
-        
-        $(exports).triggerHandler("activeEditorChange", [current, previous]);
-    }
-    
+
     /**
      * @private
      */
@@ -692,7 +697,7 @@ define(function (require, exports, module) {
     }
     
     function _updateLanguageInfo(editor) {
-        $languageInfo.text(editor.document.getLanguage().name);
+        $languageInfo.text(editor.document.getLanguage().getName());
     }
     
     function _updateFileInfo(editor) {
@@ -842,12 +847,12 @@ define(function (require, exports, module) {
     // For unit tests and internal use only
     exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
-    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     exports._getViewState = _getViewState;
     exports._resetViewStates = _resetViewStates;
     exports._doShow = _doShow;
+    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
     exports.REFRESH_SKIP = REFRESH_SKIP;

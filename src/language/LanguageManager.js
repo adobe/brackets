@@ -44,7 +44,7 @@
  *
  * To use that language and it's related mode, wait for the returned promise to be resolved:
  *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
- *         console.log("Language " + language.name + " is now available!");
+ *         console.log("Language " + language.getName() + " is now available!");
  *     });
  *
  * You can also refine an existing language. Currently you can only set the comment styles:
@@ -161,7 +161,7 @@ define(function (require, exports, module) {
      */
     function _setLanguageForMode(mode, language) {
         if (_modeToLanguageMap[mode]) {
-            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode].name + ", won't register for " + language.name);
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + ", won't register for " + language._name);
             return;
         }
 
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
             
             var language = _fileExtensionToLanguageMap[extension];
             if (language) {
-                console.warn("Cannot register file extension \"" + extension + "\" for " + this.name + ", it already belongs to " + language.name);
+                console.warn("Cannot register file extension \"" + extension + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
                 
