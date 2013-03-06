@@ -351,6 +351,7 @@ define(function (require, exports, module) {
             // This mode is now only about what to tell CodeMirror
             // The base mode was only necessary to load the proper mode file
             self._mode = mimeMode || mode;
+            self._wasModified();
             
             result.resolve(self);
         };
@@ -425,6 +426,7 @@ define(function (require, exports, module) {
         _validateNonEmptyString(prefix, "prefix");
         
         this._lineCommentSyntax = { prefix: prefix };
+        this._wasModified();
     };
     
     /**
@@ -461,6 +463,7 @@ define(function (require, exports, module) {
         _validateNonEmptyString(suffix, "suffix");
         
         this._blockCommentSyntax = { prefix: prefix, suffix: suffix };
+        this._wasModified();
     };
     
     /**
@@ -489,6 +492,7 @@ define(function (require, exports, module) {
             throw new Error("A language must always map its mode to itself");
         }
         this._modeToLanguageMap[mode] = language;
+        this._wasModified();
     };
 
     /**
