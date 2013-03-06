@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true, boss: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window */
 
 /**
@@ -334,21 +334,22 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * @param {string} commandID
+     * @param {!(string | Command)} command - A command ID or command object
      * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
      * @param {?string} platform - undefined indicates all platforms
      * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings.
      *     Returns null when key binding platform does not match, binding does not normalize,
      *     or is already assigned.
      */
-    function _addBinding(commandID, keyBinding, platform) {
+    function _addBinding(command, keyBinding, platform) {
         var key,
+            commandID = "",
             result = null,
             normalized,
             normalizedDisplay,
             explicitPlatform = keyBinding.platform || platform,
             targetPlatform = explicitPlatform || brackets.platform,
-            command,
+            commandObj,
             bindingsToDelete = [],
             existing;
 
@@ -393,6 +394,17 @@ define(function (require, exports, module) {
         // skip if this binding doesn't match the current platform
         if (targetPlatform !== brackets.platform) {
             return null;
+        }
+
+        if (!command) {
+            console.error("_addBinding(): missing required parameters: command");
+            return;
+        }
+
+        if (typeof (command) === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
         }
 
         // skip if the key is already assigned explicitly for this platform
@@ -461,10 +473,10 @@ define(function (require, exports, module) {
         };
 
         // notify listeners
-        command = CommandManager.get(commandID);
+        commandObj = CommandManager.get(commandID);
 
-        if (command) {
-            $(command).triggerHandler("keyBindingAdded", [result]);
+        if (commandObj) {
+            $(commandObj).triggerHandler("keyBindingAdded", [result]);
         }
 
         return result;
