@@ -61,8 +61,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager      = require("editor/EditorManager"),
-        CodeHintManager    = require("editor/CodeHintManager"),
+    var CodeHintManager    = require("editor/CodeHintManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
@@ -243,20 +242,6 @@ define(function (require, exports, module) {
         CodeHintManager.handleKeyEvent(editor, event);
     }
 
-    function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
-
-        if (editor) {
-            editor.selectAllNoScroll();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
-    }
-
     /**
      * Helper functions to check options.
      * @param {number} options BOUNDARY_CHECK_NORMAL or BOUNDARY_IGNORE_TOP
@@ -363,7 +348,7 @@ define(function (require, exports, module) {
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap,
-			autoCloseBrackets: _closeBrackets,
+            autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
                 whenOpening: true,
                 whenClosing: true,
@@ -659,7 +644,7 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            EditorManager._notifyActiveEditorChanged(self);
+            $(self).triggerHandler("focus", [self]);
         });
         
         this._codeMirror.on("blur", function () {
@@ -1360,7 +1345,6 @@ define(function (require, exports, module) {
         return _indentUnit;
     };
     
-    
     /**
      * Sets the auto close brackets. Affects all Editors.
      * @param {boolean} value
@@ -1379,10 +1363,6 @@ define(function (require, exports, module) {
         return _closeBrackets;
     };
     
-    
-    // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;

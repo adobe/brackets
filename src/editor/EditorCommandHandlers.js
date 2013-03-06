@@ -30,7 +30,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var Commands           = require("command/Commands"),
         Strings            = require("strings"),
@@ -714,6 +714,20 @@ define(function (require, exports, module) {
         // Do nothing. The shell will call the native handler for the command.
         return (new $.Deferred()).reject().promise();
     }
+	
+	function _handleSelectAll() {
+        var result = new $.Deferred(),
+            editor = EditorManager.getFocusedEditor();
+
+        if (editor) {
+            editor.selectAllNoScroll();
+            result.resolve();
+        } else {
+            result.reject();    // command not handled
+        }
+
+        return result.promise();
+    }
         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
@@ -731,4 +745,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
     CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
     CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
+    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,       _handleSelectAll);
 });
