@@ -510,7 +510,7 @@ define(function (require, exports, module) {
     /**
      * Add one or more key bindings to a particular Command.
      *
-     * @param {!string} commandID
+     * @param {!(string | Command)} command - A command ID or command object
      * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
      *     a single key binding or an array of keybindings. Example:
      *     "Shift-Cmd-F". Mac and Win key equivalents are automatically
@@ -522,13 +522,23 @@ define(function (require, exports, module) {
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
      *     Returns record(s) for valid key binding(s)
      */
-    function addBinding(commandID, keyBindings, platform) {
-        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
+    function addBinding(command, keyBindings, platform) {
+        var commandID           = "",
+            normalizedBindings  = [],
+            results;
+
+        if (!command) {
+            console.error("addBinding(): missing required parameter: command");
             return;
         }
 
-        var normalizedBindings = [],
-            results;
+        if (!keyBindings) { return; }
+
+        if (typeof (command) === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
 
         if (Array.isArray(keyBindings)) {
             var keyBinding;
@@ -552,7 +562,7 @@ define(function (require, exports, module) {
     /**
      * Retrieve key bindings currently associated with a command
      *
-     * @param {!string | Command} command - A command ID or command object
+     * @param {!(string | Command)} command - A command ID or command object
      * @return {!Array.<{{key: string, displayKey: string}}>} An array of associated key bindings.
      */
     function getKeyBindings(command) {
@@ -560,7 +570,7 @@ define(function (require, exports, module) {
             commandID   = "";
 
         if (!command) {
-            console.error("getKeyBindings(): missing required parameters: command");
+            console.error("getKeyBindings(): missing required parameter: command");
             return [];
         }
 
