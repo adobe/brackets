@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
  /**
   * Manages global application commands that can be called from menu items, key bindings, or subparts
@@ -251,10 +251,17 @@ define(function (require, exports, module) {
     
     // new extensions testing
     var core = require("utils/ExtensionData").core;
-    core.subscribe("subscribe.command", function (info, envelope) {
-        console.log("registering " + info.message, info.options);
-        register(info.options.name, info.options.id, function (data) {
-            core.publish(info.message, data);
+    
+    var postalChannel = core.channel("postal");
+    var commandChannel = core.channel("command");
+    postalChannel.subscribe("subscription.created", function (info, envelope) {
+        if (info.channel !== "command") {
+            return;
+        }
+        
+        console.log("registering " + info.topic);
+        register(info.options.name, info.topic, function (data) {
+            commandChannel.publish(info.topic, data);
         });
     });
 });

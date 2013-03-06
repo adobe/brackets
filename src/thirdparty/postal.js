@@ -13,7 +13,7 @@
 		}
 	} else if ( typeof define === "function" && define.amd ) {
 		// AMD. Register as an anonymous module.
-		define( ["underscore"], function ( _ ) {
+		define( ["thirdparty/underscore"], function ( _ ) {
 			return factory( _, root );
 		} );
 	} else {
@@ -62,8 +62,8 @@
 	
 	ChannelDefinition.prototype.subscribe = function () {
 		return arguments.length === 1 ?
-		       new SubscriptionDefinition( this.channel, arguments[0].topic, arguments[0].callback ) :
-		       new SubscriptionDefinition( this.channel, arguments[0], arguments[1] );
+		       new SubscriptionDefinition( this.channel, arguments[0].topic, arguments[0].callback, arguments[0].options ) :
+		       new SubscriptionDefinition( this.channel, arguments[0], arguments[1], arguments[2] );
 	};
 	
 	ChannelDefinition.prototype.publish = function () {
@@ -73,19 +73,22 @@
 		envelope.channel = this.channel;
 		return postal.configuration.bus.publish( envelope );
 	};
-	var SubscriptionDefinition = function ( channel, topic, callback ) {
+    // kdangoor: added options
+	var SubscriptionDefinition = function ( channel, topic, callback, options ) {
 		this.channel = channel;
 		this.topic = topic;
 		this.callback = callback;
 		this.constraints = [];
 		this.context = null;
+        this.options = options;
 		postal.configuration.bus.publish( {
 			channel : SYSTEM_CHANNEL,
 			topic : "subscription.created",
 			data : {
 				event : "subscription.created",
 				channel : channel,
-				topic : topic
+				topic : topic,
+                options: options
 			}
 		} );
 		postal.configuration.bus.subscribe( this );
@@ -100,7 +103,8 @@
 				data : {
 					event : "subscription.removed",
 					channel : this.channel,
-					topic : this.topic
+					topic : this.topic,
+                    options: this.options
 				}
 			} );
 		},
@@ -259,6 +263,10 @@
 				}
 			};
 		},
+        
+        // dangoor: added this hook
+        augmentEnvelope: function (subDef, envelope) {
+        },
 	
 		publish : function ( envelope ) {
 			envelope.timeStamp = new Date();
@@ -270,10 +278,17 @@
 	        var idx = 0, len = subscribers.length, subDef;
 	        while(idx < len) {
 	          if( subDef = subscribers[idx++] ){
-	            fireSub(subDef, envelope);
+                var d = this.augmentEnvelope(subDef, envelope);
+                if (d) {
+                    d.then(function () {
+                        fireSub(subDef, envelope);
+                    });
+                } else {
+	               fireSub(subDef, envelope);
+                }
 	          }
 	        }
-	      } );
+	      }, this );
 			}
 			return envelope;
 		},
@@ -338,7 +353,7 @@
 		},
 	
 		subscribe : function ( options ) {
-			return new SubscriptionDefinition( options.channel || DEFAULT_CHANNEL, options.topic, options.callback );
+			return new SubscriptionDefinition( options.channel || DEFAULT_CHANNEL, options.topic, options.callback, options.options );
 		},
 	
 		publish : function ( envelope ) {

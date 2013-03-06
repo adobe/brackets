@@ -32,6 +32,11 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var postal = require("thirdparty/postal");
+    var _ = require("thirdparty/underscore");
+    require("thirdparty/postal.diagnostics");
+    var wireTap = new postal.diagnostics.DiagnosticsWireTap({name: "console"});
+    
     var publishers = {};
     var sharedData = {};
     var extensions = {};
@@ -61,6 +66,15 @@ define(function (require, exports, module) {
         
         return d.promise();
     }
+    
+    postal.configuration.bus.augmentEnvelope = function (subDef, envelope) {
+        var options = subDef.options;
+        if (options && options.withData) {
+            return getData(options.withData).then(function (data) {
+                envelope.data = data;
+            });
+        }
+    };
     
     // begin PubSubJS (modified)
     var PubSub = {
@@ -280,30 +294,55 @@ define(function (require, exports, module) {
     
     // End PubSubJS (modified)
     
-    var ExtensionData = function (extensionName, metadata) {
-        this.extensionName = extensionName;
-        this.metadata = metadata || {};
-        this.tokens = [];
-        this.sharedData = [];
+    postal.SubscriptionDefinition.prototype.withOptions = function (options) {
+        this.options = options;
     };
     
-    ExtensionData.prototype.publish = PubSub.publish;
-    ExtensionData.prototype.subscribe = function (message, callback, options) {
-        var token = PubSub.subscribe(message, callback, options);
-        this.tokens.push(token);
+    function WrappedChannel(ext, channelName) {
+        this._ext = ext;
+        this._channel = postal.channel(channelName);
+    }
+    
+    WrappedChannel.prototype.subscribe = function (topic, callback, options) {
+        var sub = this._channel.subscribe(topic, callback, options);
+        this._ext._addSubscription(sub);
+        return sub;
     };
-    ExtensionData.prototype.willPublish = function (message, metadata) {
+    
+    WrappedChannel.prototype.publish = function (topic, data) {
+        this._channel.publish(topic, data);
     };
+    
+    function ExtensionData(extensionName, metadata) {
+        this.extensionName = extensionName;
+        this.metadata = metadata || {};
+        this._subscriptions = [];
+        this._sharedData = [];
+    }
+    
+    ExtensionData.prototype.channel = function (channelName) {
+        return new WrappedChannel(this, channelName);
+    };
+    
+//    ExtensionData.prototype.publish = PubSub.publish;
+//    ExtensionData.prototype.subscribe = function (message, callback, options) {
+//        var token = PubSub.subscribe(message, callback, options);
+//        this.tokens.push(token);
+//    };
+//    ExtensionData.prototype.willPublish = function (message, metadata) {
+//    };
     
     ExtensionData.prototype.shareData = function (name, getter) {
         sharedData[name] = getter;
-        this.sharedData.push(name);
+        this._sharedData.push(name);
     };
     
     ExtensionData.prototype.getData = getData;
-    
-    ExtensionData.prototype.getSubscribers = getSubscribers;
-    
+
+    ExtensionData.prototype._addSubscription = function (sub) {
+        this._subscriptions.push(sub);
+    };
+        
     function registerExtension(extensionName, metadata) {
         var ed = new ExtensionData(extensionName);
         extensions[extensionName] = ed;

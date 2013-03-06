@@ -1000,4 +1000,21 @@ define(function (require, exports, module) {
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
     exports.ContextMenu = ContextMenu;
+    
+    // extensions test
+    
+    
+    var core = require("utils/ExtensionData").core;
+    var menuChannel = core.channel("menu");
+    var commandChannel = core.channel("command");
+    
+    menuChannel.subscribe("addMenu", function (data) {
+        addMenu(data.name, data.id, data.position, data.relativeID);
+    });
+    
+    menuChannel.subscribe("addItem", function (data) {
+        var menu = getMenu(data.menu);
+        menu.addMenuItem(data.command, data.keybindings,
+                         data.position, data.relativeID);
+    });
 });

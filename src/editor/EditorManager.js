@@ -872,11 +872,13 @@ define(function (require, exports, module) {
     
     // new extensions test
     var core = require("utils/ExtensionData").core;
+    
+    var documentChannel = core.channel("document");
     core.shareData("document.selectedText", function () {
         return getActiveEditor().getSelectedText();
     });
     
-    core.subscribe("document.replaceSelectedText", function (newText) {
+    documentChannel.subscribe("replaceSelectedText", function (newText) {
         var editor = getActiveEditor();
         editor._codeMirror.replaceSelection(newText);
     });
