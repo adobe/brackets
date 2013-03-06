@@ -869,4 +869,15 @@ define(function (require, exports, module) {
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
+    
+    // new extensions test
+    var core = require("utils/ExtensionData").core;
+    core.shareData("document.selectedText", function () {
+        return getActiveEditor().getSelectedText();
+    });
+    
+    core.subscribe("document.replaceSelectedText", function (newText) {
+        var editor = getActiveEditor();
+        editor._codeMirror.replaceSelection(newText);
+    });
 });

@@ -247,4 +247,14 @@ define(function (require, exports, module) {
     exports.getAll          = getAll;
     exports._testReset      = _testReset;
     exports._testRestore    = _testRestore;
+    
+    
+    // new extensions testing
+    var core = require("utils/ExtensionData").core;
+    core.subscribe("subscribe.command", function (info, envelope) {
+        console.log("registering " + info.message, info.options);
+        register(info.options.name, info.options.id, function (data) {
+            core.publish(info.message, data);
+        });
+    });
 });
