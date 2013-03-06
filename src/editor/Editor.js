@@ -61,8 +61,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager      = require("editor/EditorManager"),
-        CodeHintManager    = require("editor/CodeHintManager"),
+    var CodeHintManager    = require("editor/CodeHintManager"),
         ProjectManager     = require("project/ProjectManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
@@ -79,14 +78,13 @@ define(function (require, exports, module) {
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     
-    
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
 
     /** @type {number}  Constant: ignore upper boundary when centering text */
     var BOUNDARY_CHECK_NORMAL   = 0,
         BOUNDARY_IGNORE_TOP     = 1;
-    
+
     /**
      * @private
      * Handle Tab key press.
@@ -231,20 +229,6 @@ define(function (require, exports, module) {
 
         // Pass the key event to the code hint manager. It may call preventDefault() on the event.
         CodeHintManager.handleKeyEvent(editor, event);
-    }
-
-    function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
-
-        if (editor) {
-            editor.selectAllNoScroll();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
     }
 
     /**
@@ -648,7 +632,7 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            EditorManager._notifyActiveEditorChanged(self);
+            $(self).triggerHandler("focus", [self]);
         });
         
         this._codeMirror.on("blur", function () {
@@ -1291,7 +1275,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype._visibleRange = null;
     
-    
     /**
      * @private
      * Sets the given preference option to the current editor and saves it
@@ -1314,9 +1297,8 @@ define(function (require, exports, module) {
         return value !== undefined ? value : ProjectManager.getTabSettings()[preference];
     };
     
-    
     /**
-     * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
+     * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * @param {boolean} value
      */
     Editor.prototype.setUseTabChar = function (value) {
@@ -1329,7 +1311,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets tab character width. Affects all Editors.
+     * Sets tab character width.
      * @param {number} value
      */
     Editor.prototype.setTabSize = function (value) {
@@ -1342,7 +1324,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets indentation width. Affects all Editors.
+     * Sets indentation width.
      * @param {number} value
      */
     Editor.prototype.setIndentUnit = function (value) {
@@ -1356,11 +1338,10 @@ define(function (require, exports, module) {
     
     
     /**
-     * @private
      * Changes the Tab Settings of all the opened editors within the project with no saved tab preferences after a 
      * tab preference change and triggers a StatusBar update
      */
-    function _setProjectTabs() {
+    Editor.setProjectTabs = function () {
         var preferences = ProjectManager.getTabSettings();
         _instances.forEach(function (editor) {
             if (ProjectManager.isWithinProject(editor.document.file.fullPath)) {
@@ -1371,15 +1352,9 @@ define(function (require, exports, module) {
                 });
             }
         });
-        $(EditorManager).triggerHandler("activeEditorChange", [EditorManager.getActiveEditor(), null]);
-    }
+    };
     
-    // Initialize: register listeners
-    $(ProjectManager).on("projectTabsChange", Editor.setProjectTabs);
     
-    // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;

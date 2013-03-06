@@ -35,7 +35,6 @@
  *    - projectOpen        -- after  _projectRoot changes
  *    - projectFilesChange -- sent if one of the project files has changed--
  *                            added, removed, renamed, etc.
- *    - projectTabsChange  -- sent when the project tab settings are changed
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -54,6 +53,7 @@ define(function (require, exports, module) {
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
         };
 
         _prefs.setValue(_getTabsSettingsKey(), _projectTabSettings);
-        $(exports).triggerHandler("projectTabsChange");
+        EditorManager.updateProjectTabs();
     }
     
     /**
