@@ -912,10 +912,11 @@ define(function (require, exports, module) {
     function showInTree(entry) {
         return _findTreeNode(entry)
             .done(function ($node) {
+                _projectTree.jstree("deselect_all");
                 // jsTree will automatically expand parent nodes to ensure visible
                 _projectTree.jstree("select_node", $node, false);
                 _lastSelected = entry;
-                _redraw(true, true);
+                _redraw(true);
             });
     }
     
