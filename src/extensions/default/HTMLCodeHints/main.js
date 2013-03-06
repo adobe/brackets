@@ -162,10 +162,6 @@ define(function (require, exports, module) {
     function AttrHints() {
         this.globalAttributes = this.readGlobalAttrHints();
         this.cachedHints = null;
-        
-        // Used in URL hinting to keep the popup list open
-        // by setting this to false.
-        this.closeOnSelect = true;
     }
 
     /**
@@ -179,162 +175,6 @@ define(function (require, exports, module) {
                 return key;
             }
         });
-    };
-
-    /**
-     * Helper function for search(). Create a list of urls to existing files based on the query.
-     * @param {{queryStr: string}} query -- a query object, used to filter the code hints
-     * @return {Array.<string>}
-     */
-    AttrHints.prototype._getUrlList = function (query) {
-        var doc,
-            result = [];
-        
-        // site-root relative links are not yet supported, so filter them out
-        if (query.queryStr.length > 0 && query.queryStr[0] === "/") {
-            return result;
-        }
-
-        // get path to current document
-        doc = DocumentManager.getCurrentDocument();
-        if (!doc || !doc.file) {
-            return result;
-        }
-
-        var docUrl = window.PathUtils.parseUrl(doc.file.fullPath);
-        if (!docUrl) {
-            return result;
-        }
-
-        var docDir = docUrl.domain + docUrl.directory;
-
-        // get relative path from query string
-        // TODO: handle site-root relative
-        var queryDir = "";
-        var queryUrl = window.PathUtils.parseUrl(query.queryStr);
-        if (queryUrl) {
-            queryDir = queryUrl.directory;
-        }
-
-        // build target folder path
-        var targetDir = docDir + decodeURI(queryDir);
-
-        // get list of files from target folder
-        var unfiltered = [];
-
-        // Getting the file/folder info is an asynch operation, so it works like this:
-        //
-        // The initial pass initiates the asynchronous retrieval of data and returns an
-        // empty list, so no code hints are displayed. In the async callback, the code
-        // hints and the original query are stored in a cache, and then the process to
-        // show code hints is re-initiated.
-        //
-        // During the next pass, there should now be code hints cached from the initial
-        // pass, but user may have typed while file/folder info was being retrieved from
-        // disk, so we need to make sure code hints still apply to current query. If so,
-        // display them, otherwise, clear cache and start over.
-        //
-        // As user types within a folder, the same unfiltered file/folder list is still
-        // valid and re-used from cache. Filtering based on user input is done outside
-        // of this method. When user moves to a new folder, then the cache is deleted,
-        // and file/folder info for new folder is then retrieved.
-
-        if (this.cachedHints) {
-            // url hints have been cached, so determine if they're stale
-            if (!this.cachedHints.query ||
-                    this.cachedHints.query.tag !== query.tag ||
-                    this.cachedHints.query.attrName !== query.attrName ||
-                    this.cachedHints.queryDir !== queryDir ||
-                    this.cachedHints.docDir !== docDir) {
-
-                // delete stale cache
-                this.cachedHints = null;
-            }
-        }
-
-        if (this.cachedHints) {
-            // use cached hints
-            unfiltered = this.cachedHints.unfiltered;
-
-        } else {
-            var self = this,
-                origEditor = EditorManager.getFocusedEditor();
-
-            if (self.cachedHints && self.cachedHints.deferred) {
-                self.cachedHints.deferred.reject();
-            }
-            // create empty object so we can detect "waiting" state
-            self.cachedHints = {};
-            self.cachedHints.deferred = $.Deferred();
-            self.cachedHints.unfiltered = [];
-
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
-                fs.root.createReader().readEntries(function (entries) {
-
-                    entries.forEach(function (entry) {
-                        if (ProjectManager.shouldShow(entry)) {
-                            // convert to doc relative path
-                            var entryStr = entry.fullPath.replace(docDir, "");
-
-                            // code hints show the same strings that are inserted into text,
-                            // so strings in list will be encoded. wysiwyg, baby!
-                            unfiltered.push(encodeURI(entryStr));
-                        }
-                    });
-
-                    self.cachedHints.unfiltered = unfiltered;
-                    self.cachedHints.query      = query;
-                    self.cachedHints.queryDir   = queryDir;
-                    self.cachedHints.docDir     = docDir;
-                    
-                    if (!self.cachedHints.deferred.isRejected()) {
-                        var currentDeferred = self.cachedHints.deferred;
-                        // Since we've cached the results, the next call to _getUrlList should be synchronous.
-                        // If it isn't, we've got a problem and should reject both the current deferred
-                        // and any new deferred that got created on the call.
-                        var syncResults = self._getUrlList(query);
-                        if (syncResults instanceof Array) {
-                            currentDeferred.resolveWith(self, [syncResults]);
-                        } else {
-                            if (currentDeferred && !currentDeferred.isResolved() && !currentDeferred.isRejected()) {
-                                currentDeferred.reject();
-                            }
-                            
-                            if (self.cachedHints.deferred &&
-                                    !self.cachedHints.deferred.isResolved() &&
-                                    !self.cachedHints.deferred.isRejected()) {
-                                self.cachedHints.deferred.reject();
-                                self.cachedHints.deferred = null;
-                            }
-                        }
-                    }
-                });
-            });
-
-            return self.cachedHints.deferred;
-        }
-
-        // build list
-
-        // without these entries, typing "../" will not display entries for containing folder
-        if (queryUrl.filename === ".") {
-            result.push(queryDir + ".");
-        } else if (queryUrl.filename === "..") {
-            result.push(queryDir + "..");
-        }
-
-        // add file/folder entries
-        unfiltered.forEach(function (item) {
-            result.push(item);
-        });
-
-        // TODO: filter by desired file type based on tag, type attr, etc.
-
-        // TODO: add list item to top of list to popup modal File Finder dialog
-        // New string: "Browse..." or "Choose a File..."
-        // Command: Commands.FILE_OPEN
-
-        return result;
     };
 
     /**
@@ -367,11 +207,6 @@ define(function (require, exports, module) {
         if (attrInfo) {
             if (attrInfo.type === "boolean") {
                 hints = ["false", "true"];
-            } else if (attrInfo.type === "url") {
-                // Default behavior for url hints is do not close on select.
-                this.closeOnSelect = false;
-                hints = this._getUrlList(query);
-                sortFunc = StringUtils.urlSort;
             } else if (attrInfo.attribOption) {
                 hints = attrInfo.attribOption;
             }
@@ -498,8 +333,6 @@ define(function (require, exports, module) {
                 hints = [],
                 sortFunc = null;
 
-            this.closeOnSelect = true;
-            
             if (attrName) {
                 var hintsAndSortFunc = this._getValueHintsForAttr(query, tagName, attrName);
                 hints = hintsAndSortFunc.hints;
@@ -573,13 +406,7 @@ define(function (require, exports, module) {
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
-            
-            // Special handling for URL hinting -- if the completion is a file name
-            // and not a folder, then close the code hint list.
-            if (!this.closeOnSelect && completion.match(/\/$/) === null) {
-                this.closeOnSelect = true;
-            }
-            
+
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
                 if (endQuote) {
@@ -604,15 +431,6 @@ define(function (require, exports, module) {
             }
         }
 
-        if (!this.closeOnSelect) {
-            // If we append the missing quote, then we need to adjust the cursor postion
-            // to keep the code hint list open.
-            if (tokenType === HTMLUtils.ATTR_VALUE && !tagInfo.attr.hasEndQuote) {
-                this.editor.setCursorPos(start.line, start.ch + completion.length - 1);
-            }
-            return true;
-        }
-        
         if (insertedName) {
             this.editor.setCursorPos(start.line, start.ch + completion.length - 1);
 
