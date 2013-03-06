@@ -552,11 +552,31 @@ define(function (require, exports, module) {
     /**
      * Retrieve key bindings currently associated with a command
      *
-     * @param {!string} command - A command ID
+     * @param {!string | Command} command - A command ID or command object
      * @return {!Array.<{{key: string, displayKey: string}}>} An array of associated key bindings.
      */
-    function getKeyBindings(commandID) {
-        var bindings = _commandMap[commandID];
+    function getKeyBindings(command) {
+        var bindings    = [],
+            commandID   = "";
+
+        if (!command) {
+            console.error("getKeyBindings(): missing required parameters: command");
+            return null;
+        }
+
+        if (typeof (command) === "string") {
+            var commandObj = CommandManager.get(command);
+            if (!commandObj) {
+                console.error("getKeyBindings(): command not found: " + command);
+                return null;
+            }
+
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
+
+        bindings = _commandMap[commandID];
         return bindings || [];
     }
 
