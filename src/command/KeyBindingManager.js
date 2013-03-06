@@ -561,16 +561,10 @@ define(function (require, exports, module) {
 
         if (!command) {
             console.error("getKeyBindings(): missing required parameters: command");
-            return null;
+            return [];
         }
 
         if (typeof (command) === "string") {
-            var commandObj = CommandManager.get(command);
-            if (!commandObj) {
-                console.error("getKeyBindings(): command not found: " + command);
-                return null;
-            }
-
             commandID = command;
         } else {
             commandID = command.getID();
