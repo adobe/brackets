@@ -2,7 +2,9 @@
 /*global define, $, brackets, window, document, Mustache */
 
 /**
- * A status bar with support for file information and busy and status indicators.
+ * A status bar with support for file information and busy and status indicators. This is a semi-generic
+ * container; for the code that decides what content appears in the status bar, see client modules like
+ * EditorStatusBar and JSLintUtils.
  */
 define(function (require, exports, module) {
     'use strict';
