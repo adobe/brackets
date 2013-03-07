@@ -280,7 +280,7 @@ define(function (require, exports, module) {
      * Used by syncFileIndex function to prevent reentrancy
      * @private
      */
-    var _syncFileIndexReentracyGuard = false;
+    var _ongoingSyncPromise = null;
 
     /**
     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
@@ -288,31 +288,28 @@ define(function (require, exports, module) {
     */
     function syncFileIndex() {
 
-        // TODO (issue 330) - allow multiple calls to syncFileIndex to be batched up so that this code isn't necessary
-        if (_syncFileIndexReentracyGuard) {
-            console.error("syncFileIndex cannot be called Recursively");
-            return;
+        // If we're already syncing, don't kick off a second one
+        if (_ongoingSyncPromise) {
+            return _ongoingSyncPromise;
         }
-
-        _syncFileIndexReentracyGuard = true;
 
         var rootDir = ProjectManager.getProjectRoot();
         if (_indexListDirty) {
             PerfUtils.markStart(PerfUtils.FILE_INDEX_MANAGER_SYNC);
 
             _clearIndexes();
-
-            return _scanDirectorySubTree(rootDir)
+            
+            _ongoingSyncPromise = _scanDirectorySubTree(rootDir)
                 .done(function () {
                     PerfUtils.addMeasurement(PerfUtils.FILE_INDEX_MANAGER_SYNC);
                     _indexListDirty = false;
-                    _syncFileIndexReentracyGuard = false;
+                    _ongoingSyncPromise = null;
 
                     //_logFileList(_indexList["all"].fileInfos);
                     //_logFileList(_indexList["css"].fileInfos);
                 });
+            return _ongoingSyncPromise;
         } else {
-            _syncFileIndexReentracyGuard = false;
             return $.Deferred().resolve().promise();
         }
     }
