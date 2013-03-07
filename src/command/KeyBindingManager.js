@@ -334,7 +334,7 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * @param {!(string | Command)} command - A command ID or command object
+     * @param {!string | Command} command - A command ID or command object
      * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
      * @param {?string} platform - undefined indicates all platforms
      * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings.
@@ -522,7 +522,7 @@ define(function (require, exports, module) {
     /**
      * Add one or more key bindings to a particular Command.
      *
-     * @param {!(string | Command)} command - A command ID or command object
+     * @param {!string | Command} command - A command ID or command object
      * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
      *     a single key binding or an array of keybindings. Example:
      *     "Shift-Cmd-F". Mac and Win key equivalents are automatically
@@ -574,7 +574,7 @@ define(function (require, exports, module) {
     /**
      * Retrieve key bindings currently associated with a command
      *
-     * @param {!(string | Command)} command - A command ID or command object
+     * @param {!string | Command} command - A command ID or command object
      * @return {!Array.<{{key: string, displayKey: string}}>} An array of associated key bindings.
      */
     function getKeyBindings(command) {
