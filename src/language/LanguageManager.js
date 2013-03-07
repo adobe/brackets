@@ -183,15 +183,15 @@ define(function (require, exports, module) {
      * @param {!string} path Path to the file to find a language for
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageFromPath(path) {
+    function getLanguageForPath(path) {
         var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
             filename  = PathUtils.filename(path),
             language  = extension ? _fileExtensionToLanguageMap[extension] 
                                   : _fileNameToLanguageMap[filename];
         
         if (!language) {
-            extension ? console.log("Called LanguageManager.getLanguageFromPath with an unhandled file extension:", extension)
-                      : console.log("Called LanguageManager.getLanguageFromPath with an unhandled file name:", filename);
+            extension ? console.log("Called LanguageManager.getLanguageForPath with an unhandled file extension:", extension)
+                      : console.log("Called LanguageManager.getLanguageForPath with an unhandled file name:", filename);
         }
         
         return language || _fallbackLanguage;
@@ -635,5 +635,5 @@ define(function (require, exports, module) {
     exports.ready                   = _ready;
     exports.defineLanguage          = defineLanguage;
     exports.getLanguage             = getLanguage;
-    exports.getLanguageFromPath     = getLanguageFromPath;
+    exports.getLanguageForPath      = getLanguageForPath;
 });
