@@ -376,6 +376,12 @@ define(function (require, exports, module) {
             if (!this.info.isNewItem && this.info.index !== -1) {
                 query.queryStr = this.info.values[this.info.index].trim();
                 query.queryStr = query.queryStr.substr(0, this.info.offset);
+
+                // bit of a hack for now...
+                if (query.queryStr === "(" && this.info.index === 1 &&
+                        this.info.values[0] === "url") {
+                    query.queryStr = "";
+                }
             }
 
         } else {
