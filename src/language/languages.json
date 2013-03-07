@@ -1,6 +1,7 @@
 {
     "unknown": {
-        "name": "Text"
+        "name": "Text",
+        "mode": ["null", "text/plain"]
     },
 
     "css": {
@@ -34,7 +35,8 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl"]
+        "fileExtensions": ["svg", "xml", "wxs", "wxl"],
+        "blockComment": ["<!--", "-->"]
     },
     
     "php": {

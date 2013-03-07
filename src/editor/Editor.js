@@ -61,8 +61,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager      = require("editor/EditorManager"),
-        CodeHintManager    = require("editor/CodeHintManager"),
+    var CodeHintManager    = require("editor/CodeHintManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
@@ -87,6 +86,9 @@ define(function (require, exports, module) {
     
     /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
     var _indentUnit = _prefs.getValue("indentUnit");
+    
+    /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
+    var _duringFocus = false;
 
     /** @type {number}  Constant: ignore upper boundary when centering text */
     var BOUNDARY_CHECK_NORMAL   = 0,
@@ -235,20 +237,6 @@ define(function (require, exports, module) {
 
         // Pass the key event to the code hint manager. It may call preventDefault() on the event.
         CodeHintManager.handleKeyEvent(editor, event);
-    }
-
-    function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
-
-        if (editor) {
-            editor.selectAllNoScroll();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
     }
 
     /**
@@ -456,7 +444,7 @@ define(function (require, exports, module) {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert
         // here so we're always explicit, avoiding console noise.
-        return this.document.getLanguage().mode || "text/plain";
+        return this.document.getLanguage().getMode() || "text/plain";
     };
     
         
@@ -652,7 +640,7 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            EditorManager._notifyActiveEditorChanged(self);
+            $(self).triggerHandler("focus", [self]);
         });
         
         this._codeMirror.on("blur", function () {
@@ -1127,7 +1115,21 @@ define(function (require, exports, module) {
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
-        this._codeMirror.focus();
+        // Focusing an editor synchronously triggers focus/blur handlers. If a blur handler attemps to focus
+        // another editor, we'll put CM in a bad state (because CM assumes programmatically focusing itself
+        // will always succeed, and if you're in the middle of another focus change that appears to be untrue).
+        // So instead, we simply ignore reentrant focus attempts.
+        // See bug #2951 for an example of this happening and badly hosing things.
+        if (_duringFocus) {
+            return;
+        }
+        
+        _duringFocus = true;
+        try {
+            this._codeMirror.focus();
+        } finally {
+            _duringFocus = false;
+        }
     };
     
     /** Returns true if the editor has focus */
@@ -1208,7 +1210,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
+     *     See {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1241,7 +1243,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
@@ -1339,9 +1341,6 @@ define(function (require, exports, module) {
         return _indentUnit;
     };
     
-    // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;

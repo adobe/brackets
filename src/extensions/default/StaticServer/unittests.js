@@ -28,12 +28,17 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var StaticServer   = require("main"),
-        NodeConnection = brackets.getModule("utils/NodeConnection"),
-        FileUtils      = brackets.getModule("file/FileUtils");
+    var StaticServer    = require("main"),
+        NodeConnection  = brackets.getModule("utils/NodeConnection"),
+        FileUtils       = brackets.getModule("file/FileUtils"),
+        SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils");
     
     var testFolder     = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        
+    
+    var CONNECT_TIMEOUT = 5000;
+    
+    var LOCALHOST_PORT_PARSER_RE = /http:\/\/127\.0\.0\.1:(\d+)\//;
+    
     describe("StaticServer", function () {
         
         // Unit tests for the underlying node server.
@@ -43,7 +48,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 runs(function () {
                     nodeConnection = new NodeConnection();
-                    waitsForDone(nodeConnection.connect(false), "connecting to node server");
+                    waitsForDone(nodeConnection.connect(false), "connecting to node server", CONNECT_TIMEOUT);
                 });
                 
                 runs(function () {
@@ -195,10 +200,104 @@ define(function (require, exports, module) {
         
         // Unit tests for the StaticServerProvider that wraps the underlying node server.
         describe("StaticServerProvider", function () {
+            var brackets,
+                ProjectManager,
+                StaticServer;
             
-            it("should have initialized the static server provider by app ready time", function () {
+            beforeEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                        // Load module instances from brackets.test
+                        brackets = testWindow.brackets;
+                        ProjectManager = testWindow.brackets.test.ProjectManager;
+                    });
+                });
+                
+                waitsFor(function () {
+                    return brackets.test.extensions.StaticServer !== undefined;
+                }, "StaticServer to fully initialize");
+                
+                runs(function () {
+                    StaticServer = brackets.test.extensions.StaticServer;
+                    waitsForDone(StaticServer._getNodeConnectionDeferred(), "connecting to node server", CONNECT_TIMEOUT);
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
+            
+            it("should have initialized the static server provider immediately after launch", function () {
+                // Note: the goal is to test this as quickly as possible. We can't
+                // actually test immediately when appReady fires because that happens
+                // asynchronously in our test window. But we know this will run shortly
+                // after appReady fires. There's no way to test it synchronously
+                // because appReady is the event that gives us access to StaticServer in
+                // the test window.
                 expect(StaticServer._getStaticServerProvider()).toBeTruthy();
             });
+            
+            
+            it("should only serve html files that are in the project file hierarchy", function () {
+                waitsForDone(ProjectManager.openProject(testFolder), "opens test folder in ProjectManager");
+                
+                runs(function () {
+                    var provider = StaticServer._getStaticServerProvider();
+
+                    // should not serve files outside project hierarchy
+                    expect(provider.canServe("/foo.html")).toBe(false);
+                    
+                    // should not serve non-HTML files inside hierarchy
+                    expect(provider.canServe(testFolder + "foo.jpg")).toBe(false);
+
+                    // should serve .htm files inside hierarchy
+                    expect(provider.canServe(testFolder + "foo.htm")).toBe(true);
+
+                    // should serve .html files inside hierarchy
+                    expect(provider.canServe(testFolder + "foo.html")).toBe(true);
+
+                    // should serve .HTML files inside hierarchy
+                    expect(provider.canServe(testFolder + "foo.HTML")).toBe(true);
+
+                    // should serve root of hierarchy
+                    expect(provider.canServe(testFolder)).toBe(true);
+                    
+                });
+                
+            });
+
+            it("should be ready to serve a file in the project and return an appropriate baseUrl", function () {
+                waitsForDone(ProjectManager.openProject(testFolder), "opens test folder in ProjectManager");
+                
+                waitsForDone(StaticServer._getStaticServerProvider().readyToServe(), "being ready to serve");
+                    
+                runs(function () {
+                    var baseUrl = StaticServer._getStaticServerProvider().getBaseUrl();
+                    var parsedUrl = LOCALHOST_PORT_PARSER_RE.exec(baseUrl);
+                    expect(parsedUrl).toBeTruthy();
+                    expect(parsedUrl.length).toBe(2);
+                    expect(Number(parsedUrl[1])).toBeGreaterThan(0);
+                });
+            });
+            
+            it("should decline serving if not connected to node", function () {
+                var nodeConnectionDeferred;
+                runs(function () {
+                    nodeConnectionDeferred = StaticServer._getNodeConnectionDeferred();
+                    waitsForDone(nodeConnectionDeferred, "connecting to node server", CONNECT_TIMEOUT);
+                });
+
+                runs(function () {
+                    nodeConnectionDeferred.done(function (nodeConnection) {
+                        // this will be run synchronously because of the waitsFor above
+                        nodeConnection.disconnect();
+                    });
+                    expect(StaticServer._getStaticServerProvider().canServe(testFolder + "foo.html")).toBe(false);
+                });
+                
+            });
+            
         });
     });
 });

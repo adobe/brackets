@@ -600,9 +600,6 @@ define(function (require, exports, module) {
         this.refreshText(rawText, initialTimestamp);
         
         this._updateLanguage();
-        // TODO: remove this listener when the document object is obsolete.
-        // But when is this the case? When _refCount === 0?
-        $(this.file).on("rename", this._updateLanguage.bind(this));
         
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
@@ -963,6 +960,13 @@ define(function (require, exports, module) {
         }
     };
     
+    /** Called when Document.file has been modified (due to a rename) */
+    Document.prototype._notifyFilePathChanged = function () {
+        // File extension may have changed
+        this._updateLanguage();
+    };
+    
+    
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
@@ -1171,14 +1175,17 @@ define(function (require, exports, module) {
         for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {
                 if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
+                    var doc = _openDocuments[path];
+                    
                     // Copy value to new key
                     var newKey = path.replace(oldName, newName);
+                    _openDocuments[newKey] = doc;
                     
-                    _openDocuments[newKey] = _openDocuments[path];
                     keysToDelete.push(path);
                     
                     // Update document file
-                    FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName, isFolder);
+                    FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
+                    doc._notifyFilePathChanged();
                     
                     if (!isFolder) {
                         // If the path name is a file, there can only be one matched entry in the open document
@@ -1200,6 +1207,16 @@ define(function (require, exports, module) {
         
         // Send a "fileNameChanged" event. This will trigger the views to update.
         $(exports).triggerHandler("fileNameChange", [oldName, newName]);
+    }
+    
+    /**
+     * @private
+     * Update document
+     */
+    function _handleLanguageAdded(event, language) {
+        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+            doc._updateLanguage();
+        });
     }
 
     // Define public API
@@ -1232,6 +1249,10 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Handle project change events
-    $(ProjectManager).on("projectOpen", _projectOpen);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _savePreferences);
+    var $ProjectManager = $(ProjectManager);
+    $ProjectManager.on("projectOpen", _projectOpen);
+    $ProjectManager.on("beforeProjectClose beforeAppClose", _savePreferences);
+    
+    // Handle Language change events
+    $(LanguageManager).on("languageAdded", _handleLanguageAdded);
 });

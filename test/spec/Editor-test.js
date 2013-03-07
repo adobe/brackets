@@ -47,21 +47,21 @@ define(function (require, exports, module) {
             return expected === null;
         }
         
-        return actual.name === expected;
+        return actual === expected;
     }
     
     function expectModeAndLang(editor, lang) {
         expect(editor.getModeForSelection()).toSpecifyModeNamed(lang.mode);
-        expect(editor.getLanguageForSelection().name).toBe(lang.langName);
+        expect(editor.getLanguageForSelection().getName()).toBe(lang.langName);
     }
 
     describe("Editor", function () {
         var defaultContent = 'Brackets is going to be awesome!\n';
         var myDocument, myEditor;
         
-        function createTestEditor(content, mode) {
+        function createTestEditor(content, languageId) {
             // create dummy Document and Editor
-            var mocks = SpecRunnerUtils.createMockEditor(content, mode);
+            var mocks = SpecRunnerUtils.createMockEditor(content, languageId);
             myDocument = mocks.doc;
             myEditor = mocks.editor;
         }
@@ -117,26 +117,28 @@ define(function (require, exports, module) {
             
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("file:///only/testing/the/path.html").mode;
+                var mode = LanguageManager.getLanguageForFileExtension("file:///only/testing/the/path.html").getMode();
                 expect(mode).toSpecifyModeNamed("text/x-brackets-html");
             });
             
             it("should switch modes even if the url has a query string", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("http://only.org/testing/the/path.css?v=2").mode;
+                var mode = LanguageManager.getLanguageForFileExtension("http://only.org/testing/the/path.css?v=2").getMode();
                 expect(mode).toSpecifyModeNamed(langNames.css.mode);
             });
             
             it("should accept just a file name too", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("path.js").mode;
+                var mode = LanguageManager.getLanguageForFileExtension("path.js").getMode();
                 expect(mode).toSpecifyModeNamed(langNames.javascript.mode);
             });
 
-            it("should default to plaintext for unknown file extensions", function () {
+            it("should default to plain text for unknown file extensions", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("test.foo").mode;
-                expect(mode).toBe(undefined);
+                var mode = LanguageManager.getLanguageForFileExtension("test.foo").getMode();
+                
+                // "unknown" mode uses it's MIME type instead
+                expect(mode).toBe("text/plain");
             });
         });
         

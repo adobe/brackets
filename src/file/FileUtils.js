@@ -263,7 +263,7 @@ define(function (require, exports, module) {
         return (isFolder && path.indexOf(oldName) === 0) || (!isFolder && path === oldName);
     }
     
-	/**
+    /**
      * Update a file entry path after a file/folder name change.
      * @param {FileEntry} entry The FileEntry or DirectoryEntry to update
      * @param {string} oldName The full path of the old name
@@ -286,8 +286,6 @@ define(function (require, exports, module) {
                     entry.name = pathParts.pop();
                 }
             }
-            
-            $(entry).triggerHandler("rename", [oldFullPath, fullPath]);
             
             return true;
         }
