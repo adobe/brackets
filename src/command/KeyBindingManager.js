@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         Strings        = require("strings");
 
     var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
-
+    
     /**
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
@@ -80,9 +80,9 @@ define(function (require, exports, module) {
             console.log("KeyBindingManager _buildKeyDescriptor() - No key provided!");
             return "";
         }
-
+        
         var keyDescriptor = [];
-
+       
         if (hasMacCtrl) {
             keyDescriptor.push("Ctrl");
         }
@@ -103,11 +103,11 @@ define(function (require, exports, module) {
         }
 
         keyDescriptor.push(key);
-
+        
         return keyDescriptor.join("-");
     }
-
-
+    
+    
     /**
      * normalizes the incoming key descriptor so the modifier keys are always specified in the correct order
      * @param {string} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
@@ -127,10 +127,10 @@ define(function (require, exports, module) {
             }
             left = left.trim().toLowerCase();
             right = right.trim().toLowerCase();
-
+            
             return (left.length > 0 && left === right);
         }
-
+        
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
             if (_compareModifierString("ctrl", ele)) {
                 if (brackets.platform === "mac") {
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
                 key = ele;
             }
         });
-
+        
         if (error) {
             return null;
         }
@@ -162,17 +162,17 @@ define(function (require, exports, module) {
         if (key === "" && origDescriptor.search(/^.+--$/) !== -1) {
             key = "-";
         }
-
+        
         // '+' char is valid if it's the only key. Keyboard shortcut strings should use
         // unicode characters (unescaped). Keyboard shortcut display strings may use
         // unicode escape sequences (e.g. \u20AC euro sign)
         if ((key.indexOf("+")) >= 0 && (key.length > 1)) {
             return null;
         }
-
+        
         return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);
     }
-
+    
     /**
      * @private
      * Looks for keycodes that have os-inconsistent keys and fixes them.
@@ -190,8 +190,8 @@ define(function (require, exports, module) {
         } else if (keycode >= KeyEvent.DOM_VK_NUMPAD0 && keycode <= KeyEvent.DOM_VK_NUMPAD9) {
             return String(keycode - KeyEvent.DOM_VK_NUMPAD0);
         }
-
-
+        
+        
         switch (keycode) {
         case KeyEvent.DOM_VK_SEMICOLON:
             return ";";
@@ -224,7 +224,7 @@ define(function (require, exports, module) {
             return key;
         }
     }
-
+    
     /**
      * Takes a keyboard event and translates it into a key in a key map
      */
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
             hasAlt = (event.altKey),
             hasShift = (event.shiftKey),
             key = String.fromCharCode(event.keyCode);
-
+        
         //From the W3C, if we can get the KeyboardEvent.keyIdentifier then look here
         //As that will let us use keys like then function keys "F5" for commands. The
         //full set of values we can use is here
@@ -249,7 +249,7 @@ define(function (require, exports, module) {
                 key = ident;
             }
         }
-
+        
         // Translate some keys to their common names
         if (key === "\t") {
             key = "Tab";
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
 
         return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);
     }
-
+    
     /**
      * Convert normalized key representation to display appropriate for platform.
      * @param {!string} descriptor Normalized key descriptor.
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
      */
     function formatKeyDescriptor(descriptor) {
         var displayStr;
-
+        
         if (brackets.platform === "mac") {
             displayStr = descriptor.replace(/-/g, "");          // remove dashes
             displayStr = displayStr.replace("Ctrl", "\u2303");  // Ctrl > control symbol
@@ -307,23 +307,23 @@ define(function (require, exports, module) {
         }
 
         var normalizedKey = normalizeKeyDescriptorString(key);
-
+        
         if (!normalizedKey) {
             console.log("Fail to nomalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
             var binding = _keyMap[normalizedKey],
                 command = CommandManager.get(binding.commandID),
                 bindings = _commandMap[binding.commandID];
-
+            
             // delete key binding record
             delete _keyMap[normalizedKey];
-
+            
             if (bindings) {
                 // delete mapping from command to key binding
                 _commandMap[binding.commandID] = bindings.filter(function (b) {
                     return (b.key !== normalizedKey);
                 });
-
+    
                 if (command) {
                     $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
                 }
@@ -352,7 +352,7 @@ define(function (require, exports, module) {
             commandObj,
             bindingsToDelete = [],
             existing;
-
+        
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
         key = (keyBinding.key) || keyBinding;
@@ -363,16 +363,16 @@ define(function (require, exports, module) {
             }
         }
         normalized = normalizeKeyDescriptorString(key);
-
+        
         // skip if the key binding is invalid
         if (!normalized) {
             console.log("Failed to normalize " + key);
             return null;
         }
-
+        
         // check for duplicate key bindings
         existing = _keyMap[normalized];
-
+        
         // for cross-platform compatibility
         if (exports.useWindowsCompatibleBindings) {
             // windows-only key bindings are used as the default binding
@@ -385,28 +385,28 @@ define(function (require, exports, module) {
                     // do not clobber existing binding with windows-only binding
                     return null;
                 }
-
+                
                 // target this windows binding for the current platform
                 targetPlatform = brackets.platform;
             }
         }
-
+        
         // skip if this binding doesn't match the current platform
         if (targetPlatform !== brackets.platform) {
             return null;
         }
-
+        
         if (!command) {
             console.error("_addBinding(): missing required parameters: command");
             return;
         }
-
+        
         if (typeof (command) === "string") {
             commandID = command;
         } else {
             commandID = command.getID();
         }
-
+        
         // skip if the key is already assigned explicitly for this platform
         if (existing) {
             if (!existing.explicitPlatform) {
@@ -420,7 +420,7 @@ define(function (require, exports, module) {
                 return null;
             }
         }
-
+        
         // delete existing bindings when
         // (1) replacing a windows-compatible binding with a generic or
         //     platform-specific binding
@@ -428,42 +428,42 @@ define(function (require, exports, module) {
         var existingBindings = _commandMap[commandID] || [],
             isWindowsCompatible,
             isReplaceGeneric;
-
+        
         existingBindings.forEach(function (binding) {
             // remove windows-only bindings in _commandMap
             isWindowsCompatible = exports.useWindowsCompatibleBindings &&
                 binding.explicitPlatform === "win";
-
+            
             // remove existing generic binding
             isReplaceGeneric = !binding.explicitPlatform &&
                 explicitPlatform;
-
+            
             if (isWindowsCompatible || isReplaceGeneric) {
                 bindingsToDelete.push(binding);
             }
         });
-
+        
         // remove generic or windows-compatible bindigns
         bindingsToDelete.forEach(function (binding) {
             removeBinding(binding.key);
         });
-
+        
         // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
         normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
-
+        
         // 1-to-many commandID mapping to key binding
         if (!_commandMap[commandID]) {
             _commandMap[commandID] = [];
         }
-
+        
         result = {
             key                 : normalized,
             displayKey          : normalizedDisplay,
             explicitPlatform    : explicitPlatform
         };
-
+        
         _commandMap[commandID].push(result);
-
+        
         // 1-to-1 key binding to commandID
         _keyMap[normalized] = {
             commandID           : commandID,
@@ -471,14 +471,14 @@ define(function (require, exports, module) {
             displayKey          : normalizedDisplay,
             explicitPlatform    : explicitPlatform
         };
-
+        
         // notify listeners
         commandObj = CommandManager.get(commandID);
-
+        
         if (commandObj) {
             $(commandObj).triggerHandler("keyBindingAdded", [result]);
         }
-
+        
         return result;
     }
 
@@ -538,28 +538,28 @@ define(function (require, exports, module) {
         var commandID           = "",
             normalizedBindings  = [],
             results;
-
+        
         if (!command) {
             console.error("addBinding(): missing required parameter: command");
             return;
         }
-
+        
         if (!keyBindings) { return; }
-
+        
         if (typeof (command) === "string") {
             commandID = command;
         } else {
             commandID = command.getID();
         }
-
+        
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
-
+            
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
-
+                
                 if (keyBinding) {
                     results.push(keyBinding);
                 }
@@ -567,7 +567,7 @@ define(function (require, exports, module) {
         } else {
             results = _addBinding(commandID, keyBindings, platform);
         }
-
+        
         return results;
     }
 
@@ -580,22 +580,22 @@ define(function (require, exports, module) {
     function getKeyBindings(command) {
         var bindings    = [],
             commandID   = "";
-
+        
         if (!command) {
             console.error("getKeyBindings(): missing required parameter: command");
             return [];
         }
-
+        
         if (typeof (command) === "string") {
             commandID = command;
         } else {
             commandID = command.getID();
         }
-
+        
         bindings = _commandMap[commandID];
         return bindings || [];
     }
-
+    
     /**
      * Adds default key bindings when commands are registered to CommandManager
      * @param {$.Event} event jQuery event
@@ -604,7 +604,7 @@ define(function (require, exports, module) {
     function _handleCommandRegistered(event, command) {
         var commandId   = command.getID(),
             defaults    = KeyboardPrefs[commandId];
-
+        
         if (defaults) {
             addBinding(commandId, defaults);
         }
@@ -622,11 +622,11 @@ define(function (require, exports, module) {
             },
             true
         );
-
+        
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
             (brackets.platform !== "win");
     });
-
+    
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
     // unit test only
@@ -640,7 +640,7 @@ define(function (require, exports, module) {
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
     exports.getKeyBindings = getKeyBindings;
-
+    
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux).
      * Core Brackets modules that use key bindings should always define at
