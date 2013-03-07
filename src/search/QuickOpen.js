@@ -97,7 +97,7 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter) {
+    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter, label) {
         this.name = name;
         this.fileTypes = fileTypes;
         this.done = done;
@@ -106,6 +106,7 @@ define(function (require, exports, module) {
         this.itemFocus = itemFocus;
         this.itemSelect = itemSelect;
         this.resultsFormatter = resultsFormatter;
+        this.label = label;
     }
     
     /**
@@ -117,25 +118,27 @@ define(function (require, exports, module) {
      *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
      *          itemFocus: function(?SearchResult|string),
-     *          itemSelect: funciton(?SearchResult|string),
-     *          resultsFormatter: ?function(SearchResult|string, string):string
+     *          itemSelect: function(?SearchResult|string),
+     *          resultsFormatter: ?function(SearchResult|string, string):string,
+     *          label: ?string
      *        } pluginDef
      *
      * Parameter Documentation:
      *
      * name - plug-in name, **must be unique**
-     * fileTypes - file types array. Example: ["js", "css", "txt"]. An empty array
+     * fileTypes - file types array. Example: ["js", "css", "txt"]. If unspecified or empty array,
      *      indicates all file types.
-     * done - called when quick open is complete. Plug-in should clear its internal state.
-     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query.
+     * done - called when quick open is complete. Plug-in should clear its internal state. Optional.
+     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query. Required.
      * match - takes a query string and returns true if this plug-in wants to provide
-     *      results for this query.
+     *      results for this query. Required.
      * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
-     *      The highlighted search result item (as returned by search()) is passed as an argument.
+     *      The highlighted search result item (as returned by search()) is passed as an argument. Optional.
      * itemSelect - performs an action when a result is chosen.
-     *      The selected search result item (as returned by search()) is passed as an argument.
+     *      The selected search result item (as returned by search()) is passed as an argument. Required.
      * resultFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     * label - if provided, the label to show before the query field.
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
      * cancels Quick Open (via Esc), those changes are automatically reverted.
@@ -143,13 +146,14 @@ define(function (require, exports, module) {
     function addQuickOpenPlugin(pluginDef) {
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
-            pluginDef.fileTypes,
+            pluginDef.fileTypes || [],
             pluginDef.done,
             pluginDef.search,
             pluginDef.match,
             pluginDef.itemFocus,
             pluginDef.itemSelect,
-            pluginDef.resultsFormatter
+            pluginDef.resultsFormatter,
+            pluginDef.label
         ));
     }
 
@@ -311,7 +315,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._handleItemFocus = function (e, selectedDOMItem) {
         var selectedItem = domItemToSearchResult(selectedDOMItem);
         
-        if (currentPlugin) {
+        if (currentPlugin && currentPlugin.itemFocus) {
             currentPlugin.itemFocus(selectedItem);
         }
         // TODO: Disable opening files on focus for now since this causes focus related bugs between 
@@ -420,7 +424,9 @@ define(function (require, exports, module) {
         var i;
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
-            plugin.done();
+            if (plugin.done) {
+                plugin.done();
+            }
         }
 
         // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
@@ -517,9 +523,6 @@ define(function (require, exports, module) {
             return getLastFilterResult();
         }
         
-        // Reflect current search mode in UI
-        this._updateDialogLabel(query);
-        
         // "Go to line" mode is special-cased
         var gotoLine = extractLineNumber(query);
         if (!isNaN(gotoLine)) {
@@ -548,10 +551,19 @@ define(function (require, exports, module) {
                         matcher = new StringMatch.StringMatcher();
                         this._matchers[currentPlugin.name] = matcher;
                     }
+                    if (plugin.label) {
+                        $(".find-dialog-label", this.dialog).text(plugin.label);
+                    } else {
+                        // Use default dialog label for the given query.
+                        this._updateDialogLabel(query);
+                    }
                     return plugin.search(query, matcher);
                 }
             }
         }
+        
+        // Reflect current search mode in UI
+        this._updateDialogLabel(query);
         
         // No matching plugin: use default file search mode
         currentPlugin = null;
