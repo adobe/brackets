@@ -159,15 +159,24 @@ define(function (require, exports, module) {
      * @param {!{editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}} ctx - token context
      * @param {!RegExp} suffixExp - a valid regular expression
      * @param {!number} suffixLen - length of the suffix
+     * @param {?{line: number, ch: number}} prefixPos - the recently found prefix position
      * @return {?{line: number, ch: number}}
      */
-    function _findCommentEnd(ctx, suffixExp, suffixLen) {
+    function _findCommentEnd(ctx, suffixExp, suffixLen, prefixPos) {
         var result = true;
         
         while (result && !ctx.token.string.match(suffixExp)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
-        return result ? {line: ctx.pos.line, ch: ctx.token.end - suffixLen} : null;
+        var pos = {line: ctx.pos.line, ch: ctx.token.end - suffixLen};
+        
+        // If the position found is the same as the prefix one, start again from the next token
+        if (result && prefixPos && prefixPos.line === pos.line && prefixPos.ch === pos.ch) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+            return result ? _findCommentEnd(ctx, suffixExp, suffixLen) : null;
+        } else {
+            return result ? pos : null;
+        }
     }
     
     /**
@@ -233,7 +242,8 @@ define(function (require, exports, module) {
         }
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
-        if (lineExp && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp))) {
+        if (lineExp && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp)) &&
+                !ctx.token.string.match(prefixExp)) {
             var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
             var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
             
@@ -264,7 +274,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
-                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
+                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length, prefixPos);
             }
             
         // If we are in a selection starting and ending in invalid tokens and with no content (not considering spaces),
@@ -276,9 +286,9 @@ define(function (require, exports, module) {
             // We found a comment, find the start and end and check if the selection is inside the block-comment.
             if (startCtx.token.className === "comment") {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
-                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
+                suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length, prefixPos);
                 
-                if (prefixPos !== null && suffix !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos)) {
+                if (prefixPos !== null && suffixPos !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos)) {
                     canComment = true;
                 }
             } else {
@@ -288,7 +298,7 @@ define(function (require, exports, module) {
         // If the start is inside a comment, find the prefix and suffix positions.
         } else if (ctx.token.className === "comment") {
             prefixPos = _findCommentStart(ctx, prefixExp);
-            suffixPos = _findCommentEnd(ctx, suffixExp, suffix.length);
+            suffixPos = _findCommentEnd(ctx, suffixExp, suffix.length, prefixPos);
             
         // If not try to find the first comment inside the selection.
         } else {
@@ -303,7 +313,7 @@ define(function (require, exports, module) {
                 } else {
                     prefixPos = {line: ctx.pos.line, ch: ctx.token.start};
                 }
-                suffixPos = _findCommentEnd(ctx, suffixExp, suffix.length);
+                suffixPos = _findCommentEnd(ctx, suffixExp, suffix.length, prefixPos);
             }
         }
         
