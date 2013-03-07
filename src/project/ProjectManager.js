@@ -916,7 +916,7 @@ define(function (require, exports, module) {
                 // jsTree will automatically expand parent nodes to ensure visible
                 _projectTree.jstree("select_node", $node, false);
                 _lastSelected = entry;
-                _redraw(true);
+                _redraw(true, true);
             });
     }
     
