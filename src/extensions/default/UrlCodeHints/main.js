@@ -219,23 +219,14 @@ define(function (require, exports, module) {
      * @return {Object<hints: (Array[String]|$.Deferred<Array[String]>), sortFunc: ?Function>} 
      * The (possibly deferred) hints and the sort function to use on thise hints.
      */
-    UrlCodeHints.prototype._getValueHintsForAttr = function (query, tagName, attrName) {
-        // We look up attribute values with tagName plus a slash and attrName first.  
-        // If the lookup fails, then we fall back to look up with attrName only. Most 
-        // of the attributes in JSON are using attribute name only as their properties, 
-        // but in some cases like "type" attribute, we have different properties like 
-        // "script/type", "link/type" and "button/type".
+    UrlCodeHints.prototype._getUrlHints = function (query) {
         var hints = [],
             sortFunc = null;
         
-        var attrInfo = htmlAttrs[attrName];
-        
-        if (attrInfo) {
-            // Default behavior for url hints is do not close on select.
-            this.closeOnSelect = false;
-            hints = this._getUrlList(query);
-            sortFunc = StringUtils.urlSort;
-        }
+        // Default behavior for url hints is do not close on select.
+        this.closeOnSelect = false;
+        hints = this._getUrlList(query);
+        sortFunc = StringUtils.urlSort;
         
         return { hints: hints, sortFunc: sortFunc };
     };
@@ -258,10 +249,39 @@ define(function (require, exports, module) {
      * whether it is appropriate to do so.
      */
     UrlCodeHints.prototype.hasHints = function (editor, implicitChar) {
+        var mode = editor.getModeForSelection();
+        if (mode === "html") {
+            return this.hasHtmlHints(editor, implicitChar);
+        } else if (mode === "css") {
+            return this.hasCssHints(editor, implicitChar);
+        }
+
+        return false;
+    };
+
+    UrlCodeHints.prototype.hasCssHints = function (editor, implicitChar) {
+        this.editor = editor;
+        var cursor = this.editor.getCursorPos();
+
+        this.info = CSSUtils.getInfoAtPos(editor, cursor);
+
+        if (this.info.context !== CSSUtils.PROP_VALUE) {
+            return false;
+        }
+
+        // we only handle values
+        if (implicitChar && (implicitChar !== ":")) {
+            return false;
+        }
+
+        return (cssProps[this.info.name]) ? true : false;
+    };
+
+    UrlCodeHints.prototype.hasHtmlHints = function (editor, implicitChar) {
         var tagInfo,
             query,
             tokenType;
-        
+
         this.editor = editor;
         if (implicitChar === null) {
             tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
@@ -279,8 +299,8 @@ define(function (require, exports, module) {
                 }
                 
                 // If we're at an attribute value, check if it's an attribute name that has hintable values.
-                if (tagInfo.attr.name) {
-                    var hintsAndSortFunc = this._getValueHintsForAttr({queryStr: query}, tagInfo.tagName, tagInfo.attr.name);
+                if (htmlAttrs[tagInfo.attr.name]) {
+                    var hintsAndSortFunc = this._getUrlHints({queryStr: query});
                     var hints = hintsAndSortFunc.hints;
                     if (hints instanceof Array) {
                         // If we got synchronous hints, check if we have something we'll actually use
@@ -298,7 +318,7 @@ define(function (require, exports, module) {
                 }
             }
 
-            return query !== null;
+            return (query !== null);
 /*
         } else {
             return (implicitChar === " " || implicitChar === "'" ||
@@ -313,75 +333,93 @@ define(function (require, exports, module) {
      *
      * @return {Object<hints: Array<jQuery.Object>, match: String,
      *      selectInitial: Boolean>}
+     *
      * Null if the provider wishes to end the hinting session. Otherwise, a
-     * response object that provides 1. a sorted array formatted hints; 2. a
-     * null string match to indicate that the hints are already formatted;
-     * and 3. a boolean that indicates whether the first result, if one exists,
-     * should be selected by default in the hint list window.
+     * response object that provides:
+     * 1. a sorted array formatted hints;
+     * 2. a null string match to indicate that the hints are already formatted;
+     * 3. a boolean that indicates whether the first result, if one exists,
+     *    should be selected by default in the hint list window.
      */
     UrlCodeHints.prototype.getHints = function (key) {
-        var cursor = this.editor.getCursorPos(),
-            tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
-            query = {queryStr: null},
-            tokenType = tagInfo.position.tokenType,
+        var mode = this.editor.getModeForSelection(),
+            cursor = this.editor.getCursorPos(),
+            filter = "",
+            unfiltered = [],
+            hints = [],
+            sortFunc = null,
+            query = { queryStr: "" },
             result = [];
- 
-        if (tokenType === HTMLUtils.ATTR_VALUE) {
-            query.tag = tagInfo.tagName;
+
+        if (mode === "html") {
+            var tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
+                tokenType = tagInfo.position.tokenType;
+
+            if (tokenType !== HTMLUtils.ATTR_VALUE || !htmlAttrs[tagInfo.attr.name]) {
+                return null;
+            }
             
             if (tagInfo.position.offset >= 0) {
                 query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
-                query.attrName = tagInfo.attr.name;
-            } else if (tokenType === HTMLUtils.ATTR_VALUE) {
-                // We get negative offset for a quoted attribute value with some leading whitespaces 
-                // as in <a rel= "rtl" where the cursor is just to the right of the "=".
-                // So just set the queryStr to an empty string. 
-                query.queryStr = "";
-                query.attrName = tagInfo.attr.name;
             }
 
-//            query.usedAttr = HTMLUtils.getTagAttributes(this.editor, cursor);
-        }
+        } else if (mode === "css") {
+            this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
-        if (query.tag && query.queryStr !== null) {
-            var tagName = query.tag,
-                attrName = query.attrName,
-                filter = query.queryStr,
-                unfiltered = [],
-                hints = [],
-                sortFunc = null;
+            var context = this.info.context;
 
-            this.closeOnSelect = true;
-            
-            if (attrName) {
-                var hintsAndSortFunc = this._getValueHintsForAttr(query, tagName, attrName);
-                hints = hintsAndSortFunc.hints;
-                sortFunc = hintsAndSortFunc.sortFunc;
-            }
-            
-            if (hints instanceof Array && hints.length) {
-                console.assert(!result.length);
-                result = $.map(hints, function (item) {
-                    if (item.indexOf(filter) === 0) {
-                        return item;
-                    }
-                }).sort(sortFunc);
-
-                return {
-                    hints: result,
-                    match: query.queryStr,
-                    selectInitial: true
-                };
-            } else if (hints instanceof Object && hints.hasOwnProperty("done")) { // Deferred hints
-                var deferred = $.Deferred();
-                hints.done(function (asyncHints) {
-                    deferred.resolveWith(this, [{ hints : asyncHints, match: query.queryStr, selectInitial: true }]);
-                });
-                return deferred;
-            } else {
+            if (context !== CSSUtils.PROP_VALUE || !cssProps[this.info.name]) {
                 return null;
             }
+
+            // Cursor is in an existing property value or partially typed value
+            if (!this.info.isNewItem && this.info.index !== -1) {
+                query.queryStr = this.info.values[this.info.index].trim();
+                query.queryStr = query.queryStr.substr(0, this.info.offset);
+            }
+
+        } else {
+            return null;
         }
+
+        if (query.queryStr !== null) {
+            filter = query.queryStr;
+//            this.closeOnSelect = true;
+            var hintsAndSortFunc = this._getUrlHints(query);
+            hints = hintsAndSortFunc.hints;
+            sortFunc = hintsAndSortFunc.sortFunc;
+        }
+
+        if (hints instanceof Array && hints.length) {
+            // Array was returned
+            console.assert(!result.length);
+            result = $.map(hints, function (item) {
+                if (item.indexOf(filter) === 0) {
+                    return item;
+                }
+            }).sort(sortFunc);
+
+            return {
+                hints: result,
+                match: query.queryStr,
+                selectInitial: true
+            };
+
+        } else if (hints instanceof Object && hints.hasOwnProperty("done")) {
+            // Deferred hints were returned
+            var deferred = $.Deferred();
+            hints.done(function (asyncHints) {
+                deferred.resolveWith(this, [{
+                    hints : asyncHints,
+                    match: query.queryStr,
+                    selectInitial: true
+                }]);
+            });
+
+            return deferred;
+        }
+
+        return null;
     };
 
     /**
@@ -395,6 +433,47 @@ define(function (require, exports, module) {
      * additional explicit hint request.
      */
     UrlCodeHints.prototype.insertHint = function (completion) {
+        var mode = this.editor.getModeForSelection();
+        if (mode === "html") {
+            return this.insertHtmlHint(completion);
+        } else if (mode === "css") {
+            return this.insertCssHint(completion);
+        }
+
+        return false;
+    };
+
+    UrlCodeHints.prototype.insertCssHint = function (completion) {
+        var cursor = this.editor.getCursorPos(),
+            start = {line: -1, ch: -1},
+            end = {line: -1, ch: -1},
+            keepHints = false;
+
+        if (this.info.context !== CSSUtils.PROP_VALUE) {
+            return false;
+        }
+
+        start.line = end.line = cursor.line;
+        start.ch = cursor.ch - this.info.offset;
+
+        if (!this.info.isNewItem && this.info.index !== -1) {
+            // Replacing an existing property value or partially typed value
+            end.ch = start.ch + this.info.values[this.info.index].length;
+        } else {
+            // Inserting a new property value
+            end.ch = start.ch;
+        }
+
+        // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
+        // directly to replace the range instead of using the Document, as we should. The
+        // reason is due to a flaw in our current document synchronization architecture when
+        // inline editors are open.
+        this.editor._codeMirror.replaceRange(completion, start, end);
+
+        return keepHints;
+    };
+
+    UrlCodeHints.prototype.insertHtmlHint = function (completion) {
         var cursor = this.editor.getCursorPos(),
             start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
@@ -460,8 +539,7 @@ define(function (require, exports, module) {
         htmlAttrs       = JSON.parse(HTMLAttributes);
 
         var urlHints = new UrlCodeHints();
-//        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
-        CodeHintManager.registerHintProvider(urlHints, ["html"], 5);
+        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
 
         // For unit testing
 //        exports.urlCodeHintProvider = urlHints;

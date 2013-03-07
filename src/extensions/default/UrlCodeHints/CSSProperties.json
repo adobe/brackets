@@ -1,5 +1,5 @@
 {
-    "background-image":         {"values": [] },
-    "border-image":             {"values": [] },
-    "list-style-image":         {"values": [] }
+    "background-image":         { "values": [ "image()", "linear-gradient()", "radial-gradient()", "repeating-linear-gradient()", "repeating-radial-gradient()" ]},
+    "border-image":             { "values": [] },
+    "list-style-image":         { "values": [] }
 }
