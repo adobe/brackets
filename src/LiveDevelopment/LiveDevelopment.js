@@ -565,7 +565,7 @@ define(function LiveDevelopment(require, exports, module) {
                     // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
                         url,
-                        err !== NativeFileError.ERR_NOT_FOUND
+                        true
                     )
                         .done(function () {
                             browserStarted = true;
