@@ -176,12 +176,12 @@ define(function (require, exports, module) {
             isFindFirst = true;
             cm.operation(function () {
                 if (state.query) {
-                    // Search field is empty - no results
-                    $("#find-counter").text("");
                     clearHighlights(getSearchState(cm));
                 }
                 state.query = parseQuery(query);
                 if (!state.query) {
+                    // Search field is empty - no results
+                    $("#find-counter").text("");
                     cm.setCursor(searchStartPos);
                     return;
                 }
