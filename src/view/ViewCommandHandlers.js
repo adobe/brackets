@@ -126,7 +126,89 @@ define(function (require, exports, module) {
         _removeDynamicFontSize(true);
     }
     
+    
+    /**
+     * @private
+     * Calculates the first and last visible lines of the focused editor
+     * @param {!Editor} editor
+     * @param {!number} scrollTop
+     * @param {!number} editorHeight
+     * @return {{first: number, last: number}}
+     */
+    function _getLinesInView(editor, scrollTop, editorHeight) {
+        var textHeight     = editor.getTextHeight(),
+            scrolledTop    = scrollTop / textHeight,
+            scrolledBottom = (scrollTop + editorHeight) / textHeight,
+            firstLine      = Math.ceil(scrolledTop) - 1,
+            lastLine       = Math.floor(scrolledBottom) - 2;
+        
+        return { first: firstLine, last: lastLine };
+    }
+    
+    /**
+     * @private
+     * Scroll the viewport one line up or down.
+     * @param {number} -1 to scroll one line up; 1 to scroll one line down.
+     */
+    function _scrollLine(direction) {
+        var editor           = EditorManager.getCurrentFullEditor(),
+            scrollInfo       = editor._codeMirror.getScrollInfo(),
+            textHeight       = editor.getTextHeight(),
+            cursorPos        = editor.getCursorPos(),
+            hasSelecction    = editor.hasSelection(),
+            scrollTop        = scrollInfo.top,
+            editorHeight     = scrollInfo.clientHeight,
+            linesInView      = _getLinesInView(editor, scrollTop, editorHeight);
+        
+        // Go through all the editors and reduce the scroll top and editor height to recalculate the lines in view 
+        var line;
+        editor.getInlineWidgets().forEach(function (inlineEditor) {
+            line = editor._getInlineWidgetLineNumber(inlineEditor);
+            
+            if (line < linesInView.first) {
+                scrollTop   -= inlineEditor.info.height;
+                linesInView  = _getLinesInView(editor, scrollTop, editorHeight);
+            
+            } else if (line < linesInView.last) {
+                editorHeight -= inlineEditor.info.height;
+                linesInView   = _getLinesInView(editor, scrollTop, editorHeight);
+            }
+        });
+        
+        // If there is no selection move the cursor so that is always visible
+        if (!hasSelecction) {
+            // Move the cursor to the first visible line
+            if (direction > 0 && cursorPos.line < linesInView.first) {
+                editor.setCursorPos({line: linesInView.first + 1, ch: cursorPos.ch});
+            
+            // Move the cursor to the last visible line
+            } else if (direction < 0 && cursorPos.line > linesInView.last) {
+                editor.setCursorPos({line: linesInView.last - 1, ch: cursorPos.ch});
+            
+            // Move the cursor up or down using CodeMirror function
+            } else if ((direction > 0 && cursorPos.line === linesInView.first) ||
+                    (direction < 0 && cursorPos.line === linesInView.last)) {
+                editor._codeMirror.moveV(direction, "line");
+            }
+        }
+        
+        // Scroll the editor
+        editor.setScrollPos(scrollInfo.left, scrollInfo.top + (textHeight * direction));
+    }
+    
+    
+    function _handleScrollLineUp() {
+        _scrollLine(-1);
+    }
+    
+    function _handleScrollLineDown() {
+        _scrollLine(1);
+    }
+    
+    
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 });
