@@ -51,19 +51,14 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        FileUtils           = require("file/FileUtils"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        KeyEvent            = require("utils/KeyEvent"),
         ViewUtils           = require("utils/ViewUtils"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
