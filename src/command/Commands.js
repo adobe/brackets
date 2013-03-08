@@ -77,6 +77,7 @@ define(function (require, exports, module) {
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
+    exports.TOGGLE_CLOSE_BRACKETS       = "view.autoCloseBrackets";
     exports.TOGGLE_JSLINT               = "debug.jslint";
     exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded";
     exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";
