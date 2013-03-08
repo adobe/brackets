@@ -183,6 +183,9 @@ define(function (require, exports, module) {
                     // Search field is empty - no results
                     $("#find-counter").text("");
                     cm.setCursor(searchStartPos);
+                    if (modalBar) {
+                        getDialogTextField().removeClass("no-results");
+                    }
                     return;
                 }
                 
