@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * Manages parts of the status bar related to the current editor's state.
@@ -142,8 +142,6 @@ define(function (require, exports, module) {
     }
     
     function _init() {
-        StatusBar.init($(".main-view .content"));
-
         $languageInfo       = $("#status-language");
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");

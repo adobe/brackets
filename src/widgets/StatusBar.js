@@ -4,7 +4,8 @@
 /**
  * A status bar with support for file information and busy and status indicators. This is a semi-generic
  * container; for the code that decides what content appears in the status bar, see client modules like
- * EditorStatusBar and JSLintUtils.
+ * EditorStatusBar and JSLintUtils. (Although in practice StatusBar's HTML structure and initialization
+ * assume it's only used for this one purpose, and all the APIs are on a singleton).
  */
 define(function (require, exports, module) {
     'use strict';
@@ -35,6 +36,7 @@ define(function (require, exports, module) {
      */
     function showBusyIndicator(updateCursor) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -51,6 +53,7 @@ define(function (require, exports, module) {
      */
     function hideBusyIndicator() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -76,6 +79,7 @@ define(function (require, exports, module) {
      */
     function addIndicator(id, indicator, visible, style, tooltip, command) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -108,6 +112,7 @@ define(function (require, exports, module) {
      */
     function updateIndicator(id, visible, style, tooltip, command) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
         
@@ -140,6 +145,7 @@ define(function (require, exports, module) {
      */
     function hide() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
         
@@ -154,6 +160,7 @@ define(function (require, exports, module) {
      */
     function show() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -162,14 +169,9 @@ define(function (require, exports, module) {
             EditorManager.resizeEditor();  // changes available ht for editor area
         }
     }
-
-    function init($parent) {
-        // check if status bar already exists
-        if (_init) {
-            return;
-        }
-
-        $parent = $parent || $("body");
+    
+    AppInit.htmlReady(function () {
+        var $parent = $(".main-view .content");
         $parent.append(Mustache.render(StatusBarHTML, Strings));
 
         // Initialize items dependent on HTML DOM
@@ -181,9 +183,8 @@ define(function (require, exports, module) {
 
         // hide on init
         hide();
-    }
+    });
 
-    exports.init = init;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.addIndicator = addIndicator;
