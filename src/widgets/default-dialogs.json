@@ -1,0 +1,82 @@
+{
+    "error-dialog": {
+        "title": "Error",
+        "message": "",
+        "buttons": [
+            {
+                "class": "primary",
+                "id": "ok",
+                "text": "{{OK}}"
+            }
+        ]
+    },
+    "save-close-dialog": {
+        "title": "",
+        "message": "",
+        "buttons": [
+            {
+                "class": "left",
+                "id": "dontsave",
+                "text": "{{RELOAD_FROM_DISK}}"
+            },
+            {
+                "class": "primary",
+                "id": "ok",
+                "text": "{{SAVE}}"
+            },
+            {
+                "class": "",
+                "id": "cancel",
+                "text": "{{CANCEL}}"
+            }
+        ]
+    },
+    "ext-changed-dialog": {
+        "title": "",
+        "message": "",
+        "buttons": [
+            {
+                "class": "left",
+                "id": "dontsave",
+                "text": "{{RELOAD_FROM_DISK}}"
+            },
+            {
+                "class": "primary",
+                "id": "cancel",
+                "text": "{{KEEP_CHANGES_IN_EDITOR}}"
+            }
+        ]
+    },
+    "ext-deleted-dialog": {
+        "title": "",
+        "message": "",
+        "buttons": [
+            {
+                "class": "left",
+                "id": "dontsave",
+                "text": "{{CLOSE_DONT_SAVE}}"
+            },
+            {
+                "class": "primary",
+                "id": "cancel",
+                "text": "{{KEEP_CHANGES_IN_EDITOR}}"
+            }
+        ]
+    },
+    "live-development-error-dialog": {
+        "title": "",
+        "message": "",
+        "buttons": [
+            {
+                "class": "left",
+                "id": "cancel",
+                "text": "{{CANCEL}}"
+            },
+            {
+                "class": "primary",
+                "id": "ok",
+                "text": "{{RELAUNCH_CHROME}}"
+            }
+        ]
+    }
+}

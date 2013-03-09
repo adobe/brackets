@@ -218,7 +218,7 @@ define(function (require, exports, module) {
                 StringUtils.htmlEscape(doc.file.fullPath),
                 FileUtils.getFileErrorString(error.name)
             )
-        );
+        ).getPromise();
     }
     
     
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
                 );
             }
             
-            Dialogs.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message)
+            Dialogs.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message).getPromise()
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {

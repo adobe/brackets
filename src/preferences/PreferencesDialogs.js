@@ -86,7 +86,7 @@ define(function (require, exports, module) {
             $baseUrlControl,
             promise;
 
-        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
+        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings)).getPromise()
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     var baseUrlValue = $baseUrlControl.val();

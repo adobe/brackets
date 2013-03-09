@@ -335,6 +335,16 @@
     float: left;
 }
 
+.platform-win {
+    /* Reverse Save/Cancel button order on Win */
+    .modal-footer {
+        text-align: right;
+    }
+    .modal-footer .btn:not(.left) {
+        float: none;
+    }
+}
+
 .modal-body ul {
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */

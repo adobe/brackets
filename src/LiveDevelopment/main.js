@@ -126,7 +126,7 @@ define(function main(require, exports, module) {
                     Dialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
                     Strings.LIVE_DEVELOPMENT_INFO_MESSAGE
-                ).done(function (id) {
+                ).getPromise().done(function (id) {
                     LiveDevelopment.open();
                 });
             } else {

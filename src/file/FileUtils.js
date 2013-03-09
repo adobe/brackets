@@ -184,7 +184,7 @@ define(function (require, exports, module) {
                 StringUtils.htmlEscape(path),
                 getFileErrorString(name)
             )
-        );
+        ).getPromise();
     }
 
     /**

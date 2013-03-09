@@ -375,7 +375,7 @@ define(function (require, exports, module) {
                 StringUtils.htmlEscape(path),
                 FileUtils.getFileErrorString(name)
             )
-        );
+        ).getPromise();
     }
     
     /** Note: if there is an error, the promise is not rejected until the user has dimissed the dialog */
@@ -562,7 +562,7 @@ define(function (require, exports, module) {
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 StringUtils.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
-            ).done(function (id) {
+            ).getPromise().done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
                 } else if (id === Dialogs.DIALOG_BTN_OK) {
@@ -654,7 +654,7 @@ define(function (require, exports, module) {
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 message
-            ).done(function (id) {
+            ).getPromise().done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
                 } else if (id === Dialogs.DIALOG_BTN_OK) {

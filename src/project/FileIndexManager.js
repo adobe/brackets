@@ -87,17 +87,16 @@ define(function (require, exports, module) {
 
 
     /**
-    * Adds a new index to _indexList and marks the list dirty 
-    *
-    * A future performance optimization is to only build the new index rather than 
-    * marking them all dirty
-    *
-    * @private
-    * @param {!string} indexName must be unque
-    * @param {!function({entry} filterFunction should return true to include an
-    *   entry in the index
-
-    */
+     * Adds a new index to _indexList and marks the list dirty 
+     *
+     * A future performance optimization is to only build the new index rather than 
+     * marking them all dirty
+     *
+     * @private
+     * @param {!string} indexName must be unque
+     * @param {!function({entry} filterFunction should return true to include an
+     *   entry in the index
+     */
     function _addIndex(indexName, filterFunction) {
         if (_indexList.hasOwnProperty(indexName)) {
             console.error("Duplicate index name");
@@ -115,13 +114,13 @@ define(function (require, exports, module) {
 
 
     /**
-    * Checks the entry against the filterFunction for each index and adds
-    * a fileInfo to the index if the entry meets the criteria. FileInfo's are
-    * shared between indexes.
-    *
-    * @private
-    * @param {!entry} entry to be added to the indexes
-    */
+     * Checks the entry against the filterFunction for each index and adds
+     * a fileInfo to the index if the entry meets the criteria. FileInfo's are
+     * shared between indexes.
+     *
+     * @private
+     * @param {!entry} entry to be added to the indexes
+     */
     // future use when files are incrementally added
     //
     function _addFileToIndexes(entry) {
@@ -141,23 +140,23 @@ define(function (require, exports, module) {
         });
     }
     
-  /**
-    * Error dialog when max files in index is hit
-    */
+    /**
+     * Error dialog when max files in index is hit
+     */
     function _showMaxFilesDialog() {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_MAX_FILES_TITLE,
             Strings.ERROR_MAX_FILES
-        );
+        ).getPromise();
     }
 
     /* Recursively visits all files that are descendent of dirEntry and adds
-    * files files to each index when the file matches the filter critera
-    * @private
-    * @param {!DirectoryEntry} dirEntry
-    * @returns {$.Promise}
-    */
+     * files files to each index when the file matches the filter critera
+     * @private
+     * @param {!DirectoryEntry} dirEntry
+     * @returns {$.Promise}
+     */
     function _scanDirectorySubTree(dirEntry) {
         if (!dirEntry) {
             console.error("Bad dirEntry passed to _scanDirectorySubTree");
@@ -260,9 +259,9 @@ define(function (require, exports, module) {
     
 
     /**
-    * Clears the fileInfo array for all the indexes in _indexList
-    * @private
-    */
+     * Clears the fileInfo array for all the indexes in _indexList
+     * @private
+     */
     function _clearIndexes() {
         $.each(_indexList, function (indexName, index) {
             index.fileInfos = [];
@@ -283,9 +282,9 @@ define(function (require, exports, module) {
     var _ongoingSyncPromise = null;
 
     /**
-    * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
-    * @return {$.Promise} resolved when index has been updated
-    */
+     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
+     * @return {$.Promise} resolved when index has been updated
+     */
     function syncFileIndex() {
 
         // If we're already syncing, don't kick off a second one
@@ -315,10 +314,10 @@ define(function (require, exports, module) {
     }
 
     /**
-    * Returns the FileInfo array for the specified index
-    * @param {!string} indexname
-    * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
-    */
+     * Returns the FileInfo array for the specified index
+     * @param {!string} indexname
+     * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
+     */
     function getFileInfoList(indexName) {
         var result = new $.Deferred();
 
@@ -379,8 +378,8 @@ define(function (require, exports, module) {
     }
     
     /**
-    * Add the indexes
-    */
+     * Add the indexes
+     */
 
     _addIndex(
         "all",
