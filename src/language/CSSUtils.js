@@ -548,15 +548,17 @@ define(function (require, exports, module) {
             }
             
             currentSelector = currentSelector.trim();
+            var selectorStart = (stream.string.indexOf(currentSelector, selectorStartChar) !== -1) ? stream.string.indexOf(currentSelector, selectorStartChar) : 0;
+
             if (currentSelector !== "") {
                 selectors.push({selector: currentSelector,
                                 ruleStartLine: ruleStartLine,
                                 ruleStartChar: ruleStartChar,
                                 selectorStartLine: selectorStartLine,
-                                selectorStartChar: selectorStartChar,
+                                selectorStartChar: selectorStart,
                                 declListEndLine: -1,
                                 selectorEndLine: line,
-                                selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
+                                selectorEndChar: selectorStart + currentSelector.length,
                                 selectorGroupStartLine: selectorGroupStartLine,
                                 selectorGroupStartChar: selectorGroupStartChar
                                });
