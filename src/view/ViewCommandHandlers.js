@@ -26,7 +26,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-
+    
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         Strings                 = require("strings"),
@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         DocumentManager         = require("document/DocumentManager"),
         AppInit                 = require("utils/AppInit");
-
+    
     /**
      * @const
      * @type {string}
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
             EditorManager.getCurrentFullEditor().refreshAll();
         }
     }
-
+    
     /**
      * @private
      * Increases or decreases the editor's font size.
@@ -87,13 +87,13 @@ define(function (require, exports, module) {
         var lhStyle = $(".CodeMirror").css("line-height");
 
         var validFont = /^[\d\.]+(px|em)$/;
-
+        
         // Make sure the font size and line height are expressed in terms
         // we can handle (px or em). If not, simply bail.
         if (fsStyle.search(validFont) === -1 || lhStyle.search(validFont) === -1) {
             return;
         }
-
+        
         // Guaranteed to work by the validation above.
         var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length);
         var lhUnits = lhStyle.substring(lhStyle.length - 2, lhStyle.length);
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
 
         var fsNew = fsOld + fsDelta;
         var lhNew = lhOld + lhDelta;
-
+        
         var fsStr = fsNew + fsUnits;
         var lhStr = lhNew + lhUnits;
 
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
             _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
             return;
         }
-
+        
         // It's necessary to inject a new rule to address all editors.
         _removeDynamicFontSize(false);
         var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
@@ -124,25 +124,25 @@ define(function (require, exports, module) {
                    "font-size: "   + fsStr + " !important;" +
                    "line-height: " + lhStr + " !important;}");
         $("head").append(style);
-
+        
         var editor = EditorManager.getCurrentFullEditor();
         editor.refreshAll();
-
+        
         // Scroll the document back to its original position. This can only happen
         // if the font size is specified in pixels (which it currently is).
         if (fsUnits === "px") {
             var scrollPos = editor.getScrollPos();
             var scrollDeltaX = Math.round(scrollPos.x / lhOld);
             var scrollDeltaY = Math.round(scrollPos.y / lhOld);
-
+            
             scrollDeltaX = (adjustment >= 0 ? scrollDeltaX : -scrollDeltaX);
             scrollDeltaY = (adjustment >= 0 ? scrollDeltaY : -scrollDeltaY);
-
+            
             editor.setScrollPos((scrollPos.x + scrollDeltaX),
                                 (scrollPos.y + scrollDeltaY));
         }
     }
-
+    
     function _handleIncreaseFontSize() {
         _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
         _adjustFontSize(1);
@@ -152,12 +152,12 @@ define(function (require, exports, module) {
         _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
         _adjustFontSize(-1);
     }
-
+    
     function _handleRestoreFontSize() {
         _prefs.setValue("fontSizeAdjustment", 0);
         _removeDynamicFontSize(true);
     }
-
+    
     /**
      * @private
      * Updates the user interface appropriately based on whether or not a document is
@@ -171,14 +171,14 @@ define(function (require, exports, module) {
                 CommandManager.get(Commands.VIEW_DECREASE_FONT_SIZE).setEnabled(true);
                 CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(true);
             }
-
+            
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
                 _removeDynamicFontSize(false);
                 _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
                 _fontSizePrefsLoaded = true;
             }
-
+            
         } else {
             // No current document so disable all of the Font Size commands
             CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).setEnabled(false);
@@ -186,7 +186,7 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
     }
-
+    
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
