@@ -70,9 +70,7 @@
  *      2nd arg to the listener is the removed FileEntry.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
  *      The 2nd arg to the listener is the array of removed FileEntry objects.
- *    - workingSetReorder -- When the indexes of 2 files are swapped. Listener receives no arguments.
  *    - workingSetSort -- When the workingSet array is sorted. Listener receives no arguments.
- *      TODO (#2076): combine workingSetSort & workingSetReorder since they convey nearly identical information.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
  *      The 3rd arg is the new name.
@@ -345,9 +343,6 @@ define(function (require, exports, module) {
             temp = _workingSet[index1];
             _workingSet[index1] = _workingSet[index2];
             _workingSet[index2] = temp;
-            
-            // Dispatch event
-            $(exports).triggerHandler("workingSetReorder");
         }
     }
     
@@ -363,6 +358,14 @@ define(function (require, exports, module) {
         _workingSet.sort(compareFn);
         $(exports).triggerHandler("workingSetSort");
     }
+    
+    /**
+     * Triggers a WorkingSet Sort event
+     */
+    function triggerWorkingSetSort() {
+        $(exports).triggerHandler("workingSetSort");
+    }
+    
     
     /**
      * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
@@ -1235,6 +1238,7 @@ define(function (require, exports, module) {
     exports.getNextPrevFile             = getNextPrevFile;
     exports.swapWorkingSetIndexes       = swapWorkingSetIndexes;
     exports.sortWorkingSet              = sortWorkingSet;
+    exports.triggerWorkingSetSort       = triggerWorkingSetSort;
     exports.beginDocumentNavigation     = beginDocumentNavigation;
     exports.finalizeDocumentNavigation  = finalizeDocumentNavigation;
     exports.closeFullEditor             = closeFullEditor;

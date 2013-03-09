@@ -105,12 +105,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Removes current sort DocumentManager listeners.
+     * Removes the sort DocumentManager listeners.
      */
     function _removeListeners() {
-        if (_currentSort && _currentSort.getEvents()) {
-            $(DocumentManager).off(".sort");
-        }
+        $(DocumentManager).off(".sort");
     }
     
     /**
@@ -124,15 +122,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Adds current sort DocumentManager listeners.
+     * Adds the current sort DocumentManager listeners.
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
             $(DocumentManager)
-                .on(_currentSort.getEvents(), function (event) {
-                    _currentSort.callAutomaticFn(event);
+                .on(_currentSort.getEvents(), function () {
+                    _currentSort.sort();
                 })
-                .on("workingSetReorder.sort", function () {
+                .on("workingSetSort.sort", function () {
                     _disableAutomatic();
                 });
         }
@@ -192,14 +190,12 @@ define(function (require, exports, module) {
      *
      * @param {!string} commandID - valid command identifier.
      * @param {!function(FileEntry, FileEntry)} compareFn - a valid sort function (see register for a longer explanation).
-     * @param {!string} events - space-separated DocumentManager possible events ending on ".sort".
-     * @param {!function($.Event)} automaticFn - the function that will be called when an automatic sort event is triggered.
+     * @param {!string} events - space-separated DocumentManager possible events ending with ".sort".
      */
     function Sort(commandID, compareFn, events, automaticFn) {
-        this._commandID   = commandID;
-        this._compareFn   = compareFn;
-        this._events      = events;
-        this._automaticFn = automaticFn;
+        this._commandID = commandID;
+        this._compareFn = compareFn;
+        this._events    = events;
     }
     
     /** @return {CommandID} */
@@ -217,18 +213,11 @@ define(function (require, exports, module) {
         return this._events;
     };
     
-    /** Calls automaticFn */
-    Sort.prototype.callAutomaticFn = function (event) {
-        return this._automaticFn(event);
-    };
-    
     /**
      * Performs the sort and makes it the current sort method
      */
     Sort.prototype.execute = function () {
-        _removeListeners();
         _setCurrentSort(this);
-        _addListeners();
         this.sort();
     };
     
@@ -237,7 +226,9 @@ define(function (require, exports, module) {
      */
     Sort.prototype.sort = function () {
         if (_currentSort === this) {
+            _removeListeners();
             DocumentManager.sortWorkingSet(this._compareFn);
+            _addListeners();
         }
     };
     
@@ -256,11 +247,9 @@ define(function (require, exports, module) {
      * @param {?string} events - one or more space-separated event types that DocumentManger uses.
      *      Each event passed will trigger the automatic sort. If no events are passed, the automatic
      *      sort will be disabled for that sort method.
-     * @param {?function($.Event)} automaticFn - the function that will be called when an automatic sort
-     *      event is triggered. If no function is passed the automatic sort will just call the sort function.
      * @return {?Sort}
      */
-    function register(commandID, compareFn, events, automaticFn) {
+    function register(commandID, compareFn, events) {
         if (_sorts[commandID]) {
             console.log("Attempting to register an already-registered sort: " + commandID);
             return;
@@ -279,11 +268,7 @@ define(function (require, exports, module) {
             events = events.join(" ");
         }
         
-        automaticFn = automaticFn || function (event) {
-            _currentSort.sort();
-        };
-        
-        var sort = new Sort(commandID, compareFn, events, automaticFn);
+        var sort = new Sort(commandID, compareFn, events);
         _sorts[commandID] = sort;
         return sort;
     }
