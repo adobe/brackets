@@ -408,39 +408,6 @@ define(function (require, exports, module) {
                 });
 
 
-                // Use node server base url
-                runs(function () {
-                    // StaticServer is loaded on demand, and provider doesn't
-                    // return true from canServe() until it gets loaded.
-                    waitsFor(function () {
-                        provider = LiveDevServerManager.getProvider(file1Path);
-                        return (provider !== null);
-                    }, "Waiting for browser", 5000);
-                });
-
-                runs(function () {
-                    expect(provider).toBeTruthy();
-                    
-                    // Wait until provider is ready to serve
-                    var promise = (provider) ? provider.readyToServe() : null;
-                    waitsForDone(promise, "Waiting for LiveDevServerProvider to become ready to serve", 1000);
-                });
-
-                runs(function () {
-                    LiveDevelopment._setServerProvider(provider);
-                    baseUrl         = (provider) ? provider.getBaseUrl() : "";
-                    file1ServerUrl  = baseUrl + encodeURI(fileRelPath);
-
-                    // Should use server url with base url
-                    expect(LiveDevelopment._pathToUrl(file1Path)).toBe(file1ServerUrl);
-                    expect(LiveDevelopment._urlToPath(file1ServerUrl)).toBe(file1Path);
-
-                    // File outside project should still use file url
-                    expect(LiveDevelopment._pathToUrl(file2Path)).toBe(file2FileUrl);
-                    expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
-                });
-
-
                 // Set user defined base url, and then get provider
                 runs(function () {
                     baseUrl         = "http://localhost/";
@@ -459,6 +426,7 @@ define(function (require, exports, module) {
                     expect(LiveDevelopment._urlToPath(file2FileUrl)).toBe(file2Path);
 
                     // Clear base url
+                    LiveDevelopment._setServerProvider(null);
                     ProjectManager.setBaseUrl("");
                 });
             });
