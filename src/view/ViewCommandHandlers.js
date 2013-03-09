@@ -129,13 +129,13 @@ define(function (require, exports, module) {
 
         // Don't let the font size get too small.
         if ((fsUnits === "px" && fsNew < MIN_FONT_SIZE) ||
-            (fsUnits === "em" && fsNew < (MIN_FONT_SIZE * 0.1))) {
+                (fsUnits === "em" && fsNew < (MIN_FONT_SIZE * 0.1))) {
             return false;
         }
         
         // Don't let the font size get too large.
         if ((fsUnits === "px" && fsNew > MAX_FONT_SIZE) ||
-            (fsUnits === "em" && fsNew > (MAX_FONT_SIZE * 0.1))) {
+                (fsUnits === "em" && fsNew > (MAX_FONT_SIZE * 0.1))) {
             return false;
         }
         
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
 
     function _handleDecreaseFontSize() {
         if (_adjustFontSize(-1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1); 
+            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
         }
     }
     
