@@ -20,14 +20,14 @@
                 "text": "{{RELOAD_FROM_DISK}}"
             },
             {
-                "class": "primary",
-                "id": "ok",
-                "text": "{{SAVE}}"
-            },
-            {
                 "class": "",
                 "id": "cancel",
                 "text": "{{CANCEL}}"
+            },
+            {
+                "class": "primary",
+                "id": "ok",
+                "text": "{{SAVE}}"
             }
         ]
     },

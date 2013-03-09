@@ -328,9 +328,13 @@
 }
 
 .modal-footer {
+    text-align: right;
     white-space: nowrap;
 }
 
+.modal-footer .btn {
+    float: none;
+}
 .modal-footer .btn.left {
     float: left;
 }
@@ -338,10 +342,10 @@
 .platform-win {
     /* Reverse Save/Cancel button order on Win */
     .modal-footer {
-        text-align: right;
+        text-align: left;
     }
     .modal-footer .btn:not(.left) {
-        float: none;
+        float: right;
     }
 }
 
