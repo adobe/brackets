@@ -410,9 +410,17 @@ define(function (require, exports, module) {
 
                 // Use node server base url
                 runs(function () {
-                    provider = LiveDevServerManager.getProvider(file1Path);
-                    expect(provider).toBeTruthy();
+                    // StaticServer is loaded on demand, and provider doesn't
+                    // return true from canServe() until it gets loaded.
+                    waitsFor(function () {
+                        provider = LiveDevServerManager.getProvider(file1Path);
+                        return (provider !== null);
+                    }, "Waiting for browser", 5000);
+                });
 
+                runs(function () {
+                    expect(provider).toBeTruthy();
+                    
                     // Wait until provider is ready to serve
                     var promise = (provider) ? provider.readyToServe() : null;
                     waitsForDone(promise, "Waiting for LiveDevServerProvider to become ready to serve", 1000);
