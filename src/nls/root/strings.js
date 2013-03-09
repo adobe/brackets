@@ -175,6 +175,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
+    "CMD_INSTALL_EXTENSION"               : "Install Extension...",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -275,6 +276,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
+    "INSTALL"                              : "Install",
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
@@ -295,6 +297,13 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
+    "INSTALL_EXTENSION_TITLE"              : "Install Extension",
+    "INSTALL_EXTENSION_LABEL"              : "Extension URL",
+    "INSTALL_EXTENSION_HINT"               : "URL of the extension's ZIP package",
+    "INSTALLING_FROM"                      : "Installing extension from {0}...",
+    "INSTALL_SUCCEEDED"                    : "Installation successful!",
+    "INSTALL_FAILED"                       : "Installation failed.",
+    "INSTALL_CANCELLED"                    : "Installation cancelled.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

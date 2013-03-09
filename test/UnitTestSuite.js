@@ -40,6 +40,7 @@ define(function (require, exports, module) {
     require("spec/FileIndexManager-test");
     require("spec/FindReplace-test");
     require("spec/InlineEditorProviders-test");
+    require("spec/InstallExtensionDialog-test");
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
