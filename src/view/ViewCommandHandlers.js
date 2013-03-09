@@ -49,6 +49,22 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
+    
+    /**
+     * @const
+     * @private
+     * The smallest font size in pixels
+     * @type {int}
+     */
+    var MIN_FONT_SIZE = 1;
+    
+    /**
+     * @const
+     * @private
+     * The largest font size in pixels
+     * @type {int}
+     */
+    var MAX_FONT_SIZE = 72;
 
     /**
      * @private
@@ -79,6 +95,7 @@ define(function (require, exports, module) {
      * @private
      * Increases or decreases the editor's font size.
      * @param {number} negative number to make the font smaller; positive number to make it bigger.
+     * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
         var styleId = "codemirror-dynamic-fonts";
@@ -91,7 +108,7 @@ define(function (require, exports, module) {
         // Make sure the font size and line height are expressed in terms
         // we can handle (px or em). If not, simply bail.
         if (fsStyle.search(validFont) === -1 || lhStyle.search(validFont) === -1) {
-            return;
+            return false;
         }
         
         // Guaranteed to work by the validation above.
@@ -110,11 +127,16 @@ define(function (require, exports, module) {
         var fsStr = fsNew + fsUnits;
         var lhStr = lhNew + lhUnits;
 
-        // Don't let the fonts get too small.
-        if ((fsUnits === "px" && fsNew <= 1) || (fsUnits === "em" && fsNew <= 0.1)) {
-            // Roll back the font size adjustment value in the persisted data
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
-            return;
+        // Don't let the font size get too small.
+        if ((fsUnits === "px" && fsNew < MIN_FONT_SIZE) ||
+            (fsUnits === "em" && fsNew < (MIN_FONT_SIZE * 0.1))) {
+            return false;
+        }
+        
+        // Don't let the font size get too large.
+        if ((fsUnits === "px" && fsNew > MAX_FONT_SIZE) ||
+            (fsUnits === "em" && fsNew > (MAX_FONT_SIZE * 0.1))) {
+            return false;
         }
         
         // It's necessary to inject a new rule to address all editors.
@@ -141,21 +163,25 @@ define(function (require, exports, module) {
             editor.setScrollPos((scrollPos.x + scrollDeltaX),
                                 (scrollPos.y + scrollDeltaY));
         }
+        
+        return true;
     }
     
     function _handleIncreaseFontSize() {
-        _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
-        _adjustFontSize(1);
+        if (_adjustFontSize(1)) {
+            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
+        }
     }
 
     function _handleDecreaseFontSize() {
-        _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
-        _adjustFontSize(-1);
+        if (_adjustFontSize(-1)) {
+            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1); 
+        }
     }
     
     function _handleRestoreFontSize() {
-        _prefs.setValue("fontSizeAdjustment", 0);
         _removeDynamicFontSize(true);
+        _prefs.setValue("fontSizeAdjustment", 0);
     }
     
     /**
