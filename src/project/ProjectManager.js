@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
-        EditorManager       = require("editor/EditorManager"),
+        EditorStatusBar     = require("editor/EditorStatusBar"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
         };
 
         _prefs.setValue(_getTabsSettingsKey(), _projectTabSettings);
-        EditorManager.updateProjectTabs();
+        EditorStatusBar.updateProjectTabs();
     }
     
     /**
@@ -437,7 +437,8 @@ define(function (require, exports, module) {
         
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
-        $projectTreeContainer.hide();
+        $projectTreeContainer.hide()
+            .addClass("no-focus");
         _projectTree = $projectTreeContainer
             .jstree({
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],

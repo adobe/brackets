@@ -70,13 +70,18 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
+        CollectionUtils    = require("utils/CollectionUtils"),
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor";
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
+        defaultPrefs = { closeBrackets: false };
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    
+    /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
+    var _closeBrackets = _prefs.getValue("closeBrackets");
     
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
@@ -337,6 +342,7 @@ define(function (require, exports, module) {
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap,
+            autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
                 whenOpening: true,
                 whenClosing: true,
@@ -1241,6 +1247,68 @@ define(function (require, exports, module) {
         return this._codeMirror.getOption("mode");
     };
     
+    
+    /**
+     * @private
+     * Sets the given preference option to the current editor and saves it
+     * @param {string} preference
+     * @param {number|boolean} value
+     */
+    Editor.prototype._setTabPreference = function (preference, value) {
+        this._codeMirror.setOption(preference, value);
+        _prefs.setValue(preference + "_" + this.document.file.fullPath, value);
+    };
+    
+    /*
+     * @private
+     * Returns the value for the given preference key first checking with the file settings and then with the project settings
+     * @param {string} preference
+     * @return {number|boolean}
+     */
+    Editor.prototype._getTabPreference = function (preference) {
+        var value = _prefs.getValue(preference + "_" + this.document.file.fullPath);
+        return value !== undefined ? value : ProjectManager.getTabSettings()[preference];
+    };
+    
+    /**
+     * Sets whether to use tab characters (vs. spaces) when inserting new text.
+     */
+    Editor.prototype.setUseTabChar = function (value) {
+        this._setTabPreference("indentWithTabs", Boolean(value));
+    };
+    
+    /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
+    Editor.prototype.getUseTabChar = function () {
+        return this._codeMirror.getOption("indentWithTabs");
+    };
+    
+    /**
+     * Sets the tab character width.
+     * @param {number} value
+     */
+    Editor.prototype.setTabSize = function (value) {
+        this._setTabPreference("tabSize", value);
+    };
+    
+    /** @type {number} Get indent unit  */
+    Editor.prototype.getTabSize = function (value) {
+        return this._codeMirror.getOption("tabSize");
+    };
+    
+    /**
+     * Sets the indentation width.
+     * @param {number} value
+     */
+    Editor.prototype.setIndentUnit = function (value) {
+        this._setTabPreference("indentUnit", value);
+    };
+    
+    /** @type {number} Get indentation width */
+    Editor.prototype.getIndentUnit = function (value) {
+        return this._codeMirror.getOption("indentUnit");
+    };
+    
+    
     /**
      * The Document we're bound to
      * @type {!Document}
@@ -1275,65 +1343,26 @@ define(function (require, exports, module) {
      */
     Editor.prototype._visibleRange = null;
     
-    /**
-     * @private
-     * Sets the given preference option to the current editor and saves it
-     * @param {string} preference
-     * @param {number|boolean} value
-     */
-    Editor.prototype._setTabPreference = function (preference, value) {
-        this._codeMirror.setOption(preference, value);
-        _prefs.setValue(preference + "_" + this.document.file.fullPath, value);
-    };
     
+    // Global settings that affect all Editor instances (both currently open Editors as well as those created
+    // in the future)
+
     /**
-     * @private
-     * Returns the value for the given preference key first checking with the file settings and then with the project settings
-     * @param {string} preference
-     * @return {number|boolean}
-     */
-    Editor.prototype._getTabPreference = function (preference) {
-        var value = _prefs.getValue(preference + "_" + this.document.file.fullPath);
-        return value !== undefined ? value : ProjectManager.getTabSettings()[preference];
-    };
-    
-    /**
-     * Sets whether to use tab characters (vs. spaces) when inserting new text.
+     * Sets the auto close brackets. Affects all Editors.
      * @param {boolean} value
      */
-    Editor.prototype.setUseTabChar = function (value) {
-        this._setTabPreference("indentWithTabs", Boolean(value));
+    Editor.setCloseBrackets = function (value) {
+        _closeBrackets = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("autoCloseBrackets", _closeBrackets);
+        });
+        
+        _prefs.setValue("closeBrackets", Boolean(_closeBrackets));
     };
     
-    /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
-    Editor.prototype.getUseTabChar = function () {
-        return this._codeMirror.getOption("indentWithTabs");
-    };
-
-    /**
-     * Sets tab character width.
-     * @param {number} value
-     */
-    Editor.prototype.setTabSize = function (value) {
-        this._setTabPreference("tabSize", value);
-    };
-    
-    /** @type {number} Get indent unit  */
-    Editor.prototype.getTabSize = function (value) {
-        return this._codeMirror.getOption("tabSize");
-    };
-
-    /**
-     * Sets indentation width.
-     * @param {number} value
-     */
-    Editor.prototype.setIndentUnit = function (value) {
-        this._setTabPreference("indentUnit", value);
-    };
-    
-    /** @type {number} Get indentation width */
-    Editor.prototype.getIndentUnit = function (value) {
-        return this._codeMirror.getOption("indentUnit");
+    /** @type {boolean} Gets whether all Editors use auto close brackets */
+    Editor.getCloseBrackets = function () {
+        return _closeBrackets;
     };
     
     
@@ -1345,7 +1374,7 @@ define(function (require, exports, module) {
         var preferences = ProjectManager.getTabSettings();
         _instances.forEach(function (editor) {
             if (ProjectManager.isWithinProject(editor.document.file.fullPath)) {
-                $.each(preferences, function (key, value) {
+                CollectionUtils.forEach(preferences, function (value, key) {
                     if (_prefs.getValue(key + "_" + editor.document.file.fullPath) === undefined) {
                         editor._codeMirror.setOption(key, value);
                     }
