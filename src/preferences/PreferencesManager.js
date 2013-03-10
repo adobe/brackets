@@ -135,6 +135,16 @@ define(function (require, exports, module) {
         }
         delete prefStorage[oldID];
     }
+    
+    /**
+     * This method returns a standardized ClientId for a given moduleId
+     * 
+     * @param {!string} moduleId a given moduleId
+     * @return {string} the ClientId
+     */
+    function getClientId(moduleId) {
+        return "com.adobe.brackets." + moduleId;
+    }
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
@@ -156,6 +166,7 @@ define(function (require, exports, module) {
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
     exports.handleClientIdChange    = handleClientIdChange;
+    exports.getClientID             = getClientId;
 
     // Unit test use only
     exports._reset                  = _reset;

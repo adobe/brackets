@@ -49,7 +49,7 @@ define(function main(require, exports, module) {
         UrlParams           = require("utils/UrlParams").UrlParams,
         Strings             = require("strings");
 
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     var prefs;
     var params = new UrlParams();
     var config = {

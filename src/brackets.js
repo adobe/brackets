@@ -109,7 +109,7 @@ define(function (require, exports, module) {
 
     // Local variables
     var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = "com.adobe.brackets." + module.id;
+        PREFERENCES_CLIENT_ID   = PreferencesManager.getClientId(module.id);
     
     // read URL params
     params.parse();

@@ -27,8 +27,6 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
-    
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
         PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
@@ -43,6 +41,8 @@ define(function (require, exports, module) {
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
+    
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     
     var $dropdownToggle,
         $dropdown,
