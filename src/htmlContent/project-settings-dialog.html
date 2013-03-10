@@ -1,11 +1,23 @@
 <div class="project-settings-dialog modal">
     <div class="modal-header">
-        <h1 class="dialog-title"></h1>
+        <h1 class="dialog-title">{{title}}</h1>
     </div>
     <div class="modal-body">
         <div class="settings-list">
-            <label>{{PROJECT_SETTING_BASE_URL}}: <input type="text" placeholder="{{PROJECT_SETTING_BASE_URL_HINT}}" class="base-url" /></label>
+            <label>{{PROJECT_SETTING_BASE_URL}}: <input type="text" placeholder="{{PROJECT_SETTING_BASE_URL_HINT}}" value="{{baseUrl}}" class="base-url" /></label>
+            {{#errorMessage}}<div class="alert-message" style="margin-bottom: 0">{{errorMessage}}</div>{{/errorMessage}}
         </div>
+        {{#tabSettings}}
+        <div class="settings-list">
+            {{PROJECT_SETTING_TABS}}:
+            <select class="indent-type">
+                <option value="tabs" {{#indentWithTabs}}selected{{/indentWithTabs}}>{{STATUSBAR_TAB_SIZE}}</option>
+                <option value="spaces" {{^indentWithTabs}}selected{{/indentWithTabs}}>{{STATUSBAR_SPACES}}</option>
+            </select>
+            {{#indentWithTabs}}<input type="text" value="{{tabSize}}" class="indent-size" />{{/indentWithTabs}}
+            {{^indentWithTabs}}<input type="text" value="{{indentUnit}}" class="indent-size" />{{/indentWithTabs}}
+        </div>
+        {{/tabSettings}}
     </div>
     <div class="modal-footer">
         <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>

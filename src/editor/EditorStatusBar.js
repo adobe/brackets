@@ -58,14 +58,15 @@ define(function (require, exports, module) {
     }
     
     function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
+        var indentWithTabs = EditorManager.getActiveEditor().getUseTabChar();
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
         $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
     }
 
     function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
+        var editor = EditorManager.getActiveEditor();
+        return editor.getUseTabChar() ? editor.getTabSize() : editor.getIndentUnit();
     }
     
     function _updateIndentSize() {
@@ -75,7 +76,8 @@ define(function (require, exports, module) {
     }
     
     function _toggleIndentType() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
+        var editor = EditorManager.getActiveEditor();
+        editor.setUseTabChar(!editor.getUseTabChar());
         _updateIndentType();
         _updateIndentSize();
     }
@@ -103,10 +105,11 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
+        var editor = EditorManager.getActiveEditor();
+        if (editor.getUseTabChar()) {
+            editor.setTabSize(Math.max(Math.min(value, 10), 1));
         } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
+            editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
         }
 
         // update indicator
@@ -177,9 +180,22 @@ define(function (require, exports, module) {
 
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
-
+    
+    /**
+     * Updates the Editors tab settings and the StatusBar content
+     */
+    function updateProjectTabs() {
+        Editor.setProjectTabs();
+        _updateIndentType();
+        _updateIndentSize();
+    }
+    
+    
     // Initialize: status bar focused listener
     $(EditorManager).on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
+    
+    
+    exports.updateProjectTabs = updateProjectTabs;
 });

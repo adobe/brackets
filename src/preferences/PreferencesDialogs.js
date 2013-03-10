@@ -76,35 +76,16 @@ define(function (require, exports, module) {
      * Show a dialog that shows the project preferences
      * @param {String} baseUrl - initial value
      * @param {String} errorMessage - error to display
+     * @param {?{indentWithTabs: boolean, tabSize: number, indentUnit: number}} tabSettings
      * @return {$.Promise} A promise object that will be resolved when user successfully enters
      *          project settings and clicks OK, or rejected if user clicks Cancel.
      */
-    function showProjectPreferencesDialog(baseUrl, errorMessage) {
-
+    function showProjectPreferencesDialog(baseUrl, errorMessage, tabSettings) {
         var $dlg,
-            $title,
             $baseUrlControl,
             promise;
-
-        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
-            .done(function (id) {
-                if (id === Dialogs.DIALOG_BTN_OK) {
-                    var baseUrlValue = $baseUrlControl.val();
-                    var result = _validateBaseUrl(baseUrlValue);
-                    if (result === "") {
-                        ProjectManager.setBaseUrl(baseUrlValue);
-                    } else {
-                        // Re-invoke dialog with result (error message)
-                        showProjectPreferencesDialog(baseUrlValue, result);
-                    }
-                }
-            });
-
-        // Populate project settings
-        $dlg = $(".project-settings-dialog.instance");
-
+        
         // Title
-        $title = $dlg.find(".dialog-title");
         var projectName = "",
             projectRoot = ProjectManager.getProjectRoot(),
             title;
@@ -112,19 +93,36 @@ define(function (require, exports, module) {
             projectName = projectRoot.name;
         }
         title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
-        $title.text(title);
-
-        // Base URL
+        
+        var templateVars = $.extend(Strings, {
+            title        : title,
+            baseUrl      : baseUrl,
+            errorMessage : errorMessage,
+            tabSettings  : tabSettings
+        });
+        
+        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars))
+            .done(function (id) {
+                if (id === Dialogs.DIALOG_BTN_OK) {
+                    var baseUrlValue = $baseUrlControl.val();
+                    var result = _validateBaseUrl(baseUrlValue);
+                    
+                    var indentType = $dlg.find(".indent-type").val();
+                    var indentUnit = $dlg.find(".indent-size").val();
+                    
+                    if (result === "") {
+                        ProjectManager.setBaseUrl(baseUrlValue);
+                        ProjectManager.setTabSettings(indentType === "tabs", indentUnit);
+                    } else {
+                        // Re-invoke dialog with result (error message)
+                        showProjectPreferencesDialog(baseUrlValue, result, tabSettings);
+                    }
+                }
+            });
+        
+        $dlg = $(".project-settings-dialog.instance");
         $baseUrlControl = $dlg.find(".base-url");
-        if (baseUrl) {
-            $baseUrlControl.val(baseUrl);
-        }
-
-        // Error message
-        if (errorMessage) {
-            $dlg.find(".settings-list").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
-        }
-
+        
         // Give focus to first control
         $baseUrlControl.focus();
 

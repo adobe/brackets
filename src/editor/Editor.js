@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var CodeHintManager    = require("editor/CodeHintManager"),
+        ProjectManager     = require("project/ProjectManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
@@ -69,23 +70,15 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
+        CollectionUtils    = require("utils/CollectionUtils"),
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false };
+        defaultPrefs = { closeBrackets: false };
     
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-    
-    /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = _prefs.getValue("useTabChar");
-    
-    /** @type {number}  Global setting: Tab size */
-    var _tabSize = _prefs.getValue("tabSize");
-    
-    /** @type {number}  Global setting: Indent unit (i.e. number of spaces when indenting) */
-    var _indentUnit = _prefs.getValue("indentUnit");
     
     /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
     var _closeBrackets = _prefs.getValue("closeBrackets");
@@ -143,7 +136,7 @@ define(function (require, exports, module) {
             if (instance.getOption("indentWithTabs")) {
                 CodeMirror.commands.insertTab(instance);
             } else {
-                var i, ins = "", numSpaces = _indentUnit;
+                var i, ins = "", numSpaces = instance.getOption("indentUnit");
                 numSpaces -= to.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
@@ -164,12 +157,13 @@ define(function (require, exports, module) {
     function _handleSoftTabNavigation(instance, direction, functionName) {
         var handled = false;
         if (!instance.getOption("indentWithTabs")) {
-            var cursor = instance.getCursor(),
-                jump = cursor.ch % _indentUnit,
+            var indentUnit = instance.getOption("indentUnit"),
+                cursor = instance.getCursor(),
+                jump = cursor.ch % indentUnit,
                 line = instance.getLine(cursor.line);
 
             if (direction === 1) {
-                jump = _indentUnit - jump;
+                jump = indentUnit - jump;
 
                 if (cursor.ch + jump > line.length) { // Jump would go beyond current line
                     return false;
@@ -188,7 +182,7 @@ define(function (require, exports, module) {
                 // If we are on the tab boundary, jump by the full amount, 
                 // but not beyond the start of the line.
                 if (jump === 0) {
-                    jump = _indentUnit;
+                    jump = indentUnit;
                 }
 
                 // Search backwards to the first non-space character
@@ -341,9 +335,9 @@ define(function (require, exports, module) {
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            indentWithTabs: _useTabChar,
-            tabSize: _tabSize,
-            indentUnit: _indentUnit,
+            indentWithTabs: this._getTabPreference("indentWithTabs"),
+            tabSize: this._getTabPreference("tabSize"),
+            indentUnit: this._getTabPreference("indentUnit"),
             lineNumbers: true,
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
@@ -694,7 +688,7 @@ define(function (require, exports, module) {
         
         if (expandTabs) {
             var line    = this._codeMirror.getRange({line: cursor.line, ch: 0}, cursor),
-                tabSize = Editor.getTabSize(),
+                tabSize = this.getTabSize(),
                 column  = 0,
                 i;
 
@@ -1253,6 +1247,68 @@ define(function (require, exports, module) {
         return this._codeMirror.getOption("mode");
     };
     
+    
+    /**
+     * @private
+     * Sets the given preference option to the current editor and saves it
+     * @param {string} preference
+     * @param {number|boolean} value
+     */
+    Editor.prototype._setTabPreference = function (preference, value) {
+        this._codeMirror.setOption(preference, value);
+        _prefs.setValue(preference + "_" + this.document.file.fullPath, value);
+    };
+    
+    /*
+     * @private
+     * Returns the value for the given preference key first checking with the file settings and then with the project settings
+     * @param {string} preference
+     * @return {number|boolean}
+     */
+    Editor.prototype._getTabPreference = function (preference) {
+        var value = _prefs.getValue(preference + "_" + this.document.file.fullPath);
+        return value !== undefined ? value : ProjectManager.getTabSettings()[preference];
+    };
+    
+    /**
+     * Sets whether to use tab characters (vs. spaces) when inserting new text.
+     */
+    Editor.prototype.setUseTabChar = function (value) {
+        this._setTabPreference("indentWithTabs", Boolean(value));
+    };
+    
+    /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
+    Editor.prototype.getUseTabChar = function () {
+        return this._codeMirror.getOption("indentWithTabs");
+    };
+    
+    /**
+     * Sets the tab character width.
+     * @param {number} value
+     */
+    Editor.prototype.setTabSize = function (value) {
+        this._setTabPreference("tabSize", value);
+    };
+    
+    /** @type {number} Get indent unit  */
+    Editor.prototype.getTabSize = function (value) {
+        return this._codeMirror.getOption("tabSize");
+    };
+    
+    /**
+     * Sets the indentation width.
+     * @param {number} value
+     */
+    Editor.prototype.setIndentUnit = function (value) {
+        this._setTabPreference("indentUnit", value);
+    };
+    
+    /** @type {number} Get indentation width */
+    Editor.prototype.getIndentUnit = function (value) {
+        return this._codeMirror.getOption("indentUnit");
+    };
+    
+    
     /**
      * The Document we're bound to
      * @type {!Document}
@@ -1292,60 +1348,6 @@ define(function (require, exports, module) {
     // in the future)
 
     /**
-     * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
-     * @param {boolean} value
-     */
-    Editor.setUseTabChar = function (value) {
-        _useTabChar = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentWithTabs", _useTabChar);
-        });
-        
-        _prefs.setValue("useTabChar", Boolean(_useTabChar));
-    };
-    
-    /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function () {
-        return _useTabChar;
-    };
-
-    /**
-     * Sets tab character width. Affects all Editors.
-     * @param {number} value
-     */
-    Editor.setTabSize = function (value) {
-        _tabSize = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("tabSize", _tabSize);
-        });
-        
-        _prefs.setValue("tabSize", _tabSize);
-    };
-    
-    /** @type {number} Get indent unit  */
-    Editor.getTabSize = function () {
-        return _tabSize;
-    };
-
-    /**
-     * Sets indentation width. Affects all Editors.
-     * @param {number} value
-     */
-    Editor.setIndentUnit = function (value) {
-        _indentUnit = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentUnit", _indentUnit);
-        });
-        
-        _prefs.setValue("indentUnit", _indentUnit);
-    };
-    
-    /** @type {number} Get indentation width */
-    Editor.getIndentUnit = function () {
-        return _indentUnit;
-    };
-    
-    /**
      * Sets the auto close brackets. Affects all Editors.
      * @param {boolean} value
      */
@@ -1362,6 +1364,25 @@ define(function (require, exports, module) {
     Editor.getCloseBrackets = function () {
         return _closeBrackets;
     };
+    
+    
+    /**
+     * Changes the Tab Settings of all the opened editors within the project with no saved tab preferences after a 
+     * tab preference change and triggers a StatusBar update
+     */
+    Editor.setProjectTabs = function () {
+        var preferences = ProjectManager.getTabSettings();
+        _instances.forEach(function (editor) {
+            if (ProjectManager.isWithinProject(editor.document.file.fullPath)) {
+                CollectionUtils.forEach(preferences, function (value, key) {
+                    if (_prefs.getValue(key + "_" + editor.document.file.fullPath) === undefined) {
+                        editor._codeMirror.setOption(key, value);
+                    }
+                });
+            }
+        });
+    };
+    
     
     // Define public API
     exports.Editor                  = Editor;
