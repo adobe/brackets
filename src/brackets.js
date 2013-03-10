@@ -98,6 +98,7 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
+    require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");

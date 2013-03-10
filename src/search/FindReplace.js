@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar;
@@ -148,8 +149,8 @@ define(function (require, exports, module) {
     }
     
     var queryDialog = Strings.CMD_FIND +
-            ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
+            ": <input type='text' style='width: 10em'/> <div class='message'><span id='find-counter'></span> " +
+            "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -179,7 +180,12 @@ define(function (require, exports, module) {
                 }
                 state.query = parseQuery(query);
                 if (!state.query) {
+                    // Search field is empty - no results
+                    $("#find-counter").text("");
                     cm.setCursor(searchStartPos);
+                    if (modalBar) {
+                        getDialogTextField().removeClass("no-results");
+                    }
                     return;
                 }
                 
@@ -190,9 +196,11 @@ define(function (require, exports, module) {
                     $(cm.getWrapperElement()).addClass("find-highlighting");
                     
                     // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
+                    var resultCount = 0;
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
+                        resultCount++;
 
                         //Remove this section when https://github.com/marijnh/CodeMirror/issues/1155 will be fixed
                         if (cursor.pos.match && cursor.pos.match[0] === "") {
@@ -202,6 +210,9 @@ define(function (require, exports, module) {
                             cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
                         }
                     }
+                    $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultCount));
+                } else {
+                    $("#find-counter").text("");
                 }
                 
                 state.posFrom = state.posTo = searchStartPos;
@@ -232,6 +243,7 @@ define(function (require, exports, module) {
             }
         });
         $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
+            // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(state);
             
             // As soon as focus goes back to the editor, restore normal selection color
