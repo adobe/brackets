@@ -167,8 +167,7 @@
     "view.scrollLineUp":  [
         {
             "key": "Ctrl-Up",
-            "displayKey": "Ctrl-\u2191",
-            "platform": "win"
+            "displayKey": "Ctrl-\u2191"
         },
         {
             "key": "Ctrl-Alt-Up",
@@ -179,8 +178,7 @@
     "view.scrollLineDown":  [
         {
             "key": "Ctrl-Down",
-            "displayKey": "Ctrl-\u2193",
-            "platform": "win"
+            "displayKey": "Ctrl-\u2193"
         },
         {
             "key": "Ctrl-Alt-Down",

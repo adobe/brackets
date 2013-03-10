@@ -27,11 +27,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        Strings                 = require("strings"),
-        ProjectManager          = require("project/ProjectManager"),
-        EditorManager           = require("editor/EditorManager");
+    var Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
+        Strings             = require("strings"),
+        ProjectManager      = require("project/ProjectManager"),
+        EditorManager       = require("editor/EditorManager");
     
     /**
      * @const
@@ -138,8 +139,11 @@ define(function (require, exports, module) {
     function _getLinesInView(editor, scrollTop, editorHeight) {
         var textHeight     = editor.getTextHeight(),
             scrolledTop    = scrollTop / textHeight,
-            scrolledBottom = (scrollTop + editorHeight) / textHeight,
-            firstLine      = Math.ceil(scrolledTop) - 1,
+            scrolledBottom = (scrollTop + editorHeight) / textHeight;
+        
+        // Subtract a line from both for zero-based index. Also adjust last line
+        // to round inward to show a whole lines.
+        var firstLine      = Math.ceil(scrolledTop) - 1,
             lastLine       = Math.floor(scrolledBottom) - 2;
         
         return { first: firstLine, last: lastLine };
@@ -156,20 +160,23 @@ define(function (require, exports, module) {
             textHeight       = editor.getTextHeight(),
             cursorPos        = editor.getCursorPos(),
             hasSelecction    = editor.hasSelection(),
-            scrollTop        = scrollInfo.top,
+            paddingTop       = editor._getLineSpaceElement().offsetTop,
+            scrollTop        = scrollInfo.top < paddingTop && direction > 0 ? paddingTop : scrollInfo.top,
+            scrolledTop      = scrollTop,
             editorHeight     = scrollInfo.clientHeight,
             linesInView      = _getLinesInView(editor, scrollTop, editorHeight);
         
         // Go through all the editors and reduce the scroll top and editor height to recalculate the lines in view 
-        var line;
+        var line, total;
         editor.getInlineWidgets().forEach(function (inlineEditor) {
-            line = editor._getInlineWidgetLineNumber(inlineEditor);
+            line  = editor._getInlineWidgetLineNumber(inlineEditor);
+            total = inlineEditor.info.height / textHeight;
             
             if (line < linesInView.first) {
                 scrollTop   -= inlineEditor.info.height;
                 linesInView  = _getLinesInView(editor, scrollTop, editorHeight);
             
-            } else if (line < linesInView.last) {
+            } else if (line + total < linesInView.last) {
                 editorHeight -= inlineEditor.info.height;
                 linesInView   = _getLinesInView(editor, scrollTop, editorHeight);
             }
@@ -193,7 +200,7 @@ define(function (require, exports, module) {
         }
         
         // Scroll the editor
-        editor.setScrollPos(scrollInfo.left, scrollInfo.top + (textHeight * direction));
+        editor.setScrollPos(scrollInfo.left, scrolledTop + (textHeight * direction));
     }
     
     
@@ -211,4 +218,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
+    
+    // There are no menu items, so bind commands directly
+    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_UP);
+    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
 });
