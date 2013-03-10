@@ -64,8 +64,8 @@ define(function (require, exports, module) {
         var $dirtyIndicators = $(".inlineEditorHolder .dirty-indicator"),
             $indicator;
         
-        $.each($dirtyIndicators, function (index, indicator) {
-            $indicator = $(indicator);
+        $dirtyIndicators.each(function (index, indicator) {
+            $indicator = $(this);
             if ($indicator.data("fullPath") === doc.file.fullPath) {
                 _showDirtyIndicator($indicator, doc.isDirty);
             }
