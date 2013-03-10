@@ -166,7 +166,7 @@ define(function (require, exports, module) {
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
     exports.handleClientIdChange    = handleClientIdChange;
-    exports.getClientID             = getClientId;
+    exports.getClientId             = getClientId;
 
     // Unit test use only
     exports._reset                  = _reset;
