@@ -194,10 +194,14 @@ define(function (require, exports, module) {
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
     function createMockEditor(initialContent, languageId, visibleRange) {
-        // Initialize EditorManager
-        var $editorHolder = $("<div id='mock-editor-holder'/>");
+        // Initialize EditorManager and position the editor-holder offscreen
+        var $editorHolder = $("<div id='mock-editor-holder'/>")
+            .css({
+                position: "absolute",
+                left: "-10000px",
+                top: "-10000px"
+            });
         EditorManager.setEditorHolder($editorHolder);
-        EditorManager._init();
         $("body").append($editorHolder);
         
         // create dummy Document for the Editor
@@ -205,6 +209,7 @@ define(function (require, exports, module) {
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        EditorManager._notifyActiveEditorChanged(editor);
         
         return { doc: doc, editor: editor };
     }

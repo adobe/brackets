@@ -46,22 +46,11 @@ define(function (require, exports, module) {
                 // used in the available height calculation. We create a fake content div just to
                 // hold the height, and move the editor holder into it.
                 $fakeContentDiv = $("<div class='content'/>")
-                    .css({
-                        position: "absolute",
-                        left: "-10000px",
-                        top: "-10000px",
-                        height: "200px"
-                    })
+                    .css("height", "200px")
                     .appendTo(document.body);
-                
-                // Make the editor visible, but positioned offscreen
                 $("#mock-editor-holder")
-                    .appendTo($fakeContentDiv)
-                    .css({
-                        position: "absolute",
-                        left: "-10000px",
-                        top: "-10000px"
-                    });
+                    .appendTo($fakeContentDiv);
+                
                 testDoc._masterEditor = testEditor;
                 EditorManager._doShow(testDoc);
             });

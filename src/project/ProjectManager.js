@@ -386,7 +386,8 @@ define(function (require, exports, module) {
         
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
-        $projectTreeContainer.hide();
+        $projectTreeContainer.hide()
+            .addClass("no-focus");
         _projectTree = $projectTreeContainer
             .jstree({
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],
