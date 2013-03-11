@@ -120,9 +120,9 @@ define(function (require, exports, module) {
                 var html    = LanguageManager.getLanguage("html"),
                     unknown = LanguageManager.getLanguage("unknown");
                 
-                expect(LanguageManager.getLanguageForFileExtension("foo.html")).toBe(html);
-                expect(LanguageManager.getLanguageForFileExtension("INDEX.HTML")).toBe(html);
-                expect(LanguageManager.getLanguageForFileExtension("foo.doesNotExist")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.html")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("INDEX.HTML")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("foo.doesNotExist")).toBe(unknown);
             });
             
         });
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 50);
                 
                 runs(function () {
-                    expect(LanguageManager.getLanguageForFileExtension("file.p")).toBe(language);
+                    expect(LanguageManager.getLanguageForPath("file.p")).toBe(language);
                     validateLanguage(def, language);
                 });
             });
@@ -202,8 +202,8 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(xmlBefore).toBe(xmlAfter);
-                    expect(LanguageManager.getLanguageForFileExtension("file.wix")).toBe(lang);
-                    expect(LanguageManager.getLanguageForFileExtension("file.xml")).toBe(xmlAfter);
+                    expect(LanguageManager.getLanguageForPath("file.wix")).toBe(lang);
+                    expect(LanguageManager.getLanguageForPath("file.xml")).toBe(xmlAfter);
                     
                     validateLanguage(def, lang);
                 });
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 50);
                 
                 runs(function () {
-                    expect(LanguageManager.getLanguageForFileExtension("file.erlang")).toBe(language);
+                    expect(LanguageManager.getLanguageForPath("file.erlang")).toBe(language);
                     validateLanguage(def, language);
                 });
                 
