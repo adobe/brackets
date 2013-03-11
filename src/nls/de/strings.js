@@ -238,7 +238,7 @@ define({
     "CMD_JSLINT"                          : "JSLint aktivieren",
     "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
 
     // Help menu commands
