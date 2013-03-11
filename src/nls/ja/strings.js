@@ -96,6 +96,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
+	"FIND_RESULT_COUNT": "!能=[6734353] {0} results_=!",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
@@ -201,7 +202,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-     
+	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Enable Close Brackets_=!",
+    
     // View menu commands
 	"VIEW_MENU": "表示",
 	"CMD_HIDE_SIDEBAR": "サイドバーを隠す",

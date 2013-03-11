@@ -77,7 +77,9 @@ define(function (require, exports, module) {
                          showLineNumbers: true, styleActiveLine: true, wordWrap: true };
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor", defaultPrefs);
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");

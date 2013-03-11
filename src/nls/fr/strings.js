@@ -96,6 +96,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
+	"FIND_RESULT_COUNT": "[6734353] !é={0} results=!",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
@@ -201,7 +202,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
-     
+	"CMD_TOGGLE_CLOSE_BRACKETS": "[6734352] !é=Enable Close Brackets=!",
+    
     // View menu commands
 	"VIEW_MENU": "Affichage",
 	"CMD_HIDE_SIDEBAR": "Masquer la barre latérale",
