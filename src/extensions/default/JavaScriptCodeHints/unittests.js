@@ -52,7 +52,6 @@ define(function (require, exports, module) {
         // Initialize EditorManager
         var $editorHolder = $("<div id='mock-editor-holder'/>");
         EditorManager.setEditorHolder($editorHolder);
-        EditorManager._init();
         $("body").append($editorHolder);
         
         // create Editor instance

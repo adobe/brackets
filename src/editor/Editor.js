@@ -61,8 +61,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager      = require("editor/EditorManager"),
-        CodeHintManager    = require("editor/CodeHintManager"),
+    var CodeHintManager    = require("editor/CodeHintManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
@@ -74,7 +73,7 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
+        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false };
     
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
@@ -82,11 +81,14 @@ define(function (require, exports, module) {
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");
     
-    /** @type {boolean}  Global setting: Tab size */
+    /** @type {number}  Global setting: Tab size */
     var _tabSize = _prefs.getValue("tabSize");
     
-    /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
+    /** @type {number}  Global setting: Indent unit (i.e. number of spaces when indenting) */
     var _indentUnit = _prefs.getValue("indentUnit");
+    
+    /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
+    var _closeBrackets = _prefs.getValue("closeBrackets");
     
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
@@ -240,20 +242,6 @@ define(function (require, exports, module) {
         CodeHintManager.handleKeyEvent(editor, event);
     }
 
-    function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
-
-        if (editor) {
-            editor.selectAllNoScroll();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
-    }
-
     /**
      * Helper functions to check options.
      * @param {number} options BOUNDARY_CHECK_NORMAL or BOUNDARY_IGNORE_TOP
@@ -360,6 +348,7 @@ define(function (require, exports, module) {
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap,
+            autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
                 whenOpening: true,
                 whenClosing: true,
@@ -655,7 +644,7 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            EditorManager._notifyActiveEditorChanged(self);
+            $(self).triggerHandler("focus", [self]);
         });
         
         this._codeMirror.on("blur", function () {
@@ -1316,7 +1305,7 @@ define(function (require, exports, module) {
     };
     
     /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function (value) {
+    Editor.getUseTabChar = function () {
         return _useTabChar;
     };
 
@@ -1334,7 +1323,7 @@ define(function (require, exports, module) {
     };
     
     /** @type {number} Get indent unit  */
-    Editor.getTabSize = function (value) {
+    Editor.getTabSize = function () {
         return _tabSize;
     };
 
@@ -1352,13 +1341,28 @@ define(function (require, exports, module) {
     };
     
     /** @type {number} Get indentation width */
-    Editor.getIndentUnit = function (value) {
+    Editor.getIndentUnit = function () {
         return _indentUnit;
     };
     
-    // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
+    /**
+     * Sets the auto close brackets. Affects all Editors.
+     * @param {boolean} value
+     */
+    Editor.setCloseBrackets = function (value) {
+        _closeBrackets = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("autoCloseBrackets", _closeBrackets);
+        });
+        
+        _prefs.setValue("closeBrackets", Boolean(_closeBrackets));
+    };
+    
+    /** @type {boolean} Gets whether all Editors use auto close brackets */
+    Editor.getCloseBrackets = function () {
+        return _closeBrackets;
+    };
+    
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;
