@@ -73,7 +73,8 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false };
+        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false,
+                         showLineNumbers: true, styleActiveLine: true, wordWrap: true };
     
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
@@ -90,6 +91,15 @@ define(function (require, exports, module) {
     /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
     var _closeBrackets = _prefs.getValue("closeBrackets");
     
+    /** @type {boolean}  Global setting: Show line numbers in the gutter */
+    var _showLineNumbers = _prefs.getValue("showLineNumbers");
+
+    /** @type {boolean}  Global setting: Highlight the background of the line that has the cursor */
+    var _styleActiveLine = _prefs.getValue("styleActiveLine");
+
+    /** @type {boolean}  Global setting: Auto wrap lines */
+    var _wordWrap = _prefs.getValue("wordWrap");
+
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
 
@@ -344,9 +354,11 @@ define(function (require, exports, module) {
             indentWithTabs: _useTabChar,
             tabSize: _tabSize,
             indentUnit: _indentUnit,
-            lineNumbers: true,
+            lineNumbers: _showLineNumbers,
+            lineWrapping: _wordWrap,
+            styleActiveLine: _styleActiveLine,
             matchBrackets: true,
-            dragDrop: false,    // work around issue #1123
+            dragDrop: true,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
@@ -1361,6 +1373,60 @@ define(function (require, exports, module) {
     /** @type {boolean} Gets whether all Editors use auto close brackets */
     Editor.getCloseBrackets = function () {
         return _closeBrackets;
+    };
+    
+      /**
+     * Sets show line numbers option and reapply it to all open editors.
+     * @param {boolean} value
+     */
+    Editor.setShowLineNumbers = function (value) {
+        _showLineNumbers = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("lineNumbers", _showLineNumbers);
+        });
+        
+        _prefs.setValue("showLineNumbers", Boolean(_showLineNumbers));
+    };
+    
+    /** @type {boolean} Gets whether all editors are showing line numbers */
+    Editor.getShowLineNumbers = function () {
+        return _showLineNumbers;
+    };
+    
+    /**
+     * Sets show active line option and reapply it to all open editors.
+     * @param {boolean} value
+     */
+    Editor.setShowActiveLine = function (value) {
+        _styleActiveLine = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
+        });
+        
+        _prefs.setValue("styleActiveLine", Boolean(_styleActiveLine));
+    };
+    
+    /** @type {boolean} Gets whether all editors are showing active line */
+    Editor.getShowActiveLine = function () {
+        return _styleActiveLine;
+    };
+    
+    /**
+     * Sets word wrap option and reapply it to all open editors.
+     * @param {boolean} value
+     */
+    Editor.setWordWrap = function (value) {
+        _wordWrap = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("lineWrapping", _wordWrap);
+        });
+        
+        _prefs.setValue("wordWrap", Boolean(_wordWrap));
+    };
+    
+    /** @type {boolean} Gets whether all editors are enabled for word wrap */
+    Editor.getWordWrap = function () {
+        return _wordWrap;
     };
     
     // Define public API
