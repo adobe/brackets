@@ -180,6 +180,7 @@ define(function (require, exports, module) {
                     hint += ":";
                 }
             }
+/***
         } else if (!this.info.isNewItem && this.info.index !== -1) {
             // Replacing an existing property value or partially typed value
             end.ch = start.ch + this.info.values[this.info.index].length;
@@ -187,6 +188,27 @@ define(function (require, exports, module) {
             // Inserting a new property value
             end.ch = start.ch;
         }
+***/
+        } else {
+            if (!this.info.isNewItem && this.info.index !== -1) {
+                // Replacing an existing property value or partially typed value
+                end.ch = start.ch + this.info.values[this.info.index].length;
+            } else {
+                // Inserting a new property value
+                end.ch = start.ch;
+            }
+
+            var parenMatch = hint.match(/\(.*?\)/);
+            if (parenMatch) {
+                // value has matched parens, so place cursor inside opening paren
+                // and keep hints open
+                adjustCursor = true;
+                    newCursor = { line: cursor.line,
+                                  ch: cursor.ch + parenMatch.index + 1 };
+                keepHints = true;
+            }
+        }
+/***/
         
         // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
         // directly to replace the range instead of using the Document, as we should. The

@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         CSSProperties       = require("text!CSSProperties.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
 
-        cssProps,
+//        cssProps,
         htmlAttrs;
     
     /**
@@ -265,16 +265,35 @@ define(function (require, exports, module) {
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
 
-        if (this.info.context !== CSSUtils.PROP_VALUE) {
+        // only handles "url()" (i.e. not new) value
+        // TODO: handle "@import url();"
+        if ((this.info.context !== CSSUtils.PROP_VALUE) || this.info.isNewItem) {
             return false;
         }
 
-        // we only handle values
-        if (implicitChar && (implicitChar !== ":")) {
-            return false;
+        // TODO: need to handle implicit values? (e.g. type "url(" )
+//        if (implicitChar && (implicitChar !== ":")) {
+//            return false;
+//        }
+
+        // collect existing value
+        var i,
+            val = "";
+
+        for (i = 0; i <= this.info.index && i < this.info.values.length; i++) {
+            if (i < this.info.index) {
+                val += this.info.values[i];
+            } else {
+                val += this.info.values[i].substring(0, this.info.offset);
+            }
+        }
+        
+        if (val === "url(") {
+            return true;
         }
 
-        return (cssProps[this.info.name]) ? true : false;
+//        return (cssProps[this.info.name]) ? true : false;
+        return false;
     };
 
     UrlCodeHints.prototype.hasHtmlHints = function (editor, implicitChar) {
@@ -367,8 +386,8 @@ define(function (require, exports, module) {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
             var context = this.info.context;
-
-            if (context !== CSSUtils.PROP_VALUE || !cssProps[this.info.name]) {
+//            if (context !== CSSUtils.PROP_VALUE || !cssProps[this.info.name]) {
+            if (context !== CSSUtils.PROP_VALUE) {
                 return null;
             }
 
@@ -541,7 +560,7 @@ define(function (require, exports, module) {
     };
 
     AppInit.appReady(function () {
-        cssProps        = JSON.parse(CSSProperties);
+//        cssProps        = JSON.parse(CSSProperties);
         htmlAttrs       = JSON.parse(HTMLAttributes);
 
         var urlHints = new UrlCodeHints();
