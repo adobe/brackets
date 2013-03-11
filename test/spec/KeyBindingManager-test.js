@@ -162,6 +162,30 @@ define(function (require, exports, module) {
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
             });
             
+            it("should allow the command argument to be a string or an object", function () {
+                var result = KeyBindingManager.addBinding("test.foo", "Ctrl-A"),
+                    keyTest = key("Ctrl-A");
+                
+                expect(result).toEqual(keyTest);
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([keyTest]);
+                
+                var commandObj = CommandManager.register("Bar", "test.bar", function () { return; });
+                
+                result = KeyBindingManager.addBinding(commandObj, "Ctrl-B");
+                keyTest = key("Ctrl-B");
+                
+                expect(result).toEqual(keyTest);
+                expect(KeyBindingManager.getKeyBindings("test.bar")).toEqual([keyTest]);
+                
+                // only "test" platform bindings
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo"),
+                    keyBinding("Ctrl-B", "test.bar")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
             it("should allow a generic key binding to be replaced", function () {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A");
                 KeyBindingManager.addBinding("test.bar", "Ctrl-A");
