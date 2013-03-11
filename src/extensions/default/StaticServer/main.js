@@ -70,7 +70,7 @@ define(function (require, exports, module) {
      */
     StaticServerProvider.prototype.canServe = function (localPath) {
 
-        if (!_nodeConnectionDeferred.isResolved()) {
+        if (_nodeConnectionDeferred.state() !== "resolved") {
             return false;
         }
         

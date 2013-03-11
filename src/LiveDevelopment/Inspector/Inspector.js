@@ -266,7 +266,7 @@ define(function Inspector(require, exports, module) {
         _connectDeferred = deferred;
         var promise = getAvailableSockets();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.isRejected()) {
+            if (deferred.state() === "rejected") {
                 return;
             }
             var i, page;

@@ -341,7 +341,7 @@ define(function (require, exports, module) {
         if (sessionEditor) {
             if (sessionEditor === editor &&
                     (hintList.isOpen() ||
-                     (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
+                     (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
             } else {
                 // the editor has changed

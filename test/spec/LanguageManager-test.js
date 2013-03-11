@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                     language = lang;
                 });
                 
-                expect(promise.isResolved()).toBeTruthy();
+                expect(promise.state() === "resolved").toBeTruthy();
                 
                 validateLanguage(def, language);
             });
