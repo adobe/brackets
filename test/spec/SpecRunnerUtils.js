@@ -202,7 +202,6 @@ define(function (require, exports, module) {
                 top: "-10000px"
             });
         EditorManager.setEditorHolder($editorHolder);
-        EditorManager._init();
         $("body").append($editorHolder);
         
         // create dummy Document for the Editor
