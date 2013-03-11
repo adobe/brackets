@@ -289,15 +289,14 @@ define(function (require, exports, module) {
         // If there is no selection move the cursor so that is always visible.
         if (!hasSelecction) {
             // Move the cursor to the first visible line.
-            if (direction > 0 && cursorPos.line < linesInView.first) {
-                editor.setCursorPos({line: linesInView.first + 1, ch: cursorPos.ch});
+            if (cursorPos.line < linesInView.first) {
+                editor.setCursorPos({line: linesInView.first + direction, ch: cursorPos.ch});
             
             // Move the cursor to the last visible line.
-            } else if (direction < 0 && cursorPos.line > linesInView.last) {
-                editor.setCursorPos({line: linesInView.last - 1, ch: cursorPos.ch});
+            } else if (cursorPos.line > linesInView.last) {
+                editor.setCursorPos({line: linesInView.last + direction, ch: cursorPos.ch});
             
-            // Move the cursor up or down using moveV to keep the goal column intact, since setCursorPos
-            // deletes it.
+            // Move the cursor up or down using moveV to keep the goal column intact, since setCursorPos deletes it.
             } else if ((direction > 0 && cursorPos.line === linesInView.first) ||
                     (direction < 0 && cursorPos.line === linesInView.last)) {
                 editor._codeMirror.moveV(direction, "line");
@@ -310,8 +309,8 @@ define(function (require, exports, module) {
         
         // If there arent, we can make it snap to the line.
         } else {
-            var lines = linesInView.first - viewportFrom + direction;
-            editor.setScrollPos(scrollInfo.left, viewportTop + (textHeight * lines) + paddingTop);
+            var lines = linesInView.first - viewportFrom + direction + 1;
+            editor.setScrollPos(scrollInfo.left, viewportTop + (textHeight * lines));
         }
     }
     
@@ -330,14 +329,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
-    
+
     // There are no menu items, so bind commands directly
     KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_UP);
     KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
-    
-    CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
-    CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
-    CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
 
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
