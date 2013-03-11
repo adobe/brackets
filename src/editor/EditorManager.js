@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -51,19 +51,14 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        FileUtils           = require("file/FileUtils"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        KeyEvent            = require("utils/KeyEvent"),
         ViewUtils           = require("utils/ViewUtils"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -99,14 +94,6 @@ define(function (require, exports, module) {
      * @type {Array.<function(...)>}
      */
     var _inlineEditProviders = [];
-    
-    /* StatusBar indicators */
-    var $languageInfo,
-        $cursorInfo,
-        $fileInfo,
-        $indentType,
-        $indentWidthLabel,
-        $indentWidthInput;
     
 	/**
      * @private
@@ -659,7 +646,8 @@ define(function (require, exports, module) {
     function getActiveEditor() {
         return _lastFocusedEditor;
     }
-     
+    
+    
     /**
      * Toggle Quick Edit command handler
      * @return {!Promise} A promise resolved with true if an inline editor
@@ -706,142 +694,10 @@ define(function (require, exports, module) {
     }
     
     
-    function _updateLanguageInfo(editor) {
-        $languageInfo.text(editor.document.getLanguage().getName());
-    }
-    
-    function _updateFileInfo(editor) {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
-    }
-    
-    function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
-        $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
-        $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
-        $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
-    }
-
-    function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
-    }
-    
-    function _updateIndentSize() {
-        var size = _getIndentSize();
-        $indentWidthLabel.text(size);
-        $indentWidthInput.val(size);
-    }
-    
-    function _toggleIndentType() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        _updateIndentType();
-        _updateIndentSize();
-    }
-    
-    function _updateCursorInfo(event, editor) {
-        editor = editor || getFocusedEditor();
-
-        // compute columns, account for tab size
-        var cursor = editor.getCursorPos(true);
-        
-        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1));
-    }
-    
-    function _changeIndentWidth(value) {
-        $indentWidthLabel.removeClass("hidden");
-        $indentWidthInput.addClass("hidden");
-        
-        // remove all event handlers from the input field
-        $indentWidthInput.off("blur keyup");
-        
-        // restore focus to the editor
-        focusEditor();
-
-        if (!value || isNaN(value)) {
-            return;
-        }
-        
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
-        } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
-        }
-
-        // update indicator
-        _updateIndentSize();
-
-        // column position may change when tab size changes
-        _updateCursorInfo();
-    }
-    
-    function _onActiveEditorChange(event, current, previous) {
-        if (previous) {
-            $(previous).off("cursorActivity.statusbar");
-            $(previous).off("change.statusbar");
-        }
-        
-        if (!current) {
-            StatusBar.hide();  // calls resizeEditor() if needed
-        } else {
-            StatusBar.show();  // calls resizeEditor() if needed
-            
-            $(current).on("cursorActivity.statusbar", _updateCursorInfo);
-            $(current).on("change.statusbar", function () {
-                // async update to keep typing speed smooth
-                window.setTimeout(function () { _updateFileInfo(current); }, 0);
-            });
-            
-            _updateCursorInfo(null, current);
-            _updateLanguageInfo(current);
-            _updateFileInfo(current);
-            _updateIndentType();
-            _updateIndentSize();
-        }
-    }
-    
-    function _init() {
-        StatusBar.init($(".main-view .content"));
-
-        $languageInfo       = $("#status-language");
-        $cursorInfo         = $("#status-cursor");
-        $fileInfo           = $("#status-file");
-        $indentType         = $("#indent-type");
-        $indentWidthLabel   = $("#indent-width-label");
-        $indentWidthInput   = $("#indent-width-input");
-        
-        // indentation event handlers
-        $indentType.on("click", _toggleIndentType);
-        $indentWidthLabel
-            .on("click", function () {
-                // update the input value before displaying
-                $indentWidthInput.val(_getIndentSize());
-
-                $indentWidthLabel.addClass("hidden");
-                $indentWidthInput.removeClass("hidden");
-                $indentWidthInput.focus();
-        
-                $indentWidthInput
-                    .on("blur", function () {
-                        _changeIndentWidth($indentWidthInput.val());
-                    })
-                    .on("keyup", function (event) {
-                        if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
-                            $indentWidthInput.blur();
-                        } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(false);
-                        }
-                    });
-            });
-
-        $indentWidthInput.focus(function () { $indentWidthInput.select(); });
-
-        _onActiveEditorChange(null, getFocusedEditor(), null);
-
-        CommandManager.get(Commands.TOGGLE_CLOSE_BRACKETS).setChecked(Editor.getCloseBrackets());
-    }
-
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
-    CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _toggleCloseBrackets);
+    CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _toggleCloseBrackets)
+        .setChecked(Editor.getCloseBrackets());
     
     
     // Initialize: register listeners
@@ -853,13 +709,7 @@ define(function (require, exports, module) {
     // refresh on resize.
     window.addEventListener("resize", _updateEditorDuringResize, true);
     
-    // Initialize: status bar focused listener
-    $(exports).on("activeEditorChange", _onActiveEditorChange);
-    
-    AppInit.htmlReady(_init);
-    
     // For unit tests and internal use only
-    exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
