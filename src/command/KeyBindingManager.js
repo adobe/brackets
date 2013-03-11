@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true, boss: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $, brackets, window */
 
 /**
@@ -397,9 +397,14 @@ define(function (require, exports, module) {
         
         // skip if the key is already assigned
         if (existing) {
-            // do not re-assign a key binding
-            console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
-            return null;
+            if (!existing.explicitPlatform && explicitPlatform) {
+                // remove the the generic binding to replace with this new platform-specific binding
+                removeBinding(normalized);
+            } else {
+                // do not re-assign a key binding
+                console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
+                return null;
+            }
         }
         
         // delete existing bindings when
