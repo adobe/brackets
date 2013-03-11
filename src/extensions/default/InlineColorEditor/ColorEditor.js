@@ -68,7 +68,6 @@ define(function (require, exports, module) {
         this.$colorValue = this.$element.find(".color-value");
         this.$buttonList = this.$element.find("ul.button-bar");
         this.$rgbaButton = this.$element.find(".rgba");
-        this.$prgbaButton = this.$element.find(".prgba");
         this.$hexButton = this.$element.find(".hex");
         this.$hslButton = this.$element.find(".hsla");
         this.$currentColor = this.$element.find(".current-color");
@@ -129,7 +128,6 @@ define(function (require, exports, module) {
     /** Attach event listeners for main UI elements */
     ColorEditor.prototype._addListeners = function () {
         this._bindColorFormatToRadioButton("rgba");
-        this._bindColorFormatToRadioButton("prgba");
         this._bindColorFormatToRadioButton("hex");
         this._bindColorFormatToRadioButton("hsla");
         
@@ -203,9 +201,6 @@ define(function (require, exports, module) {
         switch (format) {
         case "rgb":
             this.$buttonList.find(".rgba").parent().addClass("selected");
-            break;
-        case "prgb":
-            this.$buttonList.find(".prgba").parent().addClass("selected");
             break;
         case "hex":
         case "name":
