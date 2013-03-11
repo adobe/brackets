@@ -27,8 +27,6 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PREFERENCES_KEY = "com.adobe.brackets.brackets-recent-projects";
-    
     // Brackets modules
     var ProjectManager          = brackets.getModule("project/ProjectManager"),
         PreferencesDialogs      = brackets.getModule("preferences/PreferencesDialogs"),
@@ -44,9 +42,15 @@ define(function (require, exports, module) {
         FileUtils               = brackets.getModule("file/FileUtils"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
     
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
+    
     var $dropdownToggle,
         $dropdown,
         $settings;
+    
+    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.brackets-recent-projects");
     
     var MAX_PROJECTS = 20;
 
@@ -54,8 +58,7 @@ define(function (require, exports, module) {
      * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
      */
     function getRecentProjects() {
-        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
-            recentProjects = prefs.getValue("recentProjects") || [],
+        var recentProjects = prefs.getValue("recentProjects") || [],
             i;
         for (i = 0; i < recentProjects.length; i++) {
             recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
@@ -68,7 +71,6 @@ define(function (require, exports, module) {
      */
     function add() {
         var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
-            prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         if (index !== -1) {
@@ -108,8 +110,7 @@ define(function (require, exports, module) {
                 e.stopPropagation();
                 
                 // Remove the project from the preferences.
-                var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
-                    recentProjects = getRecentProjects(),
+                var recentProjects = getRecentProjects(),
                     index = recentProjects.indexOf($(this).data("path")),
                     newProjects = [],
                     i;
