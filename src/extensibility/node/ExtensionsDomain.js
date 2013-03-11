@@ -44,13 +44,13 @@ function _cmdValidate(path, callback) {
                 entry.on("end", function () {
                     var metadata = JSON.parse(packageJSON);
                     foundPackageJSON = true;
-                    callback(null, [null, metadata]);
+                    callback(null, [[], metadata]);
                 });
             }
         })
         .on("end", function () {
             if (!foundPackageJSON) {
-                callback(null, ["Missing package.json", null]);
+                callback(null, [[["MISSING_PACKAGE_JSON", path]], null]);
             }
         });
 }
@@ -69,8 +69,8 @@ function init(domainManager) {
             description: "absolute filesystem path of the extension package"
         }],
         [{
-            name: "error",
-            type: "string",
+            name: "errors",
+            type: "[[string name, optional format arguments], ...]",
             description: "error with the package, if any"
         }, {
             name: "metadata",

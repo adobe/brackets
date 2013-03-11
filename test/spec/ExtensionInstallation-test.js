@@ -36,6 +36,7 @@ define(function (require, exports, module) {
     var testFilePath = SpecRunnerUtils.getTestPath("/spec/extension-test-files");
     
     var basicValid = testFilePath + "/basic-valid-extension.zip";
+    var missingPackageJSON = testFilePath + "/missing-package-json.zip";
     
     describe("Extension Validator", function () {
         it("should return information about a valid file", function () {
@@ -54,10 +55,31 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
-                expect(packageData.valid).toEqual(null);
+                expect(packageData.errors.length).toEqual(0);
                 expect(packageData.metadata.name).toEqual("basic-valid-extension");
                 expect(packageData.metadata.title).toEqual("Basic Valid Extension");
                 expect(packageData.metadata.version).toEqual("1.0");
+            });
+        });
+        
+        it("should format errors for failures", function () {
+            var promise,
+                packageData;
+            
+            runs(function () {
+                promise = Package.validate(missingPackageJSON);
+                promise.then(function (pd) {
+                    // perform checks outside of this function to avoid
+                    // getting caught by NodeConnection's error catcher
+                    packageData = pd;
+                });
+                
+                waitsForDone(promise, "package validation", 1000);
+            });
+            
+            runs(function () {
+                expect(packageData.errors.length).toEqual(1);
+                expect(packageData.errors[0]).toEqual("No package.json found in " + missingPackageJSON);
             });
         });
     });

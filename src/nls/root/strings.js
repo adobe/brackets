@@ -296,6 +296,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
     
+    // Extension Management strings
+    "MISSING_PACKAGE_JSON"                 : "No package.json found in {0}",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
