@@ -33,6 +33,8 @@ define(function (require, exports, module) {
     var AppInit              = require("utils/AppInit"),
         ExtensionUtils       = require("utils/ExtensionUtils"),
         FileUtils            = require("file/FileUtils"),
+        StringUtils          = require("utils/StringUtils"),
+        Strings              = require("strings"),
         NodeConnection       = require("utils/NodeConnection");
     
     /**
@@ -57,8 +59,16 @@ define(function (require, exports, module) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.extensions.validate(path)
                     .done(function (result) {
+                        var i;
+                        var errors = result[0];
+                        for (i = 0; i < errors.length; i++) {
+                            var formatArguments = errors[i];
+                            formatArguments[0] = Strings[formatArguments[0]];
+                            errors[i] = StringUtils.format.apply(window, formatArguments);
+                        }
+                        
                         d.resolve({
-                            problem: result[0],
+                            errors: result[0],
                             metadata: result[1]
                         });
                     });

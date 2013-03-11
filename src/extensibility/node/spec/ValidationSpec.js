@@ -46,7 +46,7 @@ var missingPackageJSON = path.join(testFilesDirectory, "missing-package-json.zip
 describe("Package Validation", function () {
     it("should handle a good package", function (done) {
         ExtensionsDomain._cmdValidate(basicValidExtension, function (err, result) {
-            expect(result[0]).toEqual(null);
+            expect(result[0].length).toEqual(0);
             var metadata = result[1];
             expect(metadata.name).toEqual("basic-valid-extension");
             expect(metadata.version).toEqual("1.0");
@@ -57,7 +57,10 @@ describe("Package Validation", function () {
     
     it("should complain about missing package.json", function (done) {
         ExtensionsDomain._cmdValidate(missingPackageJSON, function (err, result) {
-            expect(result[0]).toEqual("Missing package.json");
+            var errors = result[0];
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("MISSING_PACKAGE_JSON");
+            expect(errors[0][1]).toEqual(missingPackageJSON);
             done();
         });
     });
