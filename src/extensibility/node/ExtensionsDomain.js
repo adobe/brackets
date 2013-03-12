@@ -59,6 +59,7 @@ function _cmdValidate(path, callback) {
         }
         var callbackCalled = false;
         var metadata;
+        var foundMain = false;
         var errors = [];
         
         fs.createReadStream(path)
@@ -109,6 +110,8 @@ function _cmdValidate(path, callback) {
                                 errors.push(["INVALID_VERSION_NUMBER", metadata.version, path]);
                             }
                         });
+                } else if (fileName === "main.js") {
+                    foundMain = true;
                 }
             })
             .on("end", function () {
@@ -118,6 +121,10 @@ function _cmdValidate(path, callback) {
                 // generally, if we hit an exception, we've already called the callback
                 if (callbackCalled) {
                     return;
+                }
+                
+                if (!foundMain) {
+                    errors.push(["MISSING_MAIN", path]);
                 }
                 
                 // No errors and no metadata means that we never found the metadata
