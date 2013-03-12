@@ -83,6 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
+    var InspectorJSON = require("text!LiveDevelopment/Inspector/Inspector.json");
+
     // jQuery exports object for events
     var $exports = $(exports);
 
@@ -297,21 +299,17 @@ define(function Inspector(require, exports, module) {
      */
     function init(theConfig) {
         exports.config = theConfig;
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/Inspector/Inspector.json");
-        request.onload = function onLoad() {
-            var InspectorJSON = JSON.parse(request.response);
-            var i, j, domain, domainDef, command;
-            for (i in InspectorJSON.domains) {
-                domain = InspectorJSON.domains[i];
-                exports[domain.domain] = {};
-                for (j in domain.commands) {
-                    command = domain.commands[j];
-                    exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
-                }
+
+        InspectorJSON = JSON.parse(InspectorJSON);
+        var i, j, domain, domainDef, command;
+        for (i in InspectorJSON.domains) {
+            domain = InspectorJSON.domains[i];
+            exports[domain.domain] = {};
+            for (j in domain.commands) {
+                command = domain.commands[j];
+                exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
             }
-        };
-        request.send(null);
+        }
     }
 
     // Export public functions
