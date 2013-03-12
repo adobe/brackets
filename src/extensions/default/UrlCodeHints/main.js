@@ -23,6 +23,23 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
 /*global define, brackets, $, window */
 
+
+/*
+
+TODO:
+- placing cursor inside ()
+  - only do it for url()
+  - move that code to UrlCodeHints extension?
+- handle @import
+  - need to update CSSUtils
+- handle quotes inside url()
+- handle url without url() ?
+  - both with and without quotes
+- unit tests
+
+*/
+
+
 define(function (require, exports, module) {
     "use strict";
     
@@ -40,7 +57,6 @@ define(function (require, exports, module) {
         CSSProperties       = require("text!CSSProperties.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
 
-//        cssProps,
         htmlAttrs;
     
     /**
@@ -271,11 +287,6 @@ define(function (require, exports, module) {
             return false;
         }
 
-        // TODO: need to handle implicit values? (e.g. type "url(" )
-//        if (implicitChar && (implicitChar !== ":")) {
-//            return false;
-//        }
-
         // collect existing value
         var i,
             val = "";
@@ -288,11 +299,11 @@ define(function (require, exports, module) {
             }
         }
         
-        if (val === "url(") {
+        // starts with "url(" ?
+        if (val.match(/^url\(/i)) {
             return true;
         }
 
-//        return (cssProps[this.info.name]) ? true : false;
         return false;
     };
 
@@ -338,11 +349,6 @@ define(function (require, exports, module) {
             }
 
             return (query !== null);
-/*
-        } else {
-            return (implicitChar === " " || implicitChar === "'" ||
-                implicitChar === "\"" || implicitChar === "=");
-*/
         }
     };
 
@@ -386,7 +392,6 @@ define(function (require, exports, module) {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
             var context = this.info.context;
-//            if (context !== CSSUtils.PROP_VALUE || !cssProps[this.info.name]) {
             if (context !== CSSUtils.PROP_VALUE) {
                 return null;
             }
@@ -398,7 +403,7 @@ define(function (require, exports, module) {
 
                 // bit of a hack for now...
                 if (query.queryStr === "(" && this.info.index === 1 &&
-                        this.info.values[0] === "url") {
+                        this.info.values[0].toLowerCase() === "url") {
                     query.queryStr = "";
                 }
             }
@@ -409,7 +414,6 @@ define(function (require, exports, module) {
 
         if (query.queryStr !== null) {
             filter = query.queryStr;
-//            this.closeOnSelect = true;
             var hintsAndSortFunc = this._getUrlHints(query);
             hints = hintsAndSortFunc.hints;
             sortFunc = hintsAndSortFunc.sortFunc;
@@ -471,31 +475,48 @@ define(function (require, exports, module) {
     UrlCodeHints.prototype.insertCssHint = function (completion) {
         var cursor = this.editor.getCursorPos(),
             start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1},
-            keepHints = false;
+            end = {line: -1, ch: -1};
 
         if (this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
         }
 
-        start.line = end.line = cursor.line;
-        start.ch = cursor.ch - this.info.offset;
-
-        if (!this.info.isNewItem && this.info.index !== -1) {
-            // Replacing an existing property value or partially typed value
-            end.ch = start.ch + this.info.values[this.info.index].length;
-        } else {
-            // Inserting a new property value
-            end.ch = start.ch;
+        // Special handling for URL hinting -- if the completion is a file name
+        // and not a folder, then close the code hint list.
+        if (!this.closeOnSelect && completion.match(/\/$/) === null) {
+            this.closeOnSelect = true;
         }
+
+        start.line = end.line = cursor.line;
+        end.ch = cursor.ch;
+
+        if (this.info.index === 1 && this.info.values[0].toLowerCase() === "url(") {
+            start.ch = cursor.ch - this.info.offset;
+        } else {
+            start.ch = cursor.ch;
+        }
+
+        var hasClosingParen = (this.info.values[this.info.index][this.info.offset] === ")");
 
         // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
         // directly to replace the range instead of using the Document, as we should. The
         // reason is due to a flaw in our current document synchronization architecture when
         // inline editors are open.
-        this.editor._codeMirror.replaceRange(completion, start, end);
+        var insertText = completion;
+        if (!hasClosingParen) {
+            insertText += ")";
+        }
+        this.editor._codeMirror.replaceRange(insertText, start, end);
 
-        return keepHints;
+        if (this.closeOnSelect) {
+            // If there is an existing closing paren, move the cursor to the right of it
+            if (hasClosingParen) {
+                this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
+            }
+            return false;
+        }
+
+        return true;
     };
 
     UrlCodeHints.prototype.insertHtmlHint = function (completion) {
@@ -560,7 +581,6 @@ define(function (require, exports, module) {
     };
 
     AppInit.appReady(function () {
-//        cssProps        = JSON.parse(CSSProperties);
         htmlAttrs       = JSON.parse(HTMLAttributes);
 
         var urlHints = new UrlCodeHints();
