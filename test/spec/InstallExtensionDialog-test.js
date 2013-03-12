@@ -49,7 +49,7 @@ define(function (require, exports, module) {
             SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                 closed = false;
                 dialog = new testWindow.brackets.test.InstallExtensionDialog._Dialog();
-                dialog._show()
+                dialog.show()
                     .always(function () {
                         closed = true;
                     });
