@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     
     var basicValid = testFilePath + "/basic-valid-extension.zip";
     var missingPackageJSON = testFilePath + "/missing-package-json.zip";
+    var missingNameVersion = testFilePath + "/missing-name-version.zip";
     
     describe("Extension Validator", function () {
         it("should return information about a valid file", function () {
@@ -82,5 +83,28 @@ define(function (require, exports, module) {
                 expect(packageData.errors[0]).toEqual("No package.json found in " + missingPackageJSON);
             });
         });
+        
+        it("should detect missing metadata", function () {
+            var promise,
+                packageData;
+            
+            runs(function () {
+                promise = Package.validate(missingNameVersion);
+                promise.then(function (pd) {
+                    // perform checks outside of this function to avoid
+                    // getting caught by NodeConnection's error catcher
+                    packageData = pd;
+                });
+                
+                waitsForDone(promise, "package validation", 1000);
+            });
+            
+            runs(function () {
+                expect(packageData.errors.length).toEqual(2);
+                expect(packageData.errors[0]).toEqual("Missing package name in " + missingNameVersion);
+                expect(packageData.errors[1]).toEqual("Missing package version in " + missingNameVersion);
+            });
+        });
+            
     });
 });
