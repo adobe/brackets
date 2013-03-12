@@ -45,6 +45,7 @@ var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.z
     invalidJSON         = path.join(testFilesDirectory, "invalid-json.zip"),
     invalidZip          = path.join(testFilesDirectory, "invalid-zip-file.zip"),
     missingNameVersion  = path.join(testFilesDirectory, "missing-name-version.zip"),
+    missingMain         = path.join(testFilesDirectory, "missing-main.zip"),
     invalidVersion      = path.join(testFilesDirectory, "invalid-version.zip");
 
 describe("Package Validation", function () {
@@ -127,5 +128,14 @@ describe("Package Validation", function () {
             done();
         });
     });
-        
+    
+    it("should require a main.js in the zip file", function (done) {
+        ExtensionsDomain._cmdValidate(missingMain, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result.errors;
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("MISSING_MAIN");
+            done();
+        });
+    });
 });
