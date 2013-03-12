@@ -66,7 +66,7 @@ define(function (require, exports, module) {
                 expect(packageData.errors.length).toEqual(0);
                 expect(packageData.metadata.name).toEqual("basic-valid-extension");
                 expect(packageData.metadata.title).toEqual("Basic Valid Extension");
-                expect(packageData.metadata.version).toEqual("1.0");
+                expect(packageData.metadata.version).toEqual("1.0.0");
             });
         });
         
