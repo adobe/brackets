@@ -83,7 +83,7 @@ define(function (require, exports, module) {
      */
     Command.prototype.execute = function () {
         if (!this._enabled) {
-            return;
+            return (new $.Deferred()).reject().promise();
         }
         
         var result = this._commandFn.apply(this, arguments);
