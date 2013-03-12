@@ -27,8 +27,9 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var unzip = require("unzip"),
-    fs    = require("fs");
+var unzip  = require("unzip"),
+    semver = require("semver"),
+    fs     = require("fs");
 
 /**
  * Implements the "validate" command in the "extensions" domain.
@@ -104,6 +105,8 @@ function _cmdValidate(path, callback) {
                             }
                             if (!metadata.version) {
                                 errors.push(["MISSING_PACKAGE_VERSION", path]);
+                            } else if (!semver.valid(metadata.version)) {
+                                errors.push(["INVALID_VERSION_NUMBER", metadata.version, path]);
                             }
                         });
                 }
