@@ -100,6 +100,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
+    "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
@@ -137,6 +138,7 @@ define({
      * ProjectManager
      */
 
+    "PROJECT_LOADING" : "Wird geladen\u2026",
     "UNTITLED" : "Unbenannt",
 
     /**
@@ -205,6 +207,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Block (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Brackets schließen aktivieren",
      
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
