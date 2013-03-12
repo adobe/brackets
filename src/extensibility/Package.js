@@ -27,6 +27,8 @@ indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
 waitsFor, runs, $, brackets, waitsForDone */
 
+/* Functions for working with extension packages */
+
 define(function (require, exports, module) {
     "use strict";
     
@@ -53,14 +55,29 @@ define(function (require, exports, module) {
      */
     var _nodeConnectionDeferred = $.Deferred();
     
+    /**
+     * Validates the package at the given path. The actual validation is
+     * handled by the Node server.
+     * 
+     * The promise is resolved with an object:
+     * { errors: Array.<{string}>, metadata: { name:string, version:string, ... } }
+     * metadata is pulled straight from package.json and is likely to be undefined
+     * if there are errors.
+     *
+     * @param {string} Absolute path to the package zip file
+     * @return {promise} A promise that is resolved with information about the package
+     */
     function validate(path) {
         var d = $.Deferred();
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.extensions.validate(path)
                     .done(function (result) {
-                        var i;
-                        var errors = result[0];
+                        
+                        // Convert the errors into properly localized strings
+                        var i,
+                            errors = result.errors;
+                        
                         for (i = 0; i < errors.length; i++) {
                             var formatArguments = errors[i];
                             formatArguments[0] = Strings[formatArguments[0]];
@@ -68,8 +85,8 @@ define(function (require, exports, module) {
                         }
                         
                         d.resolve({
-                            errors: result[0],
-                            metadata: result[1]
+                            errors: errors,
+                            metadata: result.metadata
                         });
                     });
             }
@@ -89,6 +106,7 @@ define(function (require, exports, module) {
         return _nodeConnectionDeferred;
     }
     
+    // Initializes node connection, largely taken from StaticServer
     AppInit.appReady(function () {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
