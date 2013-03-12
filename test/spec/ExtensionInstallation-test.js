@@ -39,21 +39,28 @@ define(function (require, exports, module) {
     var missingPackageJSON = testFilePath + "/missing-package-json.zip";
     var missingNameVersion = testFilePath + "/missing-name-version.zip";
     
+    var packageData;
+    
+    function validatePackage(packagePath) {
+        var promise;
+        
+        packageData = undefined;
+        
+        runs(function () {
+            promise = Package.validate(packagePath);
+            promise.then(function (pd) {
+                // perform checks outside of this function to avoid
+                // getting caught by NodeConnection's error catcher
+                packageData = pd;
+            });
+            
+            waitsForDone(promise, "package validation", 1000);
+        });
+    }
+    
     describe("Extension Validator", function () {
         it("should return information about a valid file", function () {
-            var promise,
-                packageData;
-            
-            runs(function () {
-                promise = Package.validate(basicValid);
-                promise.then(function (pd) {
-                    // perform checks outside of this function to avoid
-                    // getting caught by NodeConnection's error catcher
-                    packageData = pd;
-                });
-                
-                waitsForDone(promise, "package validation", 1000);
-            });
+            validatePackage(basicValid);
             
             runs(function () {
                 expect(packageData.errors.length).toEqual(0);
@@ -64,19 +71,7 @@ define(function (require, exports, module) {
         });
         
         it("should format errors for failures", function () {
-            var promise,
-                packageData;
-            
-            runs(function () {
-                promise = Package.validate(missingPackageJSON);
-                promise.then(function (pd) {
-                    // perform checks outside of this function to avoid
-                    // getting caught by NodeConnection's error catcher
-                    packageData = pd;
-                });
-                
-                waitsForDone(promise, "package validation", 1000);
-            });
+            validatePackage(missingPackageJSON);
             
             runs(function () {
                 expect(packageData.errors.length).toEqual(1);
@@ -85,19 +80,7 @@ define(function (require, exports, module) {
         });
         
         it("should detect missing metadata", function () {
-            var promise,
-                packageData;
-            
-            runs(function () {
-                promise = Package.validate(missingNameVersion);
-                promise.then(function (pd) {
-                    // perform checks outside of this function to avoid
-                    // getting caught by NodeConnection's error catcher
-                    packageData = pd;
-                });
-                
-                waitsForDone(promise, "package validation", 1000);
-            });
+            validatePackage(missingNameVersion);
             
             runs(function () {
                 expect(packageData.errors.length).toEqual(2);
