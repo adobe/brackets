@@ -952,7 +952,15 @@ define(function (require, exports, module) {
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
     };
-
+    
+    /*
+     * Returns the current text height of the editor.
+     * @returns {number} Height of the text in pixels
+     */
+    Editor.prototype.getTextHeight = function () {
+        return this._codeMirror.defaultTextHeight();
+    };
+    
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
