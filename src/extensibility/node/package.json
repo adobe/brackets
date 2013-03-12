@@ -2,6 +2,7 @@
     "name": "brackets-extensibility",
     "version": "0.21.0",
     "dependencies": {
-        "unzip": "0.1.4"
+        "unzip": "0.1.4",
+        "semver": ">1.1.0 <2.0.0"
     }
 }

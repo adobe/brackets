@@ -44,7 +44,8 @@ var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.z
     missingPackageJSON  = path.join(testFilesDirectory, "missing-package-json.zip"),
     invalidJSON         = path.join(testFilesDirectory, "invalid-json.zip"),
     invalidZip          = path.join(testFilesDirectory, "invalid-zip-file.zip"),
-    missingNameVersion  = path.join(testFilesDirectory, "missing-name-version.zip");
+    missingNameVersion  = path.join(testFilesDirectory, "missing-name-version.zip"),
+    invalidVersion      = path.join(testFilesDirectory, "invalid-version.zip");
 
 describe("Package Validation", function () {
     it("should handle a good package", function (done) {
@@ -53,7 +54,7 @@ describe("Package Validation", function () {
             expect(result.errors.length).toEqual(0);
             var metadata = result.metadata;
             expect(metadata.name).toEqual("basic-valid-extension");
-            expect(metadata.version).toEqual("1.0");
+            expect(metadata.version).toEqual("1.0.0");
             expect(metadata.title).toEqual("Basic Valid Extension");
             done();
         });
@@ -115,4 +116,16 @@ describe("Package Validation", function () {
             done();
         });
     });
+    
+    it("should validate the version number", function (done) {
+        ExtensionsDomain._cmdValidate(invalidVersion, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result.errors;
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("INVALID_VERSION_NUMBER");
+            expect(errors[0][1]).toEqual("NOT A VERSION");
+            done();
+        });
+    });
+        
 });
