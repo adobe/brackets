@@ -38,11 +38,12 @@ define(function (require, exports, module) {
         InstallDialogTemplate  = require("text!extensibility/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
-        STATE_GETTING_URL       = 1,
-        STATE_INSTALLING        = 2,
-        STATE_INSTALLED         = 3,
-        STATE_INSTALL_FAILED    = 4,
-        STATE_INSTALL_CANCELLED = 5;
+        STATE_START             = 1,
+        STATE_VALID_URL         = 2,
+        STATE_INSTALLING        = 3,
+        STATE_INSTALLED         = 4,
+        STATE_INSTALL_FAILED    = 5,
+        STATE_INSTALL_CANCELLED = 6;
     
     var $dlg,
         $url,
@@ -65,35 +66,34 @@ define(function (require, exports, module) {
         var url, msg;
         
         switch (newState) {
-        case STATE_GETTING_URL:
+        case STATE_START:
             // This should match the default appearance of the dialog when it first opens.
             $spinner.removeClass("spin");
             $msgArea.hide();
             $inputArea.show();
             $okButton
-                .removeAttr("disabled")
+                .attr("disabled", "disabled")
                 .text(Strings.INSTALL);
+            break;
+                
+        case STATE_VALID_URL:
+            $okButton.removeAttr("disabled");
             break;
             
         case STATE_INSTALLING:
             url = $url.val();
-            if (url !== "") {
-                $inputArea.hide();
-                $msg.text(StringUtils.format(Strings.INSTALLING_FROM, url));
-                $spinner.addClass("spin");
-                $msgArea.show();
-                $okButton.attr("disabled", "disabled");
-                installer.install(url)
-                    .done(function () {
-                        _enterState(STATE_INSTALLED);
-                    })
-                    .fail(function () {
-                        _enterState(STATE_INSTALL_FAILED);
-                    });
-            } else {
-                // TODO: Show error. Should we keep Install button grayed until it's valid?
-                newState = STATE_GETTING_URL;
-            }
+            $inputArea.hide();
+            $msg.text(StringUtils.format(Strings.INSTALLING_FROM, url));
+            $spinner.addClass("spin");
+            $msgArea.show();
+            $okButton.attr("disabled", "disabled");
+            installer.install(url)
+                .done(function () {
+                    _enterState(STATE_INSTALLED);
+                })
+                .fail(function () {
+                    _enterState(STATE_INSTALL_FAILED);
+                });
             break;
             
         case STATE_INSTALLED:
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
             // In these end states, this is a "Close" button: just close the dialog and indicate
             // success.
             _enterState(STATE_CLOSED);
-        } else if (state === STATE_GETTING_URL) {
+        } else if (state === STATE_VALID_URL) {
             _enterState(STATE_INSTALLING);
         }
     }
@@ -172,6 +172,20 @@ define(function (require, exports, module) {
     function _handleKeyUp(e) {
         if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             _handleCancel();
+        }
+    }
+    
+    /**
+     * @private
+     * Handle typing in the URL field.
+     */
+    function _handleUrlInput() {
+        var url = $url.val(),
+            valid = (url !== "");
+        if (!valid && state === STATE_VALID_URL) {
+            _enterState(STATE_START);
+        } else if (valid && state === STATE_START) {
+            _enterState(STATE_VALID_URL);
         }
     }
     
@@ -267,9 +281,10 @@ define(function (require, exports, module) {
 
         $okButton.on("click", _handleOk);
         $cancelButton.on("click", _handleCancel);
+        $url.on("input", _handleUrlInput);
         $(document.body).on("keyup.installDialog", _handleKeyUp);
         
-        _enterState(STATE_GETTING_URL);
+        _enterState(STATE_START);
 
         dialogDeferred = new $.Deferred();
         return dialogDeferred.promise();
