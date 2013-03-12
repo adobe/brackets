@@ -127,6 +127,14 @@ define(function (require, exports, module) {
             expect(fields.$okButton.attr("disabled")).toBeFalsy();
         });
         
+        it("should re-disable the install button if the url field becomes nonempty and then empty", function () {
+            setUrl();
+            fields.$url
+                .val("")
+                .trigger("input");
+            expect(fields.$okButton.attr("disabled")).toBeTruthy();
+        });
+        
         it("should close the dialog when Cancel button clicked after entering url", function () {
             setUrl();
             fields.$cancelButton.click();
