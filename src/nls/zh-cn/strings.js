@@ -50,46 +50,46 @@ define({
     "ERROR_RELOADING_FILE"              : "程序尝试重新加载该文件时出现了一个异常,文件:<span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "保存文件时出现异常",
     "ERROR_SAVING_FILE"                 : "程序尝试保存该文件时出现了一个异常,文件: <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
-    "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Invalid file name",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
-    "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
-    "ERROR_CREATING_FILE_TITLE"         : "Error creating file",
-    "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "重命名文件失败",
+    "ERROR_RENAMING_FILE"               : "为该文件重命名时出现异常,文件: <span class='dialog-filename'>{0}</span>. {1}",
+    "INVALID_FILENAME_TITLE"            : "无效文件名",
+    "INVALID_FILENAME_MESSAGE"          : "文件名不得包含: /?*:;{}<>\\|",
+    "FILE_ALREADY_EXISTS"               : "该文件 <span class='dialog-filename'>{0}</span> 已经存在.",
+    "ERROR_CREATING_FILE_TITLE"         : "新建文件异常",
+    "ERROR_CREATING_FILE"               : "试图创建该文件时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
+    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 尝试在浏览器中运行失败.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
 
     // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
-    "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
+    "ERROR_MAX_FILES_TITLE"             : "索引文件错误",
+    "ERROR_MAX_FILES"                   : "索引的文件过多,请减少索引的文件.",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error launching browser",
-    "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
-    "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "启动浏览器失败",
+    "ERROR_CANT_FIND_CHROME"            : "Chrome浏览器离家出走了,没有找到Google Chrome浏览器,请确定安装了?",
+    "ERROR_LAUNCHING_BROWSER"           : "启动浏览器的时候出现一个错误. (error {0})",
     
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Please try again.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览异常",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "连接至浏览器",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "为了应用实时预览,Chrome需要重启开始启用远程调试功能.<br /><br />你确定重新启动Chrome浏览器,并且启用远程调试?",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "打开并实时预览一个HTML文件.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要指定一个预览用的URL地址.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "尝试启动HTTP服务器时出现错误,请再试一次.",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎来到实时预览!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
     
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中...\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化...\u2026",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "断开实时预览",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "实时预览: 点击断开 (保存文件)",
     
-    "SAVE_CLOSE_TITLE"                  : "Save Changes",
-    "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
-    "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
+    "SAVE_CLOSE_TITLE"                  : "保存选择",
+    "SAVE_CLOSE_MESSAGE"                : "保存文件中所做的修改 <span class='dialog-filename'>{0}</span>?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
@@ -109,32 +109,32 @@ define({
     "NO_UPDATE_MESSAGE"                 : "正在使用最新版本的 {APP_NAME}.",
     
     
-    "FIND_IN_FILES_TITLE"               : "for \"{4}\" {5} - {0} {1} in {2} {3}",
-    "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_NO_SCOPE"            : "in project",
-    "FIND_IN_FILES_FILE"                : "file",
-    "FIND_IN_FILES_FILES"               : "files",
-    "FIND_IN_FILES_MATCH"               : "match",
-    "FIND_IN_FILES_MATCHES"             : "matches",
-    "FIND_IN_FILES_MORE_THAN"           : "More than ",
-    "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
-    "FIND_IN_FILES_FILE_PATH"           : "File: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
+    "FIND_IN_FILES_TITLE"               : "于 \"{4}\" {5} - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_SCOPED"              : "在 <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_NO_SCOPE"            : "在项目",
+    "FIND_IN_FILES_FILE"                : "文件",
+    "FIND_IN_FILES_FILES"               : "多个文件",
+    "FIND_IN_FILES_MATCH"               : "匹配一个",
+    "FIND_IN_FILES_MATCHES"             : "匹配多个",
+    "FIND_IN_FILES_MORE_THAN"           : "以上 ",
+    "FIND_IN_FILES_MAX"                 : " (共计 {0} 个匹配)",
+    "FIND_IN_FILES_FILE_PATH"           : "文件: <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_LINE"                : "行:&nbsp;{0}",
 
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "获取更新信息失败",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的信息.请确认你的电脑已经连接互联网,然后再次尝试重新获取!",
     
     // Switch language
-    "LANGUAGE_TITLE"                    : "Switch Language",
-    "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
-    "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancel",
+    "LANGUAGE_TITLE"                    : "选择语言",
+    "LANGUAGE_MESSAGE"                  : "请从列表中选择所需的语言:",
+    "LANGUAGE_SUBMIT"                   : "重新加载 {APP_NAME}",
+    "LANGUAGE_CANCEL"                   : "取消",
 
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING" : "Loading\u2026",
-    "UNTITLED" : "Untitled",
+    "PROJECT_LOADING" : "载入\u2026",
+    "UNTITLED" : "无标题",
     
     /**
      * Keyboard modifier names
@@ -147,13 +147,13 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION"             : "Line {0}, Column {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
-    "STATUSBAR_SPACES"                      : "Spaces",
-    "STATUSBAR_TAB_SIZE"                    : "Tab Size",
+    "STATUSBAR_CURSOR_POSITION"             : "行 {0}, 列 {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "选择缩进为空格",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "选择缩进为TAB",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "修改缩进空格长度",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "修改TAB长度",
+    "STATUSBAR_SPACES"                      : "空格长度",
+    "STATUSBAR_TAB_SIZE"                    : "Tab长度",
     "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
 
     /**
