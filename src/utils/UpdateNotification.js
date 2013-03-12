@@ -40,12 +40,18 @@ define(function (require, exports, module) {
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id),
+        defaultPrefs = {lastNotifiedBuildNumber: 0};
+    
+    
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
     
     // PreferenceStorage
-    var _prefs = PreferencesManager.getPreferenceStorage(module.id, {lastNotifiedBuildNumber: 0});
-        
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, module.id, defaultPrefs);
+    
     // This is the last version we notified the user about. If checkForUpdate()
     // is called with "false", only show the update notification dialog if there
     // is an update newer than this one. This value is saved in preferences.

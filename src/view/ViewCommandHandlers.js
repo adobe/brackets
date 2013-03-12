@@ -48,7 +48,7 @@ define(function (require, exports, module) {
      * Unique PreferencesManager clientID
      * @type {string}
      */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     
     /**
      * @const
