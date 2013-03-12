@@ -30,36 +30,67 @@ indent: 4, maxerr: 50 */
 var unzip = require("unzip"),
     fs    = require("fs");
 
+/**
+ * Implements the "validate" command in the "extensions" domain.
+ * Validates the zipped package at path.
+ *
+ * The "err" parameter of the callback is only set if there was an
+ * unexpected error. Otherwise, errors are reported in the result.
+ *
+ * The result object has an "errors" property. It is an array of
+ * arrays of strings. Each array in the array is a set of parameters
+ * that can be passed to StringUtils.format for internationalization.
+ * The array will be empty if there are no errors.
+ *
+ * The result will have a "metadata" property if the metadata was
+ * read successfully from package.json in the zip file.
+ *
+ * @param {string} Absolute path to the package zip file
+ * @param {function} callback (err, result)
+ */
 function _cmdValidate(path, callback) {
     fs.exists(path, function (doesExist) {
         if (!doesExist) {
-            callback(null, [[["NOT_FOUND_ERR"]], null]);
+            callback(null, {
+                errors: [["NOT_FOUND_ERR", path]]
+            });
             return;
         }
         var callbackCalled = false;
-        var metadata = null;
+        var metadata;
         var errors = [];
         
         fs.createReadStream(path)
             .pipe(unzip.Parse())
             .on("error", function (exception) {
+                // General error to report for problems reading the file
                 errors.push(["INVALID_ZIP_FILE", path]);
-                callback(null, [errors, null]);
+                callback(null, {
+                    errors: errors
+                });
                 callbackCalled = true;
             })
             .on("entry", function (entry) {
+                // look for the metadata
                 var fileName = entry.path;
+                
                 if (fileName === "package.json") {
                     var packageJSON = "";
                     entry
                         .on("data", function (data) {
+                            // We're assuming utf8 encoding here, which is pretty safe
+                            // Note that I found that .setEncoding on the stream
+                            // would fail, so I convert the buffer to a string here.
                             packageJSON += data.toString("utf8");
                         })
                         .on("error", function (exception) {
+                            // general exception handler. It is unknown what kinds of
+                            // errors we can get here.
                             callback(exception, null);
                             callbackCalled = true;
                         })
                         .on("end", function () {
+                            // attempt to parse the metadata
                             try {
                                 metadata = JSON.parse(packageJSON);
                             } catch (e) {
@@ -67,6 +98,7 @@ function _cmdValidate(path, callback) {
                                 return;
                             }
                             
+                            // confirm required fields in the metadata
                             if (!metadata.name) {
                                 errors.push(["MISSING_PACKAGE_NAME", path]);
                             }
@@ -77,20 +109,33 @@ function _cmdValidate(path, callback) {
                 }
             })
             .on("end", function () {
+                // Reached the end of the zipfile
+                // Report results
+                
+                // generally, if we hit an exception, we've already called the callback
                 if (callbackCalled) {
                     return;
                 }
-                if (errors.length > 0) {
-                    callback(null, [errors, null]);
-                } else if (metadata === null) {
-                    callback(null, [[["MISSING_PACKAGE_JSON", path]], null]);
+                
+                // No errors and no metadata means that we never found the metadata
+                if (errors.length === 0 && !metadata) {
+                    callback(null, {
+                        errors: [["MISSING_PACKAGE_JSON", path]]
+                    });
                 } else {
-                    callback(null, [[], metadata]);
+                    callback(null, {
+                        errors: errors,
+                        metadata: metadata
+                    });
                 }
             });
     });
 }
 
+/**
+ * Initialize the "extensions" domain.
+ * The extensions domain contains the validate function.
+ */
 function init(domainManager) {
     if (!domainManager.hasDomain("extensions")) {
         domainManager.registerDomain("extensions", {major: 0, minor: 1});
@@ -104,18 +149,21 @@ function init(domainManager) {
             type: "string",
             description: "absolute filesystem path of the extension package"
         }],
-        [{
-            name: "errors",
-            type: "[[string name, optional format arguments], ...]",
-            description: "error with the package, if any"
-        }, {
-            name: "metadata",
-            type: "{name: string, version: string}",
-            description: "all package.json metadata"
-        }]
+        {
+            errors: {
+                type: "[[string name, optional format arguments], ...]",
+                description: "error with the package, if any"
+            },
+            metadata: {
+                type: "{name: string, version: string}",
+                description: "all package.json metadata"
+            }
+        }
     );
 }
 
+// used in unit tests
 exports._cmdValidate = _cmdValidate;
 
+// used to load the domain
 exports.init = init;
