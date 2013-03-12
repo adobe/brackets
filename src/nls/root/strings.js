@@ -296,6 +296,15 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
     
+    // Extension Management strings
+    "MISSING_PACKAGE_JSON"                 : "No package.json found in {0}",
+    "INVALID_PACKAGE_JSON"                 : "Package.json file is not valid (error was: {0})",
+    "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package",
+    "MISSING_PACKAGE_NAME"                 : "Missing package name in {0}",
+    "MISSING_PACKAGE_VERSION"              : "Missing package version in {0}",
+    "INVALID_VERSION_NUMBER"               : "Package version ({0}) is not a valid version number",
+    "MISSING_MAIN"                         : "Package has no main.js file",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
