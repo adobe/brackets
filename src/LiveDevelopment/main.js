@@ -42,6 +42,7 @@ define(function main(require, exports, module) {
         Commands            = require("command/Commands"),
         AppInit             = require("utils/AppInit"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        LiveDevelopmentLESS = require("text!LiveDevelopment/main.less"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -78,17 +79,16 @@ define(function main(require, exports, module) {
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/main.less", true);
-        request.onload = function onLoad(event) {
+        try {
             var parser = new less.Parser();
-            parser.parse(request.responseText, function onParse(err, tree) {
+            parser.parse(LiveDevelopmentLESS, function onParse(err, tree) {
                 console.assert(!err, err);
                 $("<style>" + tree.toCSS() + "</style>")
                     .appendTo(window.document.head);
             });
-        };
-        request.send(null);
+        } catch (e) {
+            // In the SpecRunner.html, less isn't included, and is undefined, but it's not needed either...
+        }
     }
 
     /**
