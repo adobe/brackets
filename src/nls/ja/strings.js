@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "!能=[6735416] Loading\u2026_=!",
 	"UNTITLED": "名称未設定",
 
     /**

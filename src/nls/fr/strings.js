@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "[6735416] !é=Loading\u2026=!",
 	"UNTITLED": "Sans titre",
 
     /**
