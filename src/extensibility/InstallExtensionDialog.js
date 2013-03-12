@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         Commands               = require("command/Commands"),
         CommandManager         = require("command/CommandManager"),
         KeyEvent               = require("utils/KeyEvent"),
-        InstallDialogTemplate  = require("text!extensionmgr/install-extension-dialog.html");
+        InstallDialogTemplate  = require("text!extensibility/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
         STATE_GETTING_URL       = 1,
