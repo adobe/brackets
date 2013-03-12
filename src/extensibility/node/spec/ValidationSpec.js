@@ -40,12 +40,16 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
                                     "spec",
                                     "extension-test-files");
 
-var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.zip");
-var missingPackageJSON = path.join(testFilesDirectory, "missing-package-json.zip");
+var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.zip"),
+    missingPackageJSON  = path.join(testFilesDirectory, "missing-package-json.zip"),
+    invalidJSON         = path.join(testFilesDirectory, "invalid-json.zip"),
+    invalidZip          = path.join(testFilesDirectory, "invalid-zip-file.zip"),
+    missingNameVersion  = path.join(testFilesDirectory, "missing-name-version.zip");
 
 describe("Package Validation", function () {
     it("should handle a good package", function (done) {
         ExtensionsDomain._cmdValidate(basicValidExtension, function (err, result) {
+            expect(err).toBeNull();
             expect(result[0].length).toEqual(0);
             var metadata = result[1];
             expect(metadata.name).toEqual("basic-valid-extension");
@@ -57,10 +61,57 @@ describe("Package Validation", function () {
     
     it("should complain about missing package.json", function (done) {
         ExtensionsDomain._cmdValidate(missingPackageJSON, function (err, result) {
+            expect(err).toBeNull();
             var errors = result[0];
             expect(errors.length).toEqual(1);
             expect(errors[0][0]).toEqual("MISSING_PACKAGE_JSON");
             expect(errors[0][1]).toEqual(missingPackageJSON);
+            expect(result[1]).toBeNull();
+            done();
+        });
+    });
+    
+    it("should complain about illegal path", function (done) {
+        ExtensionsDomain._cmdValidate(path.join(testFilesDirectory, "NO_FILE_HERE"), function (err, result) {
+            expect(err).toBeNull();
+            var errors = result[0];
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("NOT_FOUND_ERR");
+            expect(result[1]).toBeNull();
+            done();
+        });
+    });
+    
+    it("should complain about invalid JSON", function (done) {
+        ExtensionsDomain._cmdValidate(invalidJSON, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result[0];
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("INVALID_PACKAGE_JSON");
+            expect(errors[0][1]).toEqual("SyntaxError: Unexpected token I");
+            expect(errors[0][2]).toEqual(invalidJSON);
+            expect(result[1]).toBeNull();
+            done();
+        });
+    });
+    
+    it("should complain about an invalid zip file", function (done) {
+        ExtensionsDomain._cmdValidate(invalidZip, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result[0];
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("INVALID_ZIP_FILE");
+            done();
+        });
+    });
+    
+    it("should require name and version in the metadata", function (done) {
+        ExtensionsDomain._cmdValidate(missingNameVersion, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result[0];
+            expect(errors.length).toEqual(2);
+            expect(errors[0][0]).toEqual("MISSING_PACKAGE_NAME");
+            expect(errors[1][0]).toEqual("MISSING_PACKAGE_VERSION");
             done();
         });
     });

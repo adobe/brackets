@@ -31,28 +31,64 @@ var unzip = require("unzip"),
     fs    = require("fs");
 
 function _cmdValidate(path, callback) {
-    var foundPackageJSON = false;
-    fs.createReadStream(path)
-        .pipe(unzip.Parse())
-        .on("entry", function (entry) {
-            var fileName = entry.path;
-            if (fileName === "package.json") {
-                var packageJSON = "";
-                entry.on("data", function (data) {
-                    packageJSON += data.toString("utf8");
-                });
-                entry.on("end", function () {
-                    var metadata = JSON.parse(packageJSON);
-                    foundPackageJSON = true;
+    fs.exists(path, function (doesExist) {
+        if (!doesExist) {
+            callback(null, [[["NOT_FOUND_ERR"]], null]);
+            return;
+        }
+        var callbackCalled = false;
+        var metadata = null;
+        var errors = [];
+        
+        fs.createReadStream(path)
+            .pipe(unzip.Parse())
+            .on("error", function (exception) {
+                errors.push(["INVALID_ZIP_FILE", path]);
+                callback(null, [errors, null]);
+                callbackCalled = true;
+            })
+            .on("entry", function (entry) {
+                var fileName = entry.path;
+                if (fileName === "package.json") {
+                    var packageJSON = "";
+                    entry
+                        .on("data", function (data) {
+                            packageJSON += data.toString("utf8");
+                        })
+                        .on("error", function (exception) {
+                            callback(exception, null);
+                            callbackCalled = true;
+                        })
+                        .on("end", function () {
+                            try {
+                                metadata = JSON.parse(packageJSON);
+                            } catch (e) {
+                                errors.push(["INVALID_PACKAGE_JSON", e.toString(), path]);
+                                return;
+                            }
+                            
+                            if (!metadata.name) {
+                                errors.push(["MISSING_PACKAGE_NAME", path]);
+                            }
+                            if (!metadata.version) {
+                                errors.push(["MISSING_PACKAGE_VERSION", path]);
+                            }
+                        });
+                }
+            })
+            .on("end", function () {
+                if (callbackCalled) {
+                    return;
+                }
+                if (errors.length > 0) {
+                    callback(null, [errors, null]);
+                } else if (metadata === null) {
+                    callback(null, [[["MISSING_PACKAGE_JSON", path]], null]);
+                } else {
                     callback(null, [[], metadata]);
-                });
-            }
-        })
-        .on("end", function () {
-            if (!foundPackageJSON) {
-                callback(null, [[["MISSING_PACKAGE_JSON", path]], null]);
-            }
-        });
+                }
+            });
+    });
 }
 
 function init(domainManager) {
