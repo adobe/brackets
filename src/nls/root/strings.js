@@ -313,6 +313,7 @@ define({
     "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package",
     "MISSING_PACKAGE_NAME"                 : "Missing package name in {0}",
     "MISSING_PACKAGE_VERSION"              : "Missing package version in {0}",
+    "INVALID_VERSION_NUMBER"               : "Package version ({0}) is not a valid version number",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
