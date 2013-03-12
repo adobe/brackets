@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         // we include the Bootstrap 2 JS in the SpecRunner.
         this.category = "integration";
         
-        var fields,
+        var dialog,
+            fields,
             goodInstaller,
             badInstaller,
             InstallExtensionDialog,
@@ -45,20 +46,20 @@ define(function (require, exports, module) {
             url = "http://brackets.io/extensions/myextension.zip";
         
         beforeEach(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                 closed = false;
-                InstallExtensionDialog = w.brackets.test.InstallExtensionDialog;
-                InstallExtensionDialog._showDialog()
+                dialog = new testWindow.brackets.test.InstallExtensionDialog._Dialog();
+                dialog._show()
                     .always(function () {
                         closed = true;
                     });
-                fields = InstallExtensionDialog._getDialogFields();
+                fields = dialog._getFields();
             });
         });
         
         afterEach(function () {
             runs(function () {
-                InstallExtensionDialog._closeDialog();
+                dialog._close();
             });
             waitsFor(function () { return closed; }, "dialog closing");
             runs(function () {
@@ -86,7 +87,7 @@ define(function (require, exports, module) {
             };
             spyOn(installer, "install").andCallThrough();
             spyOn(installer, "cancel");
-            InstallExtensionDialog._setInstaller(installer);
+            dialog._setInstaller(installer);
             return installer;
         }
         
