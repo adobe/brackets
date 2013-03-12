@@ -262,12 +262,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @private
      * Initialize and show the dialog.
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    InstallExtensionDialog.prototype._show = function () {
+    InstallExtensionDialog.prototype.show = function () {
         if (this._state !== STATE_CLOSED) {
             // Somehow the dialog got invoked twice. Just ignore this.
             return;
@@ -326,13 +325,8 @@ define(function (require, exports, module) {
      *     has finished installing, or rejected if the dialog is cancelled.
      */
     function _showDialog(installer) {
-        // *** TODO: initialize real installer
-        if (!installer) {
-            installer = new MockInstaller();
-        }
-        
-        var dlg = new InstallExtensionDialog(installer);
-        return dlg._show();
+        var dlg = new InstallExtensionDialog(new MockInstaller());
+        return dlg.show();
     }
     
     CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, _showDialog);
