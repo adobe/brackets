@@ -31,30 +31,41 @@ define(function (require, exports, module) {
     "use strict";
     
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        ExtensionLoader = require("utils/ExtensionLoader"),
         Package         = require("extensibility/Package");
     
     var testFilePath = SpecRunnerUtils.getTestPath("/spec/extension-test-files");
+    
+    var extensionsRoot = SpecRunnerUtils.getTempDirectory();
     
     var basicValid = testFilePath + "/basic-valid-extension.zip";
     var missingNameVersion = testFilePath + "/missing-name-version.zip";
     
     var packageData;
     
-    function validatePackage(packagePath) {
+    function handlePackage(packagePath, packageFunc) {
         var promise;
         
         packageData = undefined;
         
         runs(function () {
-            promise = Package.validate(packagePath);
+            promise = packageFunc(packagePath);
             promise.then(function (pd) {
                 // perform checks outside of this function to avoid
                 // getting caught by NodeConnection's error catcher
                 packageData = pd;
             });
             
-            waitsForDone(promise, "package validation", 1000);
+            waitsForDone(promise, "package validation", 5000);
         });
+    }
+    
+    function validatePackage(packagePath) {
+        handlePackage(packagePath, Package.validate);
+    }
+    
+    function installPackage(packagePath) {
+        handlePackage(packagePath, Package.install);
     }
     
     describe("Extension Installation", function () {
@@ -76,6 +87,49 @@ define(function (require, exports, module) {
                 expect(packageData.errors.length).toEqual(2);
                 expect(packageData.errors[0]).toEqual("Missing package name in " + missingNameVersion);
                 expect(packageData.errors[1]).toEqual("Missing package version in " + missingNameVersion);
+            });
+        });
+        
+        var realGetUserExtensionPath, realLoadExtension, lastExtensionLoad;
+        
+        function mockGetUserExtensionPath() {
+            return extensionsRoot + "/extensions/user";
+        }
+        
+        function mockLoadExtension(name, config, entryPoint) {
+            var d = $.Deferred();
+            lastExtensionLoad.name = name;
+            lastExtensionLoad.config = config;
+            lastExtensionLoad.entryPoint = entryPoint;
+            d.resolve();
+            return d.promise();
+        }
+        
+        beforeEach(function () {
+            realGetUserExtensionPath = ExtensionLoader.getUserExtensionPath;
+            ExtensionLoader.getUserExtensionPath = mockGetUserExtensionPath;
+            
+            lastExtensionLoad = {};
+            realLoadExtension = ExtensionLoader.loadExtension;
+            ExtensionLoader.loadExtension = mockLoadExtension;
+        });
+        
+        afterEach(function () {
+            ExtensionLoader.getUserExtensionPath = realGetUserExtensionPath;
+            ExtensionLoader.loadExtension = realLoadExtension;
+        });
+        
+        // This test is disabled, because it works fine the first time
+        // but cannot run twice unless the destination directory is deleted.
+        xit("extensions should install and load", function () {
+            installPackage(basicValid);
+            
+            runs(function () {
+                expect(packageData.errors.length).toEqual(0);
+                expect(packageData.name).toEqual("basic-valid-extension");
+                expect(lastExtensionLoad.name).toEqual("basic-valid-extension");
+                expect(lastExtensionLoad.config.baseUrl).toEqual(mockGetUserExtensionPath() + "/basic-valid-extension");
+                expect(lastExtensionLoad.entryPoint).toEqual("main");
             });
         });
     });
