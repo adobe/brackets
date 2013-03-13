@@ -97,8 +97,8 @@ define({
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "使用正则表达式进行搜索,范例:/re/",
     "WITH"                              : "与",
-    "BUTTON_YES"                        : "包含",
-    "BUTTON_NO"                         : "不包含",
+    "BUTTON_YES"                        : "是",
+    "BUTTON_NO"                         : "否",
     "BUTTON_STOP"                       : "停止",
 
     "OPEN_FILE"                         : "打开文件",
