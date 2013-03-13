@@ -26,10 +26,10 @@
 
 define({
     /**
-     * 异常
+     * Errors
      */
 
-    // 文件IO相关
+    // General file io error strings
     "GENERIC_ERROR"                     : "(异常 {0})",
     "NOT_FOUND_ERR"                     : "未能发现该文件.",
     "NOT_READABLE_ERR"                  : "无法读取该文件.",
@@ -37,13 +37,13 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "你没有权限做此次修改.",
     "FILE_EXISTS_ERR"                   : "当前文件已存在.",
     
-    // 项目相关
+    // Project error strings
     "ERROR_LOADING_PROJECT"             : "无法加载此项目.",
     "OPEN_DIALOG_ERROR"                 : "显示[打开文件]对话框出现异常. (error {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "打开此文件夹出现异常 <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "加载目录内容出现异常 <span class='dialog-filename'>{0}</span>. (error {1})",
 
-    // 文件打开保存 error string
+    // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "打开文件时出现异常",
     "ERROR_OPENING_FILE"                : "程序尝试打开该文件时出现了一个异常,文件:<span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RELOADING_FILE_TITLE"        : "重新加载文件时出现异常",
@@ -59,7 +59,7 @@ define({
     "ERROR_CREATING_FILE"               : "试图创建该文件时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 尝试在浏览器中运行失败.",
+    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} Brackets 无法运行在浏览器窗口中.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} 是内置HTML, 现在作为一个桌面程序运行你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>,然后重新运行 {APP_NAME}.",
 
     // FileIndexManager error string
@@ -78,8 +78,8 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要指定一个预览用的URL地址.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "尝试启动HTTP服务器时出现错误,请再试一次.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎来到实时预览!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}已通过实时预览连接至你的浏览器. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}已通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改预览也将修改你的代码.<br /><br />之前的版本 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 实时预览即时载入保存的HTML或JavaScript文件.<br /><br />(此消息仅会出现一次.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a class=\"clickable-link\" data-href=\"{0}\">实时预览在线错误信息</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中...\u2026",
@@ -96,9 +96,9 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "使用正则表达式进行搜索,范例:/re/",
-    "WITH"                              : "Con",
-    "BUTTON_YES"                        : "Sí",
-    "BUTTON_NO"                         : "No",
+    "WITH"                              : "与",
+    "BUTTON_YES"                        : "包含",
+    "BUTTON_NO"                         : "不包含",
     "BUTTON_STOP"                       : "停止",
 
     "OPEN_FILE"                         : "打开文件",
@@ -140,7 +140,7 @@ define({
      * Keyboard modifier names
      */
 
-    "KEYBOARD_CTRL"   : "Control",
+    "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "空格",
     
@@ -154,7 +154,7 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "修改TAB长度",
     "STATUSBAR_SPACES"                      : "空格长度",
     "STATUSBAR_TAB_SIZE"                    : "Tab长度",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
+    "STATUSBAR_LINE_COUNT"                  : "{0} 行",
 
     /**
      * Command Name Constants
@@ -168,7 +168,7 @@ define({
     "CMD_ADD_TO_WORKING_SET"              : "添加一个工作目录",
     "CMD_OPEN_FOLDER"                     : "打开文件夹\u2026",
     "CMD_FILE_CLOSE"                      : "关闭",
-    "CMD_FILE_CLOSE_ALL"                  : "关闭所有",
+    "CMD_FILE_CLOSE_ALL"                  : "全部关闭",
     "CMD_FILE_SAVE"                       : "保存",
     "CMD_FILE_SAVE_ALL"                   : "全部保存",
     "CMD_LIVE_FILE_PREVIEW"               : "在线预览",
@@ -196,13 +196,13 @@ define({
     "CMD_REPLACE"                         : "替换",
     "CMD_INDENT"                          : "增加行缩进",
     "CMD_UNINDENT"                        : "减少行缩进",
-    "CMD_DUPLICATE"                       : "创建一个副本",
+    "CMD_DUPLICATE"                       : "创建副本",
     "CMD_DELETE_LINES"                    : "删除当前行",
     "CMD_COMMENT"                         : "注释当前行",
     "CMD_BLOCK_COMMENT"                   : "注释选中内容",
     "CMD_LINE_UP"                         : "移到下一行",
     "CMD_LINE_DOWN"                       : "移到上一行",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Enable Close Brackets",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动闭括号",
     
     // View menu commands
     "VIEW_MENU"                           : "视图",
@@ -261,8 +261,8 @@ define({
     "CMD_ABORT_QUIT"                      : "强行退出",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "experimental build",
-    "DEVELOPMENT_BUILD"                    : "development build",
+    "EXPERIMENTAL_BUILD"                   : "生成实验版",
+    "DEVELOPMENT_BUILD"                    : "生成开发版",
     "JSLINT_ERRORS"                        : "JSLint错误",
     "JSLINT_ERROR_INFORMATION"             : "1个JSLint错误",
     "JSLINT_ERRORS_INFORMATION"            : "{0}个JSLint错误",
@@ -280,7 +280,7 @@ define({
     "ABOUT"                                : "关于",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明<a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a>以此作为参考.",
     "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "参与设计的有很多人是把 \u2764 跟 JavaScript by:",
