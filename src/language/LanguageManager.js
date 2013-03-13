@@ -220,6 +220,27 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Notify listeners when a language is added
+     * @param {!Language} language The new language
+     */
+    function _triggerLanguageAdded(language) {
+        // finally, store language to _language map
+        _languages[language.getId()] = language;
+        $(exports).triggerHandler("languageAdded", [language]);
+    }
+
+    /**
+     * @private
+     * Notify listeners when a language is modified
+     * @param {!Language} language The modified language
+     */
+    function _triggerLanguageModified(language) {
+        $(exports).triggerHandler("languageModified", [language]);
+    }
+    
+
+    /**
      * @constructor
      * Model for a language.
      *
@@ -344,6 +365,7 @@ define(function (require, exports, module) {
             // This mode is now only about what to tell CodeMirror
             // The base mode was only necessary to load the proper mode file
             self._mode = mimeMode || mode;
+            self._wasModified();
             
             result.resolve(self);
         };
@@ -380,9 +402,8 @@ define(function (require, exports, module) {
      * Private for now since dependent code would need to by kept in sync with such changes.
      * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension A file extension used by this language
-     * @private
      */
-    Language.prototype._addFileExtension = function (extension) {
+    Language.prototype.addFileExtension = function (extension) {
         extension = _normalizeFileExtension(extension);
         
         if (this._fileExtensions.indexOf(extension) === -1) {
@@ -393,12 +414,9 @@ define(function (require, exports, module) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
-                
-                // TODO (issue #2966) Allow extensions to add new file extensions to existing languages
-                // Notify on the Language and on LanguageManager?
-                // $(this).triggerHandler("fileExtensionAdded", [extension]);
-                // $(exports).triggerHandler("fileExtensionAdded", [extension, this]);
             }
+            
+            this._wasModified();
         }
     };
 
@@ -409,7 +427,7 @@ define(function (require, exports, module) {
      * @param {!string} extension An extensionless file name used by this language
      * @private
      */
-    Language.prototype._addFileName = function (name) {
+    Language.prototype.addFileName = function (name) {
         name = name.toLowerCase();
         
         if (this._fileNames.indexOf(name) === -1) {
@@ -420,12 +438,9 @@ define(function (require, exports, module) {
                 console.warn("Cannot register file name \"" + name + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileNameToLanguageMap[name] = this;
-                
-                // TODO (issue #2966) Allow extensions to add new file names to existing languages
-                // Notify on the Language and on LanguageManager?
-                // $(this).triggerHandler("fileNameAdded", [name]);
-                // $(exports).triggerHandler("fileNameAdded", [name, this]);
             }
+            
+            this._wasModified();
         }
     };
 
@@ -453,6 +468,7 @@ define(function (require, exports, module) {
         _validateNonEmptyString(prefix, "prefix");
         
         this._lineCommentSyntax = { prefix: prefix };
+        this._wasModified();
     };
     
     /**
@@ -489,6 +505,7 @@ define(function (require, exports, module) {
         _validateNonEmptyString(suffix, "suffix");
         
         this._blockCommentSyntax = { prefix: prefix, suffix: suffix };
+        this._wasModified();
     };
     
     /**
@@ -517,18 +534,27 @@ define(function (require, exports, module) {
             throw new Error("A language must always map its mode to itself");
         }
         this._modeToLanguageMap[mode] = language;
+        this._wasModified();
+    };
+
+    /**
+     * Determines whether this is the fallback language or not
+     * @return {boolean} True if this is the fallback language, false otherwise
+     */
+    Language.prototype.isFallbackLanguage = function () {
+        return this === _fallbackLanguage;
     };
     
     /**
+     * Trigger the "languageModified" event if this language is registered already
+     * @see _triggerLanguageModified
      * @private
-     * Notify listeners when a language is added
-     * @param {!Language} language The new language
      */
-    function _triggerLanguageAdded(language) {
-        // finally, store language to _language map
-        _languages[language.getId()] = language;
-        $(exports).triggerHandler("languageAdded", [language]);
-    }
+    Language.prototype._wasModified = function () {
+        if (_languages[this._id]) {
+            _triggerLanguageModified(this);
+        }
+    };
     
     /**
      * Defines a language.
@@ -575,14 +601,14 @@ define(function (require, exports, module) {
             // register language file extensions after mode has loaded
             if (fileExtensions) {
                 for (i = 0, l = fileExtensions.length; i < l; i++) {
-                    language._addFileExtension(fileExtensions[i]);
+                    language.addFileExtension(fileExtensions[i]);
                 }
             }
             
             // register language file names after mode has loaded
             if (fileNames) {
                 for (i = 0, l = fileNames.length; i < l; i++) {
-                    language._addFileName(fileNames[i]);
+                    language.addFileName(fileNames[i]);
                 }
             }
                 
