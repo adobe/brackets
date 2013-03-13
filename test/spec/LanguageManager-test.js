@@ -65,6 +65,7 @@ define(function (require, exports, module) {
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
             expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
+            expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
                 expect(actual.hasBlockCommentSyntax()).toBe(true);
@@ -125,6 +126,15 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("foo.doesNotExist")).toBe(unknown);
             });
             
+            it("should map file names to languages", function () {
+                var coffee  = LanguageManager.getLanguage("coffeescript"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("cakefile")).toBe(coffee);
+                expect(LanguageManager.getLanguageForPath("CakeFiLE")).toBe(coffee);
+                expect(LanguageManager.getLanguageForPath("cakefile.doesNotExist")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("Something.cakefile")).toBe(unknown);
+            });
         });
 
         describe("defineLanguage", function () {

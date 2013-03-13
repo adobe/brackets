@@ -410,6 +410,8 @@ define(function (require, exports, module) {
      * @private
      */
     Language.prototype._addFileName = function (name) {
+        name = name.toLowerCase();
+        
         if (this._fileNames.indexOf(name) === -1) {
             this._fileNames.push(name);
             
