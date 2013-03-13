@@ -73,7 +73,7 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览异常",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "连接至浏览器",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "为了应用实时预览,Chrome需要重启开始启用远程调试功能.<br /><br />你确定重新启动Chrome浏览器,并且启用远程调试?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "为了应用实时预览,Chrome需要重启并启用远程调试功能.<br /><br />你确定重新启动Chrome浏览器,并且启用远程调试?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "打开并实时预览一个HTML文件.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要指定一个预览用的URL地址.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "尝试启动HTTP服务器时出现错误,请再试一次.",
@@ -233,7 +233,7 @@ define({
     
     // Debug menu commands
     "DEBUG_MENU"                          : "调试",
-    "CMD_REFRESH_WINDOW"                  : "重新载入 {APP_NAME}",
+    "CMD_REFRESH_WINDOW"                  : "刷新 {APP_NAME}",
     "CMD_SHOW_DEV_TOOLS"                  : "显示开发工具",
     "CMD_RUN_UNIT_TESTS"                  : "运行测试",
     "CMD_JSLINT"                          : "启用JSLint",
