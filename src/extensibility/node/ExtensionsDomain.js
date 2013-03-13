@@ -145,6 +145,8 @@ function _cmdValidate(path, callback) {
 }
 
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
+    validationResult.installedTo = installDirectory;
+    
     fs.mkdirs(installDirectory, function (err) {
         if (err) {
             callback(err);
@@ -175,6 +177,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         } else {
             extensionName = path.basename(packagePath, ".zip");
         }
+        validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName);
         
         fs.exists(installDirectory, function (installDirectoryExists) {
@@ -221,7 +224,39 @@ function init(domainManager) {
             },
             metadata: {
                 type: "{name: string, version: string}",
-                description: "all package.json metadata"
+                description: "all package.json metadata (null if there's no package.json)"
+            }
+        }
+    );
+    domainManager.registerCommand(
+        "extensions",
+        "install",
+        _cmdInstall,
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the extension package"
+        }, {
+            name: "destinationDirectory",
+            type: "string",
+            description: "absolute filesystem path where this extension should be installed"
+        }, {
+            name: "options",
+            type: "{string disabledDirectory}",
+            description: "installation options. disabledDirectory should be set so that extensions can be installed disabled."
+        }],
+        {
+            errors: {
+                type: "[[string name, optional format arguments], ...]",
+                description: "error with the package, if any"
+            },
+            metadata: {
+                type: "{name: string, version: string}",
+                description: "all package.json metadata (null if there's no package.json)"
+            },
+            disabledReason: {
+                type: "string",
+                description: "reason this extension was installed disabled, none if it was enabled"
             }
         }
     );

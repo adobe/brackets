@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         FileUtils            = require("file/FileUtils"),
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
+        ExtensionLoader      = require("utils/ExtensionLoader"),
         NodeConnection       = require("utils/NodeConnection");
     
     /**
@@ -94,6 +95,47 @@ define(function (require, exports, module) {
         return d.promise();
     }
     
+    function install(path) {
+        var d = $.Deferred();
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                var destinationDirectory = ExtensionLoader.getUserExtensionPath();
+                var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
+                nodeConnection.domains.extensions.install(path, destinationDirectory, {
+                    disabledDirectory: disabledDirectory
+                })
+                    .done(function (result) {
+                        
+                        // Convert the errors into properly localized strings
+                        var i,
+                            errors = result.errors;
+                        
+                        for (i = 0; i < errors.length; i++) {
+                            var formatArguments = errors[i];
+                            formatArguments[0] = Strings[formatArguments[0]];
+                            errors[i] = StringUtils.format.apply(window, formatArguments);
+                        }
+                        
+                        if (result.disabledReason) {
+                            result.disabledReason = StringUtils.format(result.disabledReason);
+                        }
+                        if (result.errors.length > 0 || result.disabledReason) {
+                            d.resolve(result);
+                        } else {
+                            ExtensionLoader.loadExtension(result.name, {
+                                baseUrl: result.installedTo
+                            }, "main").then(function () {
+                                d.resolve(result);
+                            }, function () {
+                                d.reject("ERROR_LOADING");
+                            });
+                        }
+                    });
+            }
+        });
+        return d.promise();
+    }
+    
     /**
      * Allows access to the deferred that manages the node connection. This
      * is *only* for unit tests. Messing with this not in testing will
@@ -138,4 +180,5 @@ define(function (require, exports, module) {
 
     
     exports.validate = validate;
+    exports.install = install;
 });
