@@ -97,12 +97,15 @@ describe("Package Installation", function () {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {
             disabledDirectory: disabledDirectory
         }, function (err, result) {
+            var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
+            
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(0);
             expect(result.metadata.name).toEqual("basic-valid-extension");
+            expect(result.name).toEqual("basic-valid-extension");
+            expect(result.installedTo).toEqual(extensionDirectory);
             
-            var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
             var pathsToCheck = [
                 path.join(extensionDirectory, "package.json"),
                 path.join(extensionDirectory, "main.js")
