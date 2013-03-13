@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, PathUtils, Mustache, document */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*global define, brackets, window, $, PathUtils, Mustache, document */
 
 define(function (require, exports, module) {
     "use strict";
@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         Commands               = require("command/Commands"),
         CommandManager         = require("command/CommandManager"),
         KeyEvent               = require("utils/KeyEvent"),
+        Package                = require("extensibility/Package"),
         InstallDialogTemplate  = require("text!extensibility/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
@@ -131,7 +132,8 @@ define(function (require, exports, module) {
                 .done(function () {
                     self._enterState(STATE_INSTALLED);
                 })
-                .fail(function () {
+                .fail(function (err) {
+                    console.error("Failed to install:", err);
                     self._enterState(STATE_INSTALL_FAILED);
                 });
             break;
@@ -228,7 +230,8 @@ define(function (require, exports, module) {
             this._enterState(STATE_VALID_URL);
         }
     };
-    
+
+
     /**
      * @private
      * Sets the installer backend.
@@ -306,22 +309,13 @@ define(function (require, exports, module) {
         return this._dialogDeferred.promise();
     };
 
-    // TODO: temporary mock installer--remove when hooked up to back end
-    function MockInstaller() { }
-    MockInstaller.prototype.install = function (url) {
-        var result = new $.Deferred();
-        // *** Fake behavior for now until we have a backend. Enter "fail" somewhere in the
-        // URL to make the installation fail.
-        window.setTimeout(function () {
-            if (url.match(/fail/)) {
-                result.reject();
-            } else {
-                result.resolve();
-            }
-        }, 5000);
-        return result.promise();
+    function RealInstaller() { }
+    RealInstaller.prototype.install = function (url) {
+        return Package.download(url);
     };
-    MockInstaller.prototype.cancel = function () { };
+    RealInstaller.prototype.cancel = function () {
+        console.error("Not supported yet!");
+    };
     
     /**
      * @private
@@ -330,7 +324,7 @@ define(function (require, exports, module) {
      *     has finished installing, or rejected if the dialog is cancelled.
      */
     function _showDialog(installer) {
-        var dlg = new InstallExtensionDialog(new MockInstaller());
+        var dlg = new InstallExtensionDialog(new RealInstaller());
         return dlg.show();
     }
     
