@@ -20,3 +20,6 @@ src/extensions/disabled
 # unit test working directory
 test/temp
 test/results
+
+# Netbeans
+/nbproject
