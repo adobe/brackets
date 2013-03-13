@@ -202,7 +202,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Toggle Block Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Enable Close Brackets",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
