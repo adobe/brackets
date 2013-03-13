@@ -49,8 +49,9 @@ define(function (require, exports, module) {
     /**
      * Iterates over all the properties in an object or elements in an array. Differs from
      * $.each in that it iterates over array-like objects like regular objects.
-     * @param {*} object The object or array to iterate over.
-     * @param {function(value, key)} callback The function that will be executed on every object.
+     * @param {*} object - The object or array to iterate over.
+     * @param {function(value, key)} callback - The function that will be executed on every object.
+     *    If the function returns false the loop will break at that iteration.
      */
     function forEach(object, callback) {
         var keys = Object.keys(object),
@@ -58,7 +59,9 @@ define(function (require, exports, module) {
             i;
         
         for (i = 0; i < len; i++) {
-            callback(object[keys[i]], keys[i]);
+            if (callback(object[keys[i]], keys[i]) === false) {
+                break;
+            }
         }
     }
     
