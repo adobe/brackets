@@ -48,21 +48,51 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Creates regular expressions for multiple line comments prefixes
+     * @param {Array.<string>} prefixes - Description
+     * @return {Array.<RegExp>}
+     */
+    function _createLineExpressions(prefixes) {
+        var lineExps = [];
+        prefixes.forEach(function (prefix) {
+            lineExps.push(new RegExp("^\\s*" + StringUtils.regexEscape(prefix)));
+        });
+        return lineExps;
+    }
+    
+    /**
+     * @private
+     * Returns true if any regular expression matches the given string
+     * @param {string} string
+     * @param {Array.<RegExp>} expressions
+     * @return {boolean}
+     */
+    function _matchExpressions(string, expressions) {
+        var matchAny = false;
+        expressions.forEach(function (exp) {
+            matchAny = matchAny || string.match(exp);
+        });
+        return matchAny;
+    }
+    
+    /**
+     * @private
      * Searchs for an uncommented line between startLine and endLine
      * @param {!Editor} editor
      * @param {!number} startLine - valid line inside the document
      * @param {!number} endLine - valid line inside the document
+     * @param {!Array.<string>} prefixes - Array of line comment prefixes
      * @return {boolean} true if there is at least one uncommented line
      */
-    function _containsUncommented(editor, startLine, endLine, prefix) {
-        var lineExp = new RegExp("^\\s*" + StringUtils.regexEscape(prefix));
+    function _containsUncommented(editor, startLine, endLine, prefixes) {
+        var lineExp = _createLineExpressions(prefixes);
         var containsUncommented = false;
         var i;
         var line;
         for (i = startLine; i <= endLine; i++) {
             line = editor.document.getLine(i);
             // A line is commented out if it starts with 0-N whitespace chars, then "//"
-            if (!line.match(lineExp) && line.match(/\S/)) {
+            if (!_matchExpressions(line, lineExp) && line.match(/\S/)) {
                 containsUncommented = true;
                 break;
             }
@@ -77,8 +107,11 @@ define(function (require, exports, module) {
      * If all non-whitespace lines are already commented out, then we uncomment; otherwise we comment
      * out. Commenting out adds the prefix at column 0 of every line. Uncommenting removes the first prefix
      * on each line (if any - empty lines might not have one).
+     *
+     * @param {!Editor} editor
+     * @param {!Array.<string>} prefixes, e.g. ["//"]
      */
-    function lineCommentPrefix(editor, prefix) {
+    function lineCommentPrefix(editor, prefixes) {
         var doc = editor.document;
         var sel = editor.getSelection();
         var startLine = sel.start.line;
@@ -95,32 +128,38 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var containsUncommented = _containsUncommented(editor, startLine, endLine, prefix);
-        var i;
+        var containsUncommented = _containsUncommented(editor, startLine, endLine, prefixes);
+        var i, j;
         var line;
+        var trimmedLine;
+        var commentI;
         var updateSelection = false;
         
         // Make the edit
         doc.batchOperation(function () {
             
             if (containsUncommented) {
-                // Comment out - prepend "//" to each line
+                // Comment out - prepend the first prefix to each line
                 for (i = startLine; i <= endLine; i++) {
-                    doc.replaceRange(prefix, {line: i, ch: 0});
+                    doc.replaceRange(prefixes[0], {line: i, ch: 0});
                 }
                 
-                // Make sure selection includes "//" that was added at start of range
+                // Make sure selection includes the prefix that was added at start of range
                 if (sel.start.ch === 0 && hasSelection) {
                     updateSelection = true;
                 }
-                
+            
             } else {
-                // Uncomment - remove first "//" on each line (if any)
+                // Uncomment - remove first every prefix on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
                     line = doc.getLine(i);
-                    var commentI = line.indexOf(prefix);
-                    if (commentI !== -1) {
-                        doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefix.length});
+                    trimmedLine = line.trim();
+                    for (j = 0; j < prefixes.length; j++) {
+                        commentI = line.indexOf(prefixes[j]);
+                        if (trimmedLine.indexOf(prefixes[j]) === 0) {
+                            doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefixes[j].length});
+                            break;
+                        }
                     }
                 }
             }
@@ -206,9 +245,9 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!string} prefix, e.g. "<!--"
      * @param {!string} suffix, e.g. "-->"
-     * @param {?string} linePrefix, e.g. "//"
+     * @param {?Array.<string>} linePrefixes, e.g. ["//"]
      */
-    function blockCommentPrefixSuffix(editor, prefix, suffix, linePrefix) {
+    function blockCommentPrefixSuffix(editor, prefix, suffix, linePrefixes) {
         
         var doc            = editor.document,
             sel            = editor.getSelection(),
@@ -217,7 +256,7 @@ define(function (require, exports, module) {
             endCtx         = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
             prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
             suffixExp      = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
-            lineExp        = linePrefix ? new RegExp("^" + StringUtils.regexEscape(linePrefix)) : null,
+            lineExp        = linePrefixes ? _createLineExpressions(linePrefixes) : null,
             prefixPos      = null,
             suffixPos      = null,
             canComment     = false,
@@ -233,13 +272,13 @@ define(function (require, exports, module) {
         }
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
-        if (lineExp && (ctx.token.string.match(lineExp) || endCtx.token.string.match(lineExp))) {
+        if (lineExp && (_matchExpressions(ctx.token.string, lineExp) || _matchExpressions(endCtx.token.string, lineExp))) {
             var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
             var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
             
             // Find if we aren't actually inside a block-comment
             result = true;
-            while (result && ctx.token.string.match(lineExp)) {
+            while (result && _matchExpressions(ctx.token.string, lineExp)) {
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
             }
             
@@ -255,7 +294,7 @@ define(function (require, exports, module) {
                 }
                 
                 // Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, endLine, linePrefix)) {
+                if (!_containsUncommented(editor, sel.start.line, endLine, linePrefixes)) {
                     lineUncomment = true;
                 
                 // Block-comment in all the other cases
@@ -327,7 +366,7 @@ define(function (require, exports, module) {
             return;
         
         } else if (lineUncomment) {
-            lineCommentPrefix(editor, linePrefix);
+            lineCommentPrefix(editor, linePrefixes);
         
         } else {
             doc.batchOperation(function () {

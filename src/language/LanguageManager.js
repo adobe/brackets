@@ -39,7 +39,7 @@
  *         mode: "haskell",
  *         fileExtensions: ["hs"],
  *         blockComment: ["{-", "-}"],
- *         lineComment: "--"
+ *         lineComment: ["--"]
  *     });
  *
  * To use that language and it's related mode, wait for the returned promise to be resolved:
@@ -49,7 +49,7 @@
  *
  * You can also refine an existing language. Currently you can only set the comment styles:
  *     var language = LanguageManager.getLanguage("haskell");
- *     language.setLineComment("--");
+ *     language.setLineComment(["--"]);
  *     language.setBlockComment("{-", "-}");
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
@@ -234,6 +234,7 @@ define(function (require, exports, module) {
         
         this._fileExtensions    = [];
         this._modeToLanguageMap = {};
+        this._lineCommentSyntax = [];
     }
     
     
@@ -249,7 +250,7 @@ define(function (require, exports, module) {
     /** @type {Array.<string>} File extensions that use this language */
     Language.prototype._fileExtensions = null;
     
-    /** @type {{ prefix: string }} Line comment syntax */
+    /** @type {Array.<string>} Line comment syntax */
     Language.prototype._lineCommentSyntax = null;
     
     /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
@@ -384,25 +385,28 @@ define(function (require, exports, module) {
      * @return {boolean} Whether line comments are supported
      */
     Language.prototype.hasLineCommentSyntax = function () {
-        return Boolean(this._lineCommentSyntax);
+        return Boolean(this._lineCommentSyntax.length);
     };
     
     /**
      * Returns the prefix to use for line comments.
-     * @return {string} The prefix
+     * @return {Array.<string>} The prefixes
      */
     Language.prototype.getLineCommentPrefix = function () {
-        return this._lineCommentSyntax && this._lineCommentSyntax.prefix;
+        return this._lineCommentSyntax.length && this._lineCommentSyntax;
     };
 
     /**
      * Sets the prefix to use for line comments in this language.
-     * @param {!string} prefix Prefix string to use for block comments (i.e. "//")
+     * @param {!Array.<string>} prefixes Prefixes strings to use for line comments (i.e. ["//"])
      */
-    Language.prototype.setLineCommentSyntax = function (prefix) {
-        _validateNonEmptyString(prefix, "prefix");
-        
-        this._lineCommentSyntax = { prefix: prefix };
+    Language.prototype.setLineCommentSyntax = function (prefixes) {
+        var self = this;
+        prefixes.forEach(function (prefix) {
+            _validateNonEmptyString(prefix, "prefix");
+            
+            self._lineCommentSyntax.push(prefix);
+        });
     };
     
     /**
@@ -488,7 +492,7 @@ define(function (require, exports, module) {
      * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
      * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (i.e. ["<!--", "-->"])
-     * @param {string}                definition.lineComment    Line comment prefix (i.e. "//")
+     * @param {Array.<string>}        definition.lineComment    Array of multiple line comment prefixes (i.e. ["//"] or ["//", "#"])
      * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
