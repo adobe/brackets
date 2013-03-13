@@ -27,9 +27,6 @@
 /*
 
 TODO:
-- placing cursor inside ()
-  - only do it for url()
-  - move that code to UrlCodeHints extension?
 - handle @import
   - need to update CSSUtils
 - handle quotes inside url()
