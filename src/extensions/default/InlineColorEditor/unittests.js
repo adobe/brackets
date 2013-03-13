@@ -414,8 +414,8 @@ define(function (require, exports, module) {
                     runs(function () {
                         checkPercentageNear(colorEditor.$hueSelector.css("bottom"), 25);
                         checkPercentageNear(colorEditor.$opacitySelector.css("bottom"), 50);
-                        checkPercentageNear(colorEditor.$selectionBase.css("left"), 74);
-                        checkPercentageNear(colorEditor.$selectionBase.css("bottom"), 47);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.left, 74);  // $().css returns px instead of % (as authored)
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);// $().css returns px instead of % (as authored)
                     });
                 });
                 
@@ -439,8 +439,8 @@ define(function (require, exports, module) {
                     runs(function () {
                         checkPercentageNear(colorEditor.$hueSelector.css("bottom"), 25);
                         checkPercentageNear(colorEditor.$opacitySelector.css("bottom"), 50);
-                        checkPercentageNear(colorEditor.$selectionBase.css("left"), 74);
-                        checkPercentageNear(colorEditor.$selectionBase.css("bottom"), 47);
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.left, 74);  // $().css returns px instead of % (as authored)
+                        checkPercentageNear(colorEditor.$selectionBase[0].style.bottom, 47);// $().css returns px instead of % (as authored)
                     });
                 });
     

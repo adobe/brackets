@@ -591,7 +591,7 @@ define(function (require, exports, module) {
         case KeyEvent.DOM_VK_LEFT:
         case KeyEvent.DOM_VK_RIGHT:
             step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            xOffset = Number($.trim(this.$selectionBase.css("left").replace("%", "")));
+            xOffset = Number($.trim(this.$selectionBase[0].style.left.replace("%", ""))); // $().css returns px instead of % (as authored)
             adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_LEFT) ? (xOffset - step) : (xOffset + step);
             xOffset = Math.min(100, Math.max(0, adjustedOffset));
             hsv.s = xOffset / 100;
