@@ -256,6 +256,7 @@ define(function (require, exports, module) {
         $(inlineInfo.editor).on("change.InlineTextEditor", function (event, editor) {
             if (self.hostEditor.isFullyVisible()) {
                 self.sizeInlineWidgetToContents(true);
+                self._updateLineRange(editor);
             }
         });
         
