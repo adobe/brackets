@@ -48,10 +48,6 @@ define(function (require, exports, module) {
                 def.blockComment = [def.blockComment.prefix, def.blockComment.suffix];
             }
             
-            if (def.lineComment) {
-                def.lineComment = def.lineComment.prefix;
-            }
-            
             return LanguageManager.defineLanguage(definition.id, def);
         }
         
@@ -76,7 +72,7 @@ define(function (require, exports, module) {
             
             if (expected.lineComment) {
                 expect(actual.hasLineCommentSyntax()).toBe(true);
-                expect(actual.getLineCommentPrefix()).toBe(expected.lineComment.prefix);
+                expect(actual.getLineCommentPrefix()).toEqual(expected.lineComment);
             } else {
                 expect(actual.hasLineCommentSyntax()).toBe(false);
             }
@@ -234,19 +230,17 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 50);
                 
                 runs(function () {
-                    expect(function () { language.setLineCommentSyntax("");           }).toThrow(new Error("prefix must not be empty"));
+                    expect(function () { language.setLineCommentSyntax([""]);         }).toThrow(new Error("prefix must not be empty"));
                     expect(function () { language.setBlockCommentSyntax("<!---", ""); }).toThrow(new Error("suffix must not be empty"));
                     expect(function () { language.setBlockCommentSyntax("", "--->");  }).toThrow(new Error("prefix must not be empty"));
                     
-                    def.lineComment = {
-                        prefix: "//"
-                    };
+                    def.lineComment = ["//"];
                     def.blockComment = {
                         prefix: "<!---",
                         suffix: "--->"
                     };
                     
-                    language.setLineCommentSyntax(def.lineComment.prefix);
+                    language.setLineCommentSyntax(def.lineComment);
                     language.setBlockCommentSyntax(def.blockComment.prefix, def.blockComment.suffix);
                     
                     validateLanguage(def, language);
@@ -381,7 +375,7 @@ define(function (require, exports, module) {
                         name: "Shell",
                         mode: "shell",
                         fileExtensions: ["sh"],
-                        lineComment: "#"
+                        lineComment: ["#"]
                     }).done(function (language) {
                         shellLanguage = language;
                     });

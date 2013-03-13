@@ -401,12 +401,12 @@ define(function (require, exports, module) {
      * @param {!Array.<string>} prefixes Prefixes strings to use for line comments (i.e. ["//"])
      */
     Language.prototype.setLineCommentSyntax = function (prefixes) {
-        var self = this;
-        prefixes.forEach(function (prefix) {
-            _validateNonEmptyString(prefix, "prefix");
+        var self = this, i;
+        for (i = 0; i < prefixes.length; i++) {
+            _validateNonEmptyString(prefixes[i], "prefix");
             
-            self._lineCommentSyntax.push(prefix);
-        });
+            self._lineCommentSyntax.push(prefixes[i]);
+        }
     };
     
     /**
