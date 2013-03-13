@@ -65,6 +65,7 @@ define(function (require, exports, module) {
             expect(actual.getId()).toBe(expected.id);
             expect(actual.getName()).toBe(expected.name);
             expect(actual.getFileExtensions()).toEqual(expected.fileExtensions || []);
+            expect(actual.getFileNames()).toEqual(expected.fileNames || []);
             
             if (expected.blockComment) {
                 expect(actual.hasBlockCommentSyntax()).toBe(true);
@@ -85,7 +86,8 @@ define(function (require, exports, module) {
         describe("built-in languages", function () {
             
             it("should support built-in languages", function () {
-                var html = LanguageManager.getLanguage("html");
+                var html   = LanguageManager.getLanguage("html"),
+                    coffee = LanguageManager.getLanguage("coffeescript");
                 
                 // check basic language support
                 expect(html).not.toBeNull();
@@ -103,6 +105,16 @@ define(function (require, exports, module) {
                 };
                 
                 validateLanguage(def, html);
+                
+                def = {
+                    "id": "coffeescript",
+                    "name": "CoffeeScript",
+                    "mode": "coffeescript",
+                    "fileExtensions": ["coffee", "cf", "cson"],
+                    "fileNames": ["cakefile"]
+                };
+
+                validateLanguage(def, coffee);
             });
             
         });
@@ -120,11 +132,20 @@ define(function (require, exports, module) {
                 var html    = LanguageManager.getLanguage("html"),
                     unknown = LanguageManager.getLanguage("unknown");
                 
-                expect(LanguageManager.getLanguageForFileExtension("foo.html")).toBe(html);
-                expect(LanguageManager.getLanguageForFileExtension("INDEX.HTML")).toBe(html);
-                expect(LanguageManager.getLanguageForFileExtension("foo.doesNotExist")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.html")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("INDEX.HTML")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("foo.doesNotExist")).toBe(unknown);
             });
             
+            it("should map file names to languages", function () {
+                var coffee  = LanguageManager.getLanguage("coffeescript"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("cakefile")).toBe(coffee);
+                expect(LanguageManager.getLanguageForPath("CakeFiLE")).toBe(coffee);
+                expect(LanguageManager.getLanguageForPath("cakefile.doesNotExist")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("Something.cakefile")).toBe(unknown);
+            });
         });
 
         describe("defineLanguage", function () {
@@ -176,7 +197,7 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 50);
                 
                 runs(function () {
-                    expect(LanguageManager.getLanguageForFileExtension("file.p")).toBe(language);
+                    expect(LanguageManager.getLanguageForPath("file.p")).toBe(language);
                     validateLanguage(def, language);
                 });
             });
@@ -202,8 +223,8 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(xmlBefore).toBe(xmlAfter);
-                    expect(LanguageManager.getLanguageForFileExtension("file.wix")).toBe(lang);
-                    expect(LanguageManager.getLanguageForFileExtension("file.xml")).toBe(xmlAfter);
+                    expect(LanguageManager.getLanguageForPath("file.wix")).toBe(lang);
+                    expect(LanguageManager.getLanguageForPath("file.xml")).toBe(xmlAfter);
                     
                     validateLanguage(def, lang);
                 });
@@ -272,7 +293,7 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 50);
                 
                 runs(function () {
-                    expect(LanguageManager.getLanguageForFileExtension("file.erlang")).toBe(language);
+                    expect(LanguageManager.getLanguageForPath("file.erlang")).toBe(language);
                     validateLanguage(def, language);
                 });
                 
