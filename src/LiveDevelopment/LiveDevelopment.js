@@ -788,6 +788,9 @@ define(function LiveDevelopment(require, exports, module) {
         _serverProvider = serverProvider;
     }
 
+    // Initialize exports.status
+    _setStatus(STATUS_INACTIVE);
+
     // For unit testing
     exports._pathToUrl          = _pathToUrl;
     exports._urlToPath          = _urlToPath;

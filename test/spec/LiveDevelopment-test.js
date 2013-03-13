@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         LiveDevelopment,
         LiveDevServerManager,
         DOMAgent,
-        Inspector,
         DocumentManager,
         ProjectManager;
     
@@ -70,7 +69,7 @@ define(function (require, exports, module) {
             browserText;
         
         //verify we aren't currently connected
-        expect(Inspector.connected()).toBeFalsy();
+        expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
         
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles");
@@ -134,7 +133,6 @@ define(function (require, exports, module) {
                         LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
                         LiveDevServerManager = testWindow.brackets.test.LiveDevServerManager;
                         DOMAgent             = testWindow.brackets.test.DOMAgent;
-                        Inspector            = testWindow.brackets.test.Inspector;
                         DocumentManager      = testWindow.brackets.test.DocumentManager;
                         CommandManager       = testWindow.brackets.test.CommandManager;
                         Commands             = testWindow.brackets.test.Commands;
@@ -151,14 +149,16 @@ define(function (require, exports, module) {
                     LiveDevelopment.close();
                 });
 
-                waitsFor(function () { return !Inspector.connected(); }, "Waiting to close inspector", 10000);
+                waitsFor(function () {
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_INACTIVE);
+                }, "Waiting for browser to become inactive", 10000);
 
                 SpecRunnerUtils.closeTestWindow();
             });
             
             it("should establish a browser connection for an opened html file", function () {
                 //verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 //open a file
                 runs(function () {
@@ -169,10 +169,12 @@ define(function (require, exports, module) {
                 runs(function () {
                     LiveDevelopment.open();
                 });
-                waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
+                waitsFor(function () {
+                    return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
+                }, "Waiting for browser to become active", 10000);
  
                 runs(function () {
-                    expect(Inspector.connected()).toBeTruthy();
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
                     //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
@@ -184,7 +186,7 @@ define(function (require, exports, module) {
             
             it("should should not start a browser connection for an opened css file", function () {
                 //verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 //open a file
                 runs(function () {
@@ -200,7 +202,7 @@ define(function (require, exports, module) {
                 waits(1000);
  
                 runs(function () {
-                    expect(Inspector.connected()).toBeFalsy();
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
 
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.css");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
@@ -220,7 +222,7 @@ define(function (require, exports, module) {
                     browserText;
                 
                 //verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 var cssOpened = false;
                 runs(function () {
@@ -277,7 +279,7 @@ define(function (require, exports, module) {
                     htmlDoc;
                 
                 // verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
+                expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 var cssOpened = false;
                 runs(function () {
