@@ -86,7 +86,8 @@ define(function (require, exports, module) {
         describe("built-in languages", function () {
             
             it("should support built-in languages", function () {
-                var html = LanguageManager.getLanguage("html");
+                var html   = LanguageManager.getLanguage("html"),
+                    coffee = LanguageManager.getLanguage("coffeescript");
                 
                 // check basic language support
                 expect(html).not.toBeNull();
@@ -104,6 +105,16 @@ define(function (require, exports, module) {
                 };
                 
                 validateLanguage(def, html);
+                
+                def = {
+                    "id": "coffeescript",
+                    "name": "CoffeeScript",
+                    "mode": "coffeescript",
+                    "fileExtensions": ["coffee", "cf", "cson"],
+                    "fileNames": ["cakefile"]
+                };
+
+                validateLanguage(def, coffee);
             });
             
         });
