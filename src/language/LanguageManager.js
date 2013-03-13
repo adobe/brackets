@@ -42,10 +42,18 @@
  *         lineComment: "--"
  *     });
  *
- * To use that language and it's related mode, wait for the returned promise to be resolved:
+ * To use that language and its related mode, wait for the returned promise to be resolved:
  *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
  *         console.log("Language " + language.getName() + " is now available!");
  *     });
+ *
+ * You can also specify file names:
+ *     LanguageManager.defineLanguage("makefile", {
+ *         name: "Make",
+ *         mode: ["null", "text/plain"],
+ *         fileNames: ["Makefile"]
+ *     });
+ * You can combine file names and extensions, or not define them at all.
  *
  * You can also refine an existing language. Currently you can only set the comment styles:
  *     var language = LanguageManager.getLanguage("haskell");
@@ -185,13 +193,11 @@ define(function (require, exports, module) {
      */
     function getLanguageForPath(path) {
         var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
-            filename  = PathUtils.filename(path),
-            language  = extension ? _fileExtensionToLanguageMap[extension] 
-                                  : _fileNameToLanguageMap[filename];
+            filename  = PathUtils.filename(path).toLowerCase(),
+            language  = extension ? _fileExtensionToLanguageMap[extension] : _fileNameToLanguageMap[filename];
         
         if (!language) {
-            extension ? console.log("Called LanguageManager.getLanguageForPath with an unhandled file extension:", extension)
-                      : console.log("Called LanguageManager.getLanguageForPath with an unhandled file name:", filename);
+            console.log("Called LanguageManager.getLanguageForPath with an unhandled " + (extension ? "file extension" : "file name") + ":", extension || filename);
         }
         
         return language || _fallbackLanguage;
