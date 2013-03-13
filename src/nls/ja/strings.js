@@ -211,6 +211,8 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
+	"CMD_SCROLL_LINE_UP": "!能=[6735595] Scroll Line Up_=!",
+	"CMD_SCROLL_LINE_DOWN": "!能=[6735594] Scroll Line Down_=!",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
