@@ -137,6 +137,21 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("foo.doesNotExist")).toBe(unknown);
             });
             
+            it("should map complex file extensions to languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    html    = LanguageManager.getLanguage("html"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(unknown);
+                
+                html._addFileExtension("html.erb");
+                ruby._addFileExtension("erb");
+                
+                expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(ruby);
+            });
+            
             it("should map file names to languages", function () {
                 var coffee  = LanguageManager.getLanguage("coffeescript"),
                     unknown = LanguageManager.getLanguage("unknown");
