@@ -98,7 +98,7 @@ define(function (require, exports, module) {
     /**
      * Unique PreferencesManager clientID
      */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.DocumentManager";
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     
     /**
      * @private
@@ -952,8 +952,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
-        var ext = PathUtils.filenameExtension(this.file.fullPath);
-        this.language = LanguageManager.getLanguageForFileExtension(ext);
+        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
@@ -1263,6 +1262,8 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.DocumentManager");
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");

@@ -117,25 +117,25 @@ define(function (require, exports, module) {
             
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("file:///only/testing/the/path.html").getMode();
+                var mode = LanguageManager.getLanguageForPath("file:///only/testing/the/path.html").getMode();
                 expect(mode).toSpecifyModeNamed("text/x-brackets-html");
             });
             
             it("should switch modes even if the url has a query string", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("http://only.org/testing/the/path.css?v=2").getMode();
+                var mode = LanguageManager.getLanguageForPath("http://only.org/testing/the/path.css?v=2").getMode();
                 expect(mode).toSpecifyModeNamed(langNames.css.mode);
             });
             
             it("should accept just a file name too", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("path.js").getMode();
+                var mode = LanguageManager.getLanguageForPath("path.js").getMode();
                 expect(mode).toSpecifyModeNamed(langNames.javascript.mode);
             });
 
             it("should default to plain text for unknown file extensions", function () {
                 // verify editor content
-                var mode = LanguageManager.getLanguageForFileExtension("test.foo").getMode();
+                var mode = LanguageManager.getLanguageForPath("test.foo").getMode();
                 
                 // "unknown" mode uses it's MIME type instead
                 expect(mode).toBe("text/plain");

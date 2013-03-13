@@ -224,14 +224,14 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
-        if ((key === null) || HintUtils.maybeIdentifier(key)) {
+        if (session && ((key === null) || HintUtils.maybeIdentifier(key))) {
             var cursor  = session.getCursor(),
                 token   = session.getToken(cursor);
 
             // don't autocomplete within strings or comments, etc.
             if (token && HintUtils.hintable(token)) {
                 var offset = session.getOffset();
-                
+
                 // Invalidate cached information if: 1) no scope exists; 2) the
                 // cursor has moved a line; 3) the scope is dirty; or 4) if the
                 // cursor has moved into a different scope. Cached information
@@ -385,10 +385,6 @@ define(function (require, exports, module) {
         function initializeSession(editor) {
             ScopeManager.handleEditorChange(editor.document);
             session = new Session(editor);
-            cachedScope = null;
-            cachedLine = null;
-            cachedHints = null;
-            cachedType = null;
         }
 
         /*
@@ -398,16 +394,20 @@ define(function (require, exports, module) {
          *      changes
          */
         function installEditorListeners(editor) {
-            if (!editor) {
-                return;
-            }
-            
-            if (editor.getModeForSelection() === HintUtils.MODE_NAME) {
+            // always clean up cached scope and hint info
+            cachedScope = null;
+            cachedLine = null;
+            cachedHints = null;
+            cachedType = null;
+
+            if (editor && editor.getModeForDocument() === HintUtils.MODE_NAME) {
                 initializeSession(editor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function () {
                         ScopeManager.handleFileChange(editor.document);
                     });
+            } else {
+                session = null;
             }
         }
 

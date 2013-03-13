@@ -42,10 +42,18 @@
  *         lineComment: "--"
  *     });
  *
- * To use that language and it's related mode, wait for the returned promise to be resolved:
+ * To use that language and its related mode, wait for the returned promise to be resolved:
  *     LanguageManager.defineLanguage("haskell", definition).done(function (language) {
  *         console.log("Language " + language.getName() + " is now available!");
  *     });
+ *
+ * You can also specify file names:
+ *     LanguageManager.defineLanguage("makefile", {
+ *         name: "Make",
+ *         mode: ["null", "text/plain"],
+ *         fileNames: ["Makefile"]
+ *     });
+ * You can combine file names and extensions, or not define them at all.
  *
  * You can also refine an existing language. Currently you can only set the comment styles:
  *     var language = LanguageManager.getLanguage("haskell");
@@ -95,6 +103,7 @@ define(function (require, exports, module) {
         _pendingLanguages           = {},
         _languages                  = {},
         _fileExtensionToLanguageMap = {},
+        _fileNameToLanguageMap      = {},
         _modeToLanguageMap          = {},
         _ready;
     
@@ -178,16 +187,17 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Resolves a file extension to a Language object.
-     * @param {!string} path Path to or extension of the file to find a language for
+     * Resolves a file path to a Language object.
+     * @param {!string} path Path to the file to find a language for
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageForFileExtension(path) {
+    function getLanguageForPath(path) {
         var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
-            language  = _fileExtensionToLanguageMap[extension];
+            filename  = PathUtils.filename(path).toLowerCase(),
+            language  = extension ? _fileExtensionToLanguageMap[extension] : _fileNameToLanguageMap[filename];
         
         if (!language) {
-            console.log("Called LanguageManager.getLanguageForFileExtension with an unhandled file extension:", extension);
+            console.log("Called LanguageManager.getLanguageForPath with an unhandled " + (extension ? "file extension" : "file name") + ":", extension || filename);
         }
         
         return language || _fallbackLanguage;
@@ -254,6 +264,7 @@ define(function (require, exports, module) {
         this._name = name;
         
         this._fileExtensions    = [];
+        this._fileNames         = [];
         this._modeToLanguageMap = {};
     }
     
@@ -269,6 +280,9 @@ define(function (require, exports, module) {
     
     /** @type {Array.<string>} File extensions that use this language */
     Language.prototype._fileExtensions = null;
+    
+    /** @type {Array.<string>} File names for extensionless files that use this language */
+    Language.prototype._fileNames = null;
     
     /** @type {{ prefix: string }} Line comment syntax */
     Language.prototype._lineCommentSyntax = null;
@@ -373,6 +387,15 @@ define(function (require, exports, module) {
         // Use concat to create a copy of this array, preventing external modification
         return this._fileExtensions.concat();
     };
+    
+    /**
+     * Returns an array of file names for extensionless files that use this language.
+     * @return {Array.<string>} Extensionless file names used by this language
+     */
+    Language.prototype.getFileNames = function () {
+        // Use concat to create a copy of this array, preventing external modification
+        return this._fileNames.concat();
+    };
 
     /**
      * Adds a file extension to this language.
@@ -391,11 +414,30 @@ define(function (require, exports, module) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
-                
-                // TODO (issue #2966) Allow extensions to add new file extensions to existing languages
-                // Notify on the Language and on LanguageManager?
-                // $(this).triggerHandler("fileExtensionAdded", [extension]);
-                // $(exports).triggerHandler("fileExtensionAdded", [extension, this]);
+            }
+            
+            this._wasModified();
+        }
+    };
+
+    /**
+     * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
+     * Private for now since dependent code would need to by kept in sync with such changes.
+     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
+     * @param {!string} extension An extensionless file name used by this language
+     * @private
+     */
+    Language.prototype.addFileName = function (name) {
+        name = name.toLowerCase();
+        
+        if (this._fileNames.indexOf(name) === -1) {
+            this._fileNames.push(name);
+            
+            var language = _fileNameToLanguageMap[name];
+            if (language) {
+                console.warn("Cannot register file name \"" + name + "\" for " + this._name + ", it already belongs to " + language._name);
+            } else {
+                _fileNameToLanguageMap[name] = this;
             }
             
             this._wasModified();
@@ -538,6 +580,8 @@ define(function (require, exports, module) {
         
         var language = new Language(id, definition.name),
             fileExtensions = definition.fileExtensions,
+            fileNames = definition.fileNames,
+            l,
             i;
         
         var blockComment = definition.blockComment;
@@ -556,8 +600,15 @@ define(function (require, exports, module) {
         language._loadAndSetMode(definition.mode).done(function () {
             // register language file extensions after mode has loaded
             if (fileExtensions) {
-                for (i = 0; i < fileExtensions.length; i++) {
+                for (i = 0, l = fileExtensions.length; i < l; i++) {
                     language.addFileExtension(fileExtensions[i]);
+                }
+            }
+            
+            // register language file names after mode has loaded
+            if (fileNames) {
+                for (i = 0, l = fileNames.length; i < l; i++) {
+                    language.addFileName(fileNames[i]);
                 }
             }
                 
@@ -615,8 +666,8 @@ define(function (require, exports, module) {
     });
     
     // Public methods
-    exports.ready                        = _ready;
-    exports.defineLanguage               = defineLanguage;
-    exports.getLanguage                  = getLanguage;
-    exports.getLanguageForFileExtension  = getLanguageForFileExtension;
+    exports.ready                   = _ready;
+    exports.defineLanguage          = defineLanguage;
+    exports.getLanguage             = getLanguage;
+    exports.getLanguageForPath      = getLanguageForPath;
 });
