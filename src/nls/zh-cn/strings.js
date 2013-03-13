@@ -60,7 +60,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 尝试在浏览器中运行失败.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} 是内置HTML, 现在作为一个桌面程序运行你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>,然后重新运行 {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "索引文件错误",
@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要指定一个预览用的URL地址.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "尝试启动HTTP服务器时出现错误,请再试一次.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎来到实时预览!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}已通过实时预览连接至你的浏览器. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
@@ -90,9 +90,9 @@ define({
     "SAVE_CLOSE_TITLE"                  : "保存选择",
     "SAVE_CLOSE_MESSAGE"                : "保存文件中所做的修改 <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改?",
-    "EXT_MODIFIED_TITLE"                : "External Changes",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    "EXT_MODIFIED_TITLE"                : "外部文件发生变化",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> 已产生了外部修改,但是你有未保存的内容 {APP_NAME}.<br /><br />你准备选哪一个?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> 已被删除,但是你有未保存的内容 {APP_NAME}.<br /><br />是否保存你的修改?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "使用正则表达式进行搜索,范例:/re/",
@@ -211,10 +211,12 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "放大编辑器字体",
     "CMD_DECREASE_FONT_SIZE"              : "缩小编辑器字体",
     "CMD_RESTORE_FONT_SIZE"               : "恢复编辑器默认字体",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_SCROLL_LINE_UP"                  : "向上滚动",
+    "CMD_SCROLL_LINE_DOWN"                : "向下滚动",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "根据添加时间排序",
+    "CMD_SORT_WORKINGSET_BY_NAME"         : "根据名称排序",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "根据类型排序",
+    "CMD_SORT_WORKINGSET_AUTO"            : "自动排序",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "导航",
@@ -279,22 +281,22 @@ define({
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明<a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a>以此作为参考.",
     "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
-    "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
-    "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
+    "ABOUT_TEXT_LINE5"                     : "参与设计的有很多人是把 \u2764 跟 JavaScript by:",
+    "ABOUT_TEXT_LINE6"                     : "有很多很多相当多的人,我这里就不给你看了,可以去Github上看吧.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新的 {APP_NAME}!点此查看详情.",
     "UPDATE_AVAILABLE_TITLE"               : "可以更新",
-    "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
+    "UPDATE_MESSAGE"                       : "有一个新的 {APP_NAME} .增加了一些功能:",
     "GET_IT_NOW"                           : "现在获取!",
     "PROJECT_SETTINGS_TITLE"               : "项目设置: {0}",
-    "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(to use a local server, specify url)",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "The {0} protocol isn't supported by Live Preview&mdash;please use http: or https: .",
-    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
-    "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
+    "PROJECT_SETTING_BASE_URL"             : "在线预览基本地址",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(使用本地服务器,并且指定一个URL)",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "实时预览不支持此协议 {0} &mdash;请使用 http: 或 https: .",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "地址不能包含搜索参数如 \"{0}\".",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含哈希如 \"{0}\".",
+    "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "解析地址错误,请确认地址格式",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
