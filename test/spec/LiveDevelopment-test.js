@@ -80,10 +80,11 @@ define(function (require, exports, module) {
         runs(function () {
             LiveDevelopment.open();
         });
-        waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
         
         // Wait for the file and its stylesheets to fully load (and be communicated back).
-        waits(1000);
+        waitsFor(function () {
+            return (LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE);
+        }, "Waiting for browser to become active", 10000);
         
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles");
