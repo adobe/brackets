@@ -2547,7 +2547,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 					.undelegate(".jstree")
 					.removeData("jstree_instance_id")
 					.find("[class^='jstree']")
-						.addBack()
+						.andSelf()
 						.attr("class", function () { return this.className.replace(/jstree[^ ]*|$/ig,''); });
 				$(document)
 					.unbind(".jstree-" + n)
@@ -2790,7 +2790,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				}
 				else {
 					original_obj = obj;
-					if(obj.is(".jstree-closed")) { obj = obj.find("li.jstree-closed").addBack(); }
+					if(obj.is(".jstree-closed")) { obj = obj.find("li.jstree-closed").andSelf(); }
 					else { obj = obj.find("li.jstree-closed"); }
 				}
 				var _this = this;
@@ -2806,12 +2806,12 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				var _this = this;
 				obj = obj ? this._get_node(obj) : this.get_container();
 				if(!obj || obj === -1) { obj = this.get_container_ul(); }
-				obj.find("li.jstree-open").addBack().each(function () { _this.close_node(this, !do_animation); });
+				obj.find("li.jstree-open").andSelf().each(function () { _this.close_node(this, !do_animation); });
 				this.__callback({ "obj" : obj });
 			},
 			clean_node	: function (obj) {
 				obj = obj && obj != -1 ? $(obj) : this.get_container_ul();
-				obj = obj.is("li") ? obj.find("li").addBack() : obj.find("li");
+				obj = obj.is("li") ? obj.find("li").andSelf() : obj.find("li");
 				obj.removeClass("jstree-last")
 					.filter("li:last-child").addClass("jstree-last").end()
 					.filter(":has(li)")
@@ -3035,7 +3035,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				if(!obj || !obj.o || obj.or[0] === obj.o[0]) { return false; }
 				if(obj.op && obj.np && obj.op[0] === obj.np[0] && obj.cp - 1 === obj.o.index()) { return false; }
 				obj.o.each(function () { 
-					if(r.parentsUntil(".jstree", "li").addBack().index(this) !== -1) { ret = false; return false; }
+					if(r.parentsUntil(".jstree", "li").andSelf().index(this) !== -1) { ret = false; return false; }
 				});
 				return ret;
 			},
@@ -3054,7 +3054,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				var o = false;
 				if(is_copy) {
 					o = obj.o.clone(true);
-					o.find("*[id]").addBack().each(function () {
+					o.find("*[id]").andSelf().each(function () {
 						if(this.id) { this.id = "copy_" + this.id; }
 					});
 				}
@@ -3252,7 +3252,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 					switch(!0) {
 						case (is_range):
 							this.data.ui.last_selected.addClass("jstree-last-selected");
-							obj = obj[ obj.index() < this.data.ui.last_selected.index() ? "nextUntil" : "prevUntil" ](".jstree-last-selected").addBack();
+							obj = obj[ obj.index() < this.data.ui.last_selected.index() ? "nextUntil" : "prevUntil" ](".jstree-last-selected").andSelf();
 							if(s.select_limit == -1 || obj.length < s.select_limit) {
 								this.data.ui.last_selected.removeClass("jstree-last-selected");
 								this.data.ui.selected.each(function () {
@@ -3356,7 +3356,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				.bind("move_node.jstree", $.proxy(function (e, data) {
 					if(this._get_settings().crrm.move.open_onmove) {
 						var t = this;
-						data.rslt.np.parentsUntil(".jstree").addBack().filter(".jstree-closed").each(function () {
+						data.rslt.np.parentsUntil(".jstree").andSelf().filter(".jstree-closed").each(function () {
 							t.open_node(this, false, true);
 						});
 					}
@@ -4913,7 +4913,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				obj.each(function () {
 					t = $(this);
 					c = t.is("li") && (t.hasClass("jstree-checked") || (rc && t.children(":checked").length)) ? "jstree-checked" : "jstree-unchecked";
-					t.find("li").addBack().each(function () {
+					t.find("li").andSelf().each(function () {
 						var $t = $(this), nm;
 						$t.children("a" + (_this.data.languages ? "" : ":eq(0)") ).not(":has(.jstree-checkbox)").prepend("<ins class='jstree-checkbox'>&#160;</ins>").parent().not(".jstree-checked, .jstree-unchecked").addClass( ts ? "jstree-unchecked" : c );
 						if(rc) {
@@ -4927,7 +4927,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 						}
 						if(!ts) {
 							if(c === "jstree-checked" || $t.hasClass("jstree-checked") || $t.children(':checked').length) {
-								$t.find("li").addBack().addClass("jstree-checked").children(":checkbox").prop("checked", true);
+								$t.find("li").andSelf().addClass("jstree-checked").children(":checkbox").prop("checked", true);
 							}
 						}
 						else {
@@ -4958,13 +4958,13 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				}
 				else {
 					if(state) { 
-						coll = obj.find("li").addBack();
+						coll = obj.find("li").andSelf();
 						if(!coll.filter(".jstree-checked, .jstree-undetermined").length) { return false; }
 						coll.removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked"); 
 						if(rc) { coll.children(":checkbox").prop("checked", false); }
 					}
 					else { 
-						coll = obj.find("li").addBack();
+						coll = obj.find("li").andSelf();
 						if(!coll.filter(".jstree-unchecked, .jstree-undetermined").length) { return false; }
 						coll.removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked"); 
 						if(rc) { coll.children(":checkbox").prop("checked", true); }
@@ -4975,8 +4975,8 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 						var $this = $(this);
 						if(state) {
 							if($this.children("ul").children("li.jstree-checked, li.jstree-undetermined").length) {
-								$this.parentsUntil(".jstree", "li").addBack().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-								if(rc) { $this.parentsUntil(".jstree", "li").addBack().children(":checkbox").prop("checked", false); }
+								$this.parentsUntil(".jstree", "li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
+								if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
 								return false;
 							}
 							else {
@@ -4986,8 +4986,8 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 						}
 						else {
 							if($this.children("ul").children("li.jstree-unchecked, li.jstree-undetermined").length) {
-								$this.parentsUntil(".jstree", "li").addBack().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-								if(rc) { $this.parentsUntil(".jstree", "li").addBack().children(":checkbox").prop("checked", false); }
+								$this.parentsUntil(".jstree", "li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
+								if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
 								return false;
 							}
 							else {
@@ -5051,7 +5051,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				obj = this._get_node(obj);
 				if(!obj.length) { return; }
 				if(this._get_settings().checkbox.two_state) {
-					obj.find('li').addBack().not('.jstree-checked').removeClass('jstree-undetermined').addClass('jstree-unchecked').children(':checkbox').prop('checked', true);
+					obj.find('li').andSelf().not('.jstree-checked').removeClass('jstree-undetermined').addClass('jstree-unchecked').children(':checkbox').prop('checked', true);
 					return;
 				}
 				var rc = this._get_settings().checkbox.real_checkboxes,
@@ -5062,8 +5062,8 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				else if(a === 0 && b === 0) { this.change_state(obj, true); }
 				else if(a === c) { this.change_state(obj, false); }
 				else { 
-					obj.parentsUntil(".jstree","li").addBack().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-					if(rc) { obj.parentsUntil(".jstree", "li").addBack().children(":checkbox").prop("checked", false); }
+					obj.parentsUntil(".jstree","li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
+					if(rc) { obj.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
 				}
 			},
 			reselect : function () {
@@ -5533,7 +5533,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				this.get_container()
 					.bind("search.jstree", function (e, data) {
 						$(this).children("ul").find("li").hide().removeClass("jstree-last");
-						data.rslt.nodes.parentsUntil(".jstree").addBack().show()
+						data.rslt.nodes.parentsUntil(".jstree").andSelf().show()
 							.filter("ul").each(function () { $(this).children("li:visible").eq(-1).addClass("jstree-last"); });
 					})
 					.bind("clear_search.jstree", function () {
@@ -6119,7 +6119,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 			// this used to use html() and clean the whitespace, but this way any attached data was lost
 			this.data.html_data.original_container_html = this.get_container().find(" > ul > li").clone(true);
 			// remove white space from LI node - otherwise nodes appear a bit to the right
-			this.data.html_data.original_container_html.find("li").addBack().contents().filter(function() { return this.nodeType == 3; }).remove();
+			this.data.html_data.original_container_html.find("li").andSelf().contents().filter(function() { return this.nodeType == 3; }).remove();
 		},
 		defaults : { 
 			data : false,
@@ -6545,7 +6545,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
 				obj = !obj || obj == -1 ? this.get_container().find("> ul > li") : this._get_node(obj);
 				if(obj === false) { return; } // added for removing root nodes
 				obj.each(function () {
-					$(this).find("li").addBack().each(function () {
+					$(this).find("li").andSelf().each(function () {
 						var $t = $(this);
 						if($t.children(".jstree-wholerow-span").length) { return true; }
 						$t.prepend("<span class='jstree-wholerow-span' style='width:" + ($t.parentsUntil(".jstree","li").length * 18) + "px;'>&#160;</span>");
@@ -20365,7 +20365,7 @@ define('LiveDevelopment/Inspector/Inspector',['require','exports','module'],func
         _connectDeferred = deferred;
         var promise = getAvailableSockets();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.state() === "rejected") {
+            if (deferred.isRejected()) {
                 return;
             }
             var i, page;
@@ -40801,7 +40801,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                     .undelegate(".jstree")
                     .removeData("jstree_instance_id")
                     .find("[class^='jstree']")
-                        .addBack()
+                        .andSelf()
                         .attr("class", function () { return this.className.replace(/jstree[^ ]*|$/ig,''); });
                 $(document)
                     .unbind(".jstree-" + n)
@@ -41044,7 +41044,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 }
                 else {
                     original_obj = obj;
-                    if(obj.is(".jstree-closed")) { obj = obj.find("li.jstree-closed").addBack(); }
+                    if(obj.is(".jstree-closed")) { obj = obj.find("li.jstree-closed").andSelf(); }
                     else { obj = obj.find("li.jstree-closed"); }
                 }
                 var _this = this;
@@ -41060,12 +41060,12 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 var _this = this;
                 obj = obj ? this._get_node(obj) : this.get_container();
                 if(!obj || obj === -1) { obj = this.get_container_ul(); }
-                obj.find("li.jstree-open").addBack().each(function () { _this.close_node(this, !do_animation); });
+                obj.find("li.jstree-open").andSelf().each(function () { _this.close_node(this, !do_animation); });
                 this.__callback({ "obj" : obj });
             },
             clean_node  : function (obj) {
                 obj = obj && obj != -1 ? $(obj) : this.get_container_ul();
-                obj = obj.is("li") ? obj.find("li").addBack() : obj.find("li");
+                obj = obj.is("li") ? obj.find("li").andSelf() : obj.find("li");
                 obj.removeClass("jstree-last")
                     .filter("li:last-child").addClass("jstree-last").end()
                     .filter(":has(li)")
@@ -41289,7 +41289,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 if(!obj || !obj.o || obj.or[0] === obj.o[0]) { return false; }
                 if(obj.op && obj.np && obj.op[0] === obj.np[0] && obj.cp - 1 === obj.o.index()) { return false; }
                 obj.o.each(function () { 
-                    if(r.parentsUntil(".jstree", "li").addBack().index(this) !== -1) { ret = false; return false; }
+                    if(r.parentsUntil(".jstree", "li").andSelf().index(this) !== -1) { ret = false; return false; }
                 });
                 return ret;
             },
@@ -41308,7 +41308,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 var o = false;
                 if(is_copy) {
                     o = obj.o.clone(true);
-                    o.find("*[id]").addBack().each(function () {
+                    o.find("*[id]").andSelf().each(function () {
                         if(this.id) { this.id = "copy_" + this.id; }
                     });
                 }
@@ -41506,7 +41506,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                     switch(!0) {
                         case (is_range):
                             this.data.ui.last_selected.addClass("jstree-last-selected");
-                            obj = obj[ obj.index() < this.data.ui.last_selected.index() ? "nextUntil" : "prevUntil" ](".jstree-last-selected").addBack();
+                            obj = obj[ obj.index() < this.data.ui.last_selected.index() ? "nextUntil" : "prevUntil" ](".jstree-last-selected").andSelf();
                             if(s.select_limit == -1 || obj.length < s.select_limit) {
                                 this.data.ui.last_selected.removeClass("jstree-last-selected");
                                 this.data.ui.selected.each(function () {
@@ -41610,7 +41610,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 .bind("move_node.jstree", $.proxy(function (e, data) {
                     if(this._get_settings().crrm.move.open_onmove) {
                         var t = this;
-                        data.rslt.np.parentsUntil(".jstree").addBack().filter(".jstree-closed").each(function () {
+                        data.rslt.np.parentsUntil(".jstree").andSelf().filter(".jstree-closed").each(function () {
                             t.open_node(this, false, true);
                         });
                     }
@@ -43167,7 +43167,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 obj.each(function () {
                     t = $(this);
                     c = t.is("li") && (t.hasClass("jstree-checked") || (rc && t.children(":checked").length)) ? "jstree-checked" : "jstree-unchecked";
-                    t.find("li").addBack().each(function () {
+                    t.find("li").andSelf().each(function () {
                         var $t = $(this), nm;
                         $t.children("a" + (_this.data.languages ? "" : ":eq(0)") ).not(":has(.jstree-checkbox)").prepend("<ins class='jstree-checkbox'>&#160;</ins>").parent().not(".jstree-checked, .jstree-unchecked").addClass( ts ? "jstree-unchecked" : c );
                         if(rc) {
@@ -43181,7 +43181,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                         }
                         if(!ts) {
                             if(c === "jstree-checked" || $t.hasClass("jstree-checked") || $t.children(':checked').length) {
-                                $t.find("li").addBack().addClass("jstree-checked").children(":checkbox").prop("checked", true);
+                                $t.find("li").andSelf().addClass("jstree-checked").children(":checkbox").prop("checked", true);
                             }
                         }
                         else {
@@ -43212,13 +43212,13 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 }
                 else {
                     if(state) { 
-                        coll = obj.find("li").addBack();
+                        coll = obj.find("li").andSelf();
                         if(!coll.filter(".jstree-checked, .jstree-undetermined").length) { return false; }
                         coll.removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked"); 
                         if(rc) { coll.children(":checkbox").prop("checked", false); }
                     }
                     else { 
-                        coll = obj.find("li").addBack();
+                        coll = obj.find("li").andSelf();
                         if(!coll.filter(".jstree-unchecked, .jstree-undetermined").length) { return false; }
                         coll.removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked"); 
                         if(rc) { coll.children(":checkbox").prop("checked", true); }
@@ -43229,8 +43229,8 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                         var $this = $(this);
                         if(state) {
                             if($this.children("ul").children("li.jstree-checked, li.jstree-undetermined").length) {
-                                $this.parentsUntil(".jstree", "li").addBack().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-                                if(rc) { $this.parentsUntil(".jstree", "li").addBack().children(":checkbox").prop("checked", false); }
+                                $this.parentsUntil(".jstree", "li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
+                                if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
                                 return false;
                             }
                             else {
@@ -43240,8 +43240,8 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                         }
                         else {
                             if($this.children("ul").children("li.jstree-unchecked, li.jstree-undetermined").length) {
-                                $this.parentsUntil(".jstree", "li").addBack().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-                                if(rc) { $this.parentsUntil(".jstree", "li").addBack().children(":checkbox").prop("checked", false); }
+                                $this.parentsUntil(".jstree", "li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
+                                if(rc) { $this.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
                                 return false;
                             }
                             else {
@@ -43305,7 +43305,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 obj = this._get_node(obj);
                 if(!obj.length) { return; }
                 if(this._get_settings().checkbox.two_state) {
-                    obj.find('li').addBack().not('.jstree-checked').removeClass('jstree-undetermined').addClass('jstree-unchecked').children(':checkbox').prop('checked', true);
+                    obj.find('li').andSelf().not('.jstree-checked').removeClass('jstree-undetermined').addClass('jstree-unchecked').children(':checkbox').prop('checked', true);
                     return;
                 }
                 var rc = this._get_settings().checkbox.real_checkboxes,
@@ -43316,8 +43316,8 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 else if(a === 0 && b === 0) { this.change_state(obj, true); }
                 else if(a === c) { this.change_state(obj, false); }
                 else { 
-                    obj.parentsUntil(".jstree","li").addBack().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
-                    if(rc) { obj.parentsUntil(".jstree", "li").addBack().children(":checkbox").prop("checked", false); }
+                    obj.parentsUntil(".jstree","li").andSelf().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
+                    if(rc) { obj.parentsUntil(".jstree", "li").andSelf().children(":checkbox").prop("checked", false); }
                 }
             },
             reselect : function () {
@@ -43787,7 +43787,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 this.get_container()
                     .bind("search.jstree", function (e, data) {
                         $(this).children("ul").find("li").hide().removeClass("jstree-last");
-                        data.rslt.nodes.parentsUntil(".jstree").addBack().show()
+                        data.rslt.nodes.parentsUntil(".jstree").andSelf().show()
                             .filter("ul").each(function () { $(this).children("li:visible").eq(-1).addClass("jstree-last"); });
                     })
                     .bind("clear_search.jstree", function () {
@@ -44373,7 +44373,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
             // this used to use html() and clean the whitespace, but this way any attached data was lost
             this.data.html_data.original_container_html = this.get_container().find(" > ul > li").clone(true);
             // remove white space from LI node - otherwise nodes appear a bit to the right
-            this.data.html_data.original_container_html.find("li").addBack().contents().filter(function() { return this.nodeType == 3; }).remove();
+            this.data.html_data.original_container_html.find("li").andSelf().contents().filter(function() { return this.nodeType == 3; }).remove();
         },
         defaults : { 
             data : false,
@@ -44799,7 +44799,7 @@ define('file/NativeFileSystem',['require','exports','module','utils/Async'],func
                 obj = !obj || obj == -1 ? this.get_container().find("> ul > li") : this._get_node(obj);
                 if(obj === false) { return; } // added for removing root nodes
                 obj.each(function () {
-                    $(this).find("li").addBack().each(function () {
+                    $(this).find("li").andSelf().each(function () {
                         var $t = $(this);
                         if($t.children(".jstree-wholerow-span").length) { return true; }
                         $t.prepend("<span class='jstree-wholerow-span' style='width:" + ($t.parentsUntil(".jstree","li").length * 18) + "px;'>&#160;</span>");
@@ -58619,7 +58619,7 @@ define('LiveDevelopment/Inspector/Inspector',['require','exports','module'],func
         _connectDeferred = deferred;
         var promise = getAvailableSockets();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.state() === "rejected") {
+            if (deferred.isRejected()) {
                 return;
             }
             var i, page;
