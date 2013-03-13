@@ -98,6 +98,7 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
+    require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
@@ -108,7 +109,7 @@ define(function (require, exports, module) {
 
     // Local variables
     var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
+        PREFERENCES_CLIENT_ID   = PreferencesManager.getClientId(module.id);
     
     // read URL params
     params.parse();
@@ -202,6 +203,9 @@ define(function (require, exports, module) {
                     // an old version that might not have set the "afterFirstLaunch" pref.)
                     var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
                         deferred = new $.Deferred();
+                    //TODO: Remove preferences migration code
+                    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");
+                    
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {

@@ -460,16 +460,18 @@ define(function (require, exports, module) {
      */
     function findStyleBlocks(editor) {
         // Start scanning from beginning of file
-        var ctx = TokenUtils.getInitialContext(editor._codeMirror, {line: 0, ch: 0});
-        
-        var styleBlocks = [];
-        var currentStyleBlock = null;
-        var inStyleBlock = false;
+        var ctx = TokenUtils.getInitialContext(editor._codeMirror, {line: 0, ch: 0}),
+            styleBlocks = [],
+            currentStyleBlock = null,
+            inStyleBlock = false,
+            outerMode = editor._codeMirror.getMode(),
+            tokenModeName;
         
         while (TokenUtils.moveNextToken(ctx)) {
+            tokenModeName = CodeMirror.innerMode(outerMode, ctx.token.state).mode.name;
             if (inStyleBlock) {
                 // Check for end of this <style> block
-                if (ctx.token.state.mode !== "css") {
+                if (tokenModeName !== "css") {
                     // currentStyleBlock.end is already set to pos of the last CSS token by now
                     currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
                     inStyleBlock = false;
@@ -478,7 +480,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 // Check for start of a <style> block
-                if (ctx.token.state.mode === "css") {
+                if (tokenModeName === "css") {
                     currentStyleBlock = {
                         start: { line: ctx.pos.line, ch: ctx.pos.ch }
                     };

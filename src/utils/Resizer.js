@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
     
-    var PREFERENCES_CLIENT_ID = module.id,
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id),
         defaultPrefs = { };
 	
     /**
@@ -389,7 +389,9 @@ define(function (require, exports, module) {
     }
 	
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, module.id, defaultPrefs);
     
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {

@@ -72,20 +72,25 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
-    
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id),
+        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false };
+
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor", defaultPrefs);
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");
     
-    /** @type {boolean}  Global setting: Tab size */
+    /** @type {number}  Global setting: Tab size */
     var _tabSize = _prefs.getValue("tabSize");
     
-    /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
+    /** @type {number}  Global setting: Indent unit (i.e. number of spaces when indenting) */
     var _indentUnit = _prefs.getValue("indentUnit");
+    
+    /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
+    var _closeBrackets = _prefs.getValue("closeBrackets");
     
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
@@ -345,6 +350,7 @@ define(function (require, exports, module) {
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap,
+            autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
                 whenOpening: true,
                 whenClosing: true,
@@ -946,7 +952,15 @@ define(function (require, exports, module) {
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
     };
-
+    
+    /*
+     * Returns the current text height of the editor.
+     * @returns {number} Height of the text in pixels
+     */
+    Editor.prototype.getTextHeight = function () {
+        return this._codeMirror.defaultTextHeight();
+    };
+    
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
@@ -1210,7 +1224,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
+     *     See {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1243,7 +1257,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
@@ -1301,7 +1315,7 @@ define(function (require, exports, module) {
     };
     
     /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function (value) {
+    Editor.getUseTabChar = function () {
         return _useTabChar;
     };
 
@@ -1319,7 +1333,7 @@ define(function (require, exports, module) {
     };
     
     /** @type {number} Get indent unit  */
-    Editor.getTabSize = function (value) {
+    Editor.getTabSize = function () {
         return _tabSize;
     };
 
@@ -1337,8 +1351,26 @@ define(function (require, exports, module) {
     };
     
     /** @type {number} Get indentation width */
-    Editor.getIndentUnit = function (value) {
+    Editor.getIndentUnit = function () {
         return _indentUnit;
+    };
+    
+    /**
+     * Sets the auto close brackets. Affects all Editors.
+     * @param {boolean} value
+     */
+    Editor.setCloseBrackets = function (value) {
+        _closeBrackets = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("autoCloseBrackets", _closeBrackets);
+        });
+        
+        _prefs.setValue("closeBrackets", Boolean(_closeBrackets));
+    };
+    
+    /** @type {boolean} Gets whether all Editors use auto close brackets */
+    Editor.getCloseBrackets = function () {
+        return _closeBrackets;
     };
     
     // Define public API
