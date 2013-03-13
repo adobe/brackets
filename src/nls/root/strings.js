@@ -308,7 +308,6 @@ define({
     "INSTALL_CANCELLED"                    : "Installation cancelled.",
     
     // Extension Management strings
-    "MISSING_PACKAGE_JSON"                 : "No package.json found in {0}",
     "INVALID_PACKAGE_JSON"                 : "Package.json file is not valid (error was: {0})",
     "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package",
     "MISSING_PACKAGE_NAME"                 : "Missing package name in {0}",

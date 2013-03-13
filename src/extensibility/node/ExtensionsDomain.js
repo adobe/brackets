@@ -131,7 +131,8 @@ function _cmdValidate(path, callback) {
                 // No errors and no metadata means that we never found the metadata
                 if (errors.length === 0 && !metadata) {
                     callback(null, {
-                        errors: [["MISSING_PACKAGE_JSON", path]]
+                        errors: [],
+                        metadata: null
                     });
                 } else {
                     callback(null, {
@@ -168,7 +169,14 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
             return;
         }
         
-        var installDirectory = path.join(destinationDirectory, validationResult.metadata.name);
+        var extensionName;
+        if (validationResult.metadata) {
+            extensionName = validationResult.metadata.name;
+        } else {
+            extensionName = path.basename(packagePath, ".zip");
+        }
+        var installDirectory = path.join(destinationDirectory, extensionName);
+        
         fs.exists(installDirectory, function (installDirectoryExists) {
             if (installDirectoryExists) {
                 validationResult.disabledReason  = "ALREADY_INSTALLED";
