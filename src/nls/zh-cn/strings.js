@@ -59,7 +59,7 @@ define({
     "ERROR_CREATING_FILE"               : "试图创建该文件时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} Brackets 无法运行在浏览器窗口中.",
+    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} Brackets 暂无法运行在浏览器窗口中.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} 是内置HTML, 现在作为一个桌面程序运行你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>,然后重新运行 {APP_NAME}.",
 
     // FileIndexManager error string
@@ -302,8 +302,8 @@ define({
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "之前的颜色",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa格式",
-    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex格式",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "十六进制格式",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa格式",
-    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (耗时: {1} )",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (耗时: {1} )"
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} 次)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)"
 });
