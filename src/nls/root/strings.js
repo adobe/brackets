@@ -312,6 +312,7 @@ define({
     "MISSING_PACKAGE_VERSION"              : "Missing package version in {0}",
     "INVALID_VERSION_NUMBER"               : "Package version ({0}) is not a valid version number",
     "MISSING_MAIN"                         : "Package has no main.js file",
+    "ALREADY_INSTALLED"                    : "The extension was installed into your disabled extensions directory because it was previously installed.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

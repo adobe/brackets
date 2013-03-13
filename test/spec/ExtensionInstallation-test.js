@@ -90,6 +90,10 @@ define(function (require, exports, module) {
             });
         });
         
+        
+        // The code that follows mocks out the bits of ExtensionLoader that are
+        // used during installation so that the extension is not *actually*
+        // loaded after it's installed.
         var realGetUserExtensionPath, realLoadExtension, lastExtensionLoad;
         
         function mockGetUserExtensionPath() {
