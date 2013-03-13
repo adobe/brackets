@@ -411,38 +411,36 @@ define(function (require, exports, module) {
                     modifiedLanguage,
                     promise;
                 
-                runs(function () {
-                    // Create a shell script file
-                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: "test.foo" });
-                    
-                    // Initial language will be unknown (shell is not a default language)
-                    unknown = LanguageManager.getLanguage("unknown");
-                    
-                    // listen for event
-                    spy = jasmine.createSpy("languageChanged event handler");
-                    $(doc).on("languageChanged", spy);
-                    
-                    // sanity check language
-                    expect(doc.getLanguage()).toBe(unknown);
-                    
-                    // make active
-                    doc.addRef();
-                    
-                    modifiedLanguage = LanguageManager.getLanguage("html");
-                    modifiedLanguage.addFileExtension("foo");
-                    
-                    // language should change
-                    expect(doc.getLanguage()).toBe(modifiedLanguage);
-                    expect(spy).toHaveBeenCalled();
-                    expect(spy.callCount).toEqual(1);
-                    
-                    // check callback args (arg 0 is a jQuery event)
-                    expect(spy.mostRecentCall.args[1]).toBe(unknown);
-                    expect(spy.mostRecentCall.args[2]).toBe(modifiedLanguage);
-                    
-                    // cleanup
-                    doc.releaseRef();
-                });
+                // Create a shell script file
+                doc = SpecRunnerUtils.createMockActiveDocument({ filename: "test.foo" });
+                
+                // Initial language will be unknown (shell is not a default language)
+                unknown = LanguageManager.getLanguage("unknown");
+                
+                // listen for event
+                spy = jasmine.createSpy("languageChanged event handler");
+                $(doc).on("languageChanged", spy);
+                
+                // sanity check language
+                expect(doc.getLanguage()).toBe(unknown);
+                
+                // make active
+                doc.addRef();
+                
+                modifiedLanguage = LanguageManager.getLanguage("html");
+                modifiedLanguage.addFileExtension("foo");
+                
+                // language should change
+                expect(doc.getLanguage()).toBe(modifiedLanguage);
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toEqual(1);
+                
+                // check callback args (arg 0 is a jQuery event)
+                expect(spy.mostRecentCall.args[1]).toBe(unknown);
+                expect(spy.mostRecentCall.args[2]).toBe(modifiedLanguage);
+                
+                // cleanup
+                doc.releaseRef();
             });
         });
     });
