@@ -30,7 +30,8 @@ indent: 4, maxerr: 50 */
 var unzip  = require("unzip"),
     semver = require("semver"),
     path   = require("path"),
-    fs     = require("fs-extra");
+    http   = require("http"),
+    fs     = require("fs");
 
 /**
  * Implements the "validate" command in the "extensions" domain.
@@ -231,6 +232,12 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
     });
 }
 
+
+// TODO: use 3rd-party "request" module instead? supports https & redirects...
+//  https://github.com/mikeal/request
+
+var DOWNLOAD_LIMIT = 0x100000; // 1 MB
+
 /**
  * Implements the "install" command in the "extensions" domain.
  *
@@ -314,8 +321,57 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
 }
 
 /**
+ * @param {function(error, result)} callback
+ */
+function _cmdDownloadFile(hostname, hostPath, localPath, callback) {
+    if (fs.existsSync(localPath)) {
+        callback("Error: file already exists", null);
+        return;
+    }
+    
+    // req will be a ClientRequest object
+    var req = http.get({
+        hostname: hostname,
+        path: hostPath,
+        encoding: null  // allow binary content
+        
+    }, function (response) { // response is an IncomingMessage object
+        // Make sure we're actually getting the file contents and not an error page
+        if (response.statusCode !== 200) {
+            callback("Unexpected HTTP response " + response.statusCode, null);
+            req.abort();
+            return;
+        }
+        
+        // Begin downloading to local file
+        var outFile = fs.createWriteStream(localPath);
+        var totalSize = 0;
+        response.on("data", function (chunk) { // chunk is a Buffer object
+            // Enforce max size limit
+            totalSize += chunk.length;
+            if (totalSize > DOWNLOAD_LIMIT) {
+                outFile.end();
+                fs.unlink(localPath);
+                callback("Error: download size exceeded " + DOWNLOAD_LIMIT, null);
+                req.abort();
+            } else {
+                // Stream the downloaded bits to disk
+                outFile.write(chunk);
+            }
+        });
+        response.on("end", function () {
+            callback(null, "Download succeeded");
+            outFile.end();
+        });
+    });
+    req.on("error", function (err) {
+        callback("Download request error: " + err, null);
+    });
+}
+
+/**
  * Initialize the "extensions" domain.
- * The extensions domain contains the validate function.
+ * The extensions domain handles downloading, unpacking/verifying, and installing extensions.
  */
 function init(domainManager) {
     if (!domainManager.hasDomain("extensions")) {
@@ -324,6 +380,8 @@ function init(domainManager) {
     domainManager.registerCommand(
         "extensions",
         "validate",
+        true,
+        "Verifies that the contents of the given ZIP file are a valid Brackets extension package",
         _cmdValidate,
         [{
             name: "path",
@@ -370,6 +428,32 @@ function init(domainManager) {
             disabledReason: {
                 type: "string",
                 description: "reason this extension was installed disabled, none if it was enabled"
+            }
+        }
+    );
+    domainManager.registerCommand(
+        "extensions",
+        "downloadFile",
+        _cmdDownloadFile,
+        true,
+        "Downloads the file at the given URL, saving it to the given local path",
+        [{
+            name: "hostname",
+            type: "string",
+            description: "Hostname of URL to download from. Must support http on port 80."
+        }, {
+            name: "hostPath",
+            type: "string",
+            description: "Path or URL to download from (starting with '/')"
+        }, {
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the extension package"
+        }],
+        {
+            error: {
+                type: "string",
+                description: "download error, if any; one of: FILE_TOO_LARGE, CANNOT_WRITE, CANNOT_DOWNLOAD"
             }
         }
     );

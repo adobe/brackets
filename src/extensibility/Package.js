@@ -22,10 +22,9 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true
 indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
-waitsFor, runs, $, brackets, waitsForDone */
+/*global define, $, brackets, PathUtils */
 
 /* Functions for working with extension packages */
 
@@ -33,7 +32,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit              = require("utils/AppInit"),
-        ExtensionUtils       = require("utils/ExtensionUtils"),
         FileUtils            = require("file/FileUtils"),
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
@@ -46,7 +44,7 @@ define(function (require, exports, module) {
      * deferred. If we hit this timeout, we'll never have a node connection
      * for the static server in this run of Brackets.
      */
-    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds
+    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
     
     /**
      * @private
@@ -66,10 +64,10 @@ define(function (require, exports, module) {
      * if there are errors.
      *
      * @param {string} Absolute path to the package zip file
-     * @return {promise} A promise that is resolved with information about the package
+     * @return {$.Promise} A promise that is resolved with information about the package
      */
     function validate(path) {
-        var d = $.Deferred();
+        var d = new $.Deferred();
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.extensions.validate(path)
@@ -94,6 +92,7 @@ define(function (require, exports, module) {
         });
         return d.promise();
     }
+    
     
     /**
      * Validates and installs the package at the given path. Validation and
@@ -163,6 +162,53 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Downloads from the given URL to a temporary location. On success, resolves with the local path
+     * of the downloaded file. On failire, rejects with an error message.
+     * 
+     * @param {string} url URL of the file to be downloaded
+     * @return {$.Promise}
+     */
+    function download(url) {
+        var d = new $.Deferred();
+        _nodeConnectionDeferred.done(function (connection) {
+            // Validate URL
+            var parsed = PathUtils.parseUrl(url);
+            if (!parsed.hostname) { // means PathUtils failed to parse at all
+                d.reject("Malformed URL");
+                return;
+            }
+            if (parsed.protocol !== "http:") {
+                // ERROR... for now - TODO
+                d.reject("URL is not http: protocol");
+                return;
+            }
+            var hostname = parsed.hostname;
+            if (parsed.port && parsed.port !== "80") {
+                // ERROR... for now - FIXME
+                d.reject("URL is not port 80");
+                return;
+            }
+            var hostPath = parsed.pathname;
+            
+            // Decide download destination
+            var filename = parsed.filename;
+            filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // sanitize
+            var tempDownloadFolder = brackets.app.getApplicationSupportDirectory() + "/extensions/";
+            var localPath = tempDownloadFolder + filename;
+            
+            // Download the bits (using Node since brackets-shell doesn't support binary file IO)
+            var r = connection.domains.extensions.downloadFile(hostname, hostPath, localPath);
+            r.done(function (result) {
+                d.resolve(localPath);
+            }).fail(function (err) {
+                d.reject(err);
+            });
+        });
+        return d.promise();
+    }
+    
+    
+    /**
      * Allows access to the deferred that manages the node connection. This
      * is *only* for unit tests. Messing with this not in testing will
      * potentially break everything.
@@ -174,7 +220,9 @@ define(function (require, exports, module) {
         return _nodeConnectionDeferred;
     }
     
-    // Initializes node connection, largely taken from StaticServer
+    // Initializes node connection
+    // TODO: duplicates code from StaticServer
+    // TODO: can this be done lazily?
     AppInit.appReady(function () {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
@@ -187,14 +235,16 @@ define(function (require, exports, module) {
         var _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
             var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/ExtensionsDomain";
+            
             _nodeConnection.loadDomains(domainPath, true)
                 .then(
                     function () {
                         clearTimeout(connectionTimeout);
-                        _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
+                        _nodeConnectionDeferred.resolve(_nodeConnection);
                     },
                     function () { // Failed to connect
                         console.error("[Extensions] Failed to connect to node", arguments);
+                        clearTimeout(connectionTimeout);
                         _nodeConnectionDeferred.reject();
                     }
                 );
@@ -207,4 +257,5 @@ define(function (require, exports, module) {
     
     exports.validate = validate;
     exports.install = install;
+    exports.download = download;
 });
