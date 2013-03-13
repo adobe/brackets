@@ -144,6 +144,14 @@ function _cmdValidate(path, callback) {
     });
 }
 
+/**
+ * Private function to unzip to the correct directory.
+ *
+ * @param {string} Absolute path to the package zip file
+ * @param {string} Absolute path to the destination directory for unzipping
+ * @param {Object} the return value with the useful information for the client
+ * @param {Function} callback function that is called at the end of the unzipping
+ */
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
     
@@ -164,13 +172,41 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
     });
 }
 
+/**
+ * Implements the "install" command in the "extensions" domain.
+ *
+ * There is no need to call validate independently. Validation is the first
+ * thing that is done here.
+ *
+ * After the extension is validated, it is installed in destinationDirectory
+ * unless the extension is already present there. If it is, you must
+ * specify a disabledDirectory in options and the extension will be installed
+ * there. (options is an object that currently only has disabledDirectory.
+ * As we expand out the extension manager, there will likely be additional
+ * options added.)
+ *
+ * The extension is unzipped into a directory in destinationDirectory with
+ * the name of the extension (the name is derived either from package.json
+ * or the name of the zip file).
+ *
+ * The destinationDirectory will be created if it does not exist.
+ * 
+ * @param {string} Absolute path to the package zip file
+ * @param {string} the destination directory
+ * @param {{disabledDirectory:string}} additional settings to control the installation
+ * @param {function} callback (err, result)
+ */
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
+    
     var validateCallback = function (err, validationResult) {
+        // If there was trouble at the validation stage, we stop right away.
         if (err || validationResult.errors.length > 0) {
             callback(err, validationResult);
             return;
         }
         
+        // Prefers the package.json name field, but will take the zip
+        // file's name if that's all that's available.
         var extensionName;
         if (validationResult.metadata) {
             extensionName = validationResult.metadata.name;
@@ -180,6 +216,8 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName);
         
+        // If the extension is already there, at this point we will not overwrite
+        // a running extension. Instead, we unzip into the disabled directory.
         fs.exists(installDirectory, function (installDirectoryExists) {
             if (installDirectoryExists) {
                 validationResult.disabledReason  = "ALREADY_INSTALLED";
@@ -188,15 +226,20 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
                     return;
                 }
                 installDirectory = path.join(options.disabledDirectory, validationResult.metadata.name);
+                
+                // If this extension was previously installed but disabled, we will overwrite the
+                // previous installation in that directory.
                 fs.remove(installDirectory, function () {
                     _performInstall(packagePath, installDirectory, validationResult, callback);
                 });
             } else {
+                // Regular installation with no conflicts.
                 validationResult.disabledReason = null;
                 _performInstall(packagePath, installDirectory, validationResult, callback);
             }
         });
     };
+    
     _cmdValidate(packagePath, validateCallback);
 }
 
