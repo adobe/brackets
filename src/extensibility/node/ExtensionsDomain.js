@@ -29,7 +29,8 @@ indent: 4, maxerr: 50 */
 
 var unzip  = require("unzip"),
     semver = require("semver"),
-    fs     = require("fs");
+    path   = require("path"),
+    fs     = require("fs-extra");
 
 /**
  * Implements the "validate" command in the "extensions" domain.
@@ -130,7 +131,8 @@ function _cmdValidate(path, callback) {
                 // No errors and no metadata means that we never found the metadata
                 if (errors.length === 0 && !metadata) {
                     callback(null, {
-                        errors: [["MISSING_PACKAGE_JSON", path]]
+                        errors: [],
+                        metadata: null
                     });
                 } else {
                     callback(null, {
@@ -140,6 +142,62 @@ function _cmdValidate(path, callback) {
                 }
             });
     });
+}
+
+function _performInstall(packagePath, installDirectory, validationResult, callback) {
+    validationResult.installedTo = installDirectory;
+    
+    fs.mkdirs(installDirectory, function (err) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        var readStream = fs.createReadStream(packagePath);
+        var extractStream = unzip.Extract({ path: installDirectory });
+        readStream.pipe(extractStream)
+            .on("error", function (exc) {
+                callback(exc);
+            })
+            .on("close", function () {
+                callback(null, validationResult);
+            });
+    });
+}
+
+function _cmdInstall(packagePath, destinationDirectory, options, callback) {
+    var validateCallback = function (err, validationResult) {
+        if (err || validationResult.errors.length > 0) {
+            callback(err, validationResult);
+            return;
+        }
+        
+        var extensionName;
+        if (validationResult.metadata) {
+            extensionName = validationResult.metadata.name;
+        } else {
+            extensionName = path.basename(packagePath, ".zip");
+        }
+        validationResult.name = extensionName;
+        var installDirectory = path.join(destinationDirectory, extensionName);
+        
+        fs.exists(installDirectory, function (installDirectoryExists) {
+            if (installDirectoryExists) {
+                validationResult.disabledReason  = "ALREADY_INSTALLED";
+                if (!options || !options.disabledDirectory) {
+                    callback("NO_DISABLED_DIRECTORY", null);
+                    return;
+                }
+                installDirectory = path.join(options.disabledDirectory, validationResult.metadata.name);
+                fs.remove(installDirectory, function () {
+                    _performInstall(packagePath, installDirectory, validationResult, callback);
+                });
+            } else {
+                validationResult.disabledReason = null;
+                _performInstall(packagePath, installDirectory, validationResult, callback);
+            }
+        });
+    };
+    _cmdValidate(packagePath, validateCallback);
 }
 
 /**
@@ -166,7 +224,39 @@ function init(domainManager) {
             },
             metadata: {
                 type: "{name: string, version: string}",
-                description: "all package.json metadata"
+                description: "all package.json metadata (null if there's no package.json)"
+            }
+        }
+    );
+    domainManager.registerCommand(
+        "extensions",
+        "install",
+        _cmdInstall,
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the extension package"
+        }, {
+            name: "destinationDirectory",
+            type: "string",
+            description: "absolute filesystem path where this extension should be installed"
+        }, {
+            name: "options",
+            type: "{string disabledDirectory}",
+            description: "installation options. disabledDirectory should be set so that extensions can be installed disabled."
+        }],
+        {
+            errors: {
+                type: "[[string name, optional format arguments], ...]",
+                description: "error with the package, if any"
+            },
+            metadata: {
+                type: "{name: string, version: string}",
+                description: "all package.json metadata (null if there's no package.json)"
+            },
+            disabledReason: {
+                type: "string",
+                description: "reason this extension was installed disabled, none if it was enabled"
             }
         }
     );
@@ -174,6 +264,7 @@ function init(domainManager) {
 
 // used in unit tests
 exports._cmdValidate = _cmdValidate;
+exports._cmdInstall = _cmdInstall;
 
 // used to load the domain
 exports.init = init;
