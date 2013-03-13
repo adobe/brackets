@@ -96,7 +96,14 @@ define(function (require, exports, module) {
      * @param {number} newState The state to transition into; one of the STATE_* variables.
      */
     InstallExtensionDialog.prototype._enterState = function (newState) {
-        var url, msg, self = this;
+        var url,
+            msg,
+            self = this,
+            prevState = this._state;
+        
+        // Store the new state up front in case some of the processing below ends up changing
+        // the state again immediately.
+        this._state = newState;
         
         switch (newState) {
         case STATE_START:
@@ -159,15 +166,13 @@ define(function (require, exports, module) {
             
            // Only resolve as successful if we actually installed something.
             Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
-            if (this._state === STATE_INSTALLED) {
+            if (prevState === STATE_INSTALLED) {
                 this._dialogDeferred.resolve();
             } else {
                 this._dialogDeferred.reject();
             }
             break;
-            
         }
-        this._state = newState;
     };
 
     /**
