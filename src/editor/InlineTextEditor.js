@@ -272,7 +272,6 @@ define(function (require, exports, module) {
     /**
      * Updates start line display.
      * @param {Editor} editor
-     * @return {boolean} Returns true when the widget height requires an update
      */
     InlineTextEditor.prototype._updateLineRange = function (editor) {
         var oldStartLine    = this._startLine,
@@ -286,8 +285,6 @@ define(function (require, exports, module) {
         if (oldStartLine !== this._startLine) {
             this.$lineNumber.text(this._startLine + 1);
         }
-
-        return (this._lineCount !== oldLineCount);
     };
 
     /**
