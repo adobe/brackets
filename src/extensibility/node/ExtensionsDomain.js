@@ -143,6 +143,24 @@ function _cmdValidate(path, callback) {
     });
 }
 
+function _performInstall(packagePath, installDirectory, validationResult, callback) {
+    fs.mkdirs(installDirectory, function (err) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        var readStream = fs.createReadStream(packagePath);
+        var extractStream = unzip.Extract({ path: installDirectory });
+        readStream.pipe(extractStream)
+            .on("error", function (exc) {
+                callback(exc);
+            })
+            .on("close", function () {
+                callback(null, validationResult);
+            });
+    });
+}
+
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
     var validateCallback = function (err, validationResult) {
         if (err || validationResult.errors.length > 0) {
@@ -151,20 +169,21 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         }
         
         var installDirectory = path.join(destinationDirectory, validationResult.metadata.name);
-        fs.mkdirs(installDirectory, function (err) {
-            if (err) {
-                callback(err);
-                return;
-            }
-            var readStream = fs.createReadStream(packagePath);
-            var extractStream = unzip.Extract({ path: installDirectory });
-            readStream.pipe(extractStream)
-                .on("error", function (exc) {
-                    callback(exc);
-                })
-                .on("close", function () {
-                    callback(null, validationResult);
+        fs.exists(installDirectory, function (installDirectoryExists) {
+            if (installDirectoryExists) {
+                validationResult.disabledReason  = "ALREADY_INSTALLED";
+                if (!options || !options.disabledDirectory) {
+                    callback("NO_DISABLED_DIRECTORY", null);
+                    return;
+                }
+                installDirectory = path.join(options.disabledDirectory, validationResult.metadata.name);
+                fs.remove(installDirectory, function () {
+                    _performInstall(packagePath, installDirectory, validationResult, callback);
                 });
+            } else {
+                validationResult.disabledReason = null;
+                _performInstall(packagePath, installDirectory, validationResult, callback);
+            }
         });
     };
     _cmdValidate(packagePath, validateCallback);
