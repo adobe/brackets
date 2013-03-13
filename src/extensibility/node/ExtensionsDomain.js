@@ -29,7 +29,8 @@ indent: 4, maxerr: 50 */
 
 var unzip  = require("unzip"),
     semver = require("semver"),
-    fs     = require("fs");
+    path   = require("path"),
+    fs     = require("fs-extra");
 
 /**
  * Implements the "validate" command in the "extensions" domain.
@@ -142,6 +143,33 @@ function _cmdValidate(path, callback) {
     });
 }
 
+function _cmdInstall(packagePath, destinationDirectory, options, callback) {
+    var validateCallback = function (err, validationResult) {
+        if (err || validationResult.errors.length > 0) {
+            callback(err, validationResult);
+            return;
+        }
+        
+        var installDirectory = path.join(destinationDirectory, validationResult.metadata.name);
+        fs.mkdirs(installDirectory, function (err) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            var readStream = fs.createReadStream(packagePath);
+            var extractStream = unzip.Extract({ path: installDirectory });
+            readStream.pipe(extractStream)
+                .on("error", function (exc) {
+                    callback(exc);
+                })
+                .on("close", function () {
+                    callback(null, validationResult);
+                });
+        });
+    };
+    _cmdValidate(packagePath, validateCallback);
+}
+
 /**
  * Initialize the "extensions" domain.
  * The extensions domain contains the validate function.
@@ -174,6 +202,7 @@ function init(domainManager) {
 
 // used in unit tests
 exports._cmdValidate = _cmdValidate;
+exports._cmdInstall = _cmdInstall;
 
 // used to load the domain
 exports.init = init;
