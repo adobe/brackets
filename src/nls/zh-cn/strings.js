@@ -202,7 +202,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "注释选中内容",
     "CMD_LINE_UP"                         : "移到下一行",
     "CMD_LINE_DOWN"                       : "移到上一行",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动括号",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动闭括号",
     
     // View menu commands
     "VIEW_MENU"                           : "视图",
