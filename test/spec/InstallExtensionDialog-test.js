@@ -226,12 +226,28 @@ define(function (require, exports, module) {
             expect(fields.$cancelButton.is(":visible")).toBeFalsy();
         });
 
+        it("should re-enable the ok button and hide cancel button after install succeeds synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
+            expect(fields.$okButton.attr("disabled")).toBeFalsy();
+            expect(fields.$cancelButton.is(":visible")).toBeFalsy();
+        });
+
         it("should re-enable the ok button and hide cancel button after install fails", function () {
             var deferred = new $.Deferred(),
                 installer = makeInstaller(null, deferred);
             setUrl();
             fields.$okButton.click();
             deferred.reject();
+            expect(fields.$okButton.attr("disabled")).toBeFalsy();
+            expect(fields.$cancelButton.is(":visible")).toBeFalsy();
+        });
+        
+        it("should re-enable the ok button and hide cancel button after install fails synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
             expect(fields.$okButton.attr("disabled")).toBeFalsy();
             expect(fields.$cancelButton.is(":visible")).toBeFalsy();
         });
@@ -246,12 +262,28 @@ define(function (require, exports, module) {
             expect(fields.$dlg.is(":visible")).toBeFalsy();
         });
 
+        it("should close the dialog if ok button clicked after install succeeds synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
+            fields.$okButton.click();
+            expect(fields.$dlg.is(":visible")).toBeFalsy();
+        });
+
         it("should close the dialog if Enter pressed after install succeeds", function () {
             var deferred = new $.Deferred(),
                 installer = makeInstaller(null, deferred);
             setUrl();
             fields.$okButton.click();
             deferred.resolve();
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
+            expect(fields.$dlg.is(":visible")).toBeFalsy();
+        });
+
+        it("should close the dialog if Enter pressed after install succeeds synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
             expect(fields.$dlg.is(":visible")).toBeFalsy();
         });
@@ -266,12 +298,28 @@ define(function (require, exports, module) {
             expect(fields.$dlg.is(":visible")).toBeFalsy();
         });
 
+        it("should close the dialog if Esc pressed after install succeeds synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
+            expect(fields.$dlg.is(":visible")).toBeFalsy();
+        });
+
         it("should close the dialog if ok button clicked after install fails", function () {
             var deferred = new $.Deferred(),
                 installer = makeInstaller(null, deferred);
             setUrl();
             fields.$okButton.click();
             deferred.reject();
+            fields.$okButton.click();
+            expect(fields.$dlg.is(":visible")).toBeFalsy();
+        });
+
+        it("should close the dialog if ok button clicked after install fails synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
             fields.$okButton.click();
             expect(fields.$dlg.is(":visible")).toBeFalsy();
         });
@@ -286,6 +334,14 @@ define(function (require, exports, module) {
             expect(fields.$dlg.is(":visible")).toBeFalsy();
         });
 
+        it("should close the dialog if Enter pressed after install fails synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
+            expect(fields.$dlg.is(":visible")).toBeFalsy();
+        });
+
         it("should close the dialog if Esc pressed after install fails", function () {
             var deferred = new $.Deferred(),
                 installer = makeInstaller(null, deferred);
@@ -295,5 +351,14 @@ define(function (require, exports, module) {
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
             expect(fields.$dlg.is(":visible")).toBeFalsy();
         });
+        
+        it("should close the dialog if Esc pressed after install fails synchronously", function () {
+            var installer = makeInstaller(true);
+            setUrl();
+            fields.$okButton.click();
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
+            expect(fields.$dlg.is(":visible")).toBeFalsy();
+        });
+        
     });
 });
