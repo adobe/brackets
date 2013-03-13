@@ -366,7 +366,7 @@ define(function (require, exports, module) {
         var finish = function () {
             if (!CodeMirror.modes[mode]) {
                 result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
-                return result.promise();
+                return;
             }
             
             if (mimeMode) {
@@ -374,13 +374,13 @@ define(function (require, exports, module) {
                 
                 if (!modeConfig) {
                     result.reject("CodeMirror MIME mode \"" + mimeMode + "\" not found");
-                    return result.promise();
+                    return;
                 }
                 
                 // modeConfig can be a string or mode object
                 if (modeConfig !== mode && modeConfig.name !== mode) {
                     result.reject("CodeMirror MIME mode \"" + mimeMode + "\" does not belong to mode \"" + mode + "\"");
-                    return result.promise();
+                    return;
                 }
             }
             
@@ -618,7 +618,7 @@ define(function (require, exports, module) {
             return result.promise();
         }
         if (_languages[id]) {
-            console.error("Language \"" + id + "\" is already defined");
+            result.reject("Language \"" + id + "\" is already defined");
             return result.promise();
         }
 

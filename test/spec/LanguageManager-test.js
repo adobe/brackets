@@ -164,7 +164,7 @@ define(function (require, exports, module) {
                 validateLanguage(def, language);
             });
             
-            it("should print errors for invalid language id values", function () {
+            it("should log errors for invalid language id values", function () {
                 defineLanguage({ id: null });
                 expect(console.error).toHaveBeenCalledWith("Language ID must be a string");
                 
@@ -173,12 +173,9 @@ define(function (require, exports, module) {
                 
                 defineLanguage({ id: "_underscore" });
                 expect(console.error).toHaveBeenCalledWith("Invalid language ID \"_underscore\": Only groups of lower case letters and numbers are allowed, separated by underscores.");
-                
-                defineLanguage({ id: "html" });
-                expect(console.error).toHaveBeenCalledWith("Language \"html\" is already defined");
             });
             
-            it("should throw errors for invalid language name values", function () {
+            it("should log errors for invalid language name values", function () {
                 defineLanguage({ id: "two" });
                 expect(console.error).toHaveBeenCalledWith("name must be a string");
                 
@@ -245,11 +242,21 @@ define(function (require, exports, module) {
             // FIXME: Add internal LanguageManager._reset()
             // or unload a language (pascal is loaded from the previous test)
             it("should return an error if a language is already defined", function () {
-                var def = { id: "pascal", name: "Pascal", fileExtensions: ["pas", "p"], mode: "pascal" };
+                var def = { id: "pascal", name: "Pascal", fileExtensions: ["pas", "p"], mode: "pascal" },
+                    error = -1;
                 
                 runs(function () {
-                    defineLanguage(def);
-                    expect(console.error).toHaveBeenCalledWith("Language \"pascal\" is already defined");
+                    defineLanguage(def).fail(function (err) {
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () {
+                    return error !== -1;
+                }, "The promise should be rejected with an error", 50);
+                
+                runs(function () {
+                    expect(error).toBe("Language \"pascal\" is already defined");
                 });
             });
             
