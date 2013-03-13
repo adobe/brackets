@@ -95,6 +95,25 @@ define(function (require, exports, module) {
         return d.promise();
     }
     
+    /**
+     * Validates and installs the package at the given path. Validation and
+     * installation is handled by the Node process.
+     *
+     * The extension will be installed into the user's extensions directory.
+     * If the user already has the extension installed, it will instead go
+     * into their disabled extensions directory.
+     * 
+     * The promise is resolved with an object:
+     * { errors: Array.<{string}>, metadata: { name:string, version:string, ... },
+     * disabledReason:string }
+     * metadata is pulled straight from package.json and is likely to be undefined
+     * if there are errors. It is null if there was no package.json.
+     * 
+     * disabledReason is either null or the reason the extension was installed disabled.
+     *
+     * @param {string} Absolute path to the package zip file
+     * @return {promise} A promise that is resolved with information about the package
+     */
     function install(path) {
         var d = $.Deferred();
         _nodeConnectionDeferred.done(function (nodeConnection) {
@@ -116,12 +135,18 @@ define(function (require, exports, module) {
                             errors[i] = StringUtils.format.apply(window, formatArguments);
                         }
                         
+                        // Check to see if this extension was installed, but disabled
                         if (result.disabledReason) {
                             result.disabledReason = StringUtils.format(result.disabledReason);
                         }
+                        
+                        // If there were errors or the extension is disabled, we don't
+                        // try to load it so we're ready to return
                         if (result.errors.length > 0 || result.disabledReason) {
                             d.resolve(result);
                         } else {
+                            // This was a new extension and everything looked fine.
+                            // We load it into Brackets right away.
                             ExtensionLoader.loadExtension(result.name, {
                                 baseUrl: result.installedTo
                             }, "main").then(function () {
