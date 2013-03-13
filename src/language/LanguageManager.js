@@ -631,11 +631,9 @@ define(function (require, exports, module) {
             i,
             l;
         
-        if (!language._setId(id)
-                || !language._setName(name)
-                || (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1]))
-                || (lineComment && !language.setLineCommentSyntax(lineComment))
-                ) {
+        if (!language._setId(id) || !language._setName(name) ||
+                (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1])) ||
+                (lineComment && !language.setLineCommentSyntax(lineComment))) {
             result.reject();
             return result.promise();
         }
