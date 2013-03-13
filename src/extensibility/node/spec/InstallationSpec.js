@@ -47,6 +47,7 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
 
 var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.zip"),
     basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
+    missingMain          = path.join(testFilesDirectory, "missing-main.zip"),
     missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip");
 
 describe("Package Installation", function () {
@@ -82,7 +83,7 @@ describe("Package Installation", function () {
     }
     
     it("should validate the package", function (done) {
-        ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, {
+        ExtensionsDomain._cmdInstall(missingMain, installDirectory, {
             disabledDirectory: disabledDirectory
         }, function (err, result) {
             expect(err).toBeNull();
@@ -186,6 +187,20 @@ describe("Package Installation", function () {
                     });
                 });
             });
+        });
+    });
+    
+    it("should derive the name from the zip if there's no package.json", function (done) {
+        ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, {
+            disabledDirectory: disabledDirectory
+        }, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.disabledReason).toBeNull();
+            var extensionDirectory = path.join(installDirectory, "missing-package-json");
+            var pathsToCheck = [
+                path.join(extensionDirectory, "main.js")
+            ];
+            checkPaths(pathsToCheck, done);
         });
     });
 });

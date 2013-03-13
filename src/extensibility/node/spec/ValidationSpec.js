@@ -61,14 +61,12 @@ describe("Package Validation", function () {
         });
     });
     
-    it("should complain about missing package.json", function (done) {
+    it("should NOT complain about missing package.json", function (done) {
         ExtensionsDomain._cmdValidate(missingPackageJSON, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
-            expect(errors.length).toEqual(1);
-            expect(errors[0][0]).toEqual("MISSING_PACKAGE_JSON");
-            expect(errors[0][1]).toEqual(missingPackageJSON);
-            expect(result.metadata).toBeUndefined();
+            expect(errors.length).toEqual(0);
+            expect(result.metadata).toBeNull();
             done();
         });
     });
