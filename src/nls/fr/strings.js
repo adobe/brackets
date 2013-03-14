@@ -202,7 +202,7 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
-	"CMD_TOGGLE_CLOSE_BRACKETS": "[6734352] !é=Enable Close Brackets=!",
+	"CMD_TOGGLE_CLOSE_BRACKETS": "[6734352] !é=Auto Close Braces=!",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
