@@ -186,11 +186,11 @@ define(function Inspector(require, exports, module) {
 
     /** Public Functions *****************************************************/
 
-    /** Get the available debugger sockets from the remote debugger
+    /** Get a list of the available windows/tabs/extensions are are remote-debuggable
      * @param {string} host IP or name
      * @param {integer} debugger port
      */
-    function getAvailableSockets(host, port) {
+    function getDebuggableWindows(host, port) {
         if (!host) {
             host = "127.0.0.1";
         }
@@ -264,7 +264,7 @@ define(function Inspector(require, exports, module) {
         }
         var deferred = new $.Deferred();
         _connectDeferred = deferred;
-        var promise = getAvailableSockets();
+        var promise = getDebuggableWindows();
         promise.done(function onGetAvailableSockets(response) {
             if (deferred.isRejected()) {
                 return;
@@ -315,7 +315,7 @@ define(function Inspector(require, exports, module) {
     }
 
     // Export public functions
-    exports.getAvailableSockets = getAvailableSockets;
+    exports.getDebuggableWindows = getDebuggableWindows;
     exports.on = on;
     exports.off = off;
     exports.disconnect = disconnect;
