@@ -33,9 +33,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var strings     = require("i18n!nls/strings"),
-        Global      = require("utils/Global"),
-        StringUtils = require("utils/StringUtils");
+    var strings         = require("i18n!nls/strings"),
+        Global          = require("utils/Global"),
+        CollectionUtils = require("utils/CollectionUtils"),
+        StringUtils     = require("utils/StringUtils");
 
     var additionalGlobals = {},
         parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version);
@@ -52,8 +53,8 @@ define(function (require, exports, module) {
     additionalGlobals.BUILD_TYPE    = (isDevBuild ? strings.DEVELOPMENT_BUILD : strings.EXPERIMENTAL_BUILD);
     
     // Insert application strings
-    Object.keys(strings).forEach(function (key) {
-        Object.keys(additionalGlobals).forEach(function (name) {
+    CollectionUtils.forEach(strings, function (value, key) {
+        CollectionUtils.forEach(additionalGlobals, function (item, name) {
             strings[key] = strings[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
         });
     });
