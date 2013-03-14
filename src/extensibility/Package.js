@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true,
 indent: 4, maxerr: 50 */
 /*global define, $, brackets, PathUtils */
 
@@ -60,6 +60,8 @@ define(function (require, exports, module) {
     var _uniqueId = 0;
     
     /**
+     * TODO: can this go away now that we never call it directly?
+     * 
      * Validates the package at the given path. The actual validation is
      * handled by the Node server.
      * 
@@ -98,7 +100,6 @@ define(function (require, exports, module) {
         return d.promise();
     }
     
-    
     /**
      * Validates and installs the package at the given path. Validation and
      * installation is handled by the Node process.
@@ -119,7 +120,7 @@ define(function (require, exports, module) {
      * @return {promise} A promise that is resolved with information about the package
      */
     function install(path) {
-        var d = $.Deferred();
+        var d = new $.Deferred();
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 var destinationDirectory = ExtensionLoader.getUserExtensionPath();
@@ -160,15 +161,19 @@ define(function (require, exports, module) {
                                 d.reject("ERROR_LOADING");
                             });
                         }
+                    })
+                    .fail(function (error) {
+                        d.reject(error);
                     });
             }
         });
         return d.promise();
     }
     
+    
     /**
      * Downloads from the given URL to a temporary location. On success, resolves with the local path
-     * of the downloaded file. On failire, rejects with an error message.
+     * of the downloaded file. On failure, rejects with an error message.
      * 
      * @param {string} url URL of the file to be downloaded
      * @param {number} downloadId Unique number to identify this request
@@ -180,7 +185,7 @@ define(function (require, exports, module) {
             // Validate URL
             // TODO: PathUtils fails to parse URLs that are missing the protocol part (e.g. starts immediately with "www...")
             var parsed = PathUtils.parseUrl(url);
-            if (!parsed.hostname) { // means PathUtils failed to parse at all
+            if (!parsed.hostname) {  // means PathUtils failed to parse at all
                 d.reject("Malformed URL");
                 return d.promise();
             }
@@ -227,18 +232,60 @@ define(function (require, exports, module) {
         });
         return success;
     }
-
+    
+    
     /**
      * @return {{promise: $.Promise, cancel: function():boolean}}
      */
     function installFromURL(url) {
+        var STATE_DOWNLOADING = 1,
+            STATE_INSTALLING = 2,
+            STATE_SUCCEEDED = 3,
+            STATE_FAILED = 4;
+        
+        var d = new $.Deferred();
+        var state = STATE_DOWNLOADING;
+        
         var downloadId = (_uniqueId++);
-        var promise = download(url, downloadId);    // TODO: chain this with package validate, etc.
+        download(url, downloadId)
+            .done(function (localPath) {
+                state = STATE_INSTALLING;
+                
+                // TOOD: need to clean up ZIP from temp location
+                
+                install(localPath)
+                    .done(function (result) {
+                        if (result.errors && result.errors.length > 0) {
+                            // Validation errors
+                            state = STATE_FAILED;
+                            d.reject(result.errors);
+                        } else {
+                            // Success! Extension is now running in Brackets
+                            state = STATE_SUCCEEDED;
+                            d.resolve(result);
+                        }
+                    })
+                    .fail(function (err) {
+                        // File IO errors, internal error in install()/validate(), or extension startup crashed
+                        state = STATE_FAILED;
+                        d.reject(err);
+                    });
+            })
+            .fail(function (err) {
+                // Download errors
+                state = STATE_FAILED;
+                d.reject(err);
+            });
+        
         return {
-            promise: promise,
+            promise: d.promise(),
             _downloadId: downloadId,
             cancel: function () {
-                return cancelDownload(this._downloadId);
+                if (state === STATE_DOWNLOADING) {
+                    return cancelDownload(this._downloadId);
+                } else {
+                    return false;
+                }
             }
         };
     }
@@ -286,7 +333,7 @@ define(function (require, exports, module) {
                 );
         });
     });
-    
+
     // For unit tests only
     exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
 

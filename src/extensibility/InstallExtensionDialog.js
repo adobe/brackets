@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, brackets, window, $, PathUtils, Mustache, document */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, window, $, PathUtils, Mustache, document */
 
 define(function (require, exports, module) {
     "use strict";
@@ -231,8 +231,7 @@ define(function (require, exports, module) {
             this._enterState(STATE_VALID_URL);
         }
     };
-
-
+    
     /**
      * @private
      * Sets the installer backend.
