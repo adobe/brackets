@@ -952,7 +952,15 @@ define(function (require, exports, module) {
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
     };
-
+    
+    /*
+     * Returns the current text height of the editor.
+     * @returns {number} Height of the text in pixels
+     */
+    Editor.prototype.getTextHeight = function () {
+        return this._codeMirror.defaultTextHeight();
+    };
+    
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
@@ -1216,7 +1224,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
+     *     See {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1249,7 +1257,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");

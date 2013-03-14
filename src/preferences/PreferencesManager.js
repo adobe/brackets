@@ -32,7 +32,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
+    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
+        CollectionUtils = require("utils/CollectionUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.preferences";
 
@@ -63,9 +64,9 @@ define(function (require, exports, module) {
             prefStorage[clientID] = prefs;
         } else if (defaults) {
             // add new defaults
-            Object.keys(defaults).forEach(function (key) {
+            CollectionUtils.forEach(defaults, function (value, key) {
                 if (prefs[key] === undefined) {
-                    prefs[key] = defaults[key];
+                    prefs[key] = value;
                 }
             });
         }
