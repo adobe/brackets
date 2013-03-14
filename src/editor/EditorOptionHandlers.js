@@ -62,15 +62,26 @@ define(function (require, exports, module) {
         CommandManager.get(Commands.TOGGLE_WORD_WRAP).setChecked(Editor.getWordWrap());
     }
     
+    /**
+     * @private
+     * Activates/Deactivates the automatic close brackets option
+     */
+    function _toggleCloseBrackets() {
+        Editor.setCloseBrackets(!Editor.getCloseBrackets());
+        CommandManager.get(Commands.TOGGLE_CLOSE_BRACKETS).setChecked(Editor.getCloseBrackets());
+    }
+    
     function _init() {
         CommandManager.get(Commands.TOGGLE_LINE_NUMBERS).setChecked(Editor.getShowLineNumbers());
         CommandManager.get(Commands.TOGGLE_ACTIVE_LINE).setChecked(Editor.getShowActiveLine());
         CommandManager.get(Commands.TOGGLE_WORD_WRAP).setChecked(Editor.getWordWrap());
+        CommandManager.get(Commands.CMD_TOGGLE_CLOSE_BRACKETS).setChecked(Editor.getCloseBrackets());
     }
     
     CommandManager.register(Strings.CMD_TOGGLE_LINE_NUMBERS, Commands.TOGGLE_LINE_NUMBERS, _toggleLineNumbers);
     CommandManager.register(Strings.CMD_TOGGLE_ACTIVE_LINE, Commands.TOGGLE_ACTIVE_LINE, _toggleActiveLine);
     CommandManager.register(Strings.CMD_TOGGLE_WORD_WRAP, Commands.TOGGLE_WORD_WRAP, _toggleWordWrap);
+    CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _toggleCloseBrackets);
 
     AppInit.htmlReady(_init);
 });
