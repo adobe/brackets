@@ -216,6 +216,22 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
 }
 
 /**
+ * Private function to remove the target directory and then install.
+ * 
+ * @param {string} Absolute path to the package zip file
+ * @param {string} Absolute path to the destination directory for unzipping
+ * @param {Object} the return value with the useful information for the client
+ * @param {Function} callback function that is called at the end of the unzipping
+ */
+function _removeAndInstall(packagePath, installDirectory, validationResult, callback) {
+    // If this extension was previously installed but disabled, we will overwrite the
+    // previous installation in that directory.
+    fs.remove(installDirectory, function () {
+        _performInstall(packagePath, installDirectory, validationResult, callback);
+    });
+}
+
+/**
  * Implements the "install" command in the "extensions" domain.
  *
  * There is no need to call validate independently. Validation is the first
@@ -259,6 +275,22 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName);
         
+        if (options && options.apiVersion && validationResult.metadata && validationResult.metadata.engines &&
+                validationResult.metadata.engines.brackets) {
+            var compatible = semver.satisfies(options.apiVersion,
+                                              validationResult.metadata.engines.brackets);
+            if (!compatible) {
+                if (!options || !options.disabledDirectory) {
+                    callback("NO_DISABLED_DIRECTORY", null);
+                    return;
+                }
+                installDirectory = path.join(options.disabledDirectory, extensionName);
+                validationResult.disabledReason = "API_NOT_COMPATIBLE";
+                _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+                return;
+            }
+        }
+        
         // If the extension is already there, at this point we will not overwrite
         // a running extension. Instead, we unzip into the disabled directory.
         fs.exists(installDirectory, function (installDirectoryExists) {
@@ -268,13 +300,8 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
                     callback("NO_DISABLED_DIRECTORY", null);
                     return;
                 }
-                installDirectory = path.join(options.disabledDirectory, validationResult.metadata.name);
-                
-                // If this extension was previously installed but disabled, we will overwrite the
-                // previous installation in that directory.
-                fs.remove(installDirectory, function () {
-                    _performInstall(packagePath, installDirectory, validationResult, callback);
-                });
+                installDirectory = path.join(options.disabledDirectory, extensionName);
+                _removeAndInstall(packagePath, installDirectory, validationResult, callback);
             } else {
                 // Regular installation with no conflicts.
                 validationResult.disabledReason = null;

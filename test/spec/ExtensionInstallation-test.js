@@ -38,8 +38,9 @@ define(function (require, exports, module) {
     
     var extensionsRoot = SpecRunnerUtils.getTempDirectory();
     
-    var basicValid = testFilePath + "/basic-valid-extension.zip";
-    var missingNameVersion = testFilePath + "/missing-name-version.zip";
+    var basicValid          = testFilePath + "/basic-valid-extension.zip",
+        missingNameVersion  = testFilePath + "/missing-name-version.zip",
+        incompatibleVersion = testFilePath + "/incompatible-version.zip";
     
     var packageData;
     
@@ -123,7 +124,7 @@ define(function (require, exports, module) {
             ExtensionLoader.loadExtension = realLoadExtension;
         });
         
-        // This test is disabled, because it works fine the first time
+        // These tests are disabled, because they work fine the first time
         // but cannot run twice unless the destination directory is deleted.
         xit("extensions should install and load", function () {
             installPackage(basicValid);
@@ -134,6 +135,17 @@ define(function (require, exports, module) {
                 expect(lastExtensionLoad.name).toEqual("basic-valid-extension");
                 expect(lastExtensionLoad.config.baseUrl).toEqual(mockGetUserExtensionPath() + "/basic-valid-extension");
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
+            });
+        });
+        
+        xit("extensions should install disabled if they are not compatible", function () {
+            installPackage(incompatibleVersion);
+            
+            runs(function () {
+                expect(packageData.errors.length).toEqual(0);
+                expect(packageData.disabledReason).not.toBeNull();
+                expect(packageData.name).toEqual("incompatible-version");
+                expect(lastExtensionLoad).toEqual({});
             });
         });
     });
