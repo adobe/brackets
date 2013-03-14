@@ -62,6 +62,7 @@ function _cmdValidate(path, callback) {
         var metadata;
         var foundMain = false;
         var errors = [];
+        var commonPrefix = null;
         
         fs.createReadStream(path)
             .pipe(unzip.Parse())
@@ -76,6 +77,21 @@ function _cmdValidate(path, callback) {
             .on("entry", function (entry) {
                 // look for the metadata
                 var fileName = entry.path;
+                
+                var slash = fileName.indexOf("/");
+                if (slash > -1) {
+                    var prefix = fileName.substring(0, slash);
+                    if (commonPrefix === null) {
+                        commonPrefix = prefix;
+                    } else if (prefix !== commonPrefix) {
+                        commonPrefix = "";
+                    }
+                    if (commonPrefix) {
+                        fileName = fileName.substring(commonPrefix.length + 1);
+                    }
+                } else {
+                    commonPrefix = "";
+                }
                 
                 if (fileName === "package.json") {
                     var packageJSON = "";
@@ -130,16 +146,14 @@ function _cmdValidate(path, callback) {
                 
                 // No errors and no metadata means that we never found the metadata
                 if (errors.length === 0 && !metadata) {
-                    callback(null, {
-                        errors: [],
-                        metadata: null
-                    });
-                } else {
-                    callback(null, {
-                        errors: errors,
-                        metadata: metadata
-                    });
+                    metadata = null;
                 }
+                
+                callback(null, {
+                    errors: errors,
+                    metadata: metadata,
+                    commonPrefix: commonPrefix
+                });
             });
     });
 }
@@ -161,10 +175,35 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             return;
         }
         var readStream = fs.createReadStream(packagePath);
-        var extractStream = unzip.Extract({ path: installDirectory });
+        var extractStream = unzip.Parse();
+        var prefixlength = validationResult.commonPrefix ? validationResult.commonPrefix.length : 0;
+        
         readStream.pipe(extractStream)
             .on("error", function (exc) {
                 callback(exc);
+            })
+            .on("entry", function (entry) {
+                var installpath = entry.path;
+                if (prefixlength) {
+                    installpath = installpath.substring(prefixlength + 1);
+                }
+                
+                if (entry.type === "Directory") {
+                    if (installpath === "") {
+                        return;
+                    }
+                    fs.mkdirs(installDirectory + "/" + installpath, function (err) {
+                        if (err) {
+                            callback(err);
+                        }
+                    });
+                } else {
+                    entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
+                        .on("error", function (err) {
+                            callback(err);
+                        });
+                }
+                
             })
             .on("close", function () {
                 callback(null, validationResult);

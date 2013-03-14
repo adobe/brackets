@@ -46,6 +46,7 @@ var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.z
     invalidZip          = path.join(testFilesDirectory, "invalid-zip-file.zip"),
     missingNameVersion  = path.join(testFilesDirectory, "missing-name-version.zip"),
     missingMain         = path.join(testFilesDirectory, "missing-main.zip"),
+    oneLevelDown        = path.join(testFilesDirectory, "one-level-extension-master.zip"),
     invalidVersion      = path.join(testFilesDirectory, "invalid-version.zip");
 
 describe("Package Validation", function () {
@@ -133,6 +134,16 @@ describe("Package Validation", function () {
             var errors = result.errors;
             expect(errors.length).toEqual(1);
             expect(errors[0][0]).toEqual("MISSING_MAIN");
+            done();
+        });
+    });
+    
+    it("should determine the common prefix if there is one", function (done) {
+        ExtensionsDomain._cmdValidate(oneLevelDown, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(0);
+            expect(result.metadata.name).toEqual("one-level-extension");
+            expect(result.commonPrefix).toEqual("one-level-extension-master");
             done();
         });
     });

@@ -48,6 +48,7 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
 var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.zip"),
     basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
     missingMain          = path.join(testFilesDirectory, "missing-main.zip"),
+    oneLevelDown         = path.join(testFilesDirectory, "one-level-extension-master.zip"),
     missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip");
 
 describe("Package Installation", function () {
@@ -202,6 +203,20 @@ describe("Package Installation", function () {
             var extensionDirectory = path.join(installDirectory, "missing-package-json");
             var pathsToCheck = [
                 path.join(extensionDirectory, "main.js")
+            ];
+            checkPaths(pathsToCheck, done);
+        });
+    });
+    
+    it("should install with the common prefix removed", function (done) {
+        ExtensionsDomain._cmdInstall(oneLevelDown, installDirectory, {
+            disabledDirectory: disabledDirectory
+        }, function (err, result) {
+            expect(err).toBeNull();
+            var extensionDirectory = path.join(installDirectory, "one-level-extension");
+            var pathsToCheck = [
+                path.join(extensionDirectory, "main.js"),
+                path.join(extensionDirectory, "package.json")
             ];
             checkPaths(pathsToCheck, done);
         });
