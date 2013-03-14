@@ -121,6 +121,7 @@ define(function (require, exports, module) {
          * @type {number}
          */
         ASYNC_TIMEOUT: 2000,
+        ASYNC_NETWORK_TIMEOUT: 20000,   // 20 seconds for reading files from network drive
         
         /**
          * Shows a modal dialog for selecting and opening files
@@ -946,9 +947,10 @@ define(function (require, exports, module) {
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
         var rootPath = this._directory.fullPath,
-            filesystem = this.filesystem;
+            filesystem = this.filesystem,
+            timeout = NativeFileSystem.ASYNC_TIMEOUT;
         
-        brackets.fs.readdir(rootPath, function (err, filelist) {
+        brackets.fs.readdir(rootPath, function (err, filelist, isNetworkDrive) {
             if (!err) {
                 var entries = [];
                 var lastError = null;
@@ -959,6 +961,10 @@ define(function (require, exports, module) {
                     return;
                 }
 
+                if (isNetworkDrive) {
+                    timeout = NativeFileSystem.ASYNC_NETWORK_TIMEOUT;
+                }
+                
                 // stat() to determine type of each entry, then populare entries array with objects
                 var masterPromise = Async.doInParallel(filelist, function (filename, index) {
                     
@@ -986,7 +992,7 @@ define(function (require, exports, module) {
 
                 // We want the error callback to get called after some timeout (in case some deferreds don't return).
                 // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
-                var timeoutWrapper = Async.withTimeout(masterPromise, NativeFileSystem.ASYNC_TIMEOUT);
+                var timeoutWrapper = Async.withTimeout(masterPromise, timeout);
 
                 // Add the callbacks to this top-level Promise, which wraps all the individual deferred objects
                 timeoutWrapper.done(function () { // success
