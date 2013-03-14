@@ -192,10 +192,14 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     if (installpath === "") {
                         return;
                     }
+                    readStream.pause();
                     fs.mkdirs(installDirectory + "/" + installpath, function (err) {
                         if (err) {
                             callback(err);
+                            readStream.close();
+                            return;
                         }
+                        readStream.resume();
                     });
                 } else {
                     entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
