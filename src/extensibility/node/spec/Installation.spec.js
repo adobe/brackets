@@ -49,6 +49,7 @@ var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.
     basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
     missingMain          = path.join(testFilesDirectory, "missing-main.zip"),
     oneLevelDown         = path.join(testFilesDirectory, "one-level-extension-master.zip"),
+    incompatibleVersion  = path.join(testFilesDirectory, "incompatible-version.zip"),
     missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip");
 
 describe("Package Installation", function () {
@@ -218,6 +219,22 @@ describe("Package Installation", function () {
                 path.join(extensionDirectory, "main.js"),
                 path.join(extensionDirectory, "package.json"),
                 path.join(extensionDirectory, "lib", "foo.js")
+            ];
+            checkPaths(pathsToCheck, done);
+        });
+    });
+    
+    it("should disable extensions that are not compatible with the current Brackets API", function (done) {
+        ExtensionsDomain._cmdInstall(incompatibleVersion, installDirectory, {
+            disabledDirectory: disabledDirectory,
+            apiVersion: "0.22.0"
+        }, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.disabledReason).toEqual("API_NOT_COMPATIBLE");
+            var extensionDirectory = path.join(disabledDirectory, "incompatible-version");
+            var pathsToCheck = [
+                path.join(extensionDirectory, "main.js"),
+                path.join(extensionDirectory, "package.json")
             ];
             checkPaths(pathsToCheck, done);
         });

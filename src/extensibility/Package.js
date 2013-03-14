@@ -121,7 +121,8 @@ define(function (require, exports, module) {
                 var destinationDirectory = ExtensionLoader.getUserExtensionPath();
                 var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
                 nodeConnection.domains.extensions.install(path, destinationDirectory, {
-                    disabledDirectory: disabledDirectory
+                    disabledDirectory: disabledDirectory,
+                    apiVersion: brackets.metadata.apiVersion
                 })
                     .done(function (result) {
                         
