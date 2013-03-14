@@ -288,7 +288,7 @@ define(function Inspector(require, exports, module) {
 
     /** Check if the inspector is connected */
     function connected() {
-        return _socket !== undefined;
+        return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
     /** Initialize the Inspector
