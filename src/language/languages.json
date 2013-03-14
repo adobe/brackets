@@ -1,6 +1,7 @@
 {
     "unknown": {
-        "name": "Text"
+        "name": "Text",
+        "mode": ["null", "text/plain"]
     },
 
     "css": {
@@ -34,7 +35,8 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl"]
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml"],
+        "blockComment": ["<!--", "-->"]
     },
     
     "php": {
@@ -83,7 +85,8 @@
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee"]
+        "fileExtensions": ["coffee", "cf", "cson"],
+        "fileNames": ["Cakefile"]
     },
 
     "clojure": {
@@ -101,7 +104,7 @@
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
-        "fileExtensions": ["rb"]
+        "fileExtensions": ["rb", "ru", "gemspec", "rake"]
     },
     
     "python": {
@@ -132,7 +135,7 @@
         "name": "Diff",
         "mode": "diff",
         "fileExtensions": ["diff", "patch"]
-    },
+    },       
     
     "markdown": {
         "name": "Markdown",

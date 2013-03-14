@@ -61,8 +61,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager      = require("editor/EditorManager"),
-        CodeHintManager    = require("editor/CodeHintManager"),
+    var CodeHintManager    = require("editor/CodeHintManager"),
         Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
@@ -73,20 +72,28 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
-    
+    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id),
+        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false };
+
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor", defaultPrefs);
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");
     
-    /** @type {boolean}  Global setting: Tab size */
+    /** @type {number}  Global setting: Tab size */
     var _tabSize = _prefs.getValue("tabSize");
     
-    /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
+    /** @type {number}  Global setting: Indent unit (i.e. number of spaces when indenting) */
     var _indentUnit = _prefs.getValue("indentUnit");
+    
+    /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
+    var _closeBrackets = _prefs.getValue("closeBrackets");
+    
+    /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
+    var _duringFocus = false;
 
     /** @type {number}  Constant: ignore upper boundary when centering text */
     var BOUNDARY_CHECK_NORMAL   = 0,
@@ -237,20 +244,6 @@ define(function (require, exports, module) {
         CodeHintManager.handleKeyEvent(editor, event);
     }
 
-    function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
-
-        if (editor) {
-            editor.selectAllNoScroll();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
-    }
-
     /**
      * Helper functions to check options.
      * @param {number} options BOUNDARY_CHECK_NORMAL or BOUNDARY_IGNORE_TOP
@@ -357,6 +350,7 @@ define(function (require, exports, module) {
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap,
+            autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
                 whenOpening: true,
                 whenClosing: true,
@@ -456,7 +450,7 @@ define(function (require, exports, module) {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert
         // here so we're always explicit, avoiding console noise.
-        return this.document.getLanguage().mode || "text/plain";
+        return this.document.getLanguage().getMode() || "text/plain";
     };
     
         
@@ -652,7 +646,7 @@ define(function (require, exports, module) {
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            EditorManager._notifyActiveEditorChanged(self);
+            $(self).triggerHandler("focus", [self]);
         });
         
         this._codeMirror.on("blur", function () {
@@ -958,7 +952,15 @@ define(function (require, exports, module) {
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
     };
-
+    
+    /*
+     * Returns the current text height of the editor.
+     * @returns {number} Height of the text in pixels
+     */
+    Editor.prototype.getTextHeight = function () {
+        return this._codeMirror.defaultTextHeight();
+    };
+    
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
@@ -1127,7 +1129,21 @@ define(function (require, exports, module) {
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
-        this._codeMirror.focus();
+        // Focusing an editor synchronously triggers focus/blur handlers. If a blur handler attemps to focus
+        // another editor, we'll put CM in a bad state (because CM assumes programmatically focusing itself
+        // will always succeed, and if you're in the middle of another focus change that appears to be untrue).
+        // So instead, we simply ignore reentrant focus attempts.
+        // See bug #2951 for an example of this happening and badly hosing things.
+        if (_duringFocus) {
+            return;
+        }
+        
+        _duringFocus = true;
+        try {
+            this._codeMirror.focus();
+        } finally {
+            _duringFocus = false;
+        }
     };
     
     /** Returns true if the editor has focus */
@@ -1208,7 +1224,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
+     *     See {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1241,7 +1257,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link Languages#getLanguageForFileExtension()} and {@link Language#mode}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
@@ -1299,7 +1315,7 @@ define(function (require, exports, module) {
     };
     
     /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function (value) {
+    Editor.getUseTabChar = function () {
         return _useTabChar;
     };
 
@@ -1317,7 +1333,7 @@ define(function (require, exports, module) {
     };
     
     /** @type {number} Get indent unit  */
-    Editor.getTabSize = function (value) {
+    Editor.getTabSize = function () {
         return _tabSize;
     };
 
@@ -1335,13 +1351,28 @@ define(function (require, exports, module) {
     };
     
     /** @type {number} Get indentation width */
-    Editor.getIndentUnit = function (value) {
+    Editor.getIndentUnit = function () {
         return _indentUnit;
     };
     
-    // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
+    /**
+     * Sets the auto close brackets. Affects all Editors.
+     * @param {boolean} value
+     */
+    Editor.setCloseBrackets = function (value) {
+        _closeBrackets = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("autoCloseBrackets", _closeBrackets);
+        });
+        
+        _prefs.setValue("closeBrackets", Boolean(_closeBrackets));
+    };
+    
+    /** @type {boolean} Gets whether all Editors use auto close brackets */
+    Editor.getCloseBrackets = function () {
+        return _closeBrackets;
+    };
+    
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;

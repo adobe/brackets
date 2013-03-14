@@ -76,13 +76,12 @@
  * # LiveDevServerProvider.readyToServe()
  *
  * This method is called when Live Development is starting to check if the
- * provider that has been selected is ready to serve. The provider can
- * return a boolean or a jQuery promise. If a promise is returned, the Live
- * Development launch process waits until the promise resolves/rejects.
- * If "false" is returned, or the promise rejects, an error window is shown
+ * provider that has been selected is ready to serve. The provider returns a
+ * jQuery promise. The Live Development launch process waits until the promise
+ * resolves/rejects. If the promise rejects, an error window is shown
  * and Live Development does not start.
  *
- * return {boolean + jQuery.Promise}
+ * return {jQuery.Promise}
  *
  */
 

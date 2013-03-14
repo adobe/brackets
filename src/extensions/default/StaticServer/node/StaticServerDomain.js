@@ -28,8 +28,8 @@ maxerr: 50, node: true */
 (function () {
     "use strict";
     
-    var http    = require('http'),
-        connect = require('connect');
+    var http    = require("http"),
+        connect = require("connect");
 
     /**
      * When Chrome has a css stylesheet replaced over live development,
@@ -54,13 +54,6 @@ maxerr: 50, node: true */
     
     /**
      * @private
-     * @type {DomainManager}
-     * The DomainManager passed in at init.
-     */
-    var _domainManager = null;
-
-    /**
-     * @private
      * Helper function to create a new server.
      * @param {string} path The absolute path that should be the document root
      * @param {function(?string, ?httpServer)} cb Callback function that receives
@@ -80,7 +73,7 @@ maxerr: 50, node: true */
                     cb(null, res);
                 }
             );
-            req.on('error', function (err) {
+            req.on("error", function (err) {
                 cb(err, null);
             });
         }
@@ -88,12 +81,11 @@ maxerr: 50, node: true */
         var app = connect();
         // JSLint complains if we use `connect.static` because static is a
         // reserved word.
-        app.use(connect.favicon())
-            .use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }))
+        app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }))
             .use(connect.directory(path));
 
         var server = http.createServer(app);
-        server.listen(0, '127.0.0.1', function () {
+        server.listen(0, "127.0.0.1", function () {
             requestRoot(
                 server,
                 function (err, res) {
@@ -107,6 +99,8 @@ maxerr: 50, node: true */
         });
     }
 
+    var PATH_KEY_PREFIX = "LiveDev_";
+    
     /**
      * @private
      * Handler function for the staticServer.getServer command. If a server
@@ -122,7 +116,7 @@ maxerr: 50, node: true */
      */
     function _cmdGetServer(path, cb) {
         // Make sure the key doesn't conflict with some built-in property of Object.
-        var pathKey = "LiveDev_" + path;
+        var pathKey = PATH_KEY_PREFIX + path;
         if (_servers[pathKey]) {
             cb(null, _servers[pathKey].address());
         } else {
@@ -138,22 +132,69 @@ maxerr: 50, node: true */
     }
     
     /**
-     * Initializes the StaticServer domain with its commands.
-     * @param {DomainManager} DomainManager The DomainManager for the server
+     * @private
+     * Handler function for the staticServer.closeServer command. If a server
+     * exists for the given path, closes it, otherwise does nothing. Note that
+     * this function doesn't wait for the actual socket to close, since the
+     * server will actually wait for all client connections to close (which can
+     * be awhile); but once it returns, you're guaranteed to get a different
+     * server the next time you call getServer() on the same path.
+     *
+     * @param {string} path The absolute path whose server we should close.
+     * @return {boolean} true if there was a server for that path, false otherwise
      */
-    function init(DomainManager) {
-        _domainManager = DomainManager;
-        if (!_domainManager.hasDomain("staticServer")) {
-            _domainManager.registerDomain("staticServer", {major: 0, minor: 1});
+    function _cmdCloseServer(path, cba) {
+        var pathKey = PATH_KEY_PREFIX + path;
+        if (_servers[pathKey]) {
+            var serverToClose = _servers[pathKey];
+            delete _servers[pathKey];
+            serverToClose.close();
+            return true;
         }
-        _domainManager.registerCommand(
+        return false;
+    }
+    
+    /**
+     * Initializes the StaticServer domain with its commands.
+     * @param {DomainManager} domainManager The DomainManager for the server
+     */
+    function init(domainManager) {
+        if (!domainManager.hasDomain("staticServer")) {
+            domainManager.registerDomain("staticServer", {major: 0, minor: 1});
+        }
+        domainManager.registerCommand(
             "staticServer",
             "getServer",
             _cmdGetServer,
             true,
             "Starts or returns an existing server for the given path.",
-            [{name: "path", type: "string"}],
-            [{name: "address", type: "{address: string, family: string, port: number}"}]
+            [{
+                name: "path",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "address",
+                type: "{address: string, family: string, port: number}",
+                description: "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
+            }]
+        );
+        domainManager.registerCommand(
+            "staticServer",
+            "closeServer",
+            _cmdCloseServer,
+            false,
+            "Closes the server for the given path.",
+            [{
+                name: "path",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "result",
+                type: "boolean",
+                description: "indicates whether a server was found for the specific path then closed"
+            }]
         );
     }
     
