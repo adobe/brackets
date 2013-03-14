@@ -96,7 +96,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
-	"FIND_RESULT_COUNT": "!能=[6734353] {0} results_=!",
+	"FIND_RESULT_COUNT": "{0} 件",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-	"PROJECT_LOADING": "!能=[6735416] Loading\u2026_=!",
+	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
 
     /**

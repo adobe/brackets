@@ -96,7 +96,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
-	"FIND_RESULT_COUNT": "[6734353] !é={0} results=!",
+	"FIND_RESULT_COUNT": "{0} résultats",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-	"PROJECT_LOADING": "[6735416] !é=Loading\u2026=!",
+	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
 
     /**
