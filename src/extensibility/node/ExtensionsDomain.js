@@ -182,7 +182,7 @@ function _cmdValidate(path, callback) {
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
     
-    fs.mkdirs(installDirectory, function (err) {
+    fs.mkdir(installDirectory, function (err) {
         if (err) {
             callback(err);
             return;
@@ -444,9 +444,9 @@ function init(domainManager) {
     domainManager.registerCommand(
         "extensions",
         "validate",
+        _cmdValidate,
         true,
         "Verifies that the contents of the given ZIP file are a valid Brackets extension package",
-        _cmdValidate,
         [{
             name: "path",
             type: "string",
@@ -467,6 +467,8 @@ function init(domainManager) {
         "extensions",
         "install",
         _cmdInstall,
+        true,
+        "Installs the given Brackets extension if it is valid (runs validation command automatically)",
         [{
             name: "path",
             type: "string",
