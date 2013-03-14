@@ -1,0 +1,23 @@
+div{
+    color: "green";
+}
+
+div
+{
+    color: "green";
+}
+
+    div
+{
+    color: "green";
+}
+
+h3, h2, h1
+{
+    color: "yellow";
+}
+
+    h3, h2, h1 
+{
+    color: "yellow";
+}

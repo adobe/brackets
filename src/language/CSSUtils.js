@@ -1029,7 +1029,7 @@ define(function (require, exports, module) {
     
     exports.getInfoAtPos = getInfoAtPos;
 
-    // The createInfo is reallyonly for the unit tests so they can make the same  
+    // The createInfo is really only for the unit tests so they can make the same  
     // structure to compare results with.
     exports.createInfo = createInfo;
 });
