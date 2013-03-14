@@ -151,11 +151,19 @@ define(function Inspector(require, exports, module) {
 
     /** WebSocket reported an error */
     function _onError(error) {
+        if (_connectDeferred) {
+            _connectDeferred.reject();
+            _connectDeferred = null;
+        }
         $exports.triggerHandler("error", [error]);
     }
 
     /** WebSocket did open */
     function _onConnect() {
+        if (_connectDeferred) {
+            _connectDeferred.resolve();
+            _connectDeferred = null;
+        }
         $exports.triggerHandler("connect");
     }
 
@@ -266,15 +274,12 @@ define(function Inspector(require, exports, module) {
         _connectDeferred = deferred;
         var promise = getDebuggableWindows();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.isRejected()) {
-                return;
-            }
             var i, page;
             for (i in response) {
                 page = response[i];
                 if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
                     connect(page.webSocketDebuggerUrl);
-                    deferred.resolve();
+                    // _connectDeferred may be resolved by onConnect or rejected by onError
                     return;
                 }
             }
