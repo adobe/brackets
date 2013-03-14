@@ -516,10 +516,10 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _parseSelector() {
+        function _parseSelector(start) {
             
             currentSelector = "";
-            selectorStartChar = stream.start;
+            selectorStartChar = start;
             selectorStartLine = line;
             
             // Everything until the next ',' or '{' is part of the current selector
@@ -548,7 +548,8 @@ define(function (require, exports, module) {
             }
             
             currentSelector = currentSelector.trim();
-            var selectorStart = (stream.string.indexOf(currentSelector, selectorStartChar) !== -1) ? stream.string.indexOf(currentSelector, selectorStartChar) : 0;
+            var startChar = (selectorGroupStartLine === -1) ? selectorStartChar : selectorStartChar + 1;
+            var selectorStart = (stream.string.indexOf(currentSelector, selectorStartChar) !== -1) ? stream.string.indexOf(currentSelector, selectorStartChar - currentSelector.length) : startChar;
 
             if (currentSelector !== "") {
                 selectors.push({selector: currentSelector,
@@ -568,16 +569,15 @@ define(function (require, exports, module) {
         }
         
         function _parseSelectorList() {
-
-            selectorGroupStartLine = line;
+            selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
             selectorGroupStartChar = stream.start;
 
-            _parseSelector();
+            _parseSelector(stream.start);
             while (token === ",") {
                 if (!_nextTokenSkippingComments()) {
                     break;
                 }
-                _parseSelector();
+                _parseSelector(stream.start);
             }
         }
 
