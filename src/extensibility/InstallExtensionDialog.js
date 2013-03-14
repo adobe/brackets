@@ -144,7 +144,8 @@ define(function (require, exports, module) {
             if (newState === STATE_INSTALL_CANCELLED) {
                 // TODO: do we need to wait for acknowledgement? That will require adding a new
                 // "waiting for cancelled" state.
-                this._installer.cancel();
+                var success = this._installer.cancel();
+                console.assert(success);
             }
                 
             this.$spinner.removeClass("spin");
@@ -311,10 +312,24 @@ define(function (require, exports, module) {
 
     function RealInstaller() { }
     RealInstaller.prototype.install = function (url) {
-        return Package.download(url);
+        if (this.pendingInstall) {
+            console.error("Extension installation already pending");
+            return { promise: new $.Deferred().reject("Extension installation already pending").promise() };
+        }
+        this.pendingInstall = Package.installFromURL(url);
+        
+        // Store now since we'll null pendingInstall immediately if the promise was resolved synchronously
+        var promise = this.pendingInstall.promise;
+        
+        var self = this;
+        this.pendingInstall.promise.always(function () {
+            self.pendingInstall = null;
+        });
+        
+        return promise;
     };
     RealInstaller.prototype.cancel = function () {
-        console.error("Not supported yet!");
+        return this.pendingInstall.cancel();
     };
     
     /**

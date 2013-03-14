@@ -55,6 +55,11 @@ define(function (require, exports, module) {
     var _nodeConnectionDeferred = $.Deferred();
     
     /**
+     * @type {number} Used to generate unique download ids
+     */
+    var _uniqueId = 0;
+    
+    /**
      * Validates the package at the given path. The actual validation is
      * handled by the Node server.
      * 
@@ -166,38 +171,37 @@ define(function (require, exports, module) {
      * of the downloaded file. On failire, rejects with an error message.
      * 
      * @param {string} url URL of the file to be downloaded
+     * @param {number} downloadId Unique number to identify this request
      * @return {$.Promise}
      */
-    function download(url) {
+    function download(url, downloadId) {
         var d = new $.Deferred();
         _nodeConnectionDeferred.done(function (connection) {
             // Validate URL
+            // TODO: PathUtils fails to parse URLs that are missing the protocol part (e.g. starts immediately with "www...")
             var parsed = PathUtils.parseUrl(url);
             if (!parsed.hostname) { // means PathUtils failed to parse at all
                 d.reject("Malformed URL");
-                return;
+                return d.promise();
             }
             if (parsed.protocol !== "http:") {
                 // ERROR... for now - TODO
                 d.reject("URL is not http: protocol");
-                return;
+                return d.promise();
             }
             var hostname = parsed.hostname;
-            if (parsed.port && parsed.port !== "80") {
-                // ERROR... for now - FIXME
-                d.reject("URL is not port 80");
-                return;
-            }
             var hostPath = parsed.pathname;
+            var port = parsed.port || "80";
             
             // Decide download destination
+            // TODO: handle case with no filename? (e.g. url is bare domain or ends in /)
             var filename = parsed.filename;
             filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // sanitize
             var tempDownloadFolder = brackets.app.getApplicationSupportDirectory() + "/extensions/";
             var localPath = tempDownloadFolder + filename;
             
             // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = connection.domains.extensions.downloadFile(hostname, hostPath, localPath);
+            var r = connection.domains.extensions.downloadFile(downloadId, hostname, hostPath, port, localPath);
             r.done(function (result) {
                 d.resolve(localPath);
             }).fail(function (err) {
@@ -205,6 +209,38 @@ define(function (require, exports, module) {
             });
         });
         return d.promise();
+    }
+    
+    /**
+     * Attempts to synchronously cancel the given pending download. This may not be possible, e.g.
+     * if the download has already finished.
+     * 
+     * @param {number} downloadId Identifier previously passed to download()
+     * @return {boolean}
+     */
+    function cancelDownload(downloadId) {
+        // TODO: if we're still waiting on the NodeConnection, how do we cancel?
+        console.assert(_nodeConnectionDeferred.isResolved());
+        var success;
+        _nodeConnectionDeferred.done(function (connection) {
+            success = connection.domains.extensions.abortDownload(downloadId);
+        });
+        return success;
+    }
+
+    /**
+     * @return {{promise: $.Promise, cancel: function():boolean}}
+     */
+    function installFromURL(url) {
+        var downloadId = (_uniqueId++);
+        var promise = download(url, downloadId);    // TODO: chain this with package validate, etc.
+        return {
+            promise: promise,
+            _downloadId: downloadId,
+            cancel: function () {
+                return cancelDownload(this._downloadId);
+            }
+        };
     }
     
     
@@ -250,12 +286,11 @@ define(function (require, exports, module) {
                 );
         });
     });
-
+    
     // For unit tests only
     exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
 
-    
+    exports.installFromURL = installFromURL;
     exports.validate = validate;
     exports.install = install;
-    exports.download = download;
 });

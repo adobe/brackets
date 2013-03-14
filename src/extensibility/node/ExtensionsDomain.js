@@ -33,6 +33,17 @@ var unzip  = require("unzip"),
     http   = require("http"),
     fs     = require("fs");
 
+
+/** @const @type {number} */
+var DOWNLOAD_LIMIT = 0x100000; // 1 MB
+
+/**
+ * Maps unique download ID to info about the pending download. No entry if download no longer pending.
+ * outStream is only present if we've started receiving the body.
+ * @type {Object.<string, {request:!http.ClientRequest, callback:!function(string, string), localPath:string, outStream:?fs.WriteStream}>}
+ */
+var pendingDownloads = {};
+
 /**
  * Implements the "validate" command in the "extensions" domain.
  * Validates the zipped package at path.
@@ -159,6 +170,7 @@ function _cmdValidate(path, callback) {
     });
 }
 
+
 /**
  * Private function to unzip to the correct directory.
  *
@@ -231,12 +243,6 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
         _performInstall(packagePath, installDirectory, validationResult, callback);
     });
 }
-
-
-// TODO: use 3rd-party "request" module instead? supports https & redirects...
-//  https://github.com/mikeal/request
-
-var DOWNLOAD_LIMIT = 0x100000; // 1 MB
 
 /**
  * Implements the "install" command in the "extensions" domain.
@@ -320,10 +326,48 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
     _cmdValidate(packagePath, validateCallback);
 }
 
+
+// TODO: use 3rd-party "request" module instead? supports https & redirects...
+//  https://github.com/mikeal/request
+
 /**
- * @param {function(error, result)} callback
+ * Wrap up after the given download has terminated (successfully or not). Closes connections, calls back the
+ * client's callback, and IF there was an error, delete any partially-downloaded file.
+ * 
+ * @param {string} downloadId Unique id originally passed to _cmdDownloadFile()
+ * @param {?string} error If null, download was treated as successful
  */
-function _cmdDownloadFile(hostname, hostPath, localPath, callback) {
+function _endDownload(downloadId, error) {
+    var downloadInfo = pendingDownloads[downloadId];
+    delete pendingDownloads[downloadId];
+    
+    if (error) {
+        // Abort the download if still pending
+        // Note that this will trigger response's "end" event
+        downloadInfo.request.abort();
+        
+        // Clean up any partially-downloaded file
+        // (if no outStream, then we never got a response back yet and never created any file)
+        if (downloadInfo.outStream) {
+            downloadInfo.outStream.end();
+            fs.unlink(downloadInfo.localPath);
+        }
+    } else {
+        // !error is only in the case that download has successfully completed
+        downloadInfo.outStream.end();
+    }
+    
+    downloadInfo.callback(error, null);
+}
+
+/**
+ * Implements "downloadFile" command, asynchronously.
+ */
+function _cmdDownloadFile(downloadId, hostname, hostPath, port, localPath, callback) {
+    if (pendingDownloads[downloadId]) {
+        callback("Error: download already pending with id " + downloadId, null);
+    }
+    
     if (fs.existsSync(localPath)) {
         callback("Error: file already exists", null);
         return;
@@ -333,41 +377,61 @@ function _cmdDownloadFile(hostname, hostPath, localPath, callback) {
     var req = http.get({
         hostname: hostname,
         path: hostPath,
+        port: port,
         encoding: null  // allow binary content
         
     }, function (response) { // response is an IncomingMessage object
         // Make sure we're actually getting the file contents and not an error page
         if (response.statusCode !== 200) {
-            callback("Unexpected HTTP response " + response.statusCode, null);
-            req.abort();
+            _endDownload(downloadId, "Unexpected HTTP response " + response.statusCode);
             return;
         }
         
         // Begin downloading to local file
-        var outFile = fs.createWriteStream(localPath);
+        var outStream = fs.createWriteStream(localPath);
+        pendingDownloads[downloadId].outStream = outStream;
         var totalSize = 0;
+        
         response.on("data", function (chunk) { // chunk is a Buffer object
             // Enforce max size limit
             totalSize += chunk.length;
             if (totalSize > DOWNLOAD_LIMIT) {
-                outFile.end();
-                fs.unlink(localPath);
-                callback("Error: download size exceeded " + DOWNLOAD_LIMIT, null);
-                req.abort();
+                _endDownload(downloadId, "Error: download size exceeded " + DOWNLOAD_LIMIT);
             } else {
                 // Stream the downloaded bits to disk
-                outFile.write(chunk);
+                outStream.write(chunk);
             }
         });
+        
         response.on("end", function () {
-            callback(null, "Download succeeded");
-            outFile.end();
+            if (pendingDownloads[downloadId]) {
+                _endDownload(downloadId);
+            }
+            // else we received "end" because WE dropped the connection; download didn't actually succeed
         });
     });
+    
     req.on("error", function (err) {
-        callback("Download request error: " + err, null);
+        // We never got a response - server is down, no DNS entry, etc.
+        _endDownload(downloadId, "Download request error: " + err);
     });
+    
+    pendingDownloads[downloadId] = { request: req, callback: callback, localPath: localPath };
 }
+
+/**
+ * Implements "abortDownload" command, synchronously.
+ */
+function _cmdAbortDownload(downloadId) {
+    if (!pendingDownloads[downloadId]) {
+        // This may mean the download already completed
+        return false;
+    } else {
+        _endDownload(downloadId, "Download aborted");
+        return true;
+    }
+}
+
 
 /**
  * Initialize the "extensions" domain.
@@ -438,13 +502,21 @@ function init(domainManager) {
         true,
         "Downloads the file at the given URL, saving it to the given local path",
         [{
+            name: "downloadId",
+            type: "string",
+            description: "Unique identifier for this download 'session'"
+        }, {
             name: "hostname",
             type: "string",
-            description: "Hostname of URL to download from. Must support http on port 80."
+            description: "Hostname of URL to download from (assumes http)"
         }, {
             name: "hostPath",
             type: "string",
             description: "Path or URL to download from (starting with '/')"
+        }, {
+            name: "port",
+            type: "string",
+            description: "Port on hostname to connect to"
         }, {
             name: "path",
             type: "string",
@@ -453,7 +525,25 @@ function init(domainManager) {
         {
             error: {
                 type: "string",
-                description: "download error, if any; one of: FILE_TOO_LARGE, CANNOT_WRITE, CANNOT_DOWNLOAD"
+                description: "download error, if any; one of: FILE_TOO_LARGE, CANNOT_WRITE, CANNOT_DOWNLOAD"    // TODO: emit actual error codes
+            }
+        }
+    );
+    domainManager.registerCommand(
+        "extensions",
+        "abortDownload",
+        _cmdAbortDownload,
+        false,
+        "Aborts any pending download with the given id. Error if no download pending (may be already complete).",
+        [{
+            name: "downloadId",
+            type: "string",
+            description: "Unique identifier for this download 'session', previously pased to downloadFile"
+        }],
+        {
+            result: {
+                type: "boolean",
+                description: "True if the download was pending and able to be canceled; false otherwise"
             }
         }
     );
