@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "!能=[6735416] Loading\u2026_=!",
 	"UNTITLED": "名称未設定",
 
     /**
@@ -202,7 +202,7 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Enable Close Brackets_=!",
+	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Auto Close Braces_=!",
     
     // View menu commands
 	"VIEW_MENU": "表示",
@@ -211,6 +211,8 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
+	"CMD_SCROLL_LINE_UP": "!能=[6735595] Scroll Line Up_=!",
+	"CMD_SCROLL_LINE_DOWN": "!能=[6735594] Scroll Line Down_=!",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",

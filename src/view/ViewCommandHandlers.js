@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        KeyBindingManager       = require("command/KeyBindingManager"),
         Strings                 = require("strings"),
         ProjectManager          = require("project/ProjectManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -84,6 +85,12 @@ define(function (require, exports, module) {
      */
     var _fontSizePrefsLoaded = false;
 
+    
+    /**
+     * @private
+     * Removes the styles used to update the font size and updates the editor if refresh is true
+     * @param {boolean} refresh - True to refresh the current full editor
+     */
     function _removeDynamicFontSize(refresh) {
         $("#" + DYNAMIC_FONT_STYLE_ID).remove();
         if (refresh) {
@@ -98,8 +105,6 @@ define(function (require, exports, module) {
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
-        var styleId = "codemirror-dynamic-fonts";
-
         var fsStyle = $(".CodeMirror").css("font-size");
         var lhStyle = $(".CodeMirror").css("line-height");
 
@@ -184,6 +189,7 @@ define(function (require, exports, module) {
         _prefs.setValue("fontSizeAdjustment", 0);
     }
     
+    
     /**
      * @private
      * Updates the user interface appropriately based on whether or not a document is
@@ -213,10 +219,120 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    
+    /**
+     * @private
+     * Calculates the first and last visible lines of the focused editor
+     * @param {!number} textHeight
+     * @param {!number} scrollTop
+     * @param {!number} editorHeight
+     * @param {!number} viewportFrom
+     * @return {{first: number, last: number}}
+     */
+    function _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom) {
+        var scrolledTop    = scrollTop / textHeight,
+            scrolledBottom = (scrollTop + editorHeight) / textHeight;
+        
+        // Subtract a line from both for zero-based index. Also adjust last line
+        // to round inward to show a whole lines.
+        var firstLine      = Math.ceil(scrolledTop) - 1,
+            lastLine       = Math.floor(scrolledBottom) - 2;
+        
+        return { first: viewportFrom + firstLine, last: viewportFrom + lastLine };
+    }
+    
+    /**
+     * @private
+     * Scroll the viewport one line up or down.
+     * @param {number} -1 to scroll one line up; 1 to scroll one line down.
+     */
+    function _scrollLine(direction) {
+        var editor        = EditorManager.getCurrentFullEditor(),
+            textHeight    = editor.getTextHeight(),
+            cursorPos     = editor.getCursorPos(),
+            hasSelecction = editor.hasSelection(),
+            inlineEditors = editor.getInlineWidgets(),
+            scrollInfo    = editor._codeMirror.getScrollInfo(),
+            viewportFrom  = editor._codeMirror.getViewport().from,
+            paddingTop    = editor._getLineSpaceElement().offsetTop,
+            viewportTop   = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
+            editorHeight  = scrollInfo.clientHeight;
+        
+        // To make it snap better to lines and dont cover the cursor when the scroll is lower than the top padding,
+        // we make it start direclty from the top padding
+        var scrolledTop   = scrollInfo.top < paddingTop && direction > 0 ? paddingTop : scrollInfo.top;
+        
+        // CodeMirror has a strange behaviour when it comes to calculate the height of the not rendered lines,
+        // so instead, we calculate the amount of hidden rendered lines at top and add it to the first rendered line.
+        var scrollTop     = scrolledTop - viewportTop,
+            linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
+        
+        // Go through all the editors and reduce the scroll top and editor height to recalculate the lines in view 
+        var line, total;
+        inlineEditors.forEach(function (inlineEditor) {
+            line  = editor._getInlineWidgetLineNumber(inlineEditor);
+            total = inlineEditor.info.height / textHeight;
+            
+            if (line >= viewportFrom) {
+                if (line < linesInView.first) {
+                    scrollTop   -= inlineEditor.info.height;
+                    linesInView  = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
+                
+                } else if (line + total < linesInView.last) {
+                    editorHeight -= inlineEditor.info.height;
+                    linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
+                }
+            }
+        });
+        
+        // If there is no selection move the cursor so that is always visible.
+        if (!hasSelecction) {
+            // Move the cursor to the first visible line.
+            if (cursorPos.line < linesInView.first) {
+                editor.setCursorPos({line: linesInView.first + direction, ch: cursorPos.ch});
+            
+            // Move the cursor to the last visible line.
+            } else if (cursorPos.line > linesInView.last) {
+                editor.setCursorPos({line: linesInView.last + direction, ch: cursorPos.ch});
+            
+            // Move the cursor up or down using moveV to keep the goal column intact, since setCursorPos deletes it.
+            } else if ((direction > 0 && cursorPos.line === linesInView.first) ||
+                    (direction < 0 && cursorPos.line === linesInView.last)) {
+                editor._codeMirror.moveV(direction, "line");
+            }
+        }
+        
+        // If there are inline editors just add/remove 1 line to the scroll top.
+        if (inlineEditors.length) {
+            editor.setScrollPos(scrollInfo.left, scrolledTop + (textHeight * direction));
+        
+        // If there arent, we can make it snap to the line.
+        } else {
+            var lines = linesInView.first - viewportFrom + direction + 1;
+            editor.setScrollPos(scrollInfo.left, viewportTop + (textHeight * lines));
+        }
+    }
+    
+    function _handleScrollLineUp() {
+        _scrollLine(-1);
+    }
+    
+    function _handleScrollLineDown() {
+        _scrollLine(1);
+    }
+    
+    
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
+    CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
+
+    // There are no menu items, so bind commands directly
+    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_UP);
+    KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
 
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
