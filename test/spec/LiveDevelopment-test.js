@@ -68,14 +68,14 @@ define(function (require, exports, module) {
         var localText,
             browserText;
         
-        //verify we aren't currently connected
+        //verify live dev isn't currently active
         expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
         
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles");
         });
         
-        //start the connection
+        //start live dev
         runs(function () {
             LiveDevelopment.open();
         });
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
             expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
             
             var doc = DocumentManager.getOpenDocumentForPath(testPath + "/" + htmlFile);
-            //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+            expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
         });
     }
 
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
             });
             
             it("should establish a browser connection for an opened html file", function () {
-                //verify we aren't currently connected
+                //verify live dev isn't currently active
                 expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 //open a file
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                //start the connection
+                //start live dev
                 runs(function () {
                     LiveDevelopment.open();
                 });
@@ -177,15 +177,15 @@ define(function (require, exports, module) {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
                     
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
-                    //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
                 
-                // Let things settle down before trying to close the connection.
+                // Let things settle down before trying to stop live dev.
                 waits(1000);
             });
             
             it("should should not start a browser connection for an opened css file", function () {
-                //verify we aren't currently connected
+                //verify live dev isn't currently active
                 expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 //open a file
@@ -193,12 +193,12 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                //start the connection
+                //start live dev
                 runs(function () {
                     LiveDevelopment.open();
                 });
                 
-                //we just need to wait an arbitrary time since we can't check for the connection to be true
+                //need to wait an arbitrary time since we can't check for live dev to be active
                 waits(1000);
  
                 runs(function () {
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
                 var localText,
                     browserText;
                 
-                //verify we aren't currently connected
+                //verify live dev isn't currently active
                 expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 var cssOpened = false;
@@ -245,7 +245,7 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                //start the connection
+                //start live dev
                 var liveDoc;
                 runs(function () {
                     LiveDevelopment.open();
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
                     browserHtmlText,
                     htmlDoc;
                 
-                // verify we aren't currently connected
+                //verify live dev isn't currently active
                 expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
                 
                 var cssOpened = false;
@@ -302,7 +302,7 @@ define(function (require, exports, module) {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
                 
-                // Modify some text in test file before starting live connection
+                // Modify some text in test file before starting live dev
                 runs(function () {
                     htmlDoc =  DocumentManager.getCurrentDocument();
                     origHtmlText = htmlDoc.getText();
@@ -310,7 +310,7 @@ define(function (require, exports, module) {
                     htmlDoc.setText(updatedHtmlText);
                 });
                                 
-                // start the connection
+                // start live dev
                 var liveDoc, liveHtmlDoc;
                 runs(function () {
                     waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 2000);
