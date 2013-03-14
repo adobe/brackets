@@ -216,7 +216,8 @@ describe("Package Installation", function () {
             var extensionDirectory = path.join(installDirectory, "one-level-extension");
             var pathsToCheck = [
                 path.join(extensionDirectory, "main.js"),
-                path.join(extensionDirectory, "package.json")
+                path.join(extensionDirectory, "package.json"),
+                path.join(extensionDirectory, "lib", "foo.js")
             ];
             checkPaths(pathsToCheck, done);
         });
