@@ -202,7 +202,7 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Enable Close Brackets_=!",
+	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Auto Close Braces_=!",
     
     // View menu commands
 	"VIEW_MENU": "表示",
