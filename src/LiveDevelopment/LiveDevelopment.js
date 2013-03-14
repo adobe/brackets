@@ -440,6 +440,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         $(Inspector.Inspector).on("detached", _onDetached);
+        $(Inspector.Page).on("frameNavigated.DOMAgent", _onFrameNavigated);
         
         // Load agents
         _setStatus(STATUS_LOADING_AGENTS);
@@ -458,6 +459,8 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
         $(Inspector.Inspector).off("detached", _onDetached);
+        $(Inspector.Page).off("frameNavigated.DOMAgent", _onFrameNavigated);
+
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
@@ -705,6 +708,32 @@ define(function LiveDevelopment(require, exports, module) {
                 agents.network && agents.network.wasURLRequested(doc.url)) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
             _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
+        }
+    }
+
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
+        // res = {frame}
+        var url = res.frame.url,
+            baseUrl,
+            baseUrlRegExp;
+
+        // Any local file is OK
+        if (url.match(/^file:\/\//i) || !_serverProvider) {
+            return;
+        }
+
+        // Need base url to build reg exp
+        baseUrl = _serverProvider.getBaseUrl();
+        if (!baseUrl) {
+            return;
+        }
+
+        // Test that url is within site
+        baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
+        if (!url.match(baseUrlRegExp)) {
+            // No longer in site, so terminate live dev
+            _closeDocument();
         }
     }
 
