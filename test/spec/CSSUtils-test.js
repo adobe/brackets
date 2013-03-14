@@ -526,24 +526,32 @@ define(function (require, exports, module) {
                 selectors = null;
             });
             
-            it("should find selector positions when no whitespace between selector and '{'", function () {
+            it("should find selector positions when whitespace between selector and '{'", function () {
                 expect([selectors[0].selectorStartChar, selectors[0].selectorEndChar]).toEqual([0, 3]);
             });
             
-            it("should find selector positions when '{' on the next line", function () {
+            it("should find selector positions when no whitespace between selector and '{'", function () {
                 expect([selectors[1].selectorStartChar, selectors[1].selectorEndChar]).toEqual([0, 3]);
             });
             
+            it("should find selector positions when '{' on the next line", function () {
+                expect([selectors[2].selectorStartChar, selectors[2].selectorEndChar]).toEqual([0, 3]);
+            });
+            
             it("should find selector positions when '{' on the next line and selector is indented", function () {
-                expect({ start: selectors[2].selectorStartChar, end: selectors[2].selectorEndChar}).toEqual({ start: 4, end: 7});
+                expect([selectors[3].selectorStartChar, selectors[3].selectorEndChar]).toEqual([4, 7]);
+            });
+            
+            it("should find selector positions when '{' on the next line and selector is indented with tabs", function () {
+                expect([selectors[4].selectorStartChar, selectors[4].selectorEndChar]).toEqual([1, 4]);
             });
             
             it("should find selector positions in a selector group when '{' on the next line", function () {
                 var expected = [0, 2, 4, 6, 8, 10],
                     result = [
-                        selectors[3].selectorStartChar, selectors[3].selectorEndChar,
-                        selectors[4].selectorStartChar, selectors[4].selectorEndChar,
-                        selectors[5].selectorStartChar, selectors[5].selectorEndChar
+                        selectors[5].selectorStartChar, selectors[5].selectorEndChar,
+                        selectors[6].selectorStartChar, selectors[6].selectorEndChar,
+                        selectors[7].selectorStartChar, selectors[7].selectorEndChar
                     ];
                 
                 expect(result).toEqual(expected);
@@ -552,9 +560,9 @@ define(function (require, exports, module) {
             it("should find selector positions in a selector group when '{' on the next line and selector group is indented", function () {
                 var expected = [4, 6, 8, 10, 12, 14],
                     result = [
-                        selectors[6].selectorStartChar, selectors[6].selectorEndChar,
-                        selectors[7].selectorStartChar, selectors[7].selectorEndChar,
-                        selectors[8].selectorStartChar, selectors[8].selectorEndChar
+                        selectors[8].selectorStartChar, selectors[8].selectorEndChar,
+                        selectors[9].selectorStartChar, selectors[9].selectorEndChar,
+                        selectors[10].selectorStartChar, selectors[10].selectorEndChar
                     ];
                 
                 expect(result).toEqual(expected);

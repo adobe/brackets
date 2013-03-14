@@ -1,3 +1,7 @@
+div {
+    color: "green";
+}
+
 div{
     color: "green";
 }
@@ -6,8 +10,13 @@ div
 {
     color: "green";
 }
-
+/* spaces */
     div
+{
+    color: "green";
+}
+/* tab */
+	div
 {
     color: "green";
 }
