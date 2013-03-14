@@ -39,10 +39,10 @@ define(function (require, exports, module) {
         groupsFileEntry            = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
         offsetsCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
         bootstrapCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
-        escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css"),
-        selectorPositionsFileEntry = new NativeFileSystem.FileEntry(testPath + "/selector-positions.css");
+        escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css");
     
-    var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css");
+    var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
+        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -514,17 +514,8 @@ define(function (require, exports, module) {
         
         describe("find correct positions of selectors", function () {
             var selectors;
-            
-            beforeEach(function () {
-                init(this, selectorPositionsFileEntry);
-                runs(function () {
-                    selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
-                });
-            });
-
-            afterEach(function () {
-                selectors = null;
-            });
+                
+            selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
             
             it("should find selector positions when whitespace between selector and '{'", function () {
                 expect([selectors[0].selectorStartChar, selectors[0].selectorEndChar]).toEqual([0, 3]);
