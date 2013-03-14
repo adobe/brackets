@@ -732,8 +732,10 @@ define(function LiveDevelopment(require, exports, module) {
         // Test that url is within site
         baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
         if (!url.match(baseUrlRegExp)) {
-            // No longer in site, so terminate live dev
-            _closeDocument();
+            // No longer in site, so terminate live dev, but don't close browser window
+            Inspector.disconnect();
+            _setStatus(STATUS_INACTIVE);
+            _serverProvider = null;
         }
     }
 
