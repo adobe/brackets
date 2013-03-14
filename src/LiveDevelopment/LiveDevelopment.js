@@ -64,7 +64,8 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
     var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
 
-    var Dialogs              = require("widgets/Dialogs"),
+    var Async                = require("utils/Async"),
+        Dialogs              = require("widgets/Dialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileUtils            = require("file/FileUtils"),
@@ -302,18 +303,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Open a live document
      * @param {Document} source document to open
+     * @return {jQuery.Promise} A promise that is resolved once the live
+     *      document is open
      */
     function _openDocument(doc, editor) {
-        _closeDocument();
-        _liveDocument = _createDocument(doc, editor);
-
-        // Gather related CSS documents.
-        // FUTURE: Gather related JS documents as well.
-        _relatedDocuments = [];
-        agents.css.getStylesheetURLs().forEach(function (url) {
-            // FUTURE: when we get truly async file handling, we might need to prevent other
-            // stuff from happening while we wait to add these listeners
+        
+        function createLiveStylesheet(url) {
+            var stylesheetDeferred = $.Deferred();
+                
             DocumentManager.getDocumentForPath(_urlToPath(url))
+                .fail(function () {
+                    stylesheetDeferred.reject();
+                })
                 .done(function (doc) {
                     if (!_liveDocument || (doc !== _liveDocument.doc)) {
                         _setDocInfo(doc);
@@ -323,8 +324,21 @@ define(function LiveDevelopment(require, exports, module) {
                             $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
                         }
                     }
+                    stylesheetDeferred.resolve();
                 });
-        });
+            return stylesheetDeferred.promise();
+        }
+
+        _closeDocument();
+        _liveDocument = _createDocument(doc, editor);
+
+        // Gather related CSS documents.
+        // FUTURE: Gather related JS documents as well.
+        _relatedDocuments = [];
+        
+        return Async.doInParallel(agents.css.getStylesheetURLs(),
+                                  createLiveStylesheet,
+                                  false); // don't fail fast
     }
 
     /** Unload the agents */
@@ -423,11 +437,14 @@ define(function LiveDevelopment(require, exports, module) {
         var editor = EditorManager.getCurrentFullEditor(),
             status = STATUS_ACTIVE;
 
-        _openDocument(doc, editor);
-        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-            status = STATUS_OUT_OF_SYNC;
-        }
-        _setStatus(status);
+        _openDocument(doc, editor)
+            .fail(_closeDocument)
+            .done(function () {
+                if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                    status = STATUS_OUT_OF_SYNC;
+                }
+                _setStatus(status);
+            });
     }
 
     /** Triggered by Inspector.detached */
@@ -662,7 +679,9 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
         var doc = _getCurrentDocument(),
-            status = STATUS_ACTIVE;
+            status = STATUS_ACTIVE,
+            promise;
+        
         if (!doc) {
             return;
         }
@@ -672,18 +691,24 @@ define(function LiveDevelopment(require, exports, module) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
-                _openDocument(doc, editor);
+                promise = _openDocument(doc, editor);
             } else {
                 if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
                     close();
-                    window.setTimeout(open);
+                    promise = open();
+                } else {
+                    promise = $.Deferred().resolve();
                 }
             }
             
-            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-                status = STATUS_OUT_OF_SYNC;
-            }
-            _setStatus(status);
+            promise
+                .fail(close)
+                .done(function () {
+                    if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                        status = STATUS_OUT_OF_SYNC;
+                    }
+                    _setStatus(status);
+                });
         }
     }
 
