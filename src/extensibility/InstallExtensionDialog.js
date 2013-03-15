@@ -133,8 +133,12 @@ define(function (require, exports, module) {
                     self._enterState(STATE_INSTALLED);
                 })
                 .fail(function (err) {
-                    console.error("Failed to install:", err);
-                    self._enterState(STATE_INSTALL_FAILED);
+                    // Ignore expected case: the Promise is failed when we programmatically cancel
+                    // In all other cases, record the error and transition to error display UI
+                    if (!(err === "CANCELED" && self._state === STATE_INSTALL_CANCELLED)) {
+                        self._errorMessage = Package.formatError(err);
+                        self._enterState(STATE_INSTALL_FAILED);
+                    }
                 });
             break;
             
@@ -152,8 +156,8 @@ define(function (require, exports, module) {
             if (newState === STATE_INSTALLED) {
                 msg = Strings.INSTALL_SUCCEEDED;
             } else if (newState === STATE_INSTALL_FAILED) {
-                // TODO: show error message from backend--how do we pass this?
-                msg = Strings.INSTALL_FAILED;
+                // TODO: nicer formatting, especially for validation errors where there might be > 1 error code
+                msg = Strings.INSTALL_FAILED + "\n" + this._errorMessage;
             } else {
                 msg = Strings.INSTALL_CANCELLED;
             }
@@ -313,7 +317,7 @@ define(function (require, exports, module) {
     RealInstaller.prototype.install = function (url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");
-            return { promise: new $.Deferred().reject("Extension installation already pending").promise() };
+            return { promise: new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise() };
         }
         this.pendingInstall = Package.installFromURL(url);
         
