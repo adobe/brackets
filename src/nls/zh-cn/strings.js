@@ -261,12 +261,12 @@ define({
     "CMD_ABORT_QUIT"                      : "强行退出",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "生成实验版",
-    "DEVELOPMENT_BUILD"                    : "生成开发版",
+    "EXPERIMENTAL_BUILD"                   : "测试生成",
+    "DEVELOPMENT_BUILD"                    : "开发生成",
     "JSLINT_ERRORS"                        : "JSLint错误",
     "JSLINT_ERROR_INFORMATION"             : "1个JSLint错误",
     "JSLINT_ERRORS_INFORMATION"            : "{0}个JSLint错误",
-    "JSLINT_NO_ERRORS"                     : "成功 - 骚年加油!",
+    "JSLINT_NO_ERRORS"                     : "未发现JSLint错误 - 骚年加油!",
     "JSLINT_DISABLED"                      : "JSLint已被禁用或者无法工作在此文件.",
     "SEARCH_RESULTS"                       : "查询结果",
     "OK"                                   : "确定",
