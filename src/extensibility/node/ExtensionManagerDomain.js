@@ -210,6 +210,8 @@ function _cmdValidate(path, callback) {
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
     
+    var callbackCalled = false;
+    
     fs.mkdirs(installDirectory, function (err) {
         if (err) {
             callback(err);
@@ -221,7 +223,10 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
         
         readStream.pipe(extractStream)
             .on("error", function (exc) {
-                callback(exc);
+                if (!callbackCalled) {
+                    callback(exc);
+                    callbackCalled = true;
+                }
             })
             .on("entry", function (entry) {
                 var installpath = entry.path;
@@ -236,7 +241,10 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     extractStream.pause();
                     fs.mkdirs(installDirectory + "/" + installpath, function (err) {
                         if (err) {
-                            callback(err);
+                            if (!callbackCalled) {
+                                callback(err);
+                                callbackCalled = true;
+                            }
                             extractStream.close();
                             return;
                         }
@@ -245,13 +253,19 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                 } else {
                     entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
                         .on("error", function (err) {
-                            callback(err);
+                            if (!callbackCalled) {
+                                callback(err);
+                                callbackCalled = true;
+                            }
                         });
                 }
                 
             })
             .on("close", function () {
-                callback(null, validationResult);
+                if (!callbackCalled) {
+                    callback(null, validationResult);
+                    callbackCalled = true;
+                }
             });
     });
 }
@@ -267,7 +281,11 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
 function _removeAndInstall(packagePath, installDirectory, validationResult, callback) {
     // If this extension was previously installed but disabled, we will overwrite the
     // previous installation in that directory.
-    fs.remove(installDirectory, function () {
+    fs.remove(installDirectory, function (err) {
+        if (err) {
+            callback(err);
+            return;
+        }
         _performInstall(packagePath, installDirectory, validationResult, callback);
     });
 }
