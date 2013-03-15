@@ -46,9 +46,9 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "打开文件时出现错误",
     "ERROR_OPENING_FILE"                : "程序尝试打开该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RELOADING_FILE_TITLE"        : "重新加载文件时出现异常",
+    "ERROR_RELOADING_FILE_TITLE"        : "重新加载文件时出现错误",
     "ERROR_RELOADING_FILE"              : "程序尝试重新加载该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE"           : "保存文件时出现异常",
+    "ERROR_SAVING_FILE_TITLE"           : "保存文件时出现错误",
     "ERROR_SAVING_FILE"                 : "程序尝试保存该文件时出现了一个错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "重命名文件失败",
     "ERROR_RENAMING_FILE"               : "为该文件重命名时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
@@ -71,13 +71,13 @@ define({
     "ERROR_CANT_FIND_CHROME"            : "Chrome浏览器离家出走了,没有找到Google Chrome浏览器,请确定安装了?",
     "ERROR_LAUNCHING_BROWSER"           : "启动浏览器的时候出现一个错误. (error {0})",
     
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览异常",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览错误",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "连接至浏览器",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "为了应用实时预览,Chrome需要重启并启用远程调试功能.<br /><br />你确定重新启动Chrome浏览器,并且启用远程调试?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "打开并实时预览一个HTML文件.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要指定一个预览用的URL地址.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "尝试启动HTTP服务器时出现错误,请再试一次.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎来到实时预览!",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}已通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改预览也将修改你的代码.<br /><br />之前的版本 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 实时预览即时载入保存的HTML或JavaScript文件.<br /><br />(此消息仅会出现一次.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a class=\"clickable-link\" data-href=\"{0}\">实时预览在线错误信息</a>.",
     
@@ -149,7 +149,7 @@ define({
      */
     "STATUSBAR_CURSOR_POSITION"             : "行 {0}, 列 {1}",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "点击切换缩进为空格",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "点击切换为TAB",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "点击切换缩进为TAB",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "点击修改缩进的空格长度",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "点击修改缩进的TAB长度",
     "STATUSBAR_SPACES"                      : "空格长度",
@@ -165,7 +165,7 @@ define({
     "CMD_FILE_NEW"                        : "新建",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "添加至工作目录",
+    "CMD_ADD_TO_WORKING_SET"              : "添加至工作集合",
     "CMD_OPEN_FOLDER"                     : "打开目录\u2026",
     "CMD_FILE_CLOSE"                      : "关闭",
     "CMD_FILE_CLOSE_ALL"                  : "全部关闭",
@@ -286,7 +286,7 @@ define({
     "ABOUT_TEXT_LINE5"                     : "参与设计的有很多人是把 \u2764 跟 JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "有很多很多相当多的人,我这里就不给你看了,可以去Github上看吧.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新的 {APP_NAME}!点此查看详情.",
-    "UPDATE_AVAILABLE_TITLE"               : "可以更新",
+    "UPDATE_AVAILABLE_TITLE"               : "可用的更新",
     "UPDATE_MESSAGE"                       : "有一个新的 {APP_NAME} .增加了一些功能:",
     "GET_IT_NOW"                           : "现在获取!",
     "PROJECT_SETTINGS_TITLE"               : "项目设置: {0}",
@@ -300,7 +300,7 @@ define({
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
-    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "之前的颜色",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原来的颜色",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa格式",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "十六进制格式",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa格式",
