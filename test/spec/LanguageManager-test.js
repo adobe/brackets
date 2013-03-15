@@ -39,6 +39,8 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             waitsForDone(LanguageManager.ready, "LanguageManager ready", 10000);
+            
+            spyOn(console, "error");
         });
         
         function defineLanguage(definition) {
@@ -284,6 +286,9 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 50);
                 
                 runs(function () {
+                    language.setLineCommentSyntax([]);
+                    expect(console.error).toHaveBeenCalledWith("The prefix array should not be empty");
+                    
                     expect(function () { language.setLineCommentSyntax([""]);      }).toThrow(new Error("prefix must not be empty"));
                     expect(function () { language.setLineCommentSyntax(["#", ""]); }).toThrow(new Error("prefix must not be empty"));
                     

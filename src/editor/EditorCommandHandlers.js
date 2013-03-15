@@ -48,8 +48,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Creates regular expressions for multiple line comments prefixes
-     * @param {Array.<string>} prefixes - Description
+     * Creates regular expressions for multiple line comment prefixes
+     * @param {Array.<string>} prefixes - the line comment prefixes
      * @return {Array.<RegExp>}
      */
     function _createLineExpressions(prefixes) {
@@ -63,16 +63,32 @@ define(function (require, exports, module) {
     /**
      * @private
      * Returns true if any regular expression matches the given string
-     * @param {string} string
-     * @param {Array.<RegExp>} expressions
+     * @param {string} string - where to look
+     * @param {Array.<RegExp>} expressions - what to look
      * @return {boolean}
      */
     function _matchExpressions(string, expressions) {
-        var matchAny = false;
-        expressions.forEach(function (exp) {
-            matchAny = matchAny || string.match(exp);
+        return expressions.some(function (exp) {
+            return string.match(exp);
         });
-        return matchAny;
+    }
+    
+    /**
+     * @private
+     * Returns the line comment prefix that best matches
+     * @param {string} string - where to look
+     * @param {Array.<RegExp>} expressions - the line comment regular expressions
+     * @param {Array.<string>} prefixes - the line comment prefixes
+     * @return {string}
+     */
+    function _getLinePrefix(string, expressions, prefixes) {
+        var result = null;
+        expressions.forEach(function (exp, index) {
+            if (string.match(exp) && ((result && result.length < prefixes[index].length) || !result)) {
+                result = prefixes[index];
+            }
+        });
+        return result;
     }
     
     /**
@@ -81,18 +97,19 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!number} startLine - valid line inside the document
      * @param {!number} endLine - valid line inside the document
-     * @param {!Array.<string>} prefixes - Array of line comment prefixes
+     * @param {!Array.<string>} lineExp - an array of line comment prefixes regular expressions
      * @return {boolean} true if there is at least one uncommented line
      */
-    function _containsUncommented(editor, startLine, endLine, prefixes) {
-        var lineExp = _createLineExpressions(prefixes);
+    function _containsUncommented(editor, startLine, endLine, lineExp) {
         var containsUncommented = false;
         var i;
         var line;
+        
         for (i = startLine; i <= endLine; i++) {
             line = editor.document.getLine(i);
-            // A line is commented out if it starts with 0-N whitespace chars, then "//"
-            if (!_matchExpressions(line, lineExp) && line.match(/\S/)) {
+            // A line is commented out if it starts with 0-N whitespace chars, then a line comment prefix
+            console.log(_matchExpressions(line, lineExp));
+            if (line.match(/\S/) && !_matchExpressions(line, lineExp)) {
                 containsUncommented = true;
                 break;
             }
@@ -112,10 +129,11 @@ define(function (require, exports, module) {
      * @param {!Array.<string>} prefixes, e.g. ["//"]
      */
     function lineCommentPrefix(editor, prefixes) {
-        var doc = editor.document;
-        var sel = editor.getSelection();
-        var startLine = sel.start.line;
-        var endLine = sel.end.line;
+        var doc       = editor.document,
+            sel       = editor.getSelection(),
+            startLine = sel.start.line,
+            endLine   = sel.end.line,
+            lineExp   = _createLineExpressions(prefixes);
         
         // Is a range of text selected? (vs just an insertion pt)
         var hasSelection = (startLine !== endLine) || (sel.start.ch !== sel.end.ch);
@@ -128,10 +146,10 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var containsUncommented = _containsUncommented(editor, startLine, endLine, prefixes);
-        var i, j;
+        var containsUncommented = _containsUncommented(editor, startLine, endLine, lineExp);
+        var i;
         var line;
-        var trimmedLine;
+        var prefix;
         var commentI;
         var updateSelection = false;
         
@@ -152,14 +170,13 @@ define(function (require, exports, module) {
             } else {
                 // Uncomment - remove first every prefix on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
-                    line = doc.getLine(i);
-                    trimmedLine = line.trim();
-                    for (j = 0; j < prefixes.length; j++) {
-                        commentI = line.indexOf(prefixes[j]);
-                        if (trimmedLine.indexOf(prefixes[j]) === 0) {
-                            doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefixes[j].length});
-                            break;
-                        }
+                    line   = doc.getLine(i);
+                    prefix = _getLinePrefix(line, lineExp, prefixes);
+                    
+                    if (prefix) {
+                        commentI = line.indexOf(prefix);
+                        doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefix.length});
+                        break;
                     }
                 }
             }
@@ -294,7 +311,7 @@ define(function (require, exports, module) {
                 }
                 
                 // Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, endLine, linePrefixes)) {
+                if (!_containsUncommented(editor, sel.start.line, endLine, lineExp)) {
                     lineUncomment = true;
                 
                 // Block-comment in all the other cases

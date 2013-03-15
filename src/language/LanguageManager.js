@@ -454,7 +454,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns the prefix to use for line comments.
+     * Returns an array of prefixes to use for line comments.
      * @return {Array.<string>} The prefixes
      */
     Language.prototype.getLineCommentPrefix = function () {
@@ -462,12 +462,12 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets the prefix to use for line comments in this language.
+     * Sets the prefixes to use for line comments in this language.
      * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
      *   to use for line comments (i.e. "//" or ["//", "#"])
      */
     Language.prototype.setLineCommentSyntax = function (prefix) {
-        var prefixes = !Array.isArray(prefix) ? [prefix] : prefix;
+        var prefixes = Array.isArray(prefix) ? prefix : [prefix];
         var i;
         
         if (prefixes.length) {
@@ -478,6 +478,8 @@ define(function (require, exports, module) {
                 this._lineCommentSyntax.push(prefixes[i]);
             }
             this._wasModified();
+        } else {
+            console.error("The prefix array should not be empty");
         }
     };
     
