@@ -83,7 +83,7 @@ define(function (require, exports, module) {
         var d = new $.Deferred();
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
-                nodeConnection.domains.extensions.validate(path)
+                nodeConnection.domains.extensionManager.validate(path)
                     .done(function (result) {
                         
                         // Convert the errors into properly localized strings
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
             if (nodeConnection.connected()) {
                 var destinationDirectory = ExtensionLoader.getUserExtensionPath();
                 var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
-                nodeConnection.domains.extensions.install(path, destinationDirectory, {
+                nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
                     disabledDirectory: disabledDirectory,
                     apiVersion: brackets.metadata.apiVersion
                 })
@@ -211,7 +211,7 @@ define(function (require, exports, module) {
             var localPath = tempDownloadFolder + filename;
             
             // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = connection.domains.extensions.downloadFile(downloadId, hostname, hostPath, port, localPath);
+            var r = connection.domains.extensionManager.downloadFile(downloadId, hostname, hostPath, port, localPath);
             r.done(function (result) {
                 d.resolve(localPath);
             }).fail(function (err) {
@@ -236,7 +236,7 @@ define(function (require, exports, module) {
         console.assert(_nodeConnectionDeferred.isResolved());
         var success;
         _nodeConnectionDeferred.done(function (connection) {
-            success = connection.domains.extensions.abortDownload(downloadId);
+            success = connection.domains.extensionManager.abortDownload(downloadId);
         });
         return success;
     }
@@ -350,7 +350,7 @@ define(function (require, exports, module) {
         
         var _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
-            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/ExtensionsDomain";
+            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/ExtensionManagerDomain";
             
             _nodeConnection.loadDomains(domainPath, true)
                 .then(

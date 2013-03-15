@@ -55,6 +55,8 @@ define(function (require, exports, module) {
                 // perform checks outside of this function to avoid
                 // getting caught by NodeConnection's error catcher
                 packageData = pd;
+            }, function (err) {
+                expect("Error").toEqual("No error");
             });
             
             waitsForDone(promise, "package validation", 5000);

@@ -28,7 +28,7 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var ExtensionsDomain = require("../ExtensionsDomain"),
+var ExtensionsDomain = require("../ExtensionManagerDomain"),
     path             = require("path");
 
 var testFilesDirectory = path.join(path.dirname(module.filename),

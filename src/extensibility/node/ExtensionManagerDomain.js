@@ -31,7 +31,7 @@ var unzip  = require("unzip"),
     semver = require("semver"),
     path   = require("path"),
     http   = require("http"),
-    fs     = require("fs");
+    fs     = require("fs-extra");
 
 
 /** @const @type {number} */
@@ -201,7 +201,7 @@ function _cmdValidate(path, callback) {
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
     
-    fs.mkdir(installDirectory, function (err) {
+    fs.mkdirs(installDirectory, function (err) {
         if (err) {
             callback(err);
             return;
@@ -457,11 +457,11 @@ function _cmdAbortDownload(downloadId) {
  * The extensions domain handles downloading, unpacking/verifying, and installing extensions.
  */
 function init(domainManager) {
-    if (!domainManager.hasDomain("extensions")) {
-        domainManager.registerDomain("extensions", {major: 0, minor: 1});
+    if (!domainManager.hasDomain("extensionManager")) {
+        domainManager.registerDomain("extensionManager", {major: 0, minor: 1});
     }
     domainManager.registerCommand(
-        "extensions",
+        "extensionManager",
         "validate",
         _cmdValidate,
         true,
@@ -483,7 +483,7 @@ function init(domainManager) {
         }
     );
     domainManager.registerCommand(
-        "extensions",
+        "extensionManager",
         "install",
         _cmdInstall,
         true,
@@ -525,7 +525,7 @@ function init(domainManager) {
         }
     );
     domainManager.registerCommand(
-        "extensions",
+        "extensionManager",
         "downloadFile",
         _cmdDownloadFile,
         true,
@@ -559,7 +559,7 @@ function init(domainManager) {
         }
     );
     domainManager.registerCommand(
-        "extensions",
+        "extensionManager",
         "abortDownload",
         _cmdAbortDownload,
         false,
