@@ -299,6 +299,8 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
+    
+    // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's ZIP package",
@@ -306,26 +308,25 @@ define({
     "INSTALL_SUCCEEDED"                    : "Installation successful!",
     "INSTALL_FAILED"                       : "Installation failed.",
     "INSTALL_CANCELLED"                    : "Installation cancelled.",
-    
-    // Extension Management strings
-    // These must match the error codes in ExtensionsDomain.Errors.*
-    "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package",
-    "INVALID_PACKAGE_JSON"                 : "Package.json file is not valid (error was: {0})",
-    "MISSING_PACKAGE_NAME"                 : "Missing package name in {0}",
-    "MISSING_PACKAGE_VERSION"              : "Missing package version in {0}",
-    "INVALID_VERSION_NUMBER"               : "Package version ({0}) is not a valid version number",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package.",
+    "INVALID_PACKAGE_JSON"                 : "Package.json file is not valid (error was: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Missing package name in {0}.",
+    "MISSING_PACKAGE_VERSION"              : "Missing package version in {0}.",
+    "INVALID_VERSION_NUMBER"               : "Package version ({0}) is not a valid version number.",
     "API_NOT_COMPATIBLE"                   : "The extension was installed into your disabled extensions directory because it is not compatible with this version of Brackets.",
-    "MISSING_MAIN"                         : "Package has no main.js file",
+    "MISSING_MAIN"                         : "Package has no main.js file.",
     "ALREADY_INSTALLED"                    : "The extension was installed into your disabled extensions directory because it was previously installed.",
-    "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist",
-    "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use",
-    "DOWNLOAD_TARGET_EXISTS"               : "Temp download file already exists: {0}",
-    "NO_SERVER_RESPONSE"                   : "Cannot connect to server",
-    "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0})",
-    "FILE_TOO_LARGE"                       : "Files are limited to {0} KB",
-    "ERROR_LOADING"                        : "The extension encountered an error while starting up",
-    "MALFORMED_URL"                        : "Malformed URL",
-    "UNSUPPORTED_PROTOCOL"                 : "URL has an unsupported protocol",
+    "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
+    "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
+    "DOWNLOAD_TARGET_EXISTS"               : "Temp download file already exists: {0}.",
+    "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
+    "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
+    "FILE_TOO_LARGE"                       : "Files are limited to {0} KB.",
+    "ERROR_LOADING"                        : "The extension encountered an error while starting up.",
+    "MALFORMED_URL"                        : "Malformed URL.",
+    "UNSUPPORTED_PROTOCOL"                 : "URL has an unsupported protocol.",
+    "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
