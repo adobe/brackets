@@ -88,11 +88,11 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "实时预览: 点击断开 (保存文件并更新预览)",
     
     "SAVE_CLOSE_TITLE"                  : "保存更新",
-    "SAVE_CLOSE_MESSAGE"                : "保存文件中所做的修改 <span class='dialog-filename'>{0}</span>?",
+    "SAVE_CLOSE_MESSAGE"                : "保存<span class='dialog-filename'>{0}</span>文件中所做的修改?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改?",
     "EXT_MODIFIED_TITLE"                : "外部文件发生变化",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> 已产生了外部修改,但是你有未保存的内容 {APP_NAME}.<br /><br />你准备选哪一个?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> 已被删除,但是你有未保存的内容 {APP_NAME}.<br /><br />是否保存你的修改?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> 已产生了外部修改,但是{APP_NAME}有你未保存的内容.<br /><br />请选择一个版本?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> 已被删除,但是{APP_NAME}有你未保存的内容 .<br /><br />是否保存你的修改?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "使用正则表达式进行搜索,范例:/re/",
