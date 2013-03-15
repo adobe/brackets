@@ -207,7 +207,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Block (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Brackets schließen aktivieren",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
      
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -216,6 +216,8 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Schriftart vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schriftart verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftart zurücksetzen",
+    "CMD_SCROLL_LINE_UP"                  : "Zeile nach oben scrollen",
+    "CMD_SCROLL_LINE_DOWN"                : "Zeile nach unten scrollen",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
