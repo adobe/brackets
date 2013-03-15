@@ -194,7 +194,7 @@ define(function Inspector(require, exports, module) {
 
     /** Public Functions *****************************************************/
 
-    /** Get a list of the available windows/tabs/extensions are are remote-debuggable
+    /** Get a list of the available windows/tabs/extensions that are remote-debuggable
      * @param {string} host IP or name
      * @param {integer} debugger port
      */

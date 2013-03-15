@@ -438,8 +438,7 @@ define(function LiveDevelopment(require, exports, module) {
             status = STATUS_ACTIVE;
 
         _openDocument(doc, editor)
-            .fail(_closeDocument)
-            .done(function () {
+            .always(function () {
                 if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                     status = STATUS_OUT_OF_SYNC;
                 }
@@ -709,7 +708,7 @@ define(function LiveDevelopment(require, exports, module) {
                             window.clearTimeout(timer);
                             deferred.resolve();
                         } else {
-                            pollInterstitialPage();
+                            window.setTimeout(pollInterstitialPage, 100);
                         }
                     });
                 } else {
@@ -742,9 +741,16 @@ define(function LiveDevelopment(require, exports, module) {
         
         $(Inspector.Inspector).on("detached", _onDetached);
         
-        var interstitialPageLoad = waitForInterstitialPageLoad();
-        interstitialPageLoad.fail(close);
-        interstitialPageLoad.done(onInterstitialPageLoad);
+        waitForInterstitialPageLoad()
+            .fail(function () {
+                close();
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                );
+            })
+            .done(onInterstitialPageLoad);
     }
 
     /** Triggered by a document change from the DocumentManager */
