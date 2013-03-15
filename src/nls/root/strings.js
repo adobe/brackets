@@ -323,7 +323,6 @@ define({
     "DOWNLOAD_TARGET_EXISTS"               : "Temp download file already exists: {0}.",
     "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
     "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
-    "FILE_TOO_LARGE"                       : "Files are limited to {0} KB.",
     "ERROR_LOADING"                        : "The extension encountered an error while starting up.",
     "MALFORMED_URL"                        : "Malformed URL.",
     "UNSUPPORTED_PROTOCOL"                 : "URL has an unsupported protocol.",
