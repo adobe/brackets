@@ -173,19 +173,11 @@ define(function (require, exports, module) {
             });
         
             runs(function () {
-                var openAndSelect = function (path) {
-                    var doc, didOpen = false, gotError = false;
-                    
-                    // open file
-                    runs(function () {
-                        FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER)
-                            .done(function () { didOpen = true; })
-                            .fail(function () { gotError = true; });
-                    });
-                    waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
-                };
+                // Open another document and bring it to the front
+                waitsForDone(FileViewController.openAndSelectDocument(HTML_FILE, FileViewController.PROJECT_MANAGER),
+                             "FILE_OPEN on file timeout", 1000);
                 
-                openAndSelect(HTML_FILE);
+//                openAndSelect(HTML_FILE);
             });
             
             runs(function () {
@@ -288,19 +280,9 @@ define(function (require, exports, module) {
             });
         
             runs(function () {
-                var openAndSelect = function (path) {
-                    var doc, didOpen = false, gotError = false;
-                    
-                    // open file
-                    runs(function () {
-                        FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER)
-                            .done(function () { didOpen = true; })
-                            .fail(function () { gotError = true; });
-                    });
-                    waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
-                };
-                
-                openAndSelect(HTML_FILE);
+                // Open another document and bring it to the front
+                waitsForDone(FileViewController.openAndSelectDocument(HTML_FILE, FileViewController.PROJECT_MANAGER),
+                             "FILE_OPEN on file timeout", 1000);
             });
             
             runs(function () {

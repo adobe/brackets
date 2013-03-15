@@ -76,6 +76,8 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
+                    'src/thirdparty/CodeMirror2/addon/edit/closetag.js',
+                    'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min'
                 ],

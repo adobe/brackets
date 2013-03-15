@@ -1313,17 +1313,29 @@ define(function (require, exports, module) {
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
 
+    
+    /**
+     * @private
+     * Updates Editor option and the corresponding preference with the given value. Affects all Editors.
+     * @param {boolean | number} value
+     * @param {string} cmOption - CodeMirror option string
+     * @param {string} prefName - preference name string
+     */
+    function _setEditorOptionAndPref(value, cmOption, prefName) {
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption(cmOption, value);
+        });
+        
+        _prefs.setValue(prefName, (typeof value === "boolean") ? Boolean(value) : value);
+    }
+		
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value
      */
     Editor.setUseTabChar = function (value) {
         _useTabChar = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentWithTabs", _useTabChar);
-        });
-        
-        _prefs.setValue("useTabChar", Boolean(_useTabChar));
+        _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar");
     };
     
     /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
@@ -1337,11 +1349,7 @@ define(function (require, exports, module) {
      */
     Editor.setTabSize = function (value) {
         _tabSize = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("tabSize", _tabSize);
-        });
-        
-        _prefs.setValue("tabSize", _tabSize);
+        _setEditorOptionAndPref(value, "tabSize", "tabSize");
     };
     
     /** @type {number} Get indent unit  */
@@ -1355,11 +1363,7 @@ define(function (require, exports, module) {
      */
     Editor.setIndentUnit = function (value) {
         _indentUnit = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentUnit", _indentUnit);
-        });
-        
-        _prefs.setValue("indentUnit", _indentUnit);
+        _setEditorOptionAndPref(value, "indentUnit", "indentUnit");
     };
     
     /** @type {number} Get indentation width */
@@ -1373,11 +1377,7 @@ define(function (require, exports, module) {
      */
     Editor.setCloseBrackets = function (value) {
         _closeBrackets = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("autoCloseBrackets", _closeBrackets);
-        });
-        
-        _prefs.setValue("closeBrackets", Boolean(_closeBrackets));
+        _setEditorOptionAndPref(value, "autoCloseBrackets", "closeBrackets");
     };
     
     /** @type {boolean} Gets whether all Editors use auto close brackets */
@@ -1385,20 +1385,16 @@ define(function (require, exports, module) {
         return _closeBrackets;
     };
     
-      /**
+    /**
      * Sets show line numbers option and reapply it to all open editors.
      * @param {boolean} value
      */
     Editor.setShowLineNumbers = function (value) {
         _showLineNumbers = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("lineNumbers", _showLineNumbers);
-        });
-        
-        _prefs.setValue("showLineNumbers", Boolean(_showLineNumbers));
+        _setEditorOptionAndPref(value, "lineNumbers", "showLineNumbers");
     };
     
-    /** @type {boolean} Gets whether all editors are showing line numbers */
+    /** @type {boolean} Returns true if show line numbers is enabled for all editors */
     Editor.getShowLineNumbers = function () {
         return _showLineNumbers;
     };
@@ -1409,14 +1405,10 @@ define(function (require, exports, module) {
      */
     Editor.setShowActiveLine = function (value) {
         _styleActiveLine = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
-        });
-        
-        _prefs.setValue("styleActiveLine", Boolean(_styleActiveLine));
+        _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
     };
     
-    /** @type {boolean} Gets whether all editors are showing active line */
+    /** @type {boolean} "Returns true if show active line is enabled for all editors */
     Editor.getShowActiveLine = function () {
         return _styleActiveLine;
     };
@@ -1427,14 +1419,10 @@ define(function (require, exports, module) {
      */
     Editor.setWordWrap = function (value) {
         _wordWrap = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("lineWrapping", _wordWrap);
-        });
-        
-        _prefs.setValue("wordWrap", Boolean(_wordWrap));
+        _setEditorOptionAndPref(value, "lineWrapping", "wordWrap");
     };
     
-    /** @type {boolean} Gets whether all editors are enabled for word wrap */
+    /** @type {boolean} Returns true if word wrap is enabled for all editors */
     Editor.getWordWrap = function () {
         return _wordWrap;
     };
