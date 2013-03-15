@@ -278,6 +278,10 @@ define(function (require, exports, module) {
                             // Validation errors
                             state = STATE_FAILED;
                             d.reject(result.errors);
+                        } else if (result.disabledReason) {
+                            // Extension valid but left disabled (wrong API version, extension name collision, etc.)
+                            state = STATE_FAILED;
+                            d.reject(result.disabledReason);
                         } else {
                             // Success! Extension is now running in Brackets
                             state = STATE_SUCCEEDED;
@@ -288,6 +292,10 @@ define(function (require, exports, module) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
                         state = STATE_FAILED;
                         d.reject(err);
+                    })
+                    .always(function () {
+                        // Whether success or failure, we can delete the original downloaded ZIP file now
+                        brackets.fs.unlink(localPath);
                     });
             })
             .fail(function (err) {
@@ -315,11 +323,15 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function formatError(error) {
+        function localize(key) {
+            return Strings[key] || Strings.UNKNOWN_ERROR;
+        }
+        
         if (Array.isArray(error)) {
-            error[0] = Strings[error[0]];
+            error[0] = localize(error[0]);
             return StringUtils.format.apply(window, error);
         } else {
-            return Strings[error];
+            return localize(error);
         }
     }
     

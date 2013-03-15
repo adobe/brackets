@@ -393,15 +393,19 @@ function _endDownload(downloadId, error) {
         // Clean up any partially-downloaded file
         // (if no outStream, then we never got a response back yet and never created any file)
         if (downloadInfo.outStream) {
-            downloadInfo.outStream.end();
-            fs.unlink(downloadInfo.localPath);
+            downloadInfo.outStream.end(function () {
+                fs.unlink(downloadInfo.localPath);
+            });
         }
+        
+        downloadInfo.callback(error, null);
+        
     } else {
-        // !error is only in the case that download has successfully completed
-        downloadInfo.outStream.end();
+        // Download completed successfully. Flush stream to disk and THEN signal completion
+        downloadInfo.outStream.end(function () {
+            downloadInfo.callback(null, null);
+        });
     }
-    
-    downloadInfo.callback(error, null);
 }
 
 /**
