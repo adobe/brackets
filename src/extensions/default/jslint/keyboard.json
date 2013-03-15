@@ -1,0 +1,11 @@
+{
+    "gotoFirstError":  [
+        {
+            "key": "F8"
+        },
+        {
+            "key": "Cmd-'",
+            "platform": "mac"
+        }
+    ]
+}

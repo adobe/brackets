@@ -80,7 +80,6 @@ define(function (require, exports, module) {
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
     exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";
     exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";
-    exports.TOGGLE_JSLINT               = "debug.jslint";
     exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded";
     exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";
     exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";
@@ -92,7 +91,6 @@ define(function (require, exports, module) {
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
-    exports.NAVIGATE_GOTO_JSLINT_ERROR  = "navigate.gotoJSLintError";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
