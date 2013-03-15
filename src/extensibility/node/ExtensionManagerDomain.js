@@ -125,6 +125,15 @@ function _cmdValidate(path, callback) {
                 }
                 
                 if (fileName === "package.json") {
+                    // This handles an edge case where we found a package.json in a
+                    // nested directory that we thought was a commonPrefix but
+                    // actually wasn't. We reset as if we never read that first
+                    // package.json
+                    if (metadata) {
+                        metadata = undefined;
+                        errors = [];
+                    }
+                    
                     var packageJSON = "";
                     entry
                         .on("data", function (data) {
@@ -224,14 +233,14 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                     if (installpath === "") {
                         return;
                     }
-                    readStream.pause();
+                    extractStream.pause();
                     fs.mkdirs(installDirectory + "/" + installpath, function (err) {
                         if (err) {
                             callback(err);
-                            readStream.close();
+                            extractStream.close();
                             return;
                         }
-                        readStream.resume();
+                        extractStream.resume();
                     });
                 } else {
                     entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
@@ -325,21 +334,19 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         
         // If the extension is already there, at this point we will not overwrite
         // a running extension. Instead, we unzip into the disabled directory.
-        fs.exists(installDirectory, function (installDirectoryExists) {
-            if (installDirectoryExists) {
-                validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
-                if (!options || !options.disabledDirectory) {
-                    callback(Errors.NO_DISABLED_DIRECTORY, null);
-                    return;
-                }
-                installDirectory = path.join(options.disabledDirectory, extensionName);
-                _removeAndInstall(packagePath, installDirectory, validationResult, callback);
-            } else {
-                // Regular installation with no conflicts.
-                validationResult.disabledReason = null;
-                _performInstall(packagePath, installDirectory, validationResult, callback);
+        if (fs.existsSync(installDirectory)) {
+            validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
+            if (!options || !options.disabledDirectory) {
+                callback(Errors.NO_DISABLED_DIRECTORY, null);
+                return;
             }
-        });
+            installDirectory = path.join(options.disabledDirectory, extensionName);
+            _removeAndInstall(packagePath, installDirectory, validationResult, callback);
+        } else {
+            // Regular installation with no conflicts.
+            validationResult.disabledReason = null;
+            _performInstall(packagePath, installDirectory, validationResult, callback);
+        }
     };
     
     _cmdValidate(packagePath, validateCallback);
