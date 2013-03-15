@@ -85,9 +85,9 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中...\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化...\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "断开实时预览",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "实时预览: 点击断开 (保存文件)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "实时预览: 点击断开 (保存文件并更新预览)",
     
-    "SAVE_CLOSE_TITLE"                  : "保存选择",
+    "SAVE_CLOSE_TITLE"                  : "保存更新",
     "SAVE_CLOSE_MESSAGE"                : "保存文件中所做的修改 <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改?",
     "EXT_MODIFIED_TITLE"                : "外部文件发生变化",
