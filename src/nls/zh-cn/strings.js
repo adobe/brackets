@@ -40,7 +40,7 @@ define({
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "无法加载此项目.",
     "OPEN_DIALOG_ERROR"                 : "显示[打开文件]对话框出现错误. (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "打开此文件夹出现错误 <span class='dialog-filename'>{0}</span>. (error {1})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "打开此目录出现错误 <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "加载目录内容出现错误 <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
@@ -102,7 +102,7 @@ define({
     "BUTTON_STOP"                       : "停止",
 
     "OPEN_FILE"                         : "打开文件",
-    "CHOOSE_FOLDER"                     : "请选择一个文件夹",
+    "CHOOSE_FOLDER"                     : "请选择一个目录",
 
     "RELEASE_NOTES"                     : "发行说明",
     "NO_UPDATE_TITLE"                   : "更新!",
@@ -239,7 +239,7 @@ define({
     "CMD_JSLINT"                          : "启用JSLint",
     "CMD_SHOW_PERF_DATA"                  : "显示性能数据",
     "CMD_NEW_BRACKETS_WINDOW"             : "新建一个 {APP_NAME} 窗口",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展文件夹",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",
     "CMD_SWITCH_LANGUAGE"                 : "选择语言",
     "CMD_ENABLE_NODE_DEBUGGER"            : "启用Node.JS调试",
     "CMD_LOG_NODE_STATE"                  : "将Node.JS日志显示在控制台中",
