@@ -37,6 +37,25 @@ var unzip  = require("unzip"),
 /** @const @type {number} */
 var DOWNLOAD_LIMIT = 0x100000; // 1 MB
 
+var Errors = {
+    NOT_FOUND_ERR: "NOT_FOUND_ERR",
+    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",           // {0} is path to ZIP file
+    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",   // {0} is JSON parse error, {1} is path to ZIP file
+    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",   // {0} is path to ZIP file
+    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",  // {0} is path to ZIP file
+    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
+    API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
+    MISSING_MAIN: "MISSING_MAIN",                   // {0} is path to ZIP file
+    NO_DISABLED_DIRECTORY: "NO_DISABLED_DIRECTORY",
+    ALREADY_INSTALLED: "ALREADY_INSTALLED",
+    DOWNLOAD_ID_IN_USE: "DOWNLOAD_ID_IN_USE",
+    DOWNLOAD_TARGET_EXISTS: "DOWNLOAD_TARGET_EXISTS",   // {0} is the download target file
+    BAD_HTTP_STATUS: "BAD_HTTP_STATUS",             // {0} is the HTTP status code
+    FILE_TOO_LARGE: "FILE_TOO_LARGE",               // {0} is the max allowed download size in KB
+    NO_SERVER_RESPONSE: "NO_SERVER_RESPONSE",
+    CANCELED: "CANCELED"
+};
+
 /**
  * Maps unique download ID to info about the pending download. No entry if download no longer pending.
  * outStream is only present if we've started receiving the body.
@@ -66,7 +85,7 @@ function _cmdValidate(path, callback) {
     fs.exists(path, function (doesExist) {
         if (!doesExist) {
             callback(null, {
-                errors: [["NOT_FOUND_ERR", path]]
+                errors: [[Errors.NOT_FOUND_ERR, path]]
             });
             return;
         }
@@ -80,7 +99,7 @@ function _cmdValidate(path, callback) {
             .pipe(unzip.Parse())
             .on("error", function (exception) {
                 // General error to report for problems reading the file
-                errors.push(["INVALID_ZIP_FILE", path]);
+                errors.push([Errors.INVALID_ZIP_FILE, path]);
                 callback(null, {
                     errors: errors
                 });
@@ -125,18 +144,18 @@ function _cmdValidate(path, callback) {
                             try {
                                 metadata = JSON.parse(packageJSON);
                             } catch (e) {
-                                errors.push(["INVALID_PACKAGE_JSON", e.toString(), path]);
+                                errors.push([Errors.INVALID_PACKAGE_JSON, e.toString(), path]);
                                 return;
                             }
                             
                             // confirm required fields in the metadata
                             if (!metadata.name) {
-                                errors.push(["MISSING_PACKAGE_NAME", path]);
+                                errors.push([Errors.MISSING_PACKAGE_NAME, path]);
                             }
                             if (!metadata.version) {
-                                errors.push(["MISSING_PACKAGE_VERSION", path]);
+                                errors.push([Errors.MISSING_PACKAGE_VERSION, path]);
                             } else if (!semver.valid(metadata.version)) {
-                                errors.push(["INVALID_VERSION_NUMBER", metadata.version, path]);
+                                errors.push([Errors.INVALID_VERSION_NUMBER, metadata.version, path]);
                             }
                         });
                 } else if (fileName === "main.js") {
@@ -153,7 +172,7 @@ function _cmdValidate(path, callback) {
                 }
                 
                 if (!foundMain) {
-                    errors.push(["MISSING_MAIN", path]);
+                    errors.push([Errors.MISSING_MAIN, path]);
                 }
                 
                 // No errors and no metadata means that we never found the metadata
@@ -294,11 +313,11 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
                                               validationResult.metadata.engines.brackets);
             if (!compatible) {
                 if (!options || !options.disabledDirectory) {
-                    callback("NO_DISABLED_DIRECTORY", null);
+                    callback(Errors.NO_DISABLED_DIRECTORY, null);
                     return;
                 }
                 installDirectory = path.join(options.disabledDirectory, extensionName);
-                validationResult.disabledReason = "API_NOT_COMPATIBLE";
+                validationResult.disabledReason = Errors.API_NOT_COMPATIBLE;
                 _removeAndInstall(packagePath, installDirectory, validationResult, callback);
                 return;
             }
@@ -308,9 +327,9 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         // a running extension. Instead, we unzip into the disabled directory.
         fs.exists(installDirectory, function (installDirectoryExists) {
             if (installDirectoryExists) {
-                validationResult.disabledReason  = "ALREADY_INSTALLED";
+                validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
                 if (!options || !options.disabledDirectory) {
-                    callback("NO_DISABLED_DIRECTORY", null);
+                    callback(Errors.NO_DISABLED_DIRECTORY, null);
                     return;
                 }
                 installDirectory = path.join(options.disabledDirectory, extensionName);
@@ -365,11 +384,11 @@ function _endDownload(downloadId, error) {
  */
 function _cmdDownloadFile(downloadId, hostname, hostPath, port, localPath, callback) {
     if (pendingDownloads[downloadId]) {
-        callback("Error: download already pending with id " + downloadId, null);
+        callback(Errors.DOWNLOAD_ID_IN_USE, null);
     }
     
     if (fs.existsSync(localPath)) {
-        callback("Error: file already exists", null);
+        callback([Errors.DOWNLOAD_TARGET_EXISTS, localPath], null);
         return;
     }
     
@@ -383,7 +402,7 @@ function _cmdDownloadFile(downloadId, hostname, hostPath, port, localPath, callb
     }, function (response) { // response is an IncomingMessage object
         // Make sure we're actually getting the file contents and not an error page
         if (response.statusCode !== 200) {
-            _endDownload(downloadId, "Unexpected HTTP response " + response.statusCode);
+            _endDownload(downloadId, [Errors.BAD_HTTP_STATUS, response.statusCode]);
             return;
         }
         
@@ -396,7 +415,7 @@ function _cmdDownloadFile(downloadId, hostname, hostPath, port, localPath, callb
             // Enforce max size limit
             totalSize += chunk.length;
             if (totalSize > DOWNLOAD_LIMIT) {
-                _endDownload(downloadId, "Error: download size exceeded " + DOWNLOAD_LIMIT);
+                _endDownload(downloadId, [Errors.FILE_TOO_LARGE, DOWNLOAD_LIMIT / 1024]);
             } else {
                 // Stream the downloaded bits to disk
                 outStream.write(chunk);
@@ -413,7 +432,7 @@ function _cmdDownloadFile(downloadId, hostname, hostPath, port, localPath, callb
     
     req.on("error", function (err) {
         // We never got a response - server is down, no DNS entry, etc.
-        _endDownload(downloadId, "Download request error: " + err);
+        _endDownload(downloadId, Errors.NO_SERVER_RESPONSE);
     });
     
     pendingDownloads[downloadId] = { request: req, callback: callback, localPath: localPath };
@@ -427,7 +446,7 @@ function _cmdAbortDownload(downloadId) {
         // This may mean the download already completed
         return false;
     } else {
-        _endDownload(downloadId, "Download aborted");
+        _endDownload(downloadId, Errors.CANCELED);
         return true;
     }
 }
@@ -454,8 +473,8 @@ function init(domainManager) {
         }],
         {
             errors: {
-                type: "[[string name, optional format arguments], ...]",
-                description: "error with the package, if any"
+                type: "string|Array.<string>",
+                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
             },
             metadata: {
                 type: "{name: string, version: string}",
@@ -484,8 +503,8 @@ function init(domainManager) {
         }],
         {
             errors: {
-                type: "[[string name, optional format arguments], ...]",
-                description: "error with the package, if any"
+                type: "string|Array.<string>",
+                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
             },
             metadata: {
                 type: "{name: string, version: string}",
@@ -493,7 +512,7 @@ function init(domainManager) {
             },
             disabledReason: {
                 type: "string",
-                description: "reason this extension was installed disabled, none if it was enabled"
+                description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
             }
         }
     );
@@ -526,8 +545,8 @@ function init(domainManager) {
         }],
         {
             error: {
-                type: "string",
-                description: "download error, if any; one of: FILE_TOO_LARGE, CANNOT_WRITE, CANNOT_DOWNLOAD"    // TODO: emit actual error codes
+                type: "string|Array.<string>",
+                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
             }
         }
     );

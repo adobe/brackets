@@ -38,6 +38,12 @@ define(function (require, exports, module) {
         ExtensionLoader      = require("utils/ExtensionLoader"),
         NodeConnection       = require("utils/NodeConnection");
     
+    var Errors = {
+        ERROR_LOADING: "ERROR_LOADING",
+        MALFORMED_URL: "MALFORMED_URL",
+        UNSUPPORTED_PROTOCOL: "UNSUPPORTED_PROTOCOL"
+    };
+    
     /**
      * @const
      * Amount of time to wait before automatically rejecting the connection
@@ -118,6 +124,8 @@ define(function (require, exports, module) {
      *
      * @param {string} Absolute path to the package zip file
      * @return {promise} A promise that is resolved with information about the package
+     *          (which may include errors, in which case the extension was disabled), or
+     *          rejected with an error object.
      */
     function install(path) {
         var d = new $.Deferred();
@@ -130,16 +138,6 @@ define(function (require, exports, module) {
                     apiVersion: brackets.metadata.apiVersion
                 })
                     .done(function (result) {
-                        
-                        // Convert the errors into properly localized strings
-                        var i,
-                            errors = result.errors;
-                        
-                        for (i = 0; i < errors.length; i++) {
-                            var formatArguments = errors[i];
-                            formatArguments[0] = Strings[formatArguments[0]];
-                            errors[i] = StringUtils.format.apply(window, formatArguments);
-                        }
                         
                         // Check to see if this extension was installed, but disabled
                         if (result.disabledReason) {
@@ -158,7 +156,7 @@ define(function (require, exports, module) {
                             }, "main").then(function () {
                                 d.resolve(result);
                             }, function () {
-                                d.reject("ERROR_LOADING");
+                                d.reject(Errors.ERROR_LOADING);
                             });
                         }
                     })
@@ -173,7 +171,7 @@ define(function (require, exports, module) {
     
     /**
      * Downloads from the given URL to a temporary location. On success, resolves with the local path
-     * of the downloaded file. On failure, rejects with an error message.
+     * of the downloaded file. On failure, rejects with an error object.
      * 
      * @param {string} url URL of the file to be downloaded
      * @param {number} downloadId Unique number to identify this request
@@ -186,12 +184,12 @@ define(function (require, exports, module) {
             // TODO: PathUtils fails to parse URLs that are missing the protocol part (e.g. starts immediately with "www...")
             var parsed = PathUtils.parseUrl(url);
             if (!parsed.hostname) {  // means PathUtils failed to parse at all
-                d.reject("Malformed URL");
+                d.reject(Errors.MALFORMED_URL);
                 return d.promise();
             }
             if (parsed.protocol !== "http:") {
                 // ERROR... for now - TODO
-                d.reject("URL is not http: protocol");
+                d.reject(Errors.UNSUPPORTED_PROTOCOL);
                 return d.promise();
             }
             var hostname = parsed.hostname;
@@ -235,6 +233,17 @@ define(function (require, exports, module) {
     
     
     /**
+     * On success, resolves with an extension metadata object; at that point, the extension has already
+     * started running in Brackets. On failure (including validation errors), rejects with an error object.
+     * 
+     * The error information may be an array of error objects (for valdiation errors), or a single error
+     * object. An individual error object consists of either a string error code OR an array where the first
+     * entry is the error code and the remaining entries are further info. The error code string is one of
+     * either ExtensionsDomain.Errors or Package.Errors.
+     * TODO: if top level value is an array it's ambiguous (multiple error objects or one?)
+     * 
+     * Use formatError() to convert a single error object to a friendly, localized error message.
+     * 
      * @return {{promise: $.Promise, cancel: function():boolean}}
      */
     function installFromURL(url) {
@@ -290,6 +299,20 @@ define(function (require, exports, module) {
         };
     }
     
+    /**
+     * Converts an error object as returned by install() or installFromURL() into a flattened, localized string.
+     * @param {string|Array.<string>} error
+     * @return {string}
+     */
+    function formatError(error) {
+        if (Array.isArray(error)) {
+            error[0] = Strings[error[0]];
+            return StringUtils.format.apply(window, error);
+        } else {
+            return Strings[error];
+        }
+    }
+    
     
     /**
      * Allows access to the deferred that manages the node connection. This
@@ -340,4 +363,5 @@ define(function (require, exports, module) {
     exports.installFromURL = installFromURL;
     exports.validate = validate;
     exports.install = install;
+    exports.formatError = formatError;
 });
