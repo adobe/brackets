@@ -45,11 +45,11 @@ define({
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "打开文件时出现错误",
-    "ERROR_OPENING_FILE"                : "程序尝试打开该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILE"                : "程序试图打开该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RELOADING_FILE_TITLE"        : "重新加载文件时出现错误",
-    "ERROR_RELOADING_FILE"              : "程序尝试重新加载该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RELOADING_FILE"              : "程序试图重新加载该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "保存文件时出现错误",
-    "ERROR_SAVING_FILE"                 : "程序尝试保存该文件时出现了一个错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_SAVING_FILE"                 : "程序试图保存该文件时出现了一个错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "重命名文件失败",
     "ERROR_RENAMING_FILE"               : "为该文件重命名时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "无效文件名",
