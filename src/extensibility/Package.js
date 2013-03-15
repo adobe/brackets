@@ -48,7 +48,7 @@ define(function (require, exports, module) {
      * @const
      * Amount of time to wait before automatically rejecting the connection
      * deferred. If we hit this timeout, we'll never have a node connection
-     * for the static server in this run of Brackets.
+     * for the installer in this run of Brackets.
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
     
@@ -73,8 +73,8 @@ define(function (require, exports, module) {
      * 
      * The promise is resolved with an object:
      * { errors: Array.<{string}>, metadata: { name:string, version:string, ... } }
-     * metadata is pulled straight from package.json and is likely to be undefined
-     * if there are errors.
+     * metadata is pulled straight from package.json and will be undefined
+     * if there are errors or null if the extension did not include package.json.
      *
      * @param {string} Absolute path to the package zip file
      * @return {$.Promise} A promise that is resolved with information about the package
@@ -100,9 +100,17 @@ define(function (require, exports, module) {
                             errors: errors,
                             metadata: result.metadata
                         });
+                    })
+                    .fail(function (error) {
+                        d.reject(error);
                     });
+            } else {
+                d.reject();
             }
-        });
+        })
+            .fail(function (error) {
+                d.reject(error);
+            });
         return d.promise();
     }
     
@@ -138,12 +146,6 @@ define(function (require, exports, module) {
                     apiVersion: brackets.metadata.apiVersion
                 })
                     .done(function (result) {
-                        
-                        // Check to see if this extension was installed, but disabled
-                        if (result.disabledReason) {
-                            result.disabledReason = StringUtils.format(result.disabledReason);
-                        }
-                        
                         // If there were errors or the extension is disabled, we don't
                         // try to load it so we're ready to return
                         if (result.errors.length > 0 || result.disabledReason) {
@@ -163,8 +165,13 @@ define(function (require, exports, module) {
                     .fail(function (error) {
                         d.reject(error);
                     });
+            } else {
+                d.reject();
             }
-        });
+        })
+            .fail(function (error) {
+                d.reject(error);
+            });
         return d.promise();
     }
     
@@ -210,7 +217,10 @@ define(function (require, exports, module) {
             }).fail(function (err) {
                 d.reject(err);
             });
-        });
+        })
+            .fail(function (error) {
+                d.reject(error);
+            });
         return d.promise();
     }
     

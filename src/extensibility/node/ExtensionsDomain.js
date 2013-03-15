@@ -513,6 +513,14 @@ function init(domainManager) {
             disabledReason: {
                 type: "string",
                 description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
+            },
+            installedTo: {
+                type: "string",
+                description: "absolute path where the extension was installed to"
+            },
+            commonPrefix: {
+                type: "string",
+                description: "top level directory in the package zip which contains all of the files"
             }
         }
     );
