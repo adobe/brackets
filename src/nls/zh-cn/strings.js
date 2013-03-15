@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING" : "载入\u2026",
+    "PROJECT_LOADING" : "载入中\u2026",
     "UNTITLED" : "无标题",
     
     /**
@@ -148,10 +148,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "行 {0}, 列 {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "选择缩进为空格",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "选择缩进为TAB",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "修改缩进空格长度",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "修改TAB长度",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "点击切换缩进为空格",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "点击切换为TAB",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "点击修改缩进的空格长度",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "点击修改缩进的TAB长度",
     "STATUSBAR_SPACES"                      : "空格长度",
     "STATUSBAR_TAB_SIZE"                    : "Tab长度",
     "STATUSBAR_LINE_COUNT"                  : "{0} 行",
@@ -165,8 +165,8 @@ define({
     "CMD_FILE_NEW"                        : "新建",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "添加一个工作目录",
-    "CMD_OPEN_FOLDER"                     : "打开文件夹\u2026",
+    "CMD_ADD_TO_WORKING_SET"              : "添加至工作目录",
+    "CMD_OPEN_FOLDER"                     : "打开目录\u2026",
     "CMD_FILE_CLOSE"                      : "关闭",
     "CMD_FILE_CLOSE_ALL"                  : "全部关闭",
     "CMD_FILE_SAVE"                       : "保存",
