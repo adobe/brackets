@@ -124,7 +124,7 @@ define(function (require, exports, module) {
      * 
      * The promise is resolved with an object:
      * { errors: Array.<{string}>, metadata: { name:string, version:string, ... },
-     * disabledReason:string }
+     * disabledReason:string, installedTo:string, commonPrefix:string }
      * metadata is pulled straight from package.json and is likely to be undefined
      * if there are errors. It is null if there was no package.json.
      * 

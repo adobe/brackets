@@ -47,6 +47,7 @@ var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.z
     missingNameVersion  = path.join(testFilesDirectory, "missing-name-version.zip"),
     missingMain         = path.join(testFilesDirectory, "missing-main.zip"),
     oneLevelDown        = path.join(testFilesDirectory, "one-level-extension-master.zip"),
+    bogusTopDir         = path.join(testFilesDirectory, "bogus-top-dir.zip"),
     invalidVersion      = path.join(testFilesDirectory, "invalid-version.zip");
 
 describe("Package Validation", function () {
@@ -144,6 +145,16 @@ describe("Package Validation", function () {
             expect(result.errors.length).toEqual(0);
             expect(result.metadata.name).toEqual("one-level-extension");
             expect(result.commonPrefix).toEqual("one-level-extension-master");
+            done();
+        });
+    });
+    
+    it("should not be fooled by bogus top directories", function (done) {
+        ExtensionsDomain._cmdValidate(bogusTopDir, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(0);
+            expect(result.metadata.name).toEqual("bogus-top-dir");
+            expect(result.commonPrefix).toEqual("");
             done();
         });
     });
