@@ -202,7 +202,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "注释选中内容",
     "CMD_LINE_UP"                         : "移到下一行",
     "CMD_LINE_DOWN"                       : "移到上一行",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动闭括号",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动完成括号",
     
     // View menu commands
     "VIEW_MENU"                           : "视图",
@@ -229,7 +229,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "下一个匹配项",
     "CMD_NEXT_DOC"                        : "下一个文件",
     "CMD_PREV_DOC"                        : "上一个文件",
-    "CMD_SHOW_IN_TREE"                    : "显示文件树",
+    "CMD_SHOW_IN_TREE"                    : "定位于工作目录中",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "调试",
@@ -242,7 +242,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展文件夹",
     "CMD_SWITCH_LANGUAGE"                 : "选择语言",
     "CMD_ENABLE_NODE_DEBUGGER"            : "启用Node.JS调试",
-    "CMD_LOG_NODE_STATE"                  : "将Node.JS日食显示在控制台中",
+    "CMD_LOG_NODE_STATE"                  : "将Node.JS日志显示在控制台中",
     "CMD_RESTART_NODE"                    : "重启Node.JS",
 
     // Help menu commands
@@ -307,3 +307,4 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} 次)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)"
 });
+
