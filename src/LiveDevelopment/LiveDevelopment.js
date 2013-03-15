@@ -624,14 +624,36 @@ define(function LiveDevelopment(require, exports, module) {
         return promise;
     }
 
-    /** Close the Connection */
+    /**
+     * Close the connection and the associated window asynchronously
+     * 
+     * @return {jQuery.Promise} Resolves once the connection is closed
+     */
     function close() {
-        if (Inspector.connected()) {
-            Inspector.Runtime.evaluate("window.open('', '_self').close();");
+        var deferred = $.Deferred();
+            
+        /*
+         * Finish closing the live development connection, including setting
+         * the status accordingly.
+         */
+        function cleanup() {
+            _setStatus(STATUS_INACTIVE);
+            _serverProvider = null;
+            deferred.resolve();
         }
-        Inspector.disconnect();
-        _setStatus(STATUS_INACTIVE);
-        _serverProvider = null;
+        
+        if (Inspector.connected()) {
+            var timer = window.setTimeout(cleanup, 5000); // 5 seconds
+            Inspector.Runtime.evaluate("window.open('', '_self').close();", function (response) {
+                Inspector.disconnect();
+                window.clearTimeout(timer);
+                cleanup();
+            });
+        } else {
+            cleanup();
+        }
+        
+        return deferred.promise();
     }
     
     /** Enable highlighting */
@@ -743,8 +765,7 @@ define(function LiveDevelopment(require, exports, module) {
                 promise = _openDocument(doc, editor);
             } else {
                 if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
-                    close();
-                    promise = open();
+                    promise = close().then(open);
                 } else {
                     promise = $.Deferred().resolve();
                 }
