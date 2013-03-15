@@ -122,7 +122,7 @@ define({
     "FIND_IN_FILES_LINE"                : "行:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "获取更新信息失败",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的信息.请确认你的电脑已经连接互联网,然后再次尝试重新获取!",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的更新信息.请确认你的电脑已经连接互联网,然后再次尝试重新获取!",
     
     // Switch language
     "LANGUAGE_TITLE"                    : "选择语言",
