@@ -30,37 +30,37 @@ define({
      */
 
     // General file io error strings
-    "GENERIC_ERROR"                     : "(异常 {0})",
+    "GENERIC_ERROR"                     : "(错误 {0})",
     "NOT_FOUND_ERR"                     : "未能发现该文件.",
     "NOT_READABLE_ERR"                  : "无法读取该文件.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "无法修改此目录.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "你没有权限做此次修改.",
-    "FILE_EXISTS_ERR"                   : "当前文件已存在.",
+    "FILE_EXISTS_ERR"                   : "该文件已存在.",
     
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "无法加载此项目.",
-    "OPEN_DIALOG_ERROR"                 : "显示[打开文件]对话框出现异常. (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "打开此文件夹出现异常 <span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "加载目录内容出现异常 <span class='dialog-filename'>{0}</span>. (error {1})",
+    "OPEN_DIALOG_ERROR"                 : "显示[打开文件]对话框出现错误. (error {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "打开此文件夹出现错误 <span class='dialog-filename'>{0}</span>. (error {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "加载目录内容出现错误 <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "打开文件时出现异常",
-    "ERROR_OPENING_FILE"                : "程序尝试打开该文件时出现了一个异常,文件:<span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILE_TITLE"          : "打开文件时出现错误",
+    "ERROR_OPENING_FILE"                : "程序尝试打开该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RELOADING_FILE_TITLE"        : "重新加载文件时出现异常",
-    "ERROR_RELOADING_FILE"              : "程序尝试重新加载该文件时出现了一个异常,文件:<span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RELOADING_FILE"              : "程序尝试重新加载该文件时出现了一个错误,文件:<span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "保存文件时出现异常",
-    "ERROR_SAVING_FILE"                 : "程序尝试保存该文件时出现了一个异常,文件: <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_SAVING_FILE"                 : "程序尝试保存该文件时出现了一个错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "重命名文件失败",
-    "ERROR_RENAMING_FILE"               : "为该文件重命名时出现异常,文件: <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE"               : "为该文件重命名时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "无效文件名",
     "INVALID_FILENAME_MESSAGE"          : "文件名不得包含: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "该文件 <span class='dialog-filename'>{0}</span> 已经存在.",
-    "ERROR_CREATING_FILE_TITLE"         : "新建文件异常",
+    "ERROR_CREATING_FILE_TITLE"         : "新建文件错误",
     "ERROR_CREATING_FILE"               : "试图创建该文件时出现错误,文件: <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} Brackets 暂无法运行在浏览器窗口中.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} 是内置HTML, 现在作为一个桌面程序运行你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>,然后重新运行 {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} 是建立在HTML上的一个桌面程序，你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>,然后重新运行 {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "索引文件错误",
