@@ -194,24 +194,23 @@ define(function (require, exports, module) {
                 d.reject(Errors.MALFORMED_URL);
                 return d.promise();
             }
-            if (parsed.protocol !== "http:") {
-                // ERROR... for now - TODO
+            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
                 d.reject(Errors.UNSUPPORTED_PROTOCOL);
                 return d.promise();
             }
-            var hostname = parsed.hostname;
-            var hostPath = parsed.pathname;
-            var port = parsed.port || "80";
             
             // Decide download destination
-            // TODO: handle case with no filename? (e.g. url is bare domain or ends in /)
             var filename = parsed.filename;
-            filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // sanitize
+            filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // make sure it's a valid filename
+            if (!filename) {  // in case of URL ending in "/"
+                filename = "extension.zip";
+            }
+            
             var tempDownloadFolder = brackets.app.getApplicationSupportDirectory() + "/extensions/";
             var localPath = tempDownloadFolder + filename;
             
             // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = connection.domains.extensionManager.downloadFile(downloadId, hostname, hostPath, port, localPath);
+            var r = connection.domains.extensionManager.downloadFile(downloadId, url, localPath);
             r.done(function (result) {
                 d.resolve(localPath);
             }).fail(function (err) {
@@ -295,7 +294,9 @@ define(function (require, exports, module) {
                     })
                     .always(function () {
                         // Whether success or failure, we can delete the original downloaded ZIP file now
-                        brackets.fs.unlink(localPath);
+                        brackets.fs.unlink(localPath, function (err) {
+                            // ignore errors
+                        });
                     });
             })
             .fail(function (err) {

@@ -27,15 +27,13 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var unzip  = require("unzip"),
-    semver = require("semver"),
-    path   = require("path"),
-    http   = require("http"),
-    fs     = require("fs-extra");
+var unzip   = require("unzip"),
+    semver  = require("semver"),
+    path    = require("path"),
+    http    = require("http"),
+    request = require("request"),
+    fs      = require("fs-extra");
 
-
-/** @const @type {number} */
-var DOWNLOAD_LIMIT = 0x100000; // 1 MB
 
 var Errors = {
     NOT_FOUND_ERR: "NOT_FOUND_ERR",
@@ -52,7 +50,6 @@ var Errors = {
     DOWNLOAD_ID_IN_USE: "DOWNLOAD_ID_IN_USE",
     DOWNLOAD_TARGET_EXISTS: "DOWNLOAD_TARGET_EXISTS",   // {0} is the download target file
     BAD_HTTP_STATUS: "BAD_HTTP_STATUS",             // {0} is the HTTP status code
-    FILE_TOO_LARGE: "FILE_TOO_LARGE",               // {0} is the max allowed download size in KB
     NO_SERVER_RESPONSE: "NO_SERVER_RESPONSE",
     CANCELED: "CANCELED"
 };
@@ -389,9 +386,6 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
 }
 
 
-// TODO: use 3rd-party "request" module instead? supports https & redirects...
-//  https://github.com/mikeal/request
-
 /**
  * Wrap up after the given download has terminated (successfully or not). Closes connections, calls back the
  * client's callback, and IF there was an error, delete any partially-downloaded file.
@@ -429,9 +423,10 @@ function _endDownload(downloadId, error) {
 /**
  * Implements "downloadFile" command, asynchronously.
  */
-function _cmdDownloadFile(downloadId, hostname, hostPath, port, localPath, callback) {
+function _cmdDownloadFile(downloadId, url, localPath, callback) {
     if (pendingDownloads[downloadId]) {
         callback(Errors.DOWNLOAD_ID_IN_USE, null);
+        return;
     }
     
     if (fs.existsSync(localPath)) {
@@ -439,48 +434,28 @@ function _cmdDownloadFile(downloadId, hostname, hostPath, port, localPath, callb
         return;
     }
     
-    // req will be a ClientRequest object
-    var req = http.get({
-        hostname: hostname,
-        path: hostPath,
-        port: port,
-        encoding: null  // allow binary content
-        
-    }, function (response) { // response is an IncomingMessage object
-        // Make sure we're actually getting the file contents and not an error page
-        if (response.statusCode !== 200) {
-            _endDownload(downloadId, [Errors.BAD_HTTP_STATUS, response.statusCode]);
-            return;
-        }
-        
-        // Begin downloading to local file
-        var outStream = fs.createWriteStream(localPath);
-        pendingDownloads[downloadId].outStream = outStream;
-        var totalSize = 0;
-        
-        response.on("data", function (chunk) { // chunk is a Buffer object
-            // Enforce max size limit
-            totalSize += chunk.length;
-            if (totalSize > DOWNLOAD_LIMIT) {
-                _endDownload(downloadId, [Errors.FILE_TOO_LARGE, DOWNLOAD_LIMIT / 1024]);
-            } else {
-                // Stream the downloaded bits to disk
-                outStream.write(chunk);
+    var req = request.get({
+        url: url,
+        encoding: null
+    },
+        // Note: we could use the traditional "response"/"data"/"end" events too if we wanted to stream data
+        // incrementally, limit download size, etc. - but the simple callback is good enough for our needs.
+        function (error, response, body) {
+            if (error) {
+                // Usually means we never got a response - server is down, no DNS entry, etc.
+                _endDownload(downloadId, Errors.NO_SERVER_RESPONSE);
+                return;
             }
-        });
-        
-        response.on("end", function () {
-            if (pendingDownloads[downloadId]) {
-                _endDownload(downloadId);
+            if (response.statusCode !== 200) {
+                _endDownload(downloadId, [Errors.BAD_HTTP_STATUS, response.statusCode]);
+                return;
             }
-            // else we received "end" because WE dropped the connection; download didn't actually succeed
+            
+            var outStream = fs.createWriteStream(localPath);
+            pendingDownloads[downloadId].outStream = outStream;
+            outStream.write(body);
+            _endDownload(downloadId);
         });
-    });
-    
-    req.on("error", function (err) {
-        // We never got a response - server is down, no DNS entry, etc.
-        _endDownload(downloadId, Errors.NO_SERVER_RESPONSE);
-    });
     
     pendingDownloads[downloadId] = { request: req, callback: callback, localPath: localPath };
 }
@@ -582,19 +557,11 @@ function init(domainManager) {
             type: "string",
             description: "Unique identifier for this download 'session'"
         }, {
-            name: "hostname",
+            name: "url",
             type: "string",
-            description: "Hostname of URL to download from (assumes http)"
+            description: "URL to download from"
         }, {
-            name: "hostPath",
-            type: "string",
-            description: "Path or URL to download from (starting with '/')"
-        }, {
-            name: "port",
-            type: "string",
-            description: "Port on hostname to connect to"
-        }, {
-            name: "path",
+            name: "localPath",
             type: "string",
             description: "absolute filesystem path of the extension package"
         }],
