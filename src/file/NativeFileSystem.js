@@ -950,7 +950,15 @@ define(function (require, exports, module) {
             filesystem = this.filesystem,
             timeout = NativeFileSystem.ASYNC_TIMEOUT;
         
-        brackets.fs.readdir(rootPath, function (err, filelist, isNetworkDrive) {
+        if (brackets.fs.isNetworkDrive) {
+            brackets.fs.isNetworkDrive(rootPath, function (err, remote) {
+                if (remote) {
+                    timeout = NativeFileSystem.ASYNC_NETWORK_TIMEOUT;
+                }
+            });
+        }
+        
+        brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
                 var entries = [];
                 var lastError = null;
@@ -961,10 +969,6 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                if (isNetworkDrive) {
-                    timeout = NativeFileSystem.ASYNC_NETWORK_TIMEOUT;
-                }
-                
                 // stat() to determine type of each entry, then populare entries array with objects
                 var masterPromise = Async.doInParallel(filelist, function (filename, index) {
                     
