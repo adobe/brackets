@@ -952,7 +952,7 @@ define(function (require, exports, module) {
         
         if (brackets.fs.isNetworkDrive) {
             brackets.fs.isNetworkDrive(rootPath, function (err, remote) {
-                if (remote) {
+                if (!err && remote) {
                     timeout = NativeFileSystem.ASYNC_NETWORK_TIMEOUT;
                 }
             });
