@@ -776,6 +776,9 @@ define(function LiveDevelopment(require, exports, module) {
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();
         LiveDevServerManager.registerProvider(userServerProvider, 99);
+
+        // Initialize exports.status
+        _setStatus(STATUS_INACTIVE);
     }
 
     function _setServerProvider(serverProvider) {
