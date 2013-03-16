@@ -76,7 +76,7 @@ define(function (require, exports, module) {
             if (expected.lineComment) {
                 var lineComment = Array.isArray(expected.lineComment) ? expected.lineComment : [expected.lineComment];
                 expect(actual.hasLineCommentSyntax()).toBe(true);
-                expect(actual.getLineCommentPrefix().toString()).toBe(lineComment.toString());
+                expect(actual.getLineCommentPrefixes().toString()).toBe(lineComment.toString());
             } else {
                 expect(actual.hasLineCommentSyntax()).toBe(false);
             }

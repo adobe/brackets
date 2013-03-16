@@ -262,7 +262,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!string} prefix, e.g. "<!--"
      * @param {!string} suffix, e.g. "-->"
-     * @param {?Array.<string>} linePrefixes, e.g. ["//"]
+     * @param {!Array.<string>} linePrefixes, e.g. ["//"]
      */
     function blockCommentPrefixSuffix(editor, prefix, suffix, linePrefixes) {
         
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
             endCtx         = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
             prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
             suffixExp      = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
-            lineExp        = linePrefixes && linePrefixes.length ? _createLineExpressions(linePrefixes) : null,
+            lineExp        = _createLineExpressions(linePrefixes),
             prefixPos      = null,
             suffixPos      = null,
             canComment     = false,
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
         }
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
-        if (lineExp && (_matchExpressions(ctx.token.string, lineExp) || _matchExpressions(endCtx.token.string, lineExp))) {
+        if (lineExp.length && (_matchExpressions(ctx.token.string, lineExp) || _matchExpressions(endCtx.token.string, lineExp))) {
             var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
             var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
             
@@ -493,11 +493,11 @@ define(function (require, exports, module) {
         result        = result && _findNextBlockComment(ctx, selEnd, prefixExp);
         
         if (className === "comment" || result || isLineSelection) {
-            blockCommentPrefixSuffix(editor, prefix, suffix);
+            blockCommentPrefixSuffix(editor, prefix, suffix, []);
         } else {
             // Set the new selection and comment it
             editor.setSelection(selStart, selEnd);
-            blockCommentPrefixSuffix(editor, prefix, suffix);
+            blockCommentPrefixSuffix(editor, prefix, suffix, []);
             
             // Restore the old selection taking into account the prefix change
             if (isMultipleLine) {
@@ -525,8 +525,8 @@ define(function (require, exports, module) {
         var language = editor.getLanguageForSelection();
         
         if (language.hasBlockCommentSyntax()) {
-            // getLineCommentPrefix returns null if no line comment syntax is defined
-            blockCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), language.getLineCommentPrefix());
+            // getLineCommentPrefixes always return an array, and will be empty if no line comment syntax is defined
+            blockCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), language.getLineCommentPrefixes());
         }
     }
     
@@ -543,7 +543,7 @@ define(function (require, exports, module) {
         var language = editor.getLanguageForSelection();
         
         if (language.hasLineCommentSyntax()) {
-            lineCommentPrefix(editor, language.getLineCommentPrefix());
+            lineCommentPrefix(editor, language.getLineCommentPrefixes());
         } else if (language.hasBlockCommentSyntax()) {
             lineCommentPrefixSuffix(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix());
         }

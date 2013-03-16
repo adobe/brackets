@@ -285,11 +285,11 @@ define(function (require, exports, module) {
     /** @type {Array.<string>} File names for extensionless files that use this language */
     Language.prototype._fileNames = null;
     
-    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
-    Language.prototype._modeToLanguageMap = null;
-    
     /** @type {Array.<string>} Line comment syntax */
     Language.prototype._lineCommentSyntax = null;
+    
+    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
+    Language.prototype._modeToLanguageMap = null;
     
     /** @type {{ prefix: string, suffix: string }} Block comment syntax */
     Language.prototype._blockCommentSyntax = null;
@@ -450,14 +450,14 @@ define(function (require, exports, module) {
      * @return {boolean} Whether line comments are supported
      */
     Language.prototype.hasLineCommentSyntax = function () {
-        return Boolean(this._lineCommentSyntax.length);
+        return this._lineCommentSyntax.length > 0;
     };
     
     /**
      * Returns an array of prefixes to use for line comments.
      * @return {Array.<string>} The prefixes
      */
-    Language.prototype.getLineCommentPrefix = function () {
+    Language.prototype.getLineCommentPrefixes = function () {
         return this._lineCommentSyntax;
     };
 
