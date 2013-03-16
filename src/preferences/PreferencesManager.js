@@ -64,12 +64,13 @@ define(function (require, exports, module) {
      * @return {string} The ClientID
      */
     function getClientID(module) {
-        var paths = [
-            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default",
-            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/dev",
-            ExtensionLoader.getUserExtensionPath()
-        ],
-            pathExp, pathUrl, clientID;
+        var pathExp, pathUrl, clientID,
+            dirPath = FileUtils.getNativeBracketsDirectoryPath(),
+            paths   = [
+                dirPath + "/extensions/default/",
+                dirPath + "/extensions/dev/",
+                ExtensionLoader.getUserExtensionPath() + "/"
+            ];
         
         paths.some(function (path) {
             pathExp = new RegExp("^" + path);
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
         });
         
         if (pathUrl) {
-            clientID = CLIENT_ID_PREFIX + module.uri.replace(pathUrl + "/", "");
+            clientID = CLIENT_ID_PREFIX + module.uri.replace(pathUrl, "");
         } else {
             clientID = CLIENT_ID_PREFIX + module.id;
         }
@@ -94,9 +95,7 @@ define(function (require, exports, module) {
      * @return {PreferenceStorage} 
      */
     function getPreferenceStorage(clientID, defaults) {
-        if (clientID === undefined || clientID === null ||
-                (typeof clientID === "string" && clientID === "") ||
-                (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
+        if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
             console.error("Invalid clientID");
             return;
         }
