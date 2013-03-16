@@ -49,7 +49,6 @@ define(function main(require, exports, module) {
         UrlParams           = require("utils/UrlParams").UrlParams,
         Strings             = require("strings");
 
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     var prefs;
     var params = new UrlParams();
     var config = {
@@ -220,7 +219,7 @@ define(function main(require, exports, module) {
     });
     
     // init prefs
-    prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, {highlight: true});
+    prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development", {highlight: true});
     

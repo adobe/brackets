@@ -72,11 +72,10 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id),
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false };
+    var defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false };
 
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor", defaultPrefs);
     

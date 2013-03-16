@@ -42,13 +42,12 @@ define(function (require, exports, module) {
         FileUtils               = brackets.getModule("file/FileUtils"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
     
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     
     var $dropdownToggle,
         $dropdown,
         $settings;
     
-    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    var prefs = PreferencesManager.getPreferenceStorage(module);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.brackets-recent-projects");
     
