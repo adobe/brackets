@@ -266,6 +266,7 @@ define(function (require, exports, module) {
         this._fileExtensions    = [];
         this._fileNames         = [];
         this._modeToLanguageMap = {};
+        this._lineCommentSyntax = [];
     }
     
     
@@ -284,7 +285,7 @@ define(function (require, exports, module) {
     /** @type {Array.<string>} File names for extensionless files that use this language */
     Language.prototype._fileNames = null;
     
-    /** @type {{ prefix: string }} Line comment syntax */
+    /** @type {Array.<string>} Line comment syntax */
     Language.prototype._lineCommentSyntax = null;
     
     /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
@@ -449,26 +450,37 @@ define(function (require, exports, module) {
      * @return {boolean} Whether line comments are supported
      */
     Language.prototype.hasLineCommentSyntax = function () {
-        return Boolean(this._lineCommentSyntax);
+        return this._lineCommentSyntax.length > 0;
     };
     
     /**
-     * Returns the prefix to use for line comments.
-     * @return {string} The prefix
+     * Returns an array of prefixes to use for line comments.
+     * @return {Array.<string>} The prefixes
      */
-    Language.prototype.getLineCommentPrefix = function () {
-        return this._lineCommentSyntax && this._lineCommentSyntax.prefix;
+    Language.prototype.getLineCommentPrefixes = function () {
+        return this._lineCommentSyntax;
     };
 
     /**
-     * Sets the prefix to use for line comments in this language.
-     * @param {!string} prefix Prefix string to use for block comments (i.e. "//")
+     * Sets the prefixes to use for line comments in this language.
+     * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
+     *   to use for line comments (i.e. "//" or ["//", "#"])
      */
     Language.prototype.setLineCommentSyntax = function (prefix) {
-        _validateNonEmptyString(prefix, "prefix");
+        var prefixes = Array.isArray(prefix) ? prefix : [prefix];
+        var i;
         
-        this._lineCommentSyntax = { prefix: prefix };
-        this._wasModified();
+        if (prefixes.length) {
+            this._lineCommentSyntax = [];
+            for (i = 0; i < prefixes.length; i++) {
+                _validateNonEmptyString(String(prefixes[i]), "prefix");
+                
+                this._lineCommentSyntax.push(prefixes[i]);
+            }
+            this._wasModified();
+        } else {
+            console.error("The prefix array should not be empty");
+        }
     };
     
     /**
@@ -564,7 +576,7 @@ define(function (require, exports, module) {
      * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
      * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (i.e. ["<!--", "-->"])
-     * @param {string}                definition.lineComment    Line comment prefix (i.e. "//")
+     * @param {string|Array.<string>} definition.lineComment    Line comment prefixes (i.e. "//" or ["//", "#"])
      * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
