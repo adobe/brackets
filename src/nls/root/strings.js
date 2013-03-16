@@ -202,7 +202,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Toggle Block Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Enable Close Brackets",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -211,6 +211,8 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
+    "CMD_SCROLL_LINE_UP"                  : "Scroll Line Up",
+    "CMD_SCROLL_LINE_DOWN"                : "Scroll Line Down",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",

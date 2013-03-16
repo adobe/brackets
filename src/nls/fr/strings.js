@@ -96,7 +96,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
-	"FIND_RESULT_COUNT": "[6734353] !é={0} results=!",
+	"FIND_RESULT_COUNT": "{0} résultats",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
 
     /**
@@ -202,7 +202,7 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
-	"CMD_TOGGLE_CLOSE_BRACKETS": "[6734352] !é=Enable Close Brackets=!",
+	"CMD_TOGGLE_CLOSE_BRACKETS": "[6734352] !é=Auto Close Braces=!",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -211,6 +211,8 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
 	"CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
+	"CMD_SCROLL_LINE_UP": "[6735595] !é=Scroll Line Up=!",
+	"CMD_SCROLL_LINE_DOWN": "[6735594] !é=Scroll Line Down=!",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
