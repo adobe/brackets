@@ -49,22 +49,22 @@ define(function (require, exports, module) {
     /**
      * @private
      * Creates regular expressions for multiple line comment prefixes
-     * @param {Array.<string>} prefixes - the line comment prefixes
+     * @param {!Array.<string>} prefixes - the line comment prefixes
      * @return {Array.<RegExp>}
      */
     function _createLineExpressions(prefixes) {
-        var lineExps = [];
+        var lineExp = [];
         prefixes.forEach(function (prefix) {
-            lineExps.push(new RegExp("^\\s*" + StringUtils.regexEscape(prefix)));
+            lineExp.push(new RegExp("^\\s*" + StringUtils.regexEscape(prefix)));
         });
-        return lineExps;
+        return lineExp;
     }
     
     /**
      * @private
      * Returns true if any regular expression matches the given string
-     * @param {string} string - where to look
-     * @param {Array.<RegExp>} expressions - what to look
+     * @param {!string} string - where to look
+     * @param {!Array.<RegExp>} expressions - what to look
      * @return {boolean}
      */
     function _matchExpressions(string, expressions) {
@@ -75,10 +75,12 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns the line comment prefix that best matches
-     * @param {string} string - where to look
-     * @param {Array.<RegExp>} expressions - the line comment regular expressions
-     * @param {Array.<string>} prefixes - the line comment prefixes
+     * Returns the line comment prefix that best matches the string. Since there might be line comment prefixes
+     * that are prefixes of other line comment prefixes, it searches throught all and returns the longest line
+     * comment prefix that matches the string.
+     * @param {!string} string - where to look
+     * @param {!Array.<RegExp>} expressions - the line comment regular expressions
+     * @param {!Array.<string>} prefixes - the line comment prefixes
      * @return {string}
      */
     function _getLinePrefix(string, expressions, prefixes) {
@@ -108,7 +110,6 @@ define(function (require, exports, module) {
         for (i = startLine; i <= endLine; i++) {
             line = editor.document.getLine(i);
             // A line is commented out if it starts with 0-N whitespace chars, then a line comment prefix
-            console.log(_matchExpressions(line, lineExp));
             if (line.match(/\S/) && !_matchExpressions(line, lineExp)) {
                 containsUncommented = true;
                 break;
@@ -168,7 +169,7 @@ define(function (require, exports, module) {
                 }
             
             } else {
-                // Uncomment - remove first every prefix on each line (if any)
+                // Uncomment - remove the prefix on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
                     line   = doc.getLine(i);
                     prefix = _getLinePrefix(line, lineExp, prefixes);
@@ -176,7 +177,6 @@ define(function (require, exports, module) {
                     if (prefix) {
                         commentI = line.indexOf(prefix);
                         doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefix.length});
-                        break;
                     }
                 }
             }
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
             endCtx         = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
             prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
             suffixExp      = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
-            lineExp        = linePrefixes ? _createLineExpressions(linePrefixes) : null,
+            lineExp        = linePrefixes && linePrefixes.length ? _createLineExpressions(linePrefixes) : null,
             prefixPos      = null,
             suffixPos      = null,
             canComment     = false,

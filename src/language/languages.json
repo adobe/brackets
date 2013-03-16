@@ -93,7 +93,8 @@
     "clojure": {
         "name": "Clojure",
         "mode": "clojure",
-        "fileExtensions": ["clj"]
+        "fileExtensions": ["clj"],
+        "lineComment": [";", ";;"]
     },
 
     "perl": {

@@ -458,7 +458,7 @@ define(function (require, exports, module) {
      * @return {Array.<string>} The prefixes
      */
     Language.prototype.getLineCommentPrefix = function () {
-        return this._lineCommentSyntax.length && this._lineCommentSyntax;
+        return this._lineCommentSyntax;
     };
 
     /**
