@@ -437,6 +437,39 @@ define(function LiveDevelopment(require, exports, module) {
         // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
     }
 
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
+        // res = {frame}
+        var url = res.frame.url,
+            baseUrl,
+            baseUrlRegExp;
+
+        // Only check domain of root frame (with undefined parentId)
+        if (res.frame.parentId) {
+            return;
+        }
+
+        // Any local file is OK
+        if (url.match(/^file:\/\//i) || !_serverProvider) {
+            return;
+        }
+
+        // Need base url to build reg exp
+        baseUrl = _serverProvider.getBaseUrl();
+        if (!baseUrl) {
+            return;
+        }
+
+        // Test that url is within site
+        baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
+        if (!url.match(baseUrlRegExp)) {
+            // No longer in site, so terminate live dev, but don't close browser window
+            Inspector.disconnect();
+            _setStatus(STATUS_INACTIVE);
+            _serverProvider = null;
+        }
+    }
+
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         $(Inspector.Inspector).on("detached", _onDetached);
@@ -708,34 +741,6 @@ define(function LiveDevelopment(require, exports, module) {
                 agents.network && agents.network.wasURLRequested(doc.url)) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
             _setStatus(doc.isDirty ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
-        }
-    }
-
-    // WebInspector Event: Page.frameNavigated
-    function _onFrameNavigated(event, res) {
-        // res = {frame}
-        var url = res.frame.url,
-            baseUrl,
-            baseUrlRegExp;
-
-        // Any local file is OK
-        if (url.match(/^file:\/\//i) || !_serverProvider) {
-            return;
-        }
-
-        // Need base url to build reg exp
-        baseUrl = _serverProvider.getBaseUrl();
-        if (!baseUrl) {
-            return;
-        }
-
-        // Test that url is within site
-        baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
-        if (!url.match(baseUrlRegExp)) {
-            // No longer in site, so terminate live dev, but don't close browser window
-            Inspector.disconnect();
-            _setStatus(STATUS_INACTIVE);
-            _serverProvider = null;
         }
     }
 
