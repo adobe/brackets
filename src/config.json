@@ -16,6 +16,7 @@
     },
     "name": "Brackets",
     "version": "0.22.0-0",
+    "apiVersion": "0.22.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
