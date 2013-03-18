@@ -1161,7 +1161,8 @@ define(function (require, exports, module) {
                     error = 0;
                 
                 runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    // Create the test menu as the very first menu. On Mac it is after the Brackets app menu.
+                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "first", "", function (err) {
                         if (err) {
                             complete = true;
                             error = err;
@@ -1279,7 +1280,8 @@ define(function (require, exports, module) {
                     error = 0;
                 
                 runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    // Create the test menu as the very first menu. On Mac it is after the Brackets app menu.
+                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "first", "", function (err) {
                         if (err) {
                             complete = true;
                             error = err;
@@ -1339,7 +1341,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(error).toBe(0);
-//                    expect(enabled).toBe(true);
+                    expect(enabled).toBe(true);
                 });
                 
                 // Enable it
@@ -1424,7 +1426,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(error).toBe(0);
-//                    expect(checked).toBe(true);
+                    expect(checked).toBe(true);
                 });
             });
             it("should return an error if invalid parameters are passed", function () {
