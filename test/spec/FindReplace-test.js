@@ -165,24 +165,24 @@ define(function (require, exports, module) {
             it("should find all case-insensitive matches", function () {
                 myEditor.setCursorPos(0, 0);
 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
 
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(2);
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(fooExpectedMatches[3]);
                 expectHighlightedMatches(fooExpectedMatches);  // no change in highlights
 
                 // wraparound
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
                 expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
@@ -195,27 +195,27 @@ define(function (require, exports, module) {
                 ];
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("Foo");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
                 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(expectedSelections[1]);
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(expectedSelections[2]);
                 // note the lowercase "foo()" is NOT matched
                 
                 // wraparound
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(expectedSelections[0]);
             });
             
             it("should Find Next after search bar closed, including wraparound", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("foo");
                 pressEnter();
@@ -226,23 +226,23 @@ define(function (require, exports, module) {
                 expect(myEditor.centerOnCursor.calls.length).toEqual(1);
                 
                 // Simple linear Find Next
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
                 expect(myEditor.centerOnCursor.calls.length).toEqual(2);
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
                 
                 // Wrap around to first result
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
             });
             
             it("should Find Previous after search bar closed, including wraparound", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("foo");
                 pressEnter();
@@ -251,22 +251,22 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
                 
                 // Wrap around to last result
-                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                CommandManager.execute(Commands.SEARCH_FIND_PREVIOUS);
                 expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
                 
                 // Simple linear Find Previous
-                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                CommandManager.execute(Commands.SEARCH_FIND_PREVIOUS);
                 expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
-                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                CommandManager.execute(Commands.SEARCH_FIND_PREVIOUS);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
-                CommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
+                CommandManager.execute(Commands.SEARCH_FIND_PREVIOUS);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
             });
             
             it("shouldn't Find Next after search bar reopened", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("foo");
                 pressEnter();
@@ -274,19 +274,19 @@ define(function (require, exports, module) {
                 
                 // Open search bar a second time
                 myEditor.setCursorPos(0, 0);
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 expectSearchBarOpen();
                 expect(myEditor).toHaveCursorPosition(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expect(myEditor).toHaveCursorPosition(0, 0);
             });
             
             it("should open search bar on Find Next with no previous search", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 
                 expectSearchBarOpen();
                 expect(myEditor).toHaveCursorPosition(0, 0);
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
             it("should select-all without affecting search state if Find invoked while search bar open", function () {  // #2478
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("foo");  // position cursor first
                 
@@ -306,7 +306,7 @@ define(function (require, exports, module) {
                 expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 11);  // cursor left at end of last good match ("foo")
                 
                 // Invoke Find a 2nd time - this time while search bar is open
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 expectSearchBarOpen();
                 expect(getSearchField().val()).toEqual("foobar");
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
             it("should re-search from original position when text changes", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("baz");
                 
@@ -344,14 +344,14 @@ define(function (require, exports, module) {
             it("should re-search from original position when text changes, even after Find Next", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("foo");
                 expectSelection(fooExpectedMatches[0]);
                 
                 // get search highlight down below where the "bar" match will be
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
                 
                 enterSearchText("bar");
@@ -361,7 +361,7 @@ define(function (require, exports, module) {
             it("should extend original selection when appending to prepopulated text", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expect(getSearchField().val()).toEqual("require");
                 
                 var requireExpectedMatches = [
@@ -385,7 +385,7 @@ define(function (require, exports, module) {
             it("should collapse selection when appending to prepopulated text causes no result", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
                 enterSearchText("requireX");
@@ -396,7 +396,7 @@ define(function (require, exports, module) {
             it("should clear selection, return cursor to start after backspacing to empty query", function () {
                 myEditor.setCursorPos(2, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
             it("should go to next on Enter with prepopulated text & no Find Nexts", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
                 pressEnter();
@@ -426,7 +426,7 @@ define(function (require, exports, module) {
             it("shouldn't change selection on Esc with prepopulated text & no Find Nexts", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
                 pressEscape();
@@ -439,10 +439,10 @@ define(function (require, exports, module) {
             it("shouldn't change selection on Enter with prepopulated text & after Find Next", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_PAREN}});
                 
                 pressEnter();
@@ -454,7 +454,7 @@ define(function (require, exports, module) {
             it("shouldn't change selection on Enter after typing text, no Find Nexts", function () {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
@@ -469,13 +469,13 @@ define(function (require, exports, module) {
             it("shouldn't change selection on Enter after typing text & Find Next", function () {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
                 enterSearchText("require");
                 expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
                 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection({start: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_PAREN}});
                 
                 pressEnter();
@@ -487,10 +487,10 @@ define(function (require, exports, module) {
             it("should no-op on Find Next with blank search", function () {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
                 
             });
@@ -498,7 +498,7 @@ define(function (require, exports, module) {
             it("should no-op on Enter with blank search", function () {
                 myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
 
                 pressEnter();
@@ -521,21 +521,21 @@ define(function (require, exports, module) {
                 ];
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("/Ba./");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
                 
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(expectedSelections[1]);
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(expectedSelections[2]);
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(expectedSelections[3]);
                 
                 // wraparound
-                CommandManager.execute(Commands.EDIT_FIND_NEXT);
+                CommandManager.execute(Commands.SEARCH_FIND_NEXT);
                 expectSelection(expectedSelections[0]);
             });
             
@@ -545,7 +545,7 @@ define(function (require, exports, module) {
                 ];
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("/foo/");
                 expectHighlightedMatches(expectedSelections);
@@ -561,7 +561,7 @@ define(function (require, exports, module) {
                 ];
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("/foo/i");
                 expectHighlightedMatches(expectedSelections);
@@ -575,7 +575,7 @@ define(function (require, exports, module) {
                 ];
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 // This should be interpreted as a non-RegExp search, which actually does have a result thanks to "modules/Bar"
                 enterSearchText("/Ba");
@@ -586,7 +586,7 @@ define(function (require, exports, module) {
             it("shouldn't choke on invalid regexp", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
                 enterSearchText("/+/");
@@ -598,7 +598,7 @@ define(function (require, exports, module) {
             it("shouldn't choke on empty regexp", function () {
                 myEditor.setCursorPos(0, 0);
                 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
                 
                 enterSearchText("//");
                 expectHighlightedMatches([]);
@@ -608,7 +608,7 @@ define(function (require, exports, module) {
             it("shouldn't freeze on /.*/ regexp", function () {
                 myEditor.setCursorPos(0, 0);
 
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.SEARCH_FIND);
 
                 enterSearchText("/.*/");
                 pressEnter();
