@@ -40,10 +40,13 @@ define(function (require, exports, module) {
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         HintUtils           = require("HintUtils"),
-        Scope               = require("Scope");
+        Scope               = require("Scope"),
+        Tern                = require("tern/tern");
 
     var pendingRequest      = null,     // information about a deferred scope request
         fileState           = {},       // directory -> file -> state
+        ternServer          = null,
+        ternEnvironment     = [],
         outerScopeWorker    = (function () {
             var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
             return new Worker(path + "parser-worker.js");
@@ -52,6 +55,24 @@ define(function (require, exports, module) {
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
         MAX_FILES_IN_DIR    = 100;
 
+    function initTernServer() {
+        ternServer = new Tern.Server({environment:ternEnvironment});
+    }
+    function initTernEnv(server) {
+        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/";
+        var files = ["ecma5.json"];//, "browser.json", "plugin/requirejs/requirejs.json", "jquery.json"];
+        
+        var dirEntry    = new NativeFileSystem.DirectoryEntry(path),
+            reader      = dirEntry.createReader();
+        
+        files.forEach(function(i) {
+            DocumentManager.getDocumentForPath(path + i).done(function(document){
+                ternEnvironment.push(JSON.parse(document.getText()));
+            });
+        });
+    }
+    initTernEnv(ternServer);
+    
     /** 
      * Initialize state for a given directory and file name
      *
@@ -160,6 +181,7 @@ define(function (require, exports, module) {
                 });
             }
         }
+        state.text = text;
     }
 
     /**
@@ -385,6 +407,41 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Get completions from TernJS, from the file & offset passed in.
+     */
+    function getTernHints(dir, file, offset, text) {
+        function buildRequest(dir, file, query, offset){
+            query = {type:query};
+            query.start = offset;
+            query.end = offset;
+            query.file = file;
+            
+            var request = {query:query, files:[], offset:offset};
+            
+            var state = getFileState(dir, file);
+            request.files.push({type:"full", name:file, text:text});
+            //console.log(text);
+            return request;
+        }
+        
+        var request = buildRequest(dir, file, "completions", offset);
+        var ternHints = [];    
+        ternServer.request(request, function(error, data) {
+            //if (error) return displayError(error);
+            var completions = [];
+            for (var i = 0; i < data.completions.length; ++i) {
+              var completion = data.completions[i];//, className = typeToIcon(completion.type);
+              //if (data.guess) className += " Tern-completion-guess";
+              completions.push({value: completion.name/*, className: className*/});
+            }
+        
+            ternHints = completions;
+        });
+
+        return ternHints;
+    }
+    
+    /**
      * Is the inner scope dirty? (It is if the outer scope has changed since
      * the last inner scope request)
      * 
@@ -453,6 +510,8 @@ define(function (require, exports, module) {
             console.log("Unable to refresh directory: " + err);
             refreshOuterScope(dir, file, document.getText());
         });
+        
+        initTernServer();
     }
 
     /*
@@ -570,4 +629,5 @@ define(function (require, exports, module) {
     exports.handleFileChange = handleFileChange;
     exports.getScopeInfo = getScopeInfo;
     exports.isScopeDirty = isScopeDirty;
+    exports.getTernHints = getTernHints;
 });

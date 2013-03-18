@@ -538,14 +538,20 @@ define(function (require, exports, module) {
             hints;
 
         if (type.property) {
-            hints = copyHints(this.properties);
-            if (type.context &&
-                    Object.prototype.hasOwnProperty.call(this.associations, type.context)) {
-                association = this.associations[type.context];
-                hints = HintUtils.annotateWithAssociation(hints, association);
-                hints.sort(compareProperties(association, this.path, offset));
-            } else {
-                hints.sort(compareProperties({}, this.path, offset));
+            var ternHints = ScopeManager.getTernHints("dir", "file", offset, this.editor.document.getText());
+            if( ternHints && ternHints.length > 0 ) {
+                hints = ternHints;
+            }
+            else{
+                hints = copyHints(this.properties);
+                if (type.context &&
+                        Object.prototype.hasOwnProperty.call(this.associations, type.context)) {
+                    association = this.associations[type.context];
+                    hints = HintUtils.annotateWithAssociation(hints, association);
+                    hints.sort(compareProperties(association, this.path, offset));
+                } else {
+                    hints.sort(compareProperties({}, this.path, offset));
+                }
             }
         } else {
             hints = copyHints(this.identifiers);
