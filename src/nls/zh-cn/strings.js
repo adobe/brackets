@@ -283,7 +283,7 @@ define({
     "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/ </a> 以此作为参考.",
     "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
-    "ABOUT_TEXT_LINE5"                     : "\u2764 基于JavaScript由以下用户参与贡献设计:",
+    "ABOUT_TEXT_LINE5"                     : "基于\u2764和JavaScript由以下用户参与贡献设计:",
     "ABOUT_TEXT_LINE6"                     : "有很多很多相当多的人,我这里就不给你看了,可以去Github上看吧.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新的 {APP_NAME}!点此查看详情.",
     "UPDATE_AVAILABLE_TITLE"               : "可用的更新",
