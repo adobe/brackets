@@ -358,7 +358,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
                                               validationResult.metadata.engines.brackets);
             if (!compatible) {
                 if (!options || !options.disabledDirectory) {
-                    callback(Errors.NO_DISABLED_DIRECTORY, null);
+                    callback(new Error(Errors.NO_DISABLED_DIRECTORY), null);
                     return;
                 }
                 installDirectory = path.join(options.disabledDirectory, extensionName);
@@ -373,7 +373,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         if (fs.existsSync(installDirectory)) {
             validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
             if (!options || !options.disabledDirectory) {
-                callback(Errors.NO_DISABLED_DIRECTORY, null);
+                callback(new Error(Errors.NO_DISABLED_DIRECTORY), null);
                 return;
             }
             installDirectory = path.join(options.disabledDirectory, extensionName);
