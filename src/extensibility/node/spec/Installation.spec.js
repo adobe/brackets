@@ -162,7 +162,7 @@ describe("Package Installation", function () {
             expect(err).toBeNull();
             expect(result.disabledReason).toBeNull();
             ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {}, function (err, result) {
-                expect(err).toEqual("NO_DISABLED_DIRECTORY");
+                expect(err.message).toEqual("NO_DISABLED_DIRECTORY");
                 done();
             });
         });
