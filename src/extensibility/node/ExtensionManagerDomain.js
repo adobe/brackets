@@ -42,6 +42,7 @@ var Errors = {
     INVALID_ZIP_FILE: "INVALID_ZIP_FILE",           // {0} is path to ZIP file
     INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",   // {0} is JSON parse error, {1} is path to ZIP file
     MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",   // {0} is path to ZIP file
+    BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",           // {0} is the name
     MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",  // {0} is path to ZIP file
     INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
     API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
@@ -62,6 +63,21 @@ var Errors = {
  * @type {Object.<string, {request:!http.ClientRequest, callback:!function(string, string), localPath:string, outStream:?fs.WriteStream}>}
  */
 var pendingDownloads = {};
+
+/**
+ * Returns true if the name presented is acceptable as a package name. This enforces the
+ * requirement as presented in the CommonJS spec: http://wiki.commonjs.org/wiki/Packages/1.0
+ *
+ * @param {string} Name to test
+ * @return {boolean} true if the name is valid
+ */
+function validateName(name) {
+    // "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
+    if (/^[a-z._\-]+$/.exec(name)) {
+        return true;
+    }
+    return false;
+}
 
 /**
  * Implements the "validate" command in the "extensions" domain.
@@ -160,6 +176,8 @@ function _cmdValidate(path, callback) {
                             // confirm required fields in the metadata
                             if (!metadata.name) {
                                 errors.push([Errors.MISSING_PACKAGE_NAME, path]);
+                            } else if (!validateName(metadata.name)) {
+                                errors.push([Errors.BAD_PACKAGE_NAME, metadata.name]);
                             }
                             if (!metadata.version) {
                                 errors.push([Errors.MISSING_PACKAGE_VERSION, path]);

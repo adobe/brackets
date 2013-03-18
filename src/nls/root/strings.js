@@ -312,6 +312,7 @@ define({
     "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package.",
     "INVALID_PACKAGE_JSON"                 : "Package.json file is not valid (error was: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Missing package name in {0}.",
+    "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
     "MISSING_PACKAGE_VERSION"              : "Missing package version in {0}.",
     "INVALID_VERSION_NUMBER"               : "Package version ({0}) is not a valid version number.",
     "API_NOT_COMPATIBLE"                   : "The extension was installed into your disabled extensions directory because it is not compatible with this version of Brackets.",
