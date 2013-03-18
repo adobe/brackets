@@ -104,6 +104,7 @@ define(function (require, exports, module) {
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
+    require("extensibility/InstallExtensionDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
@@ -146,6 +147,7 @@ define(function (require, exports, module) {
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
+            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             extensions              : {}, // place for extensions to hang modules for unit tests
             doneLoading             : false
         };

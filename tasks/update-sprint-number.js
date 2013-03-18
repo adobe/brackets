@@ -38,6 +38,7 @@ module.exports = function (grunt) {
         }
         
         packageJSON.version = packageJSON.version.replace(/([0-9]+\.)([0-9]+)([\.\-a-zA-Z0-9]*)?/, "$1" + sprint + "$3");
+        packageJSON.apiVersion = packageJSON.apiVersion.replace(/([0-9]+\.)([0-9]+)([\.\-a-zA-Z0-9]*)?/, "$1" + sprint + "$3");
 
         common.writeJSON(grunt, path, packageJSON);
     });
