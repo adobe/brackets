@@ -109,13 +109,13 @@ define({
     "NO_UPDATE_MESSAGE"                 : "正在使用最新版本的 {APP_NAME}.",
     
     
-    "FIND_IN_FILES_TITLE"               : "于 \"{4}\" {5} - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "于 \"{4}\" {5} - {0} {1} 在 {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "在 <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "在项目",
     "FIND_IN_FILES_FILE"                : "文件",
     "FIND_IN_FILES_FILES"               : "多个文件",
-    "FIND_IN_FILES_MATCH"               : "匹配一个",
-    "FIND_IN_FILES_MATCHES"             : "匹配多个",
+    "FIND_IN_FILES_MATCH"               : "一个匹配",
+    "FIND_IN_FILES_MATCHES"             : "个匹配",
     "FIND_IN_FILES_MORE_THAN"           : "以上 ",
     "FIND_IN_FILES_MAX"                 : " (前 {0} 个匹配)",
     "FIND_IN_FILES_FILE_PATH"           : "文件: <span class='dialog-filename'>{0}</span>",
