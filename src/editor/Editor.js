@@ -1408,7 +1408,7 @@ define(function (require, exports, module) {
         _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
     };
     
-    /** @type {boolean} "Returns true if show active line is enabled for all editors */
+    /** @type {boolean} Returns true if show active line is enabled for all editors */
     Editor.getShowActiveLine = function () {
         return _styleActiveLine;
     };
