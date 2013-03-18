@@ -115,14 +115,14 @@ define(function (require, exports, module) {
         $title.text(title);
 
         // Base URL
-        $baseUrlControl = $dlg.find(".base-url");
+        $baseUrlControl = $dlg.find(".url");
         if (baseUrl) {
             $baseUrlControl.val(baseUrl);
         }
 
         // Error message
         if (errorMessage) {
-            $dlg.find(".settings-list").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
+            $dlg.find(".field-container").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
         }
 
         // Give focus to first control
