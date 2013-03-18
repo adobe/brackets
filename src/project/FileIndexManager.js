@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     var PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
         Dialogs             = require("widgets/Dialogs"),
+        CollectionUtils     = require("utils/CollectionUtils"),
         Strings             = require("strings");
 
     /**
@@ -134,7 +135,7 @@ define(function (require, exports, module) {
         var fileInfo = new FileInfo(entry);
         //console.log(entry.name);
   
-        $.each(_indexList, function (indexName, index) {
+        CollectionUtils.forEach(_indexList, function (index, indexName) {
             if (index.filterFunction(entry)) {
                 index.fileInfos.push(fileInfo);
             }
@@ -264,7 +265,7 @@ define(function (require, exports, module) {
     * @private
     */
     function _clearIndexes() {
-        $.each(_indexList, function (indexName, index) {
+        CollectionUtils.forEach(_indexList, function (index, indexName) {
             index.fileInfos = [];
         });
     }

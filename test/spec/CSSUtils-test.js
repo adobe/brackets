@@ -27,21 +27,22 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        Async                   = require("utils/Async"),
-        FileUtils               = require("file/FileUtils"),
-        CSSUtils                = require("language/CSSUtils"),
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+    var NativeFileSystem           = require("file/NativeFileSystem").NativeFileSystem,
+        Async                      = require("utils/Async"),
+        FileUtils                  = require("file/FileUtils"),
+        CSSUtils                   = require("language/CSSUtils"),
+        SpecRunnerUtils            = require("spec/SpecRunnerUtils");
     
-    var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
-        simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
-        universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
-        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
-        offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
-        bootstrapCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
-        escapesCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css");
+    var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
+        simpleCssFileEntry         = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
+        universalCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
+        groupsFileEntry            = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
+        offsetsCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
+        bootstrapCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
+        escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css");
     
-    var contextTestCss          = require("text!spec/CSSUtils-test-files/contexts.css");
+    var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
+        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -511,6 +512,53 @@ define(function (require, exports, module) {
             
         });
         
+        describe("find correct positions of selectors", function () {
+            var selectors;
+                
+            selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
+            
+            it("should find selector positions when whitespace between selector and '{'", function () {
+                expect([selectors[0].selectorStartChar, selectors[0].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when no whitespace between selector and '{'", function () {
+                expect([selectors[1].selectorStartChar, selectors[1].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when '{' on the next line", function () {
+                expect([selectors[2].selectorStartChar, selectors[2].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when '{' on the next line and selector is indented", function () {
+                expect([selectors[3].selectorStartChar, selectors[3].selectorEndChar]).toEqual([4, 7]);
+            });
+            
+            it("should find selector positions when '{' on the next line and selector is indented with tabs", function () {
+                expect([selectors[4].selectorStartChar, selectors[4].selectorEndChar]).toEqual([1, 4]);
+            });
+            
+            it("should find selector positions in a selector group when '{' on the next line", function () {
+                var expected = [0, 2, 4, 6, 8, 10],
+                    result = [
+                        selectors[5].selectorStartChar, selectors[5].selectorEndChar,
+                        selectors[6].selectorStartChar, selectors[6].selectorEndChar,
+                        selectors[7].selectorStartChar, selectors[7].selectorEndChar
+                    ];
+                
+                expect(result).toEqual(expected);
+            });
+            
+            it("should find selector positions in a selector group when '{' on the next line and selector group is indented", function () {
+                var expected = [4, 6, 8, 10, 12, 14],
+                    result = [
+                        selectors[8].selectorStartChar, selectors[8].selectorEndChar,
+                        selectors[9].selectorStartChar, selectors[9].selectorEndChar,
+                        selectors[10].selectorStartChar, selectors[10].selectorEndChar
+                    ];
+                
+                expect(result).toEqual(expected);
+            });
+        });
     }); // describe("CSSUtils")
 
     
