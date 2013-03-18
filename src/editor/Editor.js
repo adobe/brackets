@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
     //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor", defaultPrefs);
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor");
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");

@@ -221,7 +221,7 @@ define(function main(require, exports, module) {
     // init prefs
     prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
     //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development", {highlight: true});
+    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development");
     
     config.highlight = prefs.getValue("highlight");
    

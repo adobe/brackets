@@ -266,7 +266,7 @@ define(function (require, exports, module) {
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
     //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, module.id, defaultPrefs);
+    PreferencesManager.handleClientIdChange(_prefs, module.id);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {

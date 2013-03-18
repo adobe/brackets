@@ -56,7 +56,28 @@ define(function (require, exports, module) {
     var preferencesKey,
         prefStorage,
         persistentStorage,
+        extensionPaths,
         doLoadPreferences   = false;
+    
+    
+    /**
+     * @private
+     * Returns an array with the extension paths used in Brackets. The result is stored on a
+     * private variable on the first call and used to return the value on the next calls.
+     * @return {Array.<string>}
+     */
+    function _getExtensionPaths() {
+        if (!extensionPaths) {
+            var dirPath = FileUtils.getNativeBracketsDirectoryPath();
+            
+            extensionPaths = [
+                dirPath + "/extensions/default/",
+                dirPath + "/extensions/dev/",
+                ExtensionLoader.getUserExtensionPath() + "/"
+            ];
+        }
+        return extensionPaths;
+    }
     
     /**
      * This method returns a standardized ClientID for a given requireJS module object
@@ -64,13 +85,8 @@ define(function (require, exports, module) {
      * @return {string} The ClientID
      */
     function getClientID(module) {
-        var pathExp, pathUrl, clientID,
-            dirPath = FileUtils.getNativeBracketsDirectoryPath(),
-            paths   = [
-                dirPath + "/extensions/default/",
-                dirPath + "/extensions/dev/",
-                ExtensionLoader.getUserExtensionPath() + "/"
-            ];
+        var paths = _getExtensionPaths();
+        var pathExp, pathUrl, clientID;
         
         paths.some(function (path) {
             pathExp = new RegExp("^" + path);
@@ -99,7 +115,7 @@ define(function (require, exports, module) {
             console.error("Invalid clientID");
             return;
         }
-        if (typeof (clientID) === "object") {
+        if (typeof clientID === "object") {
             clientID = getClientID(clientID);
         }
 
@@ -164,24 +180,21 @@ define(function (require, exports, module) {
      * 
      * @param {!PreferenceStorage} newPrefs The new PreferenceStorage
      * @param {!string} oldID The id of the old PreferenceStorage
-     * @param {?obj} defaults The defaults to add
      */
-    function handleClientIdChange(newPrefs, oldID, defaults) {
-        var oldPrefs = getPreferenceStorage(oldID);
-        
-        defaults = defaults || {};
-        
-        if (!newPrefs.getValue("newClientID")) {
-            var data = oldPrefs.getAllValues();
-
-            if ($.isEmptyObject(data)) {
-                data = defaults;
-            }
+    function handleClientIdChange(newPrefs, oldID) {
+        if (prefStorage[oldID]) {
+            var oldPrefs = getPreferenceStorage(oldID);
             
-            newPrefs.setAllValues(data, false);
-            newPrefs.setValue("newClientID", true);
+            if (!newPrefs.getValue("newClientID")) {
+                var data = oldPrefs.getAllValues();
+                
+                if (!$.isEmptyObject(data)) {
+                    newPrefs.setAllValues(data, false);
+                }
+                newPrefs.setValue("newClientID", true);
+            }
+            delete prefStorage[oldID];
         }
-        delete prefStorage[oldID];
     }
 
     // Check localStorage for a preferencesKey. Production and unit test keys

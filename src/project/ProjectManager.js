@@ -1345,7 +1345,7 @@ define(function (require, exports, module) {
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager", defaults);
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
     
     if (!_prefs.getValue("welcomeProjectsFixed")) {
         // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where
