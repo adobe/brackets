@@ -313,7 +313,8 @@ define(function LiveDevelopment(require, exports, module) {
                 
             DocumentManager.getDocumentForPath(_urlToPath(url))
                 .fail(function () {
-                    stylesheetDeferred.reject();
+                    // A failure to open a related file is benign
+                    stylesheetDeferred.resolve();
                 })
                 .done(function (doc) {
                     if (!_liveDocument || (doc !== _liveDocument.doc)) {
@@ -438,7 +439,7 @@ define(function LiveDevelopment(require, exports, module) {
             status = STATUS_ACTIVE;
 
         _openDocument(doc, editor)
-            .always(function () {
+            .done(function () {
                 if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                     status = STATUS_OUT_OF_SYNC;
                 }
@@ -806,7 +807,7 @@ define(function LiveDevelopment(require, exports, module) {
                 promise = _openDocument(doc, editor);
             } else {
                 if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
-                    promise = close().then(open);
+                    promise = close().done(open);
                 } else {
                     promise = $.Deferred().resolve();
                 }
