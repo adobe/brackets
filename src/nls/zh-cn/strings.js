@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要一个服务端,您需要为这个项目指定一个基本URL地址.(如htt://127.0.0.1/)",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "试图启动HTTP服务器时出现错误,请再试一次.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}将通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览.<br /><br />目前版本的 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 当你保存了Javascript文件与CSS文件,实时预览将在浏览器中重新加载他们.<br /><br />(此消息仅会出现一次.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}将通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览.<br /><br />目前版本的 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 当你保存了Javascript文件与HTML文件,实时预览将在浏览器中重新加载他们.<br /><br />(此消息仅会出现一次.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a class=\"clickable-link\" data-href=\"{0}\">实时预览在线错误信息</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
@@ -112,7 +112,7 @@ define({
     "FIND_IN_FILES_TITLE"               : "于 \"{4}\" {5} - {0} {1} 在 {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "在 <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "在项目",
-    "FIND_IN_FILES_FILE"                : "文件",
+    "FIND_IN_FILES_FILE"                : "个文件",
     "FIND_IN_FILES_FILES"               : "个文件",
     "FIND_IN_FILES_MATCH"               : "个匹配",
     "FIND_IN_FILES_MATCHES"             : "个匹配",
