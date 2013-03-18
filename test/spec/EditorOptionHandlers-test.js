@@ -62,40 +62,48 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         });
         
+        function checkLineWrapping(firstPos, secondPos, shouldWrap, inlineEditor) {
+            runs(function () {
+                var firstLineBottom,
+                    nextLineBottom,
+                    editor = inlineEditor || EditorManager.getCurrentFullEditor();
+                
+                expect(editor).toBeTruthy();
+
+                editor.setCursorPos(firstPos);
+                firstLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
+
+                editor.setCursorPos(secondPos);
+                nextLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
+                if (shouldWrap) {
+                    expect(firstLineBottom).toBeLessThan(nextLineBottom);
+                } else {
+                    expect(firstLineBottom).toEqual(nextLineBottom);
+                }
+            });
+        }
+
         var CSS_FILE  = testPath + "/test.css",
             HTML_FILE = testPath + "/test.html";
 
         it("should wrap long lines in main editor by default", function () {
             var promise,
-                editor,
-                firstLineBottom,
-                nextLineBottom;
+                editor;
             
             runs(function () {
                 promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
                 waitsForDone(promise, "Open into working set");
-            });
-            
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
 
-                // Set the cursor at the beginning of the long line and get its bottom coordinate.
-                editor.setCursorPos({line: 8, ch: 0});
-                firstLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
-
-                // Set the cursor somewhere on the long line that will be part of an extra line 
+                // Use two cursor positions to detect line wrapping. First position at 
+                // the beginning of a long line and the second position to be
+                // somewhere on the long line that will be part of an extra line 
                 // created by word-wrap and get its bottom coordinate.
-                editor.setCursorPos({line: 8, ch: 210});
-                nextLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
-                expect(firstLineBottom).toBeLessThan(nextLineBottom);
+                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, true);
             });
         });
 
         it("should also wrap long lines in inline editor by default", function () {
             var promise,
-                firstLineBottom,
-                nextLineBottom,
                 inlineEditor;
                         
             runs(function () {
@@ -113,23 +121,13 @@ define(function (require, exports, module) {
                 inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
                 expect(inlineEditor).toBeTruthy();
 
-                // Set the cursor at the beginning of the long line and get its bottom coordinate.
-                inlineEditor.setCursorPos({line: 0, ch: 0});
-                firstLineBottom = inlineEditor._codeMirror.cursorCoords(null, "local").bottom;
-
-                // Set the cursor somewhere on the long line that will be part of an extra line 
-                // created by word-wrap and get its bottom coordinate.
-                inlineEditor.setCursorPos({line: 0, ch: 160});
-                nextLineBottom = inlineEditor._codeMirror.cursorCoords(null, "local").bottom;
-                expect(firstLineBottom).toBeLessThan(nextLineBottom);
+                checkLineWrapping({line: 0, ch: 0}, {line: 0, ch: 160}, true, inlineEditor);
             });
         });
         
         it("should NOT wrap the long lines after turning off word-wrap", function () {
             var promise,
-                editor,
-                firstLineBottom,
-                nextLineBottom;
+                editor;
             
             // Turn off word-wrap
             runs(function () {
@@ -140,18 +138,7 @@ define(function (require, exports, module) {
             runs(function () {
                 promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
                 waitsForDone(promise, "Open into working set");
-            });
-
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                editor.setCursorPos({line: 0, ch: 1});
-                firstLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
-
-                editor.setCursorPos({line: 0, ch: 180});
-                nextLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
-                expect(firstLineBottom).toEqual(nextLineBottom);
+                checkLineWrapping({line: 0, ch: 1}, {line: 0, ch: 180}, false);
             });
         });
 
@@ -176,20 +163,7 @@ define(function (require, exports, module) {
                 // Open another document and bring it to the front
                 waitsForDone(FileViewController.openAndSelectDocument(HTML_FILE, FileViewController.PROJECT_MANAGER),
                              "FILE_OPEN on file timeout", 1000);
-                
-//                openAndSelect(HTML_FILE);
-            });
-            
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                editor.setCursorPos({line: 8, ch: 0});
-                firstLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
-
-                editor.setCursorPos({line: 8, ch: 210});
-                nextLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
-                expect(firstLineBottom).toEqual(nextLineBottom);
+                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, false);
             });
         });
 
