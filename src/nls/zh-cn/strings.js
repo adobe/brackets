@@ -39,9 +39,9 @@ define({
     
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "无法加载此项目.",
-    "OPEN_DIALOG_ERROR"                 : "显示[打开文件]对话框出现错误. (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "打开此目录出现错误 <span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "加载目录内容出现错误 <span class='dialog-filename'>{0}</span>. (error {1})",
+    "OPEN_DIALOG_ERROR"                 : "显示[打开文件]对话框出现错误. (错误 {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "打开此目录出现错误 <span class='dialog-filename'>{0}</span>. (错误 {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "加载目录内容出现错误 <span class='dialog-filename'>{0}</span>. (错误 {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "打开文件时出现错误",
@@ -68,8 +68,8 @@ define({
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "启动浏览器失败",
-    "ERROR_CANT_FIND_CHROME"            : "Chrome浏览器离家出走了,没有找到Google Chrome浏览器,请确定安装了?",
-    "ERROR_LAUNCHING_BROWSER"           : "启动浏览器的时候出现一个错误. (error {0})",
+    "ERROR_CANT_FIND_CHROME"            : "没有找到Google Chrome浏览器,请确定您已安装了Chrome浏览器?",
+    "ERROR_LAUNCHING_BROWSER"           : "启动浏览器的时候出现一个错误. (错误 {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览错误",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "连接至浏览器",
@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要一个服务端,您需要为这个项目指定一个基本URL地址.(如htt://127.0.0.1/)",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "试图启动HTTP服务器时出现错误,请再试一次.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}已通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改预览也将修改你的代码.<br /><br />之前的版本 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 实时预览即时载入保存的HTML或JavaScript文件.<br /><br />(此消息仅会出现一次.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME}将通过实时预览连接至你的浏览器. 你的HTML文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览.<br /><br />目前版本的 {APP_NAME}, 实时预览只能运行于 <strong>Google Chrome</strong>浏览器和更新实时编辑时的 <strong>CSS 文件</strong>. 实时预览仅能更新Javascript文件与CSS文件.<br /><br />(此消息仅会出现一次.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a class=\"clickable-link\" data-href=\"{0}\">实时预览在线错误信息</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
@@ -117,7 +117,7 @@ define({
     "FIND_IN_FILES_MATCH"               : "匹配一个",
     "FIND_IN_FILES_MATCHES"             : "匹配多个",
     "FIND_IN_FILES_MORE_THAN"           : "以上 ",
-    "FIND_IN_FILES_MAX"                 : " (共计 {0} 个匹配)",
+    "FIND_IN_FILES_MAX"                 : " (前 {0} 个匹配)",
     "FIND_IN_FILES_FILE_PATH"           : "文件: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "行:&nbsp;{0}",
 
@@ -281,9 +281,9 @@ define({
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
     "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明<a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a>以此作为参考.",
+    "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/ </a> 以此作为参考.",
     "ABOUT_TEXT_LINE4"                     : "文档与源码在 <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
-    "ABOUT_TEXT_LINE5"                     : "参与设计的有很多人是把 \u2764 跟 JavaScript by:",
+    "ABOUT_TEXT_LINE5"                     : "构建为 \u2764 和 JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "有很多很多相当多的人,我这里就不给你看了,可以去Github上看吧.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新的 {APP_NAME}!点此查看详情.",
     "UPDATE_AVAILABLE_TITLE"               : "可用的更新",
