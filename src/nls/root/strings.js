@@ -308,7 +308,9 @@ define({
     "INSTALLING_FROM"                      : "Installing extension from {0}...",
     "INSTALL_SUCCEEDED"                    : "Installation successful!",
     "INSTALL_FAILED"                       : "Installation failed.",
-    "INSTALL_CANCELLED"                    : "Installation cancelled.",
+    "CANCELING_INSTALL"                    : "Canceling...",
+    "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
+    "INSTALL_CANCELED"                     : "Installation canceled.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package.",
     "INVALID_PACKAGE_JSON"                 : "Package.json file is not valid (error was: {0}).",

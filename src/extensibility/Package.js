@@ -65,6 +65,7 @@ define(function (require, exports, module) {
      */
     var _uniqueId = 0;
     
+
     /**
      * TODO: can this go away now that we never call it directly?
      * 
@@ -81,33 +82,34 @@ define(function (require, exports, module) {
      */
     function validate(path) {
         var d = new $.Deferred();
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.extensionManager.validate(path)
-                    .done(function (result) {
-                        
-                        // Convert the errors into properly localized strings
-                        var i,
-                            errors = result.errors;
-                        
-                        for (i = 0; i < errors.length; i++) {
-                            var formatArguments = errors[i];
-                            formatArguments[0] = Strings[formatArguments[0]];
-                            errors[i] = StringUtils.format.apply(window, formatArguments);
-                        }
-                        
-                        d.resolve({
-                            errors: errors,
-                            metadata: result.metadata
+        _nodeConnectionDeferred
+            .done(function (nodeConnection) {
+                if (nodeConnection.connected()) {
+                    nodeConnection.domains.extensionManager.validate(path)
+                        .done(function (result) {
+                            
+                            // Convert the errors into properly localized strings
+                            var i,
+                                errors = result.errors;
+                            
+                            for (i = 0; i < errors.length; i++) {
+                                var formatArguments = errors[i];
+                                formatArguments[0] = Strings[formatArguments[0]];
+                                errors[i] = StringUtils.format.apply(window, formatArguments);
+                            }
+                            
+                            d.resolve({
+                                errors: errors,
+                                metadata: result.metadata
+                            });
+                        })
+                        .fail(function (error) {
+                            d.reject(error);
                         });
-                    })
-                    .fail(function (error) {
-                        d.reject(error);
-                    });
-            } else {
-                d.reject();
-            }
-        })
+                } else {
+                    d.reject();
+                }
+            })
             .fail(function (error) {
                 d.reject(error);
             });
@@ -131,44 +133,45 @@ define(function (require, exports, module) {
      * disabledReason is either null or the reason the extension was installed disabled.
      *
      * @param {string} Absolute path to the package zip file
-     * @return {promise} A promise that is resolved with information about the package
+     * @return {$.Promise} A promise that is resolved with information about the package
      *          (which may include errors, in which case the extension was disabled), or
      *          rejected with an error object.
      */
     function install(path) {
         var d = new $.Deferred();
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                var destinationDirectory = ExtensionLoader.getUserExtensionPath();
-                var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
-                nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
-                    disabledDirectory: disabledDirectory,
-                    apiVersion: brackets.metadata.apiVersion
-                })
-                    .done(function (result) {
-                        // If there were errors or the extension is disabled, we don't
-                        // try to load it so we're ready to return
-                        if (result.errors.length > 0 || result.disabledReason) {
-                            d.resolve(result);
-                        } else {
-                            // This was a new extension and everything looked fine.
-                            // We load it into Brackets right away.
-                            ExtensionLoader.loadExtension(result.name, {
-                                baseUrl: result.installedTo
-                            }, "main").then(function () {
-                                d.resolve(result);
-                            }, function () {
-                                d.reject(Errors.ERROR_LOADING);
-                            });
-                        }
+        _nodeConnectionDeferred
+            .done(function (nodeConnection) {
+                if (nodeConnection.connected()) {
+                    var destinationDirectory = ExtensionLoader.getUserExtensionPath();
+                    var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
+                    nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
+                        disabledDirectory: disabledDirectory,
+                        apiVersion: brackets.metadata.apiVersion
                     })
-                    .fail(function (error) {
-                        d.reject(error);
-                    });
-            } else {
-                d.reject();
-            }
-        })
+                        .done(function (result) {
+                            // If there were errors or the extension is disabled, we don't
+                            // try to load it so we're ready to return
+                            if (result.errors.length > 0 || result.disabledReason) {
+                                d.resolve(result);
+                            } else {
+                                // This was a new extension and everything looked fine.
+                                // We load it into Brackets right away.
+                                ExtensionLoader.loadExtension(result.name, {
+                                    baseUrl: result.installedTo
+                                }, "main").then(function () {
+                                    d.resolve(result);
+                                }, function () {
+                                    d.reject(Errors.ERROR_LOADING);
+                                });
+                            }
+                        })
+                        .fail(function (error) {
+                            d.reject(error);
+                        });
+                } else {
+                    d.reject();
+                }
+            })
             .fail(function (error) {
                 d.reject(error);
             });
@@ -215,40 +218,46 @@ define(function (require, exports, module) {
      */
     function download(url, downloadId) {
         var d = new $.Deferred();
-        _nodeConnectionDeferred.done(function (connection) {
-            // Validate URL
-            // TODO: PathUtils fails to parse URLs that are missing the protocol part (e.g. starts immediately with "www...")
-            var parsed = PathUtils.parseUrl(url);
-            if (!parsed.hostname) {  // means PathUtils failed to parse at all
-                d.reject(Errors.MALFORMED_URL);
-                return d.promise();
-            }
-            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-                d.reject(Errors.UNSUPPORTED_PROTOCOL);
-                return d.promise();
-            }
-            
-            var urlInfo = { url: url, parsed: parsed, filenameHint: parsed.filename };
-            githubURLFilter(urlInfo);
-            
-            // Decide download destination
-            var filename = urlInfo.filenameHint;
-            filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // make sure it's a valid filename
-            if (!filename) {  // in case of URL ending in "/"
-                filename = "extension.zip";
-            }
-            
-            var tempDownloadFolder = brackets.app.getApplicationSupportDirectory() + "/extensions/";
-            var localPath = tempDownloadFolder + filename;
-            
-            // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = connection.domains.extensionManager.downloadFile(downloadId, urlInfo.url, localPath);
-            r.done(function (result) {
-                d.resolve(localPath);
-            }).fail(function (err) {
-                d.reject(err);
-            });
-        })
+        _nodeConnectionDeferred
+            .done(function (connection) {
+                if (connection.connected()) {   // TODO: we do this check EVERYWHERE -- could it be wrapped up by NodeConnection for us?
+                    // Validate URL
+                    // TODO: PathUtils fails to parse URLs that are missing the protocol part (e.g. starts immediately with "www...")
+                    var parsed = PathUtils.parseUrl(url);
+                    if (!parsed.hostname) {  // means PathUtils failed to parse at all
+                        d.reject(Errors.MALFORMED_URL);
+                        return d.promise();
+                    }
+                    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+                        d.reject(Errors.UNSUPPORTED_PROTOCOL);
+                        return d.promise();
+                    }
+                    
+                    var urlInfo = { url: url, parsed: parsed, filenameHint: parsed.filename };
+                    githubURLFilter(urlInfo);
+                    
+                    // Decide download destination
+                    var filename = urlInfo.filenameHint;
+                    filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // make sure it's a valid filename
+                    if (!filename) {  // in case of URL ending in "/"
+                        filename = "extension.zip";
+                    }
+                    
+                    var tempDownloadFolder = brackets.app.getApplicationSupportDirectory() + "/extensions/";    // TODO: use a different temp location?
+                    var localPath = tempDownloadFolder + filename;
+                    
+                    // Download the bits (using Node since brackets-shell doesn't support binary file IO)
+                    var r = connection.domains.extensionManager.downloadFile(downloadId, urlInfo.url, localPath);
+                    r.done(function (result) {
+                        d.resolve(localPath);
+                    }).fail(function (err) {
+                        d.reject(err);
+                    });
+                    
+                } else {
+                    d.reject();
+                }
+            })
             .fail(function (error) {
                 d.reject(error);
             });
@@ -260,16 +269,13 @@ define(function (require, exports, module) {
      * if the download has already finished.
      * 
      * @param {number} downloadId Identifier previously passed to download()
-     * @return {boolean}
      */
     function cancelDownload(downloadId) {
         // TODO: if we're still waiting on the NodeConnection, how do we cancel?
         console.assert(_nodeConnectionDeferred.isResolved());
-        var success;
         _nodeConnectionDeferred.done(function (connection) {
-            success = connection.domains.extensionManager.abortDownload(downloadId);
+            connection.domains.extensionManager.abortDownload(downloadId);
         });
-        return success;
     }
     
     
@@ -284,6 +290,10 @@ define(function (require, exports, module) {
      * TODO: if top level value is an array it's ambiguous (multiple error objects or one?)
      * 
      * Use formatError() to convert a single error object to a friendly, localized error message.
+     * 
+     * The returned cancel() function will *attempt* to cancel installation, but it is not guaranteed to
+     * succeed. If cancel() succeeds, the Promise is rejected with a CANCELED error code. If we're unable
+     * to cancel, the Promise is resolved or rejected normally, as if cancel() had never been called.
      * 
      * @return {{promise: $.Promise, cancel: function():boolean}}
      */
@@ -301,8 +311,6 @@ define(function (require, exports, module) {
             .done(function (localPath) {
                 state = STATE_INSTALLING;
                 
-                // TOOD: need to clean up ZIP from temp location
-                
                 install(localPath)
                     .done(function (result) {
                         if (result.errors && result.errors.length > 0) {
@@ -316,13 +324,13 @@ define(function (require, exports, module) {
                         } else {
                             // Success! Extension is now running in Brackets
                             state = STATE_SUCCEEDED;
-                            d.resolve(result);
+                            d.resolve(result.metadata);
                         }
                     })
                     .fail(function (err) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
                         state = STATE_FAILED;
-                        d.reject(err);
+                        d.reject(err);  // TODO: needs to be err.message ?
                     })
                     .always(function () {
                         // Whether success or failure, we can delete the original downloaded ZIP file now
@@ -332,7 +340,7 @@ define(function (require, exports, module) {
                     });
             })
             .fail(function (err) {
-                // Download errors
+                // Download error (the Node-side download code cleans up any partial ZIP file)
                 state = STATE_FAILED;
                 d.reject(err);
             });
@@ -342,10 +350,11 @@ define(function (require, exports, module) {
             _downloadId: downloadId,
             cancel: function () {
                 if (state === STATE_DOWNLOADING) {
-                    return cancelDownload(this._downloadId);
-                } else {
-                    return false;
+                    // This will trigger download()'s fail() handler with CANCELED as the err code
+                    cancelDownload(this._downloadId);
                 }
+                // Else it's too late to cancel; we'll continue on through the done() chain and emit
+                // a success result (calling done() handlers) if all else goes well.
             }
         };
     }
