@@ -418,17 +418,17 @@
     }
 }
 
-/* Project Settings dialog */
-.project-settings-dialog .modal-body {
+/* Project Settings and Install Extension dialogs */
+.project-settings-dialog .modal-body, .install-extension-dialog .modal-body {
     text-align: center;
 
-    .settings-list {
+    .field-container {
         display: inline-block;
     }
     label {
         float: none;
     }
-    input.base-url {
+    input.url {
         display: inline;
         margin: 10px;
         width: 300px;
@@ -464,15 +464,6 @@
             -moz-transition: opacity 1s;
             -o-transition: opacity 1s;
             transition: opacity 1s;
-        }
-        .about-spinner {
-            display: inline-block;
-            vertical-align: middle;
-            margin-top: -2px;
-            width: 12px;
-            height: 12px;
-            background: url("images/small_spinner.svg") no-repeat;
-            -webkit-animation: rotating 1.5s linear infinite;
         }
     }
     
