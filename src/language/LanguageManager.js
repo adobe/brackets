@@ -491,7 +491,7 @@ define(function (require, exports, module) {
         if (prefixes.length) {
             this._lineCommentSyntax = [];
             for (i = 0; i < prefixes.length; i++) {
-                _validateNonEmptyString(String(prefixes[i]), "prefix");
+                _validateNonEmptyString(String(prefixes[i]), Array.isArray(prefix) ? "prefix[" + i + "]" : "prefix");
                 
                 this._lineCommentSyntax.push(prefixes[i]);
             }

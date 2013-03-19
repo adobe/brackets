@@ -315,8 +315,11 @@ define(function (require, exports, module) {
                     language.setLineCommentSyntax([]);
                     expect(console.error).toHaveBeenCalledWith("The prefix array should not be empty");
                     
-                    expect(function () { language.setLineCommentSyntax([""]);      }).toThrow(new Error("prefix must not be empty"));
-                    expect(function () { language.setLineCommentSyntax(["#", ""]); }).toThrow(new Error("prefix must not be empty"));
+                    language.setLineCommentSyntax([""]);
+                    expect(console.error).toHaveBeenCalledWith("prefix[0] must not be empty");
+                    
+                    language.setLineCommentSyntax(["#", ""]);
+                    expect(console.error).toHaveBeenCalledWith("prefix[1] must not be empty");
                     
                     def.lineComment = ["#"];
                     
