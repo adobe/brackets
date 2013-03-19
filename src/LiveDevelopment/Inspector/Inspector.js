@@ -302,21 +302,19 @@ define(function Inspector(require, exports, module) {
      */
     function init(theConfig) {
         exports.config = theConfig;
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/Inspector/Inspector.json");
-        request.onload = function onLoad() {
-            var InspectorJSON = JSON.parse(request.response);
-            var i, j, domain, domainDef, command;
-            for (i in InspectorJSON.domains) {
-                domain = InspectorJSON.domains[i];
-                exports[domain.domain] = {};
-                for (j in domain.commands) {
-                    command = domain.commands[j];
-                    exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
-                }
+
+        var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
+            InspectorJSON = JSON.parse(InspectorText);
+        
+        var i, j, domain, domainDef, command;
+        for (i in InspectorJSON.domains) {
+            domain = InspectorJSON.domains[i];
+            exports[domain.domain] = {};
+            for (j in domain.commands) {
+                command = domain.commands[j];
+                exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
             }
-        };
-        request.send(null);
+        }
     }
 
     // Export public functions
