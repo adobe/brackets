@@ -29,18 +29,10 @@
     <script type="application/javascript">
         /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
         /*global window: true */
-        
-        (function () {
-            "use strict";
-            
-            if (!window.location.search) {
-                return;
-            }
-            var url = decodeURIComponent(window.location.search.slice(1));
-            window.setTimeout(function () {
-                window.location.href = url;
-            }, 2500);
-        }());
+
+        function handleLoad () {
+            window.isBracketsLiveDevelopmentInterstitialPageLoaded = true;
+        }
     </script>
     <style type="text/css">
         html, body {
@@ -78,7 +70,7 @@
         }
     </style>
 </head>
-<body>
+<body onload="handleLoad()">
     <div id="loading-image">
         <div id="spinner"></div>
     </div>

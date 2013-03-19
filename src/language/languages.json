@@ -23,19 +23,20 @@
         "mode": "javascript",
         "fileExtensions": ["js", "jsx"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
     
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
-        "fileExtensions": ["json"]
+        "fileExtensions": ["json"],
+        "lineComment": ["//"]
     },
     
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl"],
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -50,7 +51,7 @@
         "mode": ["clike", "text/x-csrc"],
         "fileExtensions": ["c", "h", "i"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
     
     "cpp": {
@@ -58,7 +59,7 @@
         "mode": ["clike", "text/x-c++src"],
         "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
     
     "csharp": {
@@ -66,14 +67,14 @@
         "mode": ["clike", "text/x-csharp"],
         "fileExtensions": ["cs"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
     
     "clike": {
         "name": "clike",
         "mode": "clike",
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//", "#"]
     },
     
     "java": {
@@ -85,13 +86,15 @@
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee"]
+        "fileExtensions": ["coffee", "cf", "cson"],
+        "fileNames": ["Cakefile"]
     },
 
     "clojure": {
         "name": "Clojure",
         "mode": "clojure",
-        "fileExtensions": ["clj"]
+        "fileExtensions": ["clj"],
+        "lineComment": [";", ";;"]
     },
 
     "perl": {
@@ -103,7 +106,7 @@
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
-        "fileExtensions": ["rb"]
+        "fileExtensions": ["rb", "ru", "gemspec", "rake"]
     },
     
     "python": {
@@ -134,7 +137,7 @@
         "name": "Diff",
         "mode": "diff",
         "fileExtensions": ["diff", "patch"]
-    },
+    },       
     
     "markdown": {
         "name": "Markdown",

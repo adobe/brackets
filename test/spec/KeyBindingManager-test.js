@@ -186,12 +186,12 @@ define(function (require, exports, module) {
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
             });
             
-            it("should allow a generic key binding to be replaced", function () {
+            it("should not allow a generic key binding to be replaced with another generic binding", function () {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A");
                 KeyBindingManager.addBinding("test.bar", "Ctrl-A");
                 
                 var expected = keyMap([
-                    keyBinding("Ctrl-A", "test.bar")
+                    keyBinding("Ctrl-A", "test.foo")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);

@@ -30,7 +30,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Global = require("utils/Global");
+    var Global          = require("utils/Global"),
+        CollectionUtils = require("utils/CollectionUtils");
 
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)
@@ -299,7 +300,7 @@ define(function (require, exports, module) {
         var testName,
             index,
             result = "";
-        $.each(perfData, function (testName, entry) {
+        CollectionUtils.forEach(perfData, function (entry, testName) {
             result += getValue(entry) + "\t" + testName + "\n";
         });
 
