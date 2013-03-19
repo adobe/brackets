@@ -51,7 +51,6 @@ module.exports = function (grunt) {
             specs : [
                 'test/spec/CommandManager-test.js',
                 'test/spec/LanguageManager-test.js',
-                'test/spec/PreferencesManager-test.js',
                 'test/spec/ViewUtils-test.js'
             ]
         },
