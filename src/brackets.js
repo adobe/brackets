@@ -109,8 +109,7 @@ define(function (require, exports, module) {
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
-    var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = PreferencesManager.getClientId(module.id);
+    var params = new UrlParams();
     
     // read URL params
     params.parse();
@@ -203,7 +202,7 @@ define(function (require, exports, module) {
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
-                    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
+                    var prefs = PreferencesManager.getPreferenceStorage(module),
                         deferred = new $.Deferred();
                     //TODO: Remove preferences migration code
                     PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");
