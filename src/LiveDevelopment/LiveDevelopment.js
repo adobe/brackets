@@ -771,8 +771,6 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         
-        $(Inspector.Inspector).on("detached", _onDetached);
-        
         waitForInterstitialPageLoad()
             .fail(function () {
                 close();
