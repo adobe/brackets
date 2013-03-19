@@ -443,6 +443,7 @@ define(function (require, exports, module) {
     /**
      * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
      * @param {!string} extension An extensionless file name used by this language
+     * @return {boolean} Whether adding the file name was successful or not
      */
     Language.prototype.addFileName = function (name) {
         name = name.toLowerCase();
