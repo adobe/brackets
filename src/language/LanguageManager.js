@@ -51,7 +51,7 @@
  *     LanguageManager.defineLanguage("literatecoffeescript", {
  *         name: "Literate CoffeeScript",
  *         mode: "coffeescript",
- *         fileExtensions: ["litcoffee", "coffee.md"],
+ *         fileExtensions: ["litcoffee", "coffee.md"]
  *     });
  *
  * You can also specify file names:
@@ -407,8 +407,6 @@ define(function (require, exports, module) {
 
     /**
      * Adds a file extension to this language.
-     * Private for now since dependent code would need to by kept in sync with such changes.
-     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension A file extension used by this language
      */
     Language.prototype.addFileExtension = function (extension) {
@@ -436,10 +434,7 @@ define(function (require, exports, module) {
 
     /**
      * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
-     * Private for now since dependent code would need to by kept in sync with such changes.
-     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension An extensionless file name used by this language
-     * @private
      */
     Language.prototype.addFileName = function (name) {
         // Make checks below case-INsensitive
