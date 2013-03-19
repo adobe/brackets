@@ -77,7 +77,8 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
                     'src/thirdparty/mustache/mustache.js',
-                    'src/thirdparty/path-utils/path-utils.min'
+                    'src/thirdparty/path-utils/path-utils.min',
+                    'src/thirdparty/less-1.3.0.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
