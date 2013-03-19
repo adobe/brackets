@@ -72,7 +72,7 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false,
+    var defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false,
                          showLineNumbers: true, styleActiveLine: true, wordWrap: true };
     
     /** Editor preferences */
