@@ -20,13 +20,7 @@
 
 /* Brackets / CodeMirror Code Formatting */
 
-/*
- * TODO This can be removed next time we update CodeMirror2.
- * Marijn made this change to codemirror.css, but I need it now
- * in order to make font resizing work.
- */
 .CodeMirror pre {
-    line-height: inherit;
     padding: 0 @code-padding;
 }
 
@@ -132,6 +126,10 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
+    .CodeMirror {
+        background: transparent;
+    }
+    
     .CodeMirror span.CodeMirror-matchingbracket {
         /* Ensure visibility against gray inline editor background */
         background-color: @background-color-1;

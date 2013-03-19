@@ -76,7 +76,7 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
-	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "[6728123] !é=Error starting up the HTTP server for live development files. Please try again.=!",
+	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS</strong>. Les modifications apportées aux fichiers HTML et JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
 	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour en savoir plus, reportez-vous à la rubrique <a class=\"clickable-link\" data-href=\"{0}\">Dépannage des erreurs de connexion Live Development</a>.",
@@ -96,6 +96,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
+	"FIND_RESULT_COUNT": "{0} résultats",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
@@ -132,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
 
     /**
@@ -201,7 +202,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
-     
+	"CMD_TOGGLE_CLOSE_BRACKETS": "[6734352] !é=Auto Close Braces=!",
+    
     // View menu commands
 	"VIEW_MENU": "Affichage",
 	"CMD_HIDE_SIDEBAR": "Masquer la barre latérale",
@@ -209,6 +211,8 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
 	"CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
+	"CMD_SCROLL_LINE_UP": "[6735595] !é=Scroll Line Up=!",
+	"CMD_SCROLL_LINE_DOWN": "[6735594] !é=Scroll Line Down=!",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
@@ -279,13 +283,15 @@ define({
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
+	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
+	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "[6499087] !é=(to use a local server, specify url)=!",
+	"PROJECT_SETTING_BASE_URL_HINT": "(pour utiliser un serveur local, spécifiez l’URL)",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",

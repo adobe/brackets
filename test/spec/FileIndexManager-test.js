@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, beforeEach: false, afterEach: false, it: false, runs: false, waitsFor: false, expect: false, brackets: false */
+/*global define, describe, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
@@ -89,6 +89,41 @@ define(function (require, exports, module) {
             
         });
 
+        it("should handle simultaneous requests without doing extra work", function () {  // #330
+            // Open a directory
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
+            var projectRoot;
+            var promise1, promise2;
+            var allFiles1, allFiles2;
+            runs(function () {
+                projectRoot = ProjectManager.getProjectRoot();
+                spyOn(projectRoot, "createReader").andCallThrough();
+                
+                // Kick off two index requests in parallel
+                promise1 = FileIndexManager.getFileInfoList("all")
+                    .done(function (result) {
+                        allFiles1 = result;
+                    });
+                promise2 = FileIndexManager.getFileInfoList("all")
+                    .done(function (result) {
+                        allFiles2 = result;
+                    });
+                
+                waitsForDone(promise1, "First FileIndexManager.getFileInfoList()");
+                waitsForDone(promise2, "Second FileIndexManager.getFileInfoList()");
+            });
+            
+            runs(function () {
+                // Correct response to both promises
+                expect(allFiles1.length).toEqual(8);
+                expect(allFiles2.length).toEqual(8);
+                
+                // Didn't scan project tree twice
+                expect(projectRoot.createReader.callCount).toBe(1);
+            });
+        });
+        
         it("should match a specific filename and return the correct FileInfo", function () {
             // Open a directory
             SpecRunnerUtils.loadProjectInTestWindow(testPath);

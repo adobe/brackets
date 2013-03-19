@@ -437,9 +437,43 @@ define(function LiveDevelopment(require, exports, module) {
         // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
     }
 
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
+        // res = {frame}
+        var url = res.frame.url,
+            baseUrl,
+            baseUrlRegExp;
+
+        // Only check domain of root frame (with undefined parentId)
+        if (res.frame.parentId) {
+            return;
+        }
+
+        // Any local file is OK
+        if (url.match(/^file:\/\//i) || !_serverProvider) {
+            return;
+        }
+
+        // Need base url to build reg exp
+        baseUrl = _serverProvider.getBaseUrl();
+        if (!baseUrl) {
+            return;
+        }
+
+        // Test that url is within site
+        baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
+        if (!url.match(baseUrlRegExp)) {
+            // No longer in site, so terminate live dev, but don't close browser window
+            Inspector.disconnect();
+            _setStatus(STATUS_INACTIVE);
+            _serverProvider = null;
+        }
+    }
+
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         $(Inspector.Inspector).on("detached", _onDetached);
+        $(Inspector.Page).on("frameNavigated.DOMAgent", _onFrameNavigated);
         
         // Load agents
         _setStatus(STATUS_LOADING_AGENTS);
@@ -458,6 +492,8 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
         $(Inspector.Inspector).off("detached", _onDetached);
+        $(Inspector.Page).off("frameNavigated.DOMAgent", _onFrameNavigated);
+
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
@@ -557,15 +593,9 @@ define(function LiveDevelopment(require, exports, module) {
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
                     url = launcherUrl + "?" + encodeURIComponent(url);
 
-                    // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
-                    // is available, but the requested URL is not loaded in the browser. In that
-                    // case we want to launch the live browser (to open the url in a new tab)
-                    // without using the --remote-debugging-port flag. This works around issues
-                    // on Windows where Chrome can't be opened more than once with the
-                    // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
                         url,
-                        err !== NativeFileError.ERR_NOT_FOUND
+                        true        // enable remote debugging
                     )
                         .done(function () {
                             browserStarted = true;
@@ -782,6 +812,9 @@ define(function LiveDevelopment(require, exports, module) {
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();
         LiveDevServerManager.registerProvider(userServerProvider, 99);
+
+        // Initialize exports.status
+        _setStatus(STATUS_INACTIVE);
     }
 
     function _setServerProvider(serverProvider) {

@@ -32,9 +32,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
+    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
+        CollectionUtils = require("utils/CollectionUtils");
     
-    var PREFERENCES_KEY = "com.adobe.brackets.preferences";
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.preferences";
 
     // Private Properties
     var preferencesKey,
@@ -63,9 +64,9 @@ define(function (require, exports, module) {
             prefStorage[clientID] = prefs;
         } else if (defaults) {
             // add new defaults
-            Object.keys(defaults).forEach(function (key) {
+            CollectionUtils.forEach(defaults, function (value, key) {
                 if (prefs[key] === undefined) {
-                    prefs[key] = defaults[key];
+                    prefs[key] = value;
                 }
             });
         }
@@ -109,14 +110,50 @@ define(function (require, exports, module) {
             _reset();
         }
     }
+    
+    /**
+     * This method handles the copy of all old prefs to the new prefs
+     * TODO: remove All calls to this function and the function itself
+     * 
+     * @param {!PreferenceStorage} newPrefs The new PreferenceStorage
+     * @param {!string} oldID The id of the old PreferenceStorage
+     * @param {?obj} defaults The defaults to add
+     */
+    function handleClientIdChange(newPrefs, oldID, defaults) {
+        var oldPrefs = getPreferenceStorage(oldID);
+        
+        defaults = defaults || {};
+        
+        if (!newPrefs.getValue("newClientID")) {
+            var data = oldPrefs.getAllValues();
+
+            if ($.isEmptyObject(data)) {
+                data = defaults;
+            }
+            
+            newPrefs.setAllValues(data, false);
+            newPrefs.setValue("newClientID", true);
+        }
+        delete prefStorage[oldID];
+    }
+    
+    /**
+     * This method returns a standardized ClientId for a given moduleId
+     * 
+     * @param {!string} moduleId a given moduleId
+     * @return {string} the ClientId
+     */
+    function getClientId(moduleId) {
+        return "com.adobe.brackets." + moduleId;
+    }
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
     preferencesKey = localStorage.getItem("preferencesKey");
-
+    
     if (!preferencesKey) {
         // use default key if none is found
-        preferencesKey = PREFERENCES_KEY;
+        preferencesKey = PREFERENCES_CLIENT_ID;
         doLoadPreferences = true;
     } else {
         // using a non-default key, check for additional settings
@@ -129,6 +166,8 @@ define(function (require, exports, module) {
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
+    exports.handleClientIdChange    = handleClientIdChange;
+    exports.getClientId             = getClientId;
 
     // Unit test use only
     exports._reset                  = _reset;
