@@ -255,7 +255,7 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype.show = function () {
         if (this._state !== STATE_CLOSED) {
             // Somehow the dialog got invoked twice. Just ignore this.
-            return;
+            return this._dialogDeferred.promise();
         }
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
