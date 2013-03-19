@@ -239,20 +239,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns the jQuery objects for various dialog fileds. For unit testing only.
-     * @return {object} fields An object containing "dlg", "okButton", "cancelButton", and "url" fields.
-     */
-    InstallExtensionDialog.prototype._getFields = function () {
-        return {
-            $dlg: this.$dlg,
-            $okButton: this.$okButton,
-            $cancelButton: this.$cancelButton,
-            $url: this.$url
-        };
-    };
-    
-    /**
-     * @private
      * Closes the dialog if it's not already closed. For unit testing only.
      */
     InstallExtensionDialog.prototype._close = function () {

@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, waitsForDone, spyOn, jasmine */
+/*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -53,7 +54,12 @@ define(function (require, exports, module) {
                     .always(function () {
                         closed = true;
                     });
-                fields = dialog._getFields();
+                fields = {
+                    $dlg: dialog.$dlg,
+                    $okButton: dialog.$okButton,
+                    $cancelButton: dialog.$cancelButton,
+                    $url: dialog.$url
+                };
             });
         });
         
