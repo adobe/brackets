@@ -176,6 +176,35 @@ define(function (require, exports, module) {
     }
     
     
+    
+    /**
+     * Special case handling to make the common case of downloading from GitHub easier; modifies 'urlInfo' as
+     * needed. Converts a bare GitHub repo URL to the corresponding master ZIP URL; or if given a direct
+     * master ZIP URL already, sets a nicer download filename (both cases use the repo name).
+     * 
+     * @param {{url:string, parsed:Array.<string>, filenameHint:string}} urlInfo
+     */
+    function githubURLFilter(urlInfo) {
+        if (urlInfo.parsed.hostname === "github.com" || urlInfo.parsed.hostname === "www.github.com") {
+            // Is it a URL to the root of a repo? (/user/repo)
+            var match = /^\/[^\/?]+\/([^\/?]+)(\/?)$/.exec(urlInfo.parsed.pathname);
+            if (match) {
+                if (!match[2]) {
+                    urlInfo.url += "/";
+                }
+                urlInfo.url += "archive/master.zip";
+                urlInfo.filenameHint = match[1];
+                
+            } else {
+                // Is it a URL directly to the repo's 'master.zip'? (/user/repo/archive/master.zip)
+                match = /^\/[^\/?]+\/([^\/?]+)\/archive\/master.zip$/.exec(urlInfo.parsed.pathname);
+                if (match) {
+                    urlInfo.filenameHint = match[1];
+                }
+            }
+        }
+    }
+    
     /**
      * Downloads from the given URL to a temporary location. On success, resolves with the local path
      * of the downloaded file. On failure, rejects with an error object.
@@ -199,8 +228,11 @@ define(function (require, exports, module) {
                 return d.promise();
             }
             
+            var urlInfo = { url: url, parsed: parsed, filenameHint: parsed.filename };
+            githubURLFilter(urlInfo);
+            
             // Decide download destination
-            var filename = parsed.filename;
+            var filename = urlInfo.filenameHint;
             filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // make sure it's a valid filename
             if (!filename) {  // in case of URL ending in "/"
                 filename = "extension.zip";
@@ -210,7 +242,7 @@ define(function (require, exports, module) {
             var localPath = tempDownloadFolder + filename;
             
             // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = connection.domains.extensionManager.downloadFile(downloadId, url, localPath);
+            var r = connection.domains.extensionManager.downloadFile(downloadId, urlInfo.url, localPath);
             r.done(function (result) {
                 d.resolve(localPath);
             }).fail(function (err) {
