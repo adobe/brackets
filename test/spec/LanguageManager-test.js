@@ -144,8 +144,8 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(unknown);
                 expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(unknown);
                 
-                html._addFileExtension("html.erb");
-                ruby._addFileExtension("erb");
+                html.addFileExtension("html.erb");
+                ruby.addFileExtension("erb");
                 
                 expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(html);
                 expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(ruby);
