@@ -62,7 +62,7 @@ define(function (require, exports, module) {
         return dlg.find("[data-button-id='" + buttonId + "']");
     }
 
-    var _handleKeyDown = function (e) {
+    var _handleKeyDown = function (e, autoDismiss) {
         var primaryBtn = this.find(".primary"),
             buttonId = null,
             which = String.fromCharCode(e.which);
@@ -73,9 +73,7 @@ define(function (require, exports, module) {
         
         if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
-            if (primaryBtn) {
-                buttonId = primaryBtn.attr("data-button-id");
-            }
+            primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button
             this.find(".dialog-button:focus").click();
@@ -98,7 +96,7 @@ define(function (require, exports, module) {
             }
         }
         
-        if (buttonId) {
+        if (autoDismiss && buttonId) {
             _dismissDialog(this, buttonId);
         } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
@@ -120,10 +118,17 @@ define(function (require, exports, module) {
      *      the HTML template is used unchanged.
      * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
      *      unspecified, body in the HTML template is used unchanged.
+     * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
+     *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
+     *      key, and dismiss the dialog yourself when ready with `cancelModalDialogIfOpen()`.
      * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
-    function showModalDialogUsingTemplate(template, title, message) {
+    function showModalDialogUsingTemplate(template, title, message, autoDismiss) {
+        if (autoDismiss === undefined) {
+            autoDismiss = true;
+        }
+        
         var result = $.Deferred(),
             promise = result.promise();
         
@@ -149,7 +154,9 @@ define(function (require, exports, module) {
             }
         });
 
-        var handleKeyDown = _handleKeyDown.bind($dlg);
+        var handleKeyDown = function (e) {
+            _handleKeyDown.call($dlg, e, autoDismiss);
+        };
 
         // Pipe dialog-closing notification back to client code
         $dlg.one("hidden", function () {
@@ -185,15 +192,17 @@ define(function (require, exports, module) {
         });
         
         // Click handler for buttons
-        $dlg.one("click", ".dialog-button", function (e) {
-            _dismissDialog($dlg, $(this).attr("data-button-id"));
-        });
+        if (autoDismiss) {
+            $dlg.one("click", ".dialog-button", function (e) {
+                _dismissDialog($dlg, $(this).attr("data-button-id"));
+            });
+        }
 
         // Run the dialog
         $dlg.modal({
             backdrop: "static",
             show: true,
-            keyboard: true
+            keyboard: autoDismiss
         });
 
         return promise;

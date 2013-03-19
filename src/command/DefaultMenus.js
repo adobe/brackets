@@ -56,6 +56,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
         menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.FILE_INSTALL_EXTENSION);
         
         // supress redundant quit menu item on mac
         if (brackets.platform !== "mac" && !brackets.inBrowser) {

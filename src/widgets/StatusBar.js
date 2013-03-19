@@ -177,7 +177,7 @@ define(function (require, exports, module) {
         // Initialize items dependent on HTML DOM
         $statusBar          = $("#status-bar");
         $indicators         = $("#status-indicators");
-        $busyIndicator      = $("#busy-indicator");
+        $busyIndicator      = $("#status-bar .spinner");
 
         _init = true;
 
