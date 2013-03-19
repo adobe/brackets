@@ -779,7 +779,8 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         $(Inspector.Inspector).on("detached", _onDetached);
-        
+        $(Inspector.Page).on("frameNavigated.DOMAgent", _onFrameNavigated);
+		
         waitForInterstitialPageLoad()
             .fail(function () {
                 close();
