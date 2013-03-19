@@ -179,7 +179,7 @@ define(function (require, exports, module) {
 
     /**
      * Resolves a language ID to a Language object.
-     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
+     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9 and _ inbetween (i.e. "cpp", "foo_bar", "c99")
      * @return {Language} The language with the provided identifier or undefined
      */
     function getLanguage(id) {
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
      * @constructor
      * Model for a language.
      *
-     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
+     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9 and _ inbetween (i.e. "cpp", "foo_bar", "c99")
      * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      */
     function Language(id, name) {
@@ -571,7 +571,7 @@ define(function (require, exports, module) {
     /**
      * Defines a language.
      *
-     * @param {!string}               id                        Unique identifier for this language, use only letters a-z, numbers and _ inbetween (i.e. "cpp", "foo_bar")
+     * @param {!string}               id                        Unique identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (i.e. "cpp", "foo_bar", "c99")
      * @param {!Object}               definition                An object describing the language
      * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
