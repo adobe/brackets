@@ -194,19 +194,17 @@ define(function (require, exports, module) {
             l;
         
         if (!language) {
-            // Split file.coffee.md into ["file", "coffee", "md"]
+            // Split "foo.coffee.md" into ["foo", "coffee", "md"]
+            // Split ".profile" into ["", "profile"]
             parts = fileName.split(".");
             extensions = [];
-            for (i = 1, l = parts.length; i < l && !language; i++) {
-                // E.g. "coffee.md", then "md", unless "coffee.md" resolves to a language
+            // For file name "foo.coffee.md", consider "coffee.md" and "md" as extensions
+            // Treat file name ".coffee.md" as a hidden file named "coffee.md" and only consider "md" as extension
+            for (i = parts[0] === "" ? 2 : 1, l = parts.length; i < l && !language; i++) {
                 extension = parts.slice(i).join(".");
                 language = _fileExtensionToLanguageMap[extension];
                 extensions.push(extension);
             }
-        }
-        
-        if (!language) {
-            console.log("No language found for file name \"" + fileName + "\" or extensions " + extensions.map(JSON.stringify).join(" / "));
         }
         
         return language || _fallbackLanguage;
