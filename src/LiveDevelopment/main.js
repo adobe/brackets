@@ -214,14 +214,14 @@ define(function main(require, exports, module) {
     }
 
     function _onInspectorDone() {
-        $(Inspector.Inspector).on("detached", _onDetached);
     }
 
     /** Initialize LiveDevelopment */
     AppInit.appReady(function () {
         params.parse();
 
-        Inspector.init(config).done(_onInspectorDone);
+        Inspector.init(config);
+        $(Inspector.Inspector).on("detached", _onDetached);
         LiveDevelopment.init(config);
         _loadStyles();
         _setupGoLiveButton();
