@@ -70,7 +70,7 @@ var pendingDownloads = {};
  */
 function validateName(name) {
     // "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
-    if (/^[a-z._\-]+$/.exec(name)) {
+    if (/^[a-z0-9._\-]+$/.exec(name)) {
         return true;
     }
     return false;
@@ -104,7 +104,7 @@ function _cmdValidate(path, callback) {
         }
         var callbackCalled = false;
         var metadata;
-        var foundMain = false;
+        var foundMainIn = null;
         var errors = [];
         var commonPrefix = null;
         
@@ -183,7 +183,7 @@ function _cmdValidate(path, callback) {
                             }
                         });
                 } else if (fileName === "main.js") {
-                    foundMain = true;
+                    foundMainIn = commonPrefix;
                 }
             })
             .on("end", function () {
@@ -195,7 +195,7 @@ function _cmdValidate(path, callback) {
                     return;
                 }
                 
-                if (!foundMain) {
+                if (foundMainIn === null || foundMainIn !== commonPrefix) {
                     errors.push([Errors.MISSING_MAIN, path]);
                 }
                 
