@@ -926,6 +926,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports._pathToUrl          = _pathToUrl;
     exports._urlToPath          = _urlToPath;
     exports._setServerProvider  = _setServerProvider;
+    exports.launcherUrl         = launcherUrl;
 
     // Export public functions
     exports.agents              = agents;

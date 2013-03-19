@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         NativeApp,
         LiveDevelopment,
         LiveDevServerManager,
+        Inspector,
         DOMAgent,
         DocumentManager,
         ProjectManager;
@@ -124,6 +125,60 @@ define(function (require, exports, module) {
         
         this.category = "integration";
         
+        describe("Live Development startup and shutdown", function () {
+            beforeEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                        LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
+                        Inspector            = testWindow.brackets.test.Inspector;
+                        NativeApp            = testWindow.brackets.test.NativeApp;
+                    });
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.closeTestWindow();
+                });
+            });
+            
+            it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
+                var id  = Math.floor(Math.random() * 100000),
+                    url = LiveDevelopment.launcherUrl + "?id=" + id;
+                
+                runs(function () {
+                    waitsForDone(
+                        NativeApp.openLiveBrowser(url, true),
+                        "NativeApp.openLiveBrowser",
+                        5000
+                    );
+                });
+                   
+                runs(function () {
+                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 5000);
+                });
+                
+                runs(function () {
+                    expect(Inspector.connected()).toBeTruthy();
+                });
+                
+                runs(function () {
+                    var deferred = $.Deferred();
+                    Inspector.Runtime.evaluate("window.open('', '_self').close()", function (response) {
+                        Inspector.disconnect();
+                        deferred.resolve();
+                    });
+                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate");
+                });
+                
+                runs(function () {
+                    expect(Inspector.connected()).toBeFalsy();
+                });
+            });
+        });
+
         describe("CSS Editing", function () {
 
             beforeEach(function () {
