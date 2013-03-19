@@ -46,14 +46,6 @@ define(function (require, exports, module) {
     /**
      * @const
      * @private
-     * Unique PreferencesManager clientID
-     * @type {string}
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets." + module.id;
-    
-    /**
-     * @const
-     * @private
      * The smallest font size in pixels
      * @type {int}
      */
@@ -335,7 +327,7 @@ define(function (require, exports, module) {
     KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
 
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, _defaultPrefs);
+    _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
