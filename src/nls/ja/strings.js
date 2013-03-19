@@ -96,7 +96,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
-	"FIND_RESULT_COUNT": "!能=[6734353] {0} results_=!",
+	"FIND_RESULT_COUNT": "{0} 件",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
@@ -133,7 +133,7 @@ define({
     /**
      * ProjectManager
      */
-	"PROJECT_LOADING": "!能=[6735416] Loading\u2026_=!",
+	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
 
     /**
@@ -202,7 +202,7 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Enable Close Brackets_=!",
+	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Auto Close Braces_=!",
     
     // View menu commands
 	"VIEW_MENU": "表示",

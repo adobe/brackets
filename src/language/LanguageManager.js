@@ -229,6 +229,27 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Notify listeners when a language is added
+     * @param {!Language} language The new language
+     */
+    function _triggerLanguageAdded(language) {
+        // finally, store language to _language map
+        _languages[language.getId()] = language;
+        $(exports).triggerHandler("languageAdded", [language]);
+    }
+
+    /**
+     * @private
+     * Notify listeners when a language is modified
+     * @param {!Language} language The modified language
+     */
+    function _triggerLanguageModified(language) {
+        $(exports).triggerHandler("languageModified", [language]);
+    }
+    
+
+    /**
      * @constructor
      * Model for a language.
      *
@@ -254,6 +275,7 @@ define(function (require, exports, module) {
         this._fileExtensions    = [];
         this._fileNames         = [];
         this._modeToLanguageMap = {};
+        this._lineCommentSyntax = [];
     }
     
     
@@ -272,7 +294,7 @@ define(function (require, exports, module) {
     /** @type {Array.<string>} File names for extensionless files that use this language */
     Language.prototype._fileNames = null;
     
-    /** @type {{ prefix: string }} Line comment syntax */
+    /** @type {Array.<string>} Line comment syntax */
     Language.prototype._lineCommentSyntax = null;
     
     /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
@@ -353,6 +375,7 @@ define(function (require, exports, module) {
             // This mode is now only about what to tell CodeMirror
             // The base mode was only necessary to load the proper mode file
             self._mode = mimeMode || mode;
+            self._wasModified();
             
             result.resolve(self);
         };
@@ -389,9 +412,8 @@ define(function (require, exports, module) {
      * Private for now since dependent code would need to by kept in sync with such changes.
      * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension A file extension used by this language
-     * @private
      */
-    Language.prototype._addFileExtension = function (extension) {
+    Language.prototype.addFileExtension = function (extension) {
         // Remove a leading dot if present
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
@@ -408,12 +430,9 @@ define(function (require, exports, module) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
-                
-                // TODO (issue #2966) Allow extensions to add new file extensions to existing languages
-                // Notify on the Language and on LanguageManager?
-                // $(this).triggerHandler("fileExtensionAdded", [extension]);
-                // $(exports).triggerHandler("fileExtensionAdded", [extension, this]);
             }
+            
+            this._wasModified();
         }
     };
 
@@ -424,7 +443,7 @@ define(function (require, exports, module) {
      * @param {!string} extension An extensionless file name used by this language
      * @private
      */
-    Language.prototype._addFileName = function (name) {
+    Language.prototype.addFileName = function (name) {
         // Make checks below case-INsensitive
         name = name.toLowerCase();
         
@@ -436,12 +455,9 @@ define(function (require, exports, module) {
                 console.warn("Cannot register file name \"" + name + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileNameToLanguageMap[name] = this;
-                
-                // TODO (issue #2966) Allow extensions to add new file names to existing languages
-                // Notify on the Language and on LanguageManager?
-                // $(this).triggerHandler("fileNameAdded", [name]);
-                // $(exports).triggerHandler("fileNameAdded", [name, this]);
             }
+            
+            this._wasModified();
         }
     };
 
@@ -450,25 +466,37 @@ define(function (require, exports, module) {
      * @return {boolean} Whether line comments are supported
      */
     Language.prototype.hasLineCommentSyntax = function () {
-        return Boolean(this._lineCommentSyntax);
+        return this._lineCommentSyntax.length > 0;
     };
     
     /**
-     * Returns the prefix to use for line comments.
-     * @return {string} The prefix
+     * Returns an array of prefixes to use for line comments.
+     * @return {Array.<string>} The prefixes
      */
-    Language.prototype.getLineCommentPrefix = function () {
-        return this._lineCommentSyntax && this._lineCommentSyntax.prefix;
+    Language.prototype.getLineCommentPrefixes = function () {
+        return this._lineCommentSyntax;
     };
 
     /**
-     * Sets the prefix to use for line comments in this language.
-     * @param {!string} prefix Prefix string to use for block comments (i.e. "//")
+     * Sets the prefixes to use for line comments in this language.
+     * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
+     *   to use for line comments (i.e. "//" or ["//", "#"])
      */
     Language.prototype.setLineCommentSyntax = function (prefix) {
-        _validateNonEmptyString(prefix, "prefix");
+        var prefixes = Array.isArray(prefix) ? prefix : [prefix];
+        var i;
         
-        this._lineCommentSyntax = { prefix: prefix };
+        if (prefixes.length) {
+            this._lineCommentSyntax = [];
+            for (i = 0; i < prefixes.length; i++) {
+                _validateNonEmptyString(String(prefixes[i]), "prefix");
+                
+                this._lineCommentSyntax.push(prefixes[i]);
+            }
+            this._wasModified();
+        } else {
+            console.error("The prefix array should not be empty");
+        }
     };
     
     /**
@@ -505,6 +533,7 @@ define(function (require, exports, module) {
         _validateNonEmptyString(suffix, "suffix");
         
         this._blockCommentSyntax = { prefix: prefix, suffix: suffix };
+        this._wasModified();
     };
     
     /**
@@ -533,18 +562,27 @@ define(function (require, exports, module) {
             throw new Error("A language must always map its mode to itself");
         }
         this._modeToLanguageMap[mode] = language;
+        this._wasModified();
+    };
+
+    /**
+     * Determines whether this is the fallback language or not
+     * @return {boolean} True if this is the fallback language, false otherwise
+     */
+    Language.prototype.isFallbackLanguage = function () {
+        return this === _fallbackLanguage;
     };
     
     /**
+     * Trigger the "languageModified" event if this language is registered already
+     * @see _triggerLanguageModified
      * @private
-     * Notify listeners when a language is added
-     * @param {!Language} language The new language
      */
-    function _triggerLanguageAdded(language) {
-        // finally, store language to _language map
-        _languages[language.getId()] = language;
-        $(exports).triggerHandler("languageAdded", [language]);
-    }
+    Language.prototype._wasModified = function () {
+        if (_languages[this._id]) {
+            _triggerLanguageModified(this);
+        }
+    };
     
     /**
      * Defines a language.
@@ -554,7 +592,7 @@ define(function (require, exports, module) {
      * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
      * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (i.e. ["<!--", "-->"])
-     * @param {string}                definition.lineComment    Line comment prefix (i.e. "//")
+     * @param {string|Array.<string>} definition.lineComment    Line comment prefixes (i.e. "//" or ["//", "#"])
      * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
@@ -591,14 +629,14 @@ define(function (require, exports, module) {
             // register language file extensions after mode has loaded
             if (fileExtensions) {
                 for (i = 0, l = fileExtensions.length; i < l; i++) {
-                    language._addFileExtension(fileExtensions[i]);
+                    language.addFileExtension(fileExtensions[i]);
                 }
             }
             
             // register language file names after mode has loaded
             if (fileNames) {
                 for (i = 0, l = fileNames.length; i < l; i++) {
-                    language._addFileName(fileNames[i]);
+                    language.addFileName(fileNames[i]);
                 }
             }
                 

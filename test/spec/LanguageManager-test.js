@@ -39,6 +39,8 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             waitsForDone(LanguageManager.ready, "LanguageManager ready", 10000);
+            
+            spyOn(console, "error");
         });
         
         function defineLanguage(definition) {
@@ -46,10 +48,6 @@ define(function (require, exports, module) {
             
             if (def.blockComment) {
                 def.blockComment = [def.blockComment.prefix, def.blockComment.suffix];
-            }
-            
-            if (def.lineComment) {
-                def.lineComment = def.lineComment.prefix;
             }
             
             return LanguageManager.defineLanguage(definition.id, def);
@@ -76,8 +74,9 @@ define(function (require, exports, module) {
             }
             
             if (expected.lineComment) {
+                var lineComment = Array.isArray(expected.lineComment) ? expected.lineComment : [expected.lineComment];
                 expect(actual.hasLineCommentSyntax()).toBe(true);
-                expect(actual.getLineCommentPrefix()).toBe(expected.lineComment.prefix);
+                expect(actual.getLineCommentPrefixes().toString()).toBe(lineComment.toString());
             } else {
                 expect(actual.hasLineCommentSyntax()).toBe(false);
             }
@@ -274,17 +273,50 @@ define(function (require, exports, module) {
                     expect(function () { language.setBlockCommentSyntax("<!---", ""); }).toThrow(new Error("suffix must not be empty"));
                     expect(function () { language.setBlockCommentSyntax("", "--->");  }).toThrow(new Error("prefix must not be empty"));
                     
-                    def.lineComment = {
-                        prefix: "//"
-                    };
+                    def.lineComment = "//";
                     def.blockComment = {
                         prefix: "<!---",
                         suffix: "--->"
                     };
                     
-                    language.setLineCommentSyntax(def.lineComment.prefix);
+                    language.setLineCommentSyntax(def.lineComment);
                     language.setBlockCommentSyntax(def.blockComment.prefix, def.blockComment.suffix);
                     
+                    validateLanguage(def, language);
+                });
+            });
+            
+            it("should validate multiple line comment prefixes", function () {
+                var def = { id: "php2", name: "PHP2", fileExtensions: ["php2"], mode: "php" },
+                    language;
+                
+                runs(function () {
+                    defineLanguage(def).done(function (lang) {
+                        language = lang;
+                    });
+                });
+                
+                waitsFor(function () {
+                    return Boolean(language);
+                }, "The language should be resolved", 50);
+                
+                runs(function () {
+                    language.setLineCommentSyntax([]);
+                    expect(console.error).toHaveBeenCalledWith("The prefix array should not be empty");
+                    
+                    expect(function () { language.setLineCommentSyntax([""]);      }).toThrow(new Error("prefix must not be empty"));
+                    expect(function () { language.setLineCommentSyntax(["#", ""]); }).toThrow(new Error("prefix must not be empty"));
+                    
+                    def.lineComment = ["#"];
+                    
+                    language.setLineCommentSyntax(def.lineComment);
+                    validateLanguage(def, language);
+                });
+                
+                runs(function () {
+                    def.lineComment = ["#", "//"];
+                    
+                    language.setLineCommentSyntax(def.lineComment);
                     validateLanguage(def, language);
                 });
             });
@@ -440,6 +472,44 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should update the document's language when a language is modified", function () {
+                var unknown,
+                    doc,
+                    spy,
+                    modifiedLanguage,
+                    promise;
+                
+                // Create a shell script file
+                doc = SpecRunnerUtils.createMockActiveDocument({ filename: "test.foo" });
+                
+                // Initial language will be unknown (shell is not a default language)
+                unknown = LanguageManager.getLanguage("unknown");
+                
+                // listen for event
+                spy = jasmine.createSpy("languageChanged event handler");
+                $(doc).on("languageChanged", spy);
+                
+                // sanity check language
+                expect(doc.getLanguage()).toBe(unknown);
+                
+                // make active
+                doc.addRef();
+                
+                modifiedLanguage = LanguageManager.getLanguage("html");
+                modifiedLanguage.addFileExtension("foo");
+                
+                // language should change
+                expect(doc.getLanguage()).toBe(modifiedLanguage);
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toEqual(1);
+                
+                // check callback args (arg 0 is a jQuery event)
+                expect(spy.mostRecentCall.args[1]).toBe(unknown);
+                expect(spy.mostRecentCall.args[2]).toBe(modifiedLanguage);
+                
+                // cleanup
+                doc.releaseRef();
+            });
         });
     });
 });
