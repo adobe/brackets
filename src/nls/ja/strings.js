@@ -175,6 +175,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
+	"CMD_INSTALL_EXTENSION": "!能=[6737430] Install Extension..._=!",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -277,6 +278,7 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
 	"RELAUNCH_CHROME": "Chrome を再起動",
+	"INSTALL": "インストール",
 	"ABOUT": "このソフトウェアについて",
 	"APP_NAME": "Brackets",
 	"CLOSE": "閉じる",
@@ -297,6 +299,35 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+    
+    // Extension Management strings
+	"INSTALL_EXTENSION_TITLE": "!能=[6737439] Install Extension_=!",
+	"INSTALL_EXTENSION_LABEL": "!能=[6737438] Extension URL_=!",
+	"INSTALL_EXTENSION_HINT": "!能=[6737437] URL of the extension's ZIP package_=!",
+	"INSTALLING_FROM": "!能=[6737435] Installing extension from {0}..._=!",
+	"INSTALL_SUCCEEDED": "!能=[6737441] Installation successful!_=!",
+	"INSTALL_FAILED": "!能=[6737440] Installation failed._=!",
+	"INSTALL_CANCELLED": "!能=[6737436] Installation cancelled._=!",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+	"INVALID_ZIP_FILE": "!能=[6737444] {0} is not a valid zipped package._=!",
+	"INVALID_PACKAGE_JSON": "!能=[6737442] Package.json file is not valid (error was: {0})._=!",
+	"MISSING_PACKAGE_NAME": "!能=[6737447] Missing package name in {0}._=!",
+	"BAD_PACKAGE_NAME": "!能=[6737429] {0} is an invalid package name._=!",
+	"MISSING_PACKAGE_VERSION": "!能=[6737448] Missing package version in {0}._=!",
+	"INVALID_VERSION_NUMBER": "!能=[6737443] Package version ({0}) is not a valid version number._=!",
+	"API_NOT_COMPATIBLE": "!能=[6737427] The extension was installed into your disabled extensions directory because it is not compatible with this version of Brackets._=!",
+	"MISSING_MAIN": "!能=[6737446] Package has no main.js file._=!",
+	"ALREADY_INSTALLED": "!能=[6737426] The extension was installed into your disabled extensions directory because it was previously installed._=!",
+	"NO_DISABLED_DIRECTORY": "!能=[6737449] Cannot save extension to extensions/disabled because the folder does not exist._=!",
+	"DOWNLOAD_ID_IN_USE": "!能=[6737431] Internal error: download ID already in use._=!",
+	"DOWNLOAD_TARGET_EXISTS": "!能=[6737432] Temp download file already exists: {0}._=!",
+	"NO_SERVER_RESPONSE": "!能=[6737450] Cannot connect to server._=!",
+	"BAD_HTTP_STATUS": "!能=[6737428] File not found on server (HTTP {0})._=!",
+	"ERROR_LOADING": "!能=[6737433] The extension encountered an error while starting up._=!",
+	"MALFORMED_URL": "!能=[6737445] Malformed URL._=!",
+	"UNSUPPORTED_PROTOCOL": "!能=[6737452] URL has an unsupported protocol._=!",
+	"UNKNOWN_ERROR": "!能=[6737451] Unknown internal error._=!",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
