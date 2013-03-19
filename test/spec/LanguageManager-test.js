@@ -53,10 +53,6 @@ define(function (require, exports, module) {
                 def.blockComment = [def.blockComment.prefix, def.blockComment.suffix];
             }
             
-            if (def.lineComment) {
-                def.lineComment = def.lineComment.prefix;
-            }
-            
             return LanguageManager.defineLanguage(id, def);
         }
         
