@@ -87,7 +87,7 @@ define(function (require, exports, module) {
             };
             spyOn(installer, "install").andCallThrough();
             spyOn(installer, "cancel");
-            dialog._setInstaller(installer);
+            dialog._installer = installer;
             return installer;
         }
         
