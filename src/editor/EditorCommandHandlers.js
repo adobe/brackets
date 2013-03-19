@@ -222,8 +222,7 @@ define(function (require, exports, module) {
      */
     function _isBlockComment(ctx, blockExp, lineExp) {
         return ctx.token.className === "comment" &&
-            (!blockExp.length || _matchExpressions(ctx.token.string, blockExp) ||
-            !_matchExpressions(ctx.token.string, lineExp));
+            (_matchExpressions(ctx.token.string, blockExp) || !_matchExpressions(ctx.token.string, lineExp));
     }
     
     /**
