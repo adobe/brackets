@@ -70,7 +70,7 @@ var pendingDownloads = {};
  */
 function validateName(name) {
     // "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
-    if (/^[a-z._\-]+$/.exec(name)) {
+    if (/^[a-z0-9._\-]+$/.exec(name)) {
         return true;
     }
     return false;
