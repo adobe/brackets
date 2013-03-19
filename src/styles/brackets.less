@@ -158,20 +158,9 @@ a, img {
         display: inline;
         margin-left: 20px;
         
-        &#busy-indicator {
+        &.spinner {
             display: inline-block;
-            vertical-align: middle;
-            margin-top: -2px;
-            width: 12px;
-            height: 12px;
-            background: url("images/small_spinner.svg") no-repeat;
-            visibility: hidden;
-        
-            &.spin {
-                -webkit-animation: rotating 1.5s linear infinite;
-                visibility: visible;
-            }
-        }        
+        }
     }
 }
 
@@ -835,4 +824,22 @@ li.smart_autocomplete_highlight {
 
 .quicksearch-namematch {
     font-weight: bold;
+}
+
+
+/* Spinner */
+
+.spinner {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -2px;
+    width: 12px;
+    height: 12px;
+    background: url("images/small_spinner.svg") no-repeat;
+    visibility: hidden;
+
+    &.spin {
+        -webkit-animation: rotating 1.5s linear infinite;
+        visibility: visible;
+    }
 }

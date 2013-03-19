@@ -322,7 +322,7 @@ define(function (require, exports, module) {
         var deferred = $.Deferred();
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
         var pathArray = paths;
-        if (!$.isArray(paths)) {
+        if (!Array.isArray(paths)) {
             pathArray = [paths];
         }
         
@@ -342,7 +342,7 @@ define(function (require, exports, module) {
                     // resolve the deferred.
                 },
                 function () { // command call failed
-                    deferred.reject();
+                    deferred.reject("Unable to load one of the modules: " + pathArray);
                 }
             );
 
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
                 console.error("[NodeConnection] unknown event type: " + m.type);
             }
         } catch (e) {
-            console.error("[NodeConnection] received malformed message");
+            console.error("[NodeConnection] received malformed message", message, e);
         }
     };
     
