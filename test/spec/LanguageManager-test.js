@@ -164,21 +164,31 @@ define(function (require, exports, module) {
                 validateLanguage(def, language);
             });
             
-            it("should throw errors for invalid language id values", function () {
-                expect(function () { defineLanguage({ id: null          }); }).toThrow(new Error("Language ID must be a string"));
-                expect(function () { defineLanguage({ id: "HTML5"       }); }).toThrow(new Error("Invalid language ID \"HTML5\": Only groups of lower case letters and numbers are allowed, separated by underscores."));
-                expect(function () { defineLanguage({ id: "_underscore" }); }).toThrow(new Error("Invalid language ID \"_underscore\": Only groups of lower case letters and numbers are allowed, separated by underscores."));
-                expect(function () { defineLanguage({ id: "html"        }); }).toThrow(new Error('Language "html" is already defined'));
+            it("should log errors for invalid language id values", function () {
+                defineLanguage({ id: null });
+                expect(console.error).toHaveBeenCalledWith("Language ID must be a string");
+                
+                defineLanguage({ id: "HTML5" });
+                expect(console.error).toHaveBeenCalledWith("Invalid language ID \"HTML5\": Only groups of lower case letters and numbers are allowed, separated by underscores.");
+                
+                defineLanguage({ id: "_underscore" });
+                expect(console.error).toHaveBeenCalledWith("Invalid language ID \"_underscore\": Only groups of lower case letters and numbers are allowed, separated by underscores.");
             });
             
-            it("should throw errors for invalid language name values", function () {
-                expect(function () { defineLanguage({ id: "two"             }); }).toThrow(new Error("name must be a string"));
-                expect(function () { defineLanguage({ id: "three", name: "" }); }).toThrow(new Error("name must not be empty"));
+            it("should log errors for invalid language name values", function () {
+                defineLanguage({ id: "two" });
+                expect(console.error).toHaveBeenCalledWith("name must be a string");
+                
+                defineLanguage({ id: "three", name: "" });
+                expect(console.error).toHaveBeenCalledWith("name must not be empty");
             });
             
             it("should log errors for missing mode value", function () {
-                expect(function () { defineLanguage({ id: "four", name: "Four" });           }).toThrow(new Error("mode must be a string"));
-                expect(function () { defineLanguage({ id: "five", name: "Five", mode: "" }); }).toThrow(new Error("mode must not be empty"));
+                defineLanguage({ id: "four", name: "Four" });
+                expect(console.error).toHaveBeenCalledWith("mode must be a string");
+                
+                defineLanguage({ id: "five", name: "Five", mode: "" });
+                expect(console.error).toHaveBeenCalledWith("mode must not be empty");
             });
             
             it("should create a language with file extensions and a mode", function () {
@@ -232,10 +242,21 @@ define(function (require, exports, module) {
             // FIXME: Add internal LanguageManager._reset()
             // or unload a language (pascal is loaded from the previous test)
             it("should return an error if a language is already defined", function () {
-                var def = { id: "pascal", name: "Pascal", fileExtensions: ["pas", "p"], mode: "pascal" };
+                var def = { id: "pascal", name: "Pascal", fileExtensions: ["pas", "p"], mode: "pascal" },
+                    error = -1;
                 
                 runs(function () {
-                    expect(function () { defineLanguage(def); }).toThrow(new Error('Language "pascal" is already defined'));
+                    defineLanguage(def).fail(function (err) {
+                        error = err;
+                    });
+                });
+                
+                waitsFor(function () {
+                    return error !== -1;
+                }, "The promise should be rejected with an error", 50);
+                
+                runs(function () {
+                    expect(error).toBe("Language \"pascal\" is already defined");
                 });
             });
             
@@ -254,9 +275,14 @@ define(function (require, exports, module) {
                 }, "The language should be resolved", 50);
                 
                 runs(function () {
-                    expect(function () { language.setLineCommentSyntax("");           }).toThrow(new Error("prefix must not be empty"));
-                    expect(function () { language.setBlockCommentSyntax("<!---", ""); }).toThrow(new Error("suffix must not be empty"));
-                    expect(function () { language.setBlockCommentSyntax("", "--->");  }).toThrow(new Error("prefix must not be empty"));
+                    language.setLineCommentSyntax("");
+                    expect(console.error).toHaveBeenCalledWith("prefix must not be empty");
+                    
+                    language.setBlockCommentSyntax("<!---", "");
+                    expect(console.error).toHaveBeenCalledWith("suffix must not be empty");
+                    
+                    language.setBlockCommentSyntax("", "--->");
+                    expect(console.error).toHaveBeenCalledWith("prefix must not be empty");
                     
                     def.lineComment = "//";
                     def.blockComment = {
@@ -289,8 +315,11 @@ define(function (require, exports, module) {
                     language.setLineCommentSyntax([]);
                     expect(console.error).toHaveBeenCalledWith("The prefix array should not be empty");
                     
-                    expect(function () { language.setLineCommentSyntax([""]);      }).toThrow(new Error("prefix must not be empty"));
-                    expect(function () { language.setLineCommentSyntax(["#", ""]); }).toThrow(new Error("prefix must not be empty"));
+                    language.setLineCommentSyntax([""]);
+                    expect(console.error).toHaveBeenCalledWith("prefix[0] must not be empty");
+                    
+                    language.setLineCommentSyntax(["#", ""]);
+                    expect(console.error).toHaveBeenCalledWith("prefix[1] must not be empty");
                     
                     def.lineComment = ["#"];
                     
