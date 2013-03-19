@@ -304,7 +304,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Open a live document
      * @param {Document} source document to open
      * @return {jQuery.Promise} A promise that is resolved once the live
-     *      document is open
+     *      document is open, and is never explicitly rejected.
      */
     function _openDocument(doc, editor) {
         
@@ -438,6 +438,9 @@ define(function LiveDevelopment(require, exports, module) {
         var editor = EditorManager.getCurrentFullEditor(),
             status = STATUS_ACTIVE;
 
+        // Note: the following promise is never explicitly rejected, so there
+        // is no failure handler. If _openDocument is changed so that rejection
+        // is possible, failure should be managed accordingly.
         _openDocument(doc, editor)
             .done(function () {
                 if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
