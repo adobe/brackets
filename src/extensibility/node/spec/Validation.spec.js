@@ -49,6 +49,7 @@ var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.z
     oneLevelDown        = path.join(testFilesDirectory, "one-level-extension-master.zip"),
     bogusTopDir         = path.join(testFilesDirectory, "bogus-top-dir.zip"),
     badname             = path.join(testFilesDirectory, "badname.zip"),
+    mainInDirectory     = path.join(testFilesDirectory, "main-in-directory.zip"),
     invalidVersion      = path.join(testFilesDirectory, "invalid-version.zip");
 
 describe("Package Validation", function () {
@@ -165,6 +166,16 @@ describe("Package Validation", function () {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(1);
             expect(result.errors[0][0]).toEqual("BAD_PACKAGE_NAME");
+            done();
+        });
+    });
+    
+    it("should complain about files that don't have main in the top dir", function (done) {
+        ExtensionsDomain._cmdValidate(mainInDirectory, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result.errors;
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("MISSING_MAIN");
             done();
         });
     });
