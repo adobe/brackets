@@ -35,7 +35,7 @@ module.exports = function (grunt) {
                 '!src/extensions/**/thirdparty/**/*.js',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
-                '!src/extensions/**/node_modules/**/*.js',
+                '!**/node_modules/**/*.js',
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
