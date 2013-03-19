@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global brackets, define, $, less, window, XMLHttpRequest */
+/*global brackets, define, $, less, window */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -47,7 +47,8 @@ define(function main(require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        ExtensionUtils      = require("utils/ExtensionUtils");
 
     var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     var prefs;
@@ -78,17 +79,13 @@ define(function main(require, exports, module) {
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/main.less", true);
-        request.onload = function onLoad(event) {
-            var parser = new less.Parser();
-            parser.parse(request.responseText, function onParse(err, tree) {
-                console.assert(!err, err);
-                $("<style>" + tree.toCSS() + "</style>")
-                    .appendTo(window.document.head);
-            });
-        };
-        request.send(null);
+        var lessText    = require("text!LiveDevelopment/main.less"),
+            parser      = new less.Parser();
+        
+        parser.parse(lessText, function onParse(err, tree) {
+            console.assert(!err, err);
+            ExtensionUtils.addEmbeddedStyleSheet(tree.toCSS());
+        });
     }
 
     /**
