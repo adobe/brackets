@@ -50,7 +50,8 @@ module.exports = function (grunt) {
             /* specs that can run in phantom.js */
             specs : [
                 'test/spec/CommandManager-test.js',
-                'test/spec/LanguageManager-test.js',
+                //'test/spec/LanguageManager-test.js',
+                //'test/spec/PreferencesManager-test.js',
                 'test/spec/ViewUtils-test.js'
             ]
         },
