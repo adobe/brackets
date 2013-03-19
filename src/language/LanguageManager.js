@@ -47,6 +47,13 @@
  *         console.log("Language " + language.getName() + " is now available!");
  *     });
  *
+ * The extension can also contain dots:
+ *     LanguageManager.defineLanguage("literatecoffeescript", {
+ *         name: "Literate CoffeeScript",
+ *         mode: "coffeescript",
+ *         fileExtensions: ["litcoffee", "coffee.md"]
+ *     });
+ *
  * You can also specify file names:
  *     LanguageManager.defineLanguage("makefile", {
  *         name: "Make",
@@ -134,21 +141,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Lowercases the file extension and ensures it doesn't start with a dot.
-     * @param {!string} extension The file extension
-     * @return {string} The normalized file extension
-     */
-    function _normalizeFileExtension(extension) {
-        // Remove a leading dot if present
-        if (extension.charAt(0) === ".") {
-            extension = extension.substr(1);
-        }
-        
-        // Make checks below case-INsensitive
-        return extension.toLowerCase();
-    }
-    
-    /**
      * Monkey-patch CodeMirror to prevent modes from being overwritten by extensions.
      * We may rely on the tokens provided by some of these modes.
      */
@@ -188,16 +180,31 @@ define(function (require, exports, module) {
     
     /**
      * Resolves a file path to a Language object.
+     * File names have a higher priority than file extensions.
      * @param {!string} path Path to the file to find a language for
      * @return {Language} The language for the provided file type or the fallback language
      */
     function getLanguageForPath(path) {
-        var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
-            filename  = PathUtils.filename(path).toLowerCase(),
-            language  = extension ? _fileExtensionToLanguageMap[extension] : _fileNameToLanguageMap[filename];
+        var fileName  = PathUtils.filename(path).toLowerCase(),
+            language  = _fileNameToLanguageMap[fileName],
+            extension,
+            extensions,
+            parts,
+            i,
+            l;
         
         if (!language) {
-            console.log("Called LanguageManager.getLanguageForPath with an unhandled " + (extension ? "file extension" : "file name") + ":", extension || filename);
+            // Split "foo.coffee.md" into ["foo", "coffee", "md"]
+            // Split ".profile" into ["", "profile"]
+            parts = fileName.split(".");
+            extensions = [];
+            // For file name "foo.coffee.md", consider "coffee.md" and "md" as extensions
+            // Treat file name ".coffee.md" as a hidden file named "coffee.md" and only consider "md" as extension
+            for (i = parts[0] === "" ? 2 : 1, l = parts.length; i < l && !language; i++) {
+                extension = parts.slice(i).join(".");
+                language = _fileExtensionToLanguageMap[extension];
+                extensions.push(extension);
+            }
         }
         
         return language || _fallbackLanguage;
@@ -400,12 +407,16 @@ define(function (require, exports, module) {
 
     /**
      * Adds a file extension to this language.
-     * Private for now since dependent code would need to by kept in sync with such changes.
-     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension A file extension used by this language
      */
     Language.prototype.addFileExtension = function (extension) {
-        extension = _normalizeFileExtension(extension);
+        // Remove a leading dot if present
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
         
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
@@ -423,12 +434,10 @@ define(function (require, exports, module) {
 
     /**
      * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
-     * Private for now since dependent code would need to by kept in sync with such changes.
-     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension An extensionless file name used by this language
-     * @private
      */
     Language.prototype.addFileName = function (name) {
+        // Make checks below case-INsensitive
         name = name.toLowerCase();
         
         if (this._fileNames.indexOf(name) === -1) {
