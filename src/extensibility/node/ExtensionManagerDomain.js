@@ -108,7 +108,9 @@ function _cmdValidate(path, callback) {
         var errors = [];
         var commonPrefix = null;
         
-        fs.createReadStream(path)
+        var readStream = fs.createReadStream(path);
+        
+        readStream
             .pipe(unzip.Parse())
             .on("error", function (exception) {
                 // General error to report for problems reading the file
@@ -117,6 +119,7 @@ function _cmdValidate(path, callback) {
                     errors: errors
                 });
                 callbackCalled = true;
+                readStream.destroy();
             })
             .on("entry", function (entry) {
                 // look for the metadata
@@ -241,6 +244,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                 if (!callbackCalled) {
                     callback(exc);
                     callbackCalled = true;
+                    readStream.destroy();
                 }
             })
             .on("entry", function (entry) {
@@ -276,7 +280,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                 }
                 
             })
-            .on("close", function () {
+            .on("end", function () {
                 if (!callbackCalled) {
                     callback(null, validationResult);
                     callbackCalled = true;

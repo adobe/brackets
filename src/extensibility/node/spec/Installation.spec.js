@@ -50,6 +50,7 @@ var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.
     missingMain          = path.join(testFilesDirectory, "missing-main.zip"),
     oneLevelDown         = path.join(testFilesDirectory, "one-level-extension-master.zip"),
     incompatibleVersion  = path.join(testFilesDirectory, "incompatible-version.zip"),
+    invalidZip           = path.join(testFilesDirectory, "invalid-zip-file.zip"),
     missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip");
 
 describe("Package Installation", function () {
@@ -237,6 +238,16 @@ describe("Package Installation", function () {
                 path.join(extensionDirectory, "package.json")
             ];
             checkPaths(pathsToCheck, done);
+        });
+    });
+    
+    it("should not have trouble with invalid zip files", function (done) {
+        ExtensionsDomain._cmdInstall(invalidZip, installDirectory, {
+            disabledDirectory: disabledDirectory
+        }, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(1);
+            done();
         });
     });
 });
