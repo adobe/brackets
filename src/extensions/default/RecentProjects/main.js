@@ -104,7 +104,7 @@ define(function (require, exports, module) {
      */
     function renderDelete() {
         return $("<div id='recent-folder-delete' class='trash-icon'></div>")
-            .click(function (e) {
+            .mouseup(function (e) {
                 // Don't let the click bubble upward.
                 e.stopPropagation();
                 
