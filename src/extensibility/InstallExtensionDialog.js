@@ -77,9 +77,6 @@ define(function (require, exports, module) {
     /** @type {jQuery} The span containing the installation message. */
     InstallExtensionDialog.prototype.$msg = null;
     
-    /** @type {jQuery} The installation progress spinner. */
-    InstallExtensionDialog.prototype.$spinner = null;
-    
     /** @type {$.Deferred} A deferred that's resolved/rejected when the dialog is closed and
         something has/hasn't been installed successfully. */
     InstallExtensionDialog.prototype._dialogDeferred = null;
@@ -109,7 +106,7 @@ define(function (require, exports, module) {
         switch (newState) {
         case STATE_START:
             // This should match the default appearance of the dialog when it first opens.
-            this.$spinner.removeClass("spin");
+            this.$msg.find(".spinner").remove();
             this.$msgArea.hide();
             this.$inputArea.show();
             this.$okButton
@@ -124,8 +121,8 @@ define(function (require, exports, module) {
         case STATE_INSTALLING:
             url = this.$url.val();
             this.$inputArea.hide();
-            this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url));
-            this.$spinner.addClass("spin");
+            this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
+                .append("<span class='spinner spin'/>");
             this.$msgArea.show();
             this.$okButton.attr("disabled", "disabled");
             this._installer.install(url)
@@ -152,16 +149,18 @@ define(function (require, exports, module) {
                 console.assert(success);
             }
                 
-            this.$spinner.removeClass("spin");
             if (newState === STATE_INSTALLED) {
                 msg = Strings.INSTALL_SUCCEEDED;
             } else if (newState === STATE_INSTALL_FAILED) {
                 // TODO: nicer formatting, especially for validation errors where there might be > 1 error code
-                msg = Strings.INSTALL_FAILED + "\n" + this._errorMessage;
+                msg = Strings.INSTALL_FAILED;
             } else {
                 msg = Strings.INSTALL_CANCELLED;
             }
-            this.$msg.text(msg);
+            this.$msg.html($("<strong/>").text(msg));
+            if (this._errorMessage) {
+                this.$msg.append($("<p/>").text(this._errorMessage));
+            }
             this.$okButton
                 .removeAttr("disabled")
                 .text(Strings.CLOSE);
@@ -300,7 +299,6 @@ define(function (require, exports, module) {
         this.$inputArea    = this.$dlg.find(".input-field");
         this.$msgArea      = this.$dlg.find(".message-field");
         this.$msg          = this.$msgArea.find(".message");
-        this.$spinner      = this.$msgArea.find(".spinner");
 
         this.$okButton.on("click", this._handleOk.bind(this));
         this.$cancelButton.on("click", this._handleCancel.bind(this));
