@@ -247,7 +247,8 @@ define(function (require, exports, module) {
     
     // Add the menu items
     var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    menu.addMenuItem(TOGGLE_ENABLED);
+    menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.VIEW_RESTORE_FONT_SIZE);
+    menu.addMenuDivider(Menus.AFTER, Commands.VIEW_RESTORE_FONT_SIZE);
     
     menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(GOTO_FIRST_ERROR, KeyboardPrefs.gotoFirstError, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
