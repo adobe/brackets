@@ -81,6 +81,9 @@ define(function (require, exports, module) {
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
     exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";
     exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";
+    exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";
+    exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";
+    exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";
     exports.TOGGLE_JSLINT               = "debug.jslint";
     exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded";
     exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";
