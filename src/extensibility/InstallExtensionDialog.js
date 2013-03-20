@@ -23,6 +23,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, window, $, PathUtils, Mustache, document */
+/*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -238,33 +239,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets the installer backend.
-     * @param {{install: function(string): $.Promise, cancel: function()}} installer
-     *     The installer backend object to use. Must define two functions:
-     *     install(url): takes the URL of the extension to install, and returns a promise
-     *         that's resolved or rejected when the installation succeeds or fails.
-     *     cancel(): cancels an ongoing installation.
-     */
-    InstallExtensionDialog.prototype._setInstaller = function (installer) {
-        this._installer = installer;
-    };
- 
-    /**
-     * @private
-     * Returns the jQuery objects for various dialog fileds. For unit testing only.
-     * @return {object} fields An object containing "dlg", "okButton", "cancelButton", and "url" fields.
-     */
-    InstallExtensionDialog.prototype._getFields = function () {
-        return {
-            $dlg: this.$dlg,
-            $okButton: this.$okButton,
-            $cancelButton: this.$cancelButton,
-            $url: this.$url
-        };
-    };
-    
-    /**
-     * @private
      * Closes the dialog if it's not already closed. For unit testing only.
      */
     InstallExtensionDialog.prototype._close = function () {
@@ -281,7 +255,7 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype.show = function () {
         if (this._state !== STATE_CLOSED) {
             // Somehow the dialog got invoked twice. Just ignore this.
-            return;
+            return this._dialogDeferred.promise();
         }
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 

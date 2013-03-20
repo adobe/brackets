@@ -304,7 +304,7 @@ define({
     // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
-    "INSTALL_EXTENSION_HINT"               : "URL of the extension's ZIP package",
+    "INSTALL_EXTENSION_HINT"               : "URL of the extension's ZIP file or GitHub repo",
     "INSTALLING_FROM"                      : "Installing extension from {0}...",
     "INSTALL_SUCCEEDED"                    : "Installation successful!",
     "INSTALL_FAILED"                       : "Installation failed.",
