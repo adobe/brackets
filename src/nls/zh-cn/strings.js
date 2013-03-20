@@ -163,7 +163,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "文件",
-    "CMD_FILE_NEW"                        : "新建",
+    "CMD_FILE_NEW"                        : "新建文件",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "添加至工作集合",
@@ -192,7 +192,7 @@ define({
     "CMD_SELECT_LINE"                     : "选中当前行",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
-    "CMD_FIND_IN_SUBTREE"                 : "在该文件中查找",
+    "CMD_FIND_IN_SUBTREE"                 : "在该位置查找",
     "CMD_FIND_NEXT"                       : "查找下一个",
     "CMD_FIND_PREVIOUS"                   : "查找上一个",
     "CMD_REPLACE"                         : "替换",
