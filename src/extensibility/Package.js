@@ -87,19 +87,8 @@ define(function (require, exports, module) {
                 if (nodeConnection.connected()) {
                     nodeConnection.domains.extensionManager.validate(path)
                         .done(function (result) {
-                            
-                            // Convert the errors into properly localized strings
-                            var i,
-                                errors = result.errors;
-                            
-                            for (i = 0; i < errors.length; i++) {
-                                var formatArguments = errors[i];
-                                formatArguments[0] = Strings[formatArguments[0]];
-                                errors[i] = StringUtils.format.apply(window, formatArguments);
-                            }
-                            
                             d.resolve({
-                                errors: errors,
+                                errors: result.errors,
                                 metadata: result.metadata
                             });
                         })
