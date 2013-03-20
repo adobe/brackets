@@ -310,9 +310,9 @@ define({
     "INSTALL_FAILED"                       : "安装失败.",
     "INSTALL_CANCELLED"                    : "安装已取消.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
-    "INVALID_ZIP_FILE"                     : "{0}不是一个有效的ZIP包.",
+    "INVALID_ZIP_FILE"                     : "{0}不是一个有效的ZIP文件.",
     "INVALID_PACKAGE_JSON"                 : "扩展包中的JSON文件是无效的. (错误是: {0}).",
-    "MISSING_PACKAGE_NAME"                 : "扩展包名字遗失 {0}.",
+    "MISSING_PACKAGE_NAME"                 : "扩展包名称遗失 {0}.",
     "BAD_PACKAGE_NAME"                     : "{0} 是一个无效扩展包名.",
     "MISSING_PACKAGE_VERSION"              : "扩展包版本遗失 {0}.",
     "INVALID_VERSION_NUMBER"               : "扩展包版本 ({0}) 是一个无效版本号.",
