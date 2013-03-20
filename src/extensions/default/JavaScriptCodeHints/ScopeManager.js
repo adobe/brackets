@@ -432,7 +432,7 @@ define(function (require, exports, module) {
             for (var i = 0; i < data.completions.length; ++i) {
               var completion = data.completions[i];//, className = typeToIcon(completion.type);
               //if (data.guess) className += " Tern-completion-guess";
-              completions.push({value: completion.name/*, className: className*/});
+              completions.push({value: completion/*, className: className*/});
             }
         
             ternHints = completions;
