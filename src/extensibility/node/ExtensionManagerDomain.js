@@ -32,6 +32,7 @@ var unzip   = require("unzip"),
     path    = require("path"),
     http    = require("http"),
     request = require("request"),
+    os      = require("os"),
     fs      = require("fs-extra");
 
 
@@ -343,6 +344,8 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         var extensionName;
         if (validationResult.metadata) {
             extensionName = validationResult.metadata.name;
+        } else if (options.nameHint) {
+            extensionName = path.basename(options.nameHint, ".zip");
         } else {
             extensionName = path.basename(packagePath, ".zip");
         }
@@ -387,6 +390,27 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
 
 
 /**
+ * Creates a uniquely-named file in the OS temp directory and opens it for writing.
+ * @return {{localPath: string, outStream: WriteStream}}
+ */
+function _createTempFile() {
+    var root = os.tmpDir();
+    var pathPrefix = root + "/brackets.download";
+    var suffix = 1;
+    while (fs.existsSync(pathPrefix + suffix) && suffix < 100) {
+        suffix++;
+    }
+    if (suffix === 100) {
+        return null;
+    }
+    
+    var localPath = pathPrefix + suffix;
+    console.log("Creating temp file " + localPath);
+    var outStream = fs.createWriteStream(localPath);
+    return { outStream: outStream, localPath: localPath };
+}
+
+/**
  * Wrap up after the given download has terminated (successfully or not). Closes connections, calls back the
  * client's callback, and IF there was an error, delete any partially-downloaded file.
  * 
@@ -415,7 +439,7 @@ function _endDownload(downloadId, error) {
     } else {
         // Download completed successfully. Flush stream to disk and THEN signal completion
         downloadInfo.outStream.end(function () {
-            downloadInfo.callback(null, null);
+            downloadInfo.callback(null, downloadInfo.localPath);
         });
     }
 }
@@ -423,14 +447,9 @@ function _endDownload(downloadId, error) {
 /**
  * Implements "downloadFile" command, asynchronously.
  */
-function _cmdDownloadFile(downloadId, url, localPath, callback) {
+function _cmdDownloadFile(downloadId, url, callback) {
     if (pendingDownloads[downloadId]) {
         callback(Errors.DOWNLOAD_ID_IN_USE, null);
-        return;
-    }
-    
-    if (fs.existsSync(localPath)) {
-        callback([Errors.DOWNLOAD_TARGET_EXISTS, localPath], null);
         return;
     }
     
@@ -451,13 +470,19 @@ function _cmdDownloadFile(downloadId, url, localPath, callback) {
                 return;
             }
             
-            var outStream = fs.createWriteStream(localPath);
-            pendingDownloads[downloadId].outStream = outStream;
-            outStream.write(body);
+            var tempFileInfo = _createTempFile();
+            if (!tempFileInfo) {
+                _endDownload(downloadId, Errors.CANNOT_WRITE_TEMP);
+                return;
+            }
+            pendingDownloads[downloadId].localPath = tempFileInfo.localPath;
+            pendingDownloads[downloadId].outStream = tempFileInfo.outStream;
+            
+            tempFileInfo.outStream.write(body);
             _endDownload(downloadId);
         });
     
-    pendingDownloads[downloadId] = { request: req, callback: callback, localPath: localPath };
+    pendingDownloads[downloadId] = { request: req, callback: callback };
 }
 
 /**
@@ -520,8 +545,8 @@ function init(domainManager) {
             description: "absolute filesystem path where this extension should be installed"
         }, {
             name: "options",
-            type: "{string disabledDirectory}",
-            description: "installation options. disabledDirectory should be set so that extensions can be installed disabled."
+            type: "{disabledDirectory: ?string, apiVersion: ?string, nameHint: ?string}",
+            description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
         {
             errors: {
@@ -551,7 +576,7 @@ function init(domainManager) {
         "downloadFile",
         _cmdDownloadFile,
         true,
-        "Downloads the file at the given URL, saving it to the given local path",
+        "Downloads the file at the given URL, saving it to a temp location. Callback receives path to the downloaded file.",
         [{
             name: "downloadId",
             type: "string",
@@ -560,10 +585,6 @@ function init(domainManager) {
             name: "url",
             type: "string",
             description: "URL to download from"
-        }, {
-            name: "localPath",
-            type: "string",
-            description: "absolute filesystem path of the extension package"
         }],
         {
             error: {
@@ -577,7 +598,7 @@ function init(domainManager) {
         "abortDownload",
         _cmdAbortDownload,
         false,
-        "Aborts any pending download with the given id. Error if no download pending (may be already complete).",
+        "Aborts any pending download with the given id. Ignored if no download pending (may be already complete).",
         [{
             name: "downloadId",
             type: "string",

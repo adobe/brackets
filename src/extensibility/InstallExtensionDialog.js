@@ -177,7 +177,6 @@ define(function (require, exports, module) {
             if (newState === STATE_INSTALLED) {
                 msg = Strings.INSTALL_SUCCEEDED;
             } else if (newState === STATE_INSTALL_FAILED) {
-                // TODO: nicer formatting, especially for validation errors where there might be > 1 error code
                 msg = Strings.INSTALL_FAILED + "\n" + this._errorMessage;
             } else {
                 msg = Strings.INSTALL_CANCELED;
