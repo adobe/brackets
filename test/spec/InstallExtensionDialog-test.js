@@ -33,11 +33,6 @@ define(function (require, exports, module) {
         KeyEvent        = require("utils/KeyEvent");
 
     describe("Install Extension Dialog", function () {
-        // Kind of a bummer that we have to run this in a test window, but the dialogs
-        // don't seem to work if we run them in the SpecRunner window. This might be because
-        // we include the Bootstrap 2 JS in the SpecRunner.
-        this.category = "integration";
-        
         var testWindow;
         
         beforeEach(function () {
