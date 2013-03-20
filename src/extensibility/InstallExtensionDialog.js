@@ -45,7 +45,13 @@ define(function (require, exports, module) {
         STATE_INSTALLING        = 3,
         STATE_INSTALLED         = 4,
         STATE_INSTALL_FAILED    = 5,
-        STATE_INSTALL_CANCELLED = 6;
+        STATE_CANCELING_INSTALL = 6,
+        STATE_CANCELING_HUNG    = 7,
+        STATE_INSTALL_CANCELED  = 8;
+    
+    /** Timeout before we allow user to leave STATE_INSTALL_CANCELING without waiting for a resolution */
+    var CANCEL_TIMEOUT = 10 * 1000;
+    
     
     /** 
      * @constructor
@@ -134,33 +140,47 @@ define(function (require, exports, module) {
                     self._enterState(STATE_INSTALLED);
                 })
                 .fail(function (err) {
-                    // Ignore expected case: the Promise is failed when we programmatically cancel
-                    // In all other cases, record the error and transition to error display UI
-                    if (!(err === "CANCELED" && self._state === STATE_INSTALL_CANCELLED)) {
+                    // If the "failure" is actually a user-requested cancel, don't show an error UI
+                    if (err === "CANCELED") {
+                        console.assert(self._state === STATE_CANCELING_INSTALL || self._state === STATE_CANCELING_HUNG);
+                        self._enterState(STATE_INSTALL_CANCELED);
+                    } else {
                         self._errorMessage = Package.formatError(err);
                         self._enterState(STATE_INSTALL_FAILED);
                     }
                 });
             break;
             
+        case STATE_CANCELING_INSTALL:
+            // This should call back the STATE_INSTALLING fail() handler above, unless it's too late to cancel
+            // in which case we'll still jump to STATE_INSTALLED after this
+            this.$cancelButton.attr("disabled", "disabled");
+            this.$msg.text(Strings.CANCELING_INSTALL);
+            this._installer.cancel();
+            window.setTimeout(function () {
+                if (self._state === STATE_CANCELING_INSTALL) {
+                    self._enterState(STATE_CANCELING_HUNG);
+                }
+            }, CANCEL_TIMEOUT);
+            break;
+            
+        case STATE_CANCELING_HUNG:
+            this.$msg.text(Strings.CANCELING_HUNG);
+            this.$okButton
+                .removeAttr("disabled")
+                .text(Strings.CLOSE);
+            break;
+            
         case STATE_INSTALLED:
         case STATE_INSTALL_FAILED:
-        case STATE_INSTALL_CANCELLED:
-            if (newState === STATE_INSTALL_CANCELLED) {
-                // TODO: do we need to wait for acknowledgement? That will require adding a new
-                // "waiting for cancelled" state.
-                var success = this._installer.cancel();
-                console.assert(success);
-            }
-                
+        case STATE_INSTALL_CANCELED:
             this.$spinner.removeClass("spin");
             if (newState === STATE_INSTALLED) {
                 msg = Strings.INSTALL_SUCCEEDED;
             } else if (newState === STATE_INSTALL_FAILED) {
-                // TODO: nicer formatting, especially for validation errors where there might be > 1 error code
                 msg = Strings.INSTALL_FAILED + "\n" + this._errorMessage;
             } else {
-                msg = Strings.INSTALL_CANCELLED;
+                msg = Strings.INSTALL_CANCELED;
             }
             this.$msg.text(msg);
             this.$okButton
@@ -190,7 +210,7 @@ define(function (require, exports, module) {
      */
     InstallExtensionDialog.prototype._handleCancel = function () {
         if (this._state === STATE_INSTALLING) {
-            this._enterState(STATE_INSTALL_CANCELLED);
+            this._enterState(STATE_CANCELING_INSTALL);
         } else {
             this._enterState(STATE_CLOSED);
         }
@@ -204,7 +224,8 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype._handleOk = function () {
         if (this._state === STATE_INSTALLED ||
                 this._state === STATE_INSTALL_FAILED ||
-                this._state === STATE_INSTALL_CANCELLED) {
+                this._state === STATE_INSTALL_CANCELED ||
+                this._state === STATE_CANCELING_HUNG) {
             // In these end states, this is a "Close" button: just close the dialog and indicate
             // success.
             this._enterState(STATE_CLOSED);
@@ -286,12 +307,14 @@ define(function (require, exports, module) {
         this._dialogDeferred = new $.Deferred();
         return this._dialogDeferred.promise();
     };
-
-    function RealInstaller() { }
-    RealInstaller.prototype.install = function (url) {
+    
+    
+    /** Mediates between this module and the Package extension-installation utils. Mockable for unit-testing. */
+    function InstallerFacade() { }
+    InstallerFacade.prototype.install = function (url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");
-            return { promise: new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise() };
+            return new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise();
         }
         this.pendingInstall = Package.installFromURL(url);
         
@@ -305,8 +328,8 @@ define(function (require, exports, module) {
         
         return promise;
     };
-    RealInstaller.prototype.cancel = function () {
-        return this.pendingInstall.cancel();
+    InstallerFacade.prototype.cancel = function () {
+        this.pendingInstall.cancel();
     };
     
     /**
@@ -316,7 +339,7 @@ define(function (require, exports, module) {
      *     has finished installing, or rejected if the dialog is cancelled.
      */
     function _showDialog(installer) {
-        var dlg = new InstallExtensionDialog(new RealInstaller());
+        var dlg = new InstallExtensionDialog(new InstallerFacade());
         return dlg.show();
     }
     

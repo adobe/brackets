@@ -395,40 +395,43 @@ define(function (require, exports, module) {
      * @param {WebSocket.Message} message Message object from WebSocket
      */
     NodeConnection.prototype._receive = function (message) {
+        var responseDeferred = null;
+        var m;
         try {
-            var responseDeferred = null;
-            var m = JSON.parse(message.data);
-            switch (m.type) {
-            case "event":
-                $(this).triggerHandler(m.message.domain + "." + m.message.event,
-                                       m.message.parameters);
-                break;
-            case "commandResponse":
-                responseDeferred = this._pendingCommandDeferreds[m.message.id];
-                if (responseDeferred) {
-                    responseDeferred.resolveWith(this, [m.message.response]);
-                    delete this._pendingCommandDeferreds[m.message.id];
-                }
-                break;
-            case "commandError":
-                responseDeferred = this._pendingCommandDeferreds[m.message.id];
-                if (responseDeferred) {
-                    responseDeferred.rejectWith(
-                        this,
-                        [m.message.message, m.message.stack]
-                    );
-                    delete this._pendingCommandDeferreds[m.message.id];
-                }
-                break;
-            case "error":
-                console.error("[NodeConnection] received error: " +
-                                m.message.message);
-                break;
-            default:
-                console.error("[NodeConnection] unknown event type: " + m.type);
-            }
+            m = JSON.parse(message.data);
         } catch (e) {
-            console.error("[NodeConnection] received malformed message", message, e);
+            console.error("[NodeConnection] received malformed message", message, e.message);
+            return;
+        }
+        
+        switch (m.type) {
+        case "event":
+            $(this).triggerHandler(m.message.domain + "." + m.message.event,
+                                   m.message.parameters);
+            break;
+        case "commandResponse":
+            responseDeferred = this._pendingCommandDeferreds[m.message.id];
+            if (responseDeferred) {
+                responseDeferred.resolveWith(this, [m.message.response]);
+                delete this._pendingCommandDeferreds[m.message.id];
+            }
+            break;
+        case "commandError":
+            responseDeferred = this._pendingCommandDeferreds[m.message.id];
+            if (responseDeferred) {
+                responseDeferred.rejectWith(
+                    this,
+                    [m.message.message, m.message.stack]
+                );
+                delete this._pendingCommandDeferreds[m.message.id];
+            }
+            break;
+        case "error":
+            console.error("[NodeConnection] received error: " +
+                            m.message.message);
+            break;
+        default:
+            console.error("[NodeConnection] unknown event type: " + m.type);
         }
     };
     
