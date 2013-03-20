@@ -163,7 +163,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "文件",
-    "CMD_FILE_NEW"                        : "新建",
+    "CMD_FILE_NEW"                        : "新建文件",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "添加至工作集合",
@@ -188,11 +188,11 @@ define({
     "CMD_CUT"                             : "剪切",
     "CMD_COPY"                            : "复制",
     "CMD_PASTE"                           : "粘帖",
-    "CMD_SELECT_ALL"                      : "选择全部",
+    "CMD_SELECT_ALL"                      : "全选",
     "CMD_SELECT_LINE"                     : "选中当前行",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
-    "CMD_FIND_IN_SUBTREE"                 : "在该文件中查找",
+    "CMD_FIND_IN_SUBTREE"                 : "在该位置查找",
     "CMD_FIND_NEXT"                       : "查找下一个",
     "CMD_FIND_PREVIOUS"                   : "查找上一个",
     "CMD_REPLACE"                         : "替换",
@@ -279,6 +279,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "选择编辑器中修改的内容",
     "CLOSE_DONT_SAVE"                      : "放弃保存并关闭",
     "RELAUNCH_CHROME"                      : "重新运行Chrome",
+    "INSTALL"                              : "安装",
     "ABOUT"                                : "关于",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
@@ -302,16 +303,16 @@ define({
     
      // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",
-    "INSTALL_EXTENSION_LABEL"              : "扩展地址",
-    "INSTALL_EXTENSION_HINT"               : "URL地址应该是一个ZIP扩展包.",
+    "INSTALL_EXTENSION_LABEL"              : "扩展包地址",
+    "INSTALL_EXTENSION_HINT"               : "填写一个基于URL的ZIP扩展包地址.",
     "INSTALLING_FROM"                      : "正在安装扩展 {0}...",
     "INSTALL_SUCCEEDED"                    : "安装成功!",
     "INSTALL_FAILED"                       : "安装失败.",
     "INSTALL_CANCELLED"                    : "安装已取消.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
-    "INVALID_ZIP_FILE"                     : "{0}不是一个有效的ZIP包.",
+    "INVALID_ZIP_FILE"                     : "{0}不是一个有效的ZIP文件.",
     "INVALID_PACKAGE_JSON"                 : "扩展包中的JSON文件是无效的. (错误是: {0}).",
-    "MISSING_PACKAGE_NAME"                 : "扩展包名字遗失 {0}.",
+    "MISSING_PACKAGE_NAME"                 : "扩展包名称遗失 {0}.",
     "BAD_PACKAGE_NAME"                     : "{0} 是一个无效扩展包名.",
     "MISSING_PACKAGE_VERSION"              : "扩展包版本遗失 {0}.",
     "INVALID_VERSION_NUMBER"               : "扩展包版本 ({0}) 是一个无效版本号.",
@@ -327,6 +328,7 @@ define({
     "MALFORMED_URL"                        : "无法识别的URL地址.",
     "UNSUPPORTED_PROTOCOL"                 : "不支持此URL协议.",
     "UNKNOWN_ERROR"                        : "未知内部错误.",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
