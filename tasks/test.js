@@ -31,7 +31,7 @@ module.exports = function (grunt) {
         qexec           = q.denodeify(child_process.exec);
     
     // task: test-integration
-    grunt.registerTask("test-integration", "Run tests in brackets-shell", function () {
+    grunt.registerTask("test-integration", "Run tests in brackets-shell. Requires 'grunt full-build' in shell.", function () {
         var done            = this.async(),
             platform        = common.platform(),
             opts            = { cwd: process.cwd() },
@@ -44,7 +44,7 @@ module.exports = function (grunt) {
         if (platform === "win") {
             cmd += " --startup-path=" + specRunnerPath + "?spec=" + spec + "^&resultsPath=" + encodeURIComponent(resultsPath);
         } else if (platform === "mac") {
-            cmd = "open \"" + cmd + "\" --args --startup-path=" + specRunnerPath + "?spec=" + spec + "&resultsPath=" + encodeURIComponent(resultsPath);
+            cmd = "open \"" + cmd + "\" -W --args --startup-path=\"" + specRunnerPath + "?spec=" + spec + "/&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
         }
         
         grunt.log.writeln(cmd);
