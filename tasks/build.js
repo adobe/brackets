@@ -39,7 +39,7 @@ module.exports = function (grunt) {
             opts = { cwd: process.cwd(), maxBuffer: 1024*1024 };
         
         qexec("git log --format=%h", opts).then(function (stdout, stderr) {
-            num = stdout.toString().trim().split("\n").length;
+            num = stdout.toString().match(/[0-9a-f]\n/g).length;
             return qexec("git status", opts);
         }).then(function (stdout, stderr) {
             branch = /On branch (.*)/.exec(stdout.toString().trim())[1];
