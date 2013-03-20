@@ -189,7 +189,7 @@ define(function (require, exports, module) {
                 var data = oldPrefs.getAllValues();
                 
                 if (!$.isEmptyObject(data)) {
-                    newPrefs.setAllValues(data, false);
+                    newPrefs.setAllValues(data, true);
                 }
                 newPrefs.setValue("newClientID", true);
             }
