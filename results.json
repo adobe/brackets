@@ -1,0 +1,3046 @@
+{
+    "activeSuite": "all",
+    "runInfo": {
+        "app": "Brackets",
+        "version": "0.22.0-0",
+        "platform": "win",
+        "startTime": "Tue Mar 19 2013 22:37:29 GMT-0700 (Pacific Daylight Time)",
+        "branch": "jasonsanjose/jenkins",
+        "sha": "a3522f07b5a159925580ba719c194c9259b997bf",
+        "endTime": "Tue Mar 19 2013 22:38:23 GMT-0700 (Pacific Daylight Time)"
+    },
+    "suites": {
+        "CommandManager": {
+            "id": 0,
+            "name": "CommandManager",
+            "specCount": 6,
+            "passedCount": 6,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "CommandManager register and get a command and validate parameters.",
+                    "description": "register and get a command and validate parameters",
+                    "passed": true
+                },
+                {
+                    "name": "CommandManager execute a command.",
+                    "description": "execute a command",
+                    "passed": true
+                },
+                {
+                    "name": "CommandManager not execute a disabled command.",
+                    "description": "not execute a disabled command",
+                    "passed": true
+                },
+                {
+                    "name": "CommandManager set enabled state and trigger enabledStateChange.",
+                    "description": "set enabled state and trigger enabledStateChange",
+                    "passed": true
+                },
+                {
+                    "name": "CommandManager set checked state and trigger checkedStateChange.",
+                    "description": "set checked state and trigger checkedStateChange",
+                    "passed": true
+                },
+                {
+                    "name": "CommandManager rename command trigger nameChange.",
+                    "description": "rename command trigger nameChange",
+                    "passed": true
+                }
+            ]
+        },
+        "Native Menus": {
+            "id": 1,
+            "name": "Native Menus",
+            "specCount": 27,
+            "passedCount": 27,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "Native Menus should have a brackets.app namespace.",
+                    "description": "should have a brackets.app namespace",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenu should add a menu.",
+                    "description": "should add a menu",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenu should return an error if invalid parameters are passed.",
+                    "description": "should return an error if invalid parameters are passed",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenu (with reference) should add new menu in last position of list.",
+                    "description": "should add new menu in last position of list",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenu (with reference) should add new menu after reference menu.",
+                    "description": "should add new menu after reference menu",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenu (with reference) should add new menu before reference menu.",
+                    "description": "should add new menu before reference menu",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenu (with reference) should add new menu at end of list when reference menu doesn't exist.",
+                    "description": "should add new menu at end of list when reference menu doesn't exist",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem should add a menu item.",
+                    "description": "should add a menu item",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem should return an error if invalid parameters are passed.",
+                    "description": "should return an error if invalid parameters are passed",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem (with reference) should add a menu item in first position of menu.",
+                    "description": "should add a menu item in first position of menu",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem (with reference) should add a menu item in last position of menu.",
+                    "description": "should add a menu item in last position of menu",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem (with reference) should add a menu item after the referenced menu item.",
+                    "description": "should add a menu item after the referenced menu item",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem (with reference) should add a menu item before the referenced menu item.",
+                    "description": "should add a menu item before the referenced menu item",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem (with reference) should add a menu item at the end when reference menu item doesn't exist.",
+                    "description": "should add a menu item at the end when reference menu item doesn't exist",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus addMenuItem (with reference) should add menu items to beginning and end of menu section.",
+                    "description": "should add menu items to beginning and end of menu section",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus removeMenu should remove a menu.",
+                    "description": "should remove a menu",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus removeMenu should return an error if invalid parameters are passed.",
+                    "description": "should return an error if invalid parameters are passed",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus removeMenu should return an error if the menu can't be found.",
+                    "description": "should return an error if the menu can't be found",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus removeMenuItem should remove a menu item.",
+                    "description": "should remove a menu item",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus removeMenuItem should return an error if invalid parameters are passed.",
+                    "description": "should return an error if invalid parameters are passed",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus removeMenuItem should return an error if the menu item can't be found.",
+                    "description": "should return an error if the menu item can't be found",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus getMenuItemState setMenuItemState should be able to set enabled state.",
+                    "description": "should be able to set enabled state",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus getMenuItemState setMenuItemState should be able to set checked state.",
+                    "description": "should be able to set checked state",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus getMenuItemState setMenuItemState should return an error if invalid parameters are passed.",
+                    "description": "should return an error if invalid parameters are passed",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus getMenuTitle setMenuTitle should be able to set menu title.",
+                    "description": "should be able to set menu title",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus getMenuTitle setMenuTitle should be able to set menu item title.",
+                    "description": "should be able to set menu item title",
+                    "passed": true
+                },
+                {
+                    "name": "Native Menus getMenuTitle setMenuTitle should return an error if invalid parameters are passed.",
+                    "description": "should return an error if invalid parameters are passed",
+                    "passed": true
+                }
+            ]
+        },
+        "ViewUtils": {
+            "id": 10,
+            "name": "ViewUtils",
+            "specCount": 4,
+            "passedCount": 4,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "ViewUtils Scroller Shadows should not show the top shadow when no scrolling is available.",
+                    "description": "should not show the top shadow when no scrolling is available",
+                    "passed": true
+                },
+                {
+                    "name": "ViewUtils Scroller Shadows should partially reveal the shadow.",
+                    "description": "should partially reveal the shadow",
+                    "passed": true
+                },
+                {
+                    "name": "ViewUtils Scroller Shadows should update shadow position when installed.",
+                    "description": "should update shadow position when installed",
+                    "passed": true
+                },
+                {
+                    "name": "ViewUtils Scroller Shadows should fully reveal the shadow at the bottommost scroll position.",
+                    "description": "should fully reveal the shadow at the bottommost scroll position",
+                    "passed": true
+                }
+            ]
+        },
+        "StringMatch": {
+            "id": 12,
+            "name": "StringMatch",
+            "specCount": 31,
+            "passedCount": 31,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "StringMatch findSpecialCharacters should find the important match characters in the string.",
+                    "description": "should find the important match characters in the string",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _generateMatchList should return undefined for no matches.",
+                    "description": "should return undefined for no matches",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _generateMatchList should return an array with specials matches.",
+                    "description": "should return an array with specials matches",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _generateMatchList should try contiguous matches as well, but prefer specials.",
+                    "description": "should try contiguous matches as well, but prefer specials",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _generateMatchList should handle contiguous matches that stand alone.",
+                    "description": "should handle contiguous matches that stand alone",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _generateMatchList should recognize non-matches.",
+                    "description": "should recognize non-matches",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _generateMatchList should backtrack as needed.",
+                    "description": "should backtrack as needed",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _lastSegmentSearch should compare results in the final segment properly.",
+                    "description": "should compare results in the final segment properly",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _lastSegmentSearch should handle weird comparisons as well.",
+                    "description": "should handle weird comparisons as well",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _lastSegmentSearch should compare matches that don't fit in just the final segment.",
+                    "description": "should compare matches that don't fit in just the final segment",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch _lastSegmentSearch should handle matches that don't fit at all in the final segment.",
+                    "description": "should handle matches that don't fit at all in the final segment",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should return appropriate matching ranges.",
+                    "description": "should return appropriate matching ranges",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should prefer special characters.",
+                    "description": "should prefer special characters",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should place QuickOpen well relative to other quicks.",
+                    "description": "should place QuickOpen well relative to other quicks",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right spec/live.",
+                    "description": "should find the right spec/live",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right samples/index.",
+                    "description": "should find the right samples/index",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right Commands.",
+                    "description": "should find the right Commands",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right extensions.",
+                    "description": "should find the right extensions",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right EUtil.",
+                    "description": "should find the right EUtil",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right ECH.",
+                    "description": "should find the right ECH",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right DMan.",
+                    "description": "should find the right DMan",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right sru.",
+                    "description": "should find the right sru",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right jsutil.",
+                    "description": "should find the right jsutil",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch stringMatch should find the right jsu.",
+                    "description": "should find the right jsu",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch scoring should score consecutive matches across the last segment.",
+                    "description": "should score consecutive matches across the last segment",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch scoring should boost last segment matches, even when searching the whole string.",
+                    "description": "should boost last segment matches, even when searching the whole string",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch scoring should treat the character after _ as a special.",
+                    "description": "should treat the character after _ as a special",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch scoring should penalize matches that don't start on a special.",
+                    "description": "should penalize matches that don't start on a special",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch scoring should try to prioritize points for the last segment.",
+                    "description": "should try to prioritize points for the last segment",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch StringMatcher should manage its caches properly.",
+                    "description": "should manage its caches properly",
+                    "passed": true
+                },
+                {
+                    "name": "StringMatch StringMatcher should handle collisions with built-in members.",
+                    "description": "should handle collisions with built-in members",
+                    "passed": true
+                }
+            ]
+        },
+        "KeyBindingManager": {
+            "id": 20,
+            "name": "KeyBindingManager",
+            "specCount": 19,
+            "passedCount": 19,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "KeyBindingManager addBinding should require command and key binding arguments.",
+                    "description": "should require command and key binding arguments",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should ignore invalid bindings.",
+                    "description": "should ignore invalid bindings",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should add single bindings to the keymap.",
+                    "description": "should add single bindings to the keymap",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should use displayKey to override display of the shortcut.",
+                    "description": "should use displayKey to override display of the shortcut",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should add multiple bindings to the keymap.",
+                    "description": "should add multiple bindings to the keymap",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should allow the command argument to be a string or an object.",
+                    "description": "should allow the command argument to be a string or an object",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should not allow a generic key binding to be replaced with another generic binding.",
+                    "description": "should not allow a generic key binding to be replaced with another generic binding",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should allow a platform-specific key binding to override a generic binding.",
+                    "description": "should allow a platform-specific key binding to override a generic binding",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should keep a platform-specific key binding if a generic binding is added later.",
+                    "description": "should keep a platform-specific key binding if a generic binding is added later",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should allow a command to map to multiple key bindings.",
+                    "description": "should allow a command to map to multiple key bindings",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should support the Ctrl key on mac.",
+                    "description": "should support the Ctrl key on mac",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should use windows key bindings on linux.",
+                    "description": "should use windows key bindings on linux",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager addBinding should support windows compatible bindings.",
+                    "description": "should support windows compatible bindings",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager removeBinding should handle an empty keymap gracefully.",
+                    "description": "should handle an empty keymap gracefully",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager removeBinding should require a key to remove.",
+                    "description": "should require a key to remove",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager removeBinding should remove a key from the key map.",
+                    "description": "should remove a key from the key map",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager removeBinding should remove a key from the key map for the specified platform.",
+                    "description": "should remove a key from the key map for the specified platform",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager removeBinding should exclude a specified platform key binding for a cross-platform command.",
+                    "description": "should exclude a specified platform key binding for a cross-platform command",
+                    "passed": true
+                },
+                {
+                    "name": "KeyBindingManager handleKey should execute a command.",
+                    "description": "should execute a command",
+                    "passed": true
+                }
+            ]
+        },
+        "Code Hint Menus": {
+            "id": 24,
+            "name": "Code Hint Menus",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "HTMLUtils": {
+            "id": 26,
+            "name": "HTMLUtils",
+            "specCount": 27,
+            "passedCount": 27,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "HTMLUtils Html Hinting should not find attribute hints in an empty editor.",
+                    "description": "should not find attribute hints in an empty editor",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find an attribute as a tag is getting typed.",
+                    "description": "should find an attribute as a tag is getting typed",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find an attribute as it's added to a tag.",
+                    "description": "should find an attribute as it's added to a tag",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find an attribute as the value is typed.",
+                    "description": "should find an attribute as the value is typed",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not find an attribute as text is added.",
+                    "description": "should not find an attribute as text is added",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find the attribute value if present.",
+                    "description": "should find the attribute value if present",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find the full attribute as an existing value is changed.",
+                    "description": "should find the full attribute as an existing value is changed",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find the attribute value even when there is space around the =.",
+                    "description": "should find the attribute value even when there is space around the =",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find the attribute value when the IP is after the =.",
+                    "description": "should find the attribute value when the IP is after the =",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find the tagname as it's typed.",
+                    "description": "should find the tagname as it's typed",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should hint tagname as the open < is typed.",
+                    "description": "should hint tagname as the open < is typed",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find the tagname of the current tag if two tags are right next to each other.",
+                    "description": "should find the tagname of the current tag if two tags are right next to each other",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should hint attributes even if there is a lot of space between the tag name and the next attr name.",
+                    "description": "should hint attributes even if there is a lot of space between the tag name and the next attr name",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find the tagname as space is typed before the attr name is added.",
+                    "description": "should find the tagname as space is typed before the attr name is added",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not hint anything after the tag is closed.",
+                    "description": "should not hint anything after the tag is closed",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not hint anything after a closing tag.",
+                    "description": "should not hint anything after a closing tag",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not hint anything inside a closing tag.",
+                    "description": "should not hint anything inside a closing tag",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not find attributes in an empty editor.",
+                    "description": "should not find attributes in an empty editor",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not find attributes before the tag is opened.",
+                    "description": "should not find attributes before the tag is opened",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not find attributes if there isn't a valid tag.",
+                    "description": "should not find attributes if there isn't a valid tag",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not find attributes after the tag is closed.",
+                    "description": "should not find attributes after the tag is closed",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find all the tag attributes immediately after the tag.",
+                    "description": "should find all the tag attributes immediately after the tag",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find all the tag attributes before closing the tag.",
+                    "description": "should find all the tag attributes before closing the tag",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find all the tag attributes backward and forward.",
+                    "description": "should find all the tag attributes backward and forward",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should find valid attributes marked as errors by the tokenizer.",
+                    "description": "should find valid attributes marked as errors by the tokenizer",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not find attributes in nested tags.",
+                    "description": "should not find attributes in nested tags",
+                    "passed": true
+                },
+                {
+                    "name": "HTMLUtils Html Hinting should not find attributes of other tags on an opened tag.",
+                    "description": "should not find attributes of other tags on an opened tag",
+                    "passed": true
+                }
+            ]
+        },
+        "Document": {
+            "id": 28,
+            "name": "Document",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "DocumentCommandHandlers": {
+            "id": 30,
+            "name": "DocumentCommandHandlers",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Editor": {
+            "id": 35,
+            "name": "Editor",
+            "specCount": 10,
+            "passedCount": 10,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "Editor Editor wrapper should initialize with content.",
+                    "description": "should initialize with content",
+                    "passed": true
+                },
+                {
+                    "name": "Editor Editor wrapper should trigger a synchronous Document change event when an edit is performed.",
+                    "description": "should trigger a synchronous Document change event when an edit is performed",
+                    "passed": true
+                },
+                {
+                    "name": "Editor File extension to mode mapping should switch to the HTML mode for files ending in .html.",
+                    "description": "should switch to the HTML mode for files ending in .html",
+                    "passed": true
+                },
+                {
+                    "name": "Editor File extension to mode mapping should switch modes even if the url has a query string.",
+                    "description": "should switch modes even if the url has a query string",
+                    "passed": true
+                },
+                {
+                    "name": "Editor File extension to mode mapping should accept just a file name too.",
+                    "description": "should accept just a file name too",
+                    "passed": true
+                },
+                {
+                    "name": "Editor File extension to mode mapping should default to plain text for unknown file extensions.",
+                    "description": "should default to plain text for unknown file extensions",
+                    "passed": true
+                },
+                {
+                    "name": "Editor Focus should not have focus until explicitly set.",
+                    "description": "should not have focus until explicitly set",
+                    "passed": true
+                },
+                {
+                    "name": "Editor Focus should be able to detect when it has focus.",
+                    "description": "should be able to detect when it has focus",
+                    "passed": true
+                },
+                {
+                    "name": "Editor getModeForSelection() should get mode in homogenous file.",
+                    "description": "should get mode in homogenous file",
+                    "passed": true
+                },
+                {
+                    "name": "Editor getModeForSelection() should get mode in HTML file.",
+                    "description": "should get mode in HTML file",
+                    "passed": true
+                }
+            ]
+        },
+        "EditorManager": {
+            "id": 40,
+            "name": "EditorManager",
+            "specCount": 12,
+            "passedCount": 12,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "EditorManager resizeEditor() flag options should refresh if force is specified even if no width or height change.",
+                    "description": "should refresh if force is specified even if no width or height change",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should refresh if force is specified when width changed but height hasn't.",
+                    "description": "should refresh if force is specified when width changed but height hasn't",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should refresh if force is specified when height changed but width hasn't.",
+                    "description": "should refresh if force is specified when height changed but width hasn't",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should refresh if force is specified when both height and width changed.",
+                    "description": "should refresh if force is specified when both height and width changed",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should NOT refresh if skip is specified if no width or height change.",
+                    "description": "should NOT refresh if skip is specified if no width or height change",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should NOT refresh if skip is specified when width changed but height hasn't.",
+                    "description": "should NOT refresh if skip is specified when width changed but height hasn't",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should NOT refresh if skip is specified when height changed but width hasn't.",
+                    "description": "should NOT refresh if skip is specified when height changed but width hasn't",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should NOT refresh if skip is specified when both height and width changed.",
+                    "description": "should NOT refresh if skip is specified when both height and width changed",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should NOT refresh if unspecified if no width or height change.",
+                    "description": "should NOT refresh if unspecified if no width or height change",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should refresh if unspecified when width changed but height hasn't.",
+                    "description": "should refresh if unspecified when width changed but height hasn't",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should refresh if unspecified when height changed but width hasn't.",
+                    "description": "should refresh if unspecified when height changed but width hasn't",
+                    "passed": true
+                },
+                {
+                    "name": "EditorManager resizeEditor() flag options should refresh if unspecified when both height and width changed.",
+                    "description": "should refresh if unspecified when both height and width changed",
+                    "passed": true
+                }
+            ]
+        },
+        "Extension Installation": {
+            "id": 42,
+            "name": "Extension Installation",
+            "specCount": 2,
+            "passedCount": 2,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "Extension Installation should return information about a valid file.",
+                    "description": "should return information about a valid file",
+                    "passed": true
+                },
+                {
+                    "name": "Extension Installation should detect missing metadata.",
+                    "description": "should detect missing metadata",
+                    "passed": true
+                }
+            ]
+        },
+        "Extension Utils": {
+            "id": 43,
+            "name": "Extension Utils",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "FileIndexManager": {
+            "id": 45,
+            "name": "FileIndexManager",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "FindReplace": {
+            "id": 46,
+            "name": "FindReplace",
+            "specCount": 26,
+            "passedCount": 26,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "FindReplace Search should find all case-insensitive matches.",
+                    "description": "should find all case-insensitive matches",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Search should find all case-sensitive matches.",
+                    "description": "should find all case-sensitive matches",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Search should Find Next after search bar closed, including wraparound.",
+                    "description": "should Find Next after search bar closed, including wraparound",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Search should Find Previous after search bar closed, including wraparound.",
+                    "description": "should Find Previous after search bar closed, including wraparound",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Search shouldn't Find Next after search bar reopened.",
+                    "description": "shouldn't Find Next after search bar reopened",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Search should open search bar on Find Next with no previous search.",
+                    "description": "should open search bar on Find Next with no previous search",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Search should select-all without affecting search state if Find invoked while search bar open.",
+                    "description": "should select-all without affecting search state if Find invoked while search bar open",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Incremental search should re-search from original position when text changes.",
+                    "description": "should re-search from original position when text changes",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Incremental search should re-search from original position when text changes, even after Find Next.",
+                    "description": "should re-search from original position when text changes, even after Find Next",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Incremental search should extend original selection when appending to prepopulated text.",
+                    "description": "should extend original selection when appending to prepopulated text",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Incremental search should collapse selection when appending to prepopulated text causes no result.",
+                    "description": "should collapse selection when appending to prepopulated text causes no result",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Incremental search should clear selection, return cursor to start after backspacing to empty query.",
+                    "description": "should clear selection, return cursor to start after backspacing to empty query",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Terminating search should go to next on Enter with prepopulated text & no Find Nexts.",
+                    "description": "should go to next on Enter with prepopulated text & no Find Nexts",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Terminating search shouldn't change selection on Esc with prepopulated text & no Find Nexts.",
+                    "description": "shouldn't change selection on Esc with prepopulated text & no Find Nexts",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Terminating search shouldn't change selection on Enter with prepopulated text & after Find Next.",
+                    "description": "shouldn't change selection on Enter with prepopulated text & after Find Next",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Terminating search shouldn't change selection on Enter after typing text, no Find Nexts.",
+                    "description": "shouldn't change selection on Enter after typing text, no Find Nexts",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Terminating search shouldn't change selection on Enter after typing text & Find Next.",
+                    "description": "shouldn't change selection on Enter after typing text & Find Next",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Terminating search should no-op on Find Next with blank search.",
+                    "description": "should no-op on Find Next with blank search",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace Terminating search should no-op on Enter with blank search.",
+                    "description": "should no-op on Enter with blank search",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace RegExp Search should find based on regexp.",
+                    "description": "should find based on regexp",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace RegExp Search should be a case-sensitive regexp by default.",
+                    "description": "should be a case-sensitive regexp by default",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace RegExp Search should support case-insensitive regexps via /.../i.",
+                    "description": "should support case-insensitive regexps via /.../i",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace RegExp Search shouldn't choke on partial regexp.",
+                    "description": "shouldn't choke on partial regexp",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace RegExp Search shouldn't choke on invalid regexp.",
+                    "description": "shouldn't choke on invalid regexp",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace RegExp Search shouldn't choke on empty regexp.",
+                    "description": "shouldn't choke on empty regexp",
+                    "passed": true
+                },
+                {
+                    "name": "FindReplace RegExp Search shouldn't freeze on /.*/ regexp.",
+                    "description": "shouldn't freeze on /.*/ regexp",
+                    "passed": true
+                }
+            ]
+        },
+        "Install Extension Dialog": {
+            "id": 51,
+            "name": "Install Extension Dialog",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "EditorCommandHandlers": {
+            "id": 52,
+            "name": "EditorCommandHandlers",
+            "specCount": 137,
+            "passedCount": 137,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment a single line, cursor at start.",
+                    "description": "should comment/uncomment a single line, cursor at start",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment a single line, cursor at end.",
+                    "description": "should comment/uncomment a single line, cursor at end",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment first line in file.",
+                    "description": "should comment/uncomment first line in file",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment a single partly-selected line.",
+                    "description": "should comment/uncomment a single partly-selected line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment a single selected line.",
+                    "description": "should comment/uncomment a single selected line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment a single fully-selected line (including LF).",
+                    "description": "should comment/uncomment a single fully-selected line (including LF)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment multiple selected lines.",
+                    "description": "should comment/uncomment multiple selected lines",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment ragged multi-line selection.",
+                    "description": "should comment/uncomment ragged multi-line selection",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment when selection starts & ends on whitespace lines.",
+                    "description": "should comment/uncomment when selection starts & ends on whitespace lines",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should do nothing on whitespace line.",
+                    "description": "should do nothing on whitespace line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should do nothing when only whitespace lines selected.",
+                    "description": "should do nothing when only whitespace lines selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment after select all.",
+                    "description": "should comment/uncomment after select all",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment lines that were partially commented out already, our style.",
+                    "description": "should comment/uncomment lines that were partially commented out already, our style",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should comment/uncomment lines that were partially commented out already, comment closer to code.",
+                    "description": "should comment/uncomment lines that were partially commented out already, comment closer to code",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should uncomment indented, aligned comments.",
+                    "description": "should uncomment indented, aligned comments",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment/uncomment should uncomment ragged partial comments.",
+                    "description": "should uncomment ragged partial comments",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment in languages with mutiple line comment prefixes should comment using the first prefix.",
+                    "description": "should comment using the first prefix",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment in languages with mutiple line comment prefixes should uncomment every prefix.",
+                    "description": "should uncomment every prefix",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment in languages with mutiple line comment prefixes should only uncomment the first prefix.",
+                    "description": "should only uncomment the first prefix",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, cursor at start of line.",
+                    "description": "should block comment/uncomment, cursor at start of line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, cursor to left of existing block comment.",
+                    "description": "should block comment/uncomment, cursor to left of existing block comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, subset of line selected.",
+                    "description": "should block comment/uncomment, subset of line selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, cursor within existing sub-line block comment.",
+                    "description": "should block uncomment, cursor within existing sub-line block comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covering whole sub-line block comment.",
+                    "description": "should block uncomment, selection covering whole sub-line block comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, selection from mid-line end of line.",
+                    "description": "should block comment/uncomment, selection from mid-line end of line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, all of line selected but not newline.",
+                    "description": "should block comment/uncomment, all of line selected but not newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, all of line selected including newline.",
+                    "description": "should block comment/uncomment, all of line selected including newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, multiple lines selected.",
+                    "description": "should block comment/uncomment, multiple lines selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block comment/uncomment, multiple partial lines selected.",
+                    "description": "should block comment/uncomment, multiple partial lines selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, cursor in whitespace within block comment.",
+                    "description": "should block uncomment, cursor in whitespace within block comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection in whitespace within block comment.",
+                    "description": "should block uncomment, selection in whitespace within block comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covers block comment plus whitespace before.",
+                    "description": "should block uncomment, selection covers block comment plus whitespace before",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covers block comment plus whitespace after.",
+                    "description": "should block uncomment, selection covers block comment plus whitespace after",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covers part of block comment plus whitespace before.",
+                    "description": "should block uncomment, selection covers part of block comment plus whitespace before",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covers part of block comment plus whitespace after.",
+                    "description": "should block uncomment, selection covers part of block comment plus whitespace after",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covers block comment plus whitespace on both sides.",
+                    "description": "should block uncomment, selection covers block comment plus whitespace on both sides",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covers block comment plus other text.",
+                    "description": "should block uncomment, selection covers block comment plus other text",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should block uncomment, selection covers multi-line block comment plus other text.",
+                    "description": "should block uncomment, selection covers multi-line block comment plus other text",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should do nothing, selection covers parts of multiple block comments.",
+                    "description": "should do nothing, selection covers parts of multiple block comments",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should do nothing, selection covers all of multiple block comments.",
+                    "description": "should do nothing, selection covers all of multiple block comments",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should do nothing, selection covers multiple block comments & nothing else.",
+                    "description": "should do nothing, selection covers multiple block comments & nothing else",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment/uncomment should do nothing, selection covers multiple block comments plus other text.",
+                    "description": "should do nothing, selection covers multiple block comments plus other text",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment mode, cursor inside line comment (with only whitespace to left).",
+                    "description": "should switch to line uncomment mode, cursor inside line comment (with only whitespace to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, cursor in whitespace to left of line comment.",
+                    "description": "should switch to line uncomment, cursor in whitespace to left of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, some of line-comment selected (only whitespace to left).",
+                    "description": "should switch to line uncomment, some of line-comment selected (only whitespace to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, some of line-comment selected including last char (only whitespace to left).",
+                    "description": "should switch to line uncomment, some of line-comment selected including last char (only whitespace to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, all of line-comment selected (only whitespace to left).",
+                    "description": "should switch to line uncomment, all of line-comment selected (only whitespace to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should insert block comment, cursor inside line comment (with code to left).",
+                    "description": "should insert block comment, cursor inside line comment (with code to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should insert block comment, cursor in code to left of line comment.",
+                    "description": "should insert block comment, cursor in code to left of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, some of line-comment selected (with code to left).",
+                    "description": "should block comment, some of line-comment selected (with code to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, some of line-comment selected including last char (with code to left).",
+                    "description": "should block comment, some of line-comment selected including last char (with code to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, all of line-comment selected (with code to left).",
+                    "description": "should block comment, all of line-comment selected (with code to left)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, all of line-comment line selected (following line is code).",
+                    "description": "should switch to line uncomment, all of line-comment line selected (following line is code)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, all of line-comment line selected (following line is whitespace).",
+                    "description": "should switch to line uncomment, all of line-comment line selected (following line is whitespace)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, all of line-comment line selected (following line is line comment).",
+                    "description": "should switch to line uncomment, all of line-comment line selected (following line is line comment)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment, all of line-comment line selected (following line is block comment).",
+                    "description": "should switch to line uncomment, all of line-comment line selected (following line is block comment)",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should line uncomment, multiple line comments selected.",
+                    "description": "should line uncomment, multiple line comments selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should line uncomment, multiline selection covers line comment plus whitespace.",
+                    "description": "should line uncomment, multiline selection covers line comment plus whitespace",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment mode, selection starts in whitespace & ends in middle of line comment.",
+                    "description": "should switch to line uncomment mode, selection starts in whitespace & ends in middle of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should switch to line uncomment mode, selection starts in whitespace & ends at end of line comment.",
+                    "description": "should switch to line uncomment mode, selection starts in whitespace & ends at end of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, selection starts in code & ends in middle of line comment.",
+                    "description": "should block comment, selection starts in code & ends in middle of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, selection starts in middle of code & ends at end of line comment.",
+                    "description": "should block comment, selection starts in middle of code & ends at end of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, selection starts in code & ends at end of line comment.",
+                    "description": "should block comment, selection starts in code & ends at end of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, selection starts at col 0 of code & ends at end of line comment.",
+                    "description": "should block comment, selection starts at col 0 of code & ends at end of line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, selection starts on line with line comment.",
+                    "description": "should block comment, selection starts on line with line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should block comment, selection ends on line with line comment.",
+                    "description": "should block comment, selection ends on line with line comment",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Block comment around line comments should line uncomment, selection covers several line comments separated by whitespace.",
+                    "description": "should line uncomment, selection covers several line comments separated by whitespace",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should block-comment entire line that cursor is in.",
+                    "description": "should block-comment entire line that cursor is in",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should block-comment entire line that sub-line selection is in.",
+                    "description": "should block-comment entire line that sub-line selection is in",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should block-comment full multi-line selection.",
+                    "description": "should block-comment full multi-line selection",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should block-comment partial multi-line selection as if it were full.",
+                    "description": "should block-comment partial multi-line selection as if it were full",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should uncomment multi-line block comment selection, selected exactly.",
+                    "description": "should uncomment multi-line block comment selection, selected exactly",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should uncomment multi-line block comment selection, selected including trailing newline.",
+                    "description": "should uncomment multi-line block comment selection, selected including trailing newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should uncomment multi-line block comment selection, only start selected.",
+                    "description": "should uncomment multi-line block comment selection, only start selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should uncomment multi-line block comment selection, only middle selected.",
+                    "description": "should uncomment multi-line block comment selection, only middle selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should uncomment multi-line block comment selection, only end selected.",
+                    "description": "should uncomment multi-line block comment selection, only end selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should uncomment multi-line block comment selection, only end selected, ends at EOF.",
+                    "description": "should uncomment multi-line block comment selection, only end selected, ends at EOF",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Line comment auto-switching to block comment should uncomment multi-line block comment that cursor is in.",
+                    "description": "should uncomment multi-line block comment that cursor is in",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Comment/uncomment with mixed syntax modes should block comment/uncomment generic HTML code.",
+                    "description": "should block comment/uncomment generic HTML code",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Comment/uncomment with mixed syntax modes should block comment/uncomment generic CSS code.",
+                    "description": "should block comment/uncomment generic CSS code",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Comment/uncomment with mixed syntax modes should line comment/uncomment generic JS code.",
+                    "description": "should line comment/uncomment generic JS code",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Comment/uncomment with mixed syntax modes should block comment/uncomment generic JS code.",
+                    "description": "should block comment/uncomment generic JS code",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Comment/uncomment with mixed syntax modes should HTML comment/uncomment around outside of <style> block.",
+                    "description": "should HTML comment/uncomment around outside of <style> block",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Comment/uncomment with mixed syntax modes shouldn't comment anything when selection mixes modes.",
+                    "description": "shouldn't comment anything when selection mixes modes",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate whole line if no selection.",
+                    "description": "should duplicate whole line if no selection",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate line + \n if selected line is at end of file.",
+                    "description": "should duplicate line + \n if selected line is at end of file",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate first line.",
+                    "description": "should duplicate first line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate empty line.",
+                    "description": "should duplicate empty line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate selection within a line.",
+                    "description": "should duplicate selection within a line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate when entire line selected, excluding newline.",
+                    "description": "should duplicate when entire line selected, excluding newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate when entire line selected, including newline.",
+                    "description": "should duplicate when entire line selected, including newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate when multiple lines selected.",
+                    "description": "should duplicate when multiple lines selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate selection crossing line boundary.",
+                    "description": "should duplicate selection crossing line boundary",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Duplicate should duplicate after select all.",
+                    "description": "should duplicate after select all",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move whole line up if no selection.",
+                    "description": "should move whole line up if no selection",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move whole line down if no selection.",
+                    "description": "should move whole line down if no selection",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down shouldn't move up first line.",
+                    "description": "shouldn't move up first line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down shouldn't move down last line.",
+                    "description": "shouldn't move down last line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move up empty line.",
+                    "description": "should move up empty line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move down empty line.",
+                    "description": "should move down empty line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move up when entire line selected, excluding newline.",
+                    "description": "should move up when entire line selected, excluding newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move down when entire line selected, excluding newline.",
+                    "description": "should move down when entire line selected, excluding newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move up when entire line selected, including newline.",
+                    "description": "should move up when entire line selected, including newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move down when entire line selected, including newline.",
+                    "description": "should move down when entire line selected, including newline",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move up when multiple lines selected.",
+                    "description": "should move up when multiple lines selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move down when multiple lines selected.",
+                    "description": "should move down when multiple lines selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move up selection crossing line boundary.",
+                    "description": "should move up selection crossing line boundary",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move down selection crossing line boundary.",
+                    "description": "should move down selection crossing line boundary",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move the last line up.",
+                    "description": "should move the last line up",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move the first line down.",
+                    "description": "should move the first line down",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move the last lines up.",
+                    "description": "should move the last lines up",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down should move the first lines down.",
+                    "description": "should move the first lines down",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down shouldn't move up after select all.",
+                    "description": "shouldn't move up after select all",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Move Lines Up/Down shouldn't move down after select all.",
+                    "description": "shouldn't move down after select all",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete the first line when selection is an IP in that line.",
+                    "description": "should delete the first line when selection is an IP in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete the first line when selection is a range in that line.",
+                    "description": "should delete the first line when selection is a range in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete a middle line when selection is an IP in that line.",
+                    "description": "should delete a middle line when selection is an IP in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete a middle line when selection is a range in that line.",
+                    "description": "should delete a middle line when selection is a range in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete the last line when selection is an IP in that line.",
+                    "description": "should delete the last line when selection is an IP in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete the last line when selection is a range in that line.",
+                    "description": "should delete the last line when selection is a range in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete multiple lines starting at the top when selection spans them.",
+                    "description": "should delete multiple lines starting at the top when selection spans them",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should delete multiple lines ending at the bottom when selection spans them.",
+                    "description": "should delete multiple lines ending at the bottom when selection spans them",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line should leave empty text when all lines are selected.",
+                    "description": "should leave empty text when all lines are selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line - editor with visible range should delete the top line of the visible range.",
+                    "description": "should delete the top line of the visible range",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line - editor with visible range should delete the bottom line of the visible range.",
+                    "description": "should delete the bottom line of the visible range",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line - editor with visible range should leave a single newline when all visible lines are selected.",
+                    "description": "should leave a single newline when all visible lines are selected",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Delete Line - editor with visible range should leave a single newline when only one line is visible.",
+                    "description": "should leave a single newline when only one line is visible",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line should select the first line with IP in that line.",
+                    "description": "should select the first line with IP in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line should select the last line with IP in that line.",
+                    "description": "should select the last line with IP in that line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line should select all in one-line file.",
+                    "description": "should select all in one-line file",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line should extend selection to whole line.",
+                    "description": "should extend selection to whole line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line should extend whole line selection to next line.",
+                    "description": "should extend whole line selection to next line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line should extend multi-line selection to full lines.",
+                    "description": "should extend multi-line selection to full lines",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line should extend full multi-line selection to one more line.",
+                    "description": "should extend full multi-line selection to one more line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line - editor with visible range shouldn't select past end of visible range, IP in middle of last visible line.",
+                    "description": "shouldn't select past end of visible range, IP in middle of last visible line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line - editor with visible range shouldn't select past end of visible range, IP at start of last visible line.",
+                    "description": "shouldn't select past end of visible range, IP at start of last visible line",
+                    "passed": true
+                },
+                {
+                    "name": "EditorCommandHandlers Select Line - editor with visible range should extend selection to include last line of visible range.",
+                    "description": "should extend selection to include last line of visible range",
+                    "passed": true
+                }
+            ]
+        },
+        "LowLevelFileIO": {
+            "id": 65,
+            "name": "LowLevelFileIO",
+            "specCount": 27,
+            "passedCount": 27,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "LowLevelFileIO should have a brackets.fs namespace.",
+                    "description": "should have a brackets.fs namespace",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readdir should read a directory from disk.",
+                    "description": "should read a directory from disk",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readdir should return an error if the directory doesn't exist.",
+                    "description": "should return an error if the directory doesn't exist",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readdir should return an error if the directory can't be read (Mac only).",
+                    "description": "should return an error if the directory can't be read (Mac only)",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readdir should return an error if invalid parameters are passed.",
+                    "description": "should return an error if invalid parameters are passed",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO stat should return correct information for a directory.",
+                    "description": "should return correct information for a directory",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO stat should return correct information for a file.",
+                    "description": "should return correct information for a file",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO stat should return an error if the file/directory doesn't exist.",
+                    "description": "should return an error if the file/directory doesn't exist",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO stat should return an error if incorrect parameters are passed.",
+                    "description": "should return an error if incorrect parameters are passed",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readFile should read a text file.",
+                    "description": "should read a text file",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readFile should return an error if trying to read a non-existent file.",
+                    "description": "should return an error if trying to read a non-existent file",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readFile should return an error if trying to use an unsppported encoding.",
+                    "description": "should return an error if trying to use an unsppported encoding",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readFile should return an error if called with invalid parameters.",
+                    "description": "should return an error if called with invalid parameters",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO readFile should return an error if trying to read a directory.",
+                    "description": "should return an error if trying to read a directory",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO writeFile should write the entire contents of a file.",
+                    "description": "should write the entire contents of a file",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO writeFile should return an error if the file can't be written (Mac only).",
+                    "description": "should return an error if the file can't be written (Mac only)",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO writeFile should return an error if called with invalid parameters.",
+                    "description": "should return an error if called with invalid parameters",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO writeFile should return an error if trying to write a directory.",
+                    "description": "should return an error if trying to write a directory",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO unlink should remove a file.",
+                    "description": "should remove a file",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO unlink should return an error if the file doesn't exist.",
+                    "description": "should return an error if the file doesn't exist",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO unlink should return an error if the a directory is specified.",
+                    "description": "should return an error if the a directory is specified",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO unlink should return an error if called with invalid parameters.",
+                    "description": "should return an error if called with invalid parameters",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO mkdir should make a new directory.",
+                    "description": "should make a new directory",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO rename should rename a file.",
+                    "description": "should rename a file",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO rename should rename a folder.",
+                    "description": "should rename a folder",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO rename should return an error if the new name already exists.",
+                    "description": "should return an error if the new name already exists",
+                    "passed": true
+                },
+                {
+                    "name": "LowLevelFileIO rename should return an error if the parent folder is read only (Mac only).",
+                    "description": "should return an error if the parent folder is read only (Mac only)",
+                    "passed": true
+                }
+            ]
+        },
+        "InlineEditorProviders": {
+            "id": 73,
+            "name": "InlineEditorProviders",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "MultiRangeInlineEditor": {
+            "id": 80,
+            "name": "MultiRangeInlineEditor",
+            "specCount": 8,
+            "passedCount": 8,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "MultiRangeInlineEditor should initialize to a default state.",
+                    "description": "should initialize to a default state",
+                    "passed": true
+                },
+                {
+                    "name": "MultiRangeInlineEditor should load a single rule and initialize htmlContent and editor.",
+                    "description": "should load a single rule and initialize htmlContent and editor",
+                    "passed": true
+                },
+                {
+                    "name": "MultiRangeInlineEditor should contain a rule list widget displaying info for each rule.",
+                    "description": "should contain a rule list widget displaying info for each rule",
+                    "passed": true
+                },
+                {
+                    "name": "MultiRangeInlineEditor should change selection to the next rule.",
+                    "description": "should change selection to the next rule",
+                    "passed": true
+                },
+                {
+                    "name": "MultiRangeInlineEditor should change selection to the previous rule.",
+                    "description": "should change selection to the previous rule",
+                    "passed": true
+                },
+                {
+                    "name": "MultiRangeInlineEditor should retreive all rules.",
+                    "description": "should retreive all rules",
+                    "passed": true
+                },
+                {
+                    "name": "MultiRangeInlineEditor should retreive the selected rule.",
+                    "description": "should retreive the selected rule",
+                    "passed": true
+                },
+                {
+                    "name": "MultiRangeInlineEditor should close and return to the host editor.",
+                    "description": "should close and return to the host editor",
+                    "passed": true
+                }
+            ]
+        },
+        "Menus": {
+            "id": 81,
+            "name": "Menus",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "NativeFileSystem": {
+            "id": 83,
+            "name": "NativeFileSystem",
+            "specCount": 20,
+            "passedCount": 20,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "NativeFileSystem Reading a directory should read a directory from disk.",
+                    "description": "should read a directory from disk",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a directory should return an error if the directory doesn't exist.",
+                    "description": "should return an error if the directory doesn't exist",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a directory should return an error if you pass a bad parameter.",
+                    "description": "should return an error if you pass a bad parameter",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a directory should be okay to not pass an error callback.",
+                    "description": "should be okay to not pass an error callback",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a directory can read an empty folder.",
+                    "description": "can read an empty folder",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a directory should timeout with error when reading dir if low-level stat call takes too long.",
+                    "description": "should timeout with error when reading dir if low-level stat call takes too long",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a file should read a file from disk.",
+                    "description": "should read a file from disk",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a file should read a file from disk with lower case encoding.",
+                    "description": "should read a file from disk with lower case encoding",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a file should read a file from disk with upper case encoding.",
+                    "description": "should read a file from disk with upper case encoding",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a file should return an error if the file is not found.",
+                    "description": "should return an error if the file is not found",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a file should fire appropriate events when the file is done loading.",
+                    "description": "should fire appropriate events when the file is done loading",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Reading a file should return an error but not crash if you create a bad FileEntry.",
+                    "description": "should return an error but not crash if you create a bad FileEntry",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should create new, zero-length files.",
+                    "description": "should create new, zero-length files",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should report an error when a file does not exist and create = false.",
+                    "description": "should report an error when a file does not exist and create = false",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should return an error if file exists and exclusive is true.",
+                    "description": "should return an error if file exists and exclusive is true",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should return an error if the path is a directory.",
+                    "description": "should return an error if the path is a directory",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should create overwrite files with new content.",
+                    "description": "should create overwrite files with new content",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should write an empty file.",
+                    "description": "should write an empty file",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should report an error when writing to a file that cannot be read (Mac only).",
+                    "description": "should report an error when writing to a file that cannot be read (Mac only)",
+                    "passed": true
+                },
+                {
+                    "name": "NativeFileSystem Writing should report an error when writing to a file that cannot be written.",
+                    "description": "should report an error when writing to a file that cannot be written",
+                    "passed": true
+                }
+            ]
+        },
+        "Node Connection": {
+            "id": 87,
+            "name": "Node Connection",
+            "specCount": 7,
+            "passedCount": 7,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "Node Connection should not crash when attempting to load malformed domains.",
+                    "description": "should not crash when attempting to load malformed domains",
+                    "passed": true
+                },
+                {
+                    "name": "Node Connection should execute synchronous commands.",
+                    "description": "should execute synchronous commands",
+                    "passed": true
+                },
+                {
+                    "name": "Node Connection should execute asynchronous commands.",
+                    "description": "should execute asynchronous commands",
+                    "passed": true
+                },
+                {
+                    "name": "Node Connection should receive events.",
+                    "description": "should receive events",
+                    "passed": true
+                },
+                {
+                    "name": "Node Connection should receive command errors and continue to run.",
+                    "description": "should receive command errors and continue to run",
+                    "passed": true
+                },
+                {
+                    "name": "Node Connection should be robust to malformed messages.",
+                    "description": "should be robust to malformed messages",
+                    "passed": true
+                },
+                {
+                    "name": "Node Connection should restart and automatically reconnect/reload.",
+                    "description": "should restart and automatically reconnect/reload",
+                    "passed": true
+                }
+            ]
+        },
+        "PreferenceStorage": {
+            "id": 88,
+            "name": "PreferenceStorage",
+            "specCount": 6,
+            "passedCount": 6,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "PreferenceStorage should read initial preferences from JSON.",
+                    "description": "should read initial preferences from JSON",
+                    "passed": true
+                },
+                {
+                    "name": "PreferenceStorage should store values as JSON.",
+                    "description": "should store values as JSON",
+                    "passed": true
+                },
+                {
+                    "name": "PreferenceStorage should output preferences as JSON.",
+                    "description": "should output preferences as JSON",
+                    "passed": true
+                },
+                {
+                    "name": "PreferenceStorage should remove values.",
+                    "description": "should remove values",
+                    "passed": true
+                },
+                {
+                    "name": "PreferenceStorage should use setAllValues to append multiple new name/value pairs.",
+                    "description": "should use setAllValues to append multiple new name/value pairs",
+                    "passed": true
+                },
+                {
+                    "name": "PreferenceStorage should throw errors for invalid values.",
+                    "description": "should throw errors for invalid values",
+                    "passed": true
+                }
+            ]
+        },
+        "PreferencesManager": {
+            "id": 89,
+            "name": "PreferencesManager",
+            "specCount": 1,
+            "passedCount": 1,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "PreferencesManager should use default preferences.",
+                    "description": "should use default preferences",
+                    "passed": true
+                }
+            ]
+        },
+        "ProjectManager": {
+            "id": 90,
+            "name": "ProjectManager",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "QuickOpen": {
+            "id": 93,
+            "name": "QuickOpen",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "UpdateNotification": {
+            "id": 94,
+            "name": "UpdateNotification",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "WorkingSetView": {
+            "id": 95,
+            "name": "WorkingSetView",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Performance Tests": {
+            "id": 96,
+            "name": "Performance Tests",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "LanguageManager": {
+            "id": 97,
+            "name": "LanguageManager",
+            "specCount": 18,
+            "passedCount": 18,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "LanguageManager built-in languages should support built-in languages.",
+                    "description": "should support built-in languages",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager LanguageManager API should map identifiers to languages.",
+                    "description": "should map identifiers to languages",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager LanguageManager API should map file extensions to languages.",
+                    "description": "should map file extensions to languages",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager LanguageManager API should map file names to languages.",
+                    "description": "should map file names to languages",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should create a basic language.",
+                    "description": "should create a basic language",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should log errors for invalid language id values.",
+                    "description": "should log errors for invalid language id values",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should log errors for invalid language name values.",
+                    "description": "should log errors for invalid language name values",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should log errors for missing mode value.",
+                    "description": "should log errors for missing mode value",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should create a language with file extensions and a mode.",
+                    "description": "should create a language with file extensions and a mode",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should allow multiple languages to use the same mode.",
+                    "description": "should allow multiple languages to use the same mode",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should return an error if a language is already defined.",
+                    "description": "should return an error if a language is already defined",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should validate comment prefix/suffix.",
+                    "description": "should validate comment prefix/suffix",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should validate multiple line comment prefixes.",
+                    "description": "should validate multiple line comment prefixes",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager defineLanguage should load a built-in CodeMirror mode.",
+                    "description": "should load a built-in CodeMirror mode",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager rename file extension should update the document's language when a file is renamed.",
+                    "description": "should update the document's language when a file is renamed",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager rename file extension should update the document's language when a language is added.",
+                    "description": "should update the document's language when a language is added",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager rename file extension should update the document's language when a language is added.",
+                    "description": "should update the document's language when a language is added",
+                    "passed": true
+                },
+                {
+                    "name": "LanguageManager rename file extension should update the document's language when a language is modified.",
+                    "description": "should update the document's language when a language is modified",
+                    "passed": true
+                }
+            ]
+        },
+        "JSUtils": {
+            "id": 102,
+            "name": "JSUtils",
+            "specCount": 30,
+            "passedCount": 30,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "JSUtils basics should parse an empty string.",
+                    "description": "should parse an empty string",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should return correct start and end line numbers for simple functions.",
+                    "description": "should return correct start and end line numbers for simple functions",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should return correct start and end line numbers for parameterized functions.",
+                    "description": "should return correct start and end line numbers for parameterized functions",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should return correct start and end line numbers for single line functions.",
+                    "description": "should return correct start and end line numbers for single line functions",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should return correct start and end line numbers for nested functions.",
+                    "description": "should return correct start and end line numbers for nested functions",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should return correct start and end line numbers for functions with keyword 'function' in name.",
+                    "description": "should return correct start and end line numbers for functions with keyword 'function' in name",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should ignore identifiers with whitespace.",
+                    "description": "should ignore identifiers with whitespace",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should return correct start and end line numbers for prototype method declarations.",
+                    "description": "should return correct start and end line numbers for prototype method declarations",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should handle various whitespace variations.",
+                    "description": "should handle various whitespace variations",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should work with high-ascii characters in function names.",
+                    "description": "should work with high-ascii characters in function names",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should work with unicode characters in or around function names.",
+                    "description": "should work with unicode characters in or around function names",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should work when colliding with prototype properties.",
+                    "description": "should work when colliding with prototype properties",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils line offsets should fail with invalid function names.",
+                    "description": "should fail with invalid function names",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle a simple function.",
+                    "description": "should handle a simple function",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle nested braces.",
+                    "description": "should handle nested braces",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle a nested function.",
+                    "description": "should handle a nested function",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle an end brace in a string.",
+                    "description": "should handle an end brace in a string",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle an end brace in a single-quoted string.",
+                    "description": "should handle an end brace in a single-quoted string",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle an end brace in a line comment.",
+                    "description": "should handle an end brace in a line comment",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle an end brace in a block comment.",
+                    "description": "should handle an end brace in a block comment",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle an end brace in a multiline block comment.",
+                    "description": "should handle an end brace in a multiline block comment",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle an end brace in a regexp.",
+                    "description": "should handle an end brace in a regexp",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle a single-line function.",
+                    "description": "should handle a single-line function",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle a single-line function with a fake brace.",
+                    "description": "should handle a single-line function with a fake brace",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace ends of functions should handle a complicated case.",
+                    "description": "should handle a complicated case",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils brace end of function that ends at end of file should find the end of a function that ends exactly at the end of the file.",
+                    "description": "should find the end of a function that ends exactly at the end of the file",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils end of function that's unclosed at end of file should find the end of a function that is unclosed at the end of the file.",
+                    "description": "should find the end of a function that is unclosed at the end of the file",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils with real-world jQuery JS code should find the first instance of the pushStack function.",
+                    "description": "should find the first instance of the pushStack function",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils with real-world jQuery JS code should find all instances of the ready function.",
+                    "description": "should find all instances of the ready function",
+                    "passed": true
+                },
+                {
+                    "name": "JSUtils with real-world jQuery JS code should return an empty array when findAllMatchingSelectors() can't find any matches.",
+                    "description": "should return an empty array when findAllMatchingSelectors() can't find any matches",
+                    "passed": true
+                }
+            ]
+        },
+        "JS Indexing: ": {
+            "id": 109,
+            "name": "JS Indexing: ",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "CSSUtils": {
+            "id": 112,
+            "name": "CSSUtils",
+            "specCount": 48,
+            "passedCount": 48,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "CSSUtils basics should parse an empty string.",
+                    "description": "should parse an empty string",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils line offsets should return correct start and end line numbers for simple rules.",
+                    "description": "should return correct start and end line numbers for simple rules",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils line offsets should handle rules on adjacent lines.",
+                    "description": "should handle rules on adjacent lines",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils line offsets should return correct group range when selector group spans multiple lines.",
+                    "description": "should return correct group range when selector group spans multiple lines",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils with the universal selector should match a tag name not referenced anywhere in the CSS.",
+                    "description": "should match a tag name not referenced anywhere in the CSS",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils with the universal selector should match a tag name also referenced elsewhere in the CSS.",
+                    "description": "should match a tag name also referenced elsewhere in the CSS",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils with sprint 4 exemptions should match a class selector (right-most only, no pseudo or attr selectors).",
+                    "description": "should match a class selector (right-most only, no pseudo or attr selectors)",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils with sprint 4 exemptions should match a type selector (can terminate with class name, ID, pseudo or attr selectors).",
+                    "description": "should match a type selector (can terminate with class name, ID, pseudo or attr selectors)",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils with real-world Bootstrap CSS code should find the first instance of the h2 selector.",
+                    "description": "should find the first instance of the h2 selector",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils with real-world Bootstrap CSS code should find all instances of the h2 selector.",
+                    "description": "should find all instances of the h2 selector",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils with real-world Bootstrap CSS code should return an empty array when findAllMatchingSelectors() can't find any matches.",
+                    "description": "should return an empty array when findAllMatchingSelectors() can't find any matches",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should remove simple backslashes for simple characters.",
+                    "description": "should remove simple backslashes for simple characters",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should remove simple backslashes with escaped characters.",
+                    "description": "should remove simple backslashes with escaped characters",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should parse '\\XX ' as a single character.",
+                    "description": "should parse '\\XX ' as a single character",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should parse '\\XXXX ' as a single character.",
+                    "description": "should parse '\\XXXX ' as a single character",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should parse '\\XXXXXX' as a single character.",
+                    "description": "should parse '\\XXXXXX' as a single character",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should not trim end spaces.",
+                    "description": "should not trim end spaces",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should detect all combinations.",
+                    "description": "should detect all combinations",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should parse '\\AX' as AX.",
+                    "description": "should parse '\\AX' as AX",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should parse '\\AXXX' as AXXX.",
+                    "description": "should parse '\\AXXX' as AXXX",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should replace out of range characters with U+FFFD.",
+                    "description": "should replace out of range characters with U+FFFD",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils escapes should parse everything less does.",
+                    "description": "should parse everything less does",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos selector groups should find the selector at a document pos.",
+                    "description": "should find the selector at a document pos",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos selector groups should return empty string if selection is not in a style rule.",
+                    "description": "should return empty string if selection is not in a style rule",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos selector groups should return a comma separated string of all selectors for the rule.",
+                    "description": "should return a comma separated string of all selectors for the rule",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos selector groups should support multiple rules on the same line.",
+                    "description": "should support multiple rules on the same line",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos selector groups should support multiple rules on multiple lines.",
+                    "description": "should support multiple rules on multiple lines",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos comments should ignore rules inside comments.",
+                    "description": "should ignore rules inside comments",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos comments should find rules adjacent to comments.",
+                    "description": "should find rules adjacent to comments",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos comments should find rules when the position is inside a nested comment.",
+                    "description": "should find rules when the position is inside a nested comment",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos pseudo-classes and at-rules should find a simple pseudo selector.",
+                    "description": "should find a simple pseudo selector",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos pseudo-classes and at-rules should find a selector with a preceding at-rule.",
+                    "description": "should find a selector with a preceding at-rule",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos pseudo-classes and at-rules should not find a selector when inside an at-rule.",
+                    "description": "should not find a selector when inside an at-rule",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos complex selectors should find pseudo selectors.",
+                    "description": "should find pseudo selectors",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos complex selectors should find attribute selectors.",
+                    "description": "should find attribute selectors",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos complex selectors should find structural pseudo-classes.",
+                    "description": "should find structural pseudo-classes",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos complex selectors should find combinators.",
+                    "description": "should find combinators",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos beginning, middle and end of selector should find selector when pos is at beginning of selector name.",
+                    "description": "should find selector when pos is at beginning of selector name",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos beginning, middle and end of selector should find selector when pos is in the middle of selector name.",
+                    "description": "should find selector when pos is in the middle of selector name",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos beginning, middle and end of selector should find selector when pos is at the end of a selector name.",
+                    "description": "should find selector when pos is at the end of a selector name",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils findSelectorAtDocumentPos beginning, middle and end of selector should not find selector when pos is before a selector name.",
+                    "description": "should not find selector when pos is before a selector name",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils find correct positions of selectors should find selector positions when whitespace between selector and '{'.",
+                    "description": "should find selector positions when whitespace between selector and '{'",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils find correct positions of selectors should find selector positions when no whitespace between selector and '{'.",
+                    "description": "should find selector positions when no whitespace between selector and '{'",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils find correct positions of selectors should find selector positions when '{' on the next line.",
+                    "description": "should find selector positions when '{' on the next line",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils find correct positions of selectors should find selector positions when '{' on the next line and selector is indented.",
+                    "description": "should find selector positions when '{' on the next line and selector is indented",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils find correct positions of selectors should find selector positions when '{' on the next line and selector is indented with tabs.",
+                    "description": "should find selector positions when '{' on the next line and selector is indented with tabs",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils find correct positions of selectors should find selector positions in a selector group when '{' on the next line.",
+                    "description": "should find selector positions in a selector group when '{' on the next line",
+                    "passed": true
+                },
+                {
+                    "name": "CSSUtils find correct positions of selectors should find selector positions in a selector group when '{' on the next line and selector group is indented.",
+                    "description": "should find selector positions in a selector group when '{' on the next line and selector group is indented",
+                    "passed": true
+                }
+            ]
+        },
+        "CSS Parsing: ": {
+            "id": 125,
+            "name": "CSS Parsing: ",
+            "specCount": 25,
+            "passedCount": 25,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should match a lone type selector given a type.",
+                    "description": "should match a lone type selector given a type",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should match a lone class selector given a class.",
+                    "description": "should match a lone class selector given a class",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should match a lone id selector given an id.",
+                    "description": "should match a lone id selector given an id",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  shouldn't confuse type, class, and id.",
+                    "description": "shouldn't confuse type, class, and id",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should be case-sensitive for all but types.",
+                    "description": "should be case-sensitive for all but types",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should match permissively.",
+                    "description": "should match permissively",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should allow searching conjunctions of type, class, and id.",
+                    "description": "should allow searching conjunctions of type, class, and id",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should match lone '*' given any tag; else ignore.",
+                    "description": "should match lone '*' given any tag; else ignore",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should ignore pseudo-class selectors.",
+                    "description": "should ignore pseudo-class selectors",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should ignore pseudo-elements with arguments.",
+                    "description": "should ignore pseudo-elements with arguments",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should ignore attribute selectors.",
+                    "description": "should ignore attribute selectors",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should ignore the content of strings.",
+                    "description": "should ignore the content of strings",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  should handle unusual whitespace.",
+                    "description": "should handle unusual whitespace",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  shouldn't crash on CSS3 selectors.",
+                    "description": "shouldn't crash on CSS3 selectors",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Simple selectors:  shouldn't crash on CSS Animation syntax (@keyframes).",
+                    "description": "shouldn't crash on CSS Animation syntax (@keyframes)",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Combinators should ignore descendant combinators.",
+                    "description": "should ignore descendant combinators",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Combinators should ignore other combinators.",
+                    "description": "should ignore other combinators",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Combinators should find the target of combinators with no whitespace.",
+                    "description": "should find the target of combinators with no whitespace",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  Selector groups should match any item in selector group.",
+                    "description": "should match any item in selector group",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  At-rules should handle @media.",
+                    "description": "should handle @media",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  At-rules should handle @page.",
+                    "description": "should handle @page",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  LESS Known Issues should handle an empty declaration (extra semi-colon).",
+                    "description": "should handle an empty declaration (extra semi-colon)",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  LESS Known Issues should handle IE filter syntaxes.",
+                    "description": "should handle IE filter syntaxes",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  LESS Known Issues should handle unnecessary escape codes.",
+                    "description": "should handle unnecessary escape codes",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Parsing:  LESS Known Issues should handle comments within properties.",
+                    "description": "should handle comments within properties",
+                    "passed": true
+                }
+            ]
+        },
+        "CSS Context Info": {
+            "id": 133,
+            "name": "CSS Context Info",
+            "specCount": 32,
+            "passedCount": 32,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME with empty name immediately after rule start brace.",
+                    "description": "should return PROP_NAME with empty name immediately after rule start brace",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME with empty name immediately before end brace.",
+                    "description": "should return PROP_NAME with empty name immediately before end brace",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME with empty name before whitespace before property name.",
+                    "description": "should return PROP_NAME with empty name before whitespace before property name",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME with empty name in middle of whitespace before property name.",
+                    "description": "should return PROP_NAME with empty name in middle of whitespace before property name",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME with empty name at end of whitespace in rule with no property name.",
+                    "description": "should return PROP_NAME with empty name at end of whitespace in rule with no property name",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME with empty name immediately after semicolon.",
+                    "description": "should return PROP_NAME with empty name immediately after semicolon",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME at beginning/middle/end of a simple property name.",
+                    "description": "should return PROP_NAME at beginning/middle/end of a simple property name",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_NAME at beginning/middle/end of a hyphenated property name.",
+                    "description": "should return PROP_NAME at beginning/middle/end of a hyphenated property name",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with 'new value' flag set immediately after colon.",
+                    "description": "should return PROP_VALUE with 'new value' flag set immediately after colon",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE without 'new value' flag set at beginning/middle/end of a simple property value.",
+                    "description": "should return PROP_VALUE without 'new value' flag set at beginning/middle/end of a simple property value",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with correct values at beginning/middle of first multi-value property.",
+                    "description": "should return PROP_VALUE with correct values at beginning/middle of first multi-value property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value property.",
+                    "description": "should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with correct values at beginning/middle of second multi-value property.",
+                    "description": "should return PROP_VALUE with correct values at beginning/middle of second multi-value property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with 'new value' flag set at end of second multi-value property.",
+                    "description": "should return PROP_VALUE with 'new value' flag set at end of second multi-value property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with correct values at beginning/middle/end of third multi-value property.",
+                    "description": "should return PROP_VALUE with correct values at beginning/middle/end of third multi-value property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values multi-line cases should return PROP_VALUE with correct values at beginning/middle of first multi-value multi-line property.",
+                    "description": "should return PROP_VALUE with correct values at beginning/middle of first multi-value multi-line property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values multi-line cases should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property.",
+                    "description": "should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values multi-line cases should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property.",
+                    "description": "should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values multi-line cases should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property.",
+                    "description": "should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values multi-line cases should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property.",
+                    "description": "should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values multi-line cases should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value multi-line property.",
+                    "description": "should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value multi-line property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values multi-line cases should return PROP_VALUE with 'new value' flag and existing values at beginning of whitespace before value in multi-line property.",
+                    "description": "should return PROP_VALUE with 'new value' flag and existing values at beginning of whitespace before value in multi-line property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value property.",
+                    "description": "should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value property",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with 'new value' flag and existing values at end of line after comma (possibly with whitespace).",
+                    "description": "should return PROP_VALUE with 'new value' flag and existing values at end of line after comma (possibly with whitespace)",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should return PROP_VALUE with 'new value' flag at end of line when there are no existing values.",
+                    "description": "should return PROP_VALUE with 'new value' flag at end of line when there are no existing values",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info property names and values should treat a value like rgba(0, 0, 0, 0) as separate tokens.",
+                    "description": "should treat a value like rgba(0, 0, 0, 0) as separate tokens",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info quoting should properly parse a value with single quotes.",
+                    "description": "should properly parse a value with single quotes",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info quoting should properly parse values with special characters.",
+                    "description": "should properly parse values with special characters",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info invalid contexts should return empty context for a non-css document.",
+                    "description": "should return empty context for a non-css document",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info invalid contexts should return empty context for unsupported context.",
+                    "description": "should return empty context for unsupported context",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info invalid contexts should return empty context for comment.",
+                    "description": "should return empty context for comment",
+                    "passed": true
+                },
+                {
+                    "name": "CSS Context Info invalid contexts should return empty context for comment in declaration.",
+                    "description": "should return empty context for comment in declaration",
+                    "passed": true
+                }
+            ]
+        },
+        "Live Development": {
+            "id": 138,
+            "name": "Live Development",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "JSQuickEdit": {
+            "id": 143,
+            "name": "JSQuickEdit",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "StaticServer": {
+            "id": 146,
+            "name": "StaticServer",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Inline Color Editor - unit": {
+            "id": 149,
+            "name": "Inline Color Editor - unit",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "CSS Code Hinting": {
+            "id": 165,
+            "name": "CSS Code Hinting",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "HTML Attribute Hinting": {
+            "id": 171,
+            "name": "HTML Attribute Hinting",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "JavaScript Code Hinting": {
+            "id": 177,
+            "name": "JavaScript Code Hinting",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        }
+    },
+    "passed": true,
+    "totalSpecCount": 523,
+    "totalPassedCount": 523,
+    "totalFailedCount": 0,
+    "sortedNames": [
+        "Code Hint Menus",
+        "CommandManager",
+        "CSS Code Hinting",
+        "CSS Context Info",
+        "CSS Parsing: ",
+        "CSSUtils",
+        "Document",
+        "DocumentCommandHandlers",
+        "Editor",
+        "EditorCommandHandlers",
+        "EditorManager",
+        "Extension Installation",
+        "Extension Utils",
+        "FileIndexManager",
+        "FindReplace",
+        "HTML Attribute Hinting",
+        "HTMLUtils",
+        "Inline Color Editor - unit",
+        "InlineEditorProviders",
+        "Install Extension Dialog",
+        "JavaScript Code Hinting",
+        "JS Indexing: ",
+        "JSQuickEdit",
+        "JSUtils",
+        "KeyBindingManager",
+        "LanguageManager",
+        "Live Development",
+        "LowLevelFileIO",
+        "Menus",
+        "MultiRangeInlineEditor",
+        "Native Menus",
+        "NativeFileSystem",
+        "Node Connection",
+        "Performance Tests",
+        "PreferencesManager",
+        "PreferenceStorage",
+        "ProjectManager",
+        "QuickOpen",
+        "StaticServer",
+        "StringMatch",
+        "UpdateNotification",
+        "ViewUtils",
+        "WorkingSetView"
+    ],
+    "activeSpecCount": 523,
+    "activeSpecCompleteCount": 523
+}

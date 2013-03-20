@@ -25,7 +25,7 @@
 module.exports = function (grunt) {
     "use strict";
 
-    var common = require("./lib/common");
+    var common = require("./lib/common")(grunt);
     
     // task: update-sprint-number
     // Updates the version property in package.json

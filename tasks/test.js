@@ -25,39 +25,39 @@
 module.exports = function (grunt) {
     "use strict";
 
-    var child_process   = require("child_process"),
+    var common          = require("./lib/common")(grunt),
+        child_process   = require("child_process"),
         q               = require("q"),
         qexec           = q.denodeify(child_process.exec);
     
-    // task: build-num
-    grunt.registerTask("build-prop", "Write build.prop properties file for Jenkins", function () {
-        var done = this.async(),
-            out  = "",
-            num,
-            branch,
-            sha,
-            opts = { cwd: process.cwd(), maxBuffer: 1024*1024 };
+    // task: test-integration
+    grunt.registerTask("test-integration", "Run tests in brackets-shell", function () {
+        var done            = this.async(),
+            platform        = common.platform(),
+            opts            = { cwd: process.cwd() },
+            cmd             = common.resolve(grunt.option("shell") || grunt.config("shell." + platform)),
+            spec            = grunt.option("spec") || "all",
+            results         = grunt.option("results") || process.cwd() + "/results.json",
+            resultsPath     = common.resolve(results),
+            specRunnerPath  = common.resolve("test/SpecRunner.html");
+
+        if (platform === "win") {
+            cmd += " --startup-path=" + specRunnerPath + "?spec=" + spec + "^&resultsPath=" + encodeURIComponent(resultsPath);
+        } else if (platform === "mac") {
+            cmd = "open \"" + cmd + "\" --args --startup-path=" + specRunnerPath + "?spec=" + spec + "&resultsPath=" + encodeURIComponent(resultsPath);
+        }
         
-        qexec("git log --format=%h", opts).then(function (stdout, stderr) {
-            num = stdout.toString().trim().split("\n").length;
-            return qexec("git status", opts);
-        }).then(function (stdout, stderr) {
-            branch = /On branch (.*)/.exec(stdout.toString().trim())[1];
-            return qexec("git log -1", opts);
-        }).then(function (stdout, stderr) {
-            sha = /commit (.*)/.exec(stdout.toString().trim())[1];
+        grunt.log.writeln(cmd);
 
-            out += "build.number=" + num + "\n";
-            out += "build.branch=" + branch + "\n";
-            out += "build.sha=" + sha + "\n";
-
-            grunt.log.write(out);
-            grunt.file.write("build.prop", out);
-
+        qexec(cmd, opts).then(function (stdout, stderr) {
             done();
         }, function (err) {
             grunt.log.writeln(err);
             done(false);
         });
     });
+
+    function execTest(task, platform) {
+    }
+    
 };
