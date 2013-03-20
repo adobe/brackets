@@ -303,7 +303,7 @@ define({
     
      // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",
-    "INSTALL_EXTENSION_LABEL"              : "扩展地址",
+    "INSTALL_EXTENSION_LABEL"              : "扩展包地址",
     "INSTALL_EXTENSION_HINT"               : "填写一个基于URL的ZIP扩展包地址.",
     "INSTALLING_FROM"                      : "正在安装扩展 {0}...",
     "INSTALL_SUCCEEDED"                    : "安装成功!",
