@@ -163,6 +163,7 @@ function _cmdValidate(path, callback) {
                             // errors we can get here.
                             callback(exception, null);
                             callbackCalled = true;
+                            readStream.destroy();
                         })
                         .on("end", function () {
                             // attempt to parse the metadata
@@ -275,6 +276,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
                             if (!callbackCalled) {
                                 callback(err);
                                 callbackCalled = true;
+                                readStream.destroy();
                             }
                         });
                 }
