@@ -1,0 +1,413 @@
+{
+    "activeSuite": "PreferencesManager",
+    "runInfo": {
+        "app": "Brackets",
+        "version": "0.22.0-0",
+        "platform": "mac",
+        "startTime": "Wed Mar 20 2013 15:39:31 GMT-0700 (PDT)",
+        "endTime": "Wed Mar 20 2013 15:39:31 GMT-0700 (PDT)"
+    },
+    "suites": {
+        "CommandManager": {
+            "id": 0,
+            "name": "CommandManager",
+            "specCount": 6,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "ViewUtils": {
+            "id": 1,
+            "name": "ViewUtils",
+            "specCount": 4,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Native Menus": {
+            "id": 3,
+            "name": "Native Menus",
+            "specCount": 27,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "StringMatch": {
+            "id": 12,
+            "name": "StringMatch",
+            "specCount": 31,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "KeyBindingManager": {
+            "id": 20,
+            "name": "KeyBindingManager",
+            "specCount": 19,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Code Hint Menus": {
+            "id": 24,
+            "name": "Code Hint Menus",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "HTMLUtils": {
+            "id": 26,
+            "name": "HTMLUtils",
+            "specCount": 27,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Document": {
+            "id": 28,
+            "name": "Document",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "DocumentCommandHandlers": {
+            "id": 30,
+            "name": "DocumentCommandHandlers",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Editor": {
+            "id": 35,
+            "name": "Editor",
+            "specCount": 10,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "EditorManager": {
+            "id": 40,
+            "name": "EditorManager",
+            "specCount": 12,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Extension Installation": {
+            "id": 42,
+            "name": "Extension Installation",
+            "specCount": 2,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Extension Utils": {
+            "id": 43,
+            "name": "Extension Utils",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "FileIndexManager": {
+            "id": 45,
+            "name": "FileIndexManager",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "FindReplace": {
+            "id": 46,
+            "name": "FindReplace",
+            "specCount": 26,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Install Extension Dialog": {
+            "id": 51,
+            "name": "Install Extension Dialog",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "LowLevelFileIO": {
+            "id": 52,
+            "name": "LowLevelFileIO",
+            "specCount": 27,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "MultiRangeInlineEditor": {
+            "id": 60,
+            "name": "MultiRangeInlineEditor",
+            "specCount": 8,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Node Connection": {
+            "id": 61,
+            "name": "Node Connection",
+            "specCount": 7,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "PreferenceStorage": {
+            "id": 62,
+            "name": "PreferenceStorage",
+            "specCount": 6,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "PreferencesManager": {
+            "id": 63,
+            "name": "PreferencesManager",
+            "specCount": 1,
+            "passedCount": 1,
+            "failedCount": 0,
+            "specs": [
+                {
+                    "name": "PreferencesManager should use default preferences.",
+                    "description": "should use default preferences",
+                    "passed": true
+                }
+            ]
+        },
+        "ProjectManager": {
+            "id": 64,
+            "name": "ProjectManager",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "QuickOpen": {
+            "id": 67,
+            "name": "QuickOpen",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "UpdateNotification": {
+            "id": 68,
+            "name": "UpdateNotification",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "WorkingSetView": {
+            "id": 69,
+            "name": "WorkingSetView",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Performance Tests": {
+            "id": 70,
+            "name": "Performance Tests",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "InlineEditorProviders": {
+            "id": 71,
+            "name": "InlineEditorProviders",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Menus": {
+            "id": 78,
+            "name": "Menus",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "NativeFileSystem": {
+            "id": 80,
+            "name": "NativeFileSystem",
+            "specCount": 20,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "EditorCommandHandlers": {
+            "id": 84,
+            "name": "EditorCommandHandlers",
+            "specCount": 137,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "LanguageManager": {
+            "id": 97,
+            "name": "LanguageManager",
+            "specCount": 18,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "JSUtils": {
+            "id": 102,
+            "name": "JSUtils",
+            "specCount": 30,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "JS Indexing: ": {
+            "id": 109,
+            "name": "JS Indexing: ",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "CSSUtils": {
+            "id": 112,
+            "name": "CSSUtils",
+            "specCount": 48,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "CSS Parsing: ": {
+            "id": 125,
+            "name": "CSS Parsing: ",
+            "specCount": 25,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "CSS Context Info": {
+            "id": 133,
+            "name": "CSS Context Info",
+            "specCount": 32,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Live Development": {
+            "id": 138,
+            "name": "Live Development",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "JSQuickEdit": {
+            "id": 143,
+            "name": "JSQuickEdit",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "StaticServer": {
+            "id": 146,
+            "name": "StaticServer",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "Inline Color Editor - unit": {
+            "id": 149,
+            "name": "Inline Color Editor - unit",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "CSS Code Hinting": {
+            "id": 165,
+            "name": "CSS Code Hinting",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "HTML Attribute Hinting": {
+            "id": 171,
+            "name": "HTML Attribute Hinting",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        },
+        "JavaScript Code Hinting": {
+            "id": 177,
+            "name": "JavaScript Code Hinting",
+            "specCount": 0,
+            "passedCount": 0,
+            "failedCount": 0,
+            "specs": []
+        }
+    },
+    "passed": true,
+    "totalSpecCount": 523,
+    "totalPassedCount": 1,
+    "totalFailedCount": 0,
+    "sortedNames": [
+        "Code Hint Menus",
+        "CommandManager",
+        "CSS Code Hinting",
+        "CSS Context Info",
+        "CSS Parsing: ",
+        "CSSUtils",
+        "Document",
+        "DocumentCommandHandlers",
+        "Editor",
+        "EditorCommandHandlers",
+        "EditorManager",
+        "Extension Installation",
+        "Extension Utils",
+        "FileIndexManager",
+        "FindReplace",
+        "HTML Attribute Hinting",
+        "HTMLUtils",
+        "Inline Color Editor - unit",
+        "InlineEditorProviders",
+        "Install Extension Dialog",
+        "JavaScript Code Hinting",
+        "JS Indexing: ",
+        "JSQuickEdit",
+        "JSUtils",
+        "KeyBindingManager",
+        "LanguageManager",
+        "Live Development",
+        "LowLevelFileIO",
+        "Menus",
+        "MultiRangeInlineEditor",
+        "Native Menus",
+        "NativeFileSystem",
+        "Node Connection",
+        "Performance Tests",
+        "PreferencesManager",
+        "PreferenceStorage",
+        "ProjectManager",
+        "QuickOpen",
+        "StaticServer",
+        "StringMatch",
+        "UpdateNotification",
+        "ViewUtils",
+        "WorkingSetView"
+    ],
+    "activeSpecCount": 1,
+    "activeSpecCompleteCount": 1
+}
