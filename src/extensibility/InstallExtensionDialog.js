@@ -210,7 +210,7 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype._handleCancel = function () {
         if (this._state === STATE_INSTALLING) {
             this._enterState(STATE_CANCELING_INSTALL);
-        } else {
+        } else if (this._state !== STATE_CANCELING_INSTALL) {
             this._enterState(STATE_CLOSED);
         }
     };

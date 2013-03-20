@@ -227,6 +227,38 @@ define(function (require, exports, module) {
                 expect(installer.cancel).toHaveBeenCalled();
                 deferred.resolve();
             });
+            
+            it("should disable the cancel button while cancellation is processed", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                setUrl();
+                fields.$okButton.click();
+                fields.$cancelButton.click();
+                expect(fields.$cancelButton.attr("disabled")).toBeTruthy();
+                deferred.reject("CANCELED");
+            });
+            
+            it("should ignore the Esc key while cancellation is processed", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                setUrl();
+                fields.$okButton.click();
+                fields.$cancelButton.click();
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
+                expect(fields.$dlg.is(":visible")).toBeTruthy();
+                deferred.reject("CANCELED");
+            });
+    
+            it("should ignore the Enter key while cancellation is processed", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                setUrl();
+                fields.$okButton.click();
+                fields.$cancelButton.click();
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keyup", fields.$dlg[0]);
+                expect(fields.$dlg.is(":visible")).toBeTruthy();
+                deferred.reject("CANCELED");
+            });
     
             it("should re-enable the ok button and hide cancel button after install succeeds", function () {
                 var deferred = new $.Deferred(),
@@ -264,6 +296,17 @@ define(function (require, exports, module) {
                 expect(fields.$cancelButton.is(":visible")).toBeFalsy();
             });
             
+            it("should re-enable the ok button and hide cancel button after install finishes canceling", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                setUrl();
+                fields.$okButton.click();
+                fields.$cancelButton.click();
+                deferred.reject("CANCELED");
+                expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                expect(fields.$cancelButton.is(":visible")).toBeFalsy();
+            });
+    
             it("should close the dialog if ok button clicked after install succeeds", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -371,6 +414,40 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
                 expect(fields.$dlg.is(":visible")).toBeFalsy();
             });
+
+            it("should close the dialog if ok button clicked after install finishes canceling", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                setUrl();
+                fields.$okButton.click();
+                fields.$cancelButton.click();
+                deferred.reject("CANCELED");
+                fields.$okButton.click();
+                expect(fields.$dlg.is(":visible")).toBeFalsy();
+            });
+    
+            it("should close the dialog if Enter pressed after install finishes canceling", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(true);
+                setUrl();
+                fields.$okButton.click();
+                fields.$cancelButton.click();
+                deferred.reject("CANCELED");
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
+                expect(fields.$dlg.is(":visible")).toBeFalsy();
+            });
+    
+            it("should close the dialog if Esc pressed after install finishes canceling", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(true);
+                setUrl();
+                fields.$okButton.click();
+                fields.$cancelButton.click();
+                deferred.reject("CANCELED");
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
+                expect(fields.$dlg.is(":visible")).toBeFalsy();
+            });
+    
         });
     });
 });
