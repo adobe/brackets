@@ -51,7 +51,6 @@ define(function (require, exports, module) {
      * $.each in that it iterates over array-like objects like regular objects.
      * @param {*} object - The object or array to iterate over.
      * @param {function(value, key)} callback - The function that will be executed on every object.
-     *    If the function returns false the loop will break at that iteration.
      */
     function forEach(object, callback) {
         var keys = Object.keys(object),
@@ -59,13 +58,33 @@ define(function (require, exports, module) {
             i;
         
         for (i = 0; i < len; i++) {
-            if (callback(object[keys[i]], keys[i]) === false) {
-                break;
+            callback(object[keys[i]], keys[i]);
+        }
+    }
+    
+    /**
+     * Iterates over all the properties in an object or elements in an array. If a callback returns a
+     * truthly value then it will inmediatelly return true, if not, it will return false. Differs from
+     * $.each in that it iterates over array-like objects like regular objects.
+     * @param {*} object - The object or array to iterate over.
+     * @param {function(value, key)} callback - The function that will be executed on every object.
+     * @return {boolean}
+     */
+    function some(object, callback) {
+        var keys = Object.keys(object),
+            len = keys.length,
+            i;
+        
+        for (i = 0; i < len; i++) {
+            if (callback(object[keys[i]], keys[i])) {
+                return true;
             }
         }
+        return false;
     }
     
     // Define public API
     exports.indexOf = indexOf;
     exports.forEach = forEach;
+    exports.some    = some;
 });
