@@ -279,6 +279,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "选择编辑器中修改的内容",
     "CLOSE_DONT_SAVE"                      : "放弃保存并关闭",
     "RELAUNCH_CHROME"                      : "重新运行Chrome",
+    "INSTALL"                              : "安装",
     "ABOUT"                                : "关于",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
@@ -303,7 +304,7 @@ define({
      // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",
     "INSTALL_EXTENSION_LABEL"              : "扩展地址",
-    "INSTALL_EXTENSION_HINT"               : "URL地址应该是一个ZIP扩展包.",
+    "INSTALL_EXTENSION_HINT"               : "填写一个基于URL的ZIP扩展包地址.",
     "INSTALLING_FROM"                      : "正在安装扩展 {0}...",
     "INSTALL_SUCCEEDED"                    : "安装成功!",
     "INSTALL_FAILED"                       : "安装失败.",
@@ -327,6 +328,7 @@ define({
     "MALFORMED_URL"                        : "无法识别的URL地址.",
     "UNSUPPORTED_PROTOCOL"                 : "不支持此URL协议.",
     "UNKNOWN_ERROR"                        : "未知内部错误.",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
