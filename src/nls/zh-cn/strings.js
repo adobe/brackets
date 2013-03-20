@@ -188,7 +188,7 @@ define({
     "CMD_CUT"                             : "剪切",
     "CMD_COPY"                            : "复制",
     "CMD_PASTE"                           : "粘帖",
-    "CMD_SELECT_ALL"                      : "选择全部",
+    "CMD_SELECT_ALL"                      : "全选",
     "CMD_SELECT_LINE"                     : "选中当前行",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
