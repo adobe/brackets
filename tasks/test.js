@@ -44,7 +44,7 @@ module.exports = function (grunt) {
         if (platform === "win") {
             cmd += " --startup-path=" + specRunnerPath + "?spec=" + spec + "^&resultsPath=" + encodeURIComponent(resultsPath);
         } else if (platform === "mac") {
-            cmd = "open \"" + cmd + "\" -W --args --startup-path=\"" + specRunnerPath + "?spec=" + spec + "/&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
+            cmd = "open \"" + cmd + "\" -W --args --startup-path=\"" + specRunnerPath + "?spec=" + spec + "\&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
         }
         
         grunt.log.writeln(cmd);
