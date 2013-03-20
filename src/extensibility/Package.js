@@ -345,11 +345,10 @@ define(function (require, exports, module) {
         
         return {
             promise: d.promise(),
-            _downloadId: downloadId,
             cancel: function () {
                 if (state === STATE_DOWNLOADING) {
                     // This will trigger download()'s fail() handler with CANCELED as the err code
-                    cancelDownload(this._downloadId);
+                    cancelDownload(downloadId);
                 }
                 // Else it's too late to cancel; we'll continue on through the done() chain and emit
                 // a success result (calling done() handlers) if all else goes well.

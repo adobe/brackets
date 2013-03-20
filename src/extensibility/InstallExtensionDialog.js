@@ -141,7 +141,7 @@ define(function (require, exports, module) {
                 .fail(function (err) {
                     // If the "failure" is actually a user-requested cancel, don't show an error UI
                     if (err === "CANCELED") {
-                        console.assert(self._state === STATE_CANCELING_INSTALL || self._enterState === STATE_CANCELING_HUNG);
+                        console.assert(self._state === STATE_CANCELING_INSTALL || self._state === STATE_CANCELING_HUNG);
                         self._enterState(STATE_INSTALL_CANCELED);
                     } else {
                         self._errorMessage = Package.formatError(err);

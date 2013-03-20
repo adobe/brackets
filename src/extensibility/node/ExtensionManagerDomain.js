@@ -37,7 +37,7 @@ var unzip   = require("unzip"),
 
 
 var Errors = {
-    NOT_FOUND_ERR: "NOT_FOUND_ERR",
+    NOT_FOUND_ERR: "NOT_FOUND_ERR",                 // {0} is path where ZIP file was expected
     INVALID_ZIP_FILE: "INVALID_ZIP_FILE",           // {0} is path to ZIP file
     INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",   // {0} is JSON parse error, {1} is path to ZIP file
     MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",   // {0} is path to ZIP file
@@ -49,9 +49,9 @@ var Errors = {
     NO_DISABLED_DIRECTORY: "NO_DISABLED_DIRECTORY",
     ALREADY_INSTALLED: "ALREADY_INSTALLED",
     DOWNLOAD_ID_IN_USE: "DOWNLOAD_ID_IN_USE",
-    DOWNLOAD_TARGET_EXISTS: "DOWNLOAD_TARGET_EXISTS",   // {0} is the download target file
     BAD_HTTP_STATUS: "BAD_HTTP_STATUS",             // {0} is the HTTP status code
     NO_SERVER_RESPONSE: "NO_SERVER_RESPONSE",
+    CANNOT_WRITE_TEMP: "CANNOT_WRITE_TEMP",
     CANCELED: "CANCELED"
 };
 
@@ -405,7 +405,6 @@ function _createTempFile() {
     }
     
     var localPath = pathPrefix + suffix;
-    console.log("Creating temp file " + localPath);
     var outStream = fs.createWriteStream(localPath);
     return { outStream: outStream, localPath: localPath };
 }
@@ -518,16 +517,15 @@ function init(domainManager) {
             type: "string",
             description: "absolute filesystem path of the extension package"
         }],
-        {
-            errors: {
-                type: "string|Array.<string>",
-                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-            },
-            metadata: {
-                type: "{name: string, version: string}",
-                description: "all package.json metadata (null if there's no package.json)"
-            }
-        }
+        [{
+            name: "errors",
+            type: "string|Array.<string>",
+            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+        }, {
+            name: "metadata",
+            type: "{name: string, version: string}",
+            description: "all package.json metadata (null if there's no package.json)"
+        }]
     );
     domainManager.registerCommand(
         "extensionManager",
@@ -548,28 +546,27 @@ function init(domainManager) {
             type: "{disabledDirectory: ?string, apiVersion: ?string, nameHint: ?string}",
             description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
-        {
-            errors: {
-                type: "string|Array.<string>",
-                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-            },
-            metadata: {
-                type: "{name: string, version: string}",
-                description: "all package.json metadata (null if there's no package.json)"
-            },
-            disabledReason: {
-                type: "string",
-                description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
-            },
-            installedTo: {
-                type: "string",
-                description: "absolute path where the extension was installed to"
-            },
-            commonPrefix: {
-                type: "string",
-                description: "top level directory in the package zip which contains all of the files"
-            }
-        }
+        [{
+            name: "errors",
+            type: "string|Array.<string>",
+            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+        }, {
+            name: "metadata",
+            type: "{name: string, version: string}",
+            description: "all package.json metadata (null if there's no package.json)"
+        }, {
+            name: "disabledReason",
+            type: "string",
+            description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
+        }, {
+            name: "installedTo",
+            type: "string",
+            description: "absolute path where the extension was installed to"
+        }, {
+            name: "commonPrefix",
+            type: "string",
+            description: "top level directory in the package zip which contains all of the files"
+        }]
     );
     domainManager.registerCommand(
         "extensionManager",
@@ -587,10 +584,8 @@ function init(domainManager) {
             description: "URL to download from"
         }],
         {
-            error: {
-                type: "string|Array.<string>",
-                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-            }
+            type: "string",
+            description: "Local path to the downloaded file"
         }
     );
     domainManager.registerCommand(
@@ -605,10 +600,8 @@ function init(domainManager) {
             description: "Unique identifier for this download 'session', previously pased to downloadFile"
         }],
         {
-            result: {
-                type: "boolean",
-                description: "True if the download was pending and able to be canceled; false otherwise"
-            }
+            type: "boolean",
+            description: "True if the download was pending and able to be canceled; false otherwise"
         }
     );
 }

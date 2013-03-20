@@ -311,7 +311,7 @@ define({
     "CANCELING_INSTALL"                    : "Canceling...",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
-    // These must match the error codes in ExtensionsDomain.Errors.* :
+    // These must match the error codes in ExtensionsDomain.Errors.* & Package.Errors.* :
     "INVALID_ZIP_FILE"                     : "{0} is not a valid zipped package.",
     "INVALID_PACKAGE_JSON"                 : "Package.json file is not valid (error was: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Missing package name in {0}.",
@@ -323,9 +323,9 @@ define({
     "ALREADY_INSTALLED"                    : "The extension was installed into your disabled extensions directory because it was previously installed.",
     "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
     "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
-    "DOWNLOAD_TARGET_EXISTS"               : "Temp download file already exists: {0}.",
     "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
     "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Unable to save download to temp file.",
     "ERROR_LOADING"                        : "The extension encountered an error while starting up.",
     "MALFORMED_URL"                        : "Malformed URL.",
     "UNSUPPORTED_PROTOCOL"                 : "URL has an unsupported protocol.",
