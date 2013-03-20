@@ -56,8 +56,7 @@ define(function (require, exports, module) {
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
-    var MODULE_ID = "JSLintExtension",
-        PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(MODULE_ID),
+    var MODULE_ID    = "JSLintExtension",
         defaultPrefs = { enabled: true };
     
     
@@ -145,7 +144,7 @@ define(function (require, exports, module) {
                             $selectedRow.removeClass("selected");
                         }
         
-                        $selectedRow  = $(e.target).parent();
+                        $selectedRow  = $(e.target).closest("tr");
                         $selectedRow.addClass("selected");
                         var lineTd    = $selectedRow.find("td.line");
                         var line      = lineTd.text();
@@ -237,7 +236,7 @@ define(function (require, exports, module) {
     function handleGotoFirstError() {
         run();
         if (_gotoEnabled) {
-            $lintResults.find("tr:first-child td:first-child").trigger("click");
+            $lintResults.find("tr:first-child").trigger("click");
         }
     }
     
@@ -248,7 +247,6 @@ define(function (require, exports, module) {
     
     // Add the menu items
     var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    menu.addMenuDivider();
     menu.addMenuItem(TOGGLE_ENABLED);
     
     menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
@@ -256,7 +254,7 @@ define(function (require, exports, module) {
     
     
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {

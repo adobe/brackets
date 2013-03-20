@@ -35,7 +35,7 @@ module.exports = function (grunt) {
                 '!src/extensions/**/thirdparty/**/*.js',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
-                '!src/extensions/**/node_modules/**/*.js',
+                '!**/node_modules/**/*.js',
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
@@ -50,8 +50,8 @@ module.exports = function (grunt) {
             /* specs that can run in phantom.js */
             specs : [
                 'test/spec/CommandManager-test.js',
-                'test/spec/LanguageManager-test.js',
-                'test/spec/PreferencesManager-test.js',
+                //'test/spec/LanguageManager-test.js',
+                //'test/spec/PreferencesManager-test.js',
                 'test/spec/ViewUtils-test.js'
             ]
         },
@@ -77,7 +77,8 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
                     'src/thirdparty/mustache/mustache.js',
-                    'src/thirdparty/path-utils/path-utils.min'
+                    'src/thirdparty/path-utils/path-utils.min',
+                    'src/thirdparty/less-1.3.0.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
