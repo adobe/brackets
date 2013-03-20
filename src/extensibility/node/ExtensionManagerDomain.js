@@ -45,7 +45,7 @@ var Errors = {
     INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
     API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
     MISSING_MAIN: "MISSING_MAIN",                   // {0} is path to ZIP file
-    NO_DISABLED_DIRECTORY: "NO_DISABLED_DIRECTORY",
+    MISSING_REQUIRED_OPTIONS: "MISSING_REQUIRED_OPTIONS",
     ALREADY_INSTALLED: "ALREADY_INSTALLED",
     DOWNLOAD_ID_IN_USE: "DOWNLOAD_ID_IN_USE",
     DOWNLOAD_TARGET_EXISTS: "DOWNLOAD_TARGET_EXISTS",   // {0} is the download target file
@@ -332,10 +332,14 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * 
  * @param {string} Absolute path to the package zip file
  * @param {string} the destination directory
- * @param {{disabledDirectory:string}} additional settings to control the installation
+ * @param {{disabledDirectory:string, apiVersion:string}} required additional settings to control the installation
  * @param {function} callback (err, result)
  */
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
+    if (!options || !options.disabledDirectory || !options.apiVersion) {
+        callback(new Error(Errors.MISSING_REQUIRED_OPTIONS), null);
+        return;
+    }
     
     var validateCallback = function (err, validationResult) {
         // If there was trouble at the validation stage, we stop right away.
@@ -355,15 +359,11 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName);
         
-        if (options && options.apiVersion && validationResult.metadata && validationResult.metadata.engines &&
+        if (validationResult.metadata && validationResult.metadata.engines &&
                 validationResult.metadata.engines.brackets) {
             var compatible = semver.satisfies(options.apiVersion,
                                               validationResult.metadata.engines.brackets);
             if (!compatible) {
-                if (!options || !options.disabledDirectory) {
-                    callback(new Error(Errors.NO_DISABLED_DIRECTORY), null);
-                    return;
-                }
                 installDirectory = path.join(options.disabledDirectory, extensionName);
                 validationResult.disabledReason = Errors.API_NOT_COMPATIBLE;
                 _removeAndInstall(packagePath, installDirectory, validationResult, callback);
@@ -375,10 +375,6 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         // a running extension. Instead, we unzip into the disabled directory.
         if (fs.existsSync(installDirectory)) {
             validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
-            if (!options || !options.disabledDirectory) {
-                callback(new Error(Errors.NO_DISABLED_DIRECTORY), null);
-                return;
-            }
             installDirectory = path.join(options.disabledDirectory, extensionName);
             _removeAndInstall(packagePath, installDirectory, validationResult, callback);
         } else {
