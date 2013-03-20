@@ -391,7 +391,7 @@ define(function (require, exports, module) {
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
         // Give visual clue when there are no results
-        var isNoResults = (results.length === 0 && !this._isValidLineNumberQuery(this.$searchField.val()));
+        var isNoResults = (results.length === 0 && fileList && !this._isValidLineNumberQuery(this.$searchField.val()));
         this.$searchField.toggleClass("no-results", isNoResults);
     };
     
@@ -786,7 +786,6 @@ define(function (require, exports, module) {
         
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileList = null;
         fileListPromise = FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
@@ -833,8 +832,11 @@ define(function (require, exports, module) {
             beginSearch("@", getCurrentEditorSelectedText());
         }
     }
-
-
+    
+    // Listen for a change of project to invalidate our file list
+    $(ProjectManager).on("projectOpen", function () {
+        fileList = null;
+    });
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
