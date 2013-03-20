@@ -230,7 +230,8 @@ define(function (require, exports, module) {
      * Moves the token context to the token that starts the block-comment. Ctx starts in a block-comment.
      * Returns the position of the prefix or null if gets to the start of the document and didn't found it.
      * @param {!{editor:{CodeMirror}, pos:{ch:{number}, line:{number}}, token:{object}}} ctx - token context
-     * @param {!RegExp} prefixExp - a valid regular expression
+     * @param {!Array.<RegExp>} blockExp - a prefix and a suffix block comment regular expressions
+     * @param {!Array.<RegExp>} lineExp - an array of line comment prefixes regular expressions
      * @return {?{line: number, ch: number}}
      */
     function _findCommentStart(ctx, blockExp, lineExp) {
@@ -246,13 +247,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * Moves the token context to the token that ends the block-comment. Ctx starts in a block-comment.
-     * Returns the position of the sufix or null if gets to the end of the document and didn't found it.
+     * Returns the position of the suffix or null if it gets to the end of the document and didn't found it.
      * @param {!{editor:{CodeMirror}, pos:{ch:{number}, line:{number}}, token:{object}}} ctx - token context
-     * @param {!RegExp} suffixExp - a valid regular expression
+     * @param {!Array.<RegExp>} blockExp - a prefix and a suffix block comment regular expressions
+     * @param {!Array.<RegExp>} lineExp - an array of line comment prefixes regular expressions
      * @param {!number} suffixLen - length of the suffix
      * @return {?{line: number, ch: number}}
      */
-    function _findCommentEnd(ctx, blockExp, suffixLen, lineExp) {
+    function _findCommentEnd(ctx, blockExp, lineExp, suffixLen) {
         var result = _isBlockComment(ctx, blockExp, lineExp);
         
         while (result && !ctx.token.string.match(blockExp[1])) {
@@ -264,7 +266,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Moves the token context to the next block-comment if there is one before end.
+     * Moves the token context to the next block-comment if there is one before the end.
      * @param {!{editor:{CodeMirror}, pos:{ch:{number}, line:{number}}, token:{object}}} ctx - token context
      * @param {!{line: number, ch: number}} end - where to stop searching
      * @param {!RegExp} prefixExp - a valid regular expression
@@ -272,14 +274,13 @@ define(function (require, exports, module) {
      */
     function _findNextBlockComment(ctx, end, prefixExp) {
         var index  = ctx.editor.indexFromPos(end),
-            inside = ctx.editor.indexFromPos(ctx.pos) <= index,
-            result = true;
+            result = ctx.editor.indexFromPos(ctx.pos) <= index;
         
-        while (result && inside && !ctx.token.string.match(prefixExp)) {
-            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-            inside = ctx.editor.indexFromPos(ctx.pos) <= index;
+        while (result && !ctx.token.string.match(prefixExp)) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
+                ctx.editor.indexFromPos(ctx.pos) <= index;
         }
-        return result && inside && !!ctx.token.string.match(prefixExp);
+        return result && !!ctx.token.string.match(prefixExp);
     }
     
     /**
@@ -323,7 +324,7 @@ define(function (require, exports, module) {
          */
         function findPrefixSuffix(newPrefixPos) {
             prefixPos = newPrefixPos || _findCommentStart(ctx, blockExp, lineExp);
-            suffixPos = _findCommentEnd(ctx, blockExp, suffix.length, lineExp);
+            suffixPos = _findCommentEnd(ctx, blockExp, lineExp, suffix.length);
             
             // There are some languages like CoffeeScript where the block comment prefix and suffix are the same, so
             // when the prefix or suffix is alone in one line, both prefixPos and suffixPos might be the same.
@@ -339,7 +340,7 @@ define(function (require, exports, module) {
                 // We found the prefix, we move to the next token and try to find the suffix
                 } else {
                     result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-                    suffixPos = result && _findCommentEnd(ctx, blockExp, suffix.length, lineExp);
+                    suffixPos = result && _findCommentEnd(ctx, blockExp, lineExp, suffix.length);
                 }
             }
         }

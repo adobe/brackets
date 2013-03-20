@@ -1630,7 +1630,7 @@ define(function (require, exports, module) {
             }
             
             beforeEach(function () {
-                setupFullEditor(coffeeContent, "coffeescript");
+                setupFullEditor(coffeeContent, "coffeescript2");
             });
             
             it("should comment/uncomment selecting part of lines", function () {
