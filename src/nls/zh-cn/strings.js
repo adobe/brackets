@@ -192,7 +192,7 @@ define({
     "CMD_SELECT_LINE"                     : "选中当前行",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
-    "CMD_FIND_IN_SUBTREE"                 : "在该位置查找",
+    "CMD_FIND_IN_SUBTREE"                 : "在该位置查找\u2026",
     "CMD_FIND_NEXT"                       : "查找下一个",
     "CMD_FIND_PREVIOUS"                   : "查找上一个",
     "CMD_REPLACE"                         : "替换",
@@ -339,4 +339,3 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} 次)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)"
 });
-
