@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, waitsForDone, spyOn, jasmine */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, runs, $, waitsForDone, spyOn, jasmine */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
@@ -39,9 +39,6 @@ define(function (require, exports, module) {
             if (!testWindow) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
-                });
-                this.after(function () {
-                    SpecRunnerUtils.closeTestWindow();
                 });
             }
         });
@@ -447,7 +444,81 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
                 expect(fields.$dlg.is(":visible")).toBeFalsy();
             });
-    
+                
+            it("should time out and re-enable close button if cancel doesn't complete quickly", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                    deferred.reject("CANCELED");
+                });
+            });
+            
+            it("should close when clicking Close button after timing out if cancel doesn't complete quickly", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    fields.$okButton.click();
+                    expect(fields.$dlg.is(":visible")).toBeFalsy();
+                    deferred.reject("CANCELED");
+                });
+            });
+            
+            it("should close when hitting Enter after timing out if cancel doesn't complete quickly", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    fields.$okButton.click();
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
+                    deferred.reject("CANCELED");
+                });
+            });
+            
+            it("should close when hitting Esc after timing out if cancel doesn't complete quickly", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    fields.$okButton.click();
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
+                    deferred.reject("CANCELED");
+                });
+                
+                // This must be in the last spec in the suite.
+                runs(function () {
+                    this.after(function () {
+                        SpecRunnerUtils.closeTestWindow();
+                    });
+                });
+            });
+            
         });
     });
 });
