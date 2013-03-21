@@ -40,6 +40,7 @@ define(function (require, exports, module) {
     function Session(editor) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
+        this.ternHints = [];
     }
 
     /**
@@ -538,7 +539,8 @@ define(function (require, exports, module) {
             hints;
 
         if (type.property) {
-            var ternHints = ScopeManager.getTernHints("dir", "file", offset, this.editor.document.getText());
+            var ternHints = this.ternHints;
+            //console.log("Got " + (ternHints ? ternHints.length : 0) + " hints from tern");
             if( ternHints && ternHints.length > 0 ) {
                 hints = ternHints;
             }
@@ -565,6 +567,9 @@ define(function (require, exports, module) {
 
         return hints;
     };
-
+    
+    Session.prototype.setTernHints = function(newHints) {
+        this.ternHints = newHints;
+    }
     module.exports = Session;
 });
