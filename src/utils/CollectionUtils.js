@@ -48,7 +48,8 @@ define(function (require, exports, module) {
     
     /**
      * Iterates over all the properties in an object or elements in an array. Differs from
-     * $.each in that it iterates over array-like objects like regular objects.
+     * $.each in that it always iterates over the properties of an object, even if it has a length
+     * property making it look like an array.
      * @param {*} object - The object or array to iterate over.
      * @param {function(value, key)} callback - The function that will be executed on every object.
      */
@@ -64,8 +65,9 @@ define(function (require, exports, module) {
     
     /**
      * Iterates over all the properties in an object or elements in an array. If a callback returns a
-     * truthly value then it will inmediatelly return true, if not, it will return false. Differs from
-     * $.each in that it iterates over array-like objects like regular objects.
+     * truthly value then it will immediately return true, if not, it will return false. Differs from
+     * $.each in that it always iterates over the properties of an object, even if it has a length
+     * property making it look like an array.
      * @param {*} object - The object or array to iterate over.
      * @param {function(value, key)} callback - The function that will be executed on every object.
      * @return {boolean}
