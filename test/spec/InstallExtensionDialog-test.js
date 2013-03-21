@@ -510,6 +510,54 @@ define(function (require, exports, module) {
                     SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keyup", fields.$dlg[0]);
                     deferred.reject("CANCELED");
                 });
+            });
+
+            it("should keep close button enabled and not throw an exception if install succeeds after cancelation", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    deferred.resolve();
+                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                });
+            });
+
+            it("should keep close button enabled and not throw an exception if install fails after cancelation", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    deferred.reject();
+                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                });
+            });
+            
+            it("should keep close button enabled and not throw an exception if install cancelation completes after cancelation", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    deferred.reject("CANCELED");
+                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                });
                 
                 // This must be in the last spec in the suite.
                 runs(function () {
