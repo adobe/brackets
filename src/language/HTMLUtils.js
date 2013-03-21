@@ -91,7 +91,7 @@ define(function (require, exports, module) {
             startChar = "";
             // Make attr value empty and set offset to zero if it has the ">" 
             // which is the closing of the tag.
-            if (attrValue.length === 1 && endChar === ">") {
+            if (endChar === ">") {
                 attrValue = "";
                 offset = 0;
             }
