@@ -2,6 +2,9 @@ Thumbs.db
 src/brackets.css
 src/brackets.min.css
 
+# ignore jenkins build info
+/build.prop
+
 # ignore node_modules created by grunt, but not more deeply-nested node_modules
 /node_modules
 /npm-debug.log

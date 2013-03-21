@@ -88,8 +88,8 @@ define(function (require, exports, module) {
             
             runs(function () {
                 expect(packageData.errors.length).toEqual(2);
-                expect(packageData.errors[0]).toEqual("Missing package name in " + missingNameVersion + ".");
-                expect(packageData.errors[1]).toEqual("Missing package version in " + missingNameVersion + ".");
+                expect(packageData.errors[0][0]).toEqual("MISSING_PACKAGE_NAME");
+                expect(packageData.errors[1][0]).toEqual("MISSING_PACKAGE_VERSION");
             });
         });
         

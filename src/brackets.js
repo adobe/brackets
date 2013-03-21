@@ -100,6 +100,7 @@ define(function (require, exports, module) {
     require("document/ChangedDocumentTracker");
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
+    require("editor/EditorOptionHandlers");
     require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
