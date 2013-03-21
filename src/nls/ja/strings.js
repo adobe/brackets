@@ -74,9 +74,10 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "!能=[6742878] Unable to load Live Development page_=!",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開いてください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
-	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "!能=[6728123] Error starting up the HTTP server for live development files. Please try again._=!",
+	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS ファイル</strong>の編集時にのみライブ更新が行われます。HTML または JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
 	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a class=\"clickable-link\" data-href=\"{0}\">Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
@@ -96,6 +97,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
+	"FIND_RESULT_COUNT": "{0} 件",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
@@ -132,7 +134,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
 
     /**
@@ -174,6 +176,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
+	"CMD_INSTALL_EXTENSION": "!能=[6737430] Install Extension..._=!",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -201,7 +204,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-     
+	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Auto Close Braces_=!",
+    
     // View menu commands
 	"VIEW_MENU": "表示",
 	"CMD_HIDE_SIDEBAR": "サイドバーを隠す",
@@ -209,6 +213,8 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
+	"CMD_SCROLL_LINE_UP": "!能=[6735595] Scroll Line Up_=!",
+	"CMD_SCROLL_LINE_DOWN": "!能=[6735594] Scroll Line Down_=!",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
@@ -273,24 +279,56 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
 	"RELAUNCH_CHROME": "Chrome を再起動",
+	"INSTALL": "インストール",
 	"ABOUT": "このソフトウェアについて",
 	"APP_NAME": "Brackets",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "注意 - サードパーティソフトウェアに関する契約条件は <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_jp/\">http://www.adobe.com/go/thirdparty_jp/</a> を参照してください。またリンク先の内容を本契約条件の一部と見なします。",
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
+	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
+	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
 	"GET_IT_NOW": "すぐに入手する",
 	"PROJECT_SETTINGS_TITLE": "プロジェクト設定 : {0}",
 	"PROJECT_SETTING_BASE_URL": "ライブプレビューのベース URL",
-	"PROJECT_SETTING_BASE_URL_HINT": "!能=[6499087] (to use a local server, specify url)_=!",
+	"PROJECT_SETTING_BASE_URL_HINT": "(ローカルサーバーを使用するには、URL を指定してください)",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "{0} プロトコルはライブプレビューではサポートされていません。http: または https: を使用してください。",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+    
+    // Extension Management strings
+	"INSTALL_EXTENSION_TITLE": "!能=[6737439] Install Extension_=!",
+	"INSTALL_EXTENSION_LABEL": "!能=[6737438] Extension URL_=!",
+	"INSTALL_EXTENSION_HINT": "!能=[6737437] URL of the extension's ZIP package_=!",
+	"INSTALLING_FROM": "!能=[6737435] Installing extension from {0}..._=!",
+	"INSTALL_SUCCEEDED": "!能=[6737441] Installation successful!_=!",
+	"INSTALL_FAILED": "!能=[6737440] Installation failed._=!",
+	"INSTALL_CANCELLED": "!能=[6737436] Installation cancelled._=!",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+	"INVALID_ZIP_FILE": "!能=[6737444] {0} is not a valid zipped package._=!",
+	"INVALID_PACKAGE_JSON": "!能=[6737442] Package.json file is not valid (error was: {0})._=!",
+	"MISSING_PACKAGE_NAME": "!能=[6737447] Missing package name in {0}._=!",
+	"BAD_PACKAGE_NAME": "!能=[6737429] {0} is an invalid package name._=!",
+	"MISSING_PACKAGE_VERSION": "!能=[6737448] Missing package version in {0}._=!",
+	"INVALID_VERSION_NUMBER": "!能=[6737443] Package version ({0}) is not a valid version number._=!",
+	"API_NOT_COMPATIBLE": "!能=[6737427] The extension was installed into your disabled extensions directory because it is not compatible with this version of Brackets._=!",
+	"MISSING_MAIN": "!能=[6737446] Package has no main.js file._=!",
+	"ALREADY_INSTALLED": "!能=[6737426] The extension was installed into your disabled extensions directory because it was previously installed._=!",
+	"NO_DISABLED_DIRECTORY": "!能=[6737449] Cannot save extension to extensions/disabled because the folder does not exist._=!",
+	"DOWNLOAD_ID_IN_USE": "!能=[6737431] Internal error: download ID already in use._=!",
+	"DOWNLOAD_TARGET_EXISTS": "!能=[6737432] Temp download file already exists: {0}._=!",
+	"NO_SERVER_RESPONSE": "!能=[6737450] Cannot connect to server._=!",
+	"BAD_HTTP_STATUS": "!能=[6737428] File not found on server (HTTP {0})._=!",
+	"ERROR_LOADING": "!能=[6737433] The extension encountered an error while starting up._=!",
+	"MALFORMED_URL": "!能=[6737445] Malformed URL._=!",
+	"UNSUPPORTED_PROTOCOL": "!能=[6737452] URL has an unsupported protocol._=!",
+	"UNKNOWN_ERROR": "!能=[6737451] Unknown internal error._=!",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

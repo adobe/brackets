@@ -24,7 +24,7 @@
 module.exports = function (grunt) {
     "use strict";
 
-    var common = require("./lib/common");
+    var common = require("./lib/common")(grunt);
 
     // task: write-config
     grunt.registerTask("write-config", "Merge package.json and src/brackets.config.json into src/config.json", function () {

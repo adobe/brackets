@@ -72,21 +72,35 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
+    var defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false,
+                         showLineNumbers: true, styleActiveLine: true, wordWrap: true };
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.Editor");
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");
     
-    /** @type {boolean}  Global setting: Tab size */
+    /** @type {number}  Global setting: Tab size */
     var _tabSize = _prefs.getValue("tabSize");
     
-    /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
+    /** @type {number}  Global setting: Indent unit (i.e. number of spaces when indenting) */
     var _indentUnit = _prefs.getValue("indentUnit");
     
+    /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
+    var _closeBrackets = _prefs.getValue("closeBrackets");
+    
+    /** @type {boolean}  Global setting: Show line numbers in the gutter */
+    var _showLineNumbers = _prefs.getValue("showLineNumbers");
+
+    /** @type {boolean}  Global setting: Highlight the background of the line that has the cursor */
+    var _styleActiveLine = _prefs.getValue("styleActiveLine");
+
+    /** @type {boolean}  Global setting: Auto wrap lines */
+    var _wordWrap = _prefs.getValue("wordWrap");
+
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
 
@@ -341,10 +355,13 @@ define(function (require, exports, module) {
             indentWithTabs: _useTabChar,
             tabSize: _tabSize,
             indentUnit: _indentUnit,
-            lineNumbers: true,
+            lineNumbers: _showLineNumbers,
+            lineWrapping: _wordWrap,
+            styleActiveLine: _styleActiveLine,
             matchBrackets: true,
-            dragDrop: false,    // work around issue #1123
+            dragDrop: true,
             extraKeys: codeMirrorKeyMap,
+            autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
                 whenOpening: true,
                 whenClosing: true,
@@ -946,7 +963,15 @@ define(function (require, exports, module) {
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
     };
-
+    
+    /*
+     * Returns the current text height of the editor.
+     * @returns {number} Height of the text in pixels
+     */
+    Editor.prototype.getTextHeight = function () {
+        return this._codeMirror.defaultTextHeight();
+    };
+    
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
@@ -1210,7 +1235,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode. 
-     *     See {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
+     *     See {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -1243,7 +1268,7 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForFileExtension()} and {@link Language#getMode()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
@@ -1287,21 +1312,33 @@ define(function (require, exports, module) {
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
 
+    
+    /**
+     * @private
+     * Updates Editor option and the corresponding preference with the given value. Affects all Editors.
+     * @param {boolean | number} value
+     * @param {string} cmOption - CodeMirror option string
+     * @param {string} prefName - preference name string
+     */
+    function _setEditorOptionAndPref(value, cmOption, prefName) {
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption(cmOption, value);
+        });
+        
+        _prefs.setValue(prefName, (typeof value === "boolean") ? Boolean(value) : value);
+    }
+		
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value
      */
     Editor.setUseTabChar = function (value) {
         _useTabChar = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentWithTabs", _useTabChar);
-        });
-        
-        _prefs.setValue("useTabChar", Boolean(_useTabChar));
+        _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar");
     };
     
     /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function (value) {
+    Editor.getUseTabChar = function () {
         return _useTabChar;
     };
 
@@ -1311,15 +1348,11 @@ define(function (require, exports, module) {
      */
     Editor.setTabSize = function (value) {
         _tabSize = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("tabSize", _tabSize);
-        });
-        
-        _prefs.setValue("tabSize", _tabSize);
+        _setEditorOptionAndPref(value, "tabSize", "tabSize");
     };
     
     /** @type {number} Get indent unit  */
-    Editor.getTabSize = function (value) {
+    Editor.getTabSize = function () {
         return _tabSize;
     };
 
@@ -1329,16 +1362,68 @@ define(function (require, exports, module) {
      */
     Editor.setIndentUnit = function (value) {
         _indentUnit = value;
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption("indentUnit", _indentUnit);
-        });
-        
-        _prefs.setValue("indentUnit", _indentUnit);
+        _setEditorOptionAndPref(value, "indentUnit", "indentUnit");
     };
     
     /** @type {number} Get indentation width */
-    Editor.getIndentUnit = function (value) {
+    Editor.getIndentUnit = function () {
         return _indentUnit;
+    };
+    
+    /**
+     * Sets the auto close brackets. Affects all Editors.
+     * @param {boolean} value
+     */
+    Editor.setCloseBrackets = function (value) {
+        _closeBrackets = value;
+        _setEditorOptionAndPref(value, "autoCloseBrackets", "closeBrackets");
+    };
+    
+    /** @type {boolean} Gets whether all Editors use auto close brackets */
+    Editor.getCloseBrackets = function () {
+        return _closeBrackets;
+    };
+    
+    /**
+     * Sets show line numbers option and reapply it to all open editors.
+     * @param {boolean} value
+     */
+    Editor.setShowLineNumbers = function (value) {
+        _showLineNumbers = value;
+        _setEditorOptionAndPref(value, "lineNumbers", "showLineNumbers");
+    };
+    
+    /** @type {boolean} Returns true if show line numbers is enabled for all editors */
+    Editor.getShowLineNumbers = function () {
+        return _showLineNumbers;
+    };
+    
+    /**
+     * Sets show active line option and reapply it to all open editors.
+     * @param {boolean} value
+     */
+    Editor.setShowActiveLine = function (value) {
+        _styleActiveLine = value;
+        _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
+    };
+    
+    /** @type {boolean} Returns true if show active line is enabled for all editors */
+    Editor.getShowActiveLine = function () {
+        return _styleActiveLine;
+    };
+    
+    /**
+     * Sets word wrap option and reapply it to all open editors.
+     * @param {boolean} value
+     */
+    Editor.setWordWrap = function (value) {
+        _wordWrap = value;
+        _setEditorOptionAndPref(value, "lineWrapping", "wordWrap");
+    };
+    
+    /** @type {boolean} Returns true if word wrap is enabled for all editors */
+    Editor.getWordWrap = function () {
+        return _wordWrap;
     };
     
     // Define public API
