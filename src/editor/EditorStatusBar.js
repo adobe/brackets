@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     }
 
     function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
+        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getSpaceUnits();
     }
     
     function _updateIndentSize() {
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
         if (Editor.getUseTabChar()) {
             Editor.setTabSize(Math.max(Math.min(value, 10), 1));
         } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
+            Editor.setSpaceUnits(Math.max(Math.min(value, 10), 1));
         }
 
         // update indicator
