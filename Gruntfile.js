@@ -24,8 +24,11 @@
 module.exports = function (grunt) {
     'use strict';
 
+    var common = require("./tasks/lib/common")(grunt);
+
     // Project configuration.
     grunt.initConfig({
+        pkg  : grunt.file.readJSON("package.json"),
         meta : {
             src   : [
                 'src/**/*.js',
@@ -46,6 +49,10 @@ module.exports = function (grunt) {
                 '!test/smokes/**',
                 '!test/temp/**',
                 '!test/thirdparty/**'
+            ],
+            grunt: [
+                'Gruntfile.js',
+                'tasks/**/*.js'
             ],
             /* specs that can run in phantom.js */
             specs : [
@@ -106,10 +113,16 @@ module.exports = function (grunt) {
                 '<%= meta.src %>',
                 '<%= meta.test %>'
             ],
+            grunt: "<%= meta.grunt %>",
             /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
             options: {
                 jshintrc: '.jshintrc'
             }
+        },
+        shell: {
+            repo: grunt.option("shell-repo") || "../brackets-shell",
+            mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
+            win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe"
         }
     });
 
@@ -123,7 +136,8 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config']);
 
     // task: test
-    grunt.registerTask('test', ['jshint', 'jasmine']);
+    //grunt.registerTask('test', ['jshint', 'jasmine']);
+    grunt.registerTask('test', ['jshint']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
