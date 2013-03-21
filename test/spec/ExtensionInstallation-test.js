@@ -30,13 +30,15 @@ waitsFor, runs, $, brackets, waitsForDone */
 define(function (require, exports, module) {
     "use strict";
     
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        ExtensionLoader = require("utils/ExtensionLoader"),
-        Package         = require("extensibility/Package");
+    var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
+        ExtensionLoader  = require("utils/ExtensionLoader"),
+        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
+        Package          = require("extensibility/Package");
     
     var testFilePath = SpecRunnerUtils.getTestPath("/spec/extension-test-files");
     
-    var extensionsRoot = SpecRunnerUtils.getTempDirectory();
+    var tempDirectory = SpecRunnerUtils.getTempDirectory();
+    var extensionsRoot = tempDirectory + "/extensions";
     
     var basicValid          = testFilePath + "/basic-valid-extension.zip",
         missingNameVersion  = testFilePath + "/missing-name-version.zip",
@@ -100,7 +102,7 @@ define(function (require, exports, module) {
         var realGetUserExtensionPath, realLoadExtension, lastExtensionLoad;
         
         function mockGetUserExtensionPath() {
-            return extensionsRoot + "/extensions/user";
+            return extensionsRoot + "/user";
         }
         
         function mockLoadExtension(name, config, entryPoint) {
@@ -119,35 +121,76 @@ define(function (require, exports, module) {
             lastExtensionLoad = {};
             realLoadExtension = ExtensionLoader.loadExtension;
             ExtensionLoader.loadExtension = mockLoadExtension;
+            
+            var nfs = null;
+
+            runs(function () {
+                NativeFileSystem.requestNativeFileSystem(tempDirectory, function (fs) {
+                    nfs = fs;
+                });
+            });
+            waitsFor(function () { return nfs; }, 1000, "requesting temp filesystem");
+
+            runs(function () {
+                this.nfs = nfs;
+            });
         });
         
         afterEach(function () {
             ExtensionLoader.getUserExtensionPath = realGetUserExtensionPath;
             ExtensionLoader.loadExtension = realLoadExtension;
+            var promise = SpecRunnerUtils.remove(mockGetUserExtensionPath());
+            waitsForDone(promise, "Mock Extension Removal", 2000);
         });
         
-        // These tests are disabled, because they work fine the first time
-        // but cannot run twice unless the destination directory is deleted.
-        xit("extensions should install and load", function () {
+        it("extensions should install and load", function () {
             installPackage(basicValid);
+            
+            var mainCheckComplete = false;
             
             runs(function () {
                 expect(packageData.errors.length).toEqual(0);
                 expect(packageData.name).toEqual("basic-valid-extension");
+                
+                // confirm that the extension would have been loaded had we not
+                // mocked the loading part
                 expect(lastExtensionLoad.name).toEqual("basic-valid-extension");
                 expect(lastExtensionLoad.config.baseUrl).toEqual(mockGetUserExtensionPath() + "/basic-valid-extension");
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
+                this.nfs.root.getFile(extensionsRoot + "/user/basic-valid-extension/main.js", { create: false },
+                    function () {
+                        mainCheckComplete = true;
+                    },
+                    function () {
+                        mainCheckComplete = true;
+                        expect("basic-valid-extension directory and main.js to exist").toEqual(true);
+                    });
             });
+            
+            waitsFor(function () { return mainCheckComplete; }, 1000);
         });
         
-        xit("extensions should install disabled if they are not compatible", function () {
+        it("extensions should install disabled if they are not compatible", function () {
             installPackage(incompatibleVersion);
             
+            var directoryCheckComplete = false;
+
             runs(function () {
                 expect(packageData.errors.length).toEqual(0);
                 expect(packageData.disabledReason).not.toBeNull();
                 expect(packageData.name).toEqual("incompatible-version");
                 expect(lastExtensionLoad).toEqual({});
+                this.nfs.root.getDirectory(extensionsRoot + "/disabled/incompatible-version", { create: false },
+                    function () {
+                        directoryCheckComplete = true;
+                    },
+                    function () {
+                        directoryCheckComplete = true;
+                        expect("incompatible-version path to exist in the disabled directory").toEqual(true);
+                    });
+
+                waitsFor(function () { return directoryCheckComplete; }, 1000);
+                
             });
         });
     });

@@ -48,7 +48,8 @@ module.exports = function (grunt) {
                 '!test/spec/*-files/**/*.js',
                 '!test/smokes/**',
                 '!test/temp/**',
-                '!test/thirdparty/**'
+                '!test/thirdparty/**',
+                '!test/**/node_modules/**/*.js'
             ],
             grunt: [
                 'Gruntfile.js',
