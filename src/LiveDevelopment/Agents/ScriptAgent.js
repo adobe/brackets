@@ -127,14 +127,14 @@ define(function ScriptAgent(require, exports, module) {
         _load = new $.Deferred();
         Inspector.Debugger.enable(function (response) {
             if (response.error) {
-                enableDeferred.reject(response.error);
+                enableDeferred.reject(null, response.error);
             } else {
                 enableDeferred.resolve();
             }
         });
         Inspector.Debugger.setPauseOnExceptions("uncaught", function (response) {
             if (response.error) {
-                pauseDeferred.reject(response.error);
+                pauseDeferred.reject(null, response.error);
             } else {
                 pauseDeferred.resolve();
             }

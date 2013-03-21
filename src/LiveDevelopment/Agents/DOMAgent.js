@@ -316,7 +316,7 @@ define(function DOMAgent(require, exports, module) {
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
         Inspector.Page.enable(function (response) {
             if (response.error) {
-                deferred.reject(response.error);
+                deferred.reject(null, response.error);
             } else {
                 deferred.resolve();
             }

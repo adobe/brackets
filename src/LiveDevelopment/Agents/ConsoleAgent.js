@@ -78,7 +78,7 @@ define(function ConsoleAgent(require, exports, module) {
         
         Inspector.Console.enable(function (response) {
             if (response.error) {
-                deferred.reject(response.error);
+                deferred.reject(null, response.error);
             } else {
                 deferred.resolve();
             }

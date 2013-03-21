@@ -68,7 +68,7 @@ define(function NetworkAgent(require, exports, module) {
         _urlRequested = {};
         Inspector.Network.enable(function (response) {
             if (response.error) {
-                deferred.reject(response.error);
+                deferred.reject(null, response.error);
             } else {
                 deferred.resolve();
             }

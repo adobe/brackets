@@ -52,7 +52,7 @@ define(function RemoteAgent(require, exports, module) {
         
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
-                _load.reject(response.error);
+                _load.reject(null, response.error);
             } else {
                 _objectId = response.result.objectId;
                 _load.resolve();
