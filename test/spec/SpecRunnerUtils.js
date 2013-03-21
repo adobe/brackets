@@ -821,17 +821,23 @@ define(function (require, exports, module) {
     function remove(path) {
         var d = new $.Deferred();
         var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
-        nodeDeferred.done(function (connection) {
-            if (connection.connected()) {
-                connection.domains.testing.remove(path)
-                    .done(function () {
-                        d.resolve();
-                    })
-                    .fail(function () {
-                        d.reject();
-                    });
-            }
-        });
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
         return d.promise();
     }
     

@@ -37,7 +37,8 @@ define(function (require, exports, module) {
     
     var testFilePath = SpecRunnerUtils.getTestPath("/spec/extension-test-files");
     
-    var extensionsRoot = SpecRunnerUtils.getTempDirectory() + "/extensions";
+    var tempDirectory = SpecRunnerUtils.getTempDirectory();
+    var extensionsRoot = tempDirectory + "/extensions";
     
     var basicValid          = testFilePath + "/basic-valid-extension.zip",
         missingNameVersion  = testFilePath + "/missing-name-version.zip",
@@ -124,11 +125,11 @@ define(function (require, exports, module) {
             var nfs = null;
 
             runs(function () {
-                NativeFileSystem.requestNativeFileSystem(extensionsRoot, function (fs) {
+                NativeFileSystem.requestNativeFileSystem(tempDirectory, function (fs) {
                     nfs = fs;
                 });
             });
-            waitsFor(function () { return nfs; }, 1000);
+            waitsFor(function () { return nfs; }, 1000, "requesting temp filesystem");
 
             runs(function () {
                 this.nfs = nfs;
@@ -145,25 +146,28 @@ define(function (require, exports, module) {
         it("extensions should install and load", function () {
             installPackage(basicValid);
             
-            var directoryCheckComplete = false;
+            var mainCheckComplete = false;
             
             runs(function () {
                 expect(packageData.errors.length).toEqual(0);
                 expect(packageData.name).toEqual("basic-valid-extension");
+                
+                // confirm that the extension would have been loaded had we not
+                // mocked the loading part
                 expect(lastExtensionLoad.name).toEqual("basic-valid-extension");
                 expect(lastExtensionLoad.config.baseUrl).toEqual(mockGetUserExtensionPath() + "/basic-valid-extension");
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
-                this.nfs.root.getDirectory(mockGetUserExtensionPath() + "/basic-valid-extension", { create: false },
+                this.nfs.root.getFile(extensionsRoot + "/user/basic-valid-extension/main.js", { create: false },
                     function () {
-                        directoryCheckComplete = true;
+                        mainCheckComplete = true;
                     },
                     function () {
-                        directoryCheckComplete = true;
-                        expect("basic-valid-extension path to exist").toEqual(true);
+                        mainCheckComplete = true;
+                        expect("basic-valid-extension directory and main.js to exist").toEqual(true);
                     });
             });
             
-            waitsFor(function () { return directoryCheckComplete; }, 1000);
+            waitsFor(function () { return mainCheckComplete; }, 1000);
         });
         
         it("extensions should install disabled if they are not compatible", function () {
