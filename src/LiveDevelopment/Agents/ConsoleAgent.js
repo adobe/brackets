@@ -74,11 +74,22 @@ define(function ConsoleAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        Inspector.Console.enable();
+        var deferred = $.Deferred();
+        
+        Inspector.Console.enable(function (response) {
+            if (response.error) {
+                deferred.reject(response.error);
+            } else {
+                deferred.resolve();
+            }
+        });
+        
         $(Inspector.Console)
             .on("messageAdded.ConsoleAgent", _onMessageAdded)
             .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
             .on("messagesCleared.ConsoleAgent", _onMessagesCleared);
+        
+        return deferred.promise();
     }
 
     /** Clean up */

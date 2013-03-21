@@ -119,18 +119,33 @@ define(function ScriptAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
+        var enableDeferred  = $.Deferred(),
+            pauseDeferred   = $.Deferred();
+        
         _urlToScript = {};
         _idToScript = {};
         _load = new $.Deferred();
-        Inspector.Debugger.enable();
-        Inspector.Debugger.setPauseOnExceptions("uncaught");
+        Inspector.Debugger.enable(function (response) {
+            if (response.error) {
+                enableDeferred.reject(response.error);
+            } else {
+                enableDeferred.resolve();
+            }
+        });
+        Inspector.Debugger.setPauseOnExceptions("uncaught", function (response) {
+            if (response.error) {
+                pauseDeferred.reject(response.error);
+            } else {
+                pauseDeferred.resolve();
+            }
+        });
         $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
         $(Inspector.Debugger)
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
             .on("scriptFailedToParse.ScriptAgent", _onScriptFailedToParse)
             .on("paused.ScriptAgent", _onPaused);
         $(Inspector.DOM).on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
-        return _load;
+        return $.when(_load.promise(), enableDeferred.promise(), pauseDeferred.promise());
     }
 
     /** Clean up */

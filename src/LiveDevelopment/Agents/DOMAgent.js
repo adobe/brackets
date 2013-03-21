@@ -302,6 +302,8 @@ define(function DOMAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
+        var deferred = $.Deferred();
+        
         _load = new $.Deferred();
         $(Inspector.Page)
             .on("frameNavigated.DOMAgent", _onFrameNavigated)
@@ -312,8 +314,14 @@ define(function DOMAgent(require, exports, module) {
             .on("childNodeCountUpdated.DOMAgent", _onChildNodeCountUpdated)
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
-        Inspector.Page.enable();
-        return _load.promise();
+        Inspector.Page.enable(function (response) {
+            if (response.error) {
+                deferred.reject(response.error);
+            } else {
+                deferred.resolve();
+            }
+        });
+        return $.when(_load.promise(), deferred.promise());
     }
 
     /** Clean up */
