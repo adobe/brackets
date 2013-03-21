@@ -49,10 +49,6 @@ define(function (require, exports, module) {
         STATE_CANCELING_HUNG    = 7,
         STATE_INSTALL_CANCELED  = 8;
     
-    /** Timeout before we allow user to leave STATE_INSTALL_CANCELING without waiting for a resolution */
-    var CANCEL_TIMEOUT = 10 * 1000;
-    
-    
     /** 
      * @constructor
      * Creates a new extension installer dialog.
@@ -61,6 +57,10 @@ define(function (require, exports, module) {
     function InstallExtensionDialog(installer) {
         this._installer = installer;
         this._state = STATE_CLOSED;
+
+        // Timeout before we allow user to leave STATE_INSTALL_CANCELING without waiting for a resolution
+        // (per-instance so we can poke it for unit testing)
+        this._cancelTimeout = 10 * 1000;
     }
     
     /** @type {jQuery} The dialog root. */
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
                 if (self._state === STATE_CANCELING_INSTALL) {
                     self._enterState(STATE_CANCELING_HUNG);
                 }
-            }, CANCEL_TIMEOUT);
+            }, this._cancelTimeout);
             break;
             
         case STATE_CANCELING_HUNG:
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
     InstallExtensionDialog.prototype._handleCancel = function () {
         if (this._state === STATE_INSTALLING) {
             this._enterState(STATE_CANCELING_INSTALL);
-        } else {
+        } else if (this._state !== STATE_CANCELING_INSTALL) {
             this._enterState(STATE_CLOSED);
         }
     };
