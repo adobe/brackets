@@ -201,10 +201,9 @@ define(function LiveDevelopment(require, exports, module) {
         doc.url = parentUrl + encodeURI(matches[2]);
 
         // the root represents the document that should be displayed in the browser
-        // for live development (the file for HTML files, index.html for others)
+        // for live development (the file for HTML files)
         // TODO: Issue #2033 Improve how default page is determined
-        rootUrl = (_isHtmlFileExt(matches[3]) ? doc.url : parentUrl + "index.html");
-        doc.root = { url: rootUrl };
+        doc.root = { url: doc.url };
     }
 
     /** Get the current document from the document manager
@@ -500,7 +499,7 @@ define(function LiveDevelopment(require, exports, module) {
         _setStatus(STATUS_INACTIVE);
     }
 
-    function _onReconnect() {
+    function reconnect() {
         unloadAgents();
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
@@ -836,7 +835,7 @@ define(function LiveDevelopment(require, exports, module) {
             Inspector.Page.reload();
 
             // Reload unsaved changes
-            _onReconnect();
+            reconnect();
         }
     }
 
@@ -936,6 +935,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents              = agents;
     exports.open                = open;
     exports.close               = close;
+    exports.reconnect           = reconnect;
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;
