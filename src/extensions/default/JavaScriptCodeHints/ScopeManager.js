@@ -55,10 +55,18 @@ define(function (require, exports, module) {
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
         MAX_FILES_IN_DIR    = 100;
 
-    function initTernServer() {
-        ternServer = new Tern.Server({environment:ternEnvironment});
+    function initTernServer(dir) {
+        var ternOptions = {
+            environment:ternEnvironment,
+            getFile: function(name, next) {
+                DocumentManager.getDocumentForPath(dir + name).done(function(document){
+                    next(null, document.getText());
+                })
+            }
+            };
+        ternServer = new Tern.Server(ternOptions);
     }
-    function initTernEnv(server) {
+    function initTernEnv() {
         var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/";
         var files = ["ecma5.json"];//, "browser.json", "plugin/requirejs/requirejs.json", "jquery.json"];
         
@@ -71,7 +79,8 @@ define(function (require, exports, module) {
             });
         });
     }
-    initTernEnv(ternServer);
+
+    initTernEnv();
     
     /** 
      * Initialize state for a given directory and file name
@@ -488,6 +497,8 @@ define(function (require, exports, module) {
         
         markFileDirty(dir, file);
 
+        initTernServer(dir);
+
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {
@@ -502,6 +513,7 @@ define(function (require, exports, module) {
                             DocumentManager.getDocumentForPath(path).done(function (document) {
                                 refreshOuterScope(dir, file, document.getText());
                             });
+                            ternServer.addFile(file);    
                         }
                     }
                 }
@@ -511,7 +523,6 @@ define(function (require, exports, module) {
             refreshOuterScope(dir, file, document.getText());
         });
         
-        initTernServer();
     }
 
     /*
