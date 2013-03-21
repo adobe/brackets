@@ -12,6 +12,9 @@
         "branch": "",
         "SHA": ""
     },
+    "engines": {
+        "node": "~0.10.1"
+    },
     "devDependencies": {
         "grunt": "~0.4.0",
         "grunt-cli": "~0.1.0",
