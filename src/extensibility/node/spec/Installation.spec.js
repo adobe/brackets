@@ -54,6 +54,12 @@ var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.
     missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip");
 
 describe("Package Installation", function () {
+    
+    var standardOptions = {
+        disabledDirectory: disabledDirectory,
+        apiVersion: "0.22.0"
+    };
+    
     beforeEach(function (done) {
         fs.mkdirs(installDirectory, function (err) {
             fs.mkdirs(disabledDirectory, function (err) {
@@ -86,9 +92,7 @@ describe("Package Installation", function () {
     }
     
     it("should validate the package", function (done) {
-        ExtensionsDomain._cmdInstall(missingMain, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(missingMain, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
@@ -97,9 +101,7 @@ describe("Package Installation", function () {
     });
     
     it("should work fine if all is well", function (done) {
-        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
             
             expect(err).toBeNull();
@@ -123,9 +125,7 @@ describe("Package Installation", function () {
     // do anything with the file before validation.
     it("should fail for missing package", function (done) {
         ExtensionsDomain._cmdInstall(path.join(testFilesDirectory, "NOT A PACKAGE"),
-                                     installDirectory, {
-                disabledDirectory: disabledDirectory
-            }, function (err, result) {
+                                     installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
                 var errors = result.errors;
                 expect(errors.length).toEqual(1);
@@ -135,14 +135,10 @@ describe("Package Installation", function () {
     });
     
     it("should install to the disabled directory if it's already installed", function (done) {
-        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.disabledReason).toBeNull();
-            ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {
-                disabledDirectory: disabledDirectory
-            }, function (err, result) {
+            ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
                 expect(result.disabledReason).toEqual("ALREADY_INSTALLED");
                 var extensionDirectory = path.join(disabledDirectory, "basic-valid-extension");
@@ -156,33 +152,28 @@ describe("Package Installation", function () {
         });
     });
     
-    it("should yield an error if there's no disabled directory set and it's needed", function (done) {
-        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
-            expect(err).toBeNull();
-            expect(result.disabledReason).toBeNull();
-            ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {}, function (err, result) {
-                expect(err.message).toEqual("NO_DISABLED_DIRECTORY");
-                done();
-            });
+    it("should yield an error if there's no disabled directory set", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, { apiVersion: "0.22.0" }, function (err, result) {
+            expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
+            done();
+        });
+    });
+    
+    it("should yield an error if there's no apiVersion set", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, { disabledDirectory: disabledDirectory }, function (err, result) {
+            expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
+            done();
         });
     });
     
     it("should overwrite the disabled directory copy if there's already one", function (done) {
-        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.disabledReason).toBeNull();
-            ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {
-                disabledDirectory: disabledDirectory
-            }, function (err, result) {
+            ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
                 expect(result.disabledReason).toEqual("ALREADY_INSTALLED");
-                ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, {
-                    disabledDirectory: disabledDirectory
-                }, function (err, result) {
+                ExtensionsDomain._cmdInstall(basicValidExtension2, installDirectory, standardOptions, function (err, result) {
                     expect(err).toBeNull();
                     expect(result.disabledReason).toEqual("ALREADY_INSTALLED");
                     var extensionDirectory = path.join(disabledDirectory, "basic-valid-extension");
@@ -197,9 +188,7 @@ describe("Package Installation", function () {
     });
     
     it("should derive the name from the zip if there's no package.json", function (done) {
-        ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.disabledReason).toBeNull();
             var extensionDirectory = path.join(installDirectory, "missing-package-json");
@@ -211,9 +200,7 @@ describe("Package Installation", function () {
     });
     
     it("should install with the common prefix removed", function (done) {
-        ExtensionsDomain._cmdInstall(oneLevelDown, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(oneLevelDown, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             var extensionDirectory = path.join(installDirectory, "one-level-extension");
             var pathsToCheck = [
@@ -226,10 +213,7 @@ describe("Package Installation", function () {
     });
     
     it("should disable extensions that are not compatible with the current Brackets API", function (done) {
-        ExtensionsDomain._cmdInstall(incompatibleVersion, installDirectory, {
-            disabledDirectory: disabledDirectory,
-            apiVersion: "0.22.0"
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(incompatibleVersion, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.disabledReason).toEqual("API_NOT_COMPATIBLE");
             var extensionDirectory = path.join(disabledDirectory, "incompatible-version");
@@ -242,9 +226,7 @@ describe("Package Installation", function () {
     });
     
     it("should not have trouble with invalid zip files", function (done) {
-        ExtensionsDomain._cmdInstall(invalidZip, installDirectory, {
-            disabledDirectory: disabledDirectory
-        }, function (err, result) {
+        ExtensionsDomain._cmdInstall(invalidZip, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(1);
             done();
