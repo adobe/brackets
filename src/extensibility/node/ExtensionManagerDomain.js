@@ -333,7 +333,7 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * 
  * @param {string} Absolute path to the package zip file
  * @param {string} the destination directory
- * @param {{disabledDirectory:string, apiVersion:string}} required additional settings to control the installation
+ * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}} additional settings to control the installation
  * @param {function} callback (err, result)
  */
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
@@ -545,7 +545,7 @@ function init(domainManager) {
             description: "absolute filesystem path where this extension should be installed"
         }, {
             name: "options",
-            type: "{disabledDirectory: ?string, apiVersion: ?string, nameHint: ?string}",
+            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}",
             description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
         [{

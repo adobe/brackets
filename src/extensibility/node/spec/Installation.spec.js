@@ -152,14 +152,17 @@ describe("Package Installation", function () {
         });
     });
     
-    it("should yield an error if there's no disabled directory set and it's needed", function (done) {
-        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
-            expect(err).toBeNull();
-            expect(result.disabledReason).toBeNull();
-            ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, {}, function (err, result) {
-                expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
-                done();
-            });
+    it("should yield an error if there's no disabled directory set", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, { apiVersion: "0.22.0" }, function (err, result) {
+            expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
+            done();
+        });
+    });
+    
+    it("should yield an error if there's no apiVersion set", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, { disabledDirectory: disabledDirectory }, function (err, result) {
+            expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
+            done();
         });
     });
     
