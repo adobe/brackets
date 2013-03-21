@@ -719,6 +719,19 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._handleBlur = function (e) {
         this._close();
     };
+    
+    /**
+     * Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
+     * caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
+     */
+    function fetchFileList() {
+        fileList = null;
+        fileListPromise = FileIndexManager.getFileInfoList("all")
+            .done(function (files) {
+                fileList = files;
+                fileListPromise = null;
+            });
+    }
 
     /**
      * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
@@ -784,16 +797,10 @@ define(function (require, exports, module) {
 
         this.setSearchFieldValue(prefix, initialString);
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
-        // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileList = null;
-        fileListPromise = FileIndexManager.getFileInfoList("all")
-            .done(function (files) {
-                fileList = files;
-                fileListPromise = null;
-            });
+        fetchFileList();
+        
     };
-
+    
     function getCurrentEditorSelectedText() {
         var currentEditor = EditorManager.getActiveEditor();
         return (currentEditor && currentEditor.getSelectedText()) || "";
@@ -844,6 +851,10 @@ define(function (require, exports, module) {
     exports.beginSearch             = beginSearch;
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
+    
+    // These are exposed as unofficial API at this time. Subject to change!
+    exports._searchFileList          = searchFileList;
+    exports._fetchFileList           = fetchFileList;
     
     // accessing these from this module will ultimately be deprecated
     exports.stringMatch             = StringMatch.stringMatch;
