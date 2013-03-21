@@ -812,6 +812,29 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred.done(function (connection) {
+            if (connection.connected()) {
+                connection.domains.testing.remove(path)
+                    .done(function () {
+                        d.resolve();
+                    })
+                    .fail(function () {
+                        d.reject();
+                    });
+            }
+        });
+        return d.promise();
+    }
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -851,6 +874,7 @@ define(function (require, exports, module) {
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
     exports.chmod                           = chmod;
+    exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
