@@ -39,6 +39,7 @@
         "q": "0.9.2"
     },
     "scripts": {
+        "preinstall": "npm install unzip@0.1.6-alpha",
         "postinstall": "grunt install",
         "test": "grunt test"
     }
