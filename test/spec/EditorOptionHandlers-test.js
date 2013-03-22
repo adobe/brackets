@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
+/*global define, $, describe, beforeEach, afterEach, it, xit, runs, waitsFor, expect, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -167,7 +167,7 @@ define(function (require, exports, module) {
             });
         });
 
-        it("should show active line in main editor by default", function () {
+        xit("should show active line in main editor by default", function () {
             var promise,
                 editor,
                 lineInfo;
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
             });
         });
 
-        it("should also show active line in inline editor by default", function () {
+        xit("should also show active line in inline editor by default", function () {
             var promise,
                 inlineEditor,
                 lineInfo;
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should NOT style active line after turning it off", function () {
+        xit("should NOT style active line after turning it off", function () {
             var promise,
                 editor,
                 lineInfo;
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
             });
         });
 
-        it("should NOT style the active line when opening another document with show active line off", function () {
+        xit("should NOT style the active line when opening another document with show active line off", function () {
             var promise,
                 editor,
                 lineInfo;
