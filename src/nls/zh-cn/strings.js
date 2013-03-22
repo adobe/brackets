@@ -304,17 +304,17 @@ define({
      // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",
     "INSTALL_EXTENSION_LABEL"              : "扩展包地址",
-    "INSTALL_EXTENSION_HINT"               : "填写一个基于URL的ZIP扩展包地址.",
-    "INSTALLING_FROM"                      : "正在安装扩展 {0}...",
+    "INSTALL_EXTENSION_HINT"               : "填写一个基于URL或者Github的ZIP扩展包地址.",
+    "INSTALLING_FROM"                      : "正在从 {0} 安装扩展 ...",
     "INSTALL_SUCCEEDED"                    : "安装成功!",
     "INSTALL_FAILED"                       : "安装失败.",
     "INSTALL_CANCELLED"                    : "安装已取消.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "{0}不是一个有效的ZIP文件.",
     "INVALID_PACKAGE_JSON"                 : "扩展包中的JSON文件是无效的. (错误是: {0}).",
-    "MISSING_PACKAGE_NAME"                 : "扩展包名称遗失 {0}.",
+    "MISSING_PACKAGE_NAME"                 : "扩展包中的JSON文件内容缺失.  {0}.",
     "BAD_PACKAGE_NAME"                     : "{0} 是一个无效扩展包名.",
-    "MISSING_PACKAGE_VERSION"              : "扩展包版本遗失 {0}.",
+    "MISSING_PACKAGE_VERSION"              : "扩展包版本缺失 {0}.",
     "INVALID_VERSION_NUMBER"               : "扩展包版本 ({0}) 是一个无效版本号.",
     "API_NOT_COMPATIBLE"                   : "扩展包将安装到你的扩展目录中,但是这个扩展包不适合你现在的版本.",
     "MISSING_MAIN"                         : "扩展包遗失main.js文件.",
@@ -326,7 +326,7 @@ define({
     "BAD_HTTP_STATUS"                      : "未在服务器上发现该文件 (HTTP {0}).",
     "ERROR_LOADING"                        : "扩展程序遇到一个错误,将重启扩展.",
     "MALFORMED_URL"                        : "无法识别的URL地址.",
-    "UNSUPPORTED_PROTOCOL"                 : "不支持此URL协议.",
+    "UNSUPPORTED_PROTOCOL"                 : "需要一个Http或Https协议的地址.",
     "UNKNOWN_ERROR"                        : "未知内部错误.",
     // For NOT_FOUND_ERR, see generic strings above
     
