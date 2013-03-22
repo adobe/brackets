@@ -398,12 +398,11 @@ define(function (require, exports, module) {
         var mode = editor.getModeForSelection(),
             enabledProviders = _getProvidersForMode(mode);
         
-        $.each(enabledProviders, function (index, item) {
+        enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {
                 sessionProvider = item.provider;
-                return false;
+                return true;
             }
-            return true;
         });
 
         // If a provider is found, initialize the hint list and update it

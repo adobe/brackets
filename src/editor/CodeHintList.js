@@ -191,9 +191,9 @@ define(function (require, exports, module) {
                 this.handleClose();
             }
         } else {
-            $.each(this.hints, function (index, item) {
+            this.hints.some(function (item, index) {
                 if (index > self.maxResults) {
-                    return false;
+                    return true;
                 }
                 _addHint(item);
             });
