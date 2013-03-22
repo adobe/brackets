@@ -61,6 +61,7 @@ define(function (require, exports, module) {
     function initTernServer(dir) {
         var ternOptions = {
             environment:ternEnvironment,
+            async:true,
             getFile: function(name, next) {
                 DocumentManager.getDocumentForPath(dir + name).done(function(document){
                     next(null, document.getText());
@@ -74,7 +75,7 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/";
+        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/defs/";
         var files = ["ecma5.json"];//, "browser.json", "plugin/requirejs/requirejs.json", "jquery.json"];
         
         var dirEntry    = new NativeFileSystem.DirectoryEntry(path),
@@ -83,6 +84,8 @@ define(function (require, exports, module) {
         files.forEach(function(i) {
             DocumentManager.getDocumentForPath(path + i).done(function(document){
                 ternEnvironment.push(JSON.parse(document.getText()));
+            }).fail(function(error){
+                console.log("failed to read tern config file " + i);
             });
         });
     }
