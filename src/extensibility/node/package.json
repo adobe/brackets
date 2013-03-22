@@ -5,6 +5,7 @@
         "semver": ">1.1.0 <2.0.0",
         "fs-extra": "0.5.x",
         "async": "0.2.x"
-        "request": "2.16.x"
+        "request": "2.16.x",
+        "clipboard": "0.1.1"
     }
 }

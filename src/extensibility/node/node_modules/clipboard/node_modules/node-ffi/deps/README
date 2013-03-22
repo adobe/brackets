@@ -1,0 +1,23 @@
+node-ffi uses a bundled libffi (untouched).
+
+libffi should be statically compiled using its build system before compiling node-ffi.
+
+
+On a Unix system:
+
+  $ ./configure --enable-static --disable-shared
+  $ make
+
+
+On a Windows system:
+
+First install MSVC++ (google). Second install MozillaBuild:
+http://ftp.mozilla.org/pub/mozilla.org/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe
+
+Note to fix the CC target path to the msvcc.sh file if it's different for you.
+
+  $ ./configure CC="sh /c/node-ffi/deps/libffi/msvcc.sh" LD=link CPP="cl -nologo -EP" CFLAGS="" --enable-static --disable-shared
+  $ make
+
+
+Now that the bundled libffi is compiled, you may proceed with compiling node-ffi.

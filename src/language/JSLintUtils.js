@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         AppInit                 = require("utils/AppInit"),
-        StatusBar               = require("widgets/StatusBar");
+        StatusBar               = require("widgets/StatusBar"),
+        NativeApp               = require("utils/NativeApp");
         
     var defaultPrefs = { enabled: !!brackets.config.enable_jslint };
     
@@ -124,23 +125,30 @@ define(function (require, exports, module) {
 
             PerfUtils.addMeasurement(perfTimerLint);
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
-            
             if (!result) {
                 var $errorTable = $("<table class='zebra-striped condensed-table' />")
                                    .append("<tbody>");
                 var $selectedRow;
                 
                 JSLINT.errors.forEach(function (item, i) {
+                
                     if (item) {
                         var makeCell = function (content) {
                             return $("<td/>").text(content);
                         };
+                        
+                        var makeHtmlCell = function (content) {
+                            return $("<td/>").html(content);
+                        };
+                        
+                        var $searchJSLint = makeHtmlCell("<a href='#'>Google</a>");
                         
                         // Add row to error table
                         var $row = $("<tr/>")
                             .append(makeCell(item.line))
                             .append(makeCell(item.reason))
                             .append(makeCell(item.evidence || ""))
+                            .append($searchJSLint)
                             .appendTo($errorTable);
                         
                         var clickCallback = function () {
@@ -154,7 +162,16 @@ define(function (require, exports, module) {
                             editor.setCursorPos(item.line - 1, item.character - 1, true);
                             EditorManager.focusEditor();
                         };
+                        
+                        var searchCallback = function (e) {
+                            var url = "https://www.google.com/search?q=" + encodeURIComponent(item.reason);
+                            NativeApp.openURLInDefaultBrowser(url);
+                            return false;
+                        };
+                      
+                        
                         $row.click(clickCallback);
+                        $searchJSLint.click(searchCallback);
                         if (i === 0) { // first result, so store callback for goto command
                             _gotoFirstErrorFunction = clickCallback;
                         }

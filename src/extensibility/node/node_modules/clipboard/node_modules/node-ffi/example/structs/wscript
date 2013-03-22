@@ -1,0 +1,24 @@
+import Options
+from os import unlink, symlink, popen
+from os.path import exists 
+from logging import fatal
+
+srcdir = '.'
+blddir = 'build'
+
+def set_options(opt):
+  opt.tool_options('compiler_cc')
+
+def configure(conf):
+  conf.check_tool('compiler_cc')
+
+def build(bld):
+  obj = bld.new_task_gen('cc', 'shlib')
+  obj.target = 'struct'
+  obj.source = 'struct.c'
+
+def shutdown():
+  if exists("build/default/libstruct.dylib") and not exists("libstruct.dylib"):
+    symlink("build/default/libstruct.dylib", "libstruct.dylib")
+  if exists("build/default/libstruct.so") and not exists("libstruct.so"):
+    symlink("build/default/libstruct.so", "libstruct.so")
