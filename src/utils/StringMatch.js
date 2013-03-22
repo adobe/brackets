@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var CollectionUtils = require("utils/CollectionUtils");
+    
     /*
      * Performs matching that is useful for QuickOpen and similar searches.
      */
@@ -715,7 +717,7 @@ define(function (require, exports, module) {
     function multiFieldSort(searchResults, fields) {
         // Move field names into an array, with primary field first
         var fieldNames = [];
-        $.each(fields, function (key, priority) {
+        CollectionUtils.forEach(fields, function (priority, key) {
             fieldNames[priority] = key;
         });
         
