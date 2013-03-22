@@ -805,7 +805,7 @@ define(function (require, exports, module) {
         }
         
         // Load up the cached specials information (or build it if this is our first time through).
-        var special = this._specialsCache.hasOwnProperty(str) ? this._specialsCache[str] : undefined;
+        var special = CollectionUtils.hasOwnProperty(this._specialsCache, str) ? this._specialsCache[str] : undefined;
         if (special === undefined) {
             special = findSpecialCharacters(str);
             this._specialsCache[str] = special;

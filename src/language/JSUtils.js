@@ -262,10 +262,10 @@ define(function (require, exports, module) {
             rangeResults        = [];
         
         docEntries.forEach(function (docEntry) {
-            // Need to call Object.prototype.hasOwnProperty here since docEntry.functions could
+            // Need to call CollectionUtils.hasOwnProperty here since docEntry.functions could
             // have an entry for "hasOwnProperty", which results in an error if trying to
             // invoke docEntry.functions.hasOwnProperty().
-            if (Object.prototype.hasOwnProperty.apply(docEntry.functions, [functionName])) {
+            if (CollectionUtils.hasOwnProperty(docEntry.functions, functionName)) {
                 var functionsInDocument = docEntry.functions[functionName];
                 matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
             }
