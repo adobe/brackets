@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global brackets, define, $, less, window, XMLHttpRequest */
+/*global brackets, define, $, less, window */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -42,15 +42,14 @@ define(function main(require, exports, module) {
         Commands            = require("command/Commands"),
         AppInit             = require("utils/AppInit"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
-        LiveDevelopmentLESS = require("text!LiveDevelopment/main.less"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        ExtensionUtils      = require("utils/ExtensionUtils");
 
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
     var prefs;
     var params = new UrlParams();
     var config = {
@@ -79,16 +78,13 @@ define(function main(require, exports, module) {
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
-        try {
-            var parser = new less.Parser();
-            parser.parse(LiveDevelopmentLESS, function onParse(err, tree) {
-                console.assert(!err, err);
-                $("<style>" + tree.toCSS() + "</style>")
-                    .appendTo(window.document.head);
-            });
-        } catch (e) {
-            // In the SpecRunner.html, less isn't included, and is undefined, but it's not needed either...
-        }
+        var lessText    = require("text!LiveDevelopment/main.less"),
+            parser      = new less.Parser();
+        
+        parser.parse(lessText, function onParse(err, tree) {
+            console.assert(!err, err);
+            ExtensionUtils.addEmbeddedStyleSheet(tree.toCSS());
+        });
     }
 
     /**
@@ -220,9 +216,9 @@ define(function main(require, exports, module) {
     });
     
     // init prefs
-    prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, {highlight: true});
+    prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
     //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development", {highlight: true});
+    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development");
     
     config.highlight = prefs.getValue("highlight");
    

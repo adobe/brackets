@@ -83,8 +83,6 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
-    var InspectorJSON = require("text!LiveDevelopment/Inspector/Inspector.json");
-
     // jQuery exports object for events
     var $exports = $(exports);
 
@@ -153,11 +151,19 @@ define(function Inspector(require, exports, module) {
 
     /** WebSocket reported an error */
     function _onError(error) {
+        if (_connectDeferred) {
+            _connectDeferred.reject();
+            _connectDeferred = null;
+        }
         $exports.triggerHandler("error", [error]);
     }
 
     /** WebSocket did open */
     function _onConnect() {
+        if (_connectDeferred) {
+            _connectDeferred.resolve();
+            _connectDeferred = null;
+        }
         $exports.triggerHandler("connect");
     }
 
@@ -188,11 +194,11 @@ define(function Inspector(require, exports, module) {
 
     /** Public Functions *****************************************************/
 
-    /** Get the available debugger sockets from the remote debugger
+    /** Get a list of the available windows/tabs/extensions that are remote-debuggable
      * @param {string} host IP or name
      * @param {integer} debugger port
      */
-    function getAvailableSockets(host, port) {
+    function getDebuggableWindows(host, port) {
         if (!host) {
             host = "127.0.0.1";
         }
@@ -266,17 +272,14 @@ define(function Inspector(require, exports, module) {
         }
         var deferred = new $.Deferred();
         _connectDeferred = deferred;
-        var promise = getAvailableSockets();
+        var promise = getDebuggableWindows();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.state() === "rejected") {
-                return;
-            }
             var i, page;
             for (i in response) {
                 page = response[i];
                 if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
                     connect(page.webSocketDebuggerUrl);
-                    deferred.resolve();
+                    // _connectDeferred may be resolved by onConnect or rejected by onError
                     return;
                 }
             }
@@ -290,7 +293,7 @@ define(function Inspector(require, exports, module) {
 
     /** Check if the inspector is connected */
     function connected() {
-        return _socket !== undefined;
+        return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
     /** Initialize the Inspector
@@ -300,7 +303,9 @@ define(function Inspector(require, exports, module) {
     function init(theConfig) {
         exports.config = theConfig;
 
-        InspectorJSON = JSON.parse(InspectorJSON);
+        var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
+            InspectorJSON = JSON.parse(InspectorText);
+        
         var i, j, domain, domainDef, command;
         for (i in InspectorJSON.domains) {
             domain = InspectorJSON.domains[i];
@@ -313,7 +318,7 @@ define(function Inspector(require, exports, module) {
     }
 
     // Export public functions
-    exports.getAvailableSockets = getAvailableSockets;
+    exports.getDebuggableWindows = getDebuggableWindows;
     exports.on = on;
     exports.off = off;
     exports.disconnect = disconnect;
