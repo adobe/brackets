@@ -71,12 +71,12 @@ define(function (require, exports, module) {
      * @param {string} property The name of the property to query
      * @return {boolean} True if the object contains the property
      */
-    function hasOwnProperty(object, property) {
+    function hasProperty(object, property) {
         return Object.prototype.hasOwnProperty.apply(object, [property]);
     }
     
     // Define public API
     exports.indexOf = indexOf;
     exports.forEach = forEach;
-    exports.hasOwnProperty = hasOwnProperty;
+    exports.hasProperty = hasProperty;
 });
