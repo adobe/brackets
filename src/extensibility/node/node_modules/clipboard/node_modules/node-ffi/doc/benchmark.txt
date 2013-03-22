@@ -1,0 +1,10 @@
+# BENCHMARK OUTPUT
+
+We'll just use git to keep revisions on this.
+
+On my MacBook Pro: (2.4GHz Core 2 Duo P8600 -- 8GB RAM)
+
+     28 Apr 11:55:46 - Executed FFI abs 6948000 times in 5000ms (1389322.1355728854/sec)
+     28 Apr 11:55:51 - Executed FFI strtoul 2157000 times in 5001ms (431313.7372525495/sec)
+     28 Apr 11:55:56 - Executed Binding strtoul 11207000 times in 5000ms (2241400/sec)
+

@@ -1,0 +1,11 @@
+dlfcn-win32 is an implementation of dlfcn for Windows.
+
+It follows the standard as described here:
+http://www.opengroup.org/onlinepubs/009695399/basedefs/dlfcn.h.html
+http://www.opengroup.org/onlinepubs/009695399/functions/dlerror.html
+http://www.opengroup.org/onlinepubs/009695399/functions/dlsym.html
+http://www.opengroup.org/onlinepubs/009695399/functions/dlclose.html
+http://www.opengroup.org/onlinepubs/009695399/functions/dlopen.html
+
+Written by Ramiro Polla
+Released under the LGPL

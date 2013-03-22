@@ -1,0 +1,7 @@
+If you've already got node installed, this can be used:
+
+    $ node-waf configure
+    $ node-waf build
+    ...
+    $ node factorial.js 35
+    Your output: 6399018521010896896
