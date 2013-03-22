@@ -28,6 +28,15 @@
     background-color: @background-color-3;
 }
 
+// TODO: Temporary workaround at end of sprint 22 for #3211, which was introduced by
+// https://github.com/marijnh/CodeMirror/commit/4a745fe6680d104ff4c4347617a5964dcb01c46b
+// This just reverts the effect of that commit for now--it doesn't seem to fix an issue
+// we're currently experiencing.
+.CodeMirror-gutter {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
 .platform-mac .CodeMirror {
     .code-font-mac();
 }
