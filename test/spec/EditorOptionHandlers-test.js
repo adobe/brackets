@@ -42,7 +42,11 @@ define(function (require, exports, module) {
         
         var testPath = SpecRunnerUtils.getTestPath("/spec/EditorOptionHandlers-test-files"),
             testWindow;
-
+        
+        var CSS_FILE  = testPath + "/test.css",
+            HTML_FILE = testPath + "/test.html";
+        
+        
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
@@ -61,6 +65,7 @@ define(function (require, exports, module) {
         afterEach(function () {
             SpecRunnerUtils.closeTestWindow();
         });
+        
         
         function checkLineWrapping(firstPos, secondPos, shouldWrap, inlineEditor) {
             runs(function () {
@@ -82,190 +87,223 @@ define(function (require, exports, module) {
                 }
             });
         }
-
-        var CSS_FILE  = testPath + "/test.css",
-            HTML_FILE = testPath + "/test.html";
-
-        it("should wrap long lines in main editor by default", function () {
-            var promise,
-                editor;
-            
+        
+        
+        // Helper functions to open editors / toggle options
+        function openEditor(fullPath) {
             runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
-
-                // Use two cursor positions to detect line wrapping. First position at 
-                // the beginning of a long line and the second position to be
-                // somewhere on the long line that will be part of an extra line 
-                // created by word-wrap and get its bottom coordinate.
-                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, true);
-            });
-        });
-
-        it("should also wrap long lines in inline editor by default", function () {
-            var promise,
-                inlineEditor;
-                        
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
                 waitsForDone(promise, "Open into working set");
             });
+        }
+        function openAnotherEditor(fullpath) {
+            runs(function () {
+                // Open another document and bring it to the front
+                waitsForDone(FileViewController.openAndSelectDocument(fullpath, FileViewController.PROJECT_MANAGER),
+                             "FILE_OPEN on file timeout", 1000);
+            });
+        }
+        function openInlineEditor() {
+            openEditor(HTML_FILE);
             
             runs(function () {
                 // Open inline editor onto test.css's ".testClass" rule
-                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
                 waitsForDone(promise, "Open inline editor");
             });
-            
+        }
+        function toggleOption(commandID, text) {
             runs(function () {
-                inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                expect(inlineEditor).toBeTruthy();
+                var promise = CommandManager.execute(commandID);
+                waitsForDone(promise, text);
+            });
+        }
 
-                checkLineWrapping({line: 0, ch: 0}, {line: 0, ch: 160}, true, inlineEditor);
+        
+        describe("Toggle Word Wrap", function () {
+            it("should wrap long lines in main editor by default", function () {
+                openEditor(HTML_FILE);
+                
+                runs(function () {
+                    // Use two cursor positions to detect line wrapping. First position at 
+                    // the beginning of a long line and the second position to be
+                    // somewhere on the long line that will be part of an extra line 
+                    // created by word-wrap and get its bottom coordinate.
+                    checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, true);
+                });
+            });
+    
+            it("should also wrap long lines in inline editor by default", function () {
+                var inlineEditor;
+                
+                openInlineEditor();
+                
+                runs(function () {
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    expect(inlineEditor).toBeTruthy();
+    
+                    checkLineWrapping({line: 0, ch: 0}, {line: 0, ch: 160}, true, inlineEditor);
+                });
+            });
+            
+            it("should NOT wrap the long lines after turning off word-wrap", function () {
+                // Turn off word-wrap
+                toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
+                
+                openEditor(CSS_FILE);
+                
+                runs(function () {
+                    checkLineWrapping({line: 0, ch: 1}, {line: 0, ch: 180}, false);
+                });
+            });
+    
+            it("should NOT wrap the long lines in another document when word-wrap off", function () {
+                openEditor(CSS_FILE);
+    
+                // Turn off word-wrap
+                toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
+                
+                openAnotherEditor(HTML_FILE);
+                
+                runs(function () {
+                    checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, false);
+                });
             });
         });
         
-        it("should NOT wrap the long lines after turning off word-wrap", function () {
-            var promise,
-                editor;
-            
-            // Turn off word-wrap
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_WORD_WRAP);
-                waitsForDone(promise, "Toggle word-wrap");
-            });
-
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
-                checkLineWrapping({line: 0, ch: 1}, {line: 0, ch: 180}, false);
-            });
-        });
-
-        it("should NOT wrap the long lines in another document when word-wrap off", function () {
-            var promise,
-                editor,
-                firstLineBottom,
-                nextLineBottom;
-            
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
-
-            // Turn off word-wrap
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_WORD_WRAP);
-                waitsForDone(promise, "Toggle word-wrap");
-            });
         
-            runs(function () {
-                // Open another document and bring it to the front
-                waitsForDone(FileViewController.openAndSelectDocument(HTML_FILE, FileViewController.PROJECT_MANAGER),
-                             "FILE_OPEN on file timeout", 1000);
-                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, false);
+        describe("Toggle Active Line", function () {
+            it("should show active line in main editor by default", function () {
+                var editor, lineInfo;
+                
+                openEditor(HTML_FILE);
+                
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.setCursorPos({line: 5, ch: 0});
+                    lineInfo = editor._codeMirror.lineInfo(5);
+                    expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+                });
             });
-        });
-
-        it("should show active line in main editor by default", function () {
-            var promise,
-                editor,
-                lineInfo;
-            
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
-            
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                editor.setCursorPos({line: 5, ch: 0});
-                lineInfo = editor._codeMirror.lineInfo(5);
-                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
-            });
-        });
-
-        it("should also show active line in inline editor by default", function () {
-            var promise,
-                inlineEditor,
-                lineInfo;
-                        
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
+    
+            it("should also show active line in inline editor by default", function () {
+                var inlineEditor, lineInfo;
+                
+                openInlineEditor();
+                
+                runs(function () {
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    expect(inlineEditor).toBeTruthy();
+    
+                    lineInfo = inlineEditor._codeMirror.lineInfo(0);
+                    expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+                });
             });
             
-            runs(function () {
-                // Open inline editor onto test.css's ".testClass" rule
-                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
-                waitsForDone(promise, "Open inline editor");
+            it("should NOT style active line after turning it off", function () {
+                var editor, lineInfo;
+                
+                // Turn off show active line
+                toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
+                
+                openEditor(CSS_FILE);
+    
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    lineInfo = editor._codeMirror.lineInfo(0);
+                    expect(lineInfo.wrapClass).toBeUndefined();
+                });
             });
-            
-            runs(function () {
-                inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                expect(inlineEditor).toBeTruthy();
-
-                lineInfo = inlineEditor._codeMirror.lineInfo(0);
-                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+    
+            it("should NOT style the active line when opening another document with show active line off", function () {
+                var editor, lineInfo;
+                
+                openEditor(CSS_FILE);
+                
+                // Turn off show active line
+                toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
+                
+                openAnotherEditor(HTML_FILE);
+                
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    
+                    editor.setCursorPos({line: 3, ch: 5});
+                    lineInfo = editor._codeMirror.lineInfo(3);
+                    expect(lineInfo.wrapClass).toBeUndefined();
+                });
             });
         });
         
-        it("should NOT style active line after turning it off", function () {
-            var promise,
-                editor,
-                lineInfo;
-            
-            // Turn off show active line
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_ACTIVE_LINE);
-                waitsForDone(promise, "Toggle active line");
-            });
-
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
-
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                lineInfo = editor._codeMirror.lineInfo(0);
-                expect(lineInfo.wrapClass).toBeUndefined();
-            });
-        });
-
-        it("should NOT style the active line when opening another document with show active line off", function () {
-            var promise,
-                editor,
-                lineInfo;
-            
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
-
-            // Turn off show active line
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_ACTIVE_LINE);
-                waitsForDone(promise, "Toggle active line");
-            });
         
-            runs(function () {
-                // Open another document and bring it to the front
-                waitsForDone(FileViewController.openAndSelectDocument(HTML_FILE, FileViewController.PROJECT_MANAGER),
-                             "FILE_OPEN on file timeout", 1000);
+        describe("Toggle Line Numbers", function () {
+            it("should show line numbers in main editor by default", function () {
+                var editor, gutterElement;
+                
+                openEditor(HTML_FILE);
+                
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+    
+                    gutterElement = editor._codeMirror.getGutterElement();
+                    expect(gutterElement.style.display).toBe("");
+                });
             });
             
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                editor.setCursorPos({line: 3, ch: 5});
-                lineInfo = editor._codeMirror.lineInfo(3);
-                expect(lineInfo.wrapClass).toBeUndefined();
+            it("should also show line numbers in inline editor by default", function () {
+                var inlineEditor, gutterElement;
+                
+                openInlineEditor();
+                
+                runs(function () {
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    expect(inlineEditor).toBeTruthy();
+    
+                    gutterElement = inlineEditor._codeMirror.getGutterElement();
+                    expect(gutterElement.style.display).toBe("");
+                });
+            });
+            
+            it("should NOT show line numbers after turning it off", function () {
+                var editor, gutterElement;
+                
+                // Turn off show line numbers
+                toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
+                
+                openEditor(CSS_FILE);
+                
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+    
+                    gutterElement = editor._codeMirror.getGutterElement();
+                    expect(gutterElement.style.display).toBe("none");
+                });
+            });
+            
+            it("should NOT show line numbers when opening another document with show line numbers off", function () {
+                var editor, gutterElement;
+                
+                openEditor(CSS_FILE);
+                
+                // Turn off show line numbers
+                toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
+                
+                openAnotherEditor(HTML_FILE);
+                
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+    
+                    gutterElement = editor._codeMirror.getGutterElement();
+                    expect(gutterElement.style.display).toBe("none");
+                });
             });
         });
     });
