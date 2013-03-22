@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, xit, runs, waitsFor, expect, brackets, waitsForDone */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -167,7 +167,7 @@ define(function (require, exports, module) {
             });
         });
 
-        xit("should show active line in main editor by default", function () {
+        it("should NOT show active line in main editor by default", function () {
             var promise,
                 editor,
                 lineInfo;
@@ -183,11 +183,11 @@ define(function (require, exports, module) {
 
                 editor.setCursorPos({line: 5, ch: 0});
                 lineInfo = editor._codeMirror.lineInfo(5);
-                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+                expect(lineInfo.wrapClass).toBeUndefined();
             });
         });
 
-        xit("should also show active line in inline editor by default", function () {
+        it("should NOT show active line in inline editor by default", function () {
             var promise,
                 inlineEditor,
                 lineInfo;
@@ -208,16 +208,16 @@ define(function (require, exports, module) {
                 expect(inlineEditor).toBeTruthy();
 
                 lineInfo = inlineEditor._codeMirror.lineInfo(0);
-                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+                expect(lineInfo.wrapClass).toBeUndefined();
             });
         });
         
-        xit("should NOT style active line after turning it off", function () {
+        it("should style active line after turning it on", function () {
             var promise,
                 editor,
                 lineInfo;
             
-            // Turn off show active line
+            // Turn on show active line
             runs(function () {
                 promise = CommandManager.execute(Commands.TOGGLE_ACTIVE_LINE);
                 waitsForDone(promise, "Toggle active line");
@@ -233,11 +233,11 @@ define(function (require, exports, module) {
                 expect(editor).toBeTruthy();
 
                 lineInfo = editor._codeMirror.lineInfo(0);
-                expect(lineInfo.wrapClass).toBeUndefined();
+                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
             });
         });
 
-        xit("should NOT style the active line when opening another document with show active line off", function () {
+        it("should style the active line when opening another document with show active line on", function () {
             var promise,
                 editor,
                 lineInfo;
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
                 waitsForDone(promise, "Open into working set");
             });
 
-            // Turn off show active line
+            // Turn on show active line
             runs(function () {
                 promise = CommandManager.execute(Commands.TOGGLE_ACTIVE_LINE);
                 waitsForDone(promise, "Toggle active line");
@@ -265,7 +265,7 @@ define(function (require, exports, module) {
 
                 editor.setCursorPos({line: 3, ch: 5});
                 lineInfo = editor._codeMirror.lineInfo(3);
-                expect(lineInfo.wrapClass).toBeUndefined();
+                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
             });
         });
     });
