@@ -113,9 +113,11 @@ define(function (require, exports, module) {
         return found;
     }
 
-    function clearHighlights(state) {
-        state.marked.forEach(function (markedRange) {
-            markedRange.clear();
+    function clearHighlights(cm, state) {
+        cm.operation(function () {
+            state.marked.forEach(function (markedRange) {
+                markedRange.clear();
+            });
         });
         state.marked.length = 0;
     }
@@ -128,7 +130,7 @@ define(function (require, exports, module) {
             }
             state.query = null;
 
-            clearHighlights(state);
+            clearHighlights(cm, state);
         });
     }
     
@@ -176,7 +178,7 @@ define(function (require, exports, module) {
             isFindFirst = true;
             cm.operation(function () {
                 if (state.query) {
-                    clearHighlights(getSearchState(cm));
+                    clearHighlights(cm, state);
                 }
                 state.query = parseQuery(query);
                 if (!state.query) {
@@ -244,7 +246,7 @@ define(function (require, exports, module) {
         });
         $(modalBar).on("closeOk closeCancel closeBlur", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
-            clearHighlights(state);
+            clearHighlights(cm, state);
             
             // As soon as focus goes back to the editor, restore normal selection color
             $(cm.getWrapperElement()).removeClass("find-highlighting");

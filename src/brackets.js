@@ -100,16 +100,17 @@ define(function (require, exports, module) {
     require("document/ChangedDocumentTracker");
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
+    require("editor/EditorOptionHandlers");
     require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
+    require("extensibility/InstallExtensionDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
-    var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = PreferencesManager.getClientId(module.id);
+    var params = new UrlParams();
     
     // read URL params
     params.parse();
@@ -146,6 +147,7 @@ define(function (require, exports, module) {
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
+            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             extensions              : {}, // place for extensions to hang modules for unit tests
             doneLoading             : false
         };
@@ -201,7 +203,7 @@ define(function (require, exports, module) {
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
-                    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
+                    var prefs = PreferencesManager.getPreferenceStorage(module),
                         deferred = new $.Deferred();
                     //TODO: Remove preferences migration code
                     PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");

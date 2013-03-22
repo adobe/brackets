@@ -35,11 +35,14 @@ define(function (require, exports, module) {
     require("spec/DocumentCommandHandlers-test");
     require("spec/Editor-test");
     require("spec/EditorCommandHandlers-test");
+    require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
+    require("spec/ExtensionInstallation-test");
     require("spec/ExtensionUtils-test");
     require("spec/FileIndexManager-test");
     require("spec/FindReplace-test");
     require("spec/InlineEditorProviders-test");
+    require("spec/InstallExtensionDialog-test");
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");

@@ -118,8 +118,9 @@ define(function (require, exports, module) {
     
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
-            $(previous).off("cursorActivity.statusbar");
-            $(previous).off("change.statusbar");
+            $(previous).off(".statusbar");
+            $(previous.document).off(".statusbar");
+            previous.document.releaseRef();
         }
         
         if (!current) {
@@ -132,6 +133,9 @@ define(function (require, exports, module) {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
+            
+            current.document.addRef();
+            $(current.document).on("languageChanged.statusbar", function () { _updateLanguageInfo(current); });
             
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);

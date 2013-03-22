@@ -49,8 +49,7 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         StatusBar               = require("widgets/StatusBar");
         
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id),
-        defaultPrefs = { enabled: !!brackets.config.enable_jslint };
+    var defaultPrefs = { enabled: !!brackets.config.enable_jslint };
     
     /**
      * @private
@@ -265,9 +264,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, Commands.NAVIGATE_GOTO_JSLINT_ERROR, _handleGotoJSLintError);
     
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
     //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, module.id, defaultPrefs);
+    PreferencesManager.handleClientIdChange(_prefs, module.id);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
