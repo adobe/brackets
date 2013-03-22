@@ -1334,7 +1334,7 @@ define(function (require, exports, module) {
      */
     function _setEditorOptionAndPref(value, cmOption, prefName) {
         _setEditorOption(value, cmOption);
-        _prefs.setValue(prefName, (typeof value === "boolean") ? Boolean(value) : value);
+        _prefs.setValue(prefName, value);
     }
 		
     /**
@@ -1351,7 +1351,7 @@ define(function (require, exports, module) {
     Editor.getUseTabChar = function () {
         return _useTabChar;
     };
-
+    
     /**
      * Sets tab character width. Affects all Editors.
      * @param {number} value
@@ -1366,7 +1366,7 @@ define(function (require, exports, module) {
     Editor.getTabSize = function () {
         return _tabSize;
     };
-
+    
     /**
      * Sets indentation width. Affects all Editors.
      * @param {number} value

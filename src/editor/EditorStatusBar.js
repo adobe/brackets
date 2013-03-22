@@ -103,10 +103,11 @@ define(function (require, exports, module) {
             return;
         }
         
+        value = Math.max(Math.min(value, 10), 1);
         if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
+            Editor.setTabSize(value);
         } else {
-            Editor.setSpaceUnits(Math.max(Math.min(value, 10), 1));
+            Editor.setSpaceUnits(value);
         }
 
         // update indicator
