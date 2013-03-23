@@ -32,11 +32,12 @@ var unzip   = require("unzip"),
     path    = require("path"),
     http    = require("http"),
     request = require("request"),
+    os      = require("os"),
     fs      = require("fs-extra");
 
 
 var Errors = {
-    NOT_FOUND_ERR: "NOT_FOUND_ERR",
+    NOT_FOUND_ERR: "NOT_FOUND_ERR",                 // {0} is path where ZIP file was expected
     INVALID_ZIP_FILE: "INVALID_ZIP_FILE",           // {0} is path to ZIP file
     INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",   // {0} is JSON parse error, {1} is path to ZIP file
     MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",   // {0} is path to ZIP file
@@ -45,12 +46,12 @@ var Errors = {
     INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
     API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
     MISSING_MAIN: "MISSING_MAIN",                   // {0} is path to ZIP file
-    NO_DISABLED_DIRECTORY: "NO_DISABLED_DIRECTORY",
+    MISSING_REQUIRED_OPTIONS: "MISSING_REQUIRED_OPTIONS",
     ALREADY_INSTALLED: "ALREADY_INSTALLED",
     DOWNLOAD_ID_IN_USE: "DOWNLOAD_ID_IN_USE",
-    DOWNLOAD_TARGET_EXISTS: "DOWNLOAD_TARGET_EXISTS",   // {0} is the download target file
     BAD_HTTP_STATUS: "BAD_HTTP_STATUS",             // {0} is the HTTP status code
     NO_SERVER_RESPONSE: "NO_SERVER_RESPONSE",
+    CANNOT_WRITE_TEMP: "CANNOT_WRITE_TEMP",
     CANCELED: "CANCELED"
 };
 
@@ -332,10 +333,14 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * 
  * @param {string} Absolute path to the package zip file
  * @param {string} the destination directory
- * @param {{disabledDirectory:string}} additional settings to control the installation
+ * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}} additional settings to control the installation
  * @param {function} callback (err, result)
  */
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
+    if (!options || !options.disabledDirectory || !options.apiVersion) {
+        callback(new Error(Errors.MISSING_REQUIRED_OPTIONS), null);
+        return;
+    }
     
     var validateCallback = function (err, validationResult) {
         // If there was trouble at the validation stage, we stop right away.
@@ -349,21 +354,19 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         var extensionName;
         if (validationResult.metadata) {
             extensionName = validationResult.metadata.name;
+        } else if (options.nameHint) {
+            extensionName = path.basename(options.nameHint, ".zip");
         } else {
             extensionName = path.basename(packagePath, ".zip");
         }
         validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName);
         
-        if (options && options.apiVersion && validationResult.metadata && validationResult.metadata.engines &&
+        if (validationResult.metadata && validationResult.metadata.engines &&
                 validationResult.metadata.engines.brackets) {
             var compatible = semver.satisfies(options.apiVersion,
                                               validationResult.metadata.engines.brackets);
             if (!compatible) {
-                if (!options || !options.disabledDirectory) {
-                    callback(new Error(Errors.NO_DISABLED_DIRECTORY), null);
-                    return;
-                }
                 installDirectory = path.join(options.disabledDirectory, extensionName);
                 validationResult.disabledReason = Errors.API_NOT_COMPATIBLE;
                 _removeAndInstall(packagePath, installDirectory, validationResult, callback);
@@ -375,10 +378,6 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         // a running extension. Instead, we unzip into the disabled directory.
         if (fs.existsSync(installDirectory)) {
             validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
-            if (!options || !options.disabledDirectory) {
-                callback(new Error(Errors.NO_DISABLED_DIRECTORY), null);
-                return;
-            }
             installDirectory = path.join(options.disabledDirectory, extensionName);
             _removeAndInstall(packagePath, installDirectory, validationResult, callback);
         } else {
@@ -391,6 +390,26 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
     _cmdValidate(packagePath, validateCallback);
 }
 
+
+/**
+ * Creates a uniquely-named file in the OS temp directory and opens it for writing.
+ * @return {{localPath: string, outStream: WriteStream}}
+ */
+function _createTempFile() {
+    var root = os.tmpDir();
+    var pathPrefix = root + "/brackets.download";
+    var suffix = 1;
+    while (fs.existsSync(pathPrefix + suffix) && suffix < 100) {
+        suffix++;
+    }
+    if (suffix === 100) {
+        return null;
+    }
+    
+    var localPath = pathPrefix + suffix;
+    var outStream = fs.createWriteStream(localPath);
+    return { outStream: outStream, localPath: localPath };
+}
 
 /**
  * Wrap up after the given download has terminated (successfully or not). Closes connections, calls back the
@@ -421,7 +440,7 @@ function _endDownload(downloadId, error) {
     } else {
         // Download completed successfully. Flush stream to disk and THEN signal completion
         downloadInfo.outStream.end(function () {
-            downloadInfo.callback(null, null);
+            downloadInfo.callback(null, downloadInfo.localPath);
         });
     }
 }
@@ -429,14 +448,9 @@ function _endDownload(downloadId, error) {
 /**
  * Implements "downloadFile" command, asynchronously.
  */
-function _cmdDownloadFile(downloadId, url, localPath, callback) {
+function _cmdDownloadFile(downloadId, url, callback) {
     if (pendingDownloads[downloadId]) {
         callback(Errors.DOWNLOAD_ID_IN_USE, null);
-        return;
-    }
-    
-    if (fs.existsSync(localPath)) {
-        callback([Errors.DOWNLOAD_TARGET_EXISTS, localPath], null);
         return;
     }
     
@@ -457,13 +471,19 @@ function _cmdDownloadFile(downloadId, url, localPath, callback) {
                 return;
             }
             
-            var outStream = fs.createWriteStream(localPath);
-            pendingDownloads[downloadId].outStream = outStream;
-            outStream.write(body);
+            var tempFileInfo = _createTempFile();
+            if (!tempFileInfo) {
+                _endDownload(downloadId, Errors.CANNOT_WRITE_TEMP);
+                return;
+            }
+            pendingDownloads[downloadId].localPath = tempFileInfo.localPath;
+            pendingDownloads[downloadId].outStream = tempFileInfo.outStream;
+            
+            tempFileInfo.outStream.write(body);
             _endDownload(downloadId);
         });
     
-    pendingDownloads[downloadId] = { request: req, callback: callback, localPath: localPath };
+    pendingDownloads[downloadId] = { request: req, callback: callback };
 }
 
 /**
@@ -499,16 +519,15 @@ function init(domainManager) {
             type: "string",
             description: "absolute filesystem path of the extension package"
         }],
-        {
-            errors: {
-                type: "string|Array.<string>",
-                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-            },
-            metadata: {
-                type: "{name: string, version: string}",
-                description: "all package.json metadata (null if there's no package.json)"
-            }
-        }
+        [{
+            name: "errors",
+            type: "string|Array.<string>",
+            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+        }, {
+            name: "metadata",
+            type: "{name: string, version: string}",
+            description: "all package.json metadata (null if there's no package.json)"
+        }]
     );
     domainManager.registerCommand(
         "extensionManager",
@@ -526,38 +545,37 @@ function init(domainManager) {
             description: "absolute filesystem path where this extension should be installed"
         }, {
             name: "options",
-            type: "{string disabledDirectory}",
-            description: "installation options. disabledDirectory should be set so that extensions can be installed disabled."
+            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}",
+            description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
-        {
-            errors: {
-                type: "string|Array.<string>",
-                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-            },
-            metadata: {
-                type: "{name: string, version: string}",
-                description: "all package.json metadata (null if there's no package.json)"
-            },
-            disabledReason: {
-                type: "string",
-                description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
-            },
-            installedTo: {
-                type: "string",
-                description: "absolute path where the extension was installed to"
-            },
-            commonPrefix: {
-                type: "string",
-                description: "top level directory in the package zip which contains all of the files"
-            }
-        }
+        [{
+            name: "errors",
+            type: "string|Array.<string>",
+            description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+        }, {
+            name: "metadata",
+            type: "{name: string, version: string}",
+            description: "all package.json metadata (null if there's no package.json)"
+        }, {
+            name: "disabledReason",
+            type: "string",
+            description: "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
+        }, {
+            name: "installedTo",
+            type: "string",
+            description: "absolute path where the extension was installed to"
+        }, {
+            name: "commonPrefix",
+            type: "string",
+            description: "top level directory in the package zip which contains all of the files"
+        }]
     );
     domainManager.registerCommand(
         "extensionManager",
         "downloadFile",
         _cmdDownloadFile,
         true,
-        "Downloads the file at the given URL, saving it to the given local path",
+        "Downloads the file at the given URL, saving it to a temp location. Callback receives path to the downloaded file.",
         [{
             name: "downloadId",
             type: "string",
@@ -566,16 +584,10 @@ function init(domainManager) {
             name: "url",
             type: "string",
             description: "URL to download from"
-        }, {
-            name: "localPath",
-            type: "string",
-            description: "absolute filesystem path of the extension package"
         }],
         {
-            error: {
-                type: "string|Array.<string>",
-                description: "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
-            }
+            type: "string",
+            description: "Local path to the downloaded file"
         }
     );
     domainManager.registerCommand(
@@ -583,17 +595,15 @@ function init(domainManager) {
         "abortDownload",
         _cmdAbortDownload,
         false,
-        "Aborts any pending download with the given id. Error if no download pending (may be already complete).",
+        "Aborts any pending download with the given id. Ignored if no download pending (may be already complete).",
         [{
             name: "downloadId",
             type: "string",
             description: "Unique identifier for this download 'session', previously pased to downloadFile"
         }],
         {
-            result: {
-                type: "boolean",
-                description: "True if the download was pending and able to be canceled; false otherwise"
-            }
+            type: "boolean",
+            description: "True if the download was pending and able to be canceled; false otherwise"
         }
     );
 }

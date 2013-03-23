@@ -155,12 +155,8 @@ a, img {
     white-space: nowrap;
     
     &>div {
-        display: inline;
+        display: inline-block;
         margin-left: 20px;
-        
-        &.spinner {
-            display: inline-block;
-        }
     }
 }
 
@@ -542,6 +538,10 @@ a, img {
     .CodeMirror {
         /* remove CodeMirror default height: 300px */
         height: auto;
+    }
+    
+    .CodeMirror-activeline-background {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2) !important; 
     }
     
     .inline-editor-header {

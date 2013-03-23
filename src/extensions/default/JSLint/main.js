@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils, Mustache, brackets */
+/*global define, $, JSLINT, Mustache, brackets */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent non-module scripts
-    brackets.getModule("thirdparty/path-utils/path-utils.min");
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
@@ -56,7 +55,7 @@ define(function (require, exports, module) {
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
-    var MODULE_ID    = "JSLintExtension",
+    var INDICATOR_ID = "JSLintStatus",
         defaultPrefs = { enabled: true };
     
     
@@ -109,7 +108,7 @@ define(function (require, exports, module) {
         
         var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
         
-        if (_enabled && language && language.getMode() === "javascript") {
+        if (_enabled && language && language.getId() === "javascript") {
             perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
             var text = currentDoc.getText();
             
@@ -157,7 +156,7 @@ define(function (require, exports, module) {
                 
                 $lintResults.show();
                 if (JSLINT.errors.length === 1) {
-                    StatusBar.updateIndicator(MODULE_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
                     // Return the number of non-null errors
                     var numberOfErrors = errors.length;
@@ -168,14 +167,14 @@ define(function (require, exports, module) {
                         numberOfErrors -= 1;
                         numberOfErrors += "+";
                     }
-                    StatusBar.updateIndicator(MODULE_ID, true, "jslint-errors",
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors",
                         StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, numberOfErrors));
                 }
                 setGotoEnabled(true);
             
             } else {
                 $lintResults.hide();
-                StatusBar.updateIndicator(MODULE_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
             }
 
@@ -184,7 +183,7 @@ define(function (require, exports, module) {
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
             $lintResults.hide();
-            StatusBar.updateIndicator(MODULE_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
+            StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
         }
         
@@ -247,8 +246,8 @@ define(function (require, exports, module) {
     
     // Add the menu items
     var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.VIEW_RESTORE_FONT_SIZE);
-    menu.addMenuDivider(Menus.AFTER, Commands.VIEW_RESTORE_FONT_SIZE);
+    menu.addMenuItem(TOGGLE_ENABLED, "", Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
+    menu.addMenuDivider(Menus.AFTER, Commands.TOGGLE_WORD_WRAP);
     
     menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(GOTO_FIRST_ERROR, KeyboardPrefs.gotoFirstError, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
@@ -269,7 +268,7 @@ define(function (require, exports, module) {
         
         $lintResults = $("#jslint-results");
         
-        StatusBar.addIndicator(MODULE_ID, $("#gold-star"));
+        StatusBar.addIndicator(INDICATOR_ID, $("#gold-star"));
         
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));
