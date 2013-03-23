@@ -72,8 +72,8 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils");
     
-    var defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4, closeBrackets: false,
-                         showLineNumbers: true, styleActiveLine: true, wordWrap: true };
+    var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
+                         showLineNumbers: true, styleActiveLine: false, wordWrap: true };
     
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
@@ -86,8 +86,8 @@ define(function (require, exports, module) {
     /** @type {number}  Global setting: Tab size */
     var _tabSize = _prefs.getValue("tabSize");
     
-    /** @type {number}  Global setting: Indent unit (i.e. number of spaces when indenting) */
-    var _indentUnit = _prefs.getValue("indentUnit");
+    /** @type {number}  Global setting: Space units (i.e. number of spaces when indenting) */
+    var _spaceUnits = _prefs.getValue("spaceUnits");
     
     /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
     var _closeBrackets = _prefs.getValue("closeBrackets");
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
             if (instance.getOption("indentWithTabs")) {
                 CodeMirror.commands.insertTab(instance);
             } else {
-                var i, ins = "", numSpaces = _indentUnit;
+                var i, ins = "", numSpaces = instance.getOption("indentUnit");
                 numSpaces -= to.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
@@ -175,12 +175,13 @@ define(function (require, exports, module) {
     function _handleSoftTabNavigation(instance, direction, functionName) {
         var handled = false;
         if (!instance.getOption("indentWithTabs")) {
-            var cursor = instance.getCursor(),
-                jump = cursor.ch % _indentUnit,
-                line = instance.getLine(cursor.line);
+            var indentUnit = instance.getOption("indentUnit"),
+                cursor     = instance.getCursor(),
+                jump       = cursor.ch % indentUnit,
+                line       = instance.getLine(cursor.line);
 
             if (direction === 1) {
-                jump = _indentUnit - jump;
+                jump = indentUnit - jump;
 
                 if (cursor.ch + jump > line.length) { // Jump would go beyond current line
                     return false;
@@ -199,7 +200,7 @@ define(function (require, exports, module) {
                 // If we are on the tab boundary, jump by the full amount, 
                 // but not beyond the start of the line.
                 if (jump === 0) {
-                    jump = _indentUnit;
+                    jump = indentUnit;
                 }
 
                 // Search backwards to the first non-space character
@@ -354,7 +355,7 @@ define(function (require, exports, module) {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
             indentWithTabs: _useTabChar,
             tabSize: _tabSize,
-            indentUnit: _indentUnit,
+            indentUnit: _useTabChar ? _tabSize : _spaceUnits,
             lineNumbers: _showLineNumbers,
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
@@ -1312,6 +1313,17 @@ define(function (require, exports, module) {
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
 
+    /**
+     * @private
+     * Updates Editor option with the given value. Affects all Editors.
+     * @param {boolean | number} value
+     * @param {string} cmOption - CodeMirror option string
+     */
+    function _setEditorOption(value, cmOption) {
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption(cmOption, value);
+        });
+    }
     
     /**
      * @private
@@ -1321,11 +1333,8 @@ define(function (require, exports, module) {
      * @param {string} prefName - preference name string
      */
     function _setEditorOptionAndPref(value, cmOption, prefName) {
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption(cmOption, value);
-        });
-        
-        _prefs.setValue(prefName, (typeof value === "boolean") ? Boolean(value) : value);
+        _setEditorOption(value, cmOption);
+        _prefs.setValue(prefName, value);
     }
 		
     /**
@@ -1335,13 +1344,14 @@ define(function (require, exports, module) {
     Editor.setUseTabChar = function (value) {
         _useTabChar = value;
         _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar");
+        _setEditorOption(_useTabChar ? _tabSize : _spaceUnits, "indentUnit");
     };
     
     /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
     Editor.getUseTabChar = function () {
         return _useTabChar;
     };
-
+    
     /**
      * Sets tab character width. Affects all Editors.
      * @param {number} value
@@ -1349,25 +1359,26 @@ define(function (require, exports, module) {
     Editor.setTabSize = function (value) {
         _tabSize = value;
         _setEditorOptionAndPref(value, "tabSize", "tabSize");
+        _setEditorOption(value, "indentUnit");
     };
     
     /** @type {number} Get indent unit  */
     Editor.getTabSize = function () {
         return _tabSize;
     };
-
+    
     /**
      * Sets indentation width. Affects all Editors.
      * @param {number} value
      */
-    Editor.setIndentUnit = function (value) {
-        _indentUnit = value;
-        _setEditorOptionAndPref(value, "indentUnit", "indentUnit");
+    Editor.setSpaceUnits = function (value) {
+        _spaceUnits = value;
+        _setEditorOptionAndPref(value, "indentUnit", "spaceUnits");
     };
     
     /** @type {number} Get indentation width */
-    Editor.getIndentUnit = function () {
-        return _indentUnit;
+    Editor.getSpaceUnits = function () {
+        return _spaceUnits;
     };
     
     /**

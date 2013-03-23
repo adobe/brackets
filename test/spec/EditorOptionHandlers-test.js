@@ -82,9 +82,9 @@ define(function (require, exports, module) {
         
         function checkLineWrapping(firstPos, secondPos, shouldWrap, isInlineEditor) {
             runs(function () {
-                var firstLineBottom,
-                    nextLineBottom,
-                    editor = getEditor(isInlineEditor);
+                var editor = getEditor(isInlineEditor),
+                    firstLineBottom,
+                    nextLineBottom;
                 
                 expect(editor).toBeTruthy();
 
@@ -104,8 +104,8 @@ define(function (require, exports, module) {
         
         function checkActiveLine(line, shouldShow, isInlineEditor) {
             runs(function () {
-                var lineInfo,
-                    editor = getEditor(isInlineEditor);
+                var editor = getEditor(isInlineEditor),
+                    lineInfo;
                 
                 expect(editor).toBeTruthy();
                 editor.setCursorPos({line: line, ch: 0});
@@ -121,8 +121,8 @@ define(function (require, exports, module) {
         
         function checkLineNumbers(shouldShow, isInlineEditor) {
             runs(function () {
-                var gutterElement,
-                    editor = getEditor(isInlineEditor);
+                var editor = getEditor(isInlineEditor),
+                    gutterElement;
                 
                 expect(editor).toBeTruthy();
                 gutterElement = editor._codeMirror.getGutterElement();
@@ -137,11 +137,13 @@ define(function (require, exports, module) {
         
         function checkCloseBrackets(startSel, endSel, keyCode, expectedText, isInlineEditor) {
             runs(function () {
-                var line,
-                    editor = getEditor(isInlineEditor),
-                    input  = editor._codeMirror.getInputField();
+                var editor = getEditor(isInlineEditor),
+                    input,
+                    line;
                 
                 expect(editor).toBeTruthy();
+                input = editor._codeMirror.getInputField();
+                
                 if (endSel) {
                     editor.setSelection(startSel, endSel);
                 } else {
@@ -224,32 +226,32 @@ define(function (require, exports, module) {
         
         
         describe("Toggle Active Line", function () {
-            it("should show active line in main editor by default", function () {
+            it("should NOT show active line in main editor by default", function () {
                 openEditor(HTML_FILE);
-                checkActiveLine(5, true, false);
-            });
-    
-            it("should also show active line in inline editor by default", function () {
-                openInlineEditor();
-                checkActiveLine(0, true, true);
+                checkActiveLine(5, false, false);
             });
             
-            it("should NOT style active line after turning it off", function () {
-                // Turn off show active line
+            it("should NOT show active line in inline editor by default", function () {
+                openInlineEditor();
+                checkActiveLine(0, false, true);
+            });
+            
+            it("should style active line after turning it on", function () {
+                // Turn on show active line
                 toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
                 
                 openEditor(CSS_FILE);
-                checkActiveLine(0, false, false);
+                checkActiveLine(0, true, false);
             });
-    
-            it("should NOT style the active line when opening another document with show active line off", function () {
+            
+            it("should style the active line when opening another document with show active line on", function () {
                 openEditor(CSS_FILE);
                 
-                // Turn off show active line
+                // Turn on show active line
                 toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
                 
                 openAnotherEditor(HTML_FILE);
-                checkActiveLine(3, false, false);
+                checkActiveLine(3, true, false);
             });
         });
         
@@ -296,7 +298,7 @@ define(function (require, exports, module) {
                 checkCloseBrackets({line: 0, ch: 14}, null, OPEN_BRACKET, ".longLineClass ", true);
             });
             
-            it("should auto close brackets after turning it off", function () {
+            it("should auto close brackets after turning it on", function () {
                 // Turn on auto close brackets
                 toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
                 
@@ -314,7 +316,7 @@ define(function (require, exports, module) {
                 checkCloseBrackets({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]", false);
             });
             
-            it("should only auto close brackets before spaces, a closing brackets or an end of line", function () {
+            it("should only auto close brackets before spaces, closing brackets or end of lines", function () {
                 // Turn on auto close brackets
                 toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
                 
@@ -325,7 +327,7 @@ define(function (require, exports, module) {
                 checkCloseBrackets({line: 0, ch: 39}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";[]", false);
             });
             
-            it("should overwrite a closing bracket when cursor is before a closing bracket or selecting it", function () {
+            it("should overwrite a close bracket when writing a close bracket before the same close bracket", function () {
                 // Turn on auto close brackets
                 toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
                 
@@ -333,11 +335,6 @@ define(function (require, exports, module) {
                 checkCloseBrackets({line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";", false);
                 
                 checkCloseBrackets({line: 0, ch: 16}, null, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";", false);
-                runs(function () {
-                    expect(getEditor().getCursorPos()).toEqual({line: 0, ch: 17});
-                });
-                
-                checkCloseBrackets({line: 0, ch: 16}, {line: 0, ch: 17}, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";", false);
                 runs(function () {
                     expect(getEditor().getCursorPos()).toEqual({line: 0, ch: 17});
                 });
@@ -355,7 +352,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should delete both open and close brackets when both are together", function () {
+            it("should delete both open and close brackets when both are together and backspacing", function () {
                 // Turn on auto close brackets
                 toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
                 

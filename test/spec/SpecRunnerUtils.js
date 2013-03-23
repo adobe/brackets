@@ -254,6 +254,8 @@ define(function (require, exports, module) {
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
+            _testWindow.isBracketsTestWindow = true;
+            
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
