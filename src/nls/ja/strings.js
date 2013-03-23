@@ -74,6 +74,7 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブ開発ページを読み込めません。",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開いてください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
@@ -96,6 +97,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
+	"FIND_RESULT_COUNT": "{0} 件",
 	"WITH": "置換後の文字列",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
@@ -132,7 +134,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
 
     /**
@@ -174,6 +176,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
+	"CMD_INSTALL_EXTENSION": "拡張機能をインストール...",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -201,7 +204,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-     
+	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
+    
     // View menu commands
 	"VIEW_MENU": "表示",
 	"CMD_HIDE_SIDEBAR": "サイドバーを隠す",
@@ -209,6 +213,11 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
+	"CMD_SCROLL_LINE_UP": "1 行上にスクロール",
+	"CMD_SCROLL_LINE_DOWN": "1 行下にスクロール",
+	"CMD_TOGGLE_LINE_NUMBERS": "行番号を表示",
+	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行を表示",
+	"CMD_TOGGLE_WORD_WRAP": "文字列の折り返しを有効にする",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
@@ -273,6 +282,7 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
 	"RELAUNCH_CHROME": "Chrome を再起動",
+	"INSTALL": "インストール",
 	"ABOUT": "このソフトウェアについて",
 	"APP_NAME": "Brackets",
 	"CLOSE": "閉じる",
@@ -293,6 +303,37 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+    
+    // Extension Management strings
+	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
+	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
+	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
+	"INSTALLING_FROM": "{0} から拡張機能をインストール...",
+	"INSTALL_SUCCEEDED": "インストールは成功しました。",
+	"INSTALL_FAILED": "インストールは失敗しました。",
+	"CANCELING_INSTALL": "キャンセル中...",
+	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
+	"INSTALL_CANCELED": "インストールはキャンセルされました。",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
+	"INVALID_PACKAGE_JSON": "package.json ファイルは有効ではありません (エラーは {0} です)。",
+	"MISSING_PACKAGE_NAME": "package.json ファイルはパッケージ名を指定していません。",
+	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
+	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
+	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
+	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
+	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
+	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
+	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
+	"DOWNLOAD_ID_IN_USE": "内部エラー : ダウンロード ID は既に使用されています。",
+	"NO_SERVER_RESPONSE": "サーバーに接続できません。",
+	"BAD_HTTP_STATUS": "ファイルがサーバー (HTTP {0}) に見つかりません。",
+	"CANNOT_WRITE_TEMP": "一時ダウンロードファイルを保存できません。",
+	"ERROR_LOADING": "拡張機能の起動時にエラーが発生しました。",
+	"MALFORMED_URL": "URL が無効です。正しく入力されているか確認してください。",
+	"UNSUPPORTED_PROTOCOL": "URL は http または https URL である必要があります。",
+	"UNKNOWN_ERROR": "不明な内部エラー。",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

@@ -89,6 +89,12 @@ define(function (require, exports, module) {
             offset--;
         } else {
             startChar = "";
+            // Make attr value empty and set offset to zero if it has the ">" 
+            // which is the closing of the tag.
+            if (endChar === ">") {
+                attrValue = "";
+                offset = 0;
+            }
         }
         
         return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: false};

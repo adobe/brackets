@@ -155,23 +155,8 @@ a, img {
     white-space: nowrap;
     
     &>div {
-        display: inline;
+        display: inline-block;
         margin-left: 20px;
-        
-        &#busy-indicator {
-            display: inline-block;
-            vertical-align: middle;
-            margin-top: -2px;
-            width: 12px;
-            height: 12px;
-            background: url("images/small_spinner.svg") no-repeat;
-            visibility: hidden;
-        
-            &.spin {
-                -webkit-animation: rotating 1.5s linear infinite;
-                visibility: visible;
-            }
-        }        
     }
 }
 
@@ -570,6 +555,10 @@ a, img {
         height: auto;
     }
     
+    .CodeMirror-activeline-background {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2) !important; 
+    }
+    
     .inline-editor-header {
         padding: 10px 10px 0px 10px;
         
@@ -793,7 +782,9 @@ a, img {
     // brackets_codemirror_override.less (see the note about #324).
     background: rgb(255, 108, 0);
 }
-
+#find-counter {
+    font-weight: bold;
+}
 
 
 /* Quick Open search bar & dropdown */
@@ -833,4 +824,22 @@ li.smart_autocomplete_highlight {
 
 .quicksearch-namematch {
     font-weight: bold;
+}
+
+
+/* Spinner */
+
+.spinner {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -2px;
+    width: 12px;
+    height: 12px;
+    background: url("images/small_spinner.svg") no-repeat;
+    visibility: hidden;
+
+    &.spin {
+        -webkit-animation: rotating 1.5s linear infinite;
+        visibility: visible;
+    }
 }

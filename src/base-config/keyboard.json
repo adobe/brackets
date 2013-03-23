@@ -164,6 +164,28 @@
     "view.restoreFontSize":  [
         "Ctrl-0"
     ],
+    "view.scrollLineUp":  [
+        {
+            "key": "Ctrl-Up",
+            "displayKey": "Ctrl-\u2191"
+        },
+        {
+            "key": "Ctrl-Alt-Up",
+            "displayKey": "Ctrl-Alt-\u2191",
+            "platform": "mac"
+        }
+    ],
+    "view.scrollLineDown":  [
+        {
+            "key": "Ctrl-Down",
+            "displayKey": "Ctrl-\u2193"
+        },
+        {
+            "key": "Ctrl-Alt-Down",
+            "displayKey": "Ctrl-Alt-\u2193",
+            "platform": "mac"
+        }
+    ],
     "navigate.quickOpen":  [
         "Ctrl-Shift-O"
     ],
