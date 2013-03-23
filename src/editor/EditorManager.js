@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -51,20 +51,14 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        FileUtils           = require("file/FileUtils"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        KeyEvent            = require("utils/KeyEvent"),
-        EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -84,6 +78,13 @@ define(function (require, exports, module) {
     var _lastFocusedEditor = null;
     
     /**
+     * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
+     * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
+     * @type {Object<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
+     */
+    var _viewStateCache = {};
+    
+    /**
      * Last known editor area width, used to detect when the window is resized horizontally.
      */
     var _lastEditorWidth = null;
@@ -94,17 +95,25 @@ define(function (require, exports, module) {
      */
     var _inlineEditProviders = [];
     
-    /* StatusBar indicators */
-    var $modeInfo,
-        $cursorInfo,
-        $fileInfo,
-        $indentType,
-        $indentWidthLabel,
-        $indentWidthInput;
-    
+	/**
+     * @private
+     * @param {?Editor} current
+     */
+    function _notifyActiveEditorChanged(current) {
+        // Skip if the Editor that gained focus was already the most recently focused editor.
+        // This may happen e.g. if the window loses then regains focus.
+        if (_lastFocusedEditor === current) {
+            return;
+        }
+        var previous = _lastFocusedEditor;
+        _lastFocusedEditor = current;
+        
+        $(exports).triggerHandler("activeEditorChange", [current, previous]);
+    }
+	
     /**
-     * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
-     * file extension. The editor is appended to the given container as a visible child.
+     * Creates a new Editor bound to the given Document.
+     * The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
@@ -114,9 +123,13 @@ define(function (require, exports, module) {
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
+        var editor = new Editor(doc, makeMasterEditor, container, range);
+
+        $(editor).on("focus", function () {
+            _notifyActiveEditorChanged(this);
+        });
         
-        return new Editor(doc, makeMasterEditor, mode, container, range);
+        return editor;
     }
     
     /**
@@ -246,8 +259,8 @@ define(function (require, exports, module) {
 
     
     /**
-     * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
-     * based on the file extension. The editor is not yet visible or attached to a host editor.
+     * Creates a new inline Editor instance for the given Document.
+     * The editor is not yet visible or attached to a host editor.
      * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
@@ -394,22 +407,41 @@ define(function (require, exports, module) {
     }
     
     
-    /**
-     * @private
-     * @param {?Editor} current
-     */
-    function _notifyActiveEditorChanged(current) {
-        // Skip if the Editor that gained focus was already the most recently focused editor.
-        // This may happen e.g. if the window loses then regains focus.
-        if (_lastFocusedEditor === current) {
-            return;
-        }
-        var previous = _lastFocusedEditor;
-        _lastFocusedEditor = current;
-        
-        $(exports).triggerHandler("activeEditorChange", [current, previous]);
+    /** Updates _viewStateCache from the given editor's actual current state */
+    function _saveEditorViewState(editor) {
+        _viewStateCache[editor.document.file.fullPath] = {
+            selection: editor.getSelection(),
+            scrollPos: editor.getScrollPos()
+        };
     }
     
+    /** Updates the given editor's actual state from _viewStateCache, if any state stored */
+    function _restoreEditorViewState(editor) {
+        // We want to ignore the current state of the editor, so don't call _getViewState()
+        var viewState = _viewStateCache[editor.document.file.fullPath];
+        if (viewState) {
+            if (viewState.selection) {
+                editor.setSelection(viewState.selection.start, viewState.selection.end);
+            }
+            if (viewState.scrollPos) {
+                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
+            }
+        }
+    }
+    
+    /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
+    function _getViewState(fullPath) {
+        if (_currentEditorsDocument && _currentEditorsDocument.file.fullPath === fullPath) {
+            _saveEditorViewState(_currentEditor);
+        }
+        return _viewStateCache[fullPath];
+    }
+    
+    /** Removes all cached view state info and replaces it with the given mapping */
+    function _resetViewStates(viewStates) {
+        _viewStateCache = viewStates;
+    }
+
     /**
      * @private
      */
@@ -437,23 +469,31 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#not-editor").css("display", "none");
         } else {
+            _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
         // Ensure a main editor exists for this document to show in the UI
+        var createdNewEditor = false;
         if (!document._masterEditor) {
+            createdNewEditor = true;
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
         
         _doShow(document);
+        
+        if (createdNewEditor) {
+            _restoreEditorViewState(document._masterEditor);
+        }
     }
     
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
+            _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
@@ -606,7 +646,8 @@ define(function (require, exports, module) {
     function getActiveEditor() {
         return _lastFocusedEditor;
     }
-     
+    
+    
     /**
      * Toggle Quick Edit command handler
      * @return {!Promise} A promise resolved with true if an inline editor
@@ -643,150 +684,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function _updateModeInfo(editor) {
-        $modeInfo.text(StatusBar.getModeDisplayString(editor.getModeForDocument()));
-    }
-    
-    function _updateFileInfo(editor) {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
-    }
-    
-    function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
-        $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
-        $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
-        $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
-    }
-
-    function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
-    }
-    
-    function _updateIndentSize() {
-        var size = _getIndentSize();
-        $indentWidthLabel.text(size);
-        $indentWidthInput.val(size);
-    }
-    
-    function _toggleIndentType() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        _updateIndentType();
-        _updateIndentSize();
-    }
-    
-    function _updateCursorInfo(event, editor) {
-        editor = editor || getFocusedEditor();
-
-        // compute columns, account for tab size
-        var cursor = editor.getCursorPos(true);
-        
-        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1));
-    }
-    
-    function _changeIndentWidth(value) {
-        $indentWidthLabel.removeClass("hidden");
-        $indentWidthInput.addClass("hidden");
-        
-        // remove all event handlers from the input field
-        $indentWidthInput.off("blur keyup");
-        
-        // restore focus to the editor
-        focusEditor();
-
-        if (!value || isNaN(value)) {
-            return;
-        }
-        
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
-        } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
-        }
-
-        // update indicator
-        _updateIndentSize();
-
-        // column position may change when tab size changes
-        _updateCursorInfo();
-    }
-    
-    function _onActiveEditorChange(event, current, previous) {
-        if (previous) {
-            $(previous).off("cursorActivity.statusbar");
-            $(previous).off("change.statusbar");
-        }
-        
-        if (!current) {
-            StatusBar.hide();  // calls resizeEditor() if needed
-        } else {
-            StatusBar.show();  // calls resizeEditor() if needed
-            
-            $(current).on("cursorActivity.statusbar", _updateCursorInfo);
-            $(current).on("change.statusbar", function () {
-                // async update to keep typing speed smooth
-                window.setTimeout(function () { _updateFileInfo(current); }, 0);
-            });
-            
-            _updateCursorInfo(null, current);
-            _updateModeInfo(current);
-            _updateFileInfo(current);
-            _updateIndentType();
-            _updateIndentSize();
-        }
-    }
-    
-    function _onFileNameChange(event, oldName, newName) {
-        
-        // The current document file entry has already been updated.
-        // We only need to update the editor mode to match the new file extension 
-        var editor = getCurrentFullEditor();
-        
-        if (editor && editor.document.file.fullPath === newName) {
-            editor.setModeForDocument(
-                EditorUtils.getModeFromFileExtension(editor.document.file.fullPath)
-            );
-        }
-    }
-
-    function _init() {
-        StatusBar.init($(".main-view .content"));
-
-        $modeInfo           = $("#status-mode");
-        $cursorInfo         = $("#status-cursor");
-        $fileInfo           = $("#status-file");
-        $indentType         = $("#indent-type");
-        $indentWidthLabel   = $("#indent-width-label");
-        $indentWidthInput   = $("#indent-width-input");
-        
-        // indentation event handlers
-        $indentType.on("click", _toggleIndentType);
-        $indentWidthLabel
-            .on("click", function () {
-                // update the input value before displaying
-                $indentWidthInput.val(_getIndentSize());
-
-                $indentWidthLabel.addClass("hidden");
-                $indentWidthInput.removeClass("hidden");
-                $indentWidthInput.focus();
-        
-                $indentWidthInput
-                    .on("blur", function () {
-                        _changeIndentWidth($indentWidthInput.val());
-                    })
-                    .on("keyup", function (event) {
-                        if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
-                            $indentWidthInput.blur();
-                        } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(false);
-                        }
-                    });
-            });
-
-        $indentWidthInput.focus(function () { $indentWidthInput.select(); });
-
-        _onActiveEditorChange(null, getFocusedEditor(), null);
-    }
-
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
     
@@ -794,24 +691,19 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
-    $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
     window.addEventListener("resize", _updateEditorDuringResize, true);
     
-    // Initialize: status bar focused listener
-    $(exports).on("activeEditorChange", _onActiveEditorChange);
-    
-    AppInit.htmlReady(_init);
-    
     // For unit tests and internal use only
-    exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
-    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
+    exports._getViewState = _getViewState;
+    exports._resetViewStates = _resetViewStates;
     exports._doShow = _doShow;
+    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
     exports.REFRESH_SKIP = REFRESH_SKIP;

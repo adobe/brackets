@@ -91,7 +91,7 @@ define(function (require, exports, module) {
     
    /**
      * Moves the given context in the given direction, skipping any whitespace it hits.
-     * @param {function} moveFxn the funciton to move the context
+     * @param {function} moveFxn the function to move the context
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
      * @return {boolean} whether the context changed
      */

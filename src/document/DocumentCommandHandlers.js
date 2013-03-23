@@ -508,7 +508,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-
+    
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
@@ -684,14 +684,14 @@ define(function (require, exports, module) {
     }
     
     /**
-    * @private - tracks our closing state if we get called again
-    */
+     * @private - tracks our closing state if we get called again
+     */
     var _windowGoingAway = false;
     
     /**
-    * @private
-    * Common implementation for close/quit/reload which all mostly
-    * the same except for the final step
+     * @private
+     * Common implementation for close/quit/reload which all mostly
+     * the same except for the final step
     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
@@ -702,7 +702,17 @@ define(function (require, exports, module) {
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 _windowGoingAway = true;
+                
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
+                
                 PreferencesManager.savePreferences();
+                
                 postCloseHandler();
             })
             .fail(function () {
@@ -712,11 +722,11 @@ define(function (require, exports, module) {
                 }
             });
     }
-
+	
     /**
-    * @private
-    * Implementation for abortQuit callback to reset quit sequence settings
-    */
+     * @private
+     * Implementation for abortQuit callback to reset quit sequence settings
+     */
     function _handleAbortQuit() {
         _windowGoingAway = false;
     }
@@ -766,13 +776,6 @@ define(function (require, exports, module) {
         );
     }
 
-    /** Does a full reload of the browser window */
-    function handleFileReload(commandData) {
-        return _handleWindowGoingAway(commandData, function () {
-            window.location.reload(true);
-        });
-    }
-    
     
     /** Are we already listening for a keyup to call detectDocumentNavEnd()? */
     var _addedNavKeyHandler = false;
@@ -850,7 +853,6 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
     }
 
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
     CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
     
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
@@ -860,5 +862,5 @@ define(function (require, exports, module) {
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
-});
 
+});

@@ -54,11 +54,11 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             // create dummy Document for the Editor
-            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
+            testDocument = SpecRunnerUtils.createMockDocument(defaultContent, "html");
             
             // create Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
-            testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0));
+            testEditor = new Editor(testDocument, true, $("#editor").get(0));
         });
         
         afterEach(function () {
@@ -659,6 +659,15 @@ define(function (require, exports, module) {
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
                 expect(testDocument.getLine(5)).toBe("  <h1 dir=\"rtl\" id='foo'>Heading</h1>");
                 expectCursorAt({ line: 5, ch: 15 });            // cursor after the inserted value
+            });
+
+            it("should insert a quoted attribute value right before the closing > of the tag", function () {
+                // Insert an unquoted attribute between <p and > on line 7.
+                testDocument.replaceRange(" dir=", { line: 7, ch: 4 });
+                testEditor.setCursorPos({ line: 7, ch: 9 }); // Set cursor between = and >
+                selectHint(HTMLCodeHints.attrHintProvider, "rtl");
+                expect(testDocument.getLine(7)).toBe("  <p dir=\"rtl\"></p>");
+                expectCursorAt({ line: 7, ch: 14 });            // cursor after the inserted value
             });
         });
         

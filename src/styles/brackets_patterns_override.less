@@ -401,28 +401,37 @@
     .update-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
         margin: 0 10px 0 123px;
-
+        
         .update-info {
             max-height: 200px;
             overflow: auto;
+            
+            // Enable text selection
+            cursor: auto;
+            -webkit-user-select: text;
+            -khtml-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            -o-user-select: text;
+            user-select: text;
         }
     }
 }
 
-/* Project Settings dialog */
-.project-settings-dialog .modal-body {
+/* Project Settings and Install Extension dialogs */
+.project-settings-dialog .modal-body, .install-extension-dialog .modal-body {
     text-align: center;
 
-    .settings-list {
+    .field-container {
         display: inline-block;
     }
     label {
         float: none;
     }
-    input.base-url {
+    input.url {
         display: inline;
         margin: 10px;
-        width: 300px;
+        width: 400px;
     }
 }
 
@@ -441,6 +450,20 @@
         
         #about-build-number {
             color: #b0b0b0;
+        }
+        .about-info {
+            max-height: 300px;
+            overflow: auto;
+        }
+        .about-contributors {
+            min-height: 100px;
+        }
+        .about-contributors img {
+            opacity: 0;
+            -webkit-transition: opacity 1s;
+            -moz-transition: opacity 1s;
+            -o-transition: opacity 1s;
+            transition: opacity 1s;
         }
     }
     

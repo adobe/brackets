@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
-        UrlParams           = require("utils/UrlParams").UrlParams;
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
@@ -113,7 +114,7 @@ define(function (require, exports, module) {
     
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
-     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
      * the runs() that generates the promise.
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
@@ -141,19 +142,17 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
-     * never be set as the currentDocument or added to the working set.
+     * Returns a Document suitable for use with an Editor in isolation, but
+     * maintained active for global updates like name and language changes.
      */
-    function createMockDocument(initialContent, createEditor) {
+    function createMockActiveDocument(options) {
+        var language    = options.language || LanguageManager.getLanguage("javascript"),
+            filename    = options.filename || "_unitTestDummyFile_." + language._fileExtensions[0],
+            content     = options.content || "";
+        
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
-        
-        var docToShim = new DocumentManager.Document(dummyFile, new Date(), initialContent);
-        
-        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
-        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
-        docToShim.addRef = function () {};
-        docToShim.releaseRef = function () {};
+        var dummyFile = new NativeFileSystem.FileEntry(filename);
+        var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
@@ -167,6 +166,24 @@ define(function (require, exports, module) {
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
         };
+        
+        return docToShim;
+    }
+    
+    /**
+     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
+     * never be set as the currentDocument or added to the working set.
+     */
+    function createMockDocument(initialContent, languageId) {
+        var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
+            options     = { language: language, content: initialContent },
+            docToShim   = createMockActiveDocument(options);
+        
+        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
+        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
+        docToShim.addRef = function () {};
+        docToShim.releaseRef = function () {};
+        
         return docToShim;
     }
     
@@ -176,20 +193,23 @@ define(function (require, exports, module) {
      * currentDocument or added to the working set.
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
-    function createMockEditor(initialContent, mode, visibleRange) {
-        mode = mode || "";
-        
-        // Initialize EditorManager
-        var $editorHolder = $("<div id='mock-editor-holder'/>");
+    function createMockEditor(initialContent, languageId, visibleRange) {
+        // Initialize EditorManager and position the editor-holder offscreen
+        var $editorHolder = $("<div id='mock-editor-holder'/>")
+            .css({
+                position: "absolute",
+                left: "-10000px",
+                top: "-10000px"
+            });
         EditorManager.setEditorHolder($editorHolder);
-        EditorManager._init();
         $("body").append($editorHolder);
         
         // create dummy Document for the Editor
-        var doc = createMockDocument(initialContent);
+        var doc = createMockDocument(initialContent, languageId);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), visibleRange);
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        EditorManager._notifyActiveEditorChanged(editor);
         
         return { doc: doc, editor: editor };
     }
@@ -233,6 +253,8 @@ define(function (require, exports, module) {
             params.put("skipLiveDevelopmentInfo", true);
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
+            
+            _testWindow.isBracketsTestWindow = true;
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
@@ -324,7 +346,7 @@ define(function (require, exports, module) {
             output  = [],
             i       = 0,
             line    = 0,
-            char    = 0,
+            charAt  = 0,
             ch      = 0,
             length  = text.length,
             exec    = null,
@@ -349,10 +371,10 @@ define(function (require, exports, module) {
             }
             
             if (!found) {
-                char = text.substr(i, 1);
-                output.push(char);
+                charAt = text.substr(i, 1);
+                output.push(charAt);
                 
-                if (char === '\n') {
+                if (charAt === '\n') {
                     line++;
                     ch = 0;
                 } else {
@@ -792,6 +814,35 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
+        return d.promise();
+    }
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -831,12 +882,14 @@ define(function (require, exports, module) {
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
     exports.chmod                           = chmod;
+    exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.createMockDocument              = createMockDocument;
+    exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;

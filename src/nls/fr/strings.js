@@ -74,8 +74,10 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur du module Aperçu en direct",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Live Development",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
+	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS</strong>. Les modifications apportées aux fichiers HTML et JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
 	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour en savoir plus, reportez-vous à la rubrique <a class=\"clickable-link\" data-href=\"{0}\">Dépannage des erreurs de connexion Live Development</a>.",
@@ -95,6 +97,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
+	"FIND_RESULT_COUNT": "{0} résultats",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
@@ -131,7 +134,7 @@ define({
     /**
      * ProjectManager
      */
-
+	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
 
     /**
@@ -173,6 +176,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
+	"CMD_INSTALL_EXTENSION": "Installer l’extension...",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -200,7 +204,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
-     
+	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
+    
     // View menu commands
 	"VIEW_MENU": "Affichage",
 	"CMD_HIDE_SIDEBAR": "Masquer la barre latérale",
@@ -208,6 +213,11 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
 	"CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
+	"CMD_SCROLL_LINE_UP": "Faire défiler d’une ligne vers le haut",
+	"CMD_SCROLL_LINE_DOWN": "Faire défiler d’une ligne vers le bas",
+	"CMD_TOGGLE_LINE_NUMBERS": "Afficher les numéros de ligne",
+	"CMD_TOGGLE_ACTIVE_LINE": "Afficher la ligne active",
+	"CMD_TOGGLE_WORD_WRAP": "Activer le retour à la ligne",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
@@ -236,6 +246,9 @@ define({
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
+	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
+	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
+	"CMD_RESTART_NODE": "Redémarrer le nœud",
 
     // Help menu commands
 	"HELP_MENU": "Aide",
@@ -269,24 +282,58 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
+	"INSTALL": "Installer",
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
+	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
+	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "(Dans le cas d’une URL de fichier, ne rien indiquer)",
+	"PROJECT_SETTING_BASE_URL_HINT": "(pour utiliser un serveur local, spécifiez l’URL)",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
+    
+    // Extension Management strings
+	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
+	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
+	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
+	"INSTALLING_FROM": "Installation de l’extension depuis {0}...",
+	"INSTALL_SUCCEEDED": "Installation réussie.",
+	"INSTALL_FAILED": "Echec de l’installation.",
+	"CANCELING_INSTALL": "Annulation en cours...",
+	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
+	"INSTALL_CANCELED": "Installation annulée.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
+	"INVALID_PACKAGE_JSON": "Le fichier package.json n’est pas valide (erreur : {0}).",
+	"MISSING_PACKAGE_NAME": "Le fichier package.json n’indique pas le nom du pack.",
+	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
+	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
+	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
+	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
+	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
+	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
+	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
+	"DOWNLOAD_ID_IN_USE": "Erreur interne : l’ID de téléchargement est déjà utilisé.",
+	"NO_SERVER_RESPONSE": "Impossible de se connecter au serveur.",
+	"BAD_HTTP_STATUS": "Fichier introuvable sur le serveur (HTTP {0}).",
+	"CANNOT_WRITE_TEMP": "Impossible d’enregistrer le téléchargement vers le fichier temporaire.",
+	"ERROR_LOADING": "Une erreur s’est produite au démarrage de l’extension.",
+	"MALFORMED_URL": "URL non valide. Veuillez vérifier l’URL saisie.",
+	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
+	"UNKNOWN_ERROR": "Erreur interne inconnue.",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

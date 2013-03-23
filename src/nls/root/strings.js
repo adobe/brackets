@@ -74,8 +74,10 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Development page",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Please try again.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS files</strong>. Changes to HTML or JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
@@ -95,6 +97,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
+    "FIND_RESULT_COUNT"                 : "{0} results",
     "WITH"                              : "With",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
@@ -131,7 +134,7 @@ define({
     /**
      * ProjectManager
      */
-
+    "PROJECT_LOADING" : "Loading\u2026",
     "UNTITLED" : "Untitled",
 
     /**
@@ -173,6 +176,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
+    "CMD_INSTALL_EXTENSION"               : "Install Extension...",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -200,7 +204,8 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Toggle Block Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
-     
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
+    
     // View menu commands
     "VIEW_MENU"                           : "View",
     "CMD_HIDE_SIDEBAR"                    : "Hide Sidebar",
@@ -208,6 +213,11 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
+    "CMD_SCROLL_LINE_UP"                  : "Scroll Line Up",
+    "CMD_SCROLL_LINE_DOWN"                : "Scroll Line Down",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Line Numbers",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Highlight Active Line",
+    "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
@@ -236,6 +246,9 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "New {APP_NAME} Window",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
+    "CMD_ENABLE_NODE_DEBUGGER"            : "Enable Node Debugger",
+    "CMD_LOG_NODE_STATE"                  : "Log Node State to Console",
+    "CMD_RESTART_NODE"                    : "Restart Node",
 
     // Help menu commands
     "HELP_MENU"                           : "Help",
@@ -269,24 +282,58 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
+    "INSTALL"                              : "Install",
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
+    "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(leave blank for file url)",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(to use a local server, specify url)",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "The {0} protocol isn't supported by Live Preview&mdash;please use http: or https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
+    
+    // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "Install Extension",
+    "INSTALL_EXTENSION_LABEL"              : "Extension URL",
+    "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
+    "INSTALLING_FROM"                      : "Installing extension from {0}...",
+    "INSTALL_SUCCEEDED"                    : "Installation successful!",
+    "INSTALL_FAILED"                       : "Installation failed.",
+    "CANCELING_INSTALL"                    : "Canceling...",
+    "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
+    "INSTALL_CANCELED"                     : "Installation canceled.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
+    "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "The package.json file doesn't specify a package name.",
+    "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
+    "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
+    "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
+    "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of Brackets. It's installed in your disabled extensions folder.",
+    "MISSING_MAIN"                         : "The package has no main.js file.",
+    "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
+    "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
+    "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
+    "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
+    "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Unable to save download to temp file.",
+    "ERROR_LOADING"                        : "The extension encountered an error while starting up.",
+    "MALFORMED_URL"                        : "The URL is invalid. Please check that you entered it correctly.",
+    "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
+    "UNKNOWN_ERROR"                        : "Unknown internal error.",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
