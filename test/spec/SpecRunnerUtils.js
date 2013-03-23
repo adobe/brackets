@@ -749,9 +749,14 @@ define(function (require, exports, module) {
                 return this.keyCodeVal;
             }
         });
+        Object.defineProperty(oEvent, 'charCode', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
 
         if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
         } else {
             oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
         }

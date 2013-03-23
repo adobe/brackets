@@ -44,7 +44,12 @@ define(function (require, exports, module) {
             testWindow;
         
         var CSS_FILE  = testPath + "/test.css",
-            HTML_FILE = testPath + "/test.html";
+            HTML_FILE = testPath + "/test.html",
+            JS_FILE   = testPath + "/test.js";
+        
+        var OPEN_BRACKET  = 91,
+            CLOSE_BRACKET = 93,
+            BACKSPACE     = 8;
         
         
         beforeEach(function () {
@@ -66,12 +71,20 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         });
         
+        function getEditor(isInlineEditor) {
+            if (isInlineEditor) {
+                return EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+            } else {
+                return EditorManager.getCurrentFullEditor();
+            }
+        }
         
-        function checkLineWrapping(firstPos, secondPos, shouldWrap, inlineEditor) {
+        
+        function checkLineWrapping(firstPos, secondPos, shouldWrap, isInlineEditor) {
             runs(function () {
                 var firstLineBottom,
                     nextLineBottom,
-                    editor = inlineEditor || EditorManager.getCurrentFullEditor();
+                    editor = getEditor(isInlineEditor);
                 
                 expect(editor).toBeTruthy();
 
@@ -80,11 +93,65 @@ define(function (require, exports, module) {
 
                 editor.setCursorPos(secondPos);
                 nextLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
+                
                 if (shouldWrap) {
                     expect(firstLineBottom).toBeLessThan(nextLineBottom);
                 } else {
                     expect(firstLineBottom).toEqual(nextLineBottom);
                 }
+            });
+        }
+        
+        function checkActiveLine(line, shouldShow, isInlineEditor) {
+            runs(function () {
+                var lineInfo,
+                    editor = getEditor(isInlineEditor);
+                
+                expect(editor).toBeTruthy();
+                editor.setCursorPos({line: line, ch: 0});
+                lineInfo = editor._codeMirror.lineInfo(line);
+                
+                if (shouldShow) {
+                    expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+                } else {
+                    expect(lineInfo.wrapClass).toBeUndefined();
+                }
+            });
+        }
+        
+        function checkLineNumbers(shouldShow, isInlineEditor) {
+            runs(function () {
+                var gutterElement,
+                    editor = getEditor(isInlineEditor);
+                
+                expect(editor).toBeTruthy();
+                gutterElement = editor._codeMirror.getGutterElement();
+                
+                if (shouldShow) {
+                    expect(gutterElement.style.display).toBe("");
+                } else {
+                    expect(gutterElement.style.display).toBe("none");
+                }
+            });
+        }
+        
+        function checkCloseBrackets(startSel, endSel, keyCode, expectedText, isInlineEditor) {
+            runs(function () {
+                var line,
+                    editor = getEditor(isInlineEditor),
+                    input  = editor._codeMirror.getInputField();
+                
+                expect(editor).toBeTruthy();
+                if (endSel) {
+                    editor.setSelection(startSel, endSel);
+                } else {
+                    editor.setCursorPos(startSel);
+                }
+                
+                SpecRunnerUtils.simulateKeyEvent(keyCode, keyCode === BACKSPACE ? "keydown" : "keypress", input);
+                
+                line = editor._codeMirror.getLine(0).substr(0, expectedText.length);
+                expect(line).toBe(expectedText);
             });
         }
         
@@ -124,26 +191,16 @@ define(function (require, exports, module) {
             it("should wrap long lines in main editor by default", function () {
                 openEditor(HTML_FILE);
                 
-                runs(function () {
-                    // Use two cursor positions to detect line wrapping. First position at 
-                    // the beginning of a long line and the second position to be
-                    // somewhere on the long line that will be part of an extra line 
-                    // created by word-wrap and get its bottom coordinate.
-                    checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, true);
-                });
+                // Use two cursor positions to detect line wrapping. First position at 
+                // the beginning of a long line and the second position to be
+                // somewhere on the long line that will be part of an extra line 
+                // created by word-wrap and get its bottom coordinate.
+                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, true);
             });
     
             it("should also wrap long lines in inline editor by default", function () {
-                var inlineEditor;
-                
                 openInlineEditor();
-                
-                runs(function () {
-                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                    expect(inlineEditor).toBeTruthy();
-    
-                    checkLineWrapping({line: 0, ch: 0}, {line: 0, ch: 160}, true, inlineEditor);
-                });
+                checkLineWrapping({line: 0, ch: 0}, {line: 0, ch: 160}, true, true);
             });
             
             it("should NOT wrap the long lines after turning off word-wrap", function () {
@@ -151,10 +208,7 @@ define(function (require, exports, module) {
                 toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 
                 openEditor(CSS_FILE);
-                
-                runs(function () {
-                    checkLineWrapping({line: 0, ch: 1}, {line: 0, ch: 180}, false);
-                });
+                checkLineWrapping({line: 0, ch: 1}, {line: 0, ch: 180}, false, false);
             });
     
             it("should NOT wrap the long lines in another document when word-wrap off", function () {
@@ -164,146 +218,150 @@ define(function (require, exports, module) {
                 toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 
                 openAnotherEditor(HTML_FILE);
-                
-                runs(function () {
-                    checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, false);
-                });
+                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, false, false);
             });
         });
         
         
         describe("Toggle Active Line", function () {
             it("should show active line in main editor by default", function () {
-                var editor, lineInfo;
-                
                 openEditor(HTML_FILE);
-                
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-                    
-                    editor.setCursorPos({line: 5, ch: 0});
-                    lineInfo = editor._codeMirror.lineInfo(5);
-                    expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
-                });
+                checkActiveLine(5, true, false);
             });
     
             it("should also show active line in inline editor by default", function () {
-                var inlineEditor, lineInfo;
-                
                 openInlineEditor();
-                
-                runs(function () {
-                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                    expect(inlineEditor).toBeTruthy();
-    
-                    lineInfo = inlineEditor._codeMirror.lineInfo(0);
-                    expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
-                });
+                checkActiveLine(0, true, true);
             });
             
             it("should NOT style active line after turning it off", function () {
-                var editor, lineInfo;
-                
                 // Turn off show active line
                 toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
                 
                 openEditor(CSS_FILE);
-    
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-                    
-                    lineInfo = editor._codeMirror.lineInfo(0);
-                    expect(lineInfo.wrapClass).toBeUndefined();
-                });
+                checkActiveLine(0, false, false);
             });
     
             it("should NOT style the active line when opening another document with show active line off", function () {
-                var editor, lineInfo;
-                
                 openEditor(CSS_FILE);
                 
                 // Turn off show active line
                 toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
                 
                 openAnotherEditor(HTML_FILE);
-                
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-                    
-                    editor.setCursorPos({line: 3, ch: 5});
-                    lineInfo = editor._codeMirror.lineInfo(3);
-                    expect(lineInfo.wrapClass).toBeUndefined();
-                });
+                checkActiveLine(3, false, false);
             });
         });
         
         
         describe("Toggle Line Numbers", function () {
             it("should show line numbers in main editor by default", function () {
-                var editor, gutterElement;
-                
                 openEditor(HTML_FILE);
-                
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-    
-                    gutterElement = editor._codeMirror.getGutterElement();
-                    expect(gutterElement.style.display).toBe("");
-                });
+                checkLineNumbers(true, false);
             });
             
             it("should also show line numbers in inline editor by default", function () {
-                var inlineEditor, gutterElement;
-                
                 openInlineEditor();
-                
-                runs(function () {
-                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                    expect(inlineEditor).toBeTruthy();
-    
-                    gutterElement = inlineEditor._codeMirror.getGutterElement();
-                    expect(gutterElement.style.display).toBe("");
-                });
+                checkLineNumbers(true, true);
             });
             
             it("should NOT show line numbers after turning it off", function () {
-                var editor, gutterElement;
-                
                 // Turn off show line numbers
                 toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
                 
                 openEditor(CSS_FILE);
-                
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-    
-                    gutterElement = editor._codeMirror.getGutterElement();
-                    expect(gutterElement.style.display).toBe("none");
-                });
+                checkLineNumbers(false, false);
             });
             
             it("should NOT show line numbers when opening another document with show line numbers off", function () {
-                var editor, gutterElement;
-                
                 openEditor(CSS_FILE);
                 
                 // Turn off show line numbers
                 toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
                 
                 openAnotherEditor(HTML_FILE);
+                checkLineNumbers(false, false);
+            });
+        });
+        
+        
+        describe("Toggle Auto Close Brackets", function () {
+            it("should NOT auto close brackets in main editor by default", function () {
+                openEditor(JS_FILE);
+                checkCloseBrackets({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";", false);
+            });
+            
+            it("should NOT auto close brackets in inline editor by default", function () {
+                openInlineEditor();
+                checkCloseBrackets({line: 0, ch: 14}, null, OPEN_BRACKET, ".longLineClass ", true);
+            });
+            
+            it("should auto close brackets after turning it off", function () {
+                // Turn on auto close brackets
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
+                
+                openEditor(JS_FILE);
+                checkCloseBrackets({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]", false);
+            });
+            
+            it("should auto close brackets when opening another document with auto close brackets on", function () {
+                openEditor(CSS_FILE);
+                
+                // Turn on auto close brackets
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
+                
+                openAnotherEditor(JS_FILE);
+                checkCloseBrackets({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]", false);
+            });
+            
+            it("should only auto close brackets before spaces, a closing brackets or an end of line", function () {
+                // Turn on auto close brackets
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
+                
+                openEditor(JS_FILE);
+                checkCloseBrackets({line: 0, ch: 0}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";", false);
+                checkCloseBrackets({line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";", false);
+                checkCloseBrackets({line: 0, ch: 16}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";", false);
+                checkCloseBrackets({line: 0, ch: 39}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";[]", false);
+            });
+            
+            it("should overwrite a closing bracket when cursor is before a closing bracket or selecting it", function () {
+                // Turn on auto close brackets
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
+                
+                openEditor(JS_FILE);
+                checkCloseBrackets({line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";", false);
+                
+                checkCloseBrackets({line: 0, ch: 16}, null, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";", false);
+                runs(function () {
+                    expect(getEditor().getCursorPos()).toEqual({line: 0, ch: 17});
+                });
+                
+                checkCloseBrackets({line: 0, ch: 16}, {line: 0, ch: 17}, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";", false);
+                runs(function () {
+                    expect(getEditor().getCursorPos()).toEqual({line: 0, ch: 17});
+                });
+            });
+            
+            it("should wrap a selection between brackets", function () {
+                // Turn on auto close brackets
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
+                
+                openEditor(JS_FILE);
+                checkCloseBrackets({line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];", false);
                 
                 runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-    
-                    gutterElement = editor._codeMirror.getGutterElement();
-                    expect(gutterElement.style.display).toBe("none");
+                    expect(getEditor().getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}});
                 });
+            });
+            
+            it("should delete both open and close brackets when both are together", function () {
+                // Turn on auto close brackets
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
+                
+                openEditor(JS_FILE);
+                checkCloseBrackets({line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";", false);
+                checkCloseBrackets({line: 0, ch: 16}, null, BACKSPACE, "var myContent = \"This is awesome!\";", false);
             });
         });
     });
