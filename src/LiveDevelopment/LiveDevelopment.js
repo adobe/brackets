@@ -500,7 +500,7 @@ define(function LiveDevelopment(require, exports, module) {
         _setStatus(STATUS_INACTIVE);
     }
 
-    function _onReconnect() {
+    function reconnect() {
         unloadAgents();
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
@@ -779,7 +779,8 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         $(Inspector.Inspector).on("detached", _onDetached);
-        
+        $(Inspector.Page).on("frameNavigated.DOMAgent", _onFrameNavigated);
+		
         waitForInterstitialPageLoad()
             .fail(function () {
                 close();
@@ -835,7 +836,7 @@ define(function LiveDevelopment(require, exports, module) {
             Inspector.Page.reload();
 
             // Reload unsaved changes
-            _onReconnect();
+            reconnect();
         }
     }
 
@@ -935,6 +936,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents              = agents;
     exports.open                = open;
     exports.close               = close;
+    exports.reconnect           = reconnect;
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;

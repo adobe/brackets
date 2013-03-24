@@ -660,6 +660,15 @@ define(function (require, exports, module) {
                 expect(testDocument.getLine(5)).toBe("  <h1 dir=\"rtl\" id='foo'>Heading</h1>");
                 expectCursorAt({ line: 5, ch: 15 });            // cursor after the inserted value
             });
+
+            it("should insert a quoted attribute value right before the closing > of the tag", function () {
+                // Insert an unquoted attribute between <p and > on line 7.
+                testDocument.replaceRange(" dir=", { line: 7, ch: 4 });
+                testEditor.setCursorPos({ line: 7, ch: 9 }); // Set cursor between = and >
+                selectHint(HTMLCodeHints.attrHintProvider, "rtl");
+                expect(testDocument.getLine(7)).toBe("  <p dir=\"rtl\"></p>");
+                expectCursorAt({ line: 7, ch: 14 });            // cursor after the inserted value
+            });
         });
         
         

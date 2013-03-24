@@ -64,7 +64,7 @@
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
  * For instance, C++, C# and Java all use the clike (C-like) mode with different settings and a different MIME name.
  * You can refine the mode definition by specifying the MIME mode as well:
- *     var language = LanguageManager.defineLanguage("csharp", {
+ *     LanguageManager.defineLanguage("csharp", {
  *         name: "C#",
  *         mode: ["clike", "text/x-csharp"],
  *         ...
@@ -80,7 +80,7 @@
  *                        "mode": null}]
  *     });
  *
- *     var language = LanguageManager.defineLanguage("html", {
+ *     LanguageManager.defineLanguage("html", {
  *         name: "HTML",
  *         mode: ["htmlmixed", "text/x-brackets-html"],
  *         ...
@@ -110,27 +110,27 @@ define(function (require, exports, module) {
     // Helper functions
     
     /**
-     * Checks whether value is a string. Throws an exception otherwise.
-     * @param {*}       value         The value to validate
-     * @param {!string} description   A helpful identifier for value
+     * Checks whether value is a non-empty string. Reports an error otherwise.
+     * If no deferred is passed, console.error is called.
+     * Otherwise the deferred is rejected with the error message.
+     * @param {*}                value         The value to validate
+     * @param {!string}          description   A helpful identifier for value
+     * @param {?jQuery.Deferred} deferred      A deferred to reject with the error message in case of an error
+     * @return {boolean} True if the value is a non-empty string, false otherwise
      */
-    function _validateString(value, description) {
+    function _validateNonEmptyString(value, description, deferred) {
+        var reportError = deferred ? deferred.reject : console.error;
+        
         // http://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript
         if (Object.prototype.toString.call(value) !== "[object String]") {
-            throw new Error(description + " must be a string");
+            reportError(description + " must be a string");
+            return false;
         }
-    }
-        
-    /**
-     * Checks whether value is a non-empty string. Throws an exception otherwise.
-     * @param {*}       value         The value to validate
-     * @param {!string} description   A helpful identifier for value
-     */
-    function _validateNonEmptyString(value, description) {
-        _validateString(value, description);
         if (value === "") {
-            throw new Error(description + " must not be empty");
+            reportError(description + " must not be empty");
+            return false;
         }
+        return true;
     }
     
     /**
@@ -156,7 +156,8 @@ define(function (require, exports, module) {
         var _original_CodeMirror_defineMode = CodeMirror.defineMode;
         function _wrapped_CodeMirror_defineMode(name) {
             if (CodeMirror.modes[name]) {
-                throw new Error("There already is a CodeMirror mode with the name \"" + name + "\"");
+                console.error("There already is a CodeMirror mode with the name \"" + name + "\"");
+                return;
             }
             _original_CodeMirror_defineMode.apply(CodeMirror, arguments);
         }
@@ -243,26 +244,8 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * Model for a language.
-     *
-     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
-     * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      */
-    function Language(id, name) {
-        _validateString(id, "Language ID");
-        // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
-        // Hence we use "_" instead of "." since the latter often has special meaning
-        if (!id.match(/^[a-z0-9]+(_[a-z0-9]+)*$/)) {
-            throw new Error("Invalid language ID \"" + id + "\": Only groups of lower case letters and numbers are allowed, separated by underscores.");
-        }
-        if (_languages[id]) {
-            throw new Error("Language \"" + id + "\" is already defined");
-        }
-
-        _validateNonEmptyString(name, "name");
-        
-        this._id   = id;
-        this._name = name;
-        
+    function Language() {
         this._fileExtensions    = [];
         this._fileNames         = [];
         this._modeToLanguageMap = {};
@@ -301,6 +284,26 @@ define(function (require, exports, module) {
     Language.prototype.getId = function () {
         return this._id;
     };
+    
+    /**
+     * Sets the identifier for this language or prints an error to the console.
+     * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
+     * @return {boolean} Whether the ID was valid and set or not
+     */
+    Language.prototype._setId = function (id) {
+        if (!_validateNonEmptyString(id, "Language ID")) {
+            return false;
+        }
+        // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
+        // Hence we use "_" instead of "." since the latter often has special meaning
+        if (!id.match(/^[a-z0-9]+(_[a-z0-9]+)*$/)) {
+            console.error("Invalid language ID \"" + id + "\": Only groups of lower case letters and numbers are allowed, separated by underscores.");
+            return false;
+        }
+        
+        this._id = id;
+        return true;
+    };
 
     /**
      * Returns the human-readable name of this language.
@@ -308,6 +311,20 @@ define(function (require, exports, module) {
      */
     Language.prototype.getName = function () {
         return this._name;
+    };
+    
+    /**
+     * Sets the human-readable name of this language or prints an error to the console.
+     * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
+     * @return {boolean} Whether the name was valid and set or not
+     */
+    Language.prototype._setName = function (name) {
+        if (!_validateNonEmptyString(name, "name")) {
+            return false;
+        }
+        
+        this._name = name;
+        return true;
     };
     
     /**
@@ -333,14 +350,18 @@ define(function (require, exports, module) {
         
         if (Array.isArray(mode)) {
             if (mode.length !== 2) {
-                throw new Error("Mode must either be a string or an array containing two strings");
+                result.reject("Mode must either be a string or an array containing two strings");
+                return result.promise();
             }
             mimeMode = mode[1];
             mode = mode[0];
         }
         
         // mode must not be empty. Use "null" (the string "null") mode for plain text
-        _validateNonEmptyString(mode, "mode");
+        if (!_validateNonEmptyString(mode, "mode", result)) {
+            result.reject();
+            return result.promise();
+        }
         
         var finish = function () {
             if (!CodeMirror.modes[mode]) {
@@ -400,13 +421,11 @@ define(function (require, exports, module) {
 
     /**
      * Adds a file extension to this language.
-     * Private for now since dependent code would need to by kept in sync with such changes.
-     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension A file extension used by this language
+     * @return {boolean} Whether adding the file extension was successful or not
      */
     Language.prototype.addFileExtension = function (extension) {
         extension = _normalizeFileExtension(extension);
-        
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
@@ -423,10 +442,8 @@ define(function (require, exports, module) {
 
     /**
      * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
-     * Private for now since dependent code would need to by kept in sync with such changes.
-     * See https://github.com/adobe/brackets/issues/2966 for plans to make this public.
      * @param {!string} extension An extensionless file name used by this language
-     * @private
+     * @return {boolean} Whether adding the file name was successful or not
      */
     Language.prototype.addFileName = function (name) {
         name = name.toLowerCase();
@@ -443,6 +460,7 @@ define(function (require, exports, module) {
             
             this._wasModified();
         }
+        return true;
     };
 
     /**
@@ -462,9 +480,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets the prefixes to use for line comments in this language.
+     * Sets the prefixes to use for line comments in this language or prints an error to the console.
      * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
      *   to use for line comments (i.e. "//" or ["//", "#"])
+     * @return {boolean} Whether the syntax was valid and set or not
      */
     Language.prototype.setLineCommentSyntax = function (prefix) {
         var prefixes = Array.isArray(prefix) ? prefix : [prefix];
@@ -473,7 +492,7 @@ define(function (require, exports, module) {
         if (prefixes.length) {
             this._lineCommentSyntax = [];
             for (i = 0; i < prefixes.length; i++) {
-                _validateNonEmptyString(String(prefixes[i]), "prefix");
+                _validateNonEmptyString(String(prefixes[i]), Array.isArray(prefix) ? "prefix[" + i + "]" : "prefix");
                 
                 this._lineCommentSyntax.push(prefixes[i]);
             }
@@ -481,6 +500,8 @@ define(function (require, exports, module) {
         } else {
             console.error("The prefix array should not be empty");
         }
+        
+        return true;
     };
     
     /**
@@ -508,16 +529,20 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the prefix and suffix to use for blocks comments in this language.
+     * Sets the prefix and suffix to use for blocks comments in this language or prints an error to the console.
      * @param {!string} prefix Prefix string to use for block comments (e.g. "<!--")
      * @param {!string} suffix Suffix string to use for block comments (e.g. "-->")
+     * @return {boolean} Whether the syntax was valid and set or not
      */
     Language.prototype.setBlockCommentSyntax = function (prefix, suffix) {
-        _validateNonEmptyString(prefix, "prefix");
-        _validateNonEmptyString(suffix, "suffix");
+        if (!_validateNonEmptyString(prefix, "prefix") || !_validateNonEmptyString(suffix, "suffix")) {
+            return false;
+        }
         
         this._blockCommentSyntax = { prefix: prefix, suffix: suffix };
         this._wasModified();
+        
+        return true;
     };
     
     /**
@@ -530,23 +555,27 @@ define(function (require, exports, module) {
         if (mode === this._mode) {
             return this;
         }
-
         return this._modeToLanguageMap[mode] || _getLanguageForMode(mode);
     };
 
     /**
-     * Overrides a mode-to-language association for this particular language only.
+     * Overrides a mode-to-language association for this particular language only or prints an error to the console.
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
      * @param {!Language} language The language to associate with the mode
+     * @return {boolean} Whether the mode-to-language association was valid and set or not
      * @private
      */
     Language.prototype._setLanguageForMode = function (mode, language) {
         if (mode === this._mode && language !== this) {
-            throw new Error("A language must always map its mode to itself");
+            console.error("A language must always map its mode to itself");
+            return false;
         }
+        
         this._modeToLanguageMap[mode] = language;
         this._wasModified();
+        
+        return true;
     };
 
     /**
@@ -589,21 +618,25 @@ define(function (require, exports, module) {
             result.reject("Language \"" + id + "\" is waiting to be resolved.");
             return result.promise();
         }
-        
-        var language = new Language(id, definition.name),
-            fileExtensions = definition.fileExtensions,
-            fileNames = definition.fileNames,
-            l,
-            i;
-        
-        var blockComment = definition.blockComment;
-        if (blockComment) {
-            language.setBlockCommentSyntax(blockComment[0], blockComment[1]);
+        if (_languages[id]) {
+            result.reject("Language \"" + id + "\" is already defined");
+            return result.promise();
         }
+
+        var language       = new Language(),
+            name           = definition.name,
+            fileExtensions = definition.fileExtensions,
+            fileNames      = definition.fileNames,
+            blockComment   = definition.blockComment,
+            lineComment    = definition.lineComment,
+            i,
+            l;
         
-        var lineComment = definition.lineComment;
-        if (lineComment) {
-            language.setLineCommentSyntax(lineComment);
+        if (!language._setId(id) || !language._setName(name) ||
+                (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1])) ||
+                (lineComment && !language.setLineCommentSyntax(lineComment))) {
+            result.reject();
+            return result.promise();
         }
         
         // track languages that are currently loading
@@ -626,6 +659,9 @@ define(function (require, exports, module) {
                 
             // globally associate mode to language
             _setLanguageForMode(language.getMode(), language);
+            
+            // finally, store language to _language map
+            _languages[language.getId()] = language;
             
             // fire an event to notify DocumentManager of the new language
             _triggerLanguageAdded(language);
