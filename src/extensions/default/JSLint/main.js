@@ -27,7 +27,6 @@
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
- *
  */
 define(function (require, exports, module) {
     "use strict";
