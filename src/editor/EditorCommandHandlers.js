@@ -629,7 +629,9 @@ define(function (require, exports, module) {
             hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
             inlineWidget = EditorManager.getFocusedInlineWidget(),
             firstLine    = editor.getFirstVisibleLine(),
-            lastLine     = editor.getLastVisibleLine();
+            lastLine     = editor.getLastVisibleLine(),
+            totalLines   = editor.lineCount(),
+            lineLength   = 0;
         
         sel.start.ch = 0;
         // The end of the selection becomes the start of the next line, if it isn't already
@@ -645,7 +647,13 @@ define(function (require, exports, module) {
                     var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
                     
                     if (sel.end.line === lastLine + 1) {
-                        prevText = "\n" + prevText.substring(0, prevText.length - 1);
+                        if (inlineWidget) {
+                            prevText   = prevText.substring(0, prevText.length - 1);
+                            lineLength = doc.getLine(sel.end.line - 1).length;
+                            doc.replaceRange("\n", { line: sel.end.line - 1, ch: lineLength });
+                        } else {
+                            prevText = "\n" + prevText.substring(0, prevText.length - 1);
+                        }
                     }
                     
                     doc.replaceRange("", { line: sel.start.line - 1, ch: 0 }, sel.start);
@@ -663,17 +671,28 @@ define(function (require, exports, module) {
             }
             break;
         case DIRECTION_DOWN:
-            if (sel.end.line <= lastLine + (inlineWidget ? -1 : 1)) {
+            if (sel.end.line <= lastLine) {
                 doc.batchOperation(function () {
-                    var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
+                    var nextText      = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 }),
+                        deletionStart = sel.end;
                     
-                    var deletionStart = sel.end;
-                    if (!inlineWidget && sel.end.line === lastLine) {
-                        nextText += "\n";
-                        deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
+                    if (sel.end.line === lastLine) {
+                        if (inlineWidget) {
+                            if (sel.end.line === totalLines - 1) {
+                                nextText += "\n";
+                            }
+                            lineLength = doc.getLine(sel.end.line - 1).length;
+                            doc.replaceRange("\n", { line: sel.end.line, ch: doc.getLine(sel.end.line).length });
+                        } else {
+                            nextText     += "\n";
+                            deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
+                        }
                     }
     
                     doc.replaceRange("", deletionStart, { line: sel.end.line + 1, ch: 0 });
+                    if (lineLength) {
+                        doc.replaceRange("", { line: sel.end.line - 1, ch: lineLength }, { line: sel.end.line, ch: 0 });
+                    }
                     doc.replaceRange(nextText, { line: sel.start.line, ch: 0 });
                 });
             }
