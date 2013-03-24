@@ -26,5 +26,5 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"   : "root/Getting Started"
+    "GETTING_STARTED"   : "root/Szybki Start"
 });
