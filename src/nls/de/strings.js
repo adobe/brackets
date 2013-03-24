@@ -74,8 +74,10 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Laden der Live-Development Seite nicht möglich",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei, um die Live-Vorschau zu starten.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben..",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Ein Fehler ist beim starten des HTTP-Server oder den Live-Development Dateien aufgetreten. Bitte versuchen Sie es später erneut.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a class=\"clickable-link\" data-href=\"{0}\">Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
@@ -99,6 +101,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
+    "FIND_RESULT_COUNT"                 : "{0} Ergebnis",    
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
@@ -136,6 +139,7 @@ define({
      * ProjectManager
      */
 
+    "PROJECT_LOADING" : "Lädt\u2026",
     "UNTITLED" : "Unbenannt",
 
     /**
@@ -172,11 +176,12 @@ define({
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
-    "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
-    "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live-Highlight",    
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
+    "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_INSTALL_EXTENSION"               : "Erweiterung installieren...",
     "CMD_QUIT"                            : "Beenden",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Beenden",
@@ -204,6 +209,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Block (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
      
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -212,6 +218,11 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Schriftart vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schriftart verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftart zurücksetzen",
+    "CMD_SCROLL_LINE_UP"                  : "Zeile hoch scrollen",
+    "CMD_SCROLL_LINE_DOWN"                : "Zeile runter scrollen",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Zeilennummern anzeigen",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Aktive Zeile hervorheben",
+    "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
@@ -240,6 +251,9 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
+    "CMD_ENABLE_NODE_DEBUGGER"            : "Node Debugger aktivieren",
+    "CMD_LOG_NODE_STATE"                  : "Log Node-Status zur Console",
+    "CMD_RESTART_NODE"                    : "Node neustarten",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -272,12 +286,14 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
+    "INSTALL"                              : "Installieren",
     "ABOUT"                                : "Über",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE6"                     : "Vielen Menschen (Zur Zeit kann der Inhalt nicht angezeigt werden).",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
@@ -290,6 +306,37 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+
+    // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
+    "INSTALL_EXTENSION_LABEL"              : "Erweiterung URL",
+    "INSTALL_EXTENSION_HINT"               : "URL der Erweiterungs Zip-Datei oder GitHub repo",
+    "INSTALLING_FROM"                      : "Erweiterung installieren von {0}...",
+    "INSTALL_SUCCEEDED"                    : "Installation abgeschlossen!",
+    "INSTALL_FAILED"                       : "Installation fehlgeschlagen.",
+    "CANCELING_INSTALL"                    : "Abgebrochen...",
+    "CANCELING_HUNG"                       : "Das Abbrechen der Installation kann einige Minuten in Anspruch nehmen. Ein interner Fehler kann wÃ¤hrend dessen aufgetreten.",
+    "INSTALL_CANCELED"                     : "Installation abgebrochen.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "Der runtergeladene Inhalt ist keine gÃ¼litge Zip-Datei.",
+    "INVALID_PACKAGE_JSON"                 : "Das json Dateipacket ist ungÃ¼ltig (Fehler: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Das json Dateipacket hat keinen definierten Packetnamen.",
+    "BAD_PACKAGE_NAME"                     : "{0} ist ein ungÃ¼ltiger Packetname.",
+    "MISSING_PACKAGE_VERSION"              : "Das json Dateipacket hat keine definierte Packetversion.",
+    "INVALID_VERSION_NUMBER"               : "Die Packet-Versionsnummer ({0}) ist ungÃ¼ltig.",
+    "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner fÃ¼r die deaktiverten Erweiterungen installiert.",
+    "MISSING_MAIN"                         : "Das Packet hat keine main.js Datei.",
+    "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner fÃ¼r die deaktivierten Erweiterungen installiert.",
+    "NO_DISABLED_DIRECTORY"                : "Die Erweiterung konnte nicht gespeichert werden, weil der Ordner fÃ¼r die deaktivierten Erweiterungen nicht existiert.",
+    "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
+    "NO_SERVER_RESPONSE"                   : "Verbindung konnte nicht hergestellt werden.",
+    "BAD_HTTP_STATUS"                      : "Datei nicht gefunden auf dem Server (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Inhalt zu temp-Datei speichern nicht mÃ¶glich.",
+    "ERROR_LOADING"                        : "Beim starten der Erweiterung ist ein Fehler aufgetreten.",
+    "MALFORMED_URL"                        : "Die URL ist ungÃ¼ltig. Bitte prÃ¼fen Sie, ob es sich um eine gÃ¼ltige URL handelt.",
+    "UNSUPPORTED_PROTOCOL"                 : "Bitte geben Sie eine http oder https URL an.",
+    "UNKNOWN_ERROR"                        : "Unbekannter (interner)Fehler.",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
