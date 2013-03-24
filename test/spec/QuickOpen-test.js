@@ -89,10 +89,7 @@ define(function (require, exports, module) {
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keyup", getSearchField()[0]);
         }
 
-        // TODO: fix me!
-        // This test is currently turned off due to failures on Windows 7
-        // See https://github.com/adobe/brackets/issues/2696
-        it("can open a file and jump to a line, centering that line on the screen", function () {
+        it("can open a file and jump to a cursor position, centering that line on the screen", function () {
             var err = false;
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -127,11 +124,11 @@ define(function (require, exports, module) {
                 // of the scoring in the StringMatch algorithm.
                 expect(DocumentManager.getCurrentDocument().file.name).toEqual("lotsOfLines.html");
                 executeCommand(Commands.NAVIGATE_GOTO_LINE);
-                enterSearchText(":50");
+                enterSearchText(":50,20");
             });
             
             waitsFor(function () {
-                return getSearchField().val() === ":50";
+                return getSearchField().val() === ":50,20";
             }, "goto line entry timeout", 1000);
             
             var eventLooped = false;
@@ -149,8 +146,8 @@ define(function (require, exports, module) {
                 var scrollPos = editor.getScrollPos();
                 
                 // The user enters a 1-based number, but the reported position
-                // is 0 based, so we check for 49.
-                expect(editor).toHaveCursorPosition(49, 0);
+                // is 0 based, so we check for 49,19.
+                expect(editor).toHaveCursorPosition(49, 19);
                 
                 // We expect the result to be scrolled roughly to the middle of the window.
                 expect(scrollPos.y).toBeGreaterThan(400);
