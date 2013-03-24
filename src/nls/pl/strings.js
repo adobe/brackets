@@ -74,6 +74,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Błąd Błyskawicznego Podgląd.",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Łączenie z przeglądarką",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "W celu włączenia Błyskawicznego Podglądu, Chrome musi zostać zrestartowany z włączonym zdalnym debugowaniem.<br /><br />Czy chcesz włączyć zdalne debugowanie i zrestartować Chrome?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Nie można wczytać strony Podglądu Błyskawicznego.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "W celu użycia Podglądu Błyskawicznego otwórz plik HTML.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Aby uruchomić Podgląd Błyskawiczny na plikach serwerowych (np. plikach PHP) musisz podać adres dla tego projektu.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Błąd przy próbie zainicjowania serwera HTTP dla Podglądu błyskawicznego. Spróbuj ponownie.",
@@ -96,6 +97,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Użyj składni /re/ dla wyszukiwania regexp",
+    "FIND_RESULT_COUNT"                 : "{0} wyników",
     "WITH"                              : "Z",
     "BUTTON_YES"                        : "Tak",
     "BUTTON_NO"                         : "Nie",
@@ -132,7 +134,7 @@ define({
     /**
      * ProjectManager
      */
-
+    "PROJECT_LOADING" : "Ładowanie\u2026",
     "UNTITLED" : "Bez_znawy",
 
     /**
@@ -174,6 +176,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Błyskawiczne podwietlanie",
     "CMD_PROJECT_SETTINGS"                : "Ustawienia Projektu\u2026",
     "CMD_FILE_RENAME"                     : "Zmień nazwę",
+    "CMD_INSTALL_EXTENSION"               : "Zainstaluj Rozszerzenie...",
     "CMD_QUIT"                            : "Wyjdź",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Wyjdź",
@@ -201,6 +204,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Utwórz Komentarz Blokowy",
     "CMD_LINE_UP"                         : "Przejdź Linię Wyżej",
     "CMD_LINE_DOWN"                       : "Przejdź Linię Niżej",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Zamykaj Nawiasy Automatycznie",
      
     // View menu commands
     "VIEW_MENU"                           : "Widok",
@@ -209,6 +213,11 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Zwiększ Czcionkę",
     "CMD_DECREASE_FONT_SIZE"              : "Zmniejsz Czcionkę",
     "CMD_RESTORE_FONT_SIZE"               : "Przywróć Domyślny Rozmiar Czcionki",
+    "CMD_SCROLL_LINE_UP"                  : "Przewiń Linię Wyżej",
+    "CMD_SCROLL_LINE_DOWN"                : "Przewiń Linię Niżej",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Numery Linii",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Podświetl Aktywną Linię",
+    "CMD_TOGGLE_WORD_WRAP"                : "Zawijaj Wiersze",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortuj według Dodanych",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortuj według Nazwy",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortuj według Typu",
@@ -273,6 +282,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Zachowaj Zmiany w Edytorze",
     "CLOSE_DONT_SAVE"                      : "Zamknij (Nie Zapisuj)",
     "RELAUNCH_CHROME"                      : "Przeładuj Chrome",
+    "INSTALL"                              : "Zainstaluj",
     "ABOUT"                                : "O",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Zamknij",
@@ -293,6 +303,37 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adres URL nie może zawierać znaku hash: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Znaki specjalne takie jak '{0}' muszą zostać %-zakodowane.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Nieznany błąd podczas parsowania adresu URL.",
+    
+    // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "Zainstaluj Rozszerzenie",
+    "INSTALL_EXTENSION_LABEL"              : "Adres URL Rozszerzenia",
+    "INSTALL_EXTENSION_HINT"               : "Adres URL do pliku zip lub repozytorium na GitHubie dla rozszerzenia",
+    "INSTALLING_FROM"                      : "Zainstaluj Rozszerzenie z {0}...",
+    "INSTALL_SUCCEEDED"                    : "Instalacja zakończona sukcesem.",
+    "INSTALL_FAILED"                       : "Instalacja nie powiodła się.",
+    "CANCELING_INSTALL"                    : "Anulowanie...",
+    "CANCELING_HUNG"                       : "Anulowanie instalacji trwa zbyt długo. Możliwe, że wystąpił błąd wewnętrzny.",
+    "INSTALL_CANCELED"                     : "Instalacja anulowana.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "Ściągnięty plik nie jest poprawnym plikiem zip.",
+    "INVALID_PACKAGE_JSON"                 : "Niepoprawny plik package.json (error was: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Plik package.json nie zawiera nazwy pakietu.",
+    "BAD_PACKAGE_NAME"                     : "{0} jest nieporawną nazwą pakietu.",
+    "MISSING_PACKAGE_VERSION"              : "Plik package.json nie zawiera numeru wersji pakietu.",
+    "INVALID_VERSION_NUMBER"               : "Numer wersji pakietu ({0}) jest niepoprawny.",
+    "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją Brackets. Rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
+    "MISSING_MAIN"                         : "Pakiet nie zawiera pliku main.js.",
+    "ALREADY_INSTALLED"                    : "Rozszerzenie z taką samą nazwą jest już zainstalowane. Nowe rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
+    "NO_DISABLED_DIRECTORY"                : "Nie można zapisać rozszerzenia w extensions/disabled ponieważ folder ten nie istnieje.",
+    "DOWNLOAD_ID_IN_USE"                   : "Błąd wewnętrzny: nazwa ściąganego pliku już istnieje.",
+    "NO_SERVER_RESPONSE"                   : "Nie można połączyć z serwerem.",
+    "BAD_HTTP_STATUS"                      : "Nie znaleziono pliku na serwerze (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Nie można zapisać ściagniętego pliku w folderze tymczasowym.",
+    "ERROR_LOADING"                        : "Rozszerzenie napotkało błąd podczas startu.",
+    "MALFORMED_URL"                        : "Niepoprawny adres URL. Proszę sprawdzić czy został wprowadzony poprawny adres.",
+    "UNSUPPORTED_PROTOCOL"                 : "Adres URL musi zaczynać się od http lub https.",
+    "UNKNOWN_ERROR"                        : "Nieznany błąd wewnętrzny.",
+    // For NOT_FOUND_ERR, see generic strings above
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktualny Kolor",
