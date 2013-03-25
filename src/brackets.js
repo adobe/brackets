@@ -28,7 +28,8 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "i18n"      : "thirdparty/i18n",
+        "jquery"    : "thirdparty/jquery-1.7.min"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -55,6 +56,7 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
+    require("thirdparty/jquery-mousewheel/jquery.mousewheel");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),

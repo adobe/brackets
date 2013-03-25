@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         DocumentManager         = require("document/DocumentManager"),
-        AppInit                 = require("utils/AppInit");
+        AppInit                 = require("utils/AppInit"),
+        KeyEvent                = require("utils/KeyEvent");
     
     /**
      * @const
@@ -76,7 +77,13 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _fontSizePrefsLoaded = false;
-
+    
+    /**
+     * @private
+     * @type {boolean}
+     */
+    var _isModifierPressed = false;
+    
     
     /**
      * @private
@@ -164,18 +171,61 @@ define(function (require, exports, module) {
         return true;
     }
     
-    function _handleIncreaseFontSize() {
-        if (_adjustFontSize(1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
-        }
-    }
-
-    function _handleDecreaseFontSize() {
-        if (_adjustFontSize(-1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
+    /**
+     * @private
+     * Adjust the font size and updates the preference depending on the result
+     * @param {number} adjustment - negative number to make the font smaller; positive number to make it bigger.
+     */
+    function _handleAdjustFontSize(adjustment) {
+        if (_adjustFontSize(adjustment)) {
+            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + adjustment);
         }
     }
     
+    /**
+     * @private
+     * Sets the modifier key on true when pressed and on false when released
+     * @param {$.Event} event
+     */
+    function _handleModifierKey(event) {
+        if (event.which === KeyEvent.DOM_VK_SHIFT) {
+            _isModifierPressed = event.type === "keydown";
+        }
+    }
+    
+    /**
+     * @private
+     * Adjust the font size when using the mouse wheel and pressing the modifier key
+     * @param {$.Event} event
+     * @param {number} delta - 1 for scrolling up, -1 for scrolling down
+     */
+    function _handleWheelFontSize(event, delta) {
+        if (_isModifierPressed) {
+            _handleAdjustFontSize(delta);
+            event.preventDefault();
+        }
+    }
+    
+    /**
+     * @private
+     * Increses the font size by 1
+     */
+    function _handleIncreaseFontSize() {
+        _handleAdjustFontSize(1);
+    }
+
+    /**
+     * @private
+     * Decreases the font size by 1
+     */
+    function _handleDecreaseFontSize() {
+        _handleAdjustFontSize(-1);
+    }
+    
+    /**
+     * @private
+     * Restores the font size to the original size
+     */
     function _handleRestoreFontSize() {
         _removeDynamicFontSize(true);
         _prefs.setValue("fontSizeAdjustment", 0);
@@ -306,10 +356,18 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Scroll one line up
+     */
     function _handleScrollLineUp() {
         _scrollLine(-1);
     }
     
+    /**
+     * @private
+     * Scroll one line down
+     */
     function _handleScrollLineDown() {
         _scrollLine(1);
     }
@@ -332,6 +390,11 @@ define(function (require, exports, module) {
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
-    // Update UI when Brackets finishes loading
-    AppInit.appReady(_updateUI);
+    // Update UI when Brackets finishes loading and add the required listeners
+    AppInit.appReady(function () {
+        _updateUI();
+        $(window.document)
+            .on("keydown keyup", _handleModifierKey)
+            .on("mousewheel", _handleWheelFontSize);
+    });
 });

@@ -13,3 +13,6 @@
 [submodule "src/thirdparty/mustache"]
 	path = src/thirdparty/mustache
 	url = https://github.com/janl/mustache.js.git
+[submodule "src/thirdparty/jquery-mousewheel"]
+	path = src/thirdparty/jquery-mousewheel
+	url = https://github.com/brandonaaron/jquery-mousewheel.git
