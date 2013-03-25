@@ -360,7 +360,7 @@ define(function (require, exports, module) {
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
             matchBrackets: true,
-            dragDrop: true,
+            dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
