@@ -159,18 +159,12 @@ define(function (require, exports, module) {
         NativeFileSystem.requestNativeFileSystem(stringsPath, function (fs) {
             fs.root.createReader().readEntries(function (entries) {
 
-                var $activeLanguage,
-                    $submit,
+                var $submit,
+                    $select,
                     locale;
                 
                 function setLanguage(event) {
-                    if ($activeLanguage) {
-                        $activeLanguage.css("font-weight", "normal");
-                    }
-                    $activeLanguage = $(event.currentTarget);
-                    locale = $activeLanguage.data("locale");
-                    
-                    $activeLanguage.css("font-weight", "bold");
+                    locale = $select.find(":selected").val();
                     $submit.attr("disabled", false);
                 }
     
@@ -188,8 +182,8 @@ define(function (require, exports, module) {
                     .text(Strings.LANGUAGE_MESSAGE)
                     .appendTo($body);
 
-                var $ul = $("<ul>")
-                    .on("click", "li", setLanguage)
+                $select = $("<select>")
+                    .on("change", setLanguage)
                     .appendTo($p);
                 
                 var $footer = $("<div class='modal-footer' />")
@@ -205,7 +199,7 @@ define(function (require, exports, module) {
                 $submit = $("<button class='dialog-button btn primary'>")
                     .text(Strings.LANGUAGE_SUBMIT)
                     .on("click", function () {
-                        if (!$activeLanguage) {
+                        if (locale === undefined) {
                             return;
                         }
                         brackets.setLocale(locale);
@@ -225,17 +219,23 @@ define(function (require, exports, module) {
                         $(this).remove();
                     });
 
+                var curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale());
+                
+                function addLocale(text, val) {
+                    var $option = $("<option>")
+                        .text(text)
+                        .val(val)
+                        .appendTo($select);
+                    if (val === curLocale) {
+                        $option.attr("selected", "selected");
+                    }
+                }
+
                 // add system default
-                var $li = $("<li>")
-                    .text("system default")
-                    .data("locale", null)
-                    .appendTo($ul);
+                addLocale("system default", null);
                 
                 // add english
-                $li = $("<li>")
-                    .text("en")
-                    .data("locale", "en")
-                    .appendTo($ul);
+                addLocale("en", "en");
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
@@ -250,10 +250,7 @@ define(function (require, exports, module) {
                                 label += match[2].toUpperCase();
                             }
                             
-                            var $li = $("<li>")
-                                .text(label)
-                                .data("locale", language)
-                                .appendTo($ul);
+                            addLocale(label, language);
                         }
                     }
                 });

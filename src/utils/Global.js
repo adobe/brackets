@@ -77,6 +77,10 @@ define(function (require, exports, module) {
         global.brackets.platform = "win";
     }
     
+    global.brackets.isLocaleDefault = function () {
+        return !global.localStorage.getItem("locale");
+    };
+    
     global.brackets.getLocale = function () {
         // By default use the locale that was determined in brackets.js
         return global.localStorage.getItem("locale") || global.require.s.contexts._.config.locale;
