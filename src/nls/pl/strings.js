@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -30,48 +30,48 @@ define({
      */
 
     // General file io error strings
-    "GENERIC_ERROR"                     : "(error {0})",
+    "GENERIC_ERROR"                     : "(błąd {0})",
     "NOT_FOUND_ERR"                     : "Nie znaleziono pliku.",
     "NOT_READABLE_ERR"                  : "Nie można odczytać pliku.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "Nie można zmienić folderu źródłowego.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Nie można zmienić folderu docelowego.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Brak pozwolenia na modyfikację.",
     "FILE_EXISTS_ERR"                   : "Plik już istnieje.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Wystąpił błąd podczas ładowania projektu.",
-    "OPEN_DIALOG_ERROR"                 : "Wystąpił błąd podczas wyświetlania okna otwierania pliku. (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Wystąpił błąd przy próbie otwarcia katalogu <span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "Wystąpił błąd podczas odczytu zawartości katalogu <span class='dialog-filename'>{0}</span>. (error {1})",
+    "OPEN_DIALOG_ERROR"                 : "Wystąpił błąd podczas wyświetlania okna otwierania pliku. (błąd {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Wystąpił błąd przy próbie otwarcia katalogu <span class='dialog-filename'>{0}</span>. (błąd {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "Wystąpił błąd podczas odczytu zawartości katalogu <span class='dialog-filename'>{0}</span>. (błąd {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "Nie można otworzyć pliku.",
+    "ERROR_OPENING_FILE_TITLE"          : "Błąd podczas otwierania pliku",
     "ERROR_OPENING_FILE"                : "Wystąpił błąd podczas próby otwarcia pliku <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RELOADING_FILE_TITLE"        : "Nie można wczytać pliku z dysku.",
+    "ERROR_RELOADING_FILE_TITLE"        : "Błąd przy próbie ponownego załadowania pliku z dysku",
     "ERROR_RELOADING_FILE"              : "Wystąpił błąd podczas próby ponownego załadowania pliku. <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE"           : "Nie można zapisać pliku.",
+    "ERROR_SAVING_FILE_TITLE"           : "Nie można zapisać pliku",
     "ERROR_SAVING_FILE"                 : "Wystąpił błąd podczas próby zapisu pliku <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Nie można niemić nazwy.",
+    "ERROR_RENAMING_FILE_TITLE"         : "Nie można zmienić nazwy",
     "ERROR_RENAMING_FILE"               : "Wystąpił błąd podczas próby zmiany nazwy pliku <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Niewłaściwa nazwa pliku.",
+    "INVALID_FILENAME_TITLE"            : "Niewłaściwa nazwa pliku",
     "INVALID_FILENAME_MESSAGE"          : "Nazwa pliku nie może zawierać następujących znaków: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "Plik <span class='dialog-filename'>{0}</span> już istnieje.",
-    "ERROR_CREATING_FILE_TITLE"         : "Nie można utworzyć pliku.",
-    "ERROR_CREATING_FILE"               : "Wystąpił błąd podczas próby stworzenia nowegou pliku <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_CREATING_FILE_TITLE"         : "Nie można utworzyć pliku",
+    "ERROR_CREATING_FILE"               : "Wystąpił błąd podczas próby utworzenia pliku <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} jeszcze nie działa w przeglądarce.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} został zbudowany przy pomocy HTML'a, jednak na razie działa jedynie jako samodzielna aplikacja. Możesz użyć jej do edycju plików na dysku. Aby uruchomić {APP_NAME} użyj shell'a dostępnego w tym repozytorium <b>github.com/adobe/brackets-shell</b>.",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} jeszcze nie działa w przeglądarce",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} został zbudowany przy pomocy HTML, jednak na razie działa jedynie jako samodzielna aplikacja. Możesz użyć jej do edycji plików na dysku. Aby uruchomić {APP_NAME} użyj aplikacji dostępnej w tym repozytorium <b>github.com/adobe/brackets-shell</b>.",
 
     // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE"             : "Nie można zindeksować plików.",
+    "ERROR_MAX_FILES_TITLE"             : "Nie można zindeksować plików",
     "ERROR_MAX_FILES"                   : "Maksymalna liczba plików została zindeksowana. Aplikacja indeksująca może pracować nieprawidłowo.",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Nie można otworzyć przeglądarki.",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Nie można otworzyć przeglądarki",
     "ERROR_CANT_FIND_CHROME"            : "Przeglądarka Google Chrome nie została znaleziona. Upewnij się, że jest zainstalowana.",
-    "ERROR_LAUNCHING_BROWSER"           : "Wystąpił błąd przy próbie otwarcia przeglądarki. (error {0})",
+    "ERROR_LAUNCHING_BROWSER"           : "Wystąpił błąd przy próbie otwarcia przeglądarki. (błąd {0})",
     
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Błąd Błyskawicznego Podgląd.",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Błąd Błyskawicznego Podgląd",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Łączenie z przeglądarką",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "W celu włączenia Błyskawicznego Podglądu, Chrome musi zostać zrestartowany z włączonym zdalnym debugowaniem.<br /><br />Czy chcesz włączyć zdalne debugowanie i zrestartować Chrome?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Nie można wczytać strony Podglądu Błyskawicznego.",
@@ -89,11 +89,11 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Podgląd Błyskawiczny: Kliknij aby rozłączyć (Zapisz plik by zaktualizować)",
     
     "SAVE_CLOSE_TITLE"                  : "Zapisz zmiany",
-    "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
-    "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
-    "EXT_MODIFIED_TITLE"                : "External Changes",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    "SAVE_CLOSE_MESSAGE"                : "Czy chcesz zapisać zmiany w dokumencie <span class='dialog-filename'>{0}</span>?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "Czy chcesz zapisać zmiany w następujących plikach?",
+    "EXT_MODIFIED_TITLE"                : "Zmiany zewnętrzne",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> został zmodyfikowany na dysku, jednak zawiera też niezapisane zmiany w {APP_NAME}.<br /><br />Którą wersję chcesz zachować?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> został usunięty z dysku, jednak zawiera niezapisane zmiany w {APP_NAME}.<br /><br />Czy chcesz zachować zmiany?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Użyj składni /re/ dla wyszukiwania regexp",
@@ -110,13 +110,13 @@ define({
     "NO_UPDATE_TITLE"                   : "Brackets jest aktualny!",
     "NO_UPDATE_MESSAGE"                 : "Aktualnie używasz najnowszej wersji {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "dla \"{4}\" {5} - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "dla \"{4}\" {5} - {0} {1} w {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "w <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "w projekcie",
     "FIND_IN_FILES_FILE"                : "plik",
     "FIND_IN_FILES_FILES"               : "pliki",
-    "FIND_IN_FILES_MATCH"               : "wynik",
-    "FIND_IN_FILES_MATCHES"             : "wyniki",
+    "FIND_IN_FILES_MATCH"               : "dopasowanie",
+    "FIND_IN_FILES_MATCHES"             : "dopasowania",
     "FIND_IN_FILES_MORE_THAN"           : "Więcej niż ",
     "FIND_IN_FILES_MAX"                 : " (pokaż pierwsze {0} wyników)",
     "FIND_IN_FILES_FILE_PATH"           : "Plik: <span class='dialog-filename'>{0}</span>",
@@ -267,8 +267,8 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "build eksperymentalny",
-    "DEVELOPMENT_BUILD"                    : "build bozwojowy",
-    "JSLINT_ERRORS"                        : "Błąd JSLint",
+    "DEVELOPMENT_BUILD"                    : "build rozwojowy",
+    "JSLINT_ERRORS"                        : "Błędy JSLint",
     "JSLINT_ERROR_INFORMATION"             : "1 Błąd JSLint",
     "JSLINT_ERRORS_INFORMATION"            : "{0} Błędy(ów) JSLint",
     "JSLINT_NO_ERRORS"                     : "Dobra robota! Brak błędów JSLint",
@@ -307,7 +307,7 @@ define({
     // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "Zainstaluj Rozszerzenie",
     "INSTALL_EXTENSION_LABEL"              : "Adres URL Rozszerzenia",
-    "INSTALL_EXTENSION_HINT"               : "Adres URL do pliku zip lub repozytorium na GitHubie dla rozszerzenia",
+    "INSTALL_EXTENSION_HINT"               : "Adres URL do pliku zip lub repozytorium na GitHub dla rozszerzenia",
     "INSTALLING_FROM"                      : "Zainstaluj Rozszerzenie z {0}...",
     "INSTALL_SUCCEEDED"                    : "Instalacja zakończona sukcesem.",
     "INSTALL_FAILED"                       : "Instalacja nie powiodła się.",
@@ -316,9 +316,9 @@ define({
     "INSTALL_CANCELED"                     : "Instalacja anulowana.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ściągnięty plik nie jest poprawnym plikiem zip.",
-    "INVALID_PACKAGE_JSON"                 : "Niepoprawny plik package.json (error was: {0}).",
+    "INVALID_PACKAGE_JSON"                 : "Niepoprawny plik package.json (Wystąpił błąd: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Plik package.json nie zawiera nazwy pakietu.",
-    "BAD_PACKAGE_NAME"                     : "{0} jest nieporawną nazwą pakietu.",
+    "BAD_PACKAGE_NAME"                     : "{0} jest niepoprawną nazwą pakietu.",
     "MISSING_PACKAGE_VERSION"              : "Plik package.json nie zawiera numeru wersji pakietu.",
     "INVALID_VERSION_NUMBER"               : "Numer wersji pakietu ({0}) jest niepoprawny.",
     "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją Brackets. Rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
