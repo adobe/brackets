@@ -2275,5 +2275,64 @@ define(function (require, exports, module) {
             });
         });
         
+        
+        describe("Wrap Selection With Tag", function () {
+            var htmlContent = "<html>\n" +
+                              "    <body>\n" +
+                              "        Hello World\n" +
+                              "    </body>\n" +
+                              "</html>";
+            
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+            });
+            
+            
+            it("should wrap a selection with the default tags and select the content of the open tag", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                
+                expect(myDocument.getLine(2)).toEqual("        <p>Hello World</p>");
+                expectSelection({start: {line: 2, ch: 9}, end: {line: 2, ch: 10}});
+            });
+            
+            it("should syncronize the content of the tags", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                
+                myDocument.replaceRange("h1", {line: 2, ch: 9}, {line: 2, ch: 10});
+                expect(myDocument.getLine(2)).toEqual("        <h1>Hello World</h1>");
+                
+                myDocument.replaceRange("2", {line: 2, ch: 10}, {line: 2, ch: 11});
+                expect(myDocument.getLine(2)).toEqual("        <h2>Hello World</h2>");
+                
+                myDocument.replaceRange("3", {line: 2, ch: 11});
+                expect(myDocument.getLine(2)).toEqual("        <h23>Hello World</h23>");
+                
+                myDocument.replaceRange("", {line: 2, ch: 10}, {line: 2, ch: 12});
+                expect(myDocument.getLine(2)).toEqual("        <h>Hello World</h>");
+            });
+            
+            it("should NOT syncronize any content of the open tap after a space", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                
+                myDocument.replaceRange("h1 title=\"yay\"", {line: 2, ch: 9}, {line: 2, ch: 10});
+                expect(myDocument.getLine(2)).toEqual("        <h1 title=\"yay\">Hello World</h1>");
+            });
+            
+            it("should stop syncronizing after moving outside of the open tag", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                
+                myDocument.replaceRange("h1", {line: 2, ch: 9}, {line: 2, ch: 10});
+                expect(myDocument.getLine(2)).toEqual("        <h1>Hello World</h1>");
+                
+                myEditor.setCursorPos({line: 0, ch: 0});
+                
+                myDocument.replaceRange("h2", {line: 2, ch: 9}, {line: 2, ch: 11});
+                expect(myDocument.getLine(2)).toEqual("        <h2>Hello World</h1>");
+            });
+        });
     });
 });
