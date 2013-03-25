@@ -42,7 +42,8 @@ define(function (require, exports, module) {
         cachedScope = null,  // the inner-most scope returned by the query worker
         cachedLine  = null;  // the line number for the cached scope
 
-    var MAX_DISPLAYED_HINTS = 100;
+    var MAX_DISPLAYED_HINTS = 100,
+        QUERY_PREFIX_LENGTH = 1;    // Any query of this size or less is matched as a prefix of a hint.
 
     /**
      * Creates a hint response object. Filters the hint list using the query
@@ -102,7 +103,11 @@ define(function (require, exports, module) {
             if (trimmedQuery !== query) {
                 return filterArrayPrefix(tokens, function (token) {
                     if (token.literal && token.kind === "string") {
-                        return (token.value.indexOf(trimmedQuery) === 0);
+                        if (query.length > (QUERY_PREFIX_LENGTH + 1)) {
+                            return (token.value.toLowerCase().indexOf(trimmedQuery.toLowerCase()) !== -1);
+                        } else {
+                            return (token.value.toLowerCase().indexOf(trimmedQuery.toLowerCase()) === 0);
+                        }
                     } else {
                         return false;
                     }
@@ -112,7 +117,11 @@ define(function (require, exports, module) {
                     if (token.literal && token.kind === "string") {
                         return false;
                     } else {
-                        return (token.value.indexOf(query) === 0);
+                        if (query.length > QUERY_PREFIX_LENGTH) {
+                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+                        } else {
+                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) === 0);
+                        }
                     }
                 }, limit);
             } else {
@@ -131,9 +140,24 @@ define(function (require, exports, module) {
          *      objects
          */
         function formatHints(hints, query) {
+            if (query.length > QUERY_PREFIX_LENGTH) {
+                hints.sort(function (hint1, hint2) {
+                    var index1 = hint1.value.toLowerCase().indexOf(query.toLowerCase()),
+                        index2 = hint2.value.toLowerCase().indexOf(query.toLowerCase());
+
+                    if (index1 === 0 && index2 !== 0) {
+                        return -1;
+                    } else if (index1 !== 0 && index2 === 0) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
+            }
+
             return hints.map(function (token) {
                 var hint        = token.value,
-                    index       = hint.indexOf(query),
+                    index       = hint.toLowerCase().indexOf(query.toLowerCase()),
                     $hintObj    = $("<span>").addClass("brackets-js-hints"),
                     delimiter   = "";
 

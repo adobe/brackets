@@ -541,6 +541,7 @@ define(function (require, exports, module) {
             var ternHints = ScopeManager.getTernHints("dir", "file", offset, this.editor.document.getText());
             if( ternHints && ternHints.length > 0 ) {
                 hints = ternHints;
+                hints.sort(compareByName);
             }
             else{
                 hints = copyHints(this.properties);

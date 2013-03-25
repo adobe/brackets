@@ -424,7 +424,7 @@ define(function (require, exports, module) {
             return request;
         }
         
-        var request = buildRequest(dir, file, "completions", offset);
+        var request = buildRequest(dir, file, "rawCompletions", offset);
         var ternHints = [];    
         ternServer.request(request, function(error, data) {
             //if (error) return displayError(error);
