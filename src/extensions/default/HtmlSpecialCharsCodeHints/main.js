@@ -98,7 +98,8 @@ define(function (require, exports, module) {
             this.currentQuery = query = this._getQuery();
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
-                    return value.replace("#", "&#35;") + " <span class='entity-display-character'>" + value + ";</span>";
+                    var shownValue = (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("#", "&#35;");
+                    return shownValue + " <span class='entity-display-character'>" + value + ";</span>";
                 }
             }).sort(function (a, b) {
                 a = a.toLowerCase();
@@ -106,7 +107,7 @@ define(function (require, exports, module) {
                 return a.localeCompare(b);
             });
             
-            query = query.replace("#", "&#35;");
+            query = (query.indexOf("#") === -1) ? query.replace("&", "&amp;") : query.replace("#", "&#35;");
             return {
                 hints: result,
                 match: query,
@@ -172,7 +173,7 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - this.currentQuery.length;
         end.ch = start.ch + this.currentQuery.length;
         completion = completion.slice(0, completion.indexOf(" ")) + ";";
-        completion = completion.replace("&#35;", "#");
+        completion = completion.replace("&#35;", "#").replace("&amp;", "&");
         if (start.ch !== end.ch) {
             this.editor.document.replaceRange(completion, start, end);
         } else {
