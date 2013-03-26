@@ -459,7 +459,9 @@ define(function (require, exports, module) {
             query.start = offset;
             query.end = offset;
             query.file = file;
-            
+            query.filter = false;
+            query.sort = false;
+
             var request = {query:query, files:[], offset:offset};
             
             var state = getFileState(dir, file);
@@ -468,7 +470,7 @@ define(function (require, exports, module) {
             return request;
         }
         
-        var request = buildRequest(dir, file, "rawCompletions", offset);
+        var request = buildRequest(dir, file, "completions", offset);
         var $deferredHints = $.Deferred();
         ternServer.request(request, function(error, data) {
             //if (error) return displayError(error);

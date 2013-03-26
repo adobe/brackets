@@ -287,7 +287,15 @@ define(function (require, exports, module) {
             token = session.getToken(cursor);
         if ((key === null) || HintUtils.hintable(token)) {
             if (token) {
-                if (!cachedScope) {
+                var type    = session.getType(),
+                    query   = session.getQuery();
+
+                // Compute fresh hints if none exist, or if the session
+                // type has changed since the last hint computation
+                if (!cachedScope ||
+                    type.property !== cachedType.property ||
+                    type.context !== cachedType.context) {
+                    console.log("compute hints");
                     var offset          = session.getOffset(),
                         scopeResponse   = ScopeManager.getScopeInfo(session, session.editor.document, offset),
                         self            = this;

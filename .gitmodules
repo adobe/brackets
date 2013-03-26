@@ -18,4 +18,4 @@
 	url = https://github.com/eztierney/acorn
 [submodule "src/extensions/default/JavaScriptCodeHints/tern"]
 	path = src/extensions/default/JavaScriptCodeHints/tern
-	url = http://github.com/dloverin/tern.git
+	url = http://github.com/marijnh/tern.git
