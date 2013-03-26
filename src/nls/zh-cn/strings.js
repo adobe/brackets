@@ -328,6 +328,7 @@ define({
     "DOWNLOAD_ID_IN_USE"                   : "内部错误:该下载ID已被使用.",
     "DOWNLOAD_TARGET_EXISTS"               : "临时下载文件已存在: {0}.",
     "NO_SERVER_RESPONSE"                   : "无法连接到服务器.",
+    "CANNOT_WRITE_TEMP"                    : "无法保存下载文件到临时文件.",
     "BAD_HTTP_STATUS"                      : "未在服务器上发现该文件 (HTTP {0}).",
     "ERROR_LOADING"                        : "扩展程序遇到一个错误,将重启扩展.",
     "MALFORMED_URL"                        : "无法识别的URL地址.",
