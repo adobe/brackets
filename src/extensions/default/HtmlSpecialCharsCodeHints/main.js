@@ -103,9 +103,9 @@ define(function (require, exports, module) {
             }).sort(function (a, b) {
                 a = a.toLowerCase();
                 b = b.toLowerCase();
-                return (a === b) ? 0 : (a > b) ? 1 : -1;
+                return a.localeCompare(b);
             });
-            console.log(result);
+            
             query = query.replace("#", "&#35;");
             return {
                 hints: result,
