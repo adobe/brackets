@@ -45,11 +45,16 @@ define(function (require, exports, module) {
 
     var pendingRequest      = null,     // information about a deferred scope request
         fileState           = {},       // directory -> file -> state
-        ternServer          = null,
         ternEnvironment     = [],
+        pendingTernRequests = {},
+        rootTernDir             = null,
         outerScopeWorker    = (function () {
             var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
             return new Worker(path + "parser-worker.js");
+        }()),
+        ternWorker          = (function () {
+            var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
+            return new Worker(path + "tern-worker.js");
         }());
 
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
@@ -58,17 +63,14 @@ define(function (require, exports, module) {
     /**
      * Create a new tern server.
      */
-    function initTernServer(dir) {
-        var ternOptions = {
-            environment:ternEnvironment,
-            async:true,
-            getFile: function(name, next) {
-                DocumentManager.getDocumentForPath(dir + name).done(function(document){
-                    next(null, document.getText());
-                })
-            }
-            };
-        ternServer = new Tern.Server(ternOptions);
+    function initTernServer(dir, files) {
+        ternWorker.postMessage({
+                    type        : HintUtils.TERN_INIT_MSG,
+                    dir         : dir,
+                    files       : files,
+                    env         : ternEnvironment
+                });
+        rootTernDir = dir;
     }
     
     /**
@@ -454,37 +456,57 @@ define(function (require, exports, module) {
      *      it is done
      */
     function getTernHints(dir, file, offset, text) {
-        function buildRequest(dir, file, query, offset){
-            query = {type:query};
-            query.start = offset;
-            query.end = offset;
-            query.file = file;
-            
-            var request = {query:query, files:[], offset:offset};
-            
-            var state = getFileState(dir, file);
-            request.files.push({type:"full", name:file, text:text});
-            //console.log(text);
-            return request;
-        }
-        
-        var request = buildRequest(dir, file, "completions", offset);
-        var $deferredHints = $.Deferred();
-        ternServer.request(request, function(error, data) {
-            //if (error) return displayError(error);
-            var completions = [];
-            var ternHints = [];    
-            for (var i = 0; i < data.completions.length; ++i) {
-              var completion = data.completions[i];//, className = typeToIcon(completion.type);
-              //if (data.guess) className += " Tern-completion-guess";
-              completions.push({value: completion/*, className: className*/});
-            }
-            //console.log("tern finished");
-            ternHints = completions;
-            $deferredHints.resolveWith(null, [ternHints]);
-        });
 
+        ternWorker.postMessage({
+            type: HintUtils.TERN_COMPLETIONS_MSG,
+            dir:dir,
+            file:file,
+            offset:offset,
+            text:text
+        });
+        
+        var $deferredHints = $.Deferred();
+        pendingTernRequests[file] = $deferredHints;
         return $deferredHints.promise();
+    }
+    
+    /**
+     * Handle the response from the tern web worker when
+     * it responds with the list of completions
+     *
+     * @param {{dir:string, file:string, offset:number, completions:Array.<string>}} response - the response from the worker
+     */
+    function handleTernCompletions(response) {
+        
+        var dir = response.dir,
+            file = response.file,
+            offset = response.offset,
+            completions = response.completions,
+            $deferredHints = pendingTernRequests[file];
+        
+        pendingTernRequests[file] = null;
+        
+        if( $deferredHints ) { 
+            $deferredHints.resolveWith(null, [completions]);
+        }
+    }
+    
+    /**
+     * Handle a request from the worker for text of a file
+     *
+     * @param {{file:string}} request - the request from the worker.  Should be an Object containing the name
+     *      of the file tern wants the contents of 
+     */
+    function handleTernGetFile(request) {
+        var name = request.file;
+        DocumentManager.getDocumentForPath(rootTernDir + name).done(function(document){
+            ternWorker.postMessage({
+                type:HintUtils.TERN_GET_FILE_MSG,
+                file:name, 
+                text:document.getText()
+            });
+        })
+
     }
     
     /**
@@ -530,11 +552,11 @@ define(function (require, exports, module) {
             dir         = split.dir,
             file        = split.file,
             dirEntry    = new NativeFileSystem.DirectoryEntry(dir),
-            reader      = dirEntry.createReader();
+            reader      = dirEntry.createReader(),
+            files       = [];
         
         markFileDirty(dir, file);
 
-        initTernServer(dir);
 
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
@@ -550,11 +572,12 @@ define(function (require, exports, module) {
                             DocumentManager.getDocumentForPath(path).done(function (document) {
                                 refreshOuterScope(dir, file, document.getText());
                             });
-                            ternServer.addFile(file);    
+                            files.push(file);    
                         }
                     }
                 }
             });
+            initTernServer(dir, files);
         }, function (err) {
             console.log("Unable to refresh directory: " + err);
             refreshOuterScope(dir, file, document.getText());
@@ -639,6 +662,21 @@ define(function (require, exports, module) {
 
         if (type === HintUtils.SCOPE_MSG_TYPE) {
             handleOuterScope(response);
+        } else {
+            console.log("Worker: " + (response.log || response));
+        }
+    });
+    
+    ternWorker.addEventListener("message", function (e) {
+        var response = e.data,
+            type = response.type;
+        
+        if( type === HintUtils.TERN_COMPLETIONS_MSG) {
+            // handle any completions the worker calculated
+            handleTernCompletions(response);
+        } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
+            // handle a request for the contents of a file
+            handleTernGetFile(response);
         } else {
             console.log("Worker: " + (response.log || response));
         }

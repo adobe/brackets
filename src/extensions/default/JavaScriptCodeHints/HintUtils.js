@@ -27,10 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var MODE_NAME       = "javascript",
-        SCOPE_MSG_TYPE  = "outerScope",
-        SINGLE_QUOTE    = "\'",
-        DOUBLE_QUOTE    = "\"";
+    var MODE_NAME               = "javascript",
+        SCOPE_MSG_TYPE          = "outerScope",
+        SINGLE_QUOTE            = "\'",
+        DOUBLE_QUOTE            = "\"",
+        TERN_INIT_MSG           = "ternInit",
+        TERN_COMPLETIONS_MSG    = "ternCompletions",
+        TERN_GET_FILE_MSG       = "ternGetFile";
 
     /**
      * Create a hint token with name value that occurs at the given list of
@@ -384,4 +387,7 @@ define(function (require, exports, module) {
     exports.SCOPE_MSG_TYPE          = SCOPE_MSG_TYPE;
     exports.SINGLE_QUOTE            = SINGLE_QUOTE;
     exports.DOUBLE_QUOTE            = DOUBLE_QUOTE;
+    exports.TERN_COMPLETIONS_MSG    = TERN_COMPLETIONS_MSG;
+    exports.TERN_INIT_MSG           = TERN_INIT_MSG;
+    exports.TERN_GET_FILE_MSG       = TERN_GET_FILE_MSG;
 });
