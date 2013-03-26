@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils");
     
     var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
-                         showLineNumbers: true, styleActiveLine: true, wordWrap: true };
+                         showLineNumbers: true, styleActiveLine: false, wordWrap: true };
     
     /** Editor preferences */
     var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
@@ -360,7 +360,7 @@ define(function (require, exports, module) {
             lineWrapping: _wordWrap,
             styleActiveLine: _styleActiveLine,
             matchBrackets: true,
-            dragDrop: true,
+            dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
             autoCloseTags: {
