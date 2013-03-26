@@ -55,11 +55,27 @@ define(function (require, exports, module) {
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
         MAX_FILES_IN_DIR    = 100;
 
-    function initTernServer() {
-        ternServer = new Tern.Server({environment:ternEnvironment});
+    /**
+     * Create a new tern server.
+     */
+    function initTernServer(dir) {
+        var ternOptions = {
+            environment:ternEnvironment,
+            async:true,
+            getFile: function(name, next) {
+                DocumentManager.getDocumentForPath(dir + name).done(function(document){
+                    next(null, document.getText());
+                })
+            }
+            };
+        ternServer = new Tern.Server(ternOptions);
     }
-    function initTernEnv(server) {
-        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/";
+    
+    /**
+     * Read in the json files that have type information for the builtins, dom,etc
+     */
+    function initTernEnv() {
+        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/defs/";
         var files = ["ecma5.json"];//, "browser.json", "plugin/requirejs/requirejs.json", "jquery.json"];
         
         var dirEntry    = new NativeFileSystem.DirectoryEntry(path),
@@ -68,10 +84,13 @@ define(function (require, exports, module) {
         files.forEach(function(i) {
             DocumentManager.getDocumentForPath(path + i).done(function(document){
                 ternEnvironment.push(JSON.parse(document.getText()));
+            }).fail(function(error){
+                console.log("failed to read tern config file " + i);
             });
         });
     }
-    initTernEnv(ternServer);
+
+    initTernEnv();
     
     /** 
      * Initialize state for a given directory and file name
@@ -394,20 +413,45 @@ define(function (require, exports, module) {
      *      desired
      * @param {number} offset - the offset into the document at which scope
      *      info is desired
-     * @return {Object + jQuery.Promise} - the inner scope info, or a promise 
-     *      for such info. (See refreshInnerScope above.)
+     * @return {jQuery.Promise} - A promise that will resolve to the inner scope info.
+     *      The promise will not complete until the scope info is refreshed, and tern has
+     *      computed completions.
      */
-    function getScopeInfo(document, offset) {
+    function getScopeInfo(session, document, offset) {
         var path    = document.file.fullPath,
             split   = HintUtils.splitPath(path),
             dir     = split.dir,
             file    = split.file;
         
-        return refreshInnerScope(dir, file, offset);
+        var $deferredHints = $.Deferred();
+        
+        var  scopeInfo = refreshInnerScope(dir, file, offset);
+        
+        var scopePromise;
+        if( scopeInfo.hasOwnProperty("promise") ) {
+            scopePromise = scopeInfo.promise;
+        }
+        else {
+            // make a scopePromise that we can pass to when below
+            var $scopeInfo = $.Deferred();
+            scopePromise = $scopeInfo.promise();
+            $scopeInfo.resolveWith(null, [scopeInfo]);
+        }
+            
+        var ternPromise = getTernHints("dir", "file", offset, document.getText());
+        
+        $.when(scopePromise, ternPromise).done(
+            function(scopeInfo, ternHints){
+                session.setTernHints(ternHints);
+                $deferredHints.resolveWith(null, [scopeInfo]);
+            });
+        return {promise:$deferredHints.promise()};
     }
 
     /**
-     * Get completions from TernJS, from the file & offset passed in.
+     * Get a Promise for the completions from TernJS, for the file & offset passed in.
+     * @return {jQuery.Promise} - a promise that will resolve to an array of completions when
+     *      it is done
      */
     function getTernHints(dir, file, offset, text) {
         function buildRequest(dir, file, query, offset){
@@ -425,20 +469,22 @@ define(function (require, exports, module) {
         }
         
         var request = buildRequest(dir, file, "rawCompletions", offset);
-        var ternHints = [];    
+        var $deferredHints = $.Deferred();
         ternServer.request(request, function(error, data) {
             //if (error) return displayError(error);
             var completions = [];
+            var ternHints = [];    
             for (var i = 0; i < data.completions.length; ++i) {
               var completion = data.completions[i];//, className = typeToIcon(completion.type);
               //if (data.guess) className += " Tern-completion-guess";
               completions.push({value: completion/*, className: className*/});
             }
-        
+            //console.log("tern finished");
             ternHints = completions;
+            $deferredHints.resolveWith(null, [ternHints]);
         });
 
-        return ternHints;
+        return $deferredHints.promise();
     }
     
     /**
@@ -488,6 +534,8 @@ define(function (require, exports, module) {
         
         markFileDirty(dir, file);
 
+        initTernServer(dir);
+
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {
@@ -502,6 +550,7 @@ define(function (require, exports, module) {
                             DocumentManager.getDocumentForPath(path).done(function (document) {
                                 refreshOuterScope(dir, file, document.getText());
                             });
+                            ternServer.addFile(file);    
                         }
                     }
                 }
@@ -511,7 +560,6 @@ define(function (require, exports, module) {
             refreshOuterScope(dir, file, document.getText());
         });
         
-        initTernServer();
     }
 
     /*

@@ -289,7 +289,7 @@ define(function (require, exports, module) {
             if (token) {
                 if (!cachedScope) {
                     var offset          = session.getOffset(),
-                        scopeResponse   = ScopeManager.getScopeInfo(session.editor.document, offset),
+                        scopeResponse   = ScopeManager.getScopeInfo(session, session.editor.document, offset),
                         self            = this;
 
                     if (scopeResponse.hasOwnProperty("promise")) {
