@@ -295,7 +295,6 @@ define(function (require, exports, module) {
                 if (!cachedScope ||
                     type.property !== cachedType.property ||
                     type.context !== cachedType.context) {
-                    console.log("compute hints");
                     var offset          = session.getOffset(),
                         scopeResponse   = ScopeManager.getScopeInfo(session, session.editor.document, offset),
                         self            = this;
