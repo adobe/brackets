@@ -625,13 +625,13 @@ define(function (require, exports, module) {
         
         var doc = editor.document,
             sel = editor.getSelection(),
-            originalSel  = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
-            inlineWidget = EditorManager.getFocusedInlineWidget(),
-            firstLine    = editor.getFirstVisibleLine(),
-            lastLine     = editor.getLastVisibleLine(),
-            totalLines   = editor.lineCount(),
-            lineLength   = 0;
+            originalSel    = editor.getSelection(),
+            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
+            firstLine      = editor.getFirstVisibleLine(),
+            lastLine       = editor.getLastVisibleLine(),
+            totalLines     = editor.lineCount(),
+            lineLength     = 0;
         
         sel.start.ch = 0;
         // The end of the selection becomes the start of the next line, if it isn't already
@@ -647,7 +647,7 @@ define(function (require, exports, module) {
                     var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
                     
                     if (sel.end.line === lastLine + 1) {
-                        if (inlineWidget) {
+                        if (isInlineWidget) {
                             prevText   = prevText.substring(0, prevText.length - 1);
                             lineLength = doc.getLine(sel.end.line - 1).length;
                             doc.replaceRange("\n", { line: sel.end.line - 1, ch: lineLength });
@@ -677,7 +677,7 @@ define(function (require, exports, module) {
                         deletionStart = sel.end;
                     
                     if (sel.end.line === lastLine) {
-                        if (inlineWidget) {
+                        if (isInlineWidget) {
                             if (sel.end.line === totalLines - 1) {
                                 nextText += "\n";
                             }
