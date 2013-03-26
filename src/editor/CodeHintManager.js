@@ -398,7 +398,7 @@ define(function (require, exports, module) {
         var mode = editor.getModeForSelection(),
             enabledProviders = _getProvidersForMode(mode);
         
-        enabledProviders.forEach(function (item, index) {
+        $.each(enabledProviders, function (index, item) {
             if (item.provider.hasHints(editor, lastChar)) {
                 sessionProvider = item.provider;
                 return false;
