@@ -35,8 +35,7 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         DocumentManager         = require("document/DocumentManager"),
-        AppInit                 = require("utils/AppInit"),
-        KeyEvent                = require("utils/KeyEvent");
+        AppInit                 = require("utils/AppInit");
     
     /**
      * @const
@@ -81,20 +80,43 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Refreshes the editor and restores the scroll position
+     * @param {number} adjustment - negative number to make the font smaller; positive number to make it bigger
+     */
+    function _refreshAndRestoreScroll(adjustment) {
+        var editor     = EditorManager.getCurrentFullEditor(),
+            oldHeight  = editor.getTextHeight(),
+            oldWidth   = editor.getCharWidth();
+        
+        editor.refreshAll();
+        
+        // Scroll the document back to its original position
+        var scrollPos  = editor.getScrollPos(),
+            deltaX     = Math.round(scrollPos.x / oldHeight),
+            deltaY     = Math.round(scrollPos.y / oldHeight),
+            scrollPosX = scrollPos.x + deltaX * adjustment,
+            scrollPosY = scrollPos.y + deltaY * adjustment;
+        
+        editor.setScrollPos(scrollPosX, scrollPosY);
+    }
+    
+    /**
+     * @private
      * Removes the styles used to update the font size and updates the editor if refresh is true
      * @param {boolean} refresh - True to refresh the current full editor
+     * @param {number} adjustment - negative number to make the font smaller; positive number to make it bigger
      */
-    function _removeDynamicFontSize(refresh) {
+    function _removeDynamicFontSize(refresh, adjustment) {
         $("#" + DYNAMIC_FONT_STYLE_ID).remove();
         if (refresh) {
-            EditorManager.getCurrentFullEditor().refreshAll();
+            _refreshAndRestoreScroll(adjustment);
         }
     }
     
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {number} negative number to make the font smaller; positive number to make it bigger.
+     * @param {number} adjustment - negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
@@ -145,22 +167,7 @@ define(function (require, exports, module) {
                    "line-height: " + lhStr + " !important;}");
         $("head").append(style);
         
-        var editor = EditorManager.getCurrentFullEditor();
-        editor.refreshAll();
-        
-        // Scroll the document back to its original position. This can only happen
-        // if the font size is specified in pixels (which it currently is).
-        if (fsUnits === "px") {
-            var scrollPos = editor.getScrollPos();
-            var scrollDeltaX = Math.round(scrollPos.x / lhOld);
-            var scrollDeltaY = Math.round(scrollPos.y / lhOld);
-            
-            scrollDeltaX = (adjustment >= 0 ? scrollDeltaX : -scrollDeltaX);
-            scrollDeltaY = (adjustment >= 0 ? scrollDeltaY : -scrollDeltaY);
-            
-            editor.setScrollPos((scrollPos.x + scrollDeltaX),
-                                (scrollPos.y + scrollDeltaY));
-        }
+        _refreshAndRestoreScroll(adjustment);
         
         return true;
     }
@@ -201,7 +208,7 @@ define(function (require, exports, module) {
     
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _removeDynamicFontSize(true);
+        _removeDynamicFontSize(true, -_prefs.getValue("fontSizeAdjustment"));
         _prefs.setValue("fontSizeAdjustment", 0);
     }
     
@@ -223,9 +230,7 @@ define(function (require, exports, module) {
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
                 _removeDynamicFontSize(false);
-                if (_prefs.getValue("fontSizeAdjustment") !== 0) {
-                    _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
-                }
+                _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
                 _fontSizePrefsLoaded = true;
             }
             
@@ -236,6 +241,7 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
     }
+    
     
     
     /**
