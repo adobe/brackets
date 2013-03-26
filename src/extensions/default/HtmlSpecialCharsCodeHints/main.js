@@ -31,6 +31,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         HtmlSpecialChars    = require("text!SpecialChars.json"),
         specialChars;
 
@@ -60,16 +62,14 @@ define(function (require, exports, module) {
      * whether it is appropriate to do so.
      */
     SpecialCharHints.prototype.hasHints = function (editor, implicitChar) {
-        var tagInfo,
-            query,
-            range;
-        
         this.editor = editor;
         
+        var query = this._getQuery();
+
         if (implicitChar === null) {
-            return false;
+            return query !== null;
         } else {
-            return implicitChar === "&";
+            return implicitChar === "&" || query !== null;
         }
     };
        
@@ -94,14 +94,19 @@ define(function (require, exports, module) {
         var query,
             result;
 
-        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
+        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
             this.currentQuery = query = this._getQuery();
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
-                    return value + " <span style=\"float: right;\">" + value + ";</span>";
+                    return value.replace("#", "&#35;") + " <span class='entity-display-character'>" + value + ";</span>";
                 }
-            }).sort();
-                
+            }).sort(function (a, b) {
+                a = a.toLowerCase();
+                b = b.toLowerCase();
+                return (a === b) ? 0 : (a > b) ? 1 : -1;
+            });
+            console.log(result);
+            query = query.replace("#", "&#35;");
             return {
                 hints: result,
                 match: query,
@@ -141,7 +146,11 @@ define(function (require, exports, module) {
             }, this.editor.getCursorPos());
         }
         
-        return query;
+        if (startChar !== -1 && HTMLUtils.getTagAttributes(this.editor, this.editor.getCursorPos()).length === 0) {
+            return query;
+        } else {
+            return null;
+        }
     };
     
     /**
@@ -163,6 +172,7 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - this.currentQuery.length;
         end.ch = start.ch + this.currentQuery.length;
         completion = completion.slice(0, completion.indexOf(" ")) + ";";
+        completion = completion.replace("&#35;", "#");
         if (start.ch !== end.ch) {
             this.editor.document.replaceRange(completion, start, end);
         } else {
@@ -173,12 +183,13 @@ define(function (require, exports, module) {
     };
 
     AppInit.appReady(function () {
+        ExtensionUtils.loadStyleSheet(module, "styles.css");
         // Parse JSON files
         specialChars = JSON.parse(HtmlSpecialChars);
         
         // Register code hint providers
         var specialCharHints = new SpecialCharHints();
         
-        CodeHintManager.registerHintProvider(specialCharHints, ["html"], 0);
+        CodeHintManager.registerHintProvider(specialCharHints, ["html"], 1);
     });
 });
