@@ -78,12 +78,6 @@ define(function (require, exports, module) {
      */
     var _fontSizePrefsLoaded = false;
     
-    /**
-     * @private
-     * @type {boolean}
-     */
-    var _isModifierPressed = false;
-    
     
     /**
      * @private
@@ -184,48 +178,28 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets the modifier key on true when pressed and on false when released
-     * @param {$.Event} event
-     */
-    function _handleModifierKey(event) {
-        if (event.which === KeyEvent.DOM_VK_SHIFT) {
-            _isModifierPressed = event.type === "keydown";
-        }
-    }
-    
-    /**
-     * @private
      * Adjust the font size when using the mouse wheel and pressing the modifier key
      * @param {$.Event} event
      * @param {number} delta - 1 for scrolling up, -1 for scrolling down
      */
     function _handleWheelFontSize(event, delta) {
-        if (_isModifierPressed) {
+        if (event.shiftKey) {
             _handleAdjustFontSize(delta);
             event.preventDefault();
         }
     }
     
-    /**
-     * @private
-     * Increses the font size by 1
-     */
+    /** Increses the font size by 1 */
     function _handleIncreaseFontSize() {
         _handleAdjustFontSize(1);
     }
 
-    /**
-     * @private
-     * Decreases the font size by 1
-     */
+    /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
         _handleAdjustFontSize(-1);
     }
     
-    /**
-     * @private
-     * Restores the font size to the original size
-     */
+    /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
         _removeDynamicFontSize(true);
         _prefs.setValue("fontSizeAdjustment", 0);
@@ -249,7 +223,9 @@ define(function (require, exports, module) {
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
                 _removeDynamicFontSize(false);
-                _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
+                if (_prefs.getValue("fontSizeAdjustment") !== 0) {
+                    _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
+                }
                 _fontSizePrefsLoaded = true;
             }
             
@@ -260,7 +236,6 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.VIEW_RESTORE_FONT_SIZE).setEnabled(false);
         }
     }
-    
     
     
     /**
@@ -356,18 +331,12 @@ define(function (require, exports, module) {
         }
     }
     
-    /**
-     * @private
-     * Scroll one line up
-     */
+    /** Scrolls one line up */
     function _handleScrollLineUp() {
         _scrollLine(-1);
     }
     
-    /**
-     * @private
-     * Scroll one line down
-     */
+    /** Scrolls one line down */
     function _handleScrollLineDown() {
         _scrollLine(1);
     }
@@ -393,8 +362,6 @@ define(function (require, exports, module) {
     // Update UI when Brackets finishes loading and add the required listeners
     AppInit.appReady(function () {
         _updateUI();
-        $(window.document)
-            .on("keydown keyup", _handleModifierKey)
-            .on("mousewheel", _handleWheelFontSize);
+        $(window.document).on("mousewheel", _handleWheelFontSize);
     });
 });

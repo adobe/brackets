@@ -57,6 +57,7 @@ define(function (require, exports, module) {
     require("spec/QuickOpen-test");
     require("spec/StringMatch-test");
     require("spec/UpdateNotification-test");
+    require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");
 });
