@@ -196,6 +196,10 @@ define(function (require, exports, module) {
                 true
             ).then(
                 function () {
+                    $(_nodeConnection).on("staticServer.request", function (event, path) {
+                        console.log("%s %s", event, path);
+                    });
+
                     clearTimeout(connectionTimeout);
                     _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
                 },

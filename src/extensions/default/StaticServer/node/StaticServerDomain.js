@@ -29,7 +29,12 @@ maxerr: 50, node: true */
     "use strict";
     
     var http    = require("http"),
-        connect = require("connect");
+        connect = require("connect"),
+        utils   = require("connect/lib/utils"),
+        parse   = utils.parseUrl,
+        url     = require("url");
+    
+    var _domainManager;
 
     /**
      * When Chrome has a css stylesheet replaced over live development,
@@ -78,11 +83,26 @@ maxerr: 50, node: true */
             });
         }
         
+        function rewrite(req, res, next) {
+            if ("GET" !== req.method && "HEAD" !== req.method) {
+                return next();
+            }
+            
+            var path = parse(req).pathname,
+                pause = utils.pause(req);
+            
+            _domainManager.emitEvent("staticServer", "request", [path]);
+            
+            // TODO wait for request rewrite
+            next();
+        }
+        
         var app = connect();
+        app.use(rewrite);
         // JSLint complains if we use `connect.static` because static is a
         // reserved word.
-        app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }))
-            .use(connect.directory(path));
+        app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }));
+        app.use(connect.directory(path));
 
         var server = http.createServer(app);
         server.listen(0, "127.0.0.1", function () {
@@ -159,10 +179,12 @@ maxerr: 50, node: true */
      * @param {DomainManager} domainManager The DomainManager for the server
      */
     function init(domainManager) {
+        _domainManager = domainManager;
+        
         if (!domainManager.hasDomain("staticServer")) {
             domainManager.registerDomain("staticServer", {major: 0, minor: 1});
         }
-        domainManager.registerCommand(
+        _domainManager.registerCommand(
             "staticServer",
             "getServer",
             _cmdGetServer,
@@ -179,7 +201,7 @@ maxerr: 50, node: true */
                 description: "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
             }]
         );
-        domainManager.registerCommand(
+        _domainManager.registerCommand(
             "staticServer",
             "closeServer",
             _cmdCloseServer,
@@ -194,6 +216,15 @@ maxerr: 50, node: true */
                 name: "result",
                 type: "boolean",
                 description: "indicates whether a server was found for the specific path then closed"
+            }]
+        );
+        _domainManager.registerEvent(
+            "staticServer",
+            "request",
+            [{
+                name: "path",
+                type: "string",
+                description: "request path"
             }]
         );
     }
