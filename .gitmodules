@@ -13,9 +13,9 @@
 [submodule "src/thirdparty/mustache"]
 	path = src/thirdparty/mustache
 	url = https://github.com/janl/mustache.js.git
+[submodule "src/extensions/default/JavaScriptCodeHints/tern"]
+	path = src/extensions/default/JavaScriptCodeHints/tern
+	url = http://github.com/eztierney/tern.git
 [submodule "src/extensions/default/JavaScriptCodeHints/acorn"]
 	path = src/extensions/default/JavaScriptCodeHints/acorn
 	url = https://github.com/eztierney/acorn
-[submodule "src/extensions/default/JavaScriptCodeHints/tern"]
-	path = src/extensions/default/JavaScriptCodeHints/tern
-	url = http://github.com/marijnh/tern.git
