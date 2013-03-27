@@ -388,11 +388,10 @@ define(function (require, exports, module) {
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                 ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
                 json_data : { data: treeDataProvider, correct_state: false },
-                core : { animation: 0 },
+                core : { animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
-                strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" },
                 sort :  function (a, b) {
                     if (brackets.platform === "win") {
                         // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
