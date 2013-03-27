@@ -37,6 +37,32 @@ define(function (require, exports, module) {
         specialChars;
 
     /**
+     * Encodes the special Char value given. 
+     * 
+     * @param {String} value 
+     * The value to encode
+     *
+     * @return {String} 
+     * The encoded string
+     */
+    function _encodeValue(value) {
+        return (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("&", "&amp;").replace("#", "&#35;");
+    }
+    
+    /**
+     * Decodes the special Char value given. 
+     * 
+     * @param {String} value 
+     * The value to decode
+     *
+     * @return {String} 
+     * The decoded string
+     */
+    function _decodeValue(value) {
+        return value.replace("&#35;", "#").replace("&amp;", "&").replace("&#59;", ";");
+    }
+    
+    /**
      * @constructor
      */
     function SpecialCharHints() {
@@ -92,30 +118,18 @@ define(function (require, exports, module) {
      */
     SpecialCharHints.prototype.getHints = function (implicitChar) {
         var query,
-            result,
-            self = this;
+            result;
 
         if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
             this.currentQuery = query = this._getQuery();
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
-                    var shownValue = self._encodeValue(value);
+                    var shownValue = _encodeValue(value);
                     return shownValue  + "&#59; <span class='entity-display-character'>" + value + ";</span>";
                 }
-            }).sort(function (a, b) {
-                a = self._decodeValue(a.slice(0, a.indexOf(" "))).toLowerCase();
-                b = self._decodeValue(b.slice(0, b.indexOf(" "))).toLowerCase();
-                if (a.indexOf("#") !== -1 && b.indexOf("#") !== -1) {
-                    var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
-                        num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
-                    
-                    return (num1 === num2) ? 0 : (num1 > num2) ? 1 : -1;
-                }
-                
-                return a.localeCompare(b);
-            });
+            }).sort(this._internalSort);
             
-            query = this._encodeValue(query);
+            query = _encodeValue(query);
             return {
                 hints: result,
                 match: query,
@@ -127,20 +141,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Encodes the special Char value given. 
-     * 
-     * @param {String} value 
-     * The value to encode
-     *
-     * @return {String} 
-     * The encoded string
-     */
-    SpecialCharHints.prototype._encodeValue = function (value) {
-        return (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("&", "&amp;").replace("#", "&#35;");
-    };
-    
-    /**
-     * Decodes the special Char value given. 
+     * Sort function used internally when sorting the Hints
      * 
      * @param {String} value 
      * The value to decode
@@ -148,8 +149,18 @@ define(function (require, exports, module) {
      * @return {String} 
      * The decoded string
      */
-    SpecialCharHints.prototype._decodeValue = function (value) {
-        return value.replace("&#35;", "#").replace("&amp;", "&").replace("&#59;", ";");
+    SpecialCharHints.prototype._internalSort = function (a, b) {
+        a = _decodeValue(a.slice(0, a.indexOf(" "))).toLowerCase();
+        b = _decodeValue(b.slice(0, b.indexOf(" "))).toLowerCase();
+        
+        if (a.indexOf("#") !== -1 && b.indexOf("#") !== -1) {
+            var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
+                num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
+                    
+            return (num1 === num2) ? 0 : (num1 > num2) ? 1 : -1;
+        }
+                
+        return a.localeCompare(b);
     };
     
     /**
@@ -207,7 +218,7 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - this.currentQuery.length;
         end.ch = start.ch + this.currentQuery.length;
         completion = completion.slice(0, completion.indexOf(" "));
-        completion = this._decodeValue(completion);
+        completion = _decodeValue(completion);
         if (start.ch !== end.ch) {
             this.editor.document.replaceRange(completion, start, end);
         } else {
