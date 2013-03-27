@@ -38,15 +38,7 @@ var unzip    = require("unzip"),
 
 
 var Errors = {
-    NOT_FOUND_ERR: "NOT_FOUND_ERR",                 // {0} is path where ZIP file was expected
-    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",           // {0} is path to ZIP file
-    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",   // {0} is JSON parse error, {1} is path to ZIP file
-    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",   // {0} is path to ZIP file
-    BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",           // {0} is the name
-    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",  // {0} is path to ZIP file
-    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
     API_NOT_COMPATIBLE: "API_NOT_COMPATIBLE",
-    MISSING_MAIN: "MISSING_MAIN",                   // {0} is path to ZIP file
     MISSING_REQUIRED_OPTIONS: "MISSING_REQUIRED_OPTIONS",
     ALREADY_INSTALLED: "ALREADY_INSTALLED",
     DOWNLOAD_ID_IN_USE: "DOWNLOAD_ID_IN_USE",
