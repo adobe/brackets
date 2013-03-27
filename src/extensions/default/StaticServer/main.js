@@ -196,8 +196,10 @@ define(function (require, exports, module) {
                 true
             ).then(
                 function () {
-                    $(_nodeConnection).on("staticServer.request", function (event, path) {
-                        console.log("%s %s", event, path);
+                    var $staticServerProvider = $(_staticServerProvider);
+                    
+                    $(_nodeConnection).on("staticServer.request", function (event, location) {
+                        $staticServerProvider.triggerHandler("request", location);
                     });
 
                     clearTimeout(connectionTimeout);

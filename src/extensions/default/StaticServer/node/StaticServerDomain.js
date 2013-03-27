@@ -66,8 +66,10 @@ maxerr: 50, node: true */
      *    was an error). 
      */
     function _createServer(path, createCompleteCallback) {
+        var server, app, address;
+        
         function requestRoot(server, cb) {
-            var address = server.address();
+            address = server.address();
             
             // Request the root file from the project in order to ensure that the
             // server is actually initialized. If we don't do this, it seems like
@@ -88,23 +90,26 @@ maxerr: 50, node: true */
                 return next();
             }
             
-            var path = parse(req).pathname,
+            var location = parse(req),
                 pause = utils.pause(req);
             
-            _domainManager.emitEvent("staticServer", "request", [path]);
+            location.hostname = address.address;
+            location.port = address.port;
             
-            // TODO wait for request rewrite
+            _domainManager.emitEvent("staticServer", "request", [location]);
+            
+            // TODO pause for possible request rewrite
             next();
         }
         
-        var app = connect();
+        app = connect();
         app.use(rewrite);
         // JSLint complains if we use `connect.static` because static is a
         // reserved word.
         app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }));
         app.use(connect.directory(path));
 
-        var server = http.createServer(app);
+        server = http.createServer(app);
         server.listen(0, "127.0.0.1", function () {
             requestRoot(
                 server,
@@ -222,8 +227,8 @@ maxerr: 50, node: true */
             "staticServer",
             "request",
             [{
-                name: "path",
-                type: "string",
+                name: "location",
+                type: "{href: string, host: string, hostname: string, port: number, pathname: string, search: ?string, path: string, query: ?string, hash: ?string}",
                 description: "request path"
             }]
         );
