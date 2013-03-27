@@ -44,7 +44,8 @@ var Errors = {
     BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",           // {0} is the name
     MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",  // {0} is path to ZIP file
     INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
-    MISSING_MAIN: "MISSING_MAIN"                    // {0} is path to ZIP file
+    MISSING_MAIN: "MISSING_MAIN",                    // {0} is path to ZIP file
+    MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON"     // {0} is path to ZIP file
 };
 
 /**
@@ -78,9 +79,11 @@ function validateName(name) {
  * read successfully from package.json in the zip file.
  *
  * @param {string} Absolute path to the package zip file
+ * @param {{requirePackageJSON: ?boolean}} validation options
  * @param {function} callback (err, result)
  */
-function validate(path, callback) {
+function validate(path, options, callback) {
+    options = options || {};
     fs.exists(path, function (doesExist) {
         if (!doesExist) {
             callback(null, {
@@ -192,6 +195,10 @@ function validate(path, callback) {
                 // No errors and no metadata means that we never found the metadata
                 if (errors.length === 0 && !metadata) {
                     metadata = null;
+                }
+                
+                if (metadata === null && options.requirePackageJSON) {
+                    errors.push([Errors.MISSING_PACKAGE_JSON, path]);
                 }
                 
                 callback(null, {

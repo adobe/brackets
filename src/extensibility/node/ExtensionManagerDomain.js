@@ -224,7 +224,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         }
     };
     
-    validate(packagePath, validateCallback);
+    validate(packagePath, {}, validateCallback);
 }
 
 
@@ -355,6 +355,10 @@ function init(domainManager) {
             name: "path",
             type: "string",
             description: "absolute filesystem path of the extension package"
+        }, {
+            name: "options",
+            type: "{requirePackageJSON: ?boolean}",
+            description: "options to control the behavior of the validator"
         }],
         [{
             name: "errors",
