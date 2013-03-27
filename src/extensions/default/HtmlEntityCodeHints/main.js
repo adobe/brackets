@@ -68,9 +68,9 @@ define(function (require, exports, module) {
 
         if (implicitChar === null) {
             return query !== null;
-        } else {
-            return implicitChar === "&" || query !== null;
         }
+        
+        return implicitChar === "&" || query !== null;
     };
        
     /**
@@ -92,22 +92,31 @@ define(function (require, exports, module) {
      */
     SpecialCharHints.prototype.getHints = function (implicitChar) {
         var query,
-            result;
+            result,
+            self = this;
 
         if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
             this.currentQuery = query = this._getQuery();
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
-                    var shownValue = (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("#", "&#35;");
-                    return shownValue + " <span class='entity-display-character'>" + value + ";</span>";
+                    var shownValue = self._encodeValue(value);
+                    return shownValue  + "&#59; <span class='entity-display-character'>" + value + ";</span>";
                 }
             }).sort(function (a, b) {
-                a = a.toLowerCase();
-                b = b.toLowerCase();
+                a = self._decodeValue(a.slice(0, a.indexOf(" "))).toLowerCase();
+                b = self._decodeValue(b.slice(0, b.indexOf(" "))).toLowerCase();
+                if (a.indexOf("#") !== -1 && b.indexOf("#") !== -1) {
+                    console.log();
+                    var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
+                        num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
+                    
+                    return (num1 === num2) ? 0 : (num1 > num2) ? 1 : -1;
+                }
+                
                 return a.localeCompare(b);
             });
             
-            query = (query.indexOf("#") === -1) ? query.replace("&", "&amp;") : query.replace("#", "&#35;");
+            query = this._encodeValue(query);
             return {
                 hints: result,
                 match: query,
@@ -116,6 +125,32 @@ define(function (require, exports, module) {
         }
         
         return null;
+    };
+    
+    /**
+     * Encodes the special Char value given. 
+     * 
+     * @param {String} value 
+     * The value to encode
+     *
+     * @return {String} 
+     * The encoded string
+     */
+    SpecialCharHints.prototype._encodeValue = function (value) {
+        return (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("&", "&amp;").replace("#", "&#35;");
+    };
+    
+    /**
+     * Decodes the special Char value given. 
+     * 
+     * @param {String} value 
+     * The value to decode
+     *
+     * @return {String} 
+     * The decoded string
+     */
+    SpecialCharHints.prototype._decodeValue = function (value) {
+        return value.replace("&#35;", "#").replace("&amp;", "&").replace("&#59;", ";");
     };
     
     /**
@@ -146,18 +181,18 @@ define(function (require, exports, module) {
                 ch: startChar
             }, this.editor.getCursorPos());
         }
-        
-        if (startChar !== -1 && HTMLUtils.getTagAttributes(this.editor, this.editor.getCursorPos()).length === 0) {
+        console.log(HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()));
+        if (startChar !== -1 && HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName === "") {
             return query;
-        } else {
-            return null;
         }
+            
+        return null;
     };
     
     /**
      * Inserts a given HtmlSpecialChar hint into the current editor context. 
      * 
-     * @param {String} hint 
+     * @param {String} completition 
      * The hint to be inserted into the editor context.
      * 
      * @return {Boolean} 
@@ -172,8 +207,8 @@ define(function (require, exports, module) {
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - this.currentQuery.length;
         end.ch = start.ch + this.currentQuery.length;
-        completion = completion.slice(0, completion.indexOf(" ")) + ";";
-        completion = completion.replace("&#35;", "#").replace("&amp;", "&");
+        completion = completion.slice(0, completion.indexOf(" "));
+        completion = this._decodeValue(completion);
         if (start.ch !== end.ch) {
             this.editor.document.replaceRange(completion, start, end);
         } else {
