@@ -751,17 +751,12 @@ define(function (require, exports, module) {
     
     
     /**
+     * @private
      * Wraps the selection with the default HTML Tags and creates a syncronization so that modifying the open tag,
      * modifies the close tag until the cursor moves outside of the content of the open tag.
-     * close tag until the cursor moves outside of the content of the open tag
      * @param {Editor} editor - target editor
      */
-    function wrapSelectionWithTag(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        
+    function _doWrapSelectionWithTag(editor) {
         var sel       = editor.getSelection(),
             doc       = editor.document,
             openFrom  = {line: sel.start.line, ch: sel.start.ch + 1},
@@ -829,6 +824,73 @@ define(function (require, exports, module) {
         // Register the events
         $doc.on("change.wrapSelection", syncTags);
         $editor.on("cursorActivity.wrapSelection", endSync);
+    }
+    
+    /**
+     * @private
+     * Returns true if the selection is outside a tag
+     * @param {Editor} editor - target editor
+     */
+    function _isOutsideTag(editor) {
+        var sel       = editor.getSelection(),
+            startCtx  = TokenUtils.getInitialContext(editor._codeMirror, sel.start),
+            endCtx    = TokenUtils.getInitialContext(editor._codeMirror, sel.end),
+            startExp  = /^</,
+            endExp    = />$/,
+            endResult = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, endCtx),
+            startTag  = startCtx.token.string.match(startExp),
+            endTag    = endResult && endCtx.token.string.match(endExp),
+            result    = true;
+        
+        // Search backwards from the start of the selection until we find the start or end of a tag
+        while (result && startCtx.token.className !== "tag" && (!startTag || !startCtx.token.string.match(endExp))) {
+            result   = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
+            startTag = startCtx.token.string.match(startExp);
+        }
+        
+        // Search fowards from the end of the selection until we find the start or end of a tag
+        result = true;
+        while (result && endCtx.token.className !== "tag" && (!endCtx.token.string.match(startExp) || !endTag)) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, endCtx);
+            endTag = endCtx.token.string.match(endExp);
+        }
+        
+        return !startTag && !endTag;
+    }
+    
+    /**
+     * @private
+     * Returns true if the selection is inside a comment or a string
+     * @param {Editor} editor - target editor
+     */
+    function _isInCommentString(editor) {
+        var sel        = editor.getSelection(),
+            startClass = TokenUtils.getInitialContext(editor._codeMirror, sel.start).token.className,
+            endClass   = TokenUtils.getInitialContext(editor._codeMirror, sel.end).token.className;
+        
+        return (startClass === "comment" && endClass === "comment") ||
+            (startClass === "string" && endClass === "string");
+    }
+    
+    /**
+     * Wraps the selection with the default HTML Tags and creates a syncronization so that modifying the open tag,
+     * modifies the close tag until the cursor moves outside of the content of the open tag.
+     * close tag until the cursor moves outside of the content of the open tag
+     * @param {Editor} editor - target editor
+     */
+    function wrapSelectionWithTag(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var languageId = editor.getLanguageForSelection().getId();
+        
+        if ((languageId === "html" || languageId === "xml") && _isOutsideTag(editor)) {
+            _doWrapSelectionWithTag(editor);
+        } else if (languageId === "javascript" && _isInCommentString(editor)) {
+            _doWrapSelectionWithTag(editor);
+        }
     }
     
     

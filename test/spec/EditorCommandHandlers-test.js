@@ -2280,6 +2280,7 @@ define(function (require, exports, module) {
             var htmlContent = "<html>\n" +
                               "    <body>\n" +
                               "        Hello World\n" +
+                              "        <p  class=\"brackets\">Text</p>\n" +
                               "    </body>\n" +
                               "</html>";
             
@@ -2332,6 +2333,40 @@ define(function (require, exports, module) {
                 
                 myDocument.replaceRange("h2", {line: 2, ch: 9}, {line: 2, ch: 11});
                 expect(myDocument.getLine(2)).toEqual("        <h2>Hello World</h1>");
+            });
+            
+            it("should do nothing when the start or end of the selection is inside a tag", function () {
+                var expectedText = "        <p  class=\"brackets\">Text</p>";
+                
+                myEditor.setSelection({line: 3, ch: 2}, {line: 3, ch: 10});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setSelection({line: 10, ch: 2}, {line: 3, ch: 20});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setSelection({line: 3, ch: 22}, {line: 3, ch: 37});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setSelection({line: 3, ch: 22}, {line: 4, ch: 2});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setCursorPos({line: 3, ch: 10});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+            });
+            
+            it("should wrap a selection with tags next to tags", function () {
+                myEditor.setSelection({line: 3, ch: 29}, {line: 3, ch: 33});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual("        <p  class=\"brackets\"><p>Text</p></p>");
+                
+                myEditor.setSelection({line: 3, ch: 8}, {line: 3, ch: 44});
+                CommandManager.execute(Commands.EDIT_WRAP_SELECTION_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual("        <p><p  class=\"brackets\"><p>Text</p></p></p>");
             });
         });
     });
