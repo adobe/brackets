@@ -240,61 +240,61 @@ define(function (require, exports, module) {
     
     /**    
      * The method by which a CodeHintProvider registers its willingness to
-     * providing hints for editors in a given mode.
+     * providing hints for editors in a given language.
      *
      * @param {CodeHintProvider} provider
      * The hint provider to be registered, described below. 
      *
-     * @param {Array[(string|Object<name: string>)]} modes
-     * The set of mode names for which the provider is capable of
-     * providing hints. If the special mode name "all" is included then
-     * the provider may be called upon to provide hints for any mode.
+     * @param {Array[(string|Object<name: string>)]} languageIDs
+     * The set of language ids for which the provider is capable of
+     * providing hints. If the special language id name "all" is included then
+     * the provider may be called upon to provide hints for any language.
      *
      * @param {Integer} priority
      * A non-negative number used to break ties among hint providers for a
-     * particular mode. Providers that register with a higher priority
-     * will have the opportunity to provide hints at a given mode before
+     * particular language. Providers that register with a higher priority
+     * will have the opportunity to provide hints at a given language before
      * those with a lower priority. Brackets default providers have
      * priority zero.
      */
-    function registerHintProvider(providerInfo, modes, priority) {
+    function registerHintProvider(providerInfo, languageIDs, priority) {
         var providerObj = { provider: providerInfo,
                             priority: priority || 0 };
                 
-        if (modes) {
-            var modeNames = [], registerInAllModes = false;
-            var i, currentModeName;
-            for (i = 0; i < modes.length; i++) {
-                currentModeName = (typeof modes[i] === "string") ? modes[i] : modes[i].name;
-                if (currentModeName) {
-                    if (currentModeName === "all") {
-                        registerInAllModes = true;
+        if (languageIDs) {
+            var languageIdNames = [], registerForAllLanguages = false;
+            var i, currentLanguageID;
+            for (i = 0; i < languageIDs.length; i++) {
+                currentLanguageID = languageIDs[i];
+                if (currentLanguageID) {
+                    if (currentLanguageID === "all") {
+                        registerForAllLanguages = true;
                         break;
                     } else {
-                        modeNames.push(currentModeName);
+                        languageIdNames.push(currentLanguageID);
                     }
                 }
             }
 
-            if (registerInAllModes) {
+            if (registerForAllLanguages) {
                 // if we're registering in all, then we ignore the modeNames array
                 // so that we avoid registering a provider twice
-                var modeName;
-                for (modeName in hintProviders) {
-                    if (hintProviders.hasOwnProperty(modeName)) {
-                        hintProviders[modeName].push(providerObj);
-                        hintProviders[modeName].sort(_providerSort);
+                var languageName;
+                for (languageName in hintProviders) {
+                    if (hintProviders.hasOwnProperty(languageName)) {
+                        hintProviders[languageName].push(providerObj);
+                        hintProviders[languageName].sort(_providerSort);
                     }
                 }
             } else {
-                modeNames.forEach(function (modeName) {
-                    if (modeName) {
-                        if (!hintProviders[modeName]) {
+                languageIdNames.forEach(function (languageName) {
+                    if (languageName) {
+                        if (!hintProviders[languageName]) {
                             // initialize a new mode with all providers
-                            hintProviders[modeName] = Array.prototype.concat(hintProviders.all);
+                            hintProviders[languageName] = Array.prototype.concat(hintProviders.all);
                         }
-                        hintProviders[modeName].push(providerObj);
-                        hintProviders[modeName].sort(_providerSort);
+                        hintProviders[languageName].push(providerObj);
+                        hintProviders[languageName].sort(_providerSort);
                     }
                 });
             }
@@ -308,9 +308,8 @@ define(function (require, exports, module) {
      * @param {(string|Object<name: string>)} mode
      * @return {Array.<{provider: Object, modes: Array.<string>, priority: number}>}
      */
-    function _getProvidersForMode(mode) {
-        var modeName = (typeof mode === "string") ? mode : mode.name;
-        return hintProviders[modeName] || hintProviders.all;
+    function _getProvidersForLanguage(languageID) {
+        return hintProviders[languageID] || hintProviders.all;
     }
 
     /**
@@ -395,8 +394,8 @@ define(function (require, exports, module) {
      */
     function _beginSession(editor) {
         // Find a suitable provider, if any
-        var mode = editor.getModeForSelection(),
-            enabledProviders = _getProvidersForMode(mode);
+        var language = editor.getLanguageForSelection(),
+            enabledProviders = _getProvidersForLanguage(language.getId());
         
         $.each(enabledProviders, function (index, item) {
             if (item.provider.hasHints(editor, lastChar)) {
