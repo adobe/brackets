@@ -28,7 +28,7 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var ExtensionsDomain = require("../ExtensionManagerDomain"),
+var packageValidator = require("../package-validator"),
     path             = require("path");
 
 var testFilesDirectory = path.join(path.dirname(module.filename),
@@ -54,7 +54,7 @@ var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.z
 
 describe("Package Validation", function () {
     it("should handle a good package", function (done) {
-        ExtensionsDomain._cmdValidate(basicValidExtension, function (err, result) {
+        packageValidator.validate(basicValidExtension, {}, function (err, result) {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(0);
             var metadata = result.metadata;
@@ -66,7 +66,7 @@ describe("Package Validation", function () {
     });
     
     it("should NOT complain about missing package.json", function (done) {
-        ExtensionsDomain._cmdValidate(missingPackageJSON, function (err, result) {
+        packageValidator.validate(missingPackageJSON, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(0);
@@ -75,8 +75,20 @@ describe("Package Validation", function () {
         });
     });
     
+    it("should complain about missing package.json if you tell it to", function (done) {
+        packageValidator.validate(missingPackageJSON, {
+            requirePackageJSON: true
+        }, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result.errors;
+            expect(errors.length).toEqual(1);
+            expect(errors[0][0]).toEqual("MISSING_PACKAGE_JSON");
+            done();
+        });
+    });
+    
     it("should complain about illegal path", function (done) {
-        ExtensionsDomain._cmdValidate(path.join(testFilesDirectory, "NO_FILE_HERE"), function (err, result) {
+        packageValidator.validate(path.join(testFilesDirectory, "NO_FILE_HERE"), {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
@@ -87,7 +99,7 @@ describe("Package Validation", function () {
     });
     
     it("should complain about invalid JSON", function (done) {
-        ExtensionsDomain._cmdValidate(invalidJSON, function (err, result) {
+        packageValidator.validate(invalidJSON, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
@@ -100,7 +112,7 @@ describe("Package Validation", function () {
     });
     
     it("should complain about an invalid zip file", function (done) {
-        ExtensionsDomain._cmdValidate(invalidZip, function (err, result) {
+        packageValidator.validate(invalidZip, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
@@ -110,7 +122,7 @@ describe("Package Validation", function () {
     });
     
     it("should require name and version in the metadata", function (done) {
-        ExtensionsDomain._cmdValidate(missingNameVersion, function (err, result) {
+        packageValidator.validate(missingNameVersion, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(2);
@@ -121,7 +133,7 @@ describe("Package Validation", function () {
     });
     
     it("should validate the version number", function (done) {
-        ExtensionsDomain._cmdValidate(invalidVersion, function (err, result) {
+        packageValidator.validate(invalidVersion, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
@@ -132,7 +144,7 @@ describe("Package Validation", function () {
     });
     
     it("should require a main.js in the zip file", function (done) {
-        ExtensionsDomain._cmdValidate(missingMain, function (err, result) {
+        packageValidator.validate(missingMain, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
@@ -142,7 +154,7 @@ describe("Package Validation", function () {
     });
     
     it("should determine the common prefix if there is one", function (done) {
-        ExtensionsDomain._cmdValidate(oneLevelDown, function (err, result) {
+        packageValidator.validate(oneLevelDown, {}, function (err, result) {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(0);
             expect(result.metadata.name).toEqual("one-level-extension");
@@ -152,7 +164,7 @@ describe("Package Validation", function () {
     });
     
     it("should not be fooled by bogus top directories", function (done) {
-        ExtensionsDomain._cmdValidate(bogusTopDir, function (err, result) {
+        packageValidator.validate(bogusTopDir, {}, function (err, result) {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(0);
             expect(result.metadata.name).toEqual("bogus-top-dir");
@@ -162,7 +174,7 @@ describe("Package Validation", function () {
     });
     
     it("should not allow names that contain disallowed characters", function (done) {
-        ExtensionsDomain._cmdValidate(badname, function (err, result) {
+        packageValidator.validate(badname, {}, function (err, result) {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(1);
             expect(result.errors[0][0]).toEqual("BAD_PACKAGE_NAME");
@@ -171,7 +183,7 @@ describe("Package Validation", function () {
     });
     
     it("should complain about files that don't have main in the top dir", function (done) {
-        ExtensionsDomain._cmdValidate(mainInDirectory, function (err, result) {
+        packageValidator.validate(mainInDirectory, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
