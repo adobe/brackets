@@ -31,8 +31,7 @@ maxerr: 50, node: true */
     var http    = require("http"),
         connect = require("connect"),
         utils   = require("connect/lib/utils"),
-        parse   = utils.parseUrl,
-        url     = require("url");
+        parse   = utils.parseUrl;
     
     var _domainManager;
 
@@ -90,15 +89,16 @@ maxerr: 50, node: true */
                 return next();
             }
             
-            var location = parse(req),
-                pause = utils.pause(req);
+            var location = parse(req);
+            
+            // TODO pause for possible request rewrite
+            // pause = utils.pause(req);
             
             location.hostname = address.address;
             location.port = address.port;
             
             _domainManager.emitEvent("staticServer", "request", [location]);
             
-            // TODO pause for possible request rewrite
             next();
         }
         
