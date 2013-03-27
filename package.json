@@ -24,5 +24,11 @@
     "scripts": {
         "postinstall": "grunt install",
         "test": "grunt test"
-    }
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/adobe/brackets/blob/master/LICENSE"
+        }
+    ]
 }
