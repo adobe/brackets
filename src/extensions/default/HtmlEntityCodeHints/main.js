@@ -106,7 +106,6 @@ define(function (require, exports, module) {
                 a = self._decodeValue(a.slice(0, a.indexOf(" "))).toLowerCase();
                 b = self._decodeValue(b.slice(0, b.indexOf(" "))).toLowerCase();
                 if (a.indexOf("#") !== -1 && b.indexOf("#") !== -1) {
-                    console.log();
                     var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
                         num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
                     
@@ -181,7 +180,7 @@ define(function (require, exports, module) {
                 ch: startChar
             }, this.editor.getCursorPos());
         }
-        console.log(HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()));
+
         if (startChar !== -1 && HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName === "") {
             return query;
         }
