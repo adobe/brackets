@@ -58,6 +58,30 @@ maxerr: 50, node: true */
     
     /**
      * @private
+     * @type {Object.<string, {Object.<string, http.ServerResponse>}}
+     * A map from root paths to its request/response mapping.
+     */
+    var _requests = {};
+    
+    /**
+     * @private
+     * @type {Object.<string, {Object.<string>}}
+     * A map from root paths to relative paths to rewrite
+     */
+    var _rewritePaths = {};
+
+    var PATH_KEY_PREFIX = "LiveDev_";
+    
+    function normalizeRootPath(path) {
+        return (path.lastIndexOf("/") === path.length - 1) ? path.slice(0, -1) : path;
+    }
+    
+    function getPathKey(path) {
+        return PATH_KEY_PREFIX + normalizeRootPath(path);
+    }
+    
+    /**
+     * @private
      * Helper function to create a new server.
      * @param {string} path The absolute path that should be the document root
      * @param {function(?string, ?httpServer)} cb Callback function that receives
@@ -65,7 +89,10 @@ maxerr: 50, node: true */
      *    was an error). 
      */
     function _createServer(path, createCompleteCallback) {
-        var server, app, address;
+        var server,
+            app,
+            address,
+            pathKey = getPathKey(path);
         
         function requestRoot(server, cb) {
             address = server.address();
@@ -85,21 +112,41 @@ maxerr: 50, node: true */
         }
         
         function rewrite(req, res, next) {
-            if ("GET" !== req.method && "HEAD" !== req.method) {
+            var location = {pathname: parse(req).pathname},
+                filepath = location.filepath = path + location.pathname,
+                hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname];
+            
+            if (("GET" !== req.method && "HEAD" !== req.method) || !hasListener) {
                 return next();
             }
             
-            var location = parse(req);
+            console.log(filepath);
+            var pause = utils.pause(req);
             
-            // TODO pause for possible request rewrite
-            // pause = utils.pause(req);
+            function resume() {
+                next();
+                pause.resume();
+            }
+            
+            // map request pathname to response
+            _requests[pathKey][location.pathname] = {
+                req: req,
+                res: res,
+                pause: pause
+            };
             
             location.hostname = address.address;
             location.port = address.port;
+            location.root = path;
             
             _domainManager.emitEvent("staticServer", "request", [location]);
             
-            next();
+            // set a timeout if custom responses are not returned
+            setTimeout(function () {
+                if (_requests[pathKey][location.pathname]) {
+                    resume();
+                }
+            }, 5000);
         }
         
         app = connect();
@@ -111,6 +158,9 @@ maxerr: 50, node: true */
 
         server = http.createServer(app);
         server.listen(0, "127.0.0.1", function () {
+            // create a new map for this server's requests
+            _requests[pathKey] = {};
+            
             requestRoot(
                 server,
                 function (err, res) {
@@ -123,8 +173,6 @@ maxerr: 50, node: true */
             );
         });
     }
-
-    var PATH_KEY_PREFIX = "LiveDev_";
     
     /**
      * @private
@@ -141,7 +189,7 @@ maxerr: 50, node: true */
      */
     function _cmdGetServer(path, cb) {
         // Make sure the key doesn't conflict with some built-in property of Object.
-        var pathKey = PATH_KEY_PREFIX + path;
+        var pathKey = getPathKey(path);
         if (_servers[pathKey]) {
             cb(null, _servers[pathKey].address());
         } else {
@@ -150,6 +198,7 @@ maxerr: 50, node: true */
                     cb(err, null);
                 } else {
                     _servers[pathKey] = server;
+                    _rewritePaths[pathKey] = {};
                     cb(null, server.address());
                 }
             });
@@ -169,7 +218,7 @@ maxerr: 50, node: true */
      * @return {boolean} true if there was a server for that path, false otherwise
      */
     function _cmdCloseServer(path, cba) {
-        var pathKey = PATH_KEY_PREFIX + path;
+        var pathKey = getPathKey(path);
         if (_servers[pathKey]) {
             var serverToClose = _servers[pathKey];
             delete _servers[pathKey];
@@ -177,6 +226,29 @@ maxerr: 50, node: true */
             return true;
         }
         return false;
+    }
+    
+    function _cmdSetRequestFilter(root, paths) {
+        var rootPath = normalizeRootPath(root),
+            pathKey  = getPathKey(root),
+            rewritePaths = _rewritePaths[pathKey];
+        
+        paths.forEach(function (path) {
+            path = (path.indexOf("/") === 0) ? path : "/" + path;
+            rewritePaths[path] = root + path;
+        });
+    }
+    
+    function _cmdRewriteResponse(root, path, resData) {
+        var pathKey  = getPathKey(root),
+            request = _requests[pathKey][path],
+            pause = request.pause,
+            res = request.res;
+
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end(resData.body);
+
+        pause.resume();
     }
     
     /**
@@ -223,12 +295,51 @@ maxerr: 50, node: true */
                 description: "indicates whether a server was found for the specific path then closed"
             }]
         );
+        _domainManager.registerCommand(
+            "staticServer",
+            "setRequestFilter",
+            _cmdSetRequestFilter,
+            true,
+            "Rewrite response for a given path from.",
+            [{
+                name: "root",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "paths",
+                type: "Array",
+                description: "path to notify"
+            }]
+        );
+        _domainManager.registerCommand(
+            "staticServer",
+            "writeResponse",
+            _cmdRewriteResponse,
+            true,
+            "Rewrite response for a given path from.",
+            [{
+                name: "root",
+                type: "string",
+                description: "absolute filesystem path for root of server"
+            }],
+            [{
+                name: "path",
+                type: "string",
+                description: "path to rewrite"
+            }],
+            [{
+                name: "response",
+                type: "{body: string, headers: Array}",
+                description: "TODO"
+            }]
+        );
         _domainManager.registerEvent(
             "staticServer",
             "request",
             [{
                 name: "location",
-                type: "{href: string, host: string, hostname: string, port: number, pathname: string, search: ?string, path: string, query: ?string, hash: ?string}",
+                type: "{filepath: string, host: string, hostname: string, port: number, pathname: string, root: string}",
                 description: "request path"
             }]
         );

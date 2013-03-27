@@ -640,9 +640,9 @@ define(function LiveDevelopment(require, exports, module) {
             _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
             
             // TODO API for LiveDevelopment to modify response after request notification
-//            $(_serverProvider).on("request", function (event, location) {
-//                console.log("request: %s", JSON.stringify(location));
-//            });
+            $(_serverProvider).on("request", function (event, location) {
+                console.log("request: %s", JSON.stringify(location));
+            });
             
             if (!exports.config.experimental && !_serverProvider) {
                 if (FileUtils.isServerHtmlFileExt(doc.extension)) {
