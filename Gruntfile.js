@@ -64,9 +64,21 @@ module.exports = function (grunt) {
             ]
         },
         watch: {
+            all : {
+                files: ['**/*', '!**/node_modules/**'],
+                tasks: ['jshint']
+            },
+            grunt : {
+                files: ['<%= meta.grunt %>', 'tasks/**/*'],
+                tasks: ['jshint:grunt']
+            },
+            src : {
+                files: ['<%= meta.src %>', 'src/**/*'],
+                tasks: ['jshint:src']
+            },
             test : {
-                files: ['Gruntfile.js', '<%= meta.src %>', '<%= meta.test %>'],
-                tasks: 'test'
+                files: ['<%= meta.test %>', 'test/**/*'],
+                tasks: ['jshint:test']
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -110,11 +122,13 @@ module.exports = function (grunt) {
         },
         jshint: {
             all: [
-                'Gruntfile.js',
+                '<%= meta.grunt %>',
                 '<%= meta.src %>',
                 '<%= meta.test %>'
             ],
-            grunt: "<%= meta.grunt %>",
+            grunt:  '<%= meta.grunt %>',
+            src:    '<%= meta.src %>',
+            test:   '<%= meta.test %>',
             /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
             options: {
                 jshintrc: '.jshintrc'
