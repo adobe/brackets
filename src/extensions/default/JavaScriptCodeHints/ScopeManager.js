@@ -48,10 +48,6 @@ define(function (require, exports, module) {
         ternEnvironment     = [],
         pendingTernRequests = {},
         rootTernDir             = null,
-        outerScopeWorker    = (function () {
-            var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
-            return new Worker(path + "parser-worker.js");
-        }()),
         ternWorker          = (function () {
             var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
             return new Worker(path + "tern-worker.js");
@@ -191,15 +187,6 @@ define(function (require, exports, module) {
                 
                 // the file will be clean since the last outer scope request
                 state.dirtyFile = false;
-                
-                // send text to the parser worker
-                outerScopeWorker.postMessage({
-                    type        : HintUtils.SCOPE_MSG_TYPE,
-                    dir         : dir,
-                    file        : file,
-                    text        : text,
-                    force       : !state.scope
-                });
             }
         }
         state.text = text;
@@ -222,128 +209,6 @@ define(function (require, exports, module) {
      *      identifiers, properties, globals, literals and associations.
      */
     function refreshInnerScope(dir, file, offset) {
-
-        /*
-         * Filter a list of tokens using a given scope object
-         *
-         * @param {Array.<Object>} tokens - a list of identifier tokens
-         * @param {Scope} scope - a scope object
-         * @return {Array.<Object>} - the sublist of the input list that
-         *      contains all and only the identifier tokens in scope
-         *      w.r.t. to the given scope
-         */
-        function filterByScope(tokens, scope) {
-            return tokens.filter(function (id) {
-                var level = scope.contains(id.value);
-                return (level >= 0);
-            });
-        }
-        
-        /*
-         * Combine a particular property from a set of sets using a given add
-         * operation
-         * 
-         * @param {Object} sets - a set of sets
-         * @param {string} propName - the property to pick out from each set
-         * @param {Function} add - the function that combines properties from
-         *      each set
-         * @return {Object}- the result of combining each set's property using
-         *      the add function
-         */
-        function merge(sets, propName, add) {
-            var combinedSet = {},
-                nextSet,
-                file;
-
-            for (file in sets) {
-                if (sets.hasOwnProperty(file)) {
-                    nextSet = sets[file][propName];
-                    if (nextSet) {
-                        add(combinedSet, nextSet);
-                    }
-                }
-            }
-
-            return combinedSet;
-        }
-
-        /*
-         * Combine properties from files in the current file's directory into
-         * a single list.
-         * 
-         * @param {string} dir - the directory name of the files for which
-         *      property lists should be merged
-         * @param {Array.<Object>} - the combined list of property tokens
-         */
-        function mergeProperties(dir) {
-            
-            function addPropObjs(obj1, obj2) {
-                function addToObj(obj, token) {
-                    if (!Object.prototype.hasOwnProperty.call(obj, token.value)) {
-                        obj[token.value] = token;
-                    }
-                }
-
-                obj2.forEach(function (token) {
-                    addToObj(obj1, token);
-                });
-            }
-            
-            var stateMap    = getFileState(dir),
-                propObj     = merge(stateMap, "properties", addPropObjs),
-                propList    = [],
-                propName;
-
-            for (propName in propObj) {
-                if (Object.prototype.hasOwnProperty.call(propObj, propName)) {
-                    propList.push(propObj[propName]);
-                }
-            }
-
-            return propList;
-        }
-
-        /* 
-         * Combine association set objects from all of the files in a given 
-         * directory
-         * 
-         * @param {string} dir - the directory name of the files for which
-         *      association sets should be merged
-         * @param {Object} - the combined association set object
-         */
-        function mergeAssociations(dir) {
-            function addAssocSets(list1, list2) {
-                var name;
-
-                function addAssocObjs(assoc1, assoc2) {
-                    var name;
-
-                    for (name in assoc2) {
-                        if (Object.prototype.hasOwnProperty.call(assoc2, name)) {
-                            if (Object.prototype.hasOwnProperty.call(assoc1, name)) {
-                                assoc1[name] = assoc1[name] + assoc2[name];
-                            } else {
-                                assoc1[name] = assoc2[name];
-                            }
-                        }
-                    }
-                }
-
-                for (name in list2) {
-                    if (Object.prototype.hasOwnProperty.call(list2, name)) {
-                        if (Object.prototype.hasOwnProperty.call(list1, name)) {
-                            addAssocObjs(list1[name], list2[name]);
-                        } else {
-                            list1[name] = list2[name];
-                        }
-                    }
-                }
-            }
-
-            var stateMap = getFileState(dir);
-
-            return merge(stateMap, "associations", addAssocSets);
-        }
 
         var state = getFileState(dir, file);
         
@@ -425,27 +290,13 @@ define(function (require, exports, module) {
             dir     = split.dir,
             file    = split.file;
         
-        var $deferredHints = $.Deferred();
+        var $deferredHints = $.Deferred(),
+            ternPromise = getTernHints("dir", "file", offset, document.getText());
         
-        var  scopeInfo = refreshInnerScope(dir, file, offset);
-        
-        var scopePromise;
-        if( scopeInfo.hasOwnProperty("promise") ) {
-            scopePromise = scopeInfo.promise;
-        }
-        else {
-            // make a scopePromise that we can pass to when below
-            var $scopeInfo = $.Deferred();
-            scopePromise = $scopeInfo.promise();
-            $scopeInfo.resolveWith(null, [scopeInfo]);
-        }
-            
-        var ternPromise = getTernHints("dir", "file", offset, document.getText());
-        
-        $.when(scopePromise, ternPromise).done(
-            function(scopeInfo, ternHints){
+        $.when(ternPromise).done(
+            function(ternHints){
                 session.setTernHints(ternHints);
-                $deferredHints.resolveWith(null, [scopeInfo]);
+                $deferredHints.resolveWith(null);
             });
         return {promise:$deferredHints.promise()};
     }
@@ -654,18 +505,6 @@ define(function (require, exports, module) {
         }
     }
 
-    // handle response objects, otherwise log the message
-    outerScopeWorker.addEventListener("message", function (e) {
-        var response = e.data,
-            type = response.type;
-
-        if (type === HintUtils.SCOPE_MSG_TYPE) {
-            handleOuterScope(response);
-        } else {
-            console.log("Worker: " + (response.log || response));
-        }
-    });
-    
     ternWorker.addEventListener("message", function (e) {
         var response = e.data,
             type = response.type;
