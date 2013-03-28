@@ -54,10 +54,10 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @param Document the source document from Brackets
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
+        this.doc = doc;
         if (!editor) {
             return;
         }
-        this.doc = doc;
         this.editor = editor;
 
         this.onCursorActivity = this.onCursorActivity.bind(this);
@@ -99,6 +99,9 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on cursor activity by the editor */
     HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+        if (!this.editor) {
+            return;
+        }
         var codeMirror = this.editor._codeMirror;
         if (LiveDevelopment.config.experimental && Inspector.config.highlight) {
             var location = codeMirror.indexFromPos(codeMirror.getCursor());
@@ -109,6 +112,9 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        if (!this.editor) {
+            return;
+        }
         var codeMirror = this.editor._codeMirror;
         while (change) {
             var from = codeMirror.indexFromPos(change.from);
@@ -121,7 +127,7 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
     HTMLDocument.prototype.onHighlight = function onHighlight(event, node) {
-        if (!node || !node.location) {
+        if (!node || !node.location || !this.editor) {
             if (this._highlight) {
                 this._highlight.clear();
                 delete this._highlight;

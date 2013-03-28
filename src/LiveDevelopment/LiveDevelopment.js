@@ -316,7 +316,11 @@ define(function LiveDevelopment(require, exports, module) {
                     stylesheetDeferred.resolve();
                 })
                 .done(function (doc) {
-                    if (!_liveDocument || (doc !== _liveDocument.doc)) {
+                    // CSSAgent includes containing HTMLDocument in list returned
+                    // from getStyleSheetURLS() (which could be useful for collecting
+                    // embedded style sheets) but we need to filter doc out here.
+                    if ((_classForDocument(doc) === CSSDocument) &&
+                            (!_liveDocument || (doc !== _liveDocument.doc))) {
                         _setDocInfo(doc);
                         var liveDoc = _createDocument(doc);
                         if (liveDoc) {
