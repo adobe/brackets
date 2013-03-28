@@ -311,7 +311,7 @@ define(function (require, exports, module) {
                     type.property !== cachedType.property ||
                     type.context !== cachedType.context ||
                     query.length == 0 ||
-                    (cachedHints.length = 0 && query.length == 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
+                    (cachedHints.length == 0 && query.length == 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
                     var offset          = session.getOffset(),
                         scopeResponse   = ScopeManager.getScopeInfo(session, session.editor.document, offset),
                         self            = this;
@@ -351,8 +351,7 @@ define(function (require, exports, module) {
 
                     // Compute fresh hints if none exist, or if the session
                     // type has changed since the last hint computation
-                    if (!cachedHints ||
-                            type.property !== cachedType.property ||
+                    if (type.property !== cachedType.property ||
                             type.context !== cachedType.context) {
                         cachedType = type;
                         cachedHints = session.getHints();

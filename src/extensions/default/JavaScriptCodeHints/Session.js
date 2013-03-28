@@ -350,6 +350,9 @@ define(function (require, exports, module) {
                 hints = ternHints;
                 hints.sort(compareByName);
             }
+            else {
+                hints = [];
+            }
         } else {
             hints = ternHints ? ternHints : [];
             hints.sort(compareIdentifiers());

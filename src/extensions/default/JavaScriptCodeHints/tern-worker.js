@@ -114,7 +114,7 @@ importScripts("thirdparty/requirejs/require.js");
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function(error, data) {
             //if (error) return displayError(error);
-            //_log("completions.length = " + data.completions.length);
+            //_log("completions = " + data.completions.length);
             var completions = [];
             var ternHints = [];    
             for (var i = 0; i < data.completions.length; ++i) {
