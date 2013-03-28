@@ -48,6 +48,14 @@ var Errors = {
     MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON"     // {0} is path to ZIP file
 };
 
+/*
+ * Directories to ignore when computing the common prefix among the entries of
+ * a zip file.
+ */
+var ignoredPrefixes = {
+    "__MACOSX": true
+};
+
 /**
  * Returns true if the name presented is acceptable as a package name. This enforces the
  * requirement as presented in the CommonJS spec: http://wiki.commonjs.org/wiki/Packages/1.0
@@ -117,13 +125,15 @@ function validate(path, options, callback) {
                 var slash = fileName.indexOf("/");
                 if (slash > -1) {
                     var prefix = fileName.substring(0, slash);
-                    if (commonPrefix === null) {
-                        commonPrefix = prefix;
-                    } else if (prefix !== commonPrefix) {
-                        commonPrefix = "";
-                    }
-                    if (commonPrefix) {
-                        fileName = fileName.substring(commonPrefix.length + 1);
+                    if (!ignoredPrefixes[prefix]) {
+                        if (commonPrefix === null) {
+                            commonPrefix = prefix;
+                        } else if (prefix !== commonPrefix) {
+                            commonPrefix = "";
+                        }
+                        if (commonPrefix) {
+                            fileName = fileName.substring(commonPrefix.length + 1);
+                        }
                     }
                 } else {
                     commonPrefix = "";
