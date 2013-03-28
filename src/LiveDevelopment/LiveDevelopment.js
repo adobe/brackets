@@ -201,10 +201,9 @@ define(function LiveDevelopment(require, exports, module) {
         doc.url = parentUrl + encodeURI(matches[2]);
 
         // the root represents the document that should be displayed in the browser
-        // for live development (the file for HTML files, index.html for others)
+        // for live development (the file for HTML files)
         // TODO: Issue #2033 Improve how default page is determined
-        rootUrl = (_isHtmlFileExt(matches[3]) ? doc.url : parentUrl + "index.html");
-        doc.root = { url: rootUrl };
+        doc.root = { url: doc.url };
     }
 
     /** Get the current document from the document manager
@@ -229,7 +228,7 @@ define(function LiveDevelopment(require, exports, module) {
             return exports.config.experimental ? JSDocument : null;
         }
 
-        if (exports.config.experimental && _isHtmlFileExt(doc.extension)) {
+        if (_isHtmlFileExt(doc.extension)) {
             return HTMLDocument;
         }
 
