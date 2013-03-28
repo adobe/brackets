@@ -82,8 +82,8 @@ define({
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a class=\"clickable-link\" data-href=\"{0}\">实时预览在线错误信息</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中...\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化...\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "断开实时预览",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "实时预览: 点击断开 (保存文件并更新预览)",
     

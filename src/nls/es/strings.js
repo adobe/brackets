@@ -282,7 +282,7 @@ define({
     "CLOSE_DONT_SAVE"                      : "Cerrar (No guardar)",
     "RELAUNCH_CHROME"                      : "Reiniciar Chrome",
     "INSTALL"                              : "Instalar",
-    "ABOUT"                                : "Acerca de...",
+    "ABOUT"                                : "Acerca de\u2026",
     "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
