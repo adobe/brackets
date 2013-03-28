@@ -203,6 +203,68 @@ define(function (require, exports, module) {
                     path = testFolder + "folder1",
                     text,
                     location,
+                    self = this,
+                    elapsed,
+                    timeout = 1234;
+                
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+                
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                
+                runs(function () {
+                    // listen for request event
+                    var provider = StaticServer._getStaticServerProvider();
+                    $(provider).on("request.test", function (event, request) {
+                        location = request.location;
+
+                        // Do not call request.send() in order to hit timeout
+                    });
+
+                    // remove event handler
+                    self.after(function() { $(provider).off(".test"); });
+                    
+                    // listen for /index.txt requests
+                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+
+                    // set a custom timeout
+                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(timeout));
+                });
+
+                runs(function () {
+                    // it should take longer than the StaticServerDomain timeout to get a response
+                    elapsed = new Date();
+
+                    // request /index.txt
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        elapsed = new Date() - elapsed;
+                        text = data;
+                    });
+                });
+                
+                waitsFor(function () { return location && text; }, "waiting for request event to fire");
+
+                runs(function () {
+                    expect(location.pathname).toBe("/index.txt");
+                    expect(text).toBe("This is a file in folder 1.");
+
+                    // we should hit the timeout since we filtered this path and did not respond
+                    expect(elapsed).toBeGreaterThan(timeout);
+                    
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+            
+            it("should send static file contents after canceling a filter request", function () {
+                var serverInfo,
+                    path = testFolder + "folder1",
+                    text,
+                    location,
                     self = this;
                 
                 runs(function () {
@@ -217,15 +279,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     // listen for request event
                     var provider = StaticServer._getStaticServerProvider();
-                    $(provider).on("request", function (event, request) {
+                    $(provider).on("request.test", function (event, request) {
                         location = request.location;
+                        request.send(); /* do not rewrite the content */
+
+                        // a second call to send does nothing
+                        request.send({body: "custom response"});
                     });
 
                     // remove event handler
                     self.after(function() { $(provider).off(".test"); });
                     
                     // listen for /index.txt requests
-                    nodeConnection.domains.staticServer.setRequestFilter(path, ["/index.txt"]);
+                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
                 });
 
                 runs(function () {
@@ -246,7 +312,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should write a custom response file path is requested", function () {
+            it("should override the static file server response with a new response body", function () {
                 var serverInfo,
                     path = testFolder + "folder1",
                     text,
@@ -276,7 +342,7 @@ define(function (require, exports, module) {
                     self.after(function() { $(provider).off(".test"); });
                     
                     // listen for /index.txt requests
-                    nodeConnection.domains.staticServer.setRequestFilter(path, ["/index.txt"]);
+                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
                 });
 
                 runs(function () {

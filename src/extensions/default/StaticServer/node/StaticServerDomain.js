@@ -28,13 +28,21 @@ maxerr: 50, node: true */
 (function () {
     "use strict";
     
-    var http    = require("http"),
-        connect = require("connect"),
-        utils   = require("connect/lib/utils"),
-        mime    = require("connect/node_modules/send/node_modules/mime"),
-        parse   = utils.parseUrl;
+    var http     = require("http"),
+        pathJoin = require("path").join,
+        connect  = require("connect"),
+        utils    = require("connect/lib/utils"),
+        mime     = require("connect/node_modules/send/node_modules/mime"),
+        parse    = utils.parseUrl;
     
     var _domainManager;
+
+    /**
+     * @private
+     * @type {number}
+     * Duration to wait before passing a filtered request to the static file server.
+     */
+    var _filterRequestTimeout = 5000;
 
     /**
      * When Chrome has a css stylesheet replaced over live development,
@@ -80,7 +88,7 @@ maxerr: 50, node: true */
      * @returns {string}
      */
     function normalizeRootPath(path) {
-        return (path.lastIndexOf("/") === path.length - 1) ? path.slice(0, -1) : path;
+        return (path && path[path.length - 1] === "/") ? path.slice(0, -1) : path;
     }
     
     /**
@@ -129,8 +137,8 @@ maxerr: 50, node: true */
         
         function rewrite(req, res, next) {
             var location = {pathname: parse(req).pathname},
-                filepath = location.filepath = path + location.pathname,
-                hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname];
+                hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
+                timeoutId;
             
             // ignore most HTTP methods and files that we're not watching
             if (("GET" !== req.method && "HEAD" !== req.method) || !hasListener) {
@@ -140,21 +148,36 @@ maxerr: 50, node: true */
             // pause the request and wait for listeners to possibly respond
             var pause = utils.pause(req);
             
-            function resume() {
-                next();
+            function resume(doNext) {
+                // delete the callback after it's used or we hit the timeout.
+                // if this path is requested again, a new callback is generated.
+                delete _requests[pathKey][location.pathname];
+
+                // pass request to next middleware
+                if (doNext) {
+                    next();
+                }
+
                 pause.resume();
             }
             
             // map request pathname to response callback
             _requests[pathKey][location.pathname] = function (resData) {
-                // TODO other headers?
-                var type = mime.lookup(path);
-                var charset = mime.charsets.lookup(type);
-                res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
-                res.end(resData.body);
+                // clear timeout immediately when this callback is called
+                clearTimeout(timeoutId);
 
-                // resume the HTTP ServerResponse
-                pause.resume();
+                // response data is optional
+                if (resData) {
+                    // TODO other headers?
+                    var type = mime.lookup(path);
+                    var charset = mime.charsets.lookup(type);
+                    res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
+                    res.end(resData.body);
+                }
+
+                // resume the HTTP ServerResponse, pass to next middleware if 
+                // no response data was passed
+                resume(!resData);
             };
 
             location.hostname = address.address;
@@ -162,10 +185,10 @@ maxerr: 50, node: true */
             location.root = path;
             
             // dispatch request event
-            _domainManager.emitEvent("staticServer", "request", [location]);
+            _domainManager.emitEvent("staticServer", "requestFilter", [location]);
             
             // set a timeout if custom responses are not returned
-            setTimeout(resume, 5000);
+            timeoutId = setTimeout(function () { resume(true); }, _filterRequestTimeout);
         }
         
         app = connect();
@@ -252,31 +275,42 @@ maxerr: 50, node: true */
      * @param {Array.<string>} paths An array of root-relative paths to watch.
      *     Each path should begin with a forward slash "/".
      */
-    function _cmdSetRequestFilter(root, paths) {
+    function _cmdSetRequestFilterPaths(root, paths) {
         var rootPath = normalizeRootPath(root),
             pathKey  = getPathKey(root),
             rewritePaths = _rewritePaths[pathKey];
         
         paths.forEach(function (path) {
-            path = (path.indexOf("/") === 0) ? path : "/" + path;
-            rewritePaths[path] = root + path;
+            rewritePaths[path] = pathJoin(root, path);
         });
     }
     
     /**
      * @private
-     * Overrides the file content response from static middleware with
-     * the provided response data.
+     * Overrides the server response from static middleware with the provided
+     * response data. This should be called only in response to a filtered request.
      *
      * @param {string} path The absolute path of the server
      * @param {string} root The relative path of the file beginning with a forward slash "/"
      * @param {Object} resData Response data to use
      */
-    function _cmdWriteResponse(root, path, resData) {
+    function _cmdWriteFilteredResponse(root, path, resData) {
         var pathKey  = getPathKey(root),
             callback = _requests[pathKey][path];
 
-        callback(resData);
+        if (callback) {
+            callback(resData);
+        }
+    }
+
+    /**
+     * @private
+     * Unit tests only. Set timeout value for filtered requests.
+     *
+     * @param {number} timeout Duration to wait before passing a filtered request to the static file server.
+     */
+    function _cmdSetRequestFilterTimeout(timeout) {
+        _filterRequestTimeout = timeout;
     }
     
     /**
@@ -289,6 +323,19 @@ maxerr: 50, node: true */
         if (!domainManager.hasDomain("staticServer")) {
             domainManager.registerDomain("staticServer", {major: 0, minor: 1});
         }
+        _domainManager.registerCommand(
+            "staticServer",
+            "_setRequestFilterTimeout",
+            _cmdSetRequestFilterTimeout,
+            false,
+            "Unit tests only. Set timeout value for filtered requests.",
+            [{
+                name: "timeout",
+                type: "number",
+                description: "Duration to wait before passing a filtered request to the static file server."
+            }],
+            []
+        );
         _domainManager.registerCommand(
             "staticServer",
             "getServer",
@@ -325,49 +372,55 @@ maxerr: 50, node: true */
         );
         _domainManager.registerCommand(
             "staticServer",
-            "setRequestFilter",
-            _cmdSetRequestFilter,
+            "setRequestFilterPaths",
+            _cmdSetRequestFilterPaths,
             false,
-            "Rewrite response for a given path from.",
-            [{
-                name: "root",
-                type: "string",
-                description: "absolute filesystem path for root of server"
-            }],
-            [{
-                name: "paths",
-                type: "Array",
-                description: "path to notify"
-            }]
+            "Defines a set of paths from a server's root path to watch and fire 'requestFilter' events for.",
+            [
+                {
+                    name: "root",
+                    type: "string",
+                    description: "absolute filesystem path for root of server"
+                },
+                {
+                    name: "paths",
+                    type: "Array",
+                    description: "path to notify"
+                }
+            ],
+            []
         );
         _domainManager.registerCommand(
             "staticServer",
-            "writeResponse",
-            _cmdWriteResponse,
+            "writeFilteredResponse",
+            _cmdWriteFilteredResponse,
             false,
-            "Rewrite response for a given path from.",
-            [{
-                name: "root",
-                type: "string",
-                description: "absolute filesystem path for root of server"
-            }],
-            [{
-                name: "path",
-                type: "string",
-                description: "path to rewrite"
-            }],
-            [{
-                name: "response",
-                type: "{body: string, headers: Array}",
-                description: "TODO"
-            }]
+            "Overrides the server response from static middleware with the provided response data. This should be called only in response to a filtered request.",
+            [
+                {
+                    name: "root",
+                    type: "string",
+                    description: "absolute filesystem path for root of server"
+                },
+                {
+                    name: "path",
+                    type: "string",
+                    description: "path to rewrite"
+                },
+                {
+                    name: "resData",
+                    type: "{body: string, headers: Array}",
+                    description: "TODO"
+                }
+            ],
+            []
         );
         _domainManager.registerEvent(
             "staticServer",
-            "request",
+            "requestFilter",
             [{
                 name: "location",
-                type: "{filepath: string, host: string, hostname: string, port: number, pathname: string, root: string}",
+                type: "{hostname: string, pathname: string, port: number, root: string}",
                 description: "request path"
             }]
         );

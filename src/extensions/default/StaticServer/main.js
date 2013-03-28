@@ -56,6 +56,15 @@ define(function (require, exports, module) {
 
     /**
      * @constructor
+     * 
+     * StaticServerProvider dispatches the following events:
+     * 
+     * request -- Passes {location: {hostname: string, port: number, root: string, pathname: string}, send: function({body: string}) }
+     *     Listeners define paths to intercept requests for by supplying those
+     *     paths to setRequestFilterPaths([path1,...,pathN]).
+     *     When requests for those paths are received on the server, StaticServerProvider
+     *     creates a "request" event with a send() callback that allows the listener to
+     *     override the default static file server response.
      */
     function StaticServerProvider() {}
 
@@ -163,11 +172,11 @@ define(function (require, exports, module) {
      * @param {Array.<string>} paths An array of root-relative paths to watch.
      *     Each path should begin with a forward slash "/".
      */
-    StaticServerProvider.prototype.setRequestFilter = function (paths) {
+    StaticServerProvider.prototype.setRequestFilterPaths = function (paths) {
         var self = this;
 
         _nodeConnectionDeferred.done(function (nodeConnection) {
-            nodeConnection.domains.staticServer.setRequestFilter(self.root, paths);
+            nodeConnection.domains.staticServer.setRequestFilterPaths(self.root, paths);
         });
     };
 
@@ -178,7 +187,7 @@ define(function (require, exports, module) {
     function _send(location) {
         return function (resData) {
             _nodeConnectionDeferred.done(function (nodeConnection) {
-                nodeConnection.domains.staticServer.writeResponse(location.root, location.pathname, resData);
+                nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, resData);
             });
         };
     }
@@ -232,7 +241,7 @@ define(function (require, exports, module) {
                 function () {
                     var $staticServerProvider = $(_staticServerProvider);
                     
-                    $(_nodeConnection).on("staticServer.request", function (event, location) {
+                    $(_nodeConnection).on("staticServer.requestFilter", function (event, location) {
                         /* create result object to pass to event handlers */
                         var result = {
                             location    : location,
