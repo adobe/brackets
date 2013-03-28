@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -151,12 +151,15 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Generate instrumented HTML for the specified document. 
+     * Generate instrumented HTML for the specified document. Each tag has a "data-brackets-id"
+     * attribute with a unique ID for its value. For example, "<div>" becomes something like
+     * "<div data-brackets-id='45'>". The attribute value is just a number that is guaranteed
+     * to be unique. 
      * NOTE: The scanDocument() function MUST be called before generating instrumented HTML.
      * @param {Document} doc The doc to scan. NOTE: The current implementation requires
      *                       that this doc has a _masterEditor. This restriction may be
      *                       lifted in the future.
-     * @return none
+     * @return {string} instrumented html content
      */
     function generateInstrumentedHTML(doc) {
         if (!doc._masterEditor) {
@@ -199,7 +202,7 @@ define(function (require, exports, module) {
 
             // Find end of tag - NOTE: This does not work if an attribute value contains ">"
             var insertIndex = gen.indexOf(">", offset + insertCount);
-            if (gen[insertIndex] === "/") {
+            if (gen[insertIndex - 1] === "/") {
                 insertIndex--;
             }
             gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
