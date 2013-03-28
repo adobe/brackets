@@ -132,11 +132,12 @@ maxerr: 50, node: true */
                 filepath = location.filepath = path + location.pathname,
                 hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname];
             
+            // ignore most HTTP methods and files that we're not watching
             if (("GET" !== req.method && "HEAD" !== req.method) || !hasListener) {
                 return next();
             }
             
-            console.log(filepath);
+            // pause the request and wait for listeners to possibly respond
             var pause = utils.pause(req);
             
             function resume() {
@@ -152,21 +153,19 @@ maxerr: 50, node: true */
                 res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
                 res.end(resData.body);
 
+                // resume the HTTP ServerResponse
                 pause.resume();
             };
-            
+
             location.hostname = address.address;
             location.port = address.port;
             location.root = path;
             
+            // dispatch request event
             _domainManager.emitEvent("staticServer", "request", [location]);
             
             // set a timeout if custom responses are not returned
-            setTimeout(function () {
-                if (_requests[pathKey][location.pathname]) {
-                    resume();
-                }
-            }, 5000);
+            setTimeout(resume, 5000);
         }
         
         app = connect();
