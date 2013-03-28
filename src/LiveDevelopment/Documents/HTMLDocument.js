@@ -44,9 +44,10 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
-    var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
+        HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
 
     /** Constructor
      *
@@ -58,13 +59,21 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
         this.doc = doc;
         this.editor = editor;
-        this.onHighlight = this.onHighlight.bind(this);
-        this.onChange = this.onChange.bind(this);
+
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(HighlightAgent).on("highlight", this.onHighlight);
-        $(this.editor).on("change", this.onChange);
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
+
+        // Experimental code
+        if (LiveDevelopment.config.experimental) {
+
+            // Used by highlight agent to highlight editor text as selected in browser
+            this.onHighlight = this.onHighlight.bind(this);
+            $(HighlightAgent).on("highlight", this.onHighlight);
+
+            this.onChange = this.onChange.bind(this);
+            $(this.editor).on("change", this.onChange);
+        }
     };
 
     /** Close the document */
@@ -72,10 +81,17 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (!this.editor) {
             return;
         }
-        $(HighlightAgent).off("highlight", this.onHighlight);
-        $(this.editor).off("change", this.onChange);
+
         $(this.editor).off("cursorActivity", this.onCursorActivity);
-        this.onHighlight();
+
+        // Experimental code
+        if (LiveDevelopment.config.experimental) {
+
+            $(HighlightAgent).off("highlight", this.onHighlight);
+            this.onHighlight();
+
+            $(this.editor).off("change", this.onChange);
+        }
     };
 
 
@@ -84,7 +100,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     /** Triggered on cursor activity by the editor */
     HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
         var codeMirror = this.editor._codeMirror;
-        if (Inspector.config.highlight) {
+        if (LiveDevelopment.config.experimental && Inspector.config.highlight) {
             var location = codeMirror.indexFromPos(codeMirror.getCursor());
             var node = DOMAgent.allNodesAtLocation(location).pop();
             HighlightAgent.node(node);
