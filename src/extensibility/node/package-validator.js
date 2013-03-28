@@ -125,7 +125,7 @@ function validate(path, options, callback) {
                 var slash = fileName.indexOf("/");
                 if (slash > -1) {
                     var prefix = fileName.substring(0, slash);
-                    if (!ignoredPrefixes[prefix]) {
+                    if (!ignoredPrefixes.hasOwnProperty(prefix)) {
                         if (commonPrefix === null) {
                             commonPrefix = prefix;
                         } else if (prefix !== commonPrefix) {
