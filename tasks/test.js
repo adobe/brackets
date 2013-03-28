@@ -42,9 +42,10 @@ module.exports = function (grunt) {
             specRunnerPath  = common.resolve("test/SpecRunner.html");
 
         if (platform === "win") {
-            cmd += " --startup-path=" + specRunnerPath + "?spec=" + spec + "^&resultsPath=" + encodeURIComponent(resultsPath);
+            // escape ampersand on windows
+            cmd += " --startup-path=" + specRunnerPath + "?suite=all^&spec=" + spec + "^&resultsPath=" + encodeURIComponent(resultsPath);
         } else if (platform === "mac") {
-            cmd = "open \"" + cmd + "\" -W --args --startup-path=\"" + specRunnerPath + "?spec=" + spec + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
+            cmd = "open \"" + cmd + "\" -W --args --startup-path=\"" + specRunnerPath + "?suite=all&spec=" + spec + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
         }
         
         grunt.log.writeln(cmd);
