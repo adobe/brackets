@@ -197,10 +197,6 @@ define(function (require, exports, module) {
             filename  = PathUtils.filename(path).toLowerCase(),
             language  = extension ? _fileExtensionToLanguageMap[extension] : _fileNameToLanguageMap[filename];
         
-        if (!language) {
-            console.log("Called LanguageManager.getLanguageForPath with an unhandled " + (extension ? "file extension" : "file name") + ":", extension || filename);
-        }
-        
         return language || _fallbackLanguage;
     }
     
