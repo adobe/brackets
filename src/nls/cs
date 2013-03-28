@@ -60,7 +60,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů.Prosím, použijte shell aplikace v <b>github.com/adobe/brackets-shell</b> repo pro spuštění {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů. Prosím, použijte shell aplikace v <b>github.com/adobe/brackets-shell</b> repo pro spuštění {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Chyba při indexování souborů",
@@ -70,12 +70,14 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Chyba při spouštění prohlížeče",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome prohlížeč nebyl nalezen. Je nainstalován?",
     "ERROR_LAUNCHING_BROWSER"           : "Došlo k chybě při spouštění prohlížeče. (chyba {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Živý náhled - chyba",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Připojování k prohlížeči",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Aby se mohl živý náhled připojit, je třeba restartovat Chrome s povolenou možností vzdálené ladění. <br /><br /> Chcete restartovat Chrome a povolit vzdálené ladění?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Nelze načíst stránku s živým náhledem",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Otevřete HTML soubor pro zobrazení v živém náhledu.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Pro spuštění živého náhledu se server-side souborem, musíte specifikovat URL pro tento projekt.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Chyba při spouštění HTTP serveru pro soubory živého náhledu. Prosím, zkuste to znovu.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vítejte v živém náhledu!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhled připojí {APP_NAME} k vašemu prohlížeči. Spustí náhled HTML souboru, který se aktualizuje pokaždé, kdy editujete svůj kód.<br /><br />V této verzi {APP_NAME}, živý náhled funguje pouze v <strong>Google Chrome</strong> a aktualizuje změny v <strong>CSS souborech</strong>. Změny v HTML nebo JavaScript souborech jsou automaticky načteny, když soubor uložíte.<br /><br />(Tato zpráva se zobrazí pouze jednou.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a>.",
@@ -95,11 +97,12 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
+    "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "WITH"                              : "S",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
     "BUTTON_STOP"                       : "Stop",
-
+    
     "OPEN_FILE"                         : "Otevřít soubor",
     "CHOOSE_FOLDER"                     : "Vybrat složku",
 
@@ -132,6 +135,7 @@ define({
      * ProjectManager
      */
 
+    "PROJECT_LOADING" : "Načítání\u2026",
     "UNTITLED" : "Nový",
 
     /**
@@ -173,13 +177,13 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
+	"CMD_INSTALL_EXTENSION"               : "Instalovat doplňky...",	
     "CMD_QUIT"                            : "Konec",
     // Used in native File menu on Windows
-    "CMD_EXIT"                            : "Konec",
-    
-    
+    "CMD_EXIT"                            : "Konec",   
+
     // Edit menu commands
-    "EDIT_MENU"                           : "Upravit",
+    "EDIT_MENU"                           : "Úpravy",
     "CMD_UNDO"                            : "Zpět",
     "CMD_REDO"                            : "Znovu",
     "CMD_CUT"                             : "Vyjmout",
@@ -201,6 +205,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Blokový komentář",
     "CMD_LINE_UP"                         : "Posunout řádek nahoru",
     "CMD_LINE_DOWN"                       : "Posunout řádek dolů",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",    
      
     // View menu commands
     "VIEW_MENU"                           : "Zobrazit",
@@ -209,6 +214,11 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Zvětšit velikost písma",
     "CMD_DECREASE_FONT_SIZE"              : "Zmenšit velikost písma",
     "CMD_RESTORE_FONT_SIZE"               : "Obnovit velikost písma",
+    "CMD_SCROLL_LINE_UP"                  : "Posunout o řádek nahoru",
+    "CMD_SCROLL_LINE_DOWN"                : "Posunout o řádek dolů",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla řádků",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
+    "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Řadit podle data",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
@@ -235,7 +245,7 @@ define({
     "CMD_JSLINT"                          : "Povolit JSLint",
     "CMD_SHOW_PERF_DATA"                  : "Zobrazit údaje o výkonnosti",
     "CMD_NEW_BRACKETS_WINDOW"             : "Nové okno {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s pluginy",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_SWITCH_LANGUAGE"                 : "Změnit jazyk",
     "CMD_ENABLE_NODE_DEBUGGER"            : "Povolit Node Debugger",
     "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
@@ -273,6 +283,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Ponechat změny v editoru",
     "CLOSE_DONT_SAVE"                      : "Zavřít (neukládat)",
     "RELAUNCH_CHROME"                      : "Restartovat Chrome",
+    "INSTALL"                              : "Install",
     "ABOUT"                                : "O aplikaci",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Zavřít",
@@ -294,6 +305,37 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Neznámá chyba při zpracování URL",
     
+    // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
+    "INSTALL_EXTENSION_LABEL"              : "URL adresa doplňku",
+    "INSTALL_EXTENSION_HINT"               : "URL adresa zip archivu nebo GitHub repozitáře",
+    "INSTALLING_FROM"                      : "Instalace doplňku z {0}...",
+    "INSTALL_SUCCEEDED"                    : "Instalace byla úspěšná!",
+    "INSTALL_FAILED"                       : "Instalace se nezdařila.",
+    "CANCELING_INSTALL"                    : "Rušení instalace...",
+    "CANCELING_HUNG"                       : "Rušení instalace trvá dlouho. Mohlo dojít k interní chybě.",
+    "INSTALL_CANCELED"                     : "Instalace zrušena.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "Stažený soubor není platný zip soubor.",
+    "INVALID_PACKAGE_JSON"                 : "Package.json balíček není platný (chyba byla: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Package.json balíček nespecifikuje jméno souboru.",
+    "BAD_PACKAGE_NAME"                     : "{0} je neplatné jméno balíčku.",
+    "MISSING_PACKAGE_VERSION"              : "Package.json balíček nespecifikuje verzi souboru.",
+    "INVALID_VERSION_NUMBER"               : "Balíček verze ({0}) je neplatný.",
+    "API_NOT_COMPATIBLE"                   : "Doplněk není kompatibilní s touto verzi Brackets. Naleznete jej ve složce disabled extensions.",
+    "MISSING_MAIN"                         : "Balíček neobsahuje soubor main.js.",
+    "ALREADY_INSTALLED"                    : "Doplněk s tímto jménem je již nainstalován. Nový doplněk je nainstalován ve složce disabled extensions.",
+    "NO_DISABLED_DIRECTORY"                : "Nelze uložit doplněk do extensions/disabled protože složka neexistuje.",
+    "DOWNLOAD_ID_IN_USE"                   : "Interní chyba: ID stahování se již používá.",
+    "NO_SERVER_RESPONSE"                   : "Nelze se přípojit na server.",
+    "BAD_HTTP_STATUS"                      : "Soubor nebyl nalezen (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Nelze uložit do dočasných souborů.",
+    "ERROR_LOADING"                        : "Při spuštění doplňku došlo k chybě.",
+    "MALFORMED_URL"                        : "URL adresa je neplatná. Ujistěte se, že jste adresu zadali správně.",
+    "UNSUPPORTED_PROTOCOL"                 : "URL adresa musí být http nebo https.",
+    "UNKNOWN_ERROR"                        : "Neznámá chyba.",
+    // For NOT_FOUND_ERR, see generic strings above
+   
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",
