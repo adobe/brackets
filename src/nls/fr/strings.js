@@ -127,9 +127,10 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
-	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
+	"LANGUAGE_MESSAGE": "Langage :",
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
+	"LANGUAGE_SYSTEM_DEFAULT": "[6751330] !é=System Default=!",
 
     /**
      * ProjectManager
@@ -215,8 +216,8 @@ define({
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
 	"CMD_SCROLL_LINE_UP": "Faire défiler d’une ligne vers le haut",
 	"CMD_SCROLL_LINE_DOWN": "Faire défiler d’une ligne vers le bas",
-	"CMD_TOGGLE_LINE_NUMBERS": "Numéros de lignes",
-	"CMD_TOGGLE_ACTIVE_LINE": "[6743052] !é=Highlight Active Line=!",
+	"CMD_TOGGLE_LINE_NUMBERS": "Numéros de ligne",
+	"CMD_TOGGLE_ACTIVE_LINE": "Surligner la ligne active",
 	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",

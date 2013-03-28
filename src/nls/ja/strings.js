@@ -127,9 +127,10 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "言語を切り替える",
-	"LANGUAGE_MESSAGE": "以下のリストから言語を選択してください :",
+	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
+	"LANGUAGE_SYSTEM_DEFAULT": "!能=[6751330] System Default_=!",
 
     /**
      * ProjectManager
@@ -216,7 +217,7 @@ define({
 	"CMD_SCROLL_LINE_UP": "1 行上にスクロール",
 	"CMD_SCROLL_LINE_DOWN": "1 行下にスクロール",
 	"CMD_TOGGLE_LINE_NUMBERS": "行番号",
-	"CMD_TOGGLE_ACTIVE_LINE": "!能=[6743052] Highlight Active Line_=!",
+	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行をハイライト",
 	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
