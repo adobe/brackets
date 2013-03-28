@@ -291,7 +291,7 @@ define(function (require, exports, module) {
             file    = split.file;
         
         var $deferredHints = $.Deferred(),
-            ternPromise = getTernHints("dir", "file", offset, document.getText());
+            ternPromise = getTernHints(dir, file, offset, document.getText());
         
         $.when(ternPromise).done(
             function(ternHints){
