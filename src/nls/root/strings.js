@@ -130,6 +130,7 @@ define({
     "LANGUAGE_MESSAGE"                  : "Language:",
     "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancel",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
 
     /**
      * ProjectManager

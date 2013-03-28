@@ -161,10 +161,11 @@ define(function (require, exports, module) {
 
                 var $submit,
                     $select,
-                    locale;
+                    locale,
+                    curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale());
                 
                 function setLanguage(event) {
-                    locale = $select.find(":selected").val();
+                    locale = $select.val();
                     $submit.attr("disabled", false);
                 }
     
@@ -201,10 +202,10 @@ define(function (require, exports, module) {
                     .on("click", function () {
                         if (locale === undefined) {
                             return;
+                        } else if (locale !== curLocale) {
+                            brackets.setLocale(locale);
+                            CommandManager.execute(DEBUG_REFRESH_WINDOW);
                         }
-                        brackets.setLocale(locale);
-                        
-                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
                     })
                     .attr("disabled", "disabled")
                     .appendTo($footer);
@@ -219,20 +220,15 @@ define(function (require, exports, module) {
                         $(this).remove();
                     });
 
-                var curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale());
-                
                 function addLocale(text, val) {
                     var $option = $("<option>")
                         .text(text)
                         .val(val)
                         .appendTo($select);
-                    if (val === curLocale) {
-                        $option.attr("selected", "selected");
-                    }
                 }
 
                 // add system default
-                addLocale("system default", null);
+                addLocale(Strings.LANGUAGE_SYSTEM_DEFAULT, null);
                 
                 // add english
                 addLocale("en", "en");
@@ -254,6 +250,8 @@ define(function (require, exports, module) {
                         }
                     }
                 });
+                
+                $select.val(curLocale);
             });
         });
     }
