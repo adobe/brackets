@@ -2,6 +2,7 @@
  * bootstrap-twipsy.js v1.4.0
  * http://twitter.github.com/bootstrap/javascript.html#twipsy
  * Adapted from the original jQuery.tipsy by Jason Frame
+ * Adjusted for Brackets
  * ==========================================================
  * Copyright 2011 Twitter, Inc.
  *
@@ -22,7 +23,20 @@
 !function( $ ) {
 
   "use strict"
-
+  
+  // Undefined until the focus state changed once
+  var _windowHasFocus;
+  
+  $(window)
+    .focus(function _onWindowGainedFocus() {
+      _windowHasFocus = true;
+      console.log("focus", _windowHasFocus);
+    })
+    .blur(function _onWindowLostFocus() {
+      _windowHasFocus = false;
+      console.log("focus", _windowHasFocus);
+    });
+  
  /* CSS TRANSITION SUPPORT (https://gist.github.com/373874)
   * ======================================================= */
 
@@ -91,10 +105,17 @@
         $(window).on("resize", this.resizeHandler);
 
         if (this.options.autoHideDelay) {
-          window.clearTimeout(this.autoHideTimeout);
-          this.autoHideTimeout = window.setTimeout(function () {
-            that.hide();
-          }, this.options.autoHideDelay);
+          var startAutoHide = function () {
+            window.clearTimeout(that.autoHideTimeout);
+            that.autoHideTimeout = window.setTimeout(function () {
+              that.hide();
+            }, that.options.autoHideDelay);
+          }
+          if (_windowHasFocus) {
+            startAutoHide();
+          } else {
+            $(window).one("focus", startAutoHide);
+          }
         }
         
         $tip.addClass('in');
