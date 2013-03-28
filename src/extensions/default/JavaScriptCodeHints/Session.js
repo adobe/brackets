@@ -263,117 +263,16 @@ define(function (require, exports, module) {
      */
     Session.prototype.getHints = function () {
         
-        /*
-         * Comparator for sorting tokens according to minimum distance from
-         * a given position
-         * 
-         * @param {number} pos - the position to which a token's occurrences
-         *      are compared
-         * @param {Function} - the comparator function
+        /**
+         * sort by scope depth.
+         *
+         * @param a
+         * @param b
+         * @return {*}
          */
-        function compareByPosition(pos) {
-            
-            /*
-             * Compute the minimum distance between a token, with which is 
-             * associated a sorted list of positions, and a given offset.
-             *
-             * @param {number} pos - the position to which a token's occurrences
-             *      are compared.
-             * @param {Object} token - a hint token, annotated with a list of
-             *      occurrence positions
-             * @return number - the least distance of an occurrence of token to
-             *      pos, or Infinity if there are no occurrences
-             */
-            function minDistToPos(pos, token) {
-                var arr     = token.positions,
-                    low     = 0,
-                    high    = arr.length,
-                    middle  = Math.floor(high / 2),
-                    dist;
-
-                if (high === 0) {
-                    return Infinity;
-                } else {
-                    // binary search for the position
-                    while (low < middle && middle < high) {
-                        if (arr[middle] < pos) {
-                            low = middle;
-                            middle += Math.floor((high - middle) / 2);
-                        } else if (arr[middle] > pos) {
-                            high = middle;
-                            middle = low + Math.floor((middle - low) / 2);
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // the closest position is off by no more than one
-                    dist = Math.abs(arr[middle] - pos);
-                    if (middle > 0) {
-                        dist = Math.min(dist, Math.abs(arr[middle - 1] - pos));
-                    }
-                    if (middle + 1 < arr.length) {
-                        dist = Math.min(dist, Math.abs(arr[middle + 1] - pos));
-                    }
-                    return dist;
-                }
-            }
-
-            return function (a, b) {
-                
-                /*
-                 * Look up the cached minimum distance from an occurrence of
-                 * the token to the given position, calculating and storing it
-                 * if needed.
-                 * 
-                 * @param {Object} token - the token from which the minimum
-                 *      distance to position pos is required
-                 * @return {number} - the least distance of an occurrence of
-                 *      token to position pos
-                 */
-                function getDistToPos(token) {
-                    var dist;
-
-                    if (token.distToPos >= 0) {
-                        dist = token.distToPos;
-                    } else {
-                        dist = minDistToPos(pos, token);
-                        token.distToPos = dist;
-                    }
-                    return dist;
-                }
-
-                var aDist = getDistToPos(a),
-                    bDist = getDistToPos(b);
-
-                if (aDist === Infinity) {
-                    if (bDist === Infinity) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                } else {
-                    if (bDist === Infinity) {
-                        return -1;
-                    } else {
-                        return aDist - bDist;
-                    }
-                }
-            };
-        }
-
-        /*
-         * Comparator for sorting tokens lexicographically according to scope,
-         * assuming the scope level has already been annotated.
-         * 
-         * @param {Object} a - a token
-         * @param {Object} b - another token
-         * @param {number} - comparator value that indicates whether a is more
-         *      tightly scoped than b
-         */
-        function compareByScope(a, b) {
-            var adepth = a.level;
-            var bdepth = b.level;
+        function compareByScopeDepth(a, b) {
+            var adepth = a.depth;
+            var bdepth = b.depth;
 
             if (adepth >= 0) {
                 if (bdepth >= 0) {
@@ -381,15 +280,13 @@ define(function (require, exports, module) {
                 } else {
                     return -1;
                 }
+            } else if (bdepth >= 0) {
+                return 1;
             } else {
-                if (bdepth >= 0) {
-                    return 1;
-                } else {
-                    return 0;
-                }
+                return 0;
             }
         }
-        
+
         /*
          * Comparator for sorting tokens by name
          * 
@@ -399,64 +296,18 @@ define(function (require, exports, module) {
          *      of token a is lexicographically lower than the name of token b
          */
         function compareByName(a, b) {
-            if (a.value === b.value) {
+            var aLowerCase = a.value.toLowerCase();
+            var bLowerCase = b.value.toLowerCase();
+
+            if (aLowerCase === bLowerCase) {
                 return 0;
-            } else if (a.value < b.value) {
+            } else if (aLowerCase < bLowerCase) {
                 return -1;
             } else {
                 return 1;
             }
         }
         
-        /*
-         * Comparator for sorting tokens by path, such that a <= b if
-         * a.path === path
-         *
-         * @param {string} path - the target path name
-         * @return {Function} - the comparator function
-         */
-        function compareByPath(path) {
-            return function (a, b) {
-                if (a.path === path) {
-                    if (b.path === path) {
-                        return 0;
-                    } else {
-                        return -1;
-                    }
-                } else {
-                    if (b.path === path) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-        }
-        
-        /*
-         * Comparator for sorting properties w.r.t. an association object.
-         * 
-         * @param {Object} assoc - an association object
-         * @return {Function} - the comparator function
-         */
-        function compareByAssociation(assoc) {
-            return function (a, b) {
-                if (Object.prototype.hasOwnProperty.call(assoc, a.value)) {
-                    if (Object.prototype.hasOwnProperty.call(assoc, b.value)) {
-                        return assoc[a.value] - assoc[b.value];
-                    } else {
-                        return -1;
-                    }
-                } else {
-                    if (Object.prototype.hasOwnProperty.call(assoc, b.value)) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-        }
-
         /*
          * Forms the lexicographical composition of comparators, i.e., 
          * "a lex(c1,c2) b" iff "a c1 b or (a = b and a c2 b)"
@@ -479,57 +330,12 @@ define(function (require, exports, module) {
 
         /*
          * A comparator for identifiers: the lexicographic combination of
-         * scope, position and name.
-         * 
-         * @param {number} pos - the target position by which identifiers are
-         *      compared
+         * scope and name.
+         *
          * @return {Function} - the comparator function
          */
-        function compareIdentifiers(pos) {
-            return lexicographic(compareByScope,
-                        lexicographic(compareByPosition(pos),
-                            compareByName));
-        }
-        
-        /*
-         * A comparator for properties: the lexicographic combination of
-         * association, path name, position, and name.
-         * 
-         * @param {Object} assoc - the association by which properties are
-         *      compared
-         * @param {string} path - the path name by which properties are
-         *      compared
-         * @param {number} pos - the target position by which properties are
-         *      compared
-         * @return {Function} - the comparator function
-         */
-        function compareProperties(assoc, path, pos) {
-            return lexicographic(compareByAssociation(assoc),
-                        lexicographic(compareByPath(path),
-                            lexicographic(compareByPosition(pos),
-                                compareByName)));
-        }
-        
-        /*
-         * Clone a list of hints. (Used so that later annotations are not 
-         * preserved when scope information changes.)
-         * 
-         * @param {Array.<Object>} hints - an array of hint tokens
-         * @return {Array.<Object>} - a new array of objects that are clones of
-         *      the objects in the input array
-         */
-        function copyHints(hints) {
-            function cloneToken(token) {
-                var copy = {},
-                    prop;
-                for (prop in token) {
-                    if (Object.prototype.hasOwnProperty.call(token, prop)) {
-                        copy[prop] = token[prop];
-                    }
-                }
-                return copy;
-            }
-            return hints.map(cloneToken);
+        function compareIdentifiers() {
+            return lexicographic(compareByScopeDepth, compareByName);
         }
 
         var cursor = this.editor.getCursorPos(),
@@ -538,30 +344,15 @@ define(function (require, exports, module) {
             association,
             hints;
 
+        var ternHints = this.ternHints;
         if (type.property) {
-            var ternHints = this.ternHints;
-            //console.log("Got " + (ternHints ? ternHints.length : 0) + " hints from tern");
             if( ternHints && ternHints.length > 0 ) {
                 hints = ternHints;
                 hints.sort(compareByName);
             }
-            else{
-                hints = copyHints(this.properties);
-                if (type.context &&
-                        Object.prototype.hasOwnProperty.call(this.associations, type.context)) {
-                    association = this.associations[type.context];
-                    hints = HintUtils.annotateWithAssociation(hints, association);
-                    hints.sort(compareProperties(association, this.path, offset));
-                } else {
-                    hints.sort(compareProperties({}, this.path, offset));
-                }
-            }
         } else {
-            hints = copyHints(this.identifiers);
-            hints = HintUtils.annotateWithScope(hints, this.scope);
-            hints = hints.concat(this.literals);
-            hints.sort(compareIdentifiers(offset));
-            hints = hints.concat(this.globals);
+            hints = ternHints ? ternHints : [];
+            hints.sort(compareIdentifiers());
             hints = hints.concat(HintUtils.LITERALS);
             hints = hints.concat(HintUtils.KEYWORDS);
         }

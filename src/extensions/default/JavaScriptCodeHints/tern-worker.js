@@ -101,24 +101,26 @@ importScripts("thirdparty/requirejs/require.js");
             query.file = file;
             query.filter = false;
             query.sort = false;
+            query.depths = true;
+            query.types = true;
 
             var request = {query:query, files:[], offset:offset};
-            
             request.files.push({type:"full", name:file, text:text});
 
             return request;
         }
         
         var request = buildRequest(dir, file, "completions", offset);
-        //_log("request " + dir + " " + file + " " + offset + " " + text);
+        //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function(error, data) {
             //if (error) return displayError(error);
+            //_log("completions.length = " + data.completions.length);
             var completions = [];
             var ternHints = [];    
             for (var i = 0; i < data.completions.length; ++i) {
               var completion = data.completions[i];//, className = typeToIcon(completion.type);
               //if (data.guess) className += " Tern-completion-guess";
-              completions.push({value: completion/*, className: className*/});
+              completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess /*, className: className*/});
             }
             
             // Post a message back to the main thread with the completions
