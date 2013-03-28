@@ -62,9 +62,13 @@ define(function (require, exports, module) {
      * request -- Passes {location: {hostname: string, port: number, root: string, pathname: string}, send: function({body: string}) }
      *     Listeners define paths to intercept requests for by supplying those
      *     paths to setRequestFilterPaths([path1,...,pathN]).
+     *
      *     When requests for those paths are received on the server, StaticServerProvider
      *     creates a "request" event with a send() callback that allows the listener to
      *     override the default static file server response.
+     *
+     *     Listeners to this event should be installed before any HTTP
+     *     requests are sent to the server.
      */
     function StaticServerProvider() {}
 
