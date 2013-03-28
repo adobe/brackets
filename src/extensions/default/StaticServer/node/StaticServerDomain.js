@@ -31,6 +31,7 @@ maxerr: 50, node: true */
     var http    = require("http"),
         connect = require("connect"),
         utils   = require("connect/lib/utils"),
+        mime    = require("connect/node_modules/send/node_modules/mime"),
         parse   = utils.parseUrl;
     
     var _domainManager;
@@ -72,10 +73,22 @@ maxerr: 50, node: true */
 
     var PATH_KEY_PREFIX = "LiveDev_";
     
+    /**
+     * @private
+     * Removes trailing forward slash for the project root absolute path
+     * @param {string} path Absolute path for a server
+     * @returns {string}
+     */
     function normalizeRootPath(path) {
         return (path.lastIndexOf("/") === path.length - 1) ? path.slice(0, -1) : path;
     }
     
+    /**
+     * @private
+     * Generates a key based on a server's absolute path
+     * @param {string} path Absolute path for a server
+     * @returns {string}
+     */
     function getPathKey(path) {
         return PATH_KEY_PREFIX + normalizeRootPath(path);
     }
@@ -93,6 +106,9 @@ maxerr: 50, node: true */
             app,
             address,
             pathKey = getPathKey(path);
+
+        // create a new map for this server's requests
+        _requests[pathKey] = {};
         
         function requestRoot(server, cb) {
             address = server.address();
@@ -128,11 +144,15 @@ maxerr: 50, node: true */
                 pause.resume();
             }
             
-            // map request pathname to response
-            _requests[pathKey][location.pathname] = {
-                req: req,
-                res: res,
-                pause: pause
+            // map request pathname to response callback
+            _requests[pathKey][location.pathname] = function (resData) {
+                // TODO other headers?
+                var type = mime.lookup(path);
+                var charset = mime.charsets.lookup(type);
+                res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
+                res.end(resData.body);
+
+                pause.resume();
             };
             
             location.hostname = address.address;
@@ -158,9 +178,6 @@ maxerr: 50, node: true */
 
         server = http.createServer(app);
         server.listen(0, "127.0.0.1", function () {
-            // create a new map for this server's requests
-            _requests[pathKey] = {};
-            
             requestRoot(
                 server,
                 function (err, res) {
@@ -228,6 +245,14 @@ maxerr: 50, node: true */
         return false;
     }
     
+    /**
+     * @private
+     * Defines a set of paths from a server's root path to watch and fire "request" events for.
+     *
+     * @param {string} path The absolute path whose server we should watch
+     * @param {Array.<string>} paths An array of root-relative paths to watch.
+     *     Each path should begin with a forward slash "/".
+     */
     function _cmdSetRequestFilter(root, paths) {
         var rootPath = normalizeRootPath(root),
             pathKey  = getPathKey(root),
@@ -239,16 +264,20 @@ maxerr: 50, node: true */
         });
     }
     
-    function _cmdRewriteResponse(root, path, resData) {
+    /**
+     * @private
+     * Overrides the file content response from static middleware with
+     * the provided response data.
+     *
+     * @param {string} path The absolute path of the server
+     * @param {string} root The relative path of the file beginning with a forward slash "/"
+     * @param {Object} resData Response data to use
+     */
+    function _cmdWriteResponse(root, path, resData) {
         var pathKey  = getPathKey(root),
-            request = _requests[pathKey][path],
-            pause = request.pause,
-            res = request.res;
+            callback = _requests[pathKey][path];
 
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end(resData.body);
-
-        pause.resume();
+        callback(resData);
     }
     
     /**
@@ -299,7 +328,7 @@ maxerr: 50, node: true */
             "staticServer",
             "setRequestFilter",
             _cmdSetRequestFilter,
-            true,
+            false,
             "Rewrite response for a given path from.",
             [{
                 name: "root",
@@ -315,8 +344,8 @@ maxerr: 50, node: true */
         _domainManager.registerCommand(
             "staticServer",
             "writeResponse",
-            _cmdRewriteResponse,
-            true,
+            _cmdWriteResponse,
+            false,
             "Rewrite response for a given path from.",
             [{
                 name: "root",

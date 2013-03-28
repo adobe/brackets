@@ -60,6 +60,13 @@ define(function (require, exports, module) {
     function StaticServerProvider() {}
 
     /**
+     * @private
+     * @type {string}
+     * Absolute file system path for the root of a server
+     */
+    StaticServerProvider.prototype.root = null;
+
+    /**
      * Determines whether we can serve local file.
      * 
      * @param {String} localPath
@@ -109,13 +116,14 @@ define(function (require, exports, module) {
      *     the server is ready/failed.
      */
     StaticServerProvider.prototype.readyToServe = function () {
-        var readyToServeDeferred = $.Deferred();
+        var readyToServeDeferred = $.Deferred(),
+            self = this;
 
         _nodeConnectionDeferred.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
-                nodeConnection.domains.staticServer.getServer(
-                    ProjectManager.getProjectRoot().fullPath
-                ).done(function (address) {
+                self.root = ProjectManager.getProjectRoot().fullPath;
+
+                nodeConnection.domains.staticServer.getServer(self.root).done(function (address) {
                     _baseUrl = "http://" + address.address + ":" + address.port + "/";
                     readyToServeDeferred.resolve();
                 }).fail(function () {
@@ -148,6 +156,32 @@ define(function (require, exports, module) {
         
         return readyToServeDeferred.promise();
     };
+
+    /**
+     * Defines a set of paths from a server's root path to watch and fire "request" events for.
+     * 
+     * @param {Array.<string>} paths An array of root-relative paths to watch.
+     *     Each path should begin with a forward slash "/".
+     */
+    StaticServerProvider.prototype.setRequestFilter = function (paths) {
+        var self = this;
+
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            nodeConnection.domains.staticServer.setRequestFilter(self.root, paths);
+        });
+    };
+
+    /**
+     * @private
+     * Callback for "request" event handlers to override the HTTP ServerResponse.
+     */
+    function _send(location) {
+        return function (resData) {
+            _nodeConnectionDeferred.done(function (nodeConnection) {
+                nodeConnection.domains.staticServer.writeResponse(location.root, location.pathname, resData);
+            });
+        };
+    }
 
     /**
      * @private
@@ -199,7 +233,13 @@ define(function (require, exports, module) {
                     var $staticServerProvider = $(_staticServerProvider);
                     
                     $(_nodeConnection).on("staticServer.request", function (event, location) {
-                        $staticServerProvider.triggerHandler("request", location);
+                        /* create result object to pass to event handlers */
+                        var result = {
+                            location    : location,
+                            send        : _send(location)
+                        };
+
+                        $staticServerProvider.triggerHandler("request", [result]);
                     });
 
                     clearTimeout(connectionTimeout);

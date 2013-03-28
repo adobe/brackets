@@ -202,7 +202,8 @@ define(function (require, exports, module) {
                 var serverInfo,
                     path = testFolder + "folder1",
                     text,
-                    location;
+                    location,
+                    self = this;
                 
                 runs(function () {
                     nodeConnection.domains.staticServer.getServer(path)
@@ -216,24 +217,41 @@ define(function (require, exports, module) {
                 runs(function () {
                     // listen for request event
                     var provider = StaticServer._getStaticServerProvider();
-                    $(provider).on("request", function (event, loc) {
-                        location = loc;
+                    $(provider).on("request", function (event, request) {
+                        location = request.location;
                     });
+
+                    // remove event handler
+                    self.after(function() { $(provider).off(".test"); });
                     
+                    // listen for /index.txt requests
                     nodeConnection.domains.staticServer.setRequestFilter(path, ["/index.txt"]);
+                });
+
+                runs(function () {
+                    // request /index.txt
                     getUrl(serverInfo, "/index.txt").done(function (data) {
                         text = data;
                     });
                 });
                 
-                waitsFor(function () { return location; }, "waiting for request event to fire");
+                waitsFor(function () { return location && text; }, "waiting for request event to fire");
+
+                runs(function () {
+                    expect(location.pathname).toBe("/index.txt");
+                    expect(text).toBe("This is a file in folder 1.");
+                    
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
             });
             
             it("should write a custom response file path is requested", function () {
                 var serverInfo,
                     path = testFolder + "folder1",
                     text,
-                    location;
+                    location,
+                    self = this;
                 
                 runs(function () {
                     nodeConnection.domains.staticServer.getServer(path)
@@ -247,23 +265,35 @@ define(function (require, exports, module) {
                 runs(function () {
                     // listen for request event
                     var provider = StaticServer._getStaticServerProvider();
-                    $(provider).on("request", function (event, loc) {
-                        location = loc;
+                    $(provider).on("request.test", function (event, request) {
+                        location = request.location;
 
                         // write custom response
-                        nodeConnection.domains.staticServer.writeResponse(path, location.pathname, {body: "custom response"});
+                        request.send({body: "custom response"});
                     });
+
+                    // remove event handler
+                    self.after(function() { $(provider).off(".test"); });
                     
+                    // listen for /index.txt requests
                     nodeConnection.domains.staticServer.setRequestFilter(path, ["/index.txt"]);
+                });
+
+                runs(function () {
+                    // request /index.txt
                     getUrl(serverInfo, "/index.txt").done(function (data) {
                         text = data;
                     });
                 });
                 
-                waitsFor(function () { return text; }, "waiting for text from server");
+                waitsFor(function () { return location && text; }, "waiting for text from server");
 
                 runs(function () {
+                    expect(location.pathname).toBe("/index.txt");
                     expect(text).toBe("custom response");
+                    
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
                 });
             });
         });
