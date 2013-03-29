@@ -47,6 +47,13 @@
  *         console.log("Language " + language.getName() + " is now available!");
  *     });
  *
+ * The extension can also contain dots:
+ *     LanguageManager.defineLanguage("literatecoffeescript", {
+ *         name: "Literate CoffeeScript",
+ *         mode: "coffeescript",
+ *         fileExtensions: ["litcoffee", "coffee.md"]
+ *     }); 
+ *
  * You can also specify file names:
  *     LanguageManager.defineLanguage("makefile", {
  *         name: "Make",
@@ -134,21 +141,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Lowercases the file extension and ensures it doesn't start with a dot.
-     * @param {!string} extension The file extension
-     * @return {string} The normalized file extension
-     */
-    function _normalizeFileExtension(extension) {
-        // Remove a leading dot if present
-        if (extension.charAt(0) === ".") {
-            extension = extension.substr(1);
-        }
-        
-        // Make checks below case-INsensitive
-        return extension.toLowerCase();
-    }
-    
-    /**
      * Monkey-patch CodeMirror to prevent modes from being overwritten by extensions.
      * We may rely on the tokens provided by some of these modes.
      */
@@ -180,6 +172,7 @@ define(function (require, exports, module) {
 
     /**
      * Resolves a language ID to a Language object.
+     * File names have a higher priority than file extensions. 
      * @param {!string} id Identifier for this language, use only letters a-z and _ inbetween (i.e. "cpp", "foo_bar")
      * @return {Language} The language with the provided identifier or undefined
      */
@@ -193,12 +186,52 @@ define(function (require, exports, module) {
      * @return {Language} The language for the provided file type or the fallback language
      */
     function getLanguageForPath(path) {
-        var extension = _normalizeFileExtension(PathUtils.filenameExtension(path)),
-            filename  = PathUtils.filename(path).toLowerCase(),
-            language  = extension ? _fileExtensionToLanguageMap[extension] : _fileNameToLanguageMap[filename];
+        var fileName  = PathUtils.filename(path).toLowerCase(),
+            language  = _fileNameToLanguageMap[fileName],
+            extension,
+            parts;
         
+        // If no language was found for the file name, use the file extension instead
         if (!language) {
-            console.log("Called LanguageManager.getLanguageForPath with an unhandled " + (extension ? "file extension" : "file name") + ":", extension || filename);
+            // Split the file name into parts:
+            //   "foo.coffee.md"   => ["foo", "coffee", "md"]
+            //   ".profile.bak"    => ["", "profile", "bak"]
+            //   "1. Vacation.txt" => ["1", " Vacation", "txt"]
+            parts = fileName.split(".");
+            
+            // A leading dot does not indicate a file extension, but marks the file as hidden => remove it
+            if (parts[0] === "") {
+                // ["", "profile", "bak"] => ["profile", "bak"]
+                parts.shift();
+            }
+            
+            // The first part is assumed to be the title, not the extension => remove it
+            //   ["foo", "coffee", "md"]   => ["coffee", "md"]
+            //   ["profile", "bak"]        => ["bak"]
+            //   ["1", " Vacation", "txt"] => [" Vacation", "txt"]
+            parts.shift();
+            
+            // Join the remaining parts into a file extension until none are left or a language was found
+            while (!language && parts.length) {
+                // First iteration:
+                //   ["coffee", "md"]     => "coffee.md"
+                //   ["bak"]              => "bak"
+                //   [" Vacation", "txt"] => " Vacation.txt"
+                // Second iteration (assuming no language was found for "coffee.md"):
+                //   ["md"]  => "md"
+                //   ["txt"] => "txt"
+                extension = parts.join(".");
+                language  = _fileExtensionToLanguageMap[extension];
+                // Remove the first part
+                // First iteration:
+                //   ["coffee", "md"]     => ["md"]
+                //   ["bak"]              => []
+                //   [" Vacation", "txt"] => ["txt"]
+                // Second iteration:
+                //   ["md"]  => []
+                //   ["txt"] => []
+                parts.shift();
+            }
         }
         
         return language || _fallbackLanguage;
@@ -425,7 +458,14 @@ define(function (require, exports, module) {
      * @return {boolean} Whether adding the file extension was successful or not
      */
     Language.prototype.addFileExtension = function (extension) {
-        extension = _normalizeFileExtension(extension);
+        // Remove a leading dot if present
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
+        
         if (this._fileExtensions.indexOf(extension) === -1) {
             this._fileExtensions.push(extension);
             
@@ -446,6 +486,7 @@ define(function (require, exports, module) {
      * @return {boolean} Whether adding the file name was successful or not
      */
     Language.prototype.addFileName = function (name) {
+        // Make checks below case-INsensitive
         name = name.toLowerCase();
         
         if (this._fileNames.indexOf(name) === -1) {
