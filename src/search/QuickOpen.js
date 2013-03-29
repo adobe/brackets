@@ -423,9 +423,6 @@ define(function (require, exports, module) {
             plugin.done();
         }
 
-        // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
-        //JSLintUtils.setEnabled(true);
-        
         // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
         // editor to give focus to below, it won't notice otherwise).
         this.$searchField.trigger("lostFocus");
@@ -731,11 +728,6 @@ define(function (require, exports, module) {
 
         // Global listener to hide search bar & popup
         $(window.document).on("mousedown", this._handleDocumentMouseDown);
-
-
-        // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
-        // To improve performance during list selection disable JSLint until a document is chosen or dialog is closed
-        //JSLintUtils.setEnabled(false);
 
         // Record current document & cursor pos so we can restore it if search is canceled
         // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed

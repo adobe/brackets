@@ -4,7 +4,6 @@
         "app_title"         : "Brackets",
         "app_name_about"    : "Brackets",
         "about_icon"        : "styles/images/brackets_icon.svg",
-        "enable_jslint"     : true,
         "update_info_url"   : "http://dev.brackets.io/updates/stable/",
         "how_to_use_url"    : "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
         "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",

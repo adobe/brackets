@@ -127,9 +127,10 @@ define({
     
     // Switch language
     "LANGUAGE_TITLE"                    : "Switch Language",
-    "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
+    "LANGUAGE_MESSAGE"                  : "Language:",
     "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancel",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
 
     /**
      * ProjectManager
@@ -176,7 +177,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
-    "CMD_INSTALL_EXTENSION"               : "Install Extension...",
+    "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -308,10 +309,10 @@ define({
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
-    "INSTALLING_FROM"                      : "Installing extension from {0}...",
+    "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Installation successful!",
     "INSTALL_FAILED"                       : "Installation failed.",
-    "CANCELING_INSTALL"                    : "Canceling...",
+    "CANCELING_INSTALL"                    : "Canceling\u2026",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
