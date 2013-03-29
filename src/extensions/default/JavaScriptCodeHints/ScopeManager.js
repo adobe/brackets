@@ -74,7 +74,7 @@ define(function (require, exports, module) {
      */
     function initTernEnv() {
         var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/defs/";
-        var files = ["ecma5.json"];//, "browser.json", "plugin/requirejs/requirejs.json", "jquery.json"];
+        var files = ["ecma5.json", "browser.json"];//, "plugin/requirejs/requirejs.json", "jquery.json"];
         
         var dirEntry    = new NativeFileSystem.DirectoryEntry(path),
             reader      = dirEntry.createReader();
