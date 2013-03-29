@@ -560,6 +560,25 @@ define(function LiveDevelopment(require, exports, module) {
             var interstitialUrl = launcherUrl + "?" + encodeURIComponent(targetUrl);
 
             _setStatus(STATUS_CONNECTING);
+            
+            if (_serverProvider) {
+                // Install a request filter for the current document. In the future,
+                // we need to install filters for *all* files that need to be instrumented.
+                HTMLInstrumentaion.scanDocument(doc);
+                _serverProvider.setRequestFilterPaths(
+                    ["/" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)]
+                );
+                
+                // Remove any "request" listeners that were added previously
+                //$(_serverProvider).off("request");
+                
+                $(_serverProvider).on("request", function (event, request) {
+                    var html = HTMLInstrumentaion.generateInstrumentedHTML(doc);
+                    
+                    request.send({ body: html });
+                });
+            }
+
             Inspector.connectToURL(interstitialUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);

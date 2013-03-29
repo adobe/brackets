@@ -44,7 +44,8 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
+    var DocumentManager     = require("document/DocumentManager"),
+        DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
@@ -65,6 +66,9 @@ define(function HTMLDocumentModule(require, exports, module) {
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
 
+        this.onDocumentSaved = this.onDocumentSaved.bind(this);
+        $(DocumentManager).on("documentSaved", this.onDocumentSaved);
+        
         // Experimental code
         if (LiveDevelopment.config.experimental) {
 
@@ -84,6 +88,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         $(this.editor).off("cursorActivity", this.onCursorActivity);
+        $(DocumentManager).off("documentSaved", this.onDocumentSaved);
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -156,6 +161,14 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
+    /** Triggered when a document is saved */
+    HTMLDocument.prototype.onDocumentSaved = function onDocumentSaved(event, doc) {
+        if (doc === this.doc) {
+            HTMLInstrumentation.scanDocument(this.doc);
+            HTMLInstrumentation._markText(this.editor);
+        }
+    };
+    
     // Export the class
     module.exports = HTMLDocument;
 });
