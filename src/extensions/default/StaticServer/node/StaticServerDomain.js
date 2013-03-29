@@ -171,9 +171,14 @@ maxerr: 50, node: true */
                 // response data is optional
                 if (resData) {
                     // TODO other headers?
-                    var type = mime.lookup(location.pathname);
-                    var charset = mime.charsets.lookup(type);
+                    // HTTP headers
+                    var type    = mime.lookup(location.pathname),
+                        charset = mime.charsets.lookup(type);
+
                     res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
+                    res.setHeader("Content-Length", Buffer.byteLength(resData.body /* TODO encoding? */));
+
+                    // response body
                     res.end(resData.body);
                 }
 
