@@ -155,23 +155,8 @@ a, img {
     white-space: nowrap;
     
     &>div {
-        display: inline;
+        display: inline-block;
         margin-left: 20px;
-        
-        &#busy-indicator {
-            display: inline-block;
-            vertical-align: middle;
-            margin-top: -2px;
-            width: 12px;
-            height: 12px;
-            background: url("images/small_spinner.svg") no-repeat;
-            visibility: hidden;
-        
-            &.spin {
-                -webkit-animation: rotating 1.5s linear infinite;
-                visibility: visible;
-            }
-        }        
     }
 }
 
@@ -314,21 +299,6 @@ a, img {
         .sprite-swap(0,14px);
     }
     display:none;
-}
-
-.jslint-disabled {
-    font-size: 1em;
-    color: @bc-grey;
-}
-
-.jslint-errors {
-    font-size: 1em;
-    color: @bc-red;
-}
-
-.jslint-valid {
-    font-size: 1em;
-    color: lighten(@bc-yellow, @bc-color-step-size*2);
 }
 
 #toolbar-go-live {
@@ -569,7 +539,7 @@ a, img {
         /* remove CodeMirror default height: 300px */
         height: auto;
     }
-    
+        
     .inline-editor-header {
         padding: 10px 10px 0px 10px;
         
@@ -835,4 +805,22 @@ li.smart_autocomplete_highlight {
 
 .quicksearch-namematch {
     font-weight: bold;
+}
+
+
+/* Spinner */
+
+.spinner {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -2px;
+    width: 12px;
+    height: 12px;
+    background: url("images/small_spinner.svg") no-repeat;
+    visibility: hidden;
+
+    &.spin {
+        -webkit-animation: rotating 1.5s linear infinite;
+        visibility: visible;
+    }
 }

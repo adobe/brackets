@@ -33,6 +33,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils       = require("spec/SpecRunnerUtils");
     
     describe("QuickOpen", function () {
+        this.category = "integration";
+        
         var testPath = SpecRunnerUtils.getTestPath("/spec/QuickOpen-test-files");
         var brackets, test$, executeCommand, EditorManager, DocumentManager;
 
@@ -90,7 +92,7 @@ define(function (require, exports, module) {
         // TODO: fix me!
         // This test is currently turned off due to failures on Windows 7
         // See https://github.com/adobe/brackets/issues/2696
-        xit("can open a file and jump to a line, centering that line on the screen", function () {
+        it("can open a file and jump to a line, centering that line on the screen", function () {
             var err = false;
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);

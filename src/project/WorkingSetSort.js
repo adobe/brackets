@@ -38,8 +38,7 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings");
         
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.WorkingSetSort",
-        defaultPrefs = {
+    var defaultPrefs = {
             currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
             automaticSort: false
         };
@@ -349,8 +348,9 @@ define(function (require, exports, module) {
     
     
     // Initialize PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-    
+    _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.WorkingSetSort");
     
     // Initialize items dependent on extensions/workingSet
     AppInit.appReady(function () {

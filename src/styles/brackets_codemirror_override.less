@@ -20,18 +20,21 @@
 
 /* Brackets / CodeMirror Code Formatting */
 
-/*
- * TODO This can be removed next time we update CodeMirror2.
- * Marijn made this change to codemirror.css, but I need it now
- * in order to make font resizing work.
- */
 .CodeMirror pre {
-    line-height: inherit;
     padding: 0 @code-padding;
 }
 
 .CodeMirror-scroll {
     background-color: @background-color-3;
+}
+
+// TODO: Temporary workaround at end of sprint 22 for #3211, which was introduced by
+// https://github.com/marijnh/CodeMirror/commit/4a745fe6680d104ff4c4347617a5964dcb01c46b
+// This just reverts the effect of that commit for now--it doesn't seem to fix an issue
+// we're currently experiencing.
+.CodeMirror-gutter {
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .platform-mac .CodeMirror {
@@ -43,6 +46,10 @@
 }
 
 @code-padding: 15px;
+
+.CodeMirror-focused .CodeMirror-activeline-background {
+    background: @activeline-bgcolor !important; 
+}
 
 .cm-s-default {
     span.cm-keyword {color: @accent-keyword;}
@@ -132,6 +139,10 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
+    .CodeMirror {
+        background: transparent;
+    }
+    
     .CodeMirror span.CodeMirror-matchingbracket {
         /* Ensure visibility against gray inline editor background */
         background-color: @background-color-1;
@@ -165,6 +176,13 @@
     
     .CodeMirror .CodeMirror-vscrollbar, .CodeMirror .CodeMirror-hscrollbar {
         cursor: default;
+    }
+    
+    .CodeMirror-focused .CodeMirror-activeline-background {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2) !important; 
+    }
+    &.CodeMirror-focused .CodeMirror .CodeMirror-activeline-background {
+        background: transparent !important; 
     }
 }
 
