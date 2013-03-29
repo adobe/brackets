@@ -79,8 +79,8 @@ define({
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview liga o {APP_NAME} ao seu navegador. Ele faz uma pré-vizualização do seu ficheiro HTML no navegador, e cada vez que editar o código a pré-vizualização é automáticamente actualizada.<br /><br />Nesta versão inicial do {APP_NAME}, o Live Preview só funciona com a edição de <strong>ficheiros CSS</strong> e apenas com <strong>Google Chrome</strong>. Iremos implementá-lo para HTML e JavaScript em breve!<br /><br />(Só vai ver esta mensagem uma vez.)",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: A ligar...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: A iniciar...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: A ligar\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: A iniciar\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live Preview: Desligar",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Clique para desligar (Guarde o ficheiro para atualizar)",
 
@@ -178,7 +178,7 @@ define({
     "CMD_SELECT_LINE"                     : "Selecionar linha",
     "CMD_FIND"                            : "Encontrar",
     "CMD_FIND_IN_FILES"                   : "Encontrar nos ficheiros",
-    "CMD_FIND_IN_SUBTREE"                 : "Encontrar em...",
+    "CMD_FIND_IN_SUBTREE"                 : "Encontrar em\u2026",
     "CMD_FIND_NEXT"                       : "Encontrar próximo",
     "CMD_FIND_PREVIOUS"                   : "Encontrar anterior",
     "CMD_REPLACE"                         : "Substituir",
