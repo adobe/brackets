@@ -436,7 +436,5 @@ define(function (require, exports, module) {
     exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;
     exports.DIRECTION_HORIZONTAL = DIRECTION_HORIZONTAL;
     exports.POSITION_TOP         = POSITION_TOP;
-    exports.POSITION_BOTTOM      = POSITION_BOTTOM;
-    exports.POSITION_LEFT        = POSITION_LEFT;
     exports.POSITION_RIGHT       = POSITION_RIGHT;
 });
