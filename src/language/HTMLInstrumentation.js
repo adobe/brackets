@@ -25,6 +25,20 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror */
 
+/**
+ * HTMLInstrumentation
+ *
+ * This module contains functions for "instrumenting" html code. Instrumented code
+ * adds a "data-brackets-id" attribute to every tag in the code. The value of this
+ * tag is guaranteed to be unique.
+ *
+ * The primary function is generateInstrumentedHTML(). This does just what it says -
+ * it will read the HTML content in the doc and generate instrumented code by injecting
+ * "data-brackets-id" attributes.
+ *
+ * There are also helper functions for returning the tagID associated with a specified
+ * position in the document.
+ */
 define(function (require, exports, module) {
     "use strict";
 
@@ -32,6 +46,11 @@ define(function (require, exports, module) {
     
     // Unique ID assigned to every tag.
     var _tagID = 1;
+    
+    // Hash of scanned documents. Key is the full path of the doc. Value is an object
+    // with two properties: timestamp and tags. Timestamp is the document timestamp,
+    // tags is an array of tag info with start, length, and tagID properties.
+    var _cachedValues = {};
 
     /**
      * @private
@@ -57,30 +76,19 @@ define(function (require, exports, module) {
     
     /**
      * Scan a document to prepare for HTMLInstrumentation
-     * @param {Document} doc The doc to scan. NOTE: The current implementation requires
-     *                       that this doc has a _masterEditor. This restriction may be
-     *                       lifted in the future.
-     * @return none
+     * @param {Document} doc The doc to scan. 
+     * @return {Array} Array of tag info, or null if no tags were found
      */
     function scanDocument(doc) {
-        if (!doc._masterEditor) {
-            console.error("HTMLInstrumentation.scanDocument() only works with " +
-                          "documents that have a master editor.");
-            return;
+        if (_cachedValues[doc.file.fullPath]) {
+            var cachedValue = _cachedValues[doc.file.fullPath];
+            
+            if (cachedValue.timestamp === doc.diskTimestamp) {
+                return cachedValue.tags;
+            }
         }
         
-        var cm = doc._masterEditor._codeMirror,
-            text = doc.getText();
-        
-        // Remove existing marks
-        var marks = cm.getAllMarks();
-        cm.operation(function () {
-            marks.forEach(function (mark) {
-                if (mark.hasOwnProperty("tagID")) {
-                    mark.clear();
-                }
-            });
-        });
+        var text = doc.getText();
         
         // Scan 
         var tags = [];
@@ -94,7 +102,7 @@ define(function (require, exports, module) {
                     if (/(img|input)/i.test(payload.nodeName)) {
                         tags.push({
                             name:   payload.nodeName,
-                            id:     _tagID++,
+                            tagID:  _tagID++,
                             offset: payload.sourceOffset,
                             length: payload.sourceLength
                         });
@@ -108,7 +116,7 @@ define(function (require, exports, module) {
                         // Unclosed start tag
                         tags.push({
                             name:   startTag.nodeName,
-                            id:     _tagID++,
+                            tagID:  _tagID++,
                             offset: startTag.sourceOffset,
                             length: lastTag.sourceLength + lastTag.sourceOffset - startTag.sourceOffset
                         });
@@ -118,7 +126,7 @@ define(function (require, exports, module) {
                     
                     tags.push({
                         name:   startTag.nodeName,
-                        id:     _tagID++,
+                        tagID:  _tagID++,
                         offset: startTag.sourceOffset,
                         length: payload.sourceLength + payload.sourceOffset - startTag.sourceOffset
                     });
@@ -139,15 +147,14 @@ define(function (require, exports, module) {
             }
             return 1;
         });
-                
-        // Mark
-        tags.forEach(function (tag) {
-            var startPos = cm.posFromIndex(tag.offset),
-                endPos = cm.posFromIndex(tag.offset + tag.length),
-                mark = cm.markText(startPos, endPos);
-            
-            mark.tagID = tag.id;
-        });
+        
+        // Cache results
+        _cachedValues[doc.file.fullPath] = {
+            timestamp: doc.diskTimestamp,
+            tags: tags
+        };
+        
+        return tags;
     }
     
     /**
@@ -155,82 +162,86 @@ define(function (require, exports, module) {
      * attribute with a unique ID for its value. For example, "<div>" becomes something like
      * "<div data-brackets-id='45'>". The attribute value is just a number that is guaranteed
      * to be unique. 
-     * NOTE: The scanDocument() function MUST be called before generating instrumented HTML.
-     * @param {Document} doc The doc to scan. NOTE: The current implementation requires
-     *                       that this doc has a _masterEditor. This restriction may be
-     *                       lifted in the future.
+     * @param {Document} doc The doc to scan. 
      * @return {string} instrumented html content
      */
     function generateInstrumentedHTML(doc) {
-        if (!doc._masterEditor) {
-            console.error("HTMLInstrumentation.generateInstrumentedHTML() " +
-                          "only works with documents that have a master editor.");
-            return;
-        }
-        
-        var cm = doc._masterEditor._codeMirror,
-            marks = cm.getAllMarks(),
+        var tags = scanDocument(doc).slice(),
             gen = doc.getText();
         
-        // Only look at markers that have "tagID"
-        marks = marks.filter(function (mark) {
-            return mark.hasOwnProperty("tagID");
-        });
-        
-        // Make sure markers are sorted by start pos
-        marks.sort(function (a, b) {
-            var posA = a.find().from,
-                posB = b.find().from;
-            
-            if (posA.line === posB.line && posA.ch === posB.ch) {
-                return 0;
-            }
-            
-            if (posA.line < posB.line || (posA.line === posB.line && posA.ch < posB.ch)) {
-                return -1;
-            }
-            
-            return 1;
-        });
-        
-        // Walk through the markers and insert the 'data-brackets-id' attribute at the
+        // Walk through the tags and insert the 'data-brackets-id' attribute at the
         // end of the open tag
-        var mark, insertCount = 0;
-        for (mark = marks.shift(); mark; mark = marks.shift()) {
-            var attrText = " data-brackets-id='" + mark.tagID + "'";
-            var offset = cm.indexFromPos(mark.find().from);
+        var i, insertCount = 0;
+        tags.forEach(function (tag) {
+            var attrText = " data-brackets-id='" + tag.tagID + "'";
 
-            // Find end of tag - NOTE: This does not work if an attribute value contains ">"
-            var insertIndex = gen.indexOf(">", offset + insertCount);
+            // Find end of tag
+            // TODO: This does not work if an attribute value contains ">"
+            var insertIndex = gen.indexOf(">", tag.offset + insertCount);
             if (gen[insertIndex - 1] === "/") {
                 insertIndex--;
             }
             gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
             insertCount += attrText.length;
-        }
+        });
         
         return gen;
     }
     
-    
     /**
-     * Get the instrumented tagID at the specified document position. Returns -1 if
-     * there are no instrumented tags at the location.
-     * NOTE: The scanDocument() function MUST be called first.
-     * @param {Document} doc The doc to scan. NOTE: The current implementation requires
-     *                       that this doc has a _masterEditor. This restriction may be
-     *                       lifted in the future.
-     * @return {number} tagID at the specified position, or -1 if there is no tag
+     * Mark the text for the specified editor. Either the scanDocument() or 
+     * tbe generateInstrumentedHTML() function must be called before this function
+     * is called.
+     *
+     * NOTE: This function is "private" for now (has a leading underscore), since
+     * the API is likely to change in the future.
+     *
+     * @param {Editor} editor The editor whose text should be marked.
+     * @return none
      */
-    function getTagIDAtDocumentPos(doc, pos) {
-        if (!doc._masterEditor) {
-            console.error("HTMLInstrumentation.getTagIDAtDocumentPos() only works with " +
-                          "documents that have a master editor.");
-            return -1;
+    function _markText(editor) {
+        var cm = editor._codeMirror,
+            tags = _cachedValues[editor.document.file.fullPath].tags;
+        
+        if (!tags) {
+            console.error("Couldn't find the tag information for " + editor.document.file.fullPath);
+            return;
         }
         
+        // Remove existing marks
+        var marks = cm.getAllMarks();
+        cm.operation(function () {
+            marks.forEach(function (mark) {
+                if (mark.hasOwnProperty("tagID")) {
+                    mark.clear();
+                }
+            });
+        });
+                
+        // Mark
+        tags.forEach(function (tag) {
+            var startPos = cm.posFromIndex(tag.offset),
+                endPos = cm.posFromIndex(tag.offset + tag.length),
+                mark = cm.markText(startPos, endPos);
+            
+            mark.tagID = tag.tagID;
+        });
+    }
+    
+    /**
+     * Get the instrumented tagID at the specified position. Returns -1 if
+     * there are no instrumented tags at the location.
+     * The _markText() function must be called before calling this function.
+     *
+     * NOTE: This function is "private" for now (has a leading underscore), since
+     * the API is likely to change in the future.
+     *
+     * @param {Editor} editor The editor to scan. 
+     * @return {number} tagID at the specified position, or -1 if there is no tag
+     */
+    function _getTagIDAtDocumentPos(editor, pos) {
         var i,
-            cm = doc._masterEditor._codeMirror,
+            cm = editor.document._masterEditor._codeMirror,
             marks = cm.findMarksAt(pos),
             match;
         
@@ -263,5 +274,6 @@ define(function (require, exports, module) {
     
     exports.scanDocument = scanDocument;
     exports.generateInstrumentedHTML = generateInstrumentedHTML;
-    exports.getTagIDAtDocumentPos = getTagIDAtDocumentPos;
+    exports._markText = _markText;
+    exports._getTagIDAtDocumentPos = _getTagIDAtDocumentPos;
 });
