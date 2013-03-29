@@ -162,6 +162,8 @@ define(function (require, exports, module) {
          */
         function formatHints(hints, query) {
             if (query.length > QUERY_PREFIX_LENGTH) {
+
+                // raise the hints that match on prefix to the top of the list.
                 hints.sort(function (hint1, hint2) {
                     var index1 = hint1.value.toLowerCase().indexOf(query.toLowerCase()),
                         index2 = hint2.value.toLowerCase().indexOf(query.toLowerCase());
@@ -171,7 +173,7 @@ define(function (require, exports, module) {
                     } else if (index1 !== 0 && index2 === 0) {
                         return 1;
                     }
-                    
+
                     return compareByName(hint1, hint2);
                 });
             }
