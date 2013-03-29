@@ -208,21 +208,22 @@ define(function (require, exports, module) {
      * @return {{left: number, top: number}}
      */
     CodeHintList.prototype._calcHintListLocation = function () {
-        var cursor = this.editor._codeMirror.cursorCoords(),
-            posTop  = cursor.top,
-            posLeft = cursor.left,
-            $window = $(window),
-            $menuWindow = this.$hintMenu.children("ul");
+        var cursor      = this.editor._codeMirror.cursorCoords(),
+            posTop      = cursor.bottom,
+            posLeft     = cursor.left,
+            textHeight  = this.editor.getTextHeight(),
+            $window     = $(window),
+            $menuWindow = this.$hintMenu.children("ul"),
+            menuHeight  = $menuWindow.outerHeight();
 
         // TODO Ty: factor out menu repositioning logic so code hints and Context menus share code
         // adjust positioning so menu is not clipped off bottom or right
-        var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
+        var bottomOverhang = posTop + menuHeight - $window.height();
         if (bottomOverhang > 0) {
-            posTop -= (27 + $menuWindow.height());
+            posTop -= (textHeight + 2 + menuHeight);
         }
-        // todo: should be shifted by line height
-        posTop -= 15;   // shift top for hidden parent element
-        //posLeft += 5;
+
+        posTop -= 30;   // shift top for hidden parent element
 
         var rightOverhang = posLeft + $menuWindow.width() - $window.width();
         if (rightOverhang > 0) {

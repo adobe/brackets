@@ -4,9 +4,6 @@
 [submodule "src/thirdparty/path-utils"]
 	path = src/thirdparty/path-utils
 	url = https://github.com/jblas/path-utils.git
-[submodule "src/thirdparty/jslint"]
-	path = src/thirdparty/jslint
-	url = https://github.com/douglascrockford/JSLint.git
 [submodule "src/thirdparty/smart-auto-complete"]
 	path = src/thirdparty/smart-auto-complete
 	url = https://github.com/laktek/jQuery-Smart-Auto-Complete.git
