@@ -313,7 +313,7 @@ define(function (require, exports, module) {
                     query.length == 0 ||
                     (cachedHints.length == 0 && query.length == 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
                     var offset          = session.getOffset(),
-                        scopeResponse   = ScopeManager.getScopeInfo(session, session.editor.document, offset),
+                        scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
                         self            = this;
 
                     if (scopeResponse.hasOwnProperty("promise")) {

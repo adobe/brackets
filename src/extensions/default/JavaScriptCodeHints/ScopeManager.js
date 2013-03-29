@@ -105,9 +105,6 @@ define(function (require, exports, module) {
         if (file !== undefined) {
             if (!fileState[dir].hasOwnProperty(file)) {
                 fileState[dir][file] = {
-                    // global scope object for this file
-                    scope           : null,
-
                     // has the file changed since the scope was updated?
                     dirtyFile       : true,
 
@@ -115,22 +112,7 @@ define(function (require, exports, module) {
                     dirtyScope      : true,
 
                     // is the parser worker active for this file?
-                    active          : false,
-
-                    // all variable and parameter names defined in this file
-                    identifiers     : null,
-
-                    // all property names found in this file
-                    properties      : null,
-
-                    // all globals defined in this file
-                    globals         : null,
-
-                    // all string literals found in this file
-                    literals        : null,
-
-                    // all context-property associations found in this file
-                    associations    : null
+                    active          : false
                 };
             }
         }
@@ -158,118 +140,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Request a new outer scope object from the parser worker, if necessary
-     *
-     * @param {string} dir - the directory name for which the outer scope is to
-     *      be refreshed
-     * @param {string} file - the file name for which the outer scope is to be
-     *      refreshed
-     * @param {string} text - the text of the file for which the outer scope is
-     *      to be refreshed
-     */
-    function refreshOuterScope(dir, file, text) {
-
-        if (text.length > MAX_TEXT_LENGTH) {
-            return;
-        }
-
-        var state = getFileState(dir, file);
-       
-        // if there is not yet an outer scope or if the file has changed then
-        // we might need to update the outer scope
-        if (state.scope === null || state.dirtyFile) {
-            if (!state.active) {
-                var path    = dir + file,
-                    entry   = new NativeFileSystem.FileEntry(path);
-                
-                // the outer scope worker is about to be active
-                state.active = true;
-                
-                // the file will be clean since the last outer scope request
-                state.dirtyFile = false;
-            }
-        }
-        state.text = text;
-    }
-
-    /**
-     * Get inner scope information for a given file and offset if a suitable
-     * global scope object is availble; otherwise, return a promise for such
-     * information, resolved when a suitable global scope object becomes 
-     * available.
-     *
-     * @param {string} dir - the directory name for which the inner scope is to
-     *      be refreshed
-     * @param {string} file - the file name for which the inner scope is to be
-     *      refreshed
-     * @param {number} offset - offset into the text at which the inner scope
-     *      is to be refreshed
-     * @return {Object + jQuery.Promise} - inner scope information, or a promise
-     *      for such information, including the local scope object and lists of
-     *      identifiers, properties, globals, literals and associations.
-     */
-    function refreshInnerScope(dir, file, offset) {
-
-        var state = getFileState(dir, file);
-        
-        // If there is no outer scope, the inner scope request is deferred. 
-        if (!state.scope) {
-            if (pendingRequest && pendingRequest.deferred.state() === "pending") {
-                pendingRequest.deferred.reject();
-            }
-
-            pendingRequest = {
-                dir         : dir,
-                file        : file,
-                offset      : offset,
-                deferred    : $.Deferred()
-            };
-            
-            // Request the outer scope from the parser worker.
-            DocumentManager.getDocumentForPath(dir + file).done(function (document) {
-                refreshOuterScope(dir, file, document.getText());
-            });
-            return { promise: pendingRequest.deferred.promise() };
-        } else {
-            // The inner scope will be clean after this
-            state.dirtyScope = false;
-            
-            // Try to find an inner scope from the current outer scope
-            var innerScope = state.scope.findChild(offset);
-            
-            if (!innerScope) {
-                // we may have failed to find a child scope because a 
-                // character was added to the end of the file, outside of
-                // the (now out-of-date and currently-being-updated) 
-                // outer scope. Hence, if offset is greater than the range
-                // of the outerScope, we manually set innerScope to the
-                // outerScope
-                innerScope = state.scope;
-            }
-            
-            // FIXME: This could be more efficient if instead of filtering
-            // the entire list of identifiers we just used the identifiers
-            // in the scope of innerScope, but that list doesn't have the
-            // accumulated position information.
-            var identifiersForScope = filterByScope(state.identifiers, innerScope),
-                propertiesForFile   = mergeProperties(dir),
-                associationsForFile = mergeAssociations(dir);
-            
-            return {
-                scope       : innerScope,
-                identifiers : identifiersForScope,
-                globals     : state.globals,
-                literals    : state.literals,
-                properties  : propertiesForFile,
-                associations: associationsForFile
-            };
-        }
-    }
-    
-    /**
-     * Get a new inner scope and related info, if possible. If there is no
-     * outer scope for the given file, a promise will be returned instead. 
-     * (See refreshInnerScope above.)
+     * Request hints from Tern.
      *
      * Note that successive calls to getScope may return the same objects, so
      * clients that wish to modify those objects (e.g., by annotating them based
@@ -280,11 +151,10 @@ define(function (require, exports, module) {
      *      desired
      * @param {number} offset - the offset into the document at which scope
      *      info is desired
-     * @return {jQuery.Promise} - A promise that will resolve to the inner scope info.
-     *      The promise will not complete until the scope info is refreshed, and tern has
-     *      computed completions.
+     * @return {jQuery.Promise} - The promise will not complete until the tern
+     *      hints have completed.
      */
-    function getScopeInfo(session, document, offset) {
+    function requestHints(session, document, offset) {
         var path    = document.file.fullPath,
             split   = HintUtils.splitPath(path),
             dir     = split.dir,
@@ -407,7 +277,6 @@ define(function (require, exports, module) {
         
         markFileDirty(dir, file);
 
-
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {
@@ -419,10 +288,7 @@ define(function (require, exports, module) {
                     if (file.indexOf(".") > 1) { // ignore /.dotfiles
                         var mode = LanguageManager.getLanguageForPath(entry.fullPath).getMode();
                         if (mode === HintUtils.MODE_NAME) {
-                            DocumentManager.getDocumentForPath(path).done(function (document) {
-                                refreshOuterScope(dir, file, document.getText());
-                            });
-                            files.push(file);    
+                            files.push(file);
                         }
                     }
                 }
@@ -430,13 +296,12 @@ define(function (require, exports, module) {
             initTernServer(dir, files);
         }, function (err) {
             console.log("Unable to refresh directory: " + err);
-            refreshOuterScope(dir, file, document.getText());
         });
         
     }
 
     /*
-     * Called each time the file associated with the active edtor changes.
+     * Called each time the file associated with the active editor changes.
      * Marks the file as being dirty and refresh its outer scope.
      * 
      * @param {Document} document - the document that has changed
@@ -448,61 +313,6 @@ define(function (require, exports, module) {
             file    = split.file;
         
         markFileDirty(dir, file);
-        refreshOuterScope(dir, file, document.getText());
-    }
-
-    /*
-     * Receive an outer scope object from the parser worker and resolves any
-     * deferred inner scope requests.
-     * 
-     * @param {Object} response - the parser response object, which includes 
-     *      the global scope and lists of identifiers, properties, globals, 
-     *      literals and associations.
-     */
-    function handleOuterScope(response) {
-        var dir     = response.dir,
-            file    = response.file,
-            path    = dir + file,
-            state   = getFileState(dir, file),
-            scopeInfo;
-
-        if (state.active) {
-            state.active = false;
-            if (response.success) {
-                state.scope = Scope.rebuild(response.scope);
-
-                // The outer scope should cover the entire file
-                state.scope.range.start = 0;
-                state.scope.range.end = response.length;
-
-                state.globals = response.globals;
-                state.identifiers = response.identifiers;
-                state.properties = response.properties;
-                state.literals = response.literals;
-                state.associations = response.associations;
-                
-                state.dirtyScope = true;
-
-                if (state.dirtyFile) {
-                    DocumentManager.getDocumentForPath(path).done(function (document) {
-                        refreshOuterScope(dir, file, document.getText());
-                    });
-                }
-
-                if (pendingRequest !== null && pendingRequest.dir === dir &&
-                        pendingRequest.file === file) {
-                    if (pendingRequest.deferred.state() === "pending") {
-                        scopeInfo = refreshInnerScope(dir, file, pendingRequest.offset);
-                        if (scopeInfo && !scopeInfo.deferred) {
-                            pendingRequest.deferred.resolveWith(null, [scopeInfo]);
-                            pendingRequest = null;
-                        }
-                    }
-                }
-            }
-        } else {
-            console.log("Expired scope request: " + path);
-        }
     }
 
     ternWorker.addEventListener("message", function (e) {
@@ -551,7 +361,7 @@ define(function (require, exports, module) {
     
     exports.handleEditorChange = handleEditorChange;
     exports.handleFileChange = handleFileChange;
-    exports.getScopeInfo = getScopeInfo;
+    exports.requestHints = requestHints;
     exports.isScopeDirty = isScopeDirty;
     exports.getTernHints = getTernHints;
 });

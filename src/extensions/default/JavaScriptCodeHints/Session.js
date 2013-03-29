@@ -44,22 +44,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Update the scope information assocated with the current session
-     * 
-     * @param {Object} scopeInfo - scope information, including the scope and
-     *      lists of identifiers, globals, literals and properties, and a set
-     *      of associations
-     */
-    Session.prototype.setScopeInfo = function (scopeInfo) {
-        this.scope = scopeInfo.scope;
-        this.identifiers = scopeInfo.identifiers;
-        this.globals = scopeInfo.globals;
-        this.literals = scopeInfo.literals;
-        this.properties = scopeInfo.properties;
-        this.associations = scopeInfo.associations;
-    };
-
-    /**
      * Get the name of the file associated with the current session
      * 
      * @return {string} - the full pathname of the file associated with the
