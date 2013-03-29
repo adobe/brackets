@@ -173,14 +173,14 @@ define(function (require, exports, module) {
             query   = "";
         
         if (token) {
-            if (token.string !== ".") {
+            if (token.string !== "." && token.string !== "(" && token.string !== ',') {
                 query = token.string.substring(0, token.string.length - (token.end - cursor.ch));
                 query = query.trim();
             }
         }
         return query;
     };
-    
+
     /**
      * Find the context of a property lookup. For example, for a lookup 
      * foo(bar, baz(quux)).prop, foo is the context.

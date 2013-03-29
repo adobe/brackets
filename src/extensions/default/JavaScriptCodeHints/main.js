@@ -130,6 +130,27 @@ define(function (require, exports, module) {
         }
 
         /*
+         * Comparator for sorting tokens by name
+         *
+         * @param {Object} a - a token
+         * @param {Object} b - another token
+         * @return {number} - comparator value that indicates whether the name
+         *      of token a is lexicographically lower than the name of token b
+         */
+        function compareByName(a, b) {
+            var aLowerCase = a.value.toLowerCase();
+            var bLowerCase = b.value.toLowerCase();
+
+            if (aLowerCase === bLowerCase) {
+                return 0;
+            } else if (aLowerCase < bLowerCase) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+
+        /*
          * Returns a formatted list of hints with the query substring
          * highlighted.
          * 
@@ -141,6 +162,8 @@ define(function (require, exports, module) {
          */
         function formatHints(hints, query) {
             if (query.length > QUERY_PREFIX_LENGTH) {
+
+                // raise the hints that match on prefix to the top of the list.
                 hints.sort(function (hint1, hint2) {
                     var index1 = hint1.value.toLowerCase().indexOf(query.toLowerCase()),
                         index2 = hint2.value.toLowerCase().indexOf(query.toLowerCase());
@@ -151,7 +174,7 @@ define(function (require, exports, module) {
                         return 1;
                     }
 
-                    return 0;
+                    return compareByName(hint1, hint2);
                 });
             }
 
