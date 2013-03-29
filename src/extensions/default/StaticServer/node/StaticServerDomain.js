@@ -185,9 +185,14 @@ maxerr: 50, node: true */
             location.hostname = address.address;
             location.port = address.port;
             location.root = path;
+
+            var request = {
+                headers:    req.headers,
+                location:   location
+            };
             
             // dispatch request event
-            _domainManager.emitEvent("staticServer", "requestFilter", [location]);
+            _domainManager.emitEvent("staticServer", "requestFilter", [request]);
             
             // set a timeout if custom responses are not returned
             timeoutId = setTimeout(function () { resume(true); }, _filterRequestTimeout);

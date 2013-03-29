@@ -248,14 +248,15 @@ define(function (require, exports, module) {
                 function () {
                     var $staticServerProvider = $(_staticServerProvider);
                     
-                    $(_nodeConnection).on("staticServer.requestFilter", function (event, location) {
+                    $(_nodeConnection).on("staticServer.requestFilter", function (event, request) {
                         /* create result object to pass to event handlers */
-                        var result = {
-                            location    : location,
-                            send        : _send(location)
+                        var requestData = {
+                            headers     : request.headers,
+                            location    : request.location,
+                            send        : _send(request.location)
                         };
 
-                        $staticServerProvider.triggerHandler("request", [result]);
+                        $staticServerProvider.triggerHandler("request", [requestData]);
                     });
 
                     clearTimeout(connectionTimeout);
