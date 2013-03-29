@@ -80,13 +80,26 @@ define(function (require, exports, module) {
      *          project settings and clicks OK, or rejected if user clicks Cancel.
      */
     function showProjectPreferencesDialog(baseUrl, errorMessage) {
-
-        var $dlg,
-            $title,
-            $baseUrlControl,
+        var $baseUrlControl,
             promise;
+        
+        // Title
+        var projectName = "",
+            projectRoot = ProjectManager.getProjectRoot(),
+            title;
+        if (projectRoot) {
+            projectName = projectRoot.name;
+        }
+        title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
+        
+        var templateVars = $.extend({
+            title        : title,
+            baseUrl      : baseUrl,
+            errorMessage : errorMessage
+        }, Strings);
+        console.log(templateVars, Mustache.render(SettingsDialogTemplate, templateVars));
 
-        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
+        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     var baseUrlValue = $baseUrlControl.val();
@@ -100,32 +113,8 @@ define(function (require, exports, module) {
                 }
             });
 
-        // Populate project settings
-        $dlg = $(".project-settings-dialog.instance");
-
-        // Title
-        $title = $dlg.find(".dialog-title");
-        var projectName = "",
-            projectRoot = ProjectManager.getProjectRoot(),
-            title;
-        if (projectRoot) {
-            projectName = projectRoot.name;
-        }
-        title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
-        $title.text(title);
-
-        // Base URL
-        $baseUrlControl = $dlg.find(".url");
-        if (baseUrl) {
-            $baseUrlControl.val(baseUrl);
-        }
-
-        // Error message
-        if (errorMessage) {
-            $dlg.find(".field-container").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
-        }
-
         // Give focus to first control
+        $baseUrlControl = $(".project-settings-dialog.instance").find(".url");
         $baseUrlControl.focus();
 
         return promise;
