@@ -200,8 +200,10 @@ define(function (require, exports, module) {
      * @return none
      */
     function _markText(editor) {
+        var cache = _cachedValues[editor.document.file.fullPath];
+        
         var cm = editor._codeMirror,
-            tags = _cachedValues[editor.document.file.fullPath].tags;
+            tags = cache && cache.tags;
         
         if (!tags) {
             console.error("Couldn't find the tag information for " + editor.document.file.fullPath);
@@ -241,7 +243,7 @@ define(function (require, exports, module) {
      */
     function _getTagIDAtDocumentPos(editor, pos) {
         var i,
-            cm = editor.document._masterEditor._codeMirror,
+            cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
             match;
         

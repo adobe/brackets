@@ -44,10 +44,11 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
-        HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
-        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
+    var DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
+        HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLInstrumentation = require("language/HTMLInstrumentation"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment");
 
     /** Constructor
      *
@@ -59,7 +60,7 @@ define(function HTMLDocumentModule(require, exports, module) {
             return;
         }
         this.editor = editor;
-
+        HTMLInstrumentation._markText(this.editor);
         this.onCursorActivity = this.onCursorActivity.bind(this);
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
@@ -103,10 +104,17 @@ define(function HTMLDocumentModule(require, exports, module) {
             return;
         }
         var codeMirror = this.editor._codeMirror;
-        if (LiveDevelopment.config.experimental && Inspector.config.highlight) {
-            var location = codeMirror.indexFromPos(codeMirror.getCursor());
-            var node = DOMAgent.allNodesAtLocation(location).pop();
-            HighlightAgent.node(node);
+        if (Inspector.config.highlight) {
+            var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
+                this.editor,
+                codeMirror.getCursor()
+            );
+            
+            if (tagID === -1) {
+                HighlightAgent.hide();
+            } else {
+                HighlightAgent.domElement(tagID);
+            }
         }
     };
 
