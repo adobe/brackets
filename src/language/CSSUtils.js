@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        TokenUtils          = require("utils/TokenUtils");
+        TokenStream         = require("language/TokenStream");
 
     // Constants
     var SELECTOR   = "selector",
@@ -49,18 +49,18 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Checks if the current cursor position is inside the property name context
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * Checks if the current stream position is inside the property name context
+     * @param {TokenStream} stream
      * @return {boolean} true if the context is in property name
      */
-    function _isInPropName(ctx) {
+    function _isInPropName(stream) {
         var state,
             lastToken;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment") {
+        if (!stream || !stream.token || !stream.token.state || stream.token.className === "comment") {
             return false;
         }
 
-        state = ctx.token.state.localState || ctx.token.state;
+        state = stream.token.state.localState || stream.token.state;
         
         if (!state.stack || state.stack.length < 1) {
             return false;
@@ -72,18 +72,18 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Checks if the current cursor position is inside the property value context
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * Checks if the current stream position is inside the property value context
+     * @param {TokenStream} stream
      * @return {boolean} true if the context is in property value
      */
-    function _isInPropValue(ctx) {
+    function _isInPropValue(stream) {
         var state;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment" ||
-                ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
+        if (!stream || !stream.token || !stream.token.state || stream.token.className === "comment" ||
+                stream.token.className === "property" || stream.token.className === "property error" || stream.token.className === "tag") {
             return false;
         }
 
-        state = ctx.token.state.localState || ctx.token.state;
+        state = stream.token.state.localState || stream.token.state;
         
         if (!state.stack || state.stack.length < 2) {
             return false;
@@ -126,25 +126,23 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Scans backwards from the current context and returns the name of the property if there is 
-     * a valid one. 
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * Scans backwards and returns the name of the property if there is a valid one.
+     * @param {TokenStream} stream - positioned in the property's value
      * @return {string} the property name of the current rule.
      */
-    function _getPropNameStartingFromPropValue(ctx) {
-        var ctxClone = $.extend({}, ctx);
+    function _getPropNameStartingFromPropValue(stream) {
         do {
             // If we get a property name or "{" or ";" before getting a colon, then we don't 
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.className === "property" || ctxClone.token.className === "property error" ||
-                    ctxClone.token.string === "{" || ctxClone.token.string === ";") {
+            if (stream.token.className === "property" || stream.token.className === "property error" ||
+                    stream.token.string === "{" || stream.token.string === ";") {
                 return "";
             }
-        } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
+        } while (stream.token.string !== ":" && stream.prevSkipWs());
         
-        if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
-                (ctxClone.token.className === "property" || ctxClone.token.className === "property error")) {
-            return ctxClone.token.string;
+        if (stream.token.string === ":" && stream.prevSkipWs() &&
+                (stream.token.className === "property" || stream.token.className === "property error")) {
+            return stream.token.string;
         }
         
         return "";
@@ -152,29 +150,29 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Gets all of the space/comma seperated tokens before the the current cursor position.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
-     * @return {?Array.<string>} An array of all the space/comma seperated tokens before the
-     *    current cursor position
+     * Scans backwards and returns all of the space/comma separated tokens before the current stream position.
+     * @param {TokenStream} stream - positioned somewhere in a property value
+     * @return {?Array.<string>} An array of all the space/comma separated tokens before the
+     *    current stream position
      */
-    function _getPrecedingPropValues(ctx) {
+    function _getPrecedingPropValues(stream) {
         var lastValue = "",
             curValue,
             propValues = [];
-        while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
-                    ctx.token.string === ":" || ctx.token.string === "{" ||
-                    ctx.token.string === ";") {
+        while (stream.token.string !== ":" && stream.prev()) {
+            if (stream.token.className === "property" || stream.token.className === "property error" || stream.token.className === "tag" ||
+                    stream.token.string === ":" || stream.token.string === "{" ||
+                    stream.token.string === ";") {
                 break;
             }
 
-            curValue = ctx.token.string;
+            curValue = stream.token.string;
             if (lastValue !== "") {
                 curValue += lastValue;
             }
 
-            if ((ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) ||
-                    ctx.token.string === ",") {
+            if ((stream.token.string.length > 0 && !stream.token.string.match(/\S/)) ||
+                    stream.token.string === ",") {
                 lastValue = curValue;
             } else {
                 lastValue = "";
@@ -198,44 +196,44 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Gets all of the space/comma seperated tokens after the the current cursor position.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * Scans forwards and returns all of the space/comma separated tokens after the the current stream position.
+     * @param {TokenStream} stream - positioned somewhere in a property value
      * @param {string} currentValue The token string at the current cursor position
-     * @return {?Array.<string>} An array of all the space/comma seperated tokens after the
-     *    current cursor position
+     * @return {?Array.<string>} An array of all the space/comma separated tokens after the
+     *    current stream position
      */
-    function _getSucceedingPropValues(ctx, currentValue) {
+    function _getSucceedingPropValues(stream, currentValue) {
         var lastValue = currentValue,
             curValue,
             propValues = [];
         
-        while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
-            if (ctx.token.string === ";" || ctx.token.string === "}") {
+        while (stream.token.string !== ";" && stream.next()) {
+            if (stream.token.string === ";" || stream.token.string === "}") {
                 break;
             }
             // If we're already in the next rule, then we don't want to add the last value
             // since it is the property name of the next rule.
-            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
-                    ctx.token.string === ":") {
+            if (stream.token.className === "property" || stream.token.className === "property error" || stream.token.className === "tag" ||
+                    stream.token.string === ":") {
                 lastValue = "";
                 break;
             }
             
             if (lastValue === "") {
-                lastValue = ctx.token.string.trim();
+                lastValue = stream.token.string.trim();
             } else if (lastValue.length > 0) {
-                if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
-                    lastValue += ctx.token.string;
+                if (stream.token.string.length > 0 && !stream.token.string.match(/\S/)) {
+                    lastValue += stream.token.string;
                     propValues.push(lastValue);
                     lastValue = "";
-                } else if (ctx.token.string === ",") {
-                    lastValue += ctx.token.string;
+                } else if (stream.token.string === ",") {
+                    lastValue += stream.token.string;
                 } else if (lastValue && lastValue.match(/,$/)) {
                     propValues.push(lastValue);
                     lastValue = "";
                 } else {
                     // e.g. "rgba(50" gets broken into 2 tokens
-                    lastValue += ctx.token.string;
+                    lastValue += stream.token.string;
                 }
             }
         }
@@ -249,7 +247,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Returns a context info object for the current CSS rule
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {TokenStream} stream - positioned somewhere in a property value
      * @param {!Editor} editor
      * @return {{context: string,
      *           offset: number,
@@ -258,51 +256,43 @@ define(function (require, exports, module) {
      *           values: Array.<string>,
      *           isNewItem: boolean}} A CSS context info object.
      */
-    function _getRuleInfoStartingFromPropValue(ctx, editor) {
-        var propNamePos = $.extend({}, ctx.pos),
-            backwardPos = $.extend({}, ctx.pos),
-            forwardPos  = $.extend({}, ctx.pos),
-            propNameCtx = TokenUtils.getInitialContext(editor._codeMirror, propNamePos),
-            backwardCtx,
-            forwardCtx,
-            lastValue = "",
+    function _getRuleInfoStartingFromPropValue(stream, editor) {
+        var lastValue = "",
             propValues = [],
             index = -1,
-            offset = TokenUtils.offsetInToken(ctx),
+            offset = stream.getOffsetFromTokenStart(),
             canAddNewOne = false,
-            testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-            testToken = editor._codeMirror.getTokenAt(testPos),
+            testToken = stream.maybePeek(),
             propName;
         
         // Get property name first. If we don't have a valid property name, then 
         // return a default rule info.
-        propName = _getPropNameStartingFromPropValue(propNameCtx);
+        propName = _getPropNameStartingFromPropValue(stream.clone());
         if (!propName) {
             return createInfo();
         }
         
         // Scan backward to collect all preceding property values
-        backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, backwardPos);
-        propValues = _getPrecedingPropValues(backwardCtx);
+        propValues = _getPrecedingPropValues(stream.clone());
 
         lastValue = "";
-        if (ctx.token.string === ":") {
+        if (stream.token.string === ":") {
             index = 0;
             canAddNewOne = true;
         } else {
             index = propValues.length - 1;
-            if (ctx.token.string === ",") {
-                propValues[index] += ctx.token.string;
+            if (stream.token.string === ",") {
+                propValues[index] += stream.token.string;
                 index++;
                 canAddNewOne = true;
             } else {
                 index = (index < 0) ? 0 : index + 1;
-                lastValue = ctx.token.string.trim();
+                lastValue = stream.token.string.trim();
                 if (lastValue.length === 0) {
                     canAddNewOne = true;
                     if (index > 0) {
                         // Append all spaces before the cursor to the previous value in values array
-                        propValues[index - 1] += ctx.token.string.substr(0, offset);
+                        propValues[index - 1] += stream.token.string.substr(0, offset);
                     }
                 }
             }
@@ -312,15 +302,14 @@ define(function (require, exports, module) {
             offset = 0;
 
             // If pos is at EOL, then there's implied whitespace (newline).
-            if (editor.document.getLine(ctx.pos.line).length > ctx.pos.ch  &&
+            if (editor.document.getLine(stream.pos.line).length > stream.pos.ch  &&
                     (testToken.string.length === 0 || testToken.string.match(/\S/))) {
                 canAddNewOne = false;
             }
         }
         
         // Scan forward to collect all succeeding property values and append to all propValues.
-        forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
-        propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
+        propValues = propValues.concat(_getSucceedingPropValues(stream.clone(), lastValue));
         
         // If current index is more than the propValues size, then the cursor is 
         // at the end of the existing property values and is ready for adding another one.
@@ -343,11 +332,8 @@ define(function (require, exports, module) {
      *           isNewItem: boolean}} A CSS context info object.
      */
     function getInfoAtPos(editor, constPos) {
-        // We're going to be changing pos a lot, but we don't want to mess up
-        // the pos the caller passed in so we use extend to make a safe copy of it.	
-        var pos = $.extend({}, constPos),
-            ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            offset = TokenUtils.offsetInToken(ctx),
+        var stream = TokenStream.forEditor(editor, constPos),
+            offset = stream.getOffsetFromTokenStart(),
             propName = "",
             mode = editor.getModeForSelection();
         
@@ -356,17 +342,16 @@ define(function (require, exports, module) {
             return createInfo();
         }
 
-        if (_isInPropName(ctx)) {
-            if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
-                var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-                    testToken = editor._codeMirror.getTokenAt(testPos);
+        if (_isInPropName(stream)) {
+            if (stream.token.string.length > 0 && !stream.token.string.match(/\S/)) {
+                var testToken = stream.maybePeek();
                 
                 if (testToken.className === "property" || testToken.className === "property error" || testToken.className === "tag") {
                     propName = testToken.string;
                     offset = 0;
                 }
-            } else if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
-                propName = ctx.token.string;
+            } else if (stream.token.className === "property" || stream.token.className === "property error" || stream.token.className === "tag") {
+                propName = stream.token.string;
             }
             
             // If we're in property name context but not in an existing property name, 
@@ -378,8 +363,8 @@ define(function (require, exports, module) {
             return createInfo(PROP_NAME, offset, propName);
         }
         
-        if (_isInPropValue(ctx)) {
-            return _getRuleInfoStartingFromPropValue(ctx, editor);
+        if (_isInPropValue(stream)) {
+            return _getRuleInfoStartingFromPropValue(stream, editor);
         }
                     
         return createInfo();
@@ -926,8 +911,7 @@ define(function (require, exports, module) {
      *          selector string is returned.
      */
     function findSelectorAtDocumentPos(editor, pos) {
-        var cm = editor._codeMirror;
-        var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        var stream = TokenStream.forEditor(editor, pos);
         var selector = "", inSelector = false, foundChars = false;
 
         function _stripAtRules(selector) {
@@ -938,23 +922,23 @@ define(function (require, exports, module) {
             return selector;
         }
         
-        // Parse a selector. Assumes ctx is pointing at the opening
+        // Parse a selector. Assumes stream is pointing at the opening
         // { that is after the selector name.
-        function _parseSelector(ctx) {
+        function _parseSelector(stream) {
             var selector = "";
             
             // Skip over {
-            TokenUtils.movePrevToken(ctx);
+            stream.prev();
             
             while (true) {
-                if (ctx.token.className !== "comment") {
+                if (stream.token.className !== "comment") {
                     // Stop once we've reached a {, }, or ;
-                    if (/[\{\}\;]/.test(ctx.token.string)) {
+                    if (/[\{\}\;]/.test(stream.token.string)) {
                         break;
                     }
-                    selector = ctx.token.string + selector;
+                    selector = stream.token.string + selector;
                 }
-                if (!TokenUtils.movePrevToken(ctx)) {
+                if (!stream.prev()) {
                     break;
                 }
             }
@@ -964,20 +948,20 @@ define(function (require, exports, module) {
         
         // scan backwards to see if the cursor is in a rule
         while (true) {
-            if (ctx.token.className !== "comment") {
-                if (ctx.token.string === "}") {
+            if (stream.token.className !== "comment") {
+                if (stream.token.string === "}") {
                     break;
-                } else if (ctx.token.string === "{") {
-                    selector = _parseSelector(ctx);
+                } else if (stream.token.string === "{") {
+                    selector = _parseSelector(stream);
                     break;
                 } else {
-                    if (ctx.token.string.trim() !== "") {
+                    if (stream.token.string.trim() !== "") {
                         foundChars = true;
                     }
                 }
             }
             
-            if (!TokenUtils.movePrevToken(ctx)) {
+            if (!stream.prev()) {
                 break;
             }
         }
@@ -985,14 +969,14 @@ define(function (require, exports, module) {
         selector = _stripAtRules(selector);
         
         // Reset the context to original scan position
-        ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        stream = TokenStream.forEditor(editor, pos);
         
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace
         if (!selector && !foundChars) {
-            if (TokenUtils.moveNextToken(ctx) && ctx.token.className !== "comment" && ctx.token.string.trim() !== "") {
+            if (stream.next() && stream.token.className !== "comment" && stream.token.string.trim() !== "") {
                 foundChars = true;
-                ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+                stream = TokenStream.forEditor(editor, pos);
             }
         }
         
@@ -1001,15 +985,15 @@ define(function (require, exports, module) {
         if (!selector && foundChars) {
             // scan forward to see if the cursor is in a selector
             while (true) {
-                if (ctx.token.className !== "comment") {
-                    if (ctx.token.string === "{") {
-                        selector = _parseSelector(ctx);
+                if (stream.token.className !== "comment") {
+                    if (stream.token.string === "{") {
+                        selector = _parseSelector(stream);
                         break;
-                    } else if (ctx.token.string === "}" || ctx.token.string === ";") {
+                    } else if (stream.token.string === "}" || stream.token.string === ";") {
                         break;
                     }
                 }
-                if (!TokenUtils.moveNextToken(ctx)) {
+                if (!stream.next()) {
                     break;
                 }
             }

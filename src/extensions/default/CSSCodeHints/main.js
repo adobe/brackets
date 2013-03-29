@@ -7,7 +7,7 @@ define(function (require, exports, module) {
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        TokenStream         = brackets.getModule("language/TokenStream"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
     
@@ -144,7 +144,7 @@ define(function (require, exports, module) {
             keepHints = false,
             adjustCursor = false,
             newCursor,
-            ctx;
+            stream;
         
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
@@ -166,13 +166,13 @@ define(function (require, exports, module) {
                 // the current property name. If a colon already exists, then we also 
                 // adjust the cursor position and show code hints for property values.
                 end.ch = start.ch + this.info.name.length;
-                ctx = TokenUtils.getInitialContext(this.editor._codeMirror, cursor);
-                if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+                stream = TokenStream.forEditor(this.editor, cursor);
+                if (stream.token.string.length > 0 && !stream.token.string.match(/\S/)) {
                     // We're at the very beginning of a property name. So skip it 
                     // before we locate the colon following it.
-                    TokenUtils.moveNextToken(ctx);
+                    stream.next();
                 }
-                if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ":") {
+                if (stream.nextSkipWs() && stream.token.string === ":") {
                     adjustCursor = true;
                     newCursor = { line: cursor.line,
                                   ch: cursor.ch + (hint.length - this.info.name.length) };
