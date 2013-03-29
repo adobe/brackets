@@ -177,7 +177,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
-	"CMD_INSTALL_EXTENSION"               : "Instalovat doplňky...",	
+    "CMD_INSTALL_EXTENSION"               : "Instalovat doplňky\u2026",
     "CMD_QUIT"                            : "Konec",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Konec",   
@@ -309,10 +309,10 @@ define({
     "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
     "INSTALL_EXTENSION_LABEL"              : "URL adresa doplňku",
     "INSTALL_EXTENSION_HINT"               : "URL adresa zip archivu nebo GitHub repozitáře",
-    "INSTALLING_FROM"                      : "Instalace doplňku z {0}...",
+    "INSTALLING_FROM"                      : "Instalace doplňku z {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Instalace byla úspěšná!",
     "INSTALL_FAILED"                       : "Instalace se nezdařila.",
-    "CANCELING_INSTALL"                    : "Rušení instalace...",
+    "CANCELING_INSTALL"                    : "Rušení instalace\u2026",
     "CANCELING_HUNG"                       : "Rušení instalace trvá dlouho. Mohlo dojít k interní chybě.",
     "INSTALL_CANCELED"                     : "Instalace zrušena.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
