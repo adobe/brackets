@@ -170,10 +170,17 @@ maxerr: 50, node: true */
 
                 // response data is optional
                 if (resData) {
-                    // TODO other headers?
-                    var type = mime.lookup(location.pathname);
-                    var charset = mime.charsets.lookup(type);
+                    // HTTP headers
+                    var type    = mime.lookup(location.pathname),
+                        charset = mime.charsets.lookup(type);
+
                     res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
+
+                    // TODO (jasonsanjose): off-by-1 error here, why?
+                    // Chrome seems to handle the request without issues when Content-Length is not specified
+                    //res.setHeader("Content-Length", Buffer.byteLength(resData.body /* TODO encoding? */));
+
+                    // response body
                     res.end(resData.body);
                 }
 
@@ -185,9 +192,14 @@ maxerr: 50, node: true */
             location.hostname = address.address;
             location.port = address.port;
             location.root = path;
+
+            var request = {
+                headers:    req.headers,
+                location:   location
+            };
             
             // dispatch request event
-            _domainManager.emitEvent("staticServer", "requestFilter", [location]);
+            _domainManager.emitEvent("staticServer", "requestFilter", [request]);
             
             // set a timeout if custom responses are not returned
             timeoutId = setTimeout(function () { resume(true); }, _filterRequestTimeout);
@@ -303,18 +315,19 @@ maxerr: 50, node: true */
         if (callback) {
             callback(resData);
         } else {
-            console.log("writeFilteredResponse: Missing callback for %s. This command must only be called after a requestFilter event has fired for a path.", pathJoin(root, path));
+            console.warn("writeFilteredResponse: Missing callback for %s. This command must only be called after a requestFilter event has fired for a path.", pathJoin(root, path));
         }
     }
 
     /**
      * @private
-     * Unit tests only. Set timeout value for filtered requests.
+     * Unit tests only. Set, or reset, timeout value for filtered requests.
      *
-     * @param {number} timeout Duration to wait before passing a filtered request to the static file server.
+     * @param {number=} timeout Duration to wait before passing a filtered request to the static file server.
+     *     If omitted, timeout is reset to FILTER_REQUEST_TIMEOUT (5s).
      */
     function _cmdSetRequestFilterTimeout(timeout) {
-        timeout = (timeout > 0) ? timeout : FILTER_REQUEST_TIMEOUT;
+        timeout = (timeout === undefined) ? FILTER_REQUEST_TIMEOUT : timeout;
         _filterRequestTimeout = timeout;
     }
     

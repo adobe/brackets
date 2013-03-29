@@ -258,7 +258,7 @@ define(function (require, exports, module) {
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
                                  "waiting for static server to close");
 
-                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(-1), "restore request filter timeout");
+                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(), "restore request filter timeout");
                 });
             });
             
