@@ -37,12 +37,14 @@ maxerr: 50, node: true */
     
     var _domainManager;
 
+    var FILTER_REQUEST_TIMEOUT = 5000;
+
     /**
      * @private
      * @type {number}
      * Duration to wait before passing a filtered request to the static file server.
      */
-    var _filterRequestTimeout = 5000;
+    var _filterRequestTimeout = FILTER_REQUEST_TIMEOUT;
 
     /**
      * When Chrome has a css stylesheet replaced over live development,
@@ -300,6 +302,8 @@ maxerr: 50, node: true */
 
         if (callback) {
             callback(resData);
+        } else {
+            console.log("writeFilteredResponse: Missing callback for %s. This command must only be called after a requestFilter event has fired for a path.", pathJoin(root, path));
         }
     }
 
@@ -310,6 +314,7 @@ maxerr: 50, node: true */
      * @param {number} timeout Duration to wait before passing a filtered request to the static file server.
      */
     function _cmdSetRequestFilterTimeout(timeout) {
+        timeout = (timeout > 0) ? timeout : FILTER_REQUEST_TIMEOUT;
         _filterRequestTimeout = timeout;
     }
     

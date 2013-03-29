@@ -205,7 +205,7 @@ define(function (require, exports, module) {
                     location,
                     self = this,
                     elapsed,
-                    timeout = 1234;
+                    timeout = 500;
                 
                 runs(function () {
                     nodeConnection.domains.staticServer.getServer(path)
@@ -224,15 +224,15 @@ define(function (require, exports, module) {
 
                         // Do not call request.send() in order to hit timeout
                     });
-
-                    // remove event handler
-                    self.after(function() { $(provider).off(".test"); });
                     
                     // listen for /index.txt requests
                     waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
 
                     // set a custom timeout
                     waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(timeout));
+
+                    // remove event handler and timeout
+                    self.after(function() { $(provider).off(".test"); });
                 });
 
                 runs(function () {
@@ -257,6 +257,8 @@ define(function (require, exports, module) {
                     
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
                                  "waiting for static server to close");
+
+                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(-1), "restore request filter timeout");
                 });
             });
             
@@ -289,6 +291,7 @@ define(function (require, exports, module) {
 
                     // remove event handler
                     self.after(function() { $(provider).off(".test"); });
+
                     
                     // listen for /index.txt requests
                     waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));

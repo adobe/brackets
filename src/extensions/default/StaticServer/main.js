@@ -52,6 +52,12 @@ define(function (require, exports, module) {
      */
     var _nodeConnectionDeferred = $.Deferred();
     
+    /**
+     * @private
+     * @type {NodeConnection}
+     */
+    var _nodeConnection = new NodeConnection();
+    
     var _baseUrl = "";
 
     /**
@@ -90,7 +96,7 @@ define(function (require, exports, module) {
      */
     StaticServerProvider.prototype.canServe = function (localPath) {
 
-        if (!_nodeConnectionDeferred.isResolved()) {
+        if (!_nodeConnection.connected()) {
             return false;
         }
         
@@ -132,40 +138,34 @@ define(function (require, exports, module) {
         var readyToServeDeferred = $.Deferred(),
             self = this;
 
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                self.root = ProjectManager.getProjectRoot().fullPath;
+        if (_nodeConnection.connected()) {
+            self.root = ProjectManager.getProjectRoot().fullPath;
 
-                nodeConnection.domains.staticServer.getServer(self.root).done(function (address) {
-                    _baseUrl = "http://" + address.address + ":" + address.port + "/";
-                    readyToServeDeferred.resolve();
-                }).fail(function () {
-                    _baseUrl = "";
-                    readyToServeDeferred.reject();
-                });
-            } else {
-                // nodeConnection has been connected once (because the deferred
-                // resolved, but is not currently connected).
-                //
-                // If we are in this case, then the node process has crashed
-                // and is in the process of restarting. Once that happens, the
-                // node connection will automatically reconnect and reload the
-                // domain. Unfortunately, we don't have any promise to wait on
-                // to know when that happens. The best we can do is reject this
-                // readyToServe so that the user gets an error message to try
-                // again later.
-                //
-                // The user will get the error immediately in this state, and
-                // the new node process should start up in a matter of seconds
-                // (assuming there isn't a more widespread error). So, asking
-                // them to retry in a second is reasonable.
+            _nodeConnection.domains.staticServer.getServer(self.root).done(function (address) {
+                _baseUrl = "http://" + address.address + ":" + address.port + "/";
+                readyToServeDeferred.resolve();
+            }).fail(function () {
+                _baseUrl = "";
                 readyToServeDeferred.reject();
-            }
-        });
-        
-        _nodeConnectionDeferred.fail(function () {
+            });
+        } else {
+            // nodeConnection has been connected once (because the deferred
+            // resolved, but is not currently connected).
+            //
+            // If we are in this case, then the node process has crashed
+            // and is in the process of restarting. Once that happens, the
+            // node connection will automatically reconnect and reload the
+            // domain. Unfortunately, we don't have any promise to wait on
+            // to know when that happens. The best we can do is reject this
+            // readyToServe so that the user gets an error message to try
+            // again later.
+            //
+            // The user will get the error immediately in this state, and
+            // the new node process should start up in a matter of seconds
+            // (assuming there isn't a more widespread error). So, asking
+            // them to retry in a second is reasonable.
             readyToServeDeferred.reject();
-        });
+        }
         
         return readyToServeDeferred.promise();
     };
@@ -179,9 +179,11 @@ define(function (require, exports, module) {
     StaticServerProvider.prototype.setRequestFilterPaths = function (paths) {
         var self = this;
 
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            nodeConnection.domains.staticServer.setRequestFilterPaths(self.root, paths);
-        });
+        if (_nodeConnection.connected()) {
+            return _nodeConnection.domains.staticServer.setRequestFilterPaths(self.root, paths);
+        }
+
+        return new $.Deferred().reject().promise();
     };
 
     /**
@@ -190,9 +192,11 @@ define(function (require, exports, module) {
      */
     function _send(location) {
         return function (resData) {
-            _nodeConnectionDeferred.done(function (nodeConnection) {
-                nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, resData);
-            });
+            if (_nodeConnection.connected()) {
+                return _nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, resData);
+            }
+
+            return new $.Deferred().reject().promise();
         };
     }
 
@@ -236,7 +240,6 @@ define(function (require, exports, module) {
             _nodeConnectionDeferred.reject();
         }, NODE_CONNECTION_TIMEOUT);
         
-        var _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
             _nodeConnection.loadDomains(
                 [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
