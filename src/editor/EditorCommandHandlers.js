@@ -53,17 +53,17 @@ define(function (require, exports, module) {
      * @param {string} blockSyntax - a block comment prefix or suffix
      */
     function _createSpecialLineExp(lineSyntax, blockSyntax) {
-        var i, char,
+        var i, character,
             notExps   = [],
             prevChars = "";
         
         for (i = lineSyntax.length; i < blockSyntax.length; i++) {
-            char = blockSyntax.charAt(i);
-            notExps.push(prevChars + "[^" + char + "]");
+            character = blockSyntax.charAt(i);
+            notExps.push(prevChars + "[^" + character + "]");
             if (prevChars) {
                 notExps.push(prevChars + "$");
             }
-            prevChars += char;
+            prevChars += character;
         }
         return new RegExp("^\\s*" + lineSyntax + "($|" + notExps.join("|") + ")");
     }
