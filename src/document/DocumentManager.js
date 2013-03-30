@@ -96,11 +96,6 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager");
     
     /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
-    
-    /**
      * @private
      * @see DocumentManager.getCurrentDocument()
      */
@@ -1261,7 +1256,7 @@ define(function (require, exports, module) {
     exports.notifyPathNameChanged       = notifyPathNameChanged;
 
     // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    _prefs = PreferencesManager.getPreferenceStorage(module);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.DocumentManager");
     

@@ -76,8 +76,8 @@ define({
     "LIVE_DEVELOPMENT_INFO_MESSAGE" : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Preview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live Preview: Kobler til...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live Preview: Initaliserer...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live Preview: Kobler til\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live Preview: Initaliserer\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live Preview",
 
     "SAVE_CLOSE_TITLE" : "Lagre endringer",
