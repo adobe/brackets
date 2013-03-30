@@ -125,7 +125,13 @@ define(function (require, exports, module) {
      * @ see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
-
+    
+    /**
+     * @private
+     * @see renameItemInline()
+     */
+    var _isRenaming = false;
+    
     /**
      * @private
      * @type {PreferenceStorage}
@@ -1269,12 +1275,19 @@ define(function (require, exports, module) {
      * @param {!Entry} entry FileEntry or DirectoryEntry to rename
      */
     function renameItemInline(entry) {
+        // Dont try to rename again if we are already renaming
+        if (_isRenaming) {
+            return;
+        }
+        
         // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
         showInTree(entry)
             .done(function (selected) {
                 var isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
         
                 _projectTree.one("rename.jstree", function (event, data) {
+                    _isRenaming = false;
+                    
                     // Make sure the file was actually renamed
                     if (data.rslt.old_name === data.rslt.new_name) {
                         return;
@@ -1317,6 +1330,7 @@ define(function (require, exports, module) {
                         });
                 });
                 _projectTree.jstree("rename");
+                _isRenaming = true;
             });
         // No fail handler: silently no-op if file doesn't exist in tree
     }
