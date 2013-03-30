@@ -436,11 +436,11 @@ define(function (require, exports, module) {
         });
     });
     
-    exports.makeResizable        = makeResizable;
-    exports.toggle               = toggle;
-    exports.show                 = show;
-    exports.hide                 = hide;
-    exports.visible              = visible;
+    exports.makeResizable   = makeResizable;
+    exports.toggle          = toggle;
+    exports.show            = show;
+    exports.hide            = hide;
+    exports.visible         = visible;
     
     //Resizer Constants
     exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;
