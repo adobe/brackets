@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, $ */
 
 
@@ -48,33 +48,47 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Creates regular expressions for multiple line comment prefixes
-     * @param {!Array.<string>} prefixes - the line comment prefixes
-     * @return {Array.<RegExp>}
+     * Creates special regular expressions that matches the line prefix but not the block prefix or suffix
+     * @param {string} lineSyntax - a line comment prefix
+     * @param {string} blockSyntax - a block comment prefix or suffix
      */
-    function _createLineExpressions(prefixes) {
-        var lineExp = [];
-        prefixes.forEach(function (prefix) {
-            lineExp.push(new RegExp("^\\s*" + StringUtils.regexEscape(prefix)));
-        });
-        return lineExp;
+    function _createSpecialLineExp(lineSyntax, blockSyntax) {
+        var i, char,
+            notExps   = [],
+            prevChars = "";
+        
+        for (i = lineSyntax.length; i < blockSyntax.length; i++) {
+            char = blockSyntax.charAt(i);
+            notExps.push(prevChars + "[^" + char + "]");
+            if (prevChars) {
+                notExps.push(prevChars + "$");
+            }
+            prevChars += char;
+        }
+        return new RegExp("^\\s*" + lineSyntax + "($|" + notExps.join("|") + ")");
     }
     
     /**
      * @private
-     * Creates regular expressions for the block comment prefix and suffix
-     * @param {!string} prefixes - the block comment prefix
-     * @param {!string} prefixes - the block comment suffix
+     * Creates regular expressions for multiple line comment prefixes
+     * @param {!Array.<string>} prefixes - the line comment prefixes
      * @return {Array.<RegExp>}
      */
-    function _createBlockExpressions(prefix, suffix) {
-        if (prefix) {
-            return [
-                new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
-                new RegExp(StringUtils.regexEscape(suffix) + "$", "g")
-            ];
-        }
-        return [];
+    function _createLineExpressions(prefixes, blockPrefix, blockSuffix) {
+        var lineExp = [], escapedPrefix, regExp;
+        
+        prefixes.forEach(function (prefix) {
+            escapedPrefix = StringUtils.regexEscape(prefix);
+            if (blockPrefix && blockPrefix.indexOf(prefix) === 0) {
+                regExp = _createSpecialLineExp(prefix, blockPrefix);
+            } else if (blockSuffix && blockSuffix.indexOf(prefix) === 0) {
+                regExp = _createSpecialLineExp(prefix, blockSuffix);
+            } else {
+                regExp = new RegExp("^\\s*" + escapedPrefix);
+            }
+            lineExp.push(regExp);
+        });
+        return lineExp;
     }
     
     /**
@@ -117,23 +131,22 @@ define(function (require, exports, module) {
      * @param {!number} startLine - valid line inside the document
      * @param {!number} endLine - valid line inside the document
      * @param {!Array.<RegExp>} lineExp - an array of line comment prefixes regular expressions
-     * @param {!Array.<RegExp>} blockExp - a prefix and a suffix block comment regular expressions
      * @return {boolean} true if there is at least one uncommented line
      */
-    function _containsUncommented(editor, startLine, endLine, lineExp, blockExp) {
-        var containsUncommented = false;
+    function _containsNotLineComment(editor, startLine, endLine, lineExp) {
+        var containsNotLineComment = false;
         var i;
         var line;
         
         for (i = startLine; i <= endLine; i++) {
             line = editor.document.getLine(i);
             // A line is commented out if it starts with 0-N whitespace chars, then a line comment prefix
-            if ((line.match(/\S/) && !_matchExpressions(line, lineExp)) || _matchExpressions(line.trim(), blockExp)) {
-                containsUncommented = true;
+            if ((line.match(/\S/) && !_matchExpressions(line, lineExp))) {
+                containsNotLineComment = true;
                 break;
             }
         }
-        return containsUncommented;
+        return containsNotLineComment;
     }
     
     /**
@@ -154,8 +167,7 @@ define(function (require, exports, module) {
             sel       = editor.getSelection(),
             startLine = sel.start.line,
             endLine   = sel.end.line,
-            lineExp   = _createLineExpressions(prefixes),
-            blockExp  = _createBlockExpressions(blockPrefix, blockSuffix);
+            lineExp   = _createLineExpressions(prefixes, blockPrefix, blockSuffix);
         
         // Is a range of text selected? (vs just an insertion pt)
         var hasSelection = (startLine !== endLine) || (sel.start.ch !== sel.end.ch);
@@ -168,7 +180,7 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var containsUncommented = _containsUncommented(editor, startLine, endLine, lineExp, blockExp);
+        var containsNotLineComment = _containsNotLineComment(editor, startLine, endLine, lineExp);
         var i;
         var line;
         var prefix;
@@ -178,7 +190,7 @@ define(function (require, exports, module) {
         // Make the edit
         doc.batchOperation(function () {
             
-            if (containsUncommented) {
+            if (containsNotLineComment) {
                 // Comment out - prepend the first prefix to each line
                 for (i = startLine; i <= endLine; i++) {
                     doc.replaceRange(prefixes[0], {line: i, ch: 0});
@@ -214,32 +226,17 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns true if the token is a Block Comment
-     * @param {!{editor:{CodeMirror}, pos:{ch:{number}, line:{number}}, token:{object}}} ctx - token context
-     * @param {!Array.<RegExp>} blockExp - a prefix and a suffix block comment regular expressions
-     * @param {!Array.<RegExp>} lineExp - an array of line comment prefixes regular expressions
-     * @return {boolean}
-     */
-    function _isBlockComment(ctx, blockExp, lineExp) {
-        return ctx.token.className === "comment" &&
-            (_matchExpressions(ctx.token.string, blockExp) || !_matchExpressions(ctx.token.string, lineExp));
-    }
-    
-    /**
-     * @private
      * Moves the token context to the token that starts the block-comment. Ctx starts in a block-comment.
-     * Returns the position of the prefix or null if gets to the start of the document and didn't found it.
+     * Returns the position of the start of the prefix or null if gets to the start of the document and didn't found it.
      * @param {!{editor:{CodeMirror}, pos:{ch:{number}, line:{number}}, token:{object}}} ctx - token context
-     * @param {!Array.<RegExp>} blockExp - a prefix and a suffix block comment regular expressions
-     * @param {!Array.<RegExp>} lineExp - an array of line comment prefixes regular expressions
+     * @param {!RegExp} blockExp - a block comment prefix regular expression
      * @return {?{line: number, ch: number}}
      */
-    function _findCommentStart(ctx, blockExp, lineExp) {
-        var result = _isBlockComment(ctx, blockExp, lineExp);
+    function _findCommentPrefix(ctx, prefixExp) {
+        var result = true;
         
-        while (result && !ctx.token.string.match(blockExp[0])) {
-            result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) &&
-                _isBlockComment(ctx, blockExp, lineExp);
+        while (result && !ctx.token.string.match(prefixExp)) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
         }
         return result ? {line: ctx.pos.line, ch: ctx.token.start} : null;
     }
@@ -247,19 +244,17 @@ define(function (require, exports, module) {
     /**
      * @private
      * Moves the token context to the token that ends the block-comment. Ctx starts in a block-comment.
-     * Returns the position of the suffix or null if it gets to the end of the document and didn't found it.
+     * Returns the position of the start of the suffix or null if it gets to the end of the document and didn't found it.
      * @param {!{editor:{CodeMirror}, pos:{ch:{number}, line:{number}}, token:{object}}} ctx - token context
-     * @param {!Array.<RegExp>} blockExp - a prefix and a suffix block comment regular expressions
-     * @param {!Array.<RegExp>} lineExp - an array of line comment prefixes regular expressions
+     * @param {!RegExp} suffixExp - a block comment suffix regular expression
      * @param {!number} suffixLen - length of the suffix
      * @return {?{line: number, ch: number}}
      */
-    function _findCommentEnd(ctx, blockExp, lineExp, suffixLen) {
-        var result = _isBlockComment(ctx, blockExp, lineExp);
+    function _findCommentSuffix(ctx, suffixExp, suffixLen) {
+        var result = true;
         
-        while (result && !ctx.token.string.match(blockExp[1])) {
-            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
-                _isBlockComment(ctx, blockExp, lineExp);
+        while (result && !ctx.token.string.match(suffixExp)) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
         return result ? {line: ctx.pos.line, ch: ctx.token.end - suffixLen} : null;
     }
@@ -307,8 +302,9 @@ define(function (require, exports, module) {
             ctx            = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
             startCtx       = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
             endCtx         = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.end.line, ch: sel.end.ch}),
-            lineExp        = _createLineExpressions(linePrefixes),
-            blockExp       = _createBlockExpressions(prefix, suffix),
+            lineExp        = _createLineExpressions(linePrefixes, prefix, suffix),
+            prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
+            suffixExp      = new RegExp(StringUtils.regexEscape(suffix) + "$", "g"),
             prefixPos      = null,
             suffixPos      = null,
             canComment     = false,
@@ -320,27 +316,36 @@ define(function (require, exports, module) {
         
         /**
          * Intenal function that looks for the prefix and suffix position
-         * @param {!{line: number, ch: number}} newPrefixPos
          */
-        function findPrefixSuffix(newPrefixPos) {
-            prefixPos = newPrefixPos || _findCommentStart(ctx, blockExp, lineExp);
-            suffixPos = _findCommentEnd(ctx, blockExp, lineExp, suffix.length);
+        function findPrefixSuffix() {
+            prefixPos = _findCommentPrefix(ctx, prefixExp);
+            suffixPos = _findCommentSuffix(ctx, suffixExp, suffix.length);
             
             // There are some languages like CoffeeScript where the block comment prefix and suffix are the same, so
             // when the prefix or suffix is alone in one line, both prefixPos and suffixPos might be the same.
             // In those cases we need to find the real prefix or suffix
-            if (prefixPos && prefixPos.line === suffixPos.line && prefixPos.ch === suffixPos.ch) {
+            if (prefixPos && suffixPos && prefixPos.line === suffixPos.line && prefixPos.ch === suffixPos.ch) {
                 // Lets create a new Token context to look for the prefix so that ctx stays at the suffix position
-                var newCtx = TokenUtils.getInitialContext(editor._codeMirror, {line: ctx.pos.line, ch: ctx.pos.ch });
-                result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, newCtx);
+                var newCtx    = TokenUtils.getInitialContext(editor._codeMirror, {line: prefixPos.line, ch: prefixPos.ch});
+                var isLineCmt = true;
+                result = true;
                 
-                // The previows token is a block comment, so we found the suffix, we need to find the prefix
-                if (result && _isBlockComment(newCtx, blockExp, lineExp)) {
-                    prefixPos = _findCommentStart(newCtx, blockExp, lineExp);
+                // Look backwards for a line that is a comment and not a line comment
+                while (result && isLineCmt) {
+                    result    = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, newCtx);
+                    isLineCmt = newCtx.token.className === "comment" && _matchExpressions(newCtx.token.string, lineExp);
+                }
+                
+                // The previous token is a block comment, so we found the suffix, we need to find the prefix
+                if (result && newCtx.token.className === "comment" && !newCtx.token.string.match(prefixExp)) {
+                    newCtx = TokenUtils.getInitialContext(editor._codeMirror, {line: prefixPos.line, ch: prefixPos.ch});
+                    TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, newCtx);
+                    prefixPos = _findCommentPrefix(newCtx, prefixExp);
+                
                 // We found the prefix, we move to the next token and try to find the suffix
                 } else {
                     result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-                    suffixPos = result && _findCommentEnd(ctx, blockExp, lineExp, suffix.length);
+                    suffixPos = result && _findCommentSuffix(ctx, suffixExp, suffix.length);
                 }
             }
         }
@@ -352,19 +357,13 @@ define(function (require, exports, module) {
         }
         
         // Check if we should just do a line uncomment (if all lines in the selection are commented).
-        if (lineExp.length && (_matchExpressions(ctx.token.string, lineExp) || _matchExpressions(endCtx.token.string, lineExp)) &&
-                !ctx.token.string.match(blockExp[0])) {
-            var startCtxIndex = editor.indexFromPos({line: ctx.pos.line, ch: ctx.token.start});
-            var endCtxIndex   = editor.indexFromPos({line: endCtx.pos.line, ch: endCtx.token.start + endCtx.token.string.length});
+        if (lineExp.length && (_matchExpressions(ctx.token.string, lineExp) || _matchExpressions(endCtx.token.string, lineExp))) {
+            // Try to find first a prefix and suffix
+            findPrefixSuffix();
             
-            // Find if we aren't actually inside a block-comment
-            result = true;
-            while (result && _matchExpressions(ctx.token.string, lineExp)) {
-                result = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx);
-            }
-            
-            // If we aren't in a block-comment.
-            if (!result || ctx.token.className !== "comment" || ctx.token.string.match(blockExp[1])) {
+            // If we found a prefix, check if the block comment found is partially inside the selection
+            if (!prefixPos || !suffixPos || (!editor.posWithinRange(sel.start, prefixPos, suffixPos) &&
+                    !editor.posWithinRange(sel.end, prefixPos, suffixPos))) {
                 // Is a range of text selected? (vs just an insertion pt)
                 var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
                 
@@ -375,15 +374,13 @@ define(function (require, exports, module) {
                 }
                 
                 // Find if all the lines are line-commented.
-                if (!_containsUncommented(editor, sel.start.line, endLine, lineExp, blockExp)) {
+                if (!_containsNotLineComment(editor, sel.start.line, endLine, lineExp)) {
                     lineUncomment = true;
                 
                 // Block-comment in all the other cases
                 } else {
                     canComment = true;
                 }
-            } else {
-                findPrefixSuffix();
             }
             
         // If we are in a selection starting and ending in invalid tokens and with no content (not considering spaces),
@@ -408,13 +405,11 @@ define(function (require, exports, module) {
             
         // If not try to find the first comment inside the selection.
         } else {
-            result = _findNextBlockComment(ctx, sel.end, blockExp[0]);
+            result = _findNextBlockComment(ctx, sel.end, prefixExp);
             
             // If nothing was found is ok to comment.
             if (!result) {
                 canComment = true;
-            } else if (ctx.token.string.match(blockExp[0])) {
-                findPrefixSuffix({line: ctx.pos.line, ch: ctx.token.start});
             } else {
                 findPrefixSuffix();
             }
@@ -426,10 +421,9 @@ define(function (require, exports, module) {
             if (editor.posWithinRange(start, sel.start, sel.end)) {
                 // Start searching at the next token, if there is one.
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
-                         _findNextBlockComment(ctx, sel.end, blockExp[0]);
+                         _findNextBlockComment(ctx, sel.end, prefixExp);
                 
                 if (result) {
-                    console.log("invalid", ctx);
                     invalidComment = true;
                 }
             }
@@ -441,7 +435,7 @@ define(function (require, exports, module) {
             return;
         
         } else if (lineUncomment) {
-            lineCommentPrefix(editor, linePrefixes);
+            lineCommentPrefix(editor, linePrefixes, prefix, suffix);
         
         } else {
             doc.batchOperation(function () {

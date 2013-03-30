@@ -88,7 +88,8 @@
         "mode": "coffeescript",
         "fileExtensions": ["coffee", "cf", "cson"],
         "fileNames": ["Cakefile"],
-        "blockComment": ["###", "###"]
+        "blockComment": ["###", "###"],
+        "lineComment": ["#"]
     },
 
     "clojure": {

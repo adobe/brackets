@@ -1633,21 +1633,25 @@ define(function (require, exports, module) {
                 setupFullEditor(coffeeContent, "coffeescript2");
             });
             
-            it("should comment/uncomment selecting part of lines", function () {
+            it("should block comment/uncomment selecting part of lines", function () {
                 myEditor.setSelection({line: 2, ch: 2}, {line: 3, ch: 5});
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
                 
-                testToggleBlock(coffeeContent, {start: {line: 2, ch: 2}, end: {line: 3, ch: 5}});
+                var lines = coffeeContent.split("\n");
+                lines[2] = "ba###z = \"hello\"";
+                lines[3] = "numbe###r = -42";
+                var expectedText = lines.join("\n");
+                
+                testToggleBlock(expectedText, {start: {line: 2, ch: 5}, end: {line: 3, ch: 5}});
             });
             
-            it("should comment/uncomment selecting full lines", function () {
+            it("should block comment/uncomment selecting full lines", function () {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 0});
-                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                var expectedText = getContentCommented(1, 3);
                 
-                testToggleBlock(coffeeContent, {start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
+                testToggleBlock(expectedText, {start: {line: 2, ch: 0}, end: {line: 4, ch: 0}});
             });
             
-            it("should uncomment when selecting the prefix and suffix", function () {
+            it("should block uncomment when selecting the prefix and suffix", function () {
                 myDocument.setText(getContentCommented(1, 3));
                 myEditor.setSelection({line: 1, ch: 0}, {line: 5, ch: 0});
                 
@@ -1657,7 +1661,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
             });
             
-            it("should uncomment when selecting only the prefix", function () {
+            it("should block uncomment when selecting only the prefix", function () {
                 myDocument.setText(getContentCommented(1, 3));
                 myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
                 
@@ -1667,7 +1671,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 1, ch: 0}});
             });
             
-            it("should uncomment when selecting only the suffix", function () {
+            it("should block uncomment when selecting only the suffix", function () {
                 myDocument.setText(getContentCommented(1, 3));
                 myEditor.setSelection({line: 4, ch: 0}, {line: 5, ch: 0});
                 
@@ -1688,7 +1692,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 2, ch: 0}, end: {line: 7, ch: 0}});
             });
             
-            it("should uncomment with line comments around the block comment", function () {
+            it("should block uncomment with line comments around the block comment", function () {
                 var lines = coffeeContent.split("\n");
                 lines[0] = "#foo = 42";
                 lines[3] = "#number = -42";
@@ -1701,6 +1705,64 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(expectedText);
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+            });
+            
+            it("should block uncomment when the lines inside the block comment are line commented", function () {
+                var lines = coffeeContent.split("\n");
+                lines[2] = "#baz = \"hello\"";
+                var expectedText = lines.join("\n");
+                
+                myDocument.setText(getContentCommented(1, 3, expectedText));
+                myEditor.setSelection({line: 3, ch: 0}, {line: 4, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("should block uncomment a second block comment", function () {
+                var expectedText = getContentCommented(0, 1);
+                myDocument.setText(getContentCommented(6, 7, expectedText));
+                myEditor.setSelection({line: 7, ch: 0}, {line: 8, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText + "\n");
+                expectSelection({start: {line: 6, ch: 0}, end: {line: 7, ch: 0}});
+            });
+            
+            it("should block uncomment with line comments in between the block comments", function () {
+                var lines = coffeeContent.split("\n");
+                lines[1] = "#bar = true";
+                lines[2] = "#baz = \"hello\"";
+                lines[3] = "#number = -42";
+                var expectedText = getContentCommented(0, 1, lines.join("\n"));
+                
+                myDocument.setText(getContentCommented(6, 7, expectedText));
+                myEditor.setSelection({line: 7, ch: 0}, {line: 8, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText + "\n");
+                expectSelection({start: {line: 6, ch: 0}, end: {line: 7, ch: 0}});
+            });
+            
+            it("should line uncomment on line comments around a block comment", function () {
+                var lines = getContentCommented(1, 3).split("\n");
+                lines[5] = "#number = -42";
+                var text = lines.join("\n");
+                
+                myDocument.setText(text);
+                myEditor.setSelection({line: 5, ch: 0}, {line: 6, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                lines[5] = "number = -42";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 5, ch: 0}, end: {line: 6, ch: 0}});
             });
             
             it("should line comment in block comment prefix or sufix starting lines", function () {
