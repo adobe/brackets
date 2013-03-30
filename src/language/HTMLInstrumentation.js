@@ -190,7 +190,7 @@ define(function (require, exports, module) {
     
     /**
      * Mark the text for the specified editor. Either the scanDocument() or 
-     * tbe generateInstrumentedHTML() function must be called before this function
+     * the generateInstrumentedHTML() function must be called before this function
      * is called.
      *
      * NOTE: This function is "private" for now (has a leading underscore), since

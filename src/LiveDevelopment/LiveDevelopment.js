@@ -69,7 +69,7 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileUtils            = require("file/FileUtils"),
-        HTMLInstrumentaion   = require("language/HTMLInstrumentation"),
+        HTMLInstrumentation  = require("language/HTMLInstrumentation"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NativeFileError      = require("file/NativeFileError"),
         NativeApp            = require("utils/NativeApp"),
@@ -564,7 +564,7 @@ define(function LiveDevelopment(require, exports, module) {
             if (_serverProvider) {
                 // Install a request filter for the current document. In the future,
                 // we need to install filters for *all* files that need to be instrumented.
-                HTMLInstrumentaion.scanDocument(doc);
+                HTMLInstrumentation.scanDocument(doc);
                 _serverProvider.setRequestFilterPaths(
                     ["/" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)]
                 );
@@ -573,7 +573,7 @@ define(function LiveDevelopment(require, exports, module) {
                 //$(_serverProvider).off("request");
                 
                 $(_serverProvider).on("request", function (event, request) {
-                    var html = HTMLInstrumentaion.generateInstrumentedHTML(doc);
+                    var html = HTMLInstrumentation.generateInstrumentedHTML(doc);
                     
                     request.send({ body: html });
                 });
