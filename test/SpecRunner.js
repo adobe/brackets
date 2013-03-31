@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
     
-    var suite,
+    var selectedSuite,
         params = new UrlParams(),
         reporter,
         _nodeConnectionDeferred = new $.Deferred(),
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
             window.location.reload(true);
         });
         
-        $("#" + suite).closest("li").toggleClass("active", true);
+        $("#" + selectedSuite).closest("li").toggleClass("active", true);
         
         AppInit._dispatchReady(AppInit.APP_READY);
         
@@ -200,15 +200,30 @@ define(function (require, exports, module) {
                 );
         });
 
-        suite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        selectedSuite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
         
         // Create a top-level filter to show/hide performance and extensions tests
-        var isPerfSuite = (suite === "PerformanceTestSuite"),
-            isExtSuite = (suite === "ExtensionTestSuite"),
-            isIntegrationSuite = (suite === "IntegrationTestSuite");
+        var runAll = (selectedSuite === "all"),
+            isPerfSuite = (selectedSuite === "PerformanceTestSuite"),
+            isExtSuite = (selectedSuite === "ExtensionTestSuite"),
+            isIntegrationSuite = (selectedSuite === "IntegrationTestSuite"),
+            category;
+            
+        if (isPerfSuite) {
+            category = "performance";
+        } else if (isIntegrationSuite) {
+            category = "integration";
+        } else if (isExtSuite) {
+            category = "extension";
+        }
         
         var topLevelFilter = function (spec) {
-            var suite = spec.suite;
+            // special case "all" suite to run unit, perf, extension, and integration tests
+            if (runAll) {
+                return true;
+            }
+
+            var currentSuite = spec.suite;
             
             // unit test suites have no category
             if (!isPerfSuite && !isExtSuite && !isIntegrationSuite) {
@@ -217,38 +232,28 @@ define(function (require, exports, module) {
                     return false;
                 }
                 
-                while (suite) {
-                    if (suite.category !== undefined) {
+                while (currentSuite) {
+                    if (currentSuite.category !== undefined) {
                         // any suite in the hierarchy may specify a category
                         return false;
                     }
                     
-                    suite = suite.parentSuite;
+                    currentSuite = currentSuite.parentSuite;
                 }
                 
                 return true;
-            }
-            
-            var category;
-            
-            if (isPerfSuite) {
-                category = "performance";
-            } else if (isIntegrationSuite) {
-                category = "integration";
-            } else {
-                category = "extension";
             }
             
             if (spec.category === category) {
                 return true;
             }
             
-            while (suite) {
-                if (suite.category === category) {
+            while (currentSuite) {
+                if (currentSuite.category === category) {
                     return true;
                 }
                 
-                suite = suite.parentSuite;
+                currentSuite = currentSuite.parentSuite;
             }
             
             return false;
@@ -263,7 +268,7 @@ define(function (require, exports, module) {
         // configure spawned test windows to load extensions
         SpecRunnerUtils.setLoadExtensionsInTestWindow(isExtSuite);
         
-        _loadExtensionTests(suite).done(function () {
+        _loadExtensionTests(selectedSuite).done(function () {
             var jasmineEnv = jasmine.getEnv();
             
             // Initiailize unit test preferences for each spec
@@ -297,7 +302,7 @@ define(function (require, exports, module) {
             reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
-            localStorage.setItem("SpecRunner.suite", suite);
+            localStorage.setItem("SpecRunner.suite", selectedSuite);
             
             $(window.document).ready(_documentReadyHandler);
         });
