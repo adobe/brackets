@@ -76,24 +76,53 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _fontSizePrefsLoaded = false;
-
+    
+    
+    /**
+     * @private
+     * Refreshes the editor and restores the scroll position
+     */
+    function _refreshAndRestoreScroll() {
+        var editor     = EditorManager.getCurrentFullEditor(),
+            oldHeight  = editor.getTextHeight(),
+            oldWidth   = editor._codeMirror.defaultCharWidth();
+        
+        editor.refreshAll();
+        
+        // Since the height isnt updated after the font-size is changed, we just consider the rendered lines
+        // to calulate the new scroll position
+        var scrollPos   = editor.getScrollPos(),
+            viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
+            scrollTop   = scrollPos.y - viewportTop;
+        
+        // Calcualte the new scroll based on the old font sizes and scroll position
+        var newWidth    = editor._codeMirror.defaultCharWidth(),
+            newHeight   = editor.getTextHeight(),
+            deltaX      = Math.round(scrollPos.x / oldWidth),
+            deltaY      = Math.round(scrollTop / oldHeight),
+            scrollPosX  = scrollPos.x + deltaX * (newWidth - oldWidth),
+            scrollPosY  = scrollPos.y + deltaY * (newHeight - oldHeight);
+        
+        // Scroll the document back to its original position
+        editor.setScrollPos(scrollPosX, scrollPosY);
+    }
     
     /**
      * @private
      * Removes the styles used to update the font size and updates the editor if refresh is true
-     * @param {boolean} refresh - True to refresh the current full editor
+     * @param {!boolean} refresh - true to refresh the current full editor
      */
     function _removeDynamicFontSize(refresh) {
         $("#" + DYNAMIC_FONT_STYLE_ID).remove();
         if (refresh) {
-            EditorManager.getCurrentFullEditor().refreshAll();
+            _refreshAndRestoreScroll();
         }
     }
     
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {number} negative number to make the font smaller; positive number to make it bigger.
+     * @param {!number} adjustment - negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
@@ -144,38 +173,26 @@ define(function (require, exports, module) {
                    "line-height: " + lhStr + " !important;}");
         $("head").append(style);
         
-        var editor = EditorManager.getCurrentFullEditor();
-        editor.refreshAll();
-        
-        // Scroll the document back to its original position. This can only happen
-        // if the font size is specified in pixels (which it currently is).
-        if (fsUnits === "px") {
-            var scrollPos = editor.getScrollPos();
-            var scrollDeltaX = Math.round(scrollPos.x / lhOld);
-            var scrollDeltaY = Math.round(scrollPos.y / lhOld);
-            
-            scrollDeltaX = (adjustment >= 0 ? scrollDeltaX : -scrollDeltaX);
-            scrollDeltaY = (adjustment >= 0 ? scrollDeltaY : -scrollDeltaY);
-            
-            editor.setScrollPos((scrollPos.x + scrollDeltaX),
-                                (scrollPos.y + scrollDeltaY));
-        }
+        _refreshAndRestoreScroll();
         
         return true;
     }
     
+    /** Increses the font size by 1 */
     function _handleIncreaseFontSize() {
         if (_adjustFontSize(1)) {
             _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
         }
     }
-
+    
+    /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
         if (_adjustFontSize(-1)) {
             _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
         }
     }
     
+    /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
         _removeDynamicFontSize(true);
         _prefs.setValue("fontSizeAdjustment", 0);
@@ -237,7 +254,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Scroll the viewport one line up or down.
-     * @param {number} -1 to scroll one line up; 1 to scroll one line down.
+     * @param {!number} -1 to scroll one line up; 1 to scroll one line down.
      */
     function _scrollLine(direction) {
         var editor        = EditorManager.getCurrentFullEditor(),
@@ -306,10 +323,12 @@ define(function (require, exports, module) {
         }
     }
     
+    /** Scrolls one line up */
     function _handleScrollLineUp() {
         _scrollLine(-1);
     }
     
+    /** Scrolls one line down */
     function _handleScrollLineDown() {
         _scrollLine(1);
     }
