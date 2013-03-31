@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
+        LanguageManager     = require("language/LanguageManager"),
         KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
         StringMatch         = require("utils/StringMatch");
@@ -141,6 +142,14 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
+        if (pluginDef.fileTypes) {
+            console.warn("Using file endings for QuickOpen plugins is deprecated. Use language ids instead.");
+            pluginDef.languageIds = [];
+            pluginDef.fileTypes.forEach(function (value) {
+                pluginDef.languageIds.push(LanguageManager.getLanguageForPath("file." + value).getId());
+            });
+        }
+        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
             pluginDef.languageIds,
