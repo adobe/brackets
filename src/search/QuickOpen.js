@@ -125,8 +125,8 @@ define(function (require, exports, module) {
      * Parameter Documentation:
      *
      * name - plug-in name, **must be unique**
-     * languageIds - language ids array. Example: ["javascript", "css", "html"]. An empty array
-     *      indicates all language ids.
+     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. An empty array
+     *      indicates all language IDs.
      * done - called when quick open is complete. Plug-in should clear its internal state.
      * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query.
      * match - takes a query string and returns true if this plug-in wants to provide
@@ -143,11 +143,11 @@ define(function (require, exports, module) {
      */
     function addQuickOpenPlugin(pluginDef) {
         if (pluginDef.fileTypes) {
-            console.warn("Using file endings for QuickOpen plugins is deprecated. Use language ids instead.");
-            pluginDef.languageIds = [];
-            pluginDef.fileTypes.forEach(function (value) {
-                pluginDef.languageIds.push(LanguageManager.getLanguageForPath("file." + value).getId());
+            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
+            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
+                return LanguageManager.getLanguageForPath("file." + extension).getId();
             });
+            delete pluginDef.fileTypes;
         }
         
         plugins.push(new QuickOpenPlugin(
