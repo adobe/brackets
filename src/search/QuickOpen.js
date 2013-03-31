@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
+        LanguageManager     = require("language/LanguageManager"),
         KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
         StringMatch         = require("utils/StringMatch");
@@ -97,9 +98,9 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter) {
+    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter) {
         this.name = name;
-        this.fileTypes = fileTypes;
+        this.languageIds = languageIds;
         this.done = done;
         this.search = search;
         this.match = match;
@@ -112,7 +113,7 @@ define(function (require, exports, module) {
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          fileTypes:Array.<string>,
+     *          languageIds:Array.<string>,
      *          done: function(),
      *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
@@ -124,8 +125,8 @@ define(function (require, exports, module) {
      * Parameter Documentation:
      *
      * name - plug-in name, **must be unique**
-     * fileTypes - file types array. Example: ["js", "css", "txt"]. An empty array
-     *      indicates all file types.
+     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. An empty array
+     *      indicates all language IDs.
      * done - called when quick open is complete. Plug-in should clear its internal state.
      * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query.
      * match - takes a query string and returns true if this plug-in wants to provide
@@ -141,9 +142,17 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
+        if (pluginDef.fileTypes) {
+            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
+            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
+                return LanguageManager.getLanguageForPath("file." + extension).getId();
+            });
+            delete pluginDef.fileTypes;
+        }
+        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
-            pluginDef.fileTypes,
+            pluginDef.languageIds,
             pluginDef.done,
             pluginDef.search,
             pluginDef.match,
@@ -529,14 +538,13 @@ define(function (require, exports, module) {
         // Try to invoke a search plugin
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc) {
-            var filename = _filenameFromPath(curDoc.file.fullPath, true);
-            var extension = filename.slice(filename.lastIndexOf(".") + 1, filename.length);
+            var languageId = curDoc.getLanguage().getId();
 
             var i;
             for (i = 0; i < plugins.length; i++) {
                 var plugin = plugins[i];
-                var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
-                if (extensionMatch &&  plugin.match && plugin.match(query)) {
+                var LanguageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
+                if (LanguageIdMatch && plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
                     
                     // Look up the StringMatcher for this plugin.
