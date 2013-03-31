@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         Resizer                 = brackets.getModule("utils/Resizer"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         StatusBar               = brackets.getModule("widgets/StatusBar"),
+        NativeApp               = brackets.getModule("utils/NativeApp"),
         JSLintTemplate          = require("text!htmlContent/bottom-panel.html"),
         ResultsTemplate         = require("text!htmlContent/results-table.html");
     
@@ -153,6 +154,14 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
+                $lintResults.find(".lint-url")
+                    .on("click", function (e) {
+                        var reason = $(this).data("reason");
+                        var url = "https://www.google.com/search?q=" + encodeURIComponent(reason);
+                        NativeApp.openURLInDefaultBrowser(url);
+                        return false;
+                    });
+            
                 $lintResults.show();
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
