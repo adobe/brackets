@@ -535,7 +535,7 @@ define(function (require, exports, module) {
             for (i = 0; i < plugins.length; i++) {
                 var plugin = plugins[i];
                 var LanguageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
-                if (LanguageIdMatch &&  plugin.match && plugin.match(query)) {
+                if (LanguageIdMatch && plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
                     
                     // Look up the StringMatcher for this plugin.
