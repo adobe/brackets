@@ -89,9 +89,23 @@ define(function (require, exports, module) {
         // Scan 
         var tags = [];
         var tagStack = [];
+        var tag;
         
         DOMHelpers.eachNode(text, function (payload) {
             if (payload.nodeType === 1 && payload.nodeName) {
+                // Set unclosedLength for the last tag
+                if (tagStack.length > 0) {
+                    tag = tagStack[tagStack.length - 1];
+                    
+                    if (!tag.unclosedLength) {
+                        if (tag.nodeName === "HTML" || tag.nodeName === "BODY") {
+                            tag.unclosedLength = text.length - tag.sourceOffset;
+                        } else {
+                            tag.unclosedLength = payload.sourceOffset - tag.sourceOffset;
+                        }
+                    }
+                }
+                
                 // Empty tag
                 if (_isEmptyTag(payload)) {
                     // Only push img and input. Ignore all other empty tags
@@ -134,16 +148,14 @@ define(function (require, exports, module) {
         });
         
         // Remaining tags in tagStack are unclosed.
-        var tag;
         while (tagStack.length) {
             tag = tagStack.pop();
-            // Push the unclosed tag with a negative length. The length
-            // will be patched up after the tags are sorted.
+            // Push the unclosed tag with the "unclosed" length. 
             tags.push({
                 name:   tag.nodeName,
                 tagID:  _tagID++,
                 offset: tag.sourceOffset,
-                length: -tag.sourceLength
+                length: tag.unclosedLength || tag.sourceLength
             });
         }
         
@@ -156,27 +168,6 @@ define(function (require, exports, module) {
                 return 0;
             }
             return 1;
-        });
-        
-        // Patch up any unclosed tag lengths. For now, unclosed tags are
-        // extended to the beginning of the next tag, or the end of the
-        // doc if this is the last tag, <html> or <body>. This is far from 
-        // perfect, but is much simpler than implementing all of the html 
-        // rules for omitted closing tags.
-        tags.forEach(function (tag, index) {
-            if (tag.length < 0) {
-                // Special case for <html> and <body> -- extend those to the 
-                // end of the text.
-                if (tag.name === "HTML" || tag.name === "BODY") {
-                    tag.length = text.length - tag.offset;
-                } else if (index < tags.length - 1) {
-                    // Extend length to beginning of next tag
-                    tag.length = tags[index + 1].offset - tag.offset;
-                } else {
-                    // Last tag of the doc. Extend to end of text
-                    tag.length = text.length - tag.offset;
-                }
-            }
         });
         
         // Cache results
