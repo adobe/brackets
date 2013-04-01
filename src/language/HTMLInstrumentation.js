@@ -105,10 +105,10 @@ define(function (require, exports, module) {
                     }
                 } else if (payload.closing) {
                     // Closing tag
-                    var i = tagStack.length,
+                    var i,
                         startTag;
                     
-                    for (i = tagStack.length - 1; i; i--) {
+                    for (i = tagStack.length - 1; i >= 0; i--) {
                         if (tagStack[i].nodeName === payload.nodeName) {
                             startTag = tagStack[i];
                             tagStack.splice(i, 1);
@@ -158,15 +158,19 @@ define(function (require, exports, module) {
             return 1;
         });
         
-        // Patch up any unclosed tag lengths. For now unclosed tags are
-        // just extended to the beginning of the next tag (or the end of the
-        // doc if this is the last tag). This is far from perfect, but is much
-        // simpler than implementing all of the browser rules for omitted closing
-        // tags.
+        // Patch up any unclosed tag lengths. For now, unclosed tags are
+        //extended to the beginning of the next tag, or the end of the
+        // doc if this is the last tag, <html> or <body>. This is far from 
+        // perfect, but is much simpler than implementing all of the html 
+        // rules for omitted closing tags.
         tags.forEach(function (tag, index) {
             if (tag.length < 0) {
-                // Extend length to beginning of next tag
-                if (index < tags.length - 1) {
+                // Special case for <html> and <body> -- extend those to the 
+                // end of the text.
+                if (tag.name === "HTML" || tag.name === "BODY") {
+                    tag.length = text.length - tag.offset;
+                } else if (index < tags.length - 1) {
+                    // Extend length to beginning of next tag
                     tag.length = tags[index + 1].offset - tag.offset;
                 } else {
                     // Last tag of the doc. Extend to end of text
