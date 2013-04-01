@@ -159,7 +159,7 @@ define(function (require, exports, module) {
         });
         
         // Patch up any unclosed tag lengths. For now, unclosed tags are
-        //extended to the beginning of the next tag, or the end of the
+        // extended to the beginning of the next tag, or the end of the
         // doc if this is the last tag, <html> or <body>. This is far from 
         // perfect, but is much simpler than implementing all of the html 
         // rules for omitted closing tags.
