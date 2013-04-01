@@ -88,9 +88,15 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                nodeConnection.disconnect();
-                nodeConnection = null;
-                logs = [];
+                runs(function () {
+                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(), "restore request filter timeout");
+                });
+
+                runs(function () {
+                    nodeConnection.disconnect();
+                    nodeConnection = null;
+                    logs = [];
+                });
             });
 
             function onRequestFilter(callback) {
@@ -264,8 +270,6 @@ define(function (require, exports, module) {
                     
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
                                  "waiting for static server to close");
-
-                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(), "restore request filter timeout");
                 });
             });
             
@@ -521,8 +525,6 @@ define(function (require, exports, module) {
                     
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
                                  "waiting for static server to close");
-
-                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(), "restore request filter timeout");
                 });
             });
         });
