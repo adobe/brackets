@@ -122,7 +122,7 @@ define(function (require, exports, module) {
             }
             text = arr.join("\n");
             
-            var result = JSLINT(text, null);
+            var result = JSLINT(text, {browser: true}); // Set browser:true by default
 
             PerfUtils.addMeasurement(perfTimerLint);
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
