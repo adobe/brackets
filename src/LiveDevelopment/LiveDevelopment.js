@@ -222,10 +222,10 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} document
      */
     function _classForDocument(doc) {
-        switch (doc.extension) {
+        switch (doc.getLanguage().getId()) {
         case "css":
             return CSSDocument;
-        case "js":
+        case "javascript":
             return exports.config.experimental ? JSDocument : null;
         }
 
