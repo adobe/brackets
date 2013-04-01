@@ -44,9 +44,6 @@ define(function (require, exports, module) {
 
     var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
     
-    // Unique ID assigned to every tag.
-    var _tagID = 1;
-    
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and tags. Timestamp is the document timestamp,
     // tags is an array of tag info with start, length, and tagID properties.
@@ -84,7 +81,8 @@ define(function (require, exports, module) {
             }
         }
         
-        var text = doc.getText();
+        var text = doc.getText(),
+            tagID = 1;
         
         // Scan 
         var tags = [];
@@ -112,7 +110,7 @@ define(function (require, exports, module) {
                     if (/(img|input)/i.test(payload.nodeName)) {
                         tags.push({
                             name:   payload.nodeName,
-                            tagID:  _tagID++,
+                            tagID:  tagID++,
                             offset: payload.sourceOffset,
                             length: payload.sourceLength
                         });
@@ -133,7 +131,7 @@ define(function (require, exports, module) {
                     if (startTag) {
                         tags.push({
                             name:   startTag.nodeName,
-                            tagID:  _tagID++,
+                            tagID:  tagID++,
                             offset: startTag.sourceOffset,
                             length: payload.sourceLength + payload.sourceOffset - startTag.sourceOffset
                         });
@@ -153,7 +151,7 @@ define(function (require, exports, module) {
             // Push the unclosed tag with the "unclosed" length. 
             tags.push({
                 name:   tag.nodeName,
-                tagID:  _tagID++,
+                tagID:  tagID++,
                 offset: tag.sourceOffset,
                 length: tag.unclosedLength || tag.sourceLength
             });
