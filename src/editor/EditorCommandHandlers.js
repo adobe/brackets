@@ -303,33 +303,27 @@ define(function (require, exports, module) {
         
         var searchCtx, atSuffix, newSelection, result = true;
         
-        // If the selected text is just white-spaces, lets just move to the first none white-space token
-        if (line.trim() === "") {
+        // First move the context to the first none white-space token
+        if (!ctx.token.className && ctx.token.string.trim().length === 0) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+        }
         
-        // Find the first comment inside the selection (if we start in a comment, it will not enter the loop and just continue)
-        } else {
-            // First move the context to the first none white-space token
-            if (!ctx.token.className && ctx.token.string.trim().length === 0) {
-                result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
-            }
-            
-            // Next, loop util we find a comment inside the selection
-            while (result && ctx.token.className !== "comment") {
-                result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
-                    editor.indexFromPos(ctx.pos) <= selEndIndex;
-                commentAtStart = false;
-            }
+        // Next, loop util we find a comment inside the selection
+        while (result && ctx.token.className !== "comment") {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
+                editor.indexFromPos(ctx.pos) <= selEndIndex;
+            commentAtStart = false;
         }
         
         // We are now in a comment, lets check if it is a block or a line comment
         if (result && ctx.token.className === "comment") {
             line = doc.getLine(ctx.pos.line);
             
-            // This is a line comment, lets check if the whole line is a line comment or just part
             if (_matchExpressions(ctx.token.string, lineExp)) {
+                // This is a line comment, lets check if the whole line is a line comment too
                 if (_matchExpressions(line, lineExp)) {
-                    // If we found this comment at the start of the selection, we need to search backwards until we get a result
+                    // If we found this comment at the start of the selection, we need to search backwards until we get can tell
+                    // if we are in a block or a line comment
                     if (commentAtStart) {
                         searchCtx      = TokenUtils.getInitialContext(editor._codeMirror, {line: ctx.pos.line, ch: ctx.token.start});
                         isBlockComment = _isPrevTokenABlockComment(searchCtx, prefix, suffix, prefixExp, suffixExp, lineExp);
@@ -381,7 +375,7 @@ define(function (require, exports, module) {
                 }
                 suffixPos = result && {line: ctx.pos.line, ch: ctx.token.end - suffix.length};
                 
-                // Lets check that there are not more comments in the selection, we do nothing if there is one
+                // Lets check if there are more comments in the selection. We do nothing if there is one
                 do {
                     result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
                         editor.indexFromPos(ctx.pos) <= selEndIndex;
