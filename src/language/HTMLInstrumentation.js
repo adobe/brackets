@@ -58,11 +58,7 @@ define(function (require, exports, module) {
      * <meta> or <link>, or a closed tag like <div />
      */
     function _isEmptyTag(payload) {
-        if (payload.closed) {
-            return true;
-        }
-        
-        if (!payload.nodeName) {
+        if (payload.closed || !payload.nodeName) {
             return true;
         }
         
@@ -109,33 +105,47 @@ define(function (require, exports, module) {
                     }
                 } else if (payload.closing) {
                     // Closing tag
-                    var startTag = tagStack.pop(),
-                        lastTag = payload;
+                    var i = tagStack.length,
+                        startTag;
                     
-                    while (startTag.nodeName !== payload.nodeName) {
-                        // Unclosed start tag
+                    for (i = tagStack.length - 1; i; i--) {
+                        if (tagStack[i].nodeName === payload.nodeName) {
+                            startTag = tagStack[i];
+                            tagStack.splice(i, 1);
+                            break;
+                        }
+                    }
+                    
+                    if (startTag) {
                         tags.push({
                             name:   startTag.nodeName,
                             tagID:  _tagID++,
                             offset: startTag.sourceOffset,
-                            length: lastTag.sourceLength + lastTag.sourceOffset - startTag.sourceOffset
+                            length: payload.sourceLength + payload.sourceOffset - startTag.sourceOffset
                         });
-                        lastTag = startTag;
-                        startTag = tagStack.pop();
+                    } else {
+                        console.error("Unmatched end tag: " + payload.nodeName);
                     }
-                    
-                    tags.push({
-                        name:   startTag.nodeName,
-                        tagID:  _tagID++,
-                        offset: startTag.sourceOffset,
-                        length: payload.sourceLength + payload.sourceOffset - startTag.sourceOffset
-                    });
                 } else {
                     // Opening tag
                     tagStack.push(payload);
                 }
             }
         });
+        
+        // Remaining tags in tagStack are unclosed.
+        var tag;
+        while (tagStack.length) {
+            tag = tagStack.pop();
+            // Push the unclosed tag with a negative length. The length
+            // will be patched up after the tags are sorted.
+            tags.push({
+                name:   tag.nodeName,
+                tagID:  _tagID++,
+                offset: tag.sourceOffset,
+                length: -tag.sourceLength
+            });
+        }
         
         // Sort by initial offset
         tags.sort(function (a, b) {
@@ -146,6 +156,23 @@ define(function (require, exports, module) {
                 return 0;
             }
             return 1;
+        });
+        
+        // Patch up any unclosed tag lengths. For now unclosed tags are
+        // just extended to the beginning of the next tag (or the end of the
+        // doc if this is the last tag). This is far from perfect, but is much
+        // simpler than implementing all of the browser rules for omitted closing
+        // tags.
+        tags.forEach(function (tag, index) {
+            if (tag.length < 0) {
+                // Extend length to beginning of next tag
+                if (index < tags.length - 1) {
+                    tag.length = tags[index + 1].offset - tag.offset;
+                } else {
+                    // Last tag of the doc. Extend to end of text
+                    tag.length = text.length - tag.offset;
+                }
+            }
         });
         
         // Cache results
@@ -175,12 +202,8 @@ define(function (require, exports, module) {
         tags.forEach(function (tag) {
             var attrText = " data-brackets-id='" + tag.tagID + "'";
 
-            // Find end of tag
-            // TODO: This does not work if an attribute value contains ">"
-            var insertIndex = gen.indexOf(">", tag.offset + insertCount);
-            if (gen[insertIndex - 1] === "/") {
-                insertIndex--;
-            }
+            // Insert the attribute as the first attribute in the tag.
+            var insertIndex = tag.offset + tag.name.length + 1 + insertCount;
             gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
             insertCount += attrText.length;
         });

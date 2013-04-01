@@ -570,9 +570,9 @@ define(function LiveDevelopment(require, exports, module) {
                 );
                 
                 // Remove any "request" listeners that were added previously
-                //$(_serverProvider).off("request");
+                $(_serverProvider).off(".livedev");
                 
-                $(_serverProvider).on("request", function (event, request) {
+                $(_serverProvider).on("request.livedev", function (event, request) {
                     var html = HTMLInstrumentation.generateInstrumentedHTML(doc);
                     
                     request.send({ body: html });
