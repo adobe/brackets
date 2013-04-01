@@ -103,7 +103,7 @@ define(function HTMLDocumentModule(require, exports, module) {
             return;
         }
         var codeMirror = this.editor._codeMirror;
-        if (LiveDevelopment.config.experimental && Inspector.config.highlight) {
+        if (Inspector.config.highlight) {
             var location = codeMirror.indexFromPos(codeMirror.getCursor());
             var node = DOMAgent.allNodesAtLocation(location).pop();
             HighlightAgent.node(node);
