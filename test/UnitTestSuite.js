@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     require("spec/DocumentCommandHandlers-test");
     require("spec/Editor-test");
     require("spec/EditorCommandHandlers-test");
+    require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
     require("spec/ExtensionInstallation-test");
     require("spec/ExtensionUtils-test");

@@ -129,7 +129,7 @@
 
     "sql": {
         "name": "SQL",
-        "mode": "mysql",
+        "mode": ["sql", "text/x-mysql"],
         "fileExtensions": ["sql"]
     },
 

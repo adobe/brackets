@@ -96,11 +96,6 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager");
     
     /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
-    
-    /**
      * @private
      * @see DocumentManager.getCurrentDocument()
      */
@@ -597,9 +592,8 @@ define(function (require, exports, module) {
         }
         
         this.file = file;
-        this.refreshText(rawText, initialTimestamp);
-        
         this._updateLanguage();
+        this.refreshText(rawText, initialTimestamp);
         
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
@@ -916,16 +910,17 @@ define(function (require, exports, module) {
         }
         
         this._markClean();
-        $(exports).triggerHandler("documentSaved", this);
         
         // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
         var thisDoc = this;
         this.file.getMetadata(
             function (metadata) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
+                $(exports).triggerHandler("documentSaved", thisDoc);
             },
             function (error) {
                 console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
+                $(exports).triggerHandler("documentSaved", thisDoc);
             }
         );
     };
@@ -1261,7 +1256,7 @@ define(function (require, exports, module) {
     exports.notifyPathNameChanged       = notifyPathNameChanged;
 
     // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    _prefs = PreferencesManager.getPreferenceStorage(module);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.DocumentManager");
     

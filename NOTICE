@@ -44,7 +44,7 @@ respective licenses below.
     Released under the MIT, BSD, and GPL Licenses.
 
 
- - JSLint - ./src/thirdparty/jslint
+ - JSLint - ./src/extensions/default/JSLint/thirdparty/jslint
 
     Copyright (c) 2002 Douglas Crockford  (www.JSLint.com)
 
