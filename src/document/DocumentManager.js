@@ -592,9 +592,8 @@ define(function (require, exports, module) {
         }
         
         this.file = file;
-        this.refreshText(rawText, initialTimestamp);
-        
         this._updateLanguage();
+        this.refreshText(rawText, initialTimestamp);
         
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
