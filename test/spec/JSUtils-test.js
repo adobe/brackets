@@ -66,7 +66,8 @@ define(function (require, exports, module) {
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
-                        spec.fileJsContent = text;
+                        // Make sure we only pass in "\n" line endings, as JSUtils expects from a Document
+                        spec.fileJsContent = text.replace(/\r\n/g, "\n");
                     });
             });
             

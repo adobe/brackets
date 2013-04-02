@@ -394,9 +394,7 @@ define(function (require, exports, module) {
      */
     function extractAllSelectors(text) {
         var selectors = [];
-        var mode = CodeMirror.getMode({indentUnit: 2}, "css");
-        var state, lines, lineCount;
-        var token, style, stream, line;
+        var stream = TokenStream.forString(text, "css");
         var currentSelector = "";
         var ruleStartChar = -1, ruleStartLine = -1;
         var selectorStartChar = -1, selectorStartLine = -1;
@@ -405,96 +403,25 @@ define(function (require, exports, module) {
         var escapePattern = new RegExp("\\\\[^\\\\]+", "g");
         var validationPattern = new RegExp("\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)", "i");
         
-        // implement _firstToken()/_nextToken() methods to
-        // provide a single stream of tokens
-        
-        function _hasStream() {
-            while (stream.eol()) {
-                line++;
-                if (line >= lineCount) {
-                    return false;
-                }
-                if (currentSelector.match(/\S/)) {
-                    // If we are in a current selector and starting a newline,
-                    // make sure there is whitespace in the selector
-                    currentSelector += " ";
-                }
-                stream = new CodeMirror.StringStream(lines[line]);
-            }
-            return true;
-        }
-        
-        function _firstToken() {
-            state = CodeMirror.startState(mode);
-            lines = CodeMirror.splitLines(text);
-            lineCount = lines.length;
-            if (lineCount === 0) {
-                return false;
-            }
-            line = 0;
-            stream = new CodeMirror.StringStream(lines[line]);
-            if (!_hasStream()) {
-                return false;
-            }
-            style = mode.token(stream, state);
-            token = stream.current();
-            return true;
-        }
-        
-        function _nextToken() {
-            // advance the stream past this token
-            stream.start = stream.pos;
-            if (!_hasStream()) {
-                return false;
-            }
-            style = mode.token(stream, state);
-            token = stream.current();
-            return true;
-        }
-        
-        function _firstTokenSkippingWhitespace() {
-            if (!_firstToken()) {
-                return false;
-            }
-            while (!token.match(/\S/)) {
-                if (!_nextToken()) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        
-        function _nextTokenSkippingWhitespace() {
-            if (!_nextToken()) {
-                return false;
-            }
-            while (!token.match(/\S/)) {
-                if (!_nextToken()) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
         function _isStartComment() {
-            return (token.match(/^\/\*/));
+            return (stream.token.string.match(/^\/\*/));
         }
         
         function _parseComment() {
-            while (!token.match(/\*\/$/)) {
-                if (!_nextToken()) {
+            while (!stream.token.string.match(/\*\/$/)) {
+                if (!stream.next()) {
                     break;
                 }
             }
         }
 
         function _nextTokenSkippingComments() {
-            if (!_nextToken()) {
+            if (!stream.next()) {
                 return false;
             }
             while (_isStartComment()) {
                 _parseComment();
-                if (!_nextToken()) {
+                if (!stream.next()) {
                     return false;
                 }
             }
@@ -505,11 +432,21 @@ define(function (require, exports, module) {
             
             currentSelector = "";
             selectorStartChar = start;
-            selectorStartLine = line;
+            selectorStartLine = stream.pos.line;
+            
+            var lastTokenLine = stream.pos.line;
             
             // Everything until the next ',' or '{' is part of the current selector
-            while (token !== "," && token !== "{") {
-                currentSelector += token;
+            while (stream.token.string !== "," && stream.token.string !== "{") {
+                // Newline within selector implies whitespace
+                if (lastTokenLine !== stream.pos.line) {
+                    lastTokenLine = stream.pos.line;
+                    currentSelector += " ";
+                }
+                
+                // Accumulate current token's text onto selector
+                currentSelector += stream.token.string;
+                
                 if (!_nextTokenSkippingComments()) {
                     break;
                 }
@@ -534,7 +471,7 @@ define(function (require, exports, module) {
             
             currentSelector = currentSelector.trim();
             var startChar = (selectorGroupStartLine === -1) ? selectorStartChar : selectorStartChar + 1;
-            var selectorStart = (stream.string.indexOf(currentSelector, selectorStartChar) !== -1) ? stream.string.indexOf(currentSelector, selectorStartChar - currentSelector.length) : startChar;
+            var selectorStart = (stream.lineText().indexOf(currentSelector, selectorStartChar) !== -1) ? stream.lineText().indexOf(currentSelector, selectorStartChar - currentSelector.length) : startChar;
 
             if (currentSelector !== "") {
                 selectors.push({selector: currentSelector,
@@ -543,7 +480,7 @@ define(function (require, exports, module) {
                                 selectorStartLine: selectorStartLine,
                                 selectorStartChar: selectorStart,
                                 declListEndLine: -1,
-                                selectorEndLine: line,
+                                selectorEndLine: stream.pos.line,
                                 selectorEndChar: selectorStart + currentSelector.length,
                                 selectorGroupStartLine: selectorGroupStartLine,
                                 selectorGroupStartChar: selectorGroupStartChar
@@ -554,23 +491,23 @@ define(function (require, exports, module) {
         }
         
         function _parseSelectorList() {
-            selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
-            selectorGroupStartChar = stream.start;
+            selectorGroupStartLine = (stream.lineText().indexOf(",") !== -1) ? stream.pos.line : -1;
+            selectorGroupStartChar = stream.token.start;
 
-            _parseSelector(stream.start);
-            while (token === ",") {
+            _parseSelector(stream.token.start);
+            while (stream.token.string === ",") {
                 if (!_nextTokenSkippingComments()) {
                     break;
                 }
-                _parseSelector(stream.start);
+                _parseSelector(stream.token.start);
             }
         }
 
         function _parseDeclarationList() {
 
             var j;
-            declListStartLine = line;
-            declListStartChar = stream.start;
+            declListStartLine = stream.pos.line;
+            declListStartChar = stream.pos.ch - 1;
 
             // Since we're now in a declaration list, that means we also finished
             // parsing the whole selector group. Therefore, reset selectorGroupStartLine
@@ -581,7 +518,7 @@ define(function (require, exports, module) {
             ruleStartChar = -1;
 
             // Skip everything until the next '}'
-            while (token !== "}") {
+            while (stream.token.string !== "}") {
                 if (!_nextTokenSkippingComments()) {
                     break;
                 }
@@ -595,8 +532,8 @@ define(function (require, exports, module) {
                 } else {
                     selectors[j].declListStartLine = declListStartLine;
                     selectors[j].declListStartChar = declListStartChar;
-                    selectors[j].declListEndLine = line;
-                    selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
+                    selectors[j].declListEndLine = stream.pos.line;
+                    selectors[j].declListEndChar = stream.pos.ch - 1;
                 }
             }
         }
@@ -605,14 +542,14 @@ define(function (require, exports, module) {
             if (ruleStartChar !== -1) {
                 return false;       // already included
             }
-            if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf("}") !== -1) {
+            if (stream.lineText().substr(0, stream.token.start).indexOf("}") !== -1) {
                 return false;       // on same line as '}', so it's for previous rule
             }
             return true;
         }
         
         function _isStartAtRule() {
-            return (token.match(/^@/));
+            return stream.token.string.match(/^@/);
         }
         
         function _parseAtRule() {
@@ -625,26 +562,26 @@ define(function (require, exports, module) {
             selectorGroupStartLine = -1;
             selectorGroupStartChar = -1;
             
-            if (token.match(/@media/i)) {
+            if (stream.token.string.match(/@media/i)) {
                 // @media rule holds a rule list
                 
                 // Skip everything until the opening '{'
-                while (token !== "{") {
+                while (stream.token.string !== "{") {
                     if (!_nextTokenSkippingComments()) {
                         break;
                     }
                 }
-                _nextTokenSkippingWhitespace();    // skip past '{', to next non-ws token
+                stream.nextSkipWs();    // skip past '{', to next non-ws token
 
                 // Parse rules until we see '}'
                 _parseRuleList("}");
 
-            } else if (token.match(/@(charset|import|namespace)/i)) {
+            } else if (stream.token.string.match(/@(charset|import|namespace)/i)) {
                 
                 // This code handles @rules in this format:
                 //   @rule ... ;
                 // Skip everything until the next ';'
-                while (token !== ";") {
+                while (stream.token.string !== ";") {
                     if (!_nextTokenSkippingComments()) {
                         break;
                     }
@@ -655,7 +592,7 @@ define(function (require, exports, module) {
                 //    @rule ... { ... }
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
                 // Skip everything until the next '}'
-                while (token !== "}") {
+                while (stream.token.string !== "}") {
                     if (!_nextTokenSkippingComments()) {
                         break;
                     }
@@ -671,7 +608,7 @@ define(function (require, exports, module) {
         
         function _parseRuleList(escapeToken) {
             
-            while ((!escapeToken) || token !== escapeToken) {
+            while ((!escapeToken) || stream.token.string !== escapeToken) {
                 if (_isStartAtRule()) {
                     // @rule
                     _parseAtRule();
@@ -679,21 +616,21 @@ define(function (require, exports, module) {
                 } else if (_isStartComment()) {
                     // comment - make this part of style rule
                     if (includeCommentInNextRule()) {
-                        ruleStartChar = stream.start;
-                        ruleStartLine = line;
+                        ruleStartChar = stream.pos.ch - 1;
+                        ruleStartLine = stream.pos.line;
                     }
                     _parseComment();
     
                 } else {
                     // Otherwise, it's style rule
                     if (ruleStartChar === -1) {
-                        ruleStartChar = stream.start;
-                        ruleStartLine = line;
+                        ruleStartChar = stream.pos.ch - 1;
+                        ruleStartLine = stream.pos.line;
                     }
                     _parseRule();
                 }
                 
-                if (!_nextTokenSkippingWhitespace()) {
+                if (!stream.nextSkipWs()) {
                     break;
                 }
             }
@@ -701,7 +638,7 @@ define(function (require, exports, module) {
         
         // Do parsing
 
-        if (_firstTokenSkippingWhitespace()) {
+        if (stream.nextSkipWs()) {
 
             // Style sheet is a rule list
             _parseRuleList();

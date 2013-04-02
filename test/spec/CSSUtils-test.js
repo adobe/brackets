@@ -44,6 +44,10 @@ define(function (require, exports, module) {
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
     
+    // Normalize to "\n" line endings, as CSSUtils expects from a Document
+    contextTestCss           = contextTestCss.replace(/\r\n/g, "\n");
+    selectorPositionsTestCss = selectorPositionsTestCss.replace(/\r\n/g, "\n");
+    
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
      * came from the expected selector string or not. String is the complete compound selector, not
@@ -65,7 +69,8 @@ define(function (require, exports, module) {
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
-                        spec.fileCssContent = text;
+                        // Make sure we only pass in "\n" line endings, as CSSUtils expects from a Document
+                        spec.fileCssContent = text.replace(/\r\n/g, "\n");
                     });
             });
             
@@ -1284,7 +1289,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 // Newline-separated
-                result = match("h4,\n.foo,\r\n#bar { color:red }", { tag: "h4" });
+                result = match("h4,\n.foo,\n#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
