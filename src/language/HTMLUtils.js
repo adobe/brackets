@@ -72,8 +72,10 @@ define(function (require, exports, module) {
         }
         
         if (foundEqualSign) {
-            var spaceIndex = attrValue.indexOf(" ");
-            attrValue = attrValue.substring(0, (spaceIndex > offset) ? spaceIndex : offset);
+            var spaceIndex = attrValue.indexOf(" "),
+                bracketIndex = attrValue.indexOf(">"),
+                upToIndex = (spaceIndex !== -1 && spaceIndex < bracketIndex) ? spaceIndex : bracketIndex;
+            attrValue = attrValue.substring(0, (upToIndex > offset) ? upToIndex : offset);
         } else if (offset > 0 && (startChar === "'" || startChar === '"')) {
             //The att value is getting edit in progress. There is possible extra
             //stuff in this token state since the quote isn't closed, so we assume

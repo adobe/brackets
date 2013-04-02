@@ -143,7 +143,7 @@ define(function (require, exports, module) {
     QuickOpen.addQuickOpenPlugin(
         {
             name: "JavaScript functions",
-            fileTypes: ["js"],
+            languageIds: ["javascript"],
             done: function () {},
             search: search,
             match: match,

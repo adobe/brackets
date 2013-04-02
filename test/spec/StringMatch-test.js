@@ -641,6 +641,10 @@ define(function (require, exports, module) {
                 // Array.prototype has length
                 var lengthResult = matcher.match("length", "l");
                 expect(lengthResult).toBeTruthy();
+                
+                // Object.prototype has hasOwnProperty
+                var hasOwnPropertyResult = matcher.match("hasOwnProperty", "h");
+                expect(hasOwnPropertyResult).toBeTruthy();
             });
         });
     });
