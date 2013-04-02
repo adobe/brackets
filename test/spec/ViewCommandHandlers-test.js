@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone, document */
+/*global define, describe, beforeEach, it, runs, expect, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     var CommandManager,      // loaded from brackets.test
         Commands,            // loaded from brackets.test
         EditorManager,       // loaded from brackets.test
-        DocumentManager,     // loaded from brackets.test
         FileViewController,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
@@ -55,7 +54,6 @@ define(function (require, exports, module) {
                     CommandManager      = testWindow.brackets.test.CommandManager;
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
-                    DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
                    
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);

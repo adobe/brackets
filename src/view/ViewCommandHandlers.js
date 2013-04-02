@@ -84,24 +84,24 @@ define(function (require, exports, module) {
      */
     function _refreshAndRestoreScroll() {
         var editor     = EditorManager.getCurrentFullEditor(),
-            oldHeight  = editor.getTextHeight(),
-            oldWidth   = editor._codeMirror.defaultCharWidth();
+            oldWidth   = editor._codeMirror.defaultCharWidth(),
+            oldHeight  = editor.getTextHeight();
         
-        editor.refreshAll();
-        
-        // Since the height isnt updated after the font-size is changed, we just consider the rendered lines
-        // to calulate the new scroll position
+        // Since the height isn't updated after the font-size is changed, we just consider the rendered lines
+        // to calculate the new scroll position
         var scrollPos   = editor.getScrollPos(),
             viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
             scrollTop   = scrollPos.y - viewportTop;
         
-        // Calcualte the new scroll based on the old font sizes and scroll position
+        editor.refreshAll();
+        
+        // Calculate the new scroll based on the old font sizes and scroll position
         var newWidth    = editor._codeMirror.defaultCharWidth(),
             newHeight   = editor.getTextHeight(),
-            deltaX      = Math.round(scrollPos.x / oldWidth),
-            deltaY      = Math.round(scrollTop / oldHeight),
-            scrollPosX  = scrollPos.x + deltaX * (newWidth - oldWidth),
-            scrollPosY  = scrollPos.y + deltaY * (newHeight - oldHeight);
+            deltaX      = scrollPos.x / oldWidth,
+            deltaY      = scrollTop / oldHeight,
+            scrollPosX  = scrollPos.x + Math.round(deltaX * (newWidth - oldWidth)),
+            scrollPosY  = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
         
         // Scroll the document back to its original position
         editor.setScrollPos(scrollPosX, scrollPosY);
@@ -110,9 +110,17 @@ define(function (require, exports, module) {
     /**
      * @private
      * Removes the styles used to update the font size and updates the editor if refresh is true
-     * @param {!boolean} refresh - true to refresh the current full editor
+     * @param {boolean} refresh True to refresh the current full editor
      */
     function _removeDynamicFontSize(refresh) {
+        // This makes CodeMirror calculate the font sizes before the styles are removed so that we can
+        // get the correct old font size before applying the refresh
+        if (refresh) {
+            var editor = EditorManager.getCurrentFullEditor();
+            editor._codeMirror.defaultCharWidth();
+            editor.getTextHeight();
+        }
+        
         $("#" + DYNAMIC_FONT_STYLE_ID).remove();
         if (refresh) {
             _refreshAndRestoreScroll();
@@ -122,7 +130,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {!number} adjustment - negative number to make the font smaller; positive number to make it bigger
+     * @param {number} adjustment Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
@@ -178,7 +186,7 @@ define(function (require, exports, module) {
         return true;
     }
     
-    /** Increses the font size by 1 */
+    /** Increases the font size by 1 */
     function _handleIncreaseFontSize() {
         if (_adjustFontSize(1)) {
             _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
@@ -233,10 +241,10 @@ define(function (require, exports, module) {
     /**
      * @private
      * Calculates the first and last visible lines of the focused editor
-     * @param {!number} textHeight
-     * @param {!number} scrollTop
-     * @param {!number} editorHeight
-     * @param {!number} viewportFrom
+     * @param {number} textHeight
+     * @param {number} scrollTop
+     * @param {number} editorHeight
+     * @param {number} viewportFrom
      * @return {{first: number, last: number}}
      */
     function _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom) {
@@ -254,7 +262,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Scroll the viewport one line up or down.
-     * @param {!number} -1 to scroll one line up; 1 to scroll one line down.
+     * @param {number} direction -1 to scroll one line up; 1 to scroll one line down.
      */
     function _scrollLine(direction) {
         var editor        = EditorManager.getCurrentFullEditor(),
@@ -345,7 +353,7 @@ define(function (require, exports, module) {
     KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_UP);
     KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
 
-    // Init PreferenceStorage
+    // Initialize the PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);
 
     // Update UI when opening or closing a document
