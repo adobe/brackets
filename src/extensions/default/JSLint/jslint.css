@@ -12,3 +12,10 @@
     font-size: 1em;
     color: #FFC81C;
 }
+
+#jslint-options {
+    font-family: 'SourceCodePro', monospace;
+    -webkit-box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+}
