@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
+        NodeConnection          = require("utils/NodeConnection"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
 
     // Load modules that self-register and just need to get included in the main project
@@ -64,11 +65,20 @@ define(function (require, exports, module) {
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
     
-    var suite,
+    var selectedSuite,
         params = new UrlParams(),
         reporter,
+        _nodeConnectionDeferred = new $.Deferred(),
         reporterView;
     
+    /**
+     * @const
+     * Amount of time to wait before automatically rejecting the connection
+     * deferred. If we hit this timeout, we'll never have a node connection
+     * for the installer in this run of Brackets.
+     */
+    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
+
     params.parse();
     
     function _loadExtensionTests(suite) {
@@ -117,7 +127,7 @@ define(function (require, exports, module) {
             window.location.reload(true);
         });
         
-        $("#" + suite).closest("li").toggleClass("active", true);
+        $("#" + selectedSuite).closest("li").toggleClass("active", true);
         
         AppInit._dispatchReady(AppInit.APP_READY);
         
@@ -157,15 +167,63 @@ define(function (require, exports, module) {
     }
     
     function init() {
-        suite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        // Start up the node connection, which is held in the
+        // _nodeConnectionDeferred module variable. (Use 
+        // _nodeConnectionDeferred.done() to access it.
+        
+        // This is in SpecRunner rather than SpecRunnerUtils because the hope
+        // is to hook up jasmine-node tests in this test runner.
+        
+        // TODO: duplicates code from StaticServer
+        // TODO: can this be done lazily?
+        
+        var connectionTimeout = setTimeout(function () {
+            console.error("[SpecRunner] Timed out while trying to connect to node");
+            _nodeConnectionDeferred.reject();
+        }, NODE_CONNECTION_TIMEOUT);
+        
+        var _nodeConnection = new NodeConnection();
+        _nodeConnection.connect(true).then(function () {
+            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
+            
+            _nodeConnection.loadDomains(domainPath, true)
+                .then(
+                    function () {
+                        clearTimeout(connectionTimeout);
+                        _nodeConnectionDeferred.resolve(_nodeConnection);
+                    },
+                    function () { // Failed to connect
+                        console.error("[SpecRunner] Failed to connect to node", arguments);
+                        clearTimeout(connectionTimeout);
+                        _nodeConnectionDeferred.reject();
+                    }
+                );
+        });
+
+        selectedSuite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
         
         // Create a top-level filter to show/hide performance and extensions tests
-        var isPerfSuite = (suite === "PerformanceTestSuite"),
-            isExtSuite = (suite === "ExtensionTestSuite"),
-            isIntegrationSuite = (suite === "IntegrationTestSuite");
+        var runAll = (selectedSuite === "all"),
+            isPerfSuite = (selectedSuite === "PerformanceTestSuite"),
+            isExtSuite = (selectedSuite === "ExtensionTestSuite"),
+            isIntegrationSuite = (selectedSuite === "IntegrationTestSuite"),
+            category;
+            
+        if (isPerfSuite) {
+            category = "performance";
+        } else if (isIntegrationSuite) {
+            category = "integration";
+        } else if (isExtSuite) {
+            category = "extension";
+        }
         
         var topLevelFilter = function (spec) {
-            var suite = spec.suite;
+            // special case "all" suite to run unit, perf, extension, and integration tests
+            if (runAll) {
+                return true;
+            }
+
+            var currentSuite = spec.suite;
             
             // unit test suites have no category
             if (!isPerfSuite && !isExtSuite && !isIntegrationSuite) {
@@ -174,38 +232,28 @@ define(function (require, exports, module) {
                     return false;
                 }
                 
-                while (suite) {
-                    if (suite.category !== undefined) {
+                while (currentSuite) {
+                    if (currentSuite.category !== undefined) {
                         // any suite in the hierarchy may specify a category
                         return false;
                     }
                     
-                    suite = suite.parentSuite;
+                    currentSuite = currentSuite.parentSuite;
                 }
                 
                 return true;
-            }
-            
-            var category;
-            
-            if (isPerfSuite) {
-                category = "performance";
-            } else if (isIntegrationSuite) {
-                category = "integration";
-            } else {
-                category = "extension";
             }
             
             if (spec.category === category) {
                 return true;
             }
             
-            while (suite) {
-                if (suite.category === category) {
+            while (currentSuite) {
+                if (currentSuite.category === category) {
                     return true;
                 }
                 
-                suite = suite.parentSuite;
+                currentSuite = currentSuite.parentSuite;
             }
             
             return false;
@@ -220,7 +268,7 @@ define(function (require, exports, module) {
         // configure spawned test windows to load extensions
         SpecRunnerUtils.setLoadExtensionsInTestWindow(isExtSuite);
         
-        _loadExtensionTests(suite).done(function () {
+        _loadExtensionTests(selectedSuite).done(function () {
             var jasmineEnv = jasmine.getEnv();
             
             // Initiailize unit test preferences for each spec
@@ -254,11 +302,25 @@ define(function (require, exports, module) {
             reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
-            localStorage.setItem("SpecRunner.suite", suite);
+            localStorage.setItem("SpecRunner.suite", selectedSuite);
             
             $(window.document).ready(_documentReadyHandler);
         });
     }
+
+    /**
+     * Allows access to the deferred that manages the node connection for tests.
+     *
+     * @return {jQuery.Deferred} The deferred that manages the node connection
+     */
+    function getNodeConnectionDeferred() {
+        return _nodeConnectionDeferred;
+    }
+    
+    // this is used by SpecRunnerUtils
+    brackets.testing = {
+        getNodeConnectionDeferred: getNodeConnectionDeferred
+    };
 
     init();
 });

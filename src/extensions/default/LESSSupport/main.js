@@ -35,6 +35,6 @@ define(function (require, exports, module) {
         mode: "less",
         fileExtensions: ["less"],
         blockComment: ["/*", "*/"],
-        lineComment: "//"
+        lineComment: ["//"]
     });
 });

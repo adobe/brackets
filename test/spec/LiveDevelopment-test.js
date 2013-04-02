@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         NativeApp,
         LiveDevelopment,
         LiveDevServerManager,
+        Inspector,
         DOMAgent,
         DocumentManager,
         ProjectManager;
@@ -124,6 +125,60 @@ define(function (require, exports, module) {
         
         this.category = "integration";
         
+        describe("Live Development startup and shutdown", function () {
+            beforeEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                        LiveDevelopment      = testWindow.brackets.test.LiveDevelopment;
+                        Inspector            = testWindow.brackets.test.Inspector;
+                        NativeApp            = testWindow.brackets.test.NativeApp;
+                    });
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    SpecRunnerUtils.closeTestWindow();
+                });
+            });
+            
+            it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
+                var id  = Math.floor(Math.random() * 100000),
+                    url = LiveDevelopment.launcherUrl + "?id=" + id;
+                
+                runs(function () {
+                    waitsForDone(
+                        NativeApp.openLiveBrowser(url, true),
+                        "NativeApp.openLiveBrowser",
+                        5000
+                    );
+                });
+                   
+                runs(function () {
+                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 5000);
+                });
+                
+                runs(function () {
+                    expect(Inspector.connected()).toBeTruthy();
+                });
+                
+                runs(function () {
+                    var deferred = $.Deferred();
+                    Inspector.Runtime.evaluate("window.open('', '_self').close()", function (response) {
+                        Inspector.disconnect();
+                        deferred.resolve();
+                    });
+                    waitsForDone(deferred.promise(), "Inspector.Runtime.evaluate");
+                });
+                
+                runs(function () {
+                    expect(Inspector.connected()).toBeFalsy();
+                });
+            });
+        });
+
         describe("CSS Editing", function () {
 
             beforeEach(function () {
@@ -322,11 +377,11 @@ define(function (require, exports, module) {
                 }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
-                // Verify that we get the original text and not modified text.
+                // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(230);
-                    expect(originalNode.value).toBe("Brackets is awesome!");
+                    originalNode = DOMAgent.nodeAtLocation(325);
+                    expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
                 // wait for LiveDevelopment to unload and reload agents after saving
@@ -351,12 +406,11 @@ define(function (require, exports, module) {
                 }, "LiveDevelopment re-load and re-activate", 10000);
                 
                 // Grab the node that we've modified in Brackets. 
-                // This time we should have modified text since the file has been saved in Brackets.
                 var updatedNode, doneSyncing = false;
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(230);
+                    updatedNode = DOMAgent.nodeAtLocation(325);
                     liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
@@ -369,7 +423,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
                     
-                    // Verify that we have modified text
+                    // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                     
