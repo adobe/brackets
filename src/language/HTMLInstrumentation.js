@@ -59,7 +59,7 @@ define(function (require, exports, module) {
             return true;
         }
         
-        if (/(!doctype|area|base|basefont|br|col|frame|hr|img|input|isindex|link|meta|param|embed)/i
+        if (/(!doctype|area|base|basefont|br|wbr|col|frame|hr|img|input|isindex|link|meta|param|embed)/i
                 .test(payload.nodeName)) {
             return true;
         }
@@ -90,6 +90,10 @@ define(function (require, exports, module) {
         var tag;
         
         DOMHelpers.eachNode(text, function (payload) {
+            // Ignore closing empty tags like </input> since they're invalid.
+            if (payload.closing && _isEmptyTag(payload)) {
+                return;
+            }
             if (payload.nodeType === 1 && payload.nodeName) {
                 // Set unclosedLength for the last tag
                 if (tagStack.length > 0) {

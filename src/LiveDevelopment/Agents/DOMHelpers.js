@@ -117,7 +117,7 @@ define(function DOMHelpersModule(require, exports, module) {
      */
     function _findTag(src, skip) {
         var from, to, inc;
-        from = _find(src, [/<[a-z!\/]/, 2], skip);
+        from = _find(src, [/<[a-zA-Z!\/]/, 2], skip);
         if (from < 0) {
             return null;
         }
@@ -125,9 +125,9 @@ define(function DOMHelpersModule(require, exports, module) {
             // html comments
             to = _find(src, "-->", from + 4);
             inc = 3;
-        } else if (src.substr(from, 7) === "<script") {
+        } else if (src.substr(from, 7).toLowerCase() === "<script") {
             // script tag
-            to = _find(src, "</script>", from + 7);
+            to = _find(src.toLowerCase(), "</script>", from + 7);
             inc = 9;
         } else {
             to = _find(src, ">", from + 1, true);
