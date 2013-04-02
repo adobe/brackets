@@ -80,9 +80,19 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Refreshes the editor and restores the scroll position
+     * Removes the styles used to update the font size
      */
-    function _refreshAndRestoreScroll() {
+    function _removeDynamicFontSize() {
+        $("#" + DYNAMIC_FONT_STYLE_ID).remove();
+    }
+    
+    /**
+     * @private
+     * Sets the font size and restores the scroll position as best as possible
+     * @param {string} fsStr A string with the font size and the size unit
+     * @param {string} lhStr A string with the line height and a the size unit
+     */
+    function _setSizeAndRestoreScroll(fsStr, lhStr) {
         var editor     = EditorManager.getCurrentFullEditor(),
             oldWidth   = editor._codeMirror.defaultCharWidth(),
             oldHeight  = editor.getTextHeight();
@@ -92,6 +102,14 @@ define(function (require, exports, module) {
         var scrollPos   = editor.getScrollPos(),
             viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
             scrollTop   = scrollPos.y - viewportTop;
+        
+        // It's necessary to inject a new rule to address all editors.
+        _removeDynamicFontSize();
+        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
+        style.html(".CodeMirror {" +
+                   "font-size: "   + fsStr + " !important;" +
+                   "line-height: " + lhStr + " !important;}");
+        $("head").append(style);
         
         editor.refreshAll();
         
@@ -103,27 +121,9 @@ define(function (require, exports, module) {
             scrollPosX  = scrollPos.x + Math.round(deltaX * (newWidth - oldWidth)),
             scrollPosY  = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
         
-        // Scroll the document back to its original position
-        editor.setScrollPos(scrollPosX, scrollPosY);
-    }
-    
-    /**
-     * @private
-     * Removes the styles used to update the font size and updates the editor if refresh is true
-     * @param {boolean} refresh True to refresh the current full editor
-     */
-    function _removeDynamicFontSize(refresh) {
-        // This makes CodeMirror calculate the font sizes before the styles are removed so that we can
-        // get the correct old font size before applying the refresh
-        if (refresh) {
-            var editor = EditorManager.getCurrentFullEditor();
-            editor._codeMirror.defaultCharWidth();
-            editor.getTextHeight();
-        }
-        
-        $("#" + DYNAMIC_FONT_STYLE_ID).remove();
-        if (refresh) {
-            _refreshAndRestoreScroll();
+        // Scroll the document back to its original position, but not on the first load
+        if (_fontSizePrefsLoaded) {
+            editor.setScrollPos(scrollPosX, scrollPosY);
         }
     }
     
@@ -173,15 +173,7 @@ define(function (require, exports, module) {
             return false;
         }
         
-        // It's necessary to inject a new rule to address all editors.
-        _removeDynamicFontSize(false);
-        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
-        style.html(".CodeMirror {" +
-                   "font-size: "   + fsStr + " !important;" +
-                   "line-height: " + lhStr + " !important;}");
-        $("head").append(style);
-        
-        _refreshAndRestoreScroll();
+        _setSizeAndRestoreScroll(fsStr, lhStr);
         
         return true;
     }
@@ -202,7 +194,7 @@ define(function (require, exports, module) {
     
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _removeDynamicFontSize(true);
+        _adjustFontSize(-_prefs.getValue("fontSizeAdjustment"));
         _prefs.setValue("fontSizeAdjustment", 0);
     }
     
@@ -223,7 +215,7 @@ define(function (require, exports, module) {
             
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
-                _removeDynamicFontSize(false);
+                _removeDynamicFontSize();
                 _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
                 _fontSizePrefsLoaded = true;
             }
