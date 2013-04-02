@@ -49,18 +49,51 @@ define(function (require, exports, module) {
         Resizer                 = brackets.getModule("utils/Resizer"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         StatusBar               = brackets.getModule("widgets/StatusBar"),
+        Dialogs                 = brackets.getModule("widgets/Dialogs"),
         JSLintTemplate          = require("text!htmlContent/bottom-panel.html"),
         ResultsTemplate         = require("text!htmlContent/results-table.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     var INDICATOR_ID = "JSLintStatus",
-        defaultPrefs = { enabled: true };
+        defaultPrefs = { enabled: true },
+        lintPrefs = "";
+        
+    if (typeof (localStorage["jslint-prefs"]) !== "undefined") {
+        lintPrefs = JSON.parse(localStorage["jslint-prefs"]);
+    }
     
+    if (typeof (localStorage["jslint-directive"]) === "undefined") {
+        localStorage["jslint-directive"] = "";
+    }
+    
+    function _savePrefs(prefs, response) {
+        console.log(prefs);
+        if (response === "ok" && typeof prefs !== "undefined") {
+            localStorage["jslint-directive"] = prefs;
+            var _obj = {};
+            var _props = prefs.replace("/*jslint ", "").replace(" */", "").split(', ');
+            _props.forEach(function (setting) {
+                var _kv = setting.split(': ');
+                _obj[_kv[0]] = _kv[1];
+            });
+            lintPrefs = _obj;
+            localStorage["jslint-prefs"] = JSON.stringify(lintPrefs);
+        } else {
+            return;
+        }
+    }
+        
+    function handlePromptPrefs() {
+        var _lintString;
+        Dialogs.showModalDialog("save-close-dialog", "JSLint Global Directive", "<textarea id='jslint-options' placeholder='Paste default JSLint directive here'>" + localStorage["jslint-directive"] + "</textarea>").done(function (e) { _savePrefs(_lintString, e); console.log(_lintString); });
+        $("#jslint-options").keyup(function () { _lintString = this.value; });
+    }
     
     /** @const {string} JSLint commands ID */
     var TOGGLE_ENABLED   = "jslint.toggleEnabled";
     var GOTO_FIRST_ERROR = "jslint.gotoFirstError";
+    var DEFAULT_PREFS    = "jslint.defaultPrefs";
     
     /**
      * @private
@@ -122,7 +155,7 @@ define(function (require, exports, module) {
             }
             text = arr.join("\n");
             
-            var result = JSLINT(text, {browser: true}); // Set browser:true by default
+            var result = JSLINT(text, lintPrefs); // Set browser:true by default
 
             PerfUtils.addMeasurement(perfTimerLint);
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
@@ -240,8 +273,9 @@ define(function (require, exports, module) {
     
     
     // Register command handlers
-    CommandManager.register(Strings.CMD_JSLINT,             TOGGLE_ENABLED,   handleToggleEnabled);
-    CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR, GOTO_FIRST_ERROR, handleGotoFirstError);
+    CommandManager.register(Strings.CMD_JSLINT,              TOGGLE_ENABLED,   handleToggleEnabled);
+    CommandManager.register(Strings.CMD_JSLINT_FIRST_ERROR,  GOTO_FIRST_ERROR, handleGotoFirstError);
+    CommandManager.register("Set JSLint Global Directive...", DEFAULT_PREFS,    handlePromptPrefs);
     
     // Add the menu items
     var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
@@ -250,6 +284,10 @@ define(function (require, exports, module) {
     
     menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(GOTO_FIRST_ERROR, KeyboardPrefs.gotoFirstError, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
+    
+    menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+    menu.addMenuItem(DEFAULT_PREFS, "", Menus.AFTER, Commands.FILE_PROJECT_SETTINGS);
+    menu.addMenuDivider(Menus.AFTER, Commands.FILE_PROJECT_SETTINGS);
     
     
     // Init PreferenceStorage
