@@ -785,21 +785,39 @@ define(function (require, exports, module) {
         return result.promise();
     }
         
+    /**
+     *  Move the cursor to the matching brace if the character before/after is
+     *  one of these characters -- ()[]{} --- and a match is found.
+     */
+    function findMatchingBrace() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            var maxLinesToScan = 1500,
+                found = editor._codeMirror.findMatchingBracket(maxLinesToScan);
+            
+            if (found && found.to) {
+                editor.setCursorPos(found.to.line, found.to.ch);
+            }
+        }
+    }
+
     // Register commands
-    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
-    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
-    CommandManager.register(Strings.CMD_BLOCK_COMMENT,  Commands.EDIT_BLOCK_COMMENT,    blockComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
-    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
-    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
-    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
-    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
+    CommandManager.register(Strings.CMD_INDENT,              Commands.EDIT_INDENT,         indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,            Commands.EDIT_UNINDENT,       unidentText);
+    CommandManager.register(Strings.CMD_COMMENT,             Commands.EDIT_LINE_COMMENT,   lineComment);
+    CommandManager.register(Strings.CMD_BLOCK_COMMENT,       Commands.EDIT_BLOCK_COMMENT,  blockComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,           Commands.EDIT_DUPLICATE,      duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,        Commands.EDIT_DELETE_LINES,   deleteCurrentLines);
+    CommandManager.register(Strings.CMD_LINE_UP,             Commands.EDIT_LINE_UP,        moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,           Commands.EDIT_LINE_DOWN,      moveLineDown);
+    CommandManager.register(Strings.CMD_SELECT_LINE,         Commands.EDIT_SELECT_LINE,    selectLine);
     
-    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             handleUndo);
-    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             handleRedo);
-    CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
-    CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
-    CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,       _handleSelectAll);
+    CommandManager.register(Strings.CMD_UNDO,                Commands.EDIT_UNDO,           handleUndo);
+    CommandManager.register(Strings.CMD_REDO,                Commands.EDIT_REDO,           handleRedo);
+    CommandManager.register(Strings.CMD_CUT,                 Commands.EDIT_CUT,            ignoreCommand);
+    CommandManager.register(Strings.CMD_COPY,                Commands.EDIT_COPY,           ignoreCommand);
+    CommandManager.register(Strings.CMD_PASTE,               Commands.EDIT_PASTE,          ignoreCommand);
+    CommandManager.register(Strings.CMD_SELECT_ALL,          Commands.EDIT_SELECT_ALL,     _handleSelectAll);
+    
+    CommandManager.register(Strings.CMD_GOTO_MATCHING_BRACE, Commands.GOTO_MATCHING_BRACE, findMatchingBrace);
 });

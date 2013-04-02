@@ -229,6 +229,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Go to Definition",
+    "CMD_GOTO_MATCHING_BRACE"             : "Go to Matching Brace",
     "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",

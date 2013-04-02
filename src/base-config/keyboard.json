@@ -201,6 +201,9 @@
     "navigate.gotoDefinition":  [
         "Ctrl-T"
     ],
+    "navigate.gotoMatchingBrace": [
+        "Ctrl-M"
+    ],
     "navigate.nextDoc":  [
         {
             "key": "Ctrl-Tab"

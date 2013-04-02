@@ -121,6 +121,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
+        menu.addMenuItem(Commands.GOTO_MATCHING_BRACE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
