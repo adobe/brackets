@@ -27,12 +27,13 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var MODE_NAME               = "javascript",
-        SINGLE_QUOTE            = "\'",
-        DOUBLE_QUOTE            = "\"",
-        TERN_INIT_MSG           = "ternInit",
-        TERN_COMPLETIONS_MSG    = "ternCompletions",
-        TERN_GET_FILE_MSG       = "ternGetFile";
+    var MODE_NAME                   = "javascript",
+        SINGLE_QUOTE                = "\'",
+        DOUBLE_QUOTE                = "\"",
+        TERN_INIT_MSG               = "Init",
+        TERN_COMPLETIONS_MSG        = "Completions",
+        TERN_GET_FILE_MSG           = "GetFile",
+        TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType";    
 
     /**
      * Create a hint token with name value that occurs at the given list of
@@ -200,4 +201,5 @@ define(function (require, exports, module) {
     exports.TERN_COMPLETIONS_MSG    = TERN_COMPLETIONS_MSG;
     exports.TERN_INIT_MSG           = TERN_INIT_MSG;
     exports.TERN_GET_FILE_MSG       = TERN_GET_FILE_MSG;
+    exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;    
 });

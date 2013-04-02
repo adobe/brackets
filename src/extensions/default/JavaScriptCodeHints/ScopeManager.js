@@ -161,11 +161,24 @@ define(function (require, exports, module) {
             file    = split.file;
         
         var $deferredHints = $.Deferred(),
-            ternPromise = getTernHints(dir, file, offset, document.getText());
+            hintPromise,
+            fnTypePromise;
         
-        $.when(ternPromise).done(
-            function(ternHints){
-                session.setTernHints(ternHints);
+        hintPromise = getTernHints(dir, file, offset, document.getText());
+        var sessionType = session.getType();
+        if( sessionType.showFunctionType ) {
+            // Show function sig
+            fnTypePromise = getTernFunctionType(dir, file, sessionType.functionCallPos, document.getText());            
+        } else {
+            var $fnTypeDeferred = $.Deferred();
+            fnTypePromise = $fnTypeDeferred.promise();
+            $fnTypeDeferred.resolveWith(null);
+        }            
+        $.when(hintPromise, fnTypePromise).done(
+            function(completions, fnType){
+                session.setTernHints(completions);
+                session.setFnType(fnType);                    
+
                 $deferredHints.resolveWith(null);
             });
         return {promise:$deferredHints.promise()};
@@ -186,9 +199,58 @@ define(function (require, exports, module) {
         });
 
         var $deferredHints = $.Deferred();
-        pendingTernRequests[file] = $deferredHints;
+        addPendingRequest(file, HintUtils.TERN_COMPLETIONS_MSG, $deferredHints);        
         return $deferredHints.promise();
     }
+
+    /**
+     * Get a Promise for the function type from TernJS.
+     * @return {jQuery.Promise} - a promise that will resolve to the function type of the function being called.
+     */
+    function getTernFunctionType(dir, file, pos, text) {
+        ternWorker.postMessage({
+            type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
+            dir:dir,
+            file:file,
+            pos:pos,
+            text:text
+        });
+
+        var $deferredHints = $.Deferred();
+        addPendingRequest(file, HintUtils.TERN_CALLED_FUNC_TYPE_MSG, $deferredHints);        
+        return $deferredHints.promise();
+    }
+    
+    /**
+     * Add a pending request waiting for the tern-worker to complete.
+     *
+     * @param {string} file - the name of the file
+     * @param {string} type - the type of request
+     * @param {jQuery.Deferred} deferredRequest - the $.Deferred object to save     
+     */     
+    function addPendingRequest(file, type, $deferredRequest) {
+        var requests;        
+        if( Object.prototype.hasOwnProperty.call(pendingTernRequests, file) ) {
+            requests = pendingTernRequests[file];
+        } else {
+            requests = {};
+            pendingTernRequests[file] = requests;            
+        }
+        requests[type] = $deferredRequest;        
+    }        
+    
+    /**
+     * Get any pending $.Deferred object waiting on the specified file and request type
+     * @param {string} file - the file
+     * @param {string} type - the type of request
+     * @param {jQuery.Deferred} - the $.Deferred for the request     
+     */     
+    function getPendingRequest(file, type) {
+        if( Object.prototype.hasOwnProperty.call(pendingTernRequests, file) ) {
+            var requests = pendingTernRequests[file];
+            return requests[type];            
+        }            
+    }   
     
     /**
      * Handle the response from the tern web worker when
@@ -202,12 +264,16 @@ define(function (require, exports, module) {
             file = response.file,
             offset = response.offset,
             completions = response.completions,
-            $deferredHints = pendingTernRequests[file];
+            fnType  = response.fnType,
+            type = response.type,            
+            $deferredHints = getPendingRequest(file, type);
         
-        pendingTernRequests[file] = null;
-        
-        if( $deferredHints ) { 
-            $deferredHints.resolveWith(null, [completions]);
+        if( $deferredHints ) {
+            if( completions ) {            
+                $deferredHints.resolveWith(null, [completions]);
+            } else if ( fnType ) {
+                $deferredHints.resolveWith(null, [fnType]);                
+            }                
         }
     }
     
@@ -319,13 +385,14 @@ define(function (require, exports, module) {
         var response = e.data,
             type = response.type;
         
-        if( type === HintUtils.TERN_COMPLETIONS_MSG) {
+        if( type === HintUtils.TERN_COMPLETIONS_MSG ||
+            type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG) {
             // handle any completions the worker calculated
             handleTernCompletions(response);
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
             // handle a request for the contents of a file
             handleTernGetFile(response);
-        } else {
+        } else{
             console.log("Worker: " + (response.log || response));
         }
     });

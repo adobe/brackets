@@ -301,7 +301,8 @@ define(function (require, exports, module) {
                 if (!cachedHints ||
                         cachedLine !== cursor.line ||
                         type.property !== cachedType.property ||
-                        type.context !== cachedType.context) {
+                        type.context !== cachedType.context ||
+                        type.showFunctionType !== cachedType.showFunctionType) {
                     //console.log("clear hints");
                     cachedLine = null;
                     cachedHints = null;
@@ -333,6 +334,7 @@ define(function (require, exports, module) {
                 if (!cachedHints ||
                     type.property !== cachedType.property ||
                     type.context !== cachedType.context ||
+                    type.showFunctionType !== cachedType.showFunctionType ||                    
                     query.length == 0 ||
                     (cachedHints.length == 0 && query.length == 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
                     var offset          = session.getOffset(),
@@ -375,7 +377,8 @@ define(function (require, exports, module) {
                     // Compute fresh hints if none exist, or if the session
                     // type has changed since the last hint computation
                     if (type.property !== cachedType.property ||
-                            type.context !== cachedType.context) {
+                            type.context !== cachedType.context ||
+                            type.showFunctionType !== cachedType.showFunctionType) {
                         cachedType = type;
                         cachedHints = session.getHints();
                     }
@@ -431,6 +434,11 @@ define(function (require, exports, module) {
             completion = delimeter + completion + delimeter;
         }
 
+        if( session.getType().showFunctionType ) {
+            // function types show up as hints, so don't insert anything
+            // if we were displaying a function type            
+            return false;
+        }            
         // Replace the current token with the completion
         session.editor.document.replaceRange(completion, start, end);
 

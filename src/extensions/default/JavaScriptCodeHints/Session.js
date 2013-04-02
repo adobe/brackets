@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
         this.ternHints = [];
+        this.fnType = null;        
     }
 
     /**
@@ -60,6 +61,17 @@ define(function (require, exports, module) {
      */
     Session.prototype.getCursor = function () {
         return this.editor.getCursorPos();
+    };
+
+    /**
+     * Get the text of a line.
+     *
+     * @param {number} line - the line number     
+     * @return {string} - the text of the line
+     */
+    Session.prototype.getLine = function (line) {
+        var doc = this.editor.document;        
+        return doc.getLine(line);
     };
     
     /**
@@ -202,20 +214,49 @@ define(function (require, exports, module) {
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
-     * @return {{property: boolean, context: string}} - a pair consisting
+     * @return {{property: boolean, 
+                 showFunctionType:boolean, 
+                 context: string,
+                 functionCallPos: {line:number, ch:number}}} - an Object consisting
      *      of a {boolean} "property" that indicates whether or not the type of
      *      the session is a property lookup, and a {string} "context" that
      *      indicates the object context (as described in getContext above) of
      *      the property lookup, or null if there is none. The context is
      *      always null for non-property lookups.
+     *      a {boolean} "showFunctionType" indicating if the function type should
+     *      be displayed instead of normal hints.  If "showFunctionType" is true, then
+     *      then "functionCallPos" will be an object with line & col information of the
+     *      function being called     
      */
     Session.prototype.getType = function () {
         var propertyLookup  = false,
+            inFunctionCall  = false,
+            showFunctionType= false,            
             context         = null,
             cursor          = this.getCursor(),
+            functionCallPos,            
             token           = this.getToken(cursor);
 
         if (token) {
+            if( token.state.lexical.info === "call" ) {
+                inFunctionCall = true;
+                if( this.getQuery().length > 0 ) {
+                    inFunctionCall = false;
+                    showFunctionType = false;                    
+                } else {                
+                    showFunctionType = true;                    
+                    var col = token.state.lexical.column;                
+                    for (var line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
+                        if (this.getLine(line).charAt(col) == "(") {
+                            found = true; 
+                            break;
+                        }
+                    }
+                    if ( found ) {
+                        functionCallPos = {line:line, ch:col};                    
+                    }   
+                }                    
+            }
             if (token.string === ".") {
                 propertyLookup = true;
                 context = this.getContext(cursor);
@@ -230,10 +271,14 @@ define(function (require, exports, module) {
                     context = this.getContext(cursor);
                 }
             }
-        }
-
+            if( propertyLookup ) { showFunctionType = false; }            
+        } 
+        
         return {
             property: propertyLookup,
+            inFunctionCall: inFunctionCall,
+            showFunctionType: showFunctionType,            
+            functionCallPos: functionCallPos,            
             context: context
         };
     };
@@ -337,6 +382,8 @@ define(function (require, exports, module) {
             else {
                 hints = [];
             }
+        } else if ( type.showFunctionType ) {
+            hints = this.fnType ? [{value:this.fnType, positions:[]}] : [];            
         } else {
             hints = ternHints ? ternHints : [];
             hints.sort(compareIdentifiers());
@@ -350,5 +397,8 @@ define(function (require, exports, module) {
     Session.prototype.setTernHints = function(newHints) {
         this.ternHints = newHints;
     }
+    Session.prototype.setFnType = function(newFnType) {
+        this.fnType = newFnType;        
+    }        
     module.exports = Session;
 });

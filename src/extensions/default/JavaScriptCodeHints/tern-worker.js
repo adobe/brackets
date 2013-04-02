@@ -85,6 +85,23 @@ importScripts("thirdparty/requirejs/require.js");
         
     }
 
+    function buildRequest(dir, file, query, offset, text){
+        query = {type:query};
+        query.start = offset;
+        query.end = offset;
+        query.file = file;
+        query.filter = false;
+        query.sort = false;
+        query.depths = true;
+        query.types = true;
+
+        var request = {query:query, files:[], offset:offset};
+        request.files.push({type:"full", name:file, text:text});
+
+        return request;
+    }
+    
+    
     /**
      * Get the completions for the given offset
      * @param {string} dir      - the directory
@@ -94,23 +111,7 @@ importScripts("thirdparty/requirejs/require.js");
      */
     function getTernHints(dir, file, offset, text) {
         
-        function buildRequest(dir, file, query, offset){
-            query = {type:query};
-            query.start = offset;
-            query.end = offset;
-            query.file = file;
-            query.filter = false;
-            query.sort = false;
-            query.depths = true;
-            query.types = true;
-
-            var request = {query:query, files:[], offset:offset};
-            request.files.push({type:"full", name:file, text:text});
-
-            return request;
-        }
-        
-        var request = buildRequest(dir, file, "completions", offset);
+        var request = buildRequest(dir, file, "completions", offset, text);
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function(error, data) {
             //if (error) return displayError(error);
@@ -128,6 +129,33 @@ importScripts("thirdparty/requirejs/require.js");
                               dir: dir,
                               file: file,
                               completions: completions
+                             });
+        });
+    }
+
+    /**
+     * Get the function type for the given offset
+     * @param {string} dir      - the directory
+     * @param {string} file     - the file name
+     * @param {number} offset   - the offset into the file where we want completions for
+     * @param {string} text     - the text of the file
+     */
+    function handleFunctionType(dir, file, pos, text) {
+        
+        var request = buildRequest(dir, file, "type", pos, text);
+            
+        request.preferFunction = true;
+        
+        //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
+        ternServer.request(request, function(error, data) {
+            //if (error) return displayError(error);
+            var fnType = data.type;            
+            
+            // Post a message back to the main thread with the completions
+            self.postMessage({type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
+                              dir: dir,
+                              file: file,
+                              fnType: fnType
                              });
         });
     }
@@ -163,6 +191,12 @@ importScripts("thirdparty/requirejs/require.js");
             var file = request.file,
                 text = request.text;
             handleGetFile(file, text);
+        } else if ( type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG ) {
+            var file    = request.file,
+                text    = request.text,
+                dir     = request.dir,
+                pos     = request.pos;
+            handleFunctionType(dir, file, pos, text);            
         } else {
             _log("Unknown message: " + JSON.stringify(request));
         }
