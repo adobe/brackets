@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
+        DocumentManager     = require("document/DocumentManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
@@ -47,8 +48,6 @@ define(function (require, exports, module) {
         spec.fileContent = null;
         
         if (fileEntry) {
-            var doneLoading = false;
-            
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
@@ -73,8 +72,8 @@ define(function (require, exports, module) {
             do {
                 match = elementIdRegEx.exec(instrumentedHTML);
                 if (match) {
-                    tagID = RegExp.$2;
-                    tagName = RegExp.$1;
+                    tagID = match[2];
+                    tagName = match[1];
                     
                     // Verify that the newly found ID is unique.
                     expect(map[tagID]).toBeUndefined();
@@ -96,6 +95,13 @@ define(function (require, exports, module) {
             }
         }
         
+        function verifyMarksCreated() {
+            var cm    = editor._codeMirror,
+                marks = cm.getAllMarks();
+                
+            expect(marks.length).toBeGreaterThan(0);
+        }
+        
         describe("HTML Instrumentation in wellformed HTML", function () {
                 
             beforeEach(function () {
@@ -105,8 +111,13 @@ define(function (require, exports, module) {
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    spyOn(editor.document, "getText").andCallFake(function () {});
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
-                    HTMLInstrumentation._markText(editor);
+                    
+                    if (elementCount) {
+                        HTMLInstrumentation._markText(editor);
+                        verifyMarksCreated();
+                    }
                 });
             });
     
@@ -121,6 +132,12 @@ define(function (require, exports, module) {
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
                     expect(elementCount).toEqual(45);
+                });
+            });
+            
+            it("should have created cache and never call document.getText() again", function () {
+                runs(function () {
+                    expect(editor.document.getText).not.toHaveBeenCalled();
                 });
             });
             
@@ -187,8 +204,13 @@ define(function (require, exports, module) {
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    spyOn(editor.document, "getText").andCallFake(function () {});
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
-                    HTMLInstrumentation._markText(editor);
+
+                    if (elementCount) {
+                        HTMLInstrumentation._markText(editor);
+                        verifyMarksCreated();
+                    }
                 });
             });
     
@@ -202,10 +224,16 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(36);
+                    expect(elementCount).toEqual(37);
                 });
             });
 
+            it("should have created cache and never call document.getText() again", function () {
+                runs(function () {
+                    expect(editor.document.getText).not.toHaveBeenCalled();
+                });
+            });
+            
             it("should get 'p' tag for cursor positions before the succeding start tag of an unclosed 'p' tag", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 8, ch: 36 }, "p");   // at the end of the line that has p start tag
@@ -293,6 +321,14 @@ define(function (require, exports, module) {
                     checkTagIdAtPos({ line: 49, ch: 9 }, "script");   // inside 'script' end tag
                 });
             });
+
+            it("should get 'footer' tag that is explicitly using all uppercase tag names.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 50, ch: 3 }, "footer");    // in <FOOTER>
+                    checkTagIdAtPos({ line: 50, ch: 20 }, "footer");   // in the text content
+                    checkTagIdAtPos({ line: 50, ch: 30 }, "footer");   // in </FOOTER>
+                });
+            });
         });
 
         describe("HTML Instrumentation in an HTML page with some invalid markups", function () {
@@ -304,8 +340,13 @@ define(function (require, exports, module) {
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    spyOn(editor.document, "getText").andCallFake(function () {});
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
-                    HTMLInstrumentation._markText(editor);
+
+                    if (elementCount) {
+                        HTMLInstrumentation._markText(editor);
+                        verifyMarksCreated();
+                    }
                 });
             });
     
@@ -323,6 +364,12 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should have created cache and never call document.getText() again", function () {
+                runs(function () {
+                    expect(editor.document.getText).not.toHaveBeenCalled();
+                });
+            });
+            
             it("should get 'script' tag for cursor positions anywhere inside the tag including CDATA.", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 6, ch: 11 }, "script");   // before '<' of CDATA
