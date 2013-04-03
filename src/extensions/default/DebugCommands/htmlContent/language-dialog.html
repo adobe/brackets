@@ -1,0 +1,20 @@
+<div class="switch-language modal">
+    <div class="modal-header">
+        <a href="#" class="close">&times;</a>
+        <h1 class="dialog-title">{{LANGUAGE_TITLE}}</h1>
+    </div>
+    <div class="modal-body">
+        <p class="dialog-message">
+            {{LANGUAGE_MESSAGE}}
+            <select>
+                {{#languages}}
+                <option value="{{language}}">{{label}}</option>
+                {{/languages}}
+            </select>
+        </p>
+    </div>
+    <div class="modal-footer">
+        <button class="dialog-button btn primary" data-button-id="ok" disabled>{{LANGUAGE_SUBMIT}}</button>
+        <button class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</button>
+    </div>
+</div>

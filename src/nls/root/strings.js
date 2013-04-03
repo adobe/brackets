@@ -125,13 +125,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Switch Language",
-    "LANGUAGE_MESSAGE"                  : "Language:",
-    "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancel",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
-
     /**
      * ProjectManager
      */
@@ -330,6 +323,13 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
+    
+    
+    // extensions/default/DebugComments - Switch language
+    "LANGUAGE_TITLE"                       : "Switch Language",
+    "LANGUAGE_MESSAGE"                     : "Language:",
+    "LANGUAGE_SUBMIT"                      : "Reload {APP_NAME}",
+    "LANGUAGE_SYSTEM_DEFAULT"              : "System Default",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",
