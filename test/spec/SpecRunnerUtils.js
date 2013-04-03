@@ -156,7 +156,8 @@ define(function (require, exports, module) {
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
-            this.isDirty = true;
+            var wasDirty = this.isDirty;
+            this.isDirty = !editor._codeMirror.isClean();
                     
             // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
             // future, we should fix things so that we either don't need mock documents or that this
