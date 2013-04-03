@@ -208,6 +208,12 @@ define(function DOMHelpersModule(require, exports, module) {
             if (content[content.length - 2] === "/") {
                 payload.closed = true;
             }
+
+            // Special handling for script tag since we've already collected
+            // everything up to the end tag.
+            if (payload.nodeName === "SCRIPT") {
+                payload.closed = true;
+            }
         }
         return payload;
     }

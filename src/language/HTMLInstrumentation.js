@@ -110,15 +110,12 @@ define(function (require, exports, module) {
                 
                 // Empty tag
                 if (_isEmptyTag(payload)) {
-                    // Only push img and input. Ignore all other empty tags
-                    if (/(img|input)/i.test(payload.nodeName)) {
-                        tags.push({
-                            name:   payload.nodeName,
-                            tagID:  tagID++,
-                            offset: payload.sourceOffset,
-                            length: payload.sourceLength
-                        });
-                    }
+                    tags.push({
+                        name:   payload.nodeName,
+                        tagID:  tagID++,
+                        offset: payload.sourceOffset,
+                        length: payload.sourceLength
+                    });
                 } else if (payload.closing) {
                     // Closing tag
                     var i,

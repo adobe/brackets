@@ -130,7 +130,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(45);
+                    expect(elementCount).toEqual(49);
                 });
             });
             
@@ -190,10 +190,10 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should get 'head' tag for cursor positions in meta tags", function () {
+            it("should get 'meta/link' tag for cursor positions in meta/link tags, not 'head' tag", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 5, ch: 64 }, "head");
-                    checkTagIdAtPos({ line: 8, ch: 12 }, "head");
+                    checkTagIdAtPos({ line: 5, ch: 64 }, "meta");
+                    checkTagIdAtPos({ line: 8, ch: 12 }, "link");
                 });
             });
 
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(37);
+                    expect(elementCount).toEqual(41);
                 });
             });
 
@@ -258,18 +258,28 @@ define(function (require, exports, module) {
 
             it("should get 'h1' tag for cursor positions inside 'h1' that is following an unclosed 'p' tag.", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 9, ch: 10 }, "h1");  // inside <wbr> that is in h1 content
                     checkTagIdAtPos({ line: 9, ch: 20 }, "h1");  // inside text content of h1 tag
                     checkTagIdAtPos({ line: 9, ch: 52 }, "h1");  // inside </h1>
                 });
             });
 
-            it("should get 'li' tag for cursor positions inside the content ofan unclosed 'li' tag", function () {
+            it("should get 'wbr' tag for cursor positions inside <wbr>, not its parent 'h1' tag.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 9, ch: 10 }, "wbr");  // inside <wbr> that is in h1 content
+                });
+            });
+
+            it("should get 'li' tag for cursor positions inside the content of an unclosed 'li' tag", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 12, ch: 12 }, "li");   // inside first list item
-                    checkTagIdAtPos({ line: 13, ch: 22 }, "li");   // inside the <br> tag of the second item
                     checkTagIdAtPos({ line: 14, ch: 12 }, "li");   // inside third list item
                     checkTagIdAtPos({ line: 15, ch: 0 }, "li");    // before </ul> tag that follows an unclosed 'li'
+                });
+            });
+
+            it("should get 'br' tag for cursor positions inside <br>, not its parent 'li' tag", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 13, ch: 22 }, "br");   // inside the <br> tag of the second list item
                 });
             });
 
@@ -318,9 +328,14 @@ define(function (require, exports, module) {
 
             it("should get 'form' tag for cursor positions NOT in any form element.", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 36, ch: 6 }, "form");    // inside <hr> which we don't instrument
                     checkTagIdAtPos({ line: 35, ch: 0 }, "form");    // between two input tags
                     checkTagIdAtPos({ line: 43, ch: 2 }, "form");    // before </form> tag
+                });
+            });
+
+            it("should get 'hr' tag for cursor positions in <hr> tag, not its parent <form> tag.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 36, ch: 6 }, "hr");    // inside <hr>
                 });
             });
 
@@ -371,7 +386,7 @@ define(function (require, exports, module) {
             
             it("should instrument all start tags except some empty tags", function () {
                 runs(function () {
-                    expect(elementCount).toEqual(34);
+                    expect(elementCount).toEqual(39);
                 });
             });
 
@@ -410,20 +425,28 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should get 'body' tag in an empty (immediate child) tag", function () {
+            it("should get 'hr' tag for cursor positions in any forms of <hr> tag", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 48, ch: 7 }, "body");    // inside <hr>
-                    checkTagIdAtPos({ line: 50, ch: 9 }, "body");    // inside <hr />
-                    checkTagIdAtPos({ line: 51, ch: 9 }, "body");    // after </body>
+                    checkTagIdAtPos({ line: 48, ch: 7 }, "hr");    // inside <hr>
+                    checkTagIdAtPos({ line: 50, ch: 9 }, "hr");    // inside <hr />
                 });
             });
             
             it("should get 'h2' tag for cursor positions between <wbr> and its invalide end tag.", function () {
                 runs(function () {
-                    checkTagIdAtPos({ line: 20, ch: 35 }, "h2");   // inside text after <wbr>
-                    checkTagIdAtPos({ line: 20, ch: 24 }, "h2");   // inside <br>
-                    checkTagIdAtPos({ line: 20, ch: 30 }, "h2");   // inside <wbr>
-                    checkTagIdAtPos({ line: 20, ch: 40 }, "h2");   // between <wbr> and </wbr>
+                    checkTagIdAtPos({ line: 20, ch: 35 }, "h2");   // in the text between <wbr> and </wbr>
+                });
+            });
+
+            it("should get 'wbr' tag for cursor positions inside <wbr>, not its parent <h2> tag.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 20, ch: 30 }, "wbr");   // inside <wbr>
+                });
+            });
+
+            it("should get 'h2' tag for cursor positions inside invalid </wbr> tag.", function () {
+                runs(function () {
+                    checkTagIdAtPos({ line: 20, ch: 40 }, "h2");   // inside </wbr>
                 });
             });
 
