@@ -269,11 +269,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"JSLINT_ERRORS": "JSLint エラー",
-	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
-	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
-	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
-	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
 	"SEARCH_RESULTS": "検索結果",
 	"OK": "OK",
 	"DONT_SAVE": "保存しない",
@@ -335,6 +330,13 @@ define({
 	"UNSUPPORTED_PROTOCOL": "URL は http または https URL である必要があります。",
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
+    
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "JSLint エラー",
+	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
+	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
+	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
+	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

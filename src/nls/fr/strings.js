@@ -269,11 +269,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
-	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
-	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -335,6 +330,13 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
+    
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
+	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
+	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
+	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
