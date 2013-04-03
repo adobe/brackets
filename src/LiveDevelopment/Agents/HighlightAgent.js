@@ -107,6 +107,14 @@ define(function HighlightAgent(require, exports, module) {
         RemoteAgent.call("highlightRule", name);
     }
     
+    /** Highlight all nodes with 'data-brackets-id' value
+     * that matches id.
+     * @param {string} value of the 'data-brackets-id' to match
+     */
+    function domElement(id) {
+        rule("[data-brackets-id='" + id + "']");
+    }
+    
     /**
      * Redraw active highlights
      */
@@ -133,6 +141,7 @@ define(function HighlightAgent(require, exports, module) {
     exports.hide = hide;
     exports.node = node;
     exports.rule = rule;
+    exports.domElement = domElement;
     exports.redraw = redraw;
     exports.load = load;
     exports.unload = unload;

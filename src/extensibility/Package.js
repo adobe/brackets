@@ -78,14 +78,15 @@ define(function (require, exports, module) {
      * if there are errors or null if the extension did not include package.json.
      *
      * @param {string} Absolute path to the package zip file
+     * @param {{requirePackageJSON: ?boolean}} validation options
      * @return {$.Promise} A promise that is resolved with information about the package
      */
-    function validate(path) {
+    function validate(path, options) {
         var d = new $.Deferred();
         _nodeConnectionDeferred
             .done(function (nodeConnection) {
                 if (nodeConnection.connected()) {
-                    nodeConnection.domains.extensionManager.validate(path)
+                    nodeConnection.domains.extensionManager.validate(path, options)
                         .done(function (result) {
                             d.resolve({
                                 errors: result.errors,

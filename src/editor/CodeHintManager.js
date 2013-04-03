@@ -26,11 +26,11 @@
  *
  * The CodeHintManager mediates the interaction between the editor and a
  * collection of hint providers. If hints are requested explicitly by the
- * user, then the providers registered for the current mode are queried
+ * user, then the providers registered for the current language are queried
  * for their ability to provide hints in order of descending priority by
  * way their hasHints methods. Character insertions may also constitute an
  * implicit request for hints; consequently, providers for the current
- * mode are also queried on character insertion for both their ability to
+ * language are also queried on character insertion for both their ability to
  * provide hints and also for the suitability of providing implicit hints
  * in the given editor context.
  *
@@ -240,61 +240,61 @@ define(function (require, exports, module) {
     
     /**    
      * The method by which a CodeHintProvider registers its willingness to
-     * providing hints for editors in a given mode.
+     * providing hints for editors in a given language.
      *
      * @param {CodeHintProvider} provider
      * The hint provider to be registered, described below. 
      *
-     * @param {Array[(string|Object<name: string>)]} modes
-     * The set of mode names for which the provider is capable of
-     * providing hints. If the special mode name "all" is included then
-     * the provider may be called upon to provide hints for any mode.
+     * @param {Array[(string|Object<name: string>)]} languageIDs
+     * The set of language ids for which the provider is capable of
+     * providing hints. If the special language id name "all" is included then
+     * the provider may be called upon to provide hints for any language.
      *
      * @param {Integer} priority
      * A non-negative number used to break ties among hint providers for a
-     * particular mode. Providers that register with a higher priority
-     * will have the opportunity to provide hints at a given mode before
+     * particular language. Providers that register with a higher priority
+     * will have the opportunity to provide hints at a given language before
      * those with a lower priority. Brackets default providers have
      * priority zero.
      */
-    function registerHintProvider(providerInfo, modes, priority) {
+    function registerHintProvider(providerInfo, languageIDs, priority) {
         var providerObj = { provider: providerInfo,
                             priority: priority || 0 };
                 
-        if (modes) {
-            var modeNames = [], registerInAllModes = false;
-            var i, currentModeName;
-            for (i = 0; i < modes.length; i++) {
-                currentModeName = (typeof modes[i] === "string") ? modes[i] : modes[i].name;
-                if (currentModeName) {
-                    if (currentModeName === "all") {
-                        registerInAllModes = true;
+        if (languageIDs) {
+            var languageIdNames = [], registerForAllLanguages = false;
+            var i, currentLanguageID;
+            for (i = 0; i < languageIDs.length; i++) {
+                currentLanguageID = languageIDs[i];
+                if (currentLanguageID) {
+                    if (currentLanguageID === "all") {
+                        registerForAllLanguages = true;
                         break;
                     } else {
-                        modeNames.push(currentModeName);
+                        languageIdNames.push(currentLanguageID);
                     }
                 }
             }
 
-            if (registerInAllModes) {
-                // if we're registering in all, then we ignore the modeNames array
+            if (registerForAllLanguages) {
+                // if we're registering in all, then we ignore the languageIdNames array
                 // so that we avoid registering a provider twice
-                var modeName;
-                for (modeName in hintProviders) {
-                    if (hintProviders.hasOwnProperty(modeName)) {
-                        hintProviders[modeName].push(providerObj);
-                        hintProviders[modeName].sort(_providerSort);
+                var languageId;
+                for (languageId in hintProviders) {
+                    if (hintProviders.hasOwnProperty(languageId)) {
+                        hintProviders[languageId].push(providerObj);
+                        hintProviders[languageId].sort(_providerSort);
                     }
                 }
             } else {
-                modeNames.forEach(function (modeName) {
-                    if (modeName) {
-                        if (!hintProviders[modeName]) {
-                            // initialize a new mode with all providers
-                            hintProviders[modeName] = Array.prototype.concat(hintProviders.all);
+                languageIdNames.forEach(function (languageId) {
+                    if (languageId) {
+                        if (!hintProviders[languageId]) {
+                            // initialize a new language id with all providers
+                            hintProviders[languageId] = Array.prototype.concat(hintProviders.all);
                         }
-                        hintProviders[modeName].push(providerObj);
-                        hintProviders[modeName].sort(_providerSort);
+                        hintProviders[languageId].push(providerObj);
+                        hintProviders[languageId].sort(_providerSort);
                     }
                 });
             }
@@ -302,15 +302,14 @@ define(function (require, exports, module) {
     }
 
     /** 
-     *  Return the array of hint providers for the given mode.
+     *  Return the array of hint providers for the given language id.
      *  This gets called (potentially) on every keypress. So, it should be fast.
      *
-     * @param {(string|Object<name: string>)} mode
-     * @return {Array.<{provider: Object, modes: Array.<string>, priority: number}>}
+     * @param {(string|Object<name: string>)} languageID
+     * @return {Array.<{provider: Object, languageIDs: Array.<string>, priority: number}>}
      */
-    function _getProvidersForMode(mode) {
-        var modeName = (typeof mode === "string") ? mode : mode.name;
-        return hintProviders[modeName] || hintProviders.all;
+    function _getProvidersForLanguageID(languageID) {
+        return hintProviders[languageID] || hintProviders.all;
     }
 
     /**
@@ -395,8 +394,8 @@ define(function (require, exports, module) {
      */
     function _beginSession(editor) {
         // Find a suitable provider, if any
-        var mode = editor.getModeForSelection(),
-            enabledProviders = _getProvidersForMode(mode);
+        var language = editor.getLanguageForSelection(),
+            enabledProviders = _getProvidersForLanguageID(language.getId());
         
         $.each(enabledProviders, function (index, item) {
             if (item.provider.hasHints(editor, lastChar)) {
