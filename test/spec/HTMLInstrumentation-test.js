@@ -148,13 +148,12 @@ define(function (require, exports, module) {
             
             it("should have recreated cache when document timestamp is different", function () {
                 runs(function () {
-                    var docTimestamp = editor.document.diskTimestamp.getTime();
-                    
-                    // Arbitararily change the diskTimestamp 
-                    editor.document.diskTimestamp += 12345;
+                    // update document timestamp with current time.
+                    editor.document.diskTimestamp = new Date();
                     
                     // This is an intentional repeat call to recreate the cache.
                     HTMLInstrumentation.scanDocument(editor.document);
+
                     // 2 calls from generateInstrumentedHTML call and one call 
                     // from above scanDocument call. so total is 3.
                     expect(editor.document.getText.callCount).toBe(3);
