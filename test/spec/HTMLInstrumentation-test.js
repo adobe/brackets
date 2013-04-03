@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
-        DocumentManager     = require("document/DocumentManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
@@ -110,8 +109,8 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
                     expect(editor).toBeTruthy();
 
+                    spyOn(editor.document, "getText").andCallThrough();
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
-                    spyOn(editor.document, "getText").andCallFake(function () {});
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                     
                     if (elementCount) {
@@ -137,7 +136,28 @@ define(function (require, exports, module) {
             
             it("should have created cache and never call document.getText() again", function () {
                 runs(function () {
-                    expect(editor.document.getText).not.toHaveBeenCalled();
+                    // scanDocument call here is to test the cache.                    
+                    // HTMLInstrumentation.generateInstrumentedHTML call in "beforeEach"
+                    // in turn calls scanDocument. Each function calls document.getText once
+                    // and hence we've already had 2 calls from "beforeEach", but the following
+                    // call should not call it again.
+                    HTMLInstrumentation.scanDocument(editor.document);
+                    expect(editor.document.getText.callCount).toBe(2);
+                });
+            });
+            
+            it("should have recreated cache when document timestamp is different", function () {
+                runs(function () {
+                    var docTimestamp = editor.document.diskTimestamp.getTime();
+                    
+                    // Arbitararily change the diskTimestamp 
+                    editor.document.diskTimestamp += 12345;
+                    
+                    // This is an intentional repeat call to recreate the cache.
+                    HTMLInstrumentation.scanDocument(editor.document);
+                    // 2 calls from generateInstrumentedHTML call and one call 
+                    // from above scanDocument call. so total is 3.
+                    expect(editor.document.getText.callCount).toBe(3);
                 });
             });
             
@@ -204,7 +224,6 @@ define(function (require, exports, module) {
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
-                    spyOn(editor.document, "getText").andCallFake(function () {});
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
 
                     if (elementCount) {
@@ -228,12 +247,6 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should have created cache and never call document.getText() again", function () {
-                runs(function () {
-                    expect(editor.document.getText).not.toHaveBeenCalled();
-                });
-            });
-            
             it("should get 'p' tag for cursor positions before the succeding start tag of an unclosed 'p' tag", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 8, ch: 36 }, "p");   // at the end of the line that has p start tag
@@ -340,7 +353,6 @@ define(function (require, exports, module) {
                     expect(editor).toBeTruthy();
 
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
-                    spyOn(editor.document, "getText").andCallFake(function () {});
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
 
                     if (elementCount) {
@@ -364,12 +376,6 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should have created cache and never call document.getText() again", function () {
-                runs(function () {
-                    expect(editor.document.getText).not.toHaveBeenCalled();
-                });
-            });
-            
             it("should get 'script' tag for cursor positions anywhere inside the tag including CDATA.", function () {
                 runs(function () {
                     checkTagIdAtPos({ line: 6, ch: 11 }, "script");   // before '<' of CDATA
