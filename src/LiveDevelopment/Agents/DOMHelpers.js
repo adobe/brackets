@@ -198,6 +198,12 @@ define(function DOMHelpersModule(require, exports, module) {
             payload.nodeName = /^<([^>\s]+)/.exec(content)[1].toUpperCase();
             payload.attributes = _extractAttributes(content);
 
+            // Special handling for script tag since we've already collected
+            // everything up to the end tag.
+            if (payload.nodeName === "SCRIPT") {
+                payload.closing = true;
+            }
+            
             // closing node (/ at the beginning)
             if (payload.nodeName[0] === "/") {
                 payload.nodeName = payload.nodeName.substr(1);
