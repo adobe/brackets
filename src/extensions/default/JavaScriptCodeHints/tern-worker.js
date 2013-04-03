@@ -73,7 +73,7 @@ importScripts("thirdparty/requirejs/require.js");
      */
     function initTernServer(env, dir, files) {
         var ternOptions = {
-            environment:env,
+            defs:env,
             async:true,
             getFile: getFile
             };
