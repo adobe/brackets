@@ -14,7 +14,7 @@
 <h2>Toto je váš průvodce!</h2>
 
 <!--
-    MADE WITH <3 AND JAVASCRIPT
+    VYTVOŘENO S LÁSKOU A JAVASCRIPTEM
 -->
 
 <p>
@@ -22,26 +22,26 @@
 </p>
 
 <!--
-    WHAT IS BRACKETS?
+    CO JE BRACKETS?
 -->
 <p>
     <em>Máte před sebou jednu z prvních verzí Brackets.</em>
-    V mnoha směrech je Brackets jiným typem editoru. Jedním z rozdílů je, že tento editor se napsán pomocí Javascript. Takže zatímco Brackets ještě není zcela připraven pro každodenní používání, používáme ho každý den pro vytvoření Brackets.
+    V mnoha směrech je Brackets jiným typem editoru. Jedním z rozdílů je, že tento editor je napsán pomocí Javascript. Takže zatímco Brackets ještě není zcela připraven pro každodenní používání, používáme ho každý den pro vytvoření Brackets.
 </p>
 
 
 <h2>Zkoušíme několik nových technik</h2>
 
 <!--
-    THE RELATIONSHIP BETWEEN HTML, CSS AND JAVASCRIPT
+    VZTAH MEZI HTML, CSS A JAVASCRIPTEM
 -->
 <h3>Rychlá úprava pro CSS a JavaScript</h3>
 <p>
-    Když editujete HTML, použijte <kbd>Cmd/Ctrl + E</kbd> klávesou zkratku pro otevření rychlého inline editoru, který zobrazí související CSS. Proveďte úpravy v CSS, zmáčkněte <kbd>ESC</kbd> a můžete opět editovat HTML. Nebo nechte okno s CSS otevřené a stane se součástí vašeho editoru. Pokud zmáčknete <kbd>ESC</kbd> když se nenacházíte v okně rychlého editoru, všechny okna s CSS se zavřou. Už nemusíte přecházet z okna do okna a hledat, kde jste zkončili.
+    Když editujete HTML, použijte <kbd>Cmd/Ctrl + E</kbd> klávesou zkratku pro otevření rychlého inline editoru, který zobrazí související CSS. Proveďte úpravy v CSS, zmáčkněte <kbd>ESC</kbd> a můžete opět editovat HTML. Nebo nechte okno s CSS otevřené a stane se součástí vašeho editoru. Pokud zmáčknete <kbd>ESC</kbd> když se nenacházíte v okně rychlého editoru, všechny okna s CSS se zavřou. Už nemusíte přecházet z okna do okna a hledat, kde jste skončili.
 </p>
 
 <samp>
-    Chcete vidět, jak to funguje? Umístěte kurzor do elementu <!-- <samp> --> a zmáčněte <kbd>Cmd/Ctrl + E</kbd>. Uvidíte okno pro rychlou editaci CSS. Vpravo uvidíte seznam CSS pravidel, které se vztahují k tomuto elementu. Pro posun na příslušný řádek použijte <kbd>Alt + Up/Down</kbd> a editujte.
+    Chcete vidět, jak to funguje? Umístěte kurzor do elementu <!-- <samp> --> a zmáčkněte <kbd>Cmd/Ctrl + E</kbd>. Uvidíte okno pro rychlou editaci CSS. Vpravo uvidíte seznam CSS pravidel, které se vztahují k tomuto elementu. Pro posun na příslušný řádek použijte <kbd>Alt + Up/Down</kbd> a editujte.
 </samp>
 
 <a href="screenshots/brackets-quick-edit.png">
@@ -49,18 +49,18 @@
 </a>
 
 <p>
-  Můžete použít stejnou klávesovou zkratku v Javascript pro editaci funkce, kterou voláte, tím, že umístíte kurzor do jména funkce. Nebo otevřete okno pro výběr barvy tím, že umístíte kurzor na barvu, která je zapsána v hex, rgb nebo hsl formátu. V této chvíli jednotlivé editory nemohou být vnořené.
+  Můžete použít stejnou klávesovou zkratku v Javascript pro editaci funkce, kterou voláte, tím, že umístíte kurzor do jména funkce. Nebo otevřte okno pro výběr barvy tím, že umístíte kurzor na barvu, která je zapsána v hex, rgb nebo hsl formátu. V této chvíli jednotlivé editory nemohou být vnořené.
 </p>
 
 <!--
-    LIVE PREVIEW
+    ŽIVÝ NÁHLED
 -->
 <h3>Prohlédněte si změny prováděné v CSS přímo v prohlížeči.</h3>
 <p>
   Stále používáte metodu ulož soubor/načti soubor znovu v prohlížeči? Tu metodu, kde provedete změny v editoru, uložíte změny, přesunete se do prohlížeče a nakonec obnovíte stránku, abyste viděli změny? S Brackets již toto dělat nemusíte.
 </p>
 <p>
-    Brackets vytvoří <em>živé připojení</em> s vašim prohlížečem a bude aktualizovat změny v CSS ve chvíli, kdy je provedete. Něco podobného již možná děláte s nástroji, které máte doinstalovány v prohlížeči, ale s Brackets nemusíte kopírovat a vkládat CSS zpět do editoru. Kód se zobrazuje v prohlížeči, ale vy ho upravujete v editoru!
+    Brackets vytvoří <em>živé propojení</em> s vašim prohlížečem a bude aktualizovat změny v CSS ve chvíli, kdy je provedete. Něco podobného již možná děláte s nástroji, které máte doinstalovány v prohlížeči, ale s Brackets nemusíte kopírovat a vkládat CSS zpět do editoru. Kód se zobrazuje v prohlížeči, ale vy ho upravujete v editoru!
 </p>
 <samp>
   Pokud máte nainstalován Google Chrome, můžete si to vyzkoušet sami. Klikněte na ikonku blesku v pravém horním rohu, nebo použijte <kbd>Cmd/Ctrl + Alt + P</kbd>. Když je živý náhled povolen v HTML dokumentu, všechny připojené CSS soubory mohou být editovány v reálném čase. Ikona se změní ze šedé na zlatou, když Brackets naváže spojení s vašim prohlížečem.
@@ -72,7 +72,7 @@
 </p>
 
 <!--
-    LET US KNOW WHAT YOU THINK
+    SDĚLTE NÁM VÁŠ NÁZOR
 -->
 <h2>Zapojte se</h2>
 <p>
