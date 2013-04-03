@@ -115,6 +115,13 @@ define(function (require, exports, module) {
                             length: payload.sourceLength
                         });
                     }
+                } else if (payload.nodeName === "SCRIPT") {
+                    tags.push({
+                        name:   payload.nodeName,
+                        tagID:  tagID++,
+                        offset: payload.sourceOffset,
+                        length: payload.sourceLength
+                    });
                 } else if (payload.closing) {
                     // Closing tag
                     var i,
