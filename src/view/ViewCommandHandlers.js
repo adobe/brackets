@@ -88,18 +88,16 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets the font size and restores the scroll position as best as possible
-     * @param {string} fsStr A string with the font size and the size unit
-     * @param {string} lhStr A string with the line height and a the size unit
+     * Sets the font size and restores the scroll position as best as possible.
+     * TODO: Remove the viewportTop hack and direclty use scrollPos.y once #3115 is fixed.
+     * @param {string} fontSizeStyle A string with the font size and the size unit
+     * @param {string} lineHeightStyle A string with the line height and a the size unit
      */
-    function _setSizeAndRestoreScroll(fsStr, lhStr) {
-        var editor     = EditorManager.getCurrentFullEditor(),
-            oldWidth   = editor._codeMirror.defaultCharWidth(),
-            oldHeight  = editor.getTextHeight();
-        
-        // Since the height isn't updated after the font-size is changed, we just consider the rendered lines
-        // to calculate the new scroll position
-        var scrollPos   = editor.getScrollPos(),
+    function _setSizeAndRestoreScroll(fontSizeStyle, lineHeightStyle) {
+        var editor      = EditorManager.getCurrentFullEditor(),
+            oldWidth    = editor._codeMirror.defaultCharWidth(),
+            oldHeight   = editor.getTextHeight(),
+            scrollPos   = editor.getScrollPos(),
             viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
             scrollTop   = scrollPos.y - viewportTop;
         
@@ -107,8 +105,8 @@ define(function (require, exports, module) {
         _removeDynamicFontSize();
         var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
         style.html(".CodeMirror {" +
-                   "font-size: "   + fsStr + " !important;" +
-                   "line-height: " + lhStr + " !important;}");
+                   "font-size: "   + fontSizeStyle   + " !important;" +
+                   "line-height: " + lineHeightStyle + " !important;}");
         $("head").append(style);
         
         editor.refreshAll();
@@ -121,7 +119,8 @@ define(function (require, exports, module) {
             scrollPosX  = scrollPos.x + Math.round(deltaX * (newWidth - oldWidth)),
             scrollPosY  = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
         
-        // Scroll the document back to its original position, but not on the first load
+        // Scroll the document back to its original position, but not on the first load since the position
+        // was saved with the new height and already been restored.
         if (_fontSizePrefsLoaded) {
             editor.setScrollPos(scrollPosX, scrollPosY);
         }
