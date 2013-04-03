@@ -594,20 +594,20 @@ define(function (require, exports, module) {
         });
         
         describe("StringMatcher", function () {
+            this.addMatchers({
+                toBeInCache: function (matcher, cacheName) {
+                    var value = matcher[cacheName][this.actual];
+                    var notText = this.isNot ? " not" : "";
+                    
+                    this.message = function () {
+                        return "Expected " + cacheName + " to" + notText + " contain key " + this.actual;
+                    };
+                    
+                    return value !== undefined;
+                }
+            });
+            
             it("should manage its caches properly", function () {
-                this.addMatchers({
-                    toBeInCache: function (matcher, cacheName) {
-                        var value = matcher[cacheName][this.actual];
-                        var notText = this.isNot ? " not" : "";
-                        
-                        this.message = function () {
-                            return "Expected " + cacheName + " to" + notText + " contain key " + this.actual;
-                        };
-                        
-                        return value !== undefined;
-                    }
-                });
-                
                 var matcher = new StringMatch.StringMatcher();
                 expect(matcher._noMatchCache).toEqual({});
                 expect(matcher._specialsCache).toEqual({});
@@ -641,6 +641,16 @@ define(function (require, exports, module) {
                 // Array.prototype has length
                 var lengthResult = matcher.match("length", "l");
                 expect(lengthResult).toBeTruthy();
+            });
+            
+            it("can reset the caches", function () {
+                var matcher = new StringMatch.StringMatcher();
+                matcher.match("foo", "spec/live");
+                expect("foo").toBeInCache(matcher, "_specialsCache");
+                expect("foo").toBeInCache(matcher, "_noMatchCache");
+                matcher.reset();
+                expect("foo").not.toBeInCache(matcher, "_specialsCache");
+                expect("foo").not.toBeInCache(matcher, "_noMatchCache");
             });
         });
     });

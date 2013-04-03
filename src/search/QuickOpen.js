@@ -391,7 +391,7 @@ define(function (require, exports, module) {
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
         // Give visual clue when there are no results
-        var isNoResults = (results.length === 0 && fileList && !this._isValidLineNumberQuery(this.$searchField.val()));
+        var isNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
         this.$searchField.toggleClass("no-results", isNoResults);
     };
     
@@ -473,8 +473,6 @@ define(function (require, exports, module) {
                 // keeps listening to it anyway. So the last Promise to resolve "wins" the UI update even if it's for
                 // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
                 if (!queryIsStale(query)) {
-                    // New data, so we'll clear the matcher's caches
-                    matcher.reset();
                     // We're still the current query. Synchronously re-run the search call and resolve with its results
                     asyncResult.resolve(searchFileList(query, matcher));
                 } else {
