@@ -473,7 +473,7 @@ define(function (require, exports, module) {
             cachedHints = null;
             cachedType = null;
 
-            if (editor && editor.getModeForDocument() === HintUtils.MODE_NAME) {
+            if (editor && editor.getLanguageForSelection().getId() === HintUtils.LANGUAGE_ID) {
                 initializeSession(editor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function () {
@@ -520,7 +520,7 @@ define(function (require, exports, module) {
         installEditorListeners(EditorManager.getActiveEditor());
 
         var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, [HintUtils.MODE_NAME], 0);
+        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID], 0);
 
         // for unit testing
         exports.jsHintProvider = jsHints;

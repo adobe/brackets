@@ -269,11 +269,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "JSLINT_ERRORS"                        : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
@@ -335,6 +330,13 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
+    
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
+    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

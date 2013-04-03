@@ -69,6 +69,7 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileUtils            = require("file/FileUtils"),
+        HTMLInstrumentation  = require("language/HTMLInstrumentation"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NativeFileError      = require("file/NativeFileError"),
         NativeApp            = require("utils/NativeApp"),
@@ -221,10 +222,10 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} document
      */
     function _classForDocument(doc) {
-        switch (doc.extension) {
+        switch (doc.getLanguage().getId()) {
         case "css":
             return CSSDocument;
-        case "js":
+        case "javascript":
             return exports.config.experimental ? JSDocument : null;
         }
 
@@ -559,6 +560,25 @@ define(function LiveDevelopment(require, exports, module) {
             var interstitialUrl = launcherUrl + "?" + encodeURIComponent(targetUrl);
 
             _setStatus(STATUS_CONNECTING);
+            
+            if (_serverProvider) {
+                // Install a request filter for the current document. In the future,
+                // we need to install filters for *all* files that need to be instrumented.
+                HTMLInstrumentation.scanDocument(doc);
+                _serverProvider.setRequestFilterPaths(
+                    ["/" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)]
+                );
+                
+                // Remove any "request" listeners that were added previously
+                $(_serverProvider).off(".livedev");
+                
+                $(_serverProvider).on("request.livedev", function (event, request) {
+                    var html = HTMLInstrumentation.generateInstrumentedHTML(doc);
+                    
+                    request.send({ body: html });
+                });
+            }
+
             Inspector.connectToURL(interstitialUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
@@ -641,6 +661,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         } else {
             _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
+            
             if (!exports.config.experimental && !_serverProvider) {
                 if (FileUtils.isServerHtmlFileExt(doc.extension)) {
                     showNeedBaseUrlError();

@@ -27,7 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var MODE_NAME                   = "javascript",
+    var LANGUAGE_ID                 = "javascript",
+        MODE_NAME                   = "javascript",
         SINGLE_QUOTE                = "\'",
         DOUBLE_QUOTE                = "\"",
         TERN_INIT_MSG               = "Init",
@@ -195,7 +196,7 @@ define(function (require, exports, module) {
     exports.annotateGlobals         = annotateGlobals;
     exports.KEYWORDS                = KEYWORDS;
     exports.LITERALS                = LITERALS;
-    exports.MODE_NAME               = MODE_NAME;
+    exports.LANGUAGE_ID             = LANGUAGE_ID;
     exports.SINGLE_QUOTE            = SINGLE_QUOTE;
     exports.DOUBLE_QUOTE            = DOUBLE_QUOTE;
     exports.TERN_COMPLETIONS_MSG    = TERN_COMPLETIONS_MSG;

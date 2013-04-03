@@ -427,8 +427,14 @@ define(function (require, exports, module) {
         });
     });
     
-    exports.makeResizable = makeResizable;
-    exports.toggle = toggle;
-    exports.show = show;
-    exports.hide = hide;
+    exports.makeResizable        = makeResizable;
+    exports.toggle               = toggle;
+    exports.show                 = show;
+    exports.hide                 = hide;
+    
+    //Resizer Constants
+    exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;
+    exports.DIRECTION_HORIZONTAL = DIRECTION_HORIZONTAL;
+    exports.POSITION_TOP         = POSITION_TOP;
+    exports.POSITION_RIGHT       = POSITION_RIGHT;
 });
