@@ -94,6 +94,7 @@ importScripts("thirdparty/requirejs/require.js");
         query.sort = false;
         query.depths = true;
         query.types = true;
+        query.guess = false;
 
         var request = {query:query, files:[], offset:offset};
         request.files.push({type:"full", name:file, text:text});
@@ -117,19 +118,48 @@ importScripts("thirdparty/requirejs/require.js");
             //if (error) return displayError(error);
             //_log("completions = " + data.completions.length);
             var completions = [];
-            var ternHints = [];    
             for (var i = 0; i < data.completions.length; ++i) {
                 var completion = data.completions[i];//, className = typeToIcon(completion.type);
                 //if (data.guess) className += " Tern-completion-guess";
                 completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess /*, className: className*/});
             }
-            
+
             // Post a message back to the main thread with the completions
             self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
                               dir: dir,
                               file: file,
                               completions: completions
                              });
+        });
+    }
+
+    /**
+     * Get all the known properties for guessing.
+     *
+     * @param {string} dir      - the directory
+     * @param {string} file     - the file name
+     * @param {string} text     - the text of the file
+     */
+    function handleGetProperties(dir, file, text) {
+
+        var request = buildRequest(dir, file, "properties", undefined, text);
+        _log("request " + request.type + dir + " " + file);
+        ternServer.request(request, function(error, data) {
+            //if (error) return displayError(error);
+            //_log("completions = " + data.completions.length);
+            var properties = [];
+            for (var i = 0; i < data.completions.length; ++i) {
+                var property = data.completions[i];//, className = typeToIcon(completion.type);
+                //if (data.guess) className += " Tern-completion-guess";
+                properties.push({value: completion.name, type: completion.type, guess: true /*, className: className*/});
+            }
+
+                // Post a message back to the main thread with the completions
+            self.postMessage({type: HintUtils.TERN_GET_PROPERTIES_MSG,
+                    dir: dir,
+                    file: file,
+                    completions: properties
+                });
         });
     }
 
@@ -187,6 +217,10 @@ importScripts("thirdparty/requirejs/require.js");
             text    = request.text;
             var offset  = request.offset;
             getTernHints(dir, file, offset, text);
+        } else if ( type === HintUtils.TERN_GET_PROPERTIES_MSG) {
+            var file    = request.file,
+                dir     = request.dir;
+            handleGetProperties(file, dir);
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
             file = request.file,
             text = request.text;

@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
         this.ternHints = [];
+        this.ternProperies = [];
         this.fnType = null;        
     }
 
@@ -397,6 +398,9 @@ define(function (require, exports, module) {
     Session.prototype.setTernHints = function(newHints) {
         this.ternHints = newHints;
     };
+    Session.prototype.setTernProperties = function(newProperties) {
+        this.ternProperies = newProperties;
+    }
     Session.prototype.setFnType = function(newFnType) {
         this.fnType = newFnType;        
     };       

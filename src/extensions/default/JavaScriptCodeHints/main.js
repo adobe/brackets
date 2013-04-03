@@ -336,8 +336,7 @@ define(function (require, exports, module) {
                     type.property !== cachedType.property ||
                     type.context !== cachedType.context ||
                     type.showFunctionType !== cachedType.showFunctionType ||                    
-                    query.length === 0 ||
-                    (cachedHints.length === 0 && query.length === 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
+                    query.length == 0) {
                     var offset          = session.getOffset(),
                         scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
                         self            = this;
