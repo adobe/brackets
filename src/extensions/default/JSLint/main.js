@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     var INDICATOR_ID = "JSLintStatus",
-        defaultPrefs = { enabled: true },
+        defaultPrefs = { enabled: true, directive: "" },
         lintPrefs = "";
 
     
@@ -227,15 +227,6 @@ define(function (require, exports, module) {
         run();
     }
     
-    
-    if (typeof (localStorage["jslint-prefs"]) !== "undefined") {
-        lintPrefs = JSON.parse(localStorage["jslint-prefs"]);
-    }
-    
-    if (typeof (localStorage["jslint-directive"]) === "undefined") {
-        localStorage["jslint-directive"] = "";
-    }
-    
     /**
      * Save global JSLint directive.
      * @param {string} prefs Inputted directive.
@@ -243,15 +234,15 @@ define(function (require, exports, module) {
      */
     function _savePrefs(prefs, response) {
         if (response === "ok" && typeof prefs !== "undefined") {
-            localStorage["jslint-directive"] = prefs;
+            _prefs.setValue("directive", prefs);
             var _obj = {};
-            var _props = prefs.replace("/*jslint ", "").replace(" */", "").split(', ');
+            var _props = prefs.replace(/^\s*\/\*\s*jslint\s*/, "").replace(/\/\s*\*\/\s*$/, "").split(/\s*,\s*/);
             _props.forEach(function (setting) {
-                var _kv = setting.split(': ');
+                var _kv = setting.split(/\s*:\s*/);
                 _obj[_kv[0]] = _kv[1];
             });
             lintPrefs = _obj;
-            localStorage["jslint-prefs"] = JSON.stringify(lintPrefs);
+            _prefs.setValue("lint", JSON.stringify(lintPrefs));
         } else {
             return;
         }
@@ -274,7 +265,7 @@ define(function (require, exports, module) {
     /** Command to open global directive dialog */
     function handlePromptPrefs() {
         var _lintString;
-        Dialogs.showModalDialog("save-close-dialog", "JSLint Global Directive", "<textarea id='jslint-options' placeholder='Paste default JSLint directive here'>" + localStorage["jslint-directive"] + "</textarea>").done(function (e) {
+        Dialogs.showModalDialog("save-close-dialog", "JSLint Global Directive", "<textarea id='jslint-options' placeholder='Paste default JSLint directive here'>" + _prefs.getValue("directive") + "</textarea>").done(function (e) {
             _savePrefs(_lintString, e);
         });
         $("#jslint-options").keyup(function () { _lintString = this.value; });
@@ -301,6 +292,11 @@ define(function (require, exports, module) {
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    
+    // Get JSLint preferences
+    if (typeof (_prefs.getValue("lint")) !== "undefined") {
+        lintPrefs = JSON.parse(_prefs.getValue("lint"));
+    }
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
