@@ -142,7 +142,8 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        if (pluginDef.fileTypes) {
+        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
+        if (pluginDef.fileTypes && !pluginDef.languageIds) {
             console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
             pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
                 return LanguageManager.getLanguageForPath("file." + extension).getId();
@@ -543,8 +544,8 @@ define(function (require, exports, module) {
             var i;
             for (i = 0; i < plugins.length; i++) {
                 var plugin = plugins[i];
-                var LanguageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
-                if (LanguageIdMatch && plugin.match && plugin.match(query)) {
+                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
+                if (languageIdMatch && plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
                     
                     // Look up the StringMatcher for this plugin.
