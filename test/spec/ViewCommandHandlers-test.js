@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22,15 +22,14 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone, document */
+/*global define, describe, beforeEach, it, runs, expect, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var CommandManager,      // loaded from brackets.test
         Commands,            // loaded from brackets.test
         EditorManager,       // loaded from brackets.test
-        DocumentManager,     // loaded from brackets.test
         FileViewController,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
@@ -44,39 +43,34 @@ define(function (require, exports, module) {
             HTML_FILE = testPath + "/test.html";
         
         beforeEach(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
-
-                // Load module instances from brackets.test
-                CommandManager      = testWindow.brackets.test.CommandManager;
-                Commands            = testWindow.brackets.test.Commands;
-                EditorManager       = testWindow.brackets.test.EditorManager;
-                DocumentManager     = testWindow.brackets.test.DocumentManager;
-                FileViewController  = testWindow.brackets.test.FileViewController;
-               
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-        });
-
-        afterEach(function () {
-            SpecRunnerUtils.closeTestWindow();
-        });
-        
-        
-        function openEditors() {
             var promise;
             
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
-            
-            runs(function () {
-                // Open inline editor onto test.css's ".testClass" rule
-                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
-                waitsForDone(promise, "Open inline editor");
-            });
-        }
+            // Create a new window that will be shared by ALL tests in this spec.
+            if (!testWindow) {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+    
+                    // Load module instances from brackets.test
+                    CommandManager      = testWindow.brackets.test.CommandManager;
+                    Commands            = testWindow.brackets.test.Commands;
+                    EditorManager       = testWindow.brackets.test.EditorManager;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
+                   
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                    waitsForDone(promise, "Open into working set");
+                });
+                
+                runs(function () {
+                    // Open inline editor onto test.css's ".testClass" rule
+                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                    waitsForDone(promise, "Open inline editor");
+                });
+            }
+        });
         
         function getEditors() {
             var editor = EditorManager.getCurrentFullEditor();
@@ -94,10 +88,8 @@ define(function (require, exports, module) {
         }
         
         
-        describe("Increase/Decrease Font Size", function () {
+        describe("Adjust the Font Size", function () {
             it("should increase the font size in both editor and inline editor", function () {
-                openEditors();
-                
                 runs(function () {
                     var editors      = getEditors();
                     var expectedSize = editors.editor.getTextHeight() + 2;
@@ -111,8 +103,6 @@ define(function (require, exports, module) {
             });
             
             it("should decrease the font size in both editor and inline editor", function () {
-                openEditors();
-                
                 runs(function () {
                     var editors      = getEditors();
                     var expectedSize = editors.editor.getTextHeight() - 2;
@@ -126,8 +116,6 @@ define(function (require, exports, module) {
             });
             
             it("should restore the font size in both editor and inline editor", function () {
-                openEditors();
-                
                 runs(function () {
                     var editors      = getEditors();
                     var expectedSize = editors.editor.getTextHeight();
@@ -141,10 +129,34 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should increase the font size on Modifier Key + Mouse Wheel Up", function () {
+                runs(function () {
+                    var editors      = getEditors();
+                    var expectedSize = editors.editor.getTextHeight() + 2;
+                    
+                    simulateMouseEvent(-1);
+                    simulateMouseEvent(-1);
+                    
+                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
+                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                });
+            });
+            
+            it("should decrease the font size on Modifier Key + Mouse Wheel Down", function () {
+                runs(function () {
+                    var editors      = getEditors();
+                    var expectedSize = editors.editor.getTextHeight() - 2;
+                    
+                    simulateMouseEvent(1);
+                    simulateMouseEvent(1);
+                    
+                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
+                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                });
+            });
+            
             it("should keep the same font size when opening another document", function () {
                 var promise, expectedSize, editor;
-                
-                openEditors();
                 
                 runs(function () {
                     editor       = EditorManager.getCurrentFullEditor();
@@ -164,35 +176,12 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor.getTextHeight()).toBe(expectedSize);
                 });
-            });
-            
-            it("should increase the font size on Modifier Key + Mouse Wheel Up", function () {
-                openEditors();
                 
+                // This must be in the last spec in the suite.
                 runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() + 2;
-                    
-                    simulateMouseEvent(-1);
-                    simulateMouseEvent(-1);
-                    
-                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
-                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
-                });
-            });
-            
-            it("should decrease the font size on Modifier Key + Mouse Wheel Down", function () {
-                openEditors();
-                
-                runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() - 2;
-                    
-                    simulateMouseEvent(1);
-                    simulateMouseEvent(1);
-                    
-                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
-                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                    this.after(function () {
+                        SpecRunnerUtils.closeTestWindow();
+                    });
                 });
             });
         });

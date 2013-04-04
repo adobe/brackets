@@ -47,7 +47,7 @@
 
 @code-padding: 15px;
 
-.CodeMirror-activeline-background {
+.CodeMirror-focused .CodeMirror-activeline-background {
     background: @activeline-bgcolor !important; 
 }
 
@@ -176,6 +176,13 @@
     
     .CodeMirror .CodeMirror-vscrollbar, .CodeMirror .CodeMirror-hscrollbar {
         cursor: default;
+    }
+    
+    .CodeMirror-focused .CodeMirror-activeline-background {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2) !important; 
+    }
+    &.CodeMirror-focused .CodeMirror .CodeMirror-activeline-background {
+        background: transparent !important; 
     }
 }
 
