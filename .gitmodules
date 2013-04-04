@@ -12,7 +12,7 @@
 	url = https://github.com/janl/mustache.js.git
 [submodule "src/extensions/default/JavaScriptCodeHints/tern"]
 	path = src/extensions/default/JavaScriptCodeHints/tern
-	url = https://github.com/eztierney/tern.git
+	url = https://github.com/marijnh/tern.git
 [submodule "src/extensions/default/JavaScriptCodeHints/acorn"]
 	path = src/extensions/default/JavaScriptCodeHints/acorn
-	url = https://github.com/eztierney/acorn
+	url = https://github.com/marijnh/acorn.git
