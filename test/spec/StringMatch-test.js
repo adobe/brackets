@@ -594,17 +594,19 @@ define(function (require, exports, module) {
         });
         
         describe("StringMatcher", function () {
-            this.addMatchers({
-                toBeInCache: function (matcher, cacheName) {
-                    var value = matcher[cacheName][this.actual];
-                    var notText = this.isNot ? " not" : "";
-                    
-                    this.message = function () {
-                        return "Expected " + cacheName + " to" + notText + " contain key " + this.actual;
-                    };
-                    
-                    return value !== undefined;
-                }
+            beforeEach(function () {
+                this.addMatchers({
+                    toBeInCache: function (matcher, cacheName) {
+                        var value = matcher[cacheName][this.actual];
+                        var notText = this.isNot ? " not" : "";
+                        
+                        this.message = function () {
+                            return "Expected " + cacheName + " to" + notText + " contain key " + this.actual;
+                        };
+                        
+                        return value !== undefined;
+                    }
+                });
             });
             
             it("should manage its caches properly", function () {
