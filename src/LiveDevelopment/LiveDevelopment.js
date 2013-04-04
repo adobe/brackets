@@ -99,7 +99,21 @@ define(function LiveDevelopment(require, exports, module) {
         "edit"      : require("LiveDevelopment/Agents/EditAgent")
     };
 
-    var launcherUrl = window.location.href.replace(/\/(src\/index.html|test\/SpecRunner.html).*/, "") + "/src/LiveDevelopment/launch.html";
+    // construct path to launch.html
+    // window location is can be one of the following:
+    // Installed:                /path/to/Brackets.app/Contents/www/index.html
+    // Installed, dev:           /path/to/Brackets.app/Contents/dev/src/index.html
+    // Installed, dev, test:     /path/to/Brackets.app/Contents/dev/test/SpecRunner.html
+    // Arbitrary git repo:       /path/to/brackets/src/index.html
+    // Arbitrary git repo, test: /path/to/brackets/test/SpecRunner.html
+    var launcherUrl = window.location.pathname;
+
+    // special case for test/SpecRunner.html since we can't tell how requirejs
+    // baseUrl is configured dynamically
+    launcherUrl = launcherUrl.replace("/test/SpecRunner.html", "/src/index.html");
+
+    launcherUrl = launcherUrl.substr(0, launcherUrl.lastIndexOf("/")) + "/LiveDevelopment/launch.html";
+    launcherUrl = window.location.origin + launcherUrl;
 
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().

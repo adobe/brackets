@@ -156,7 +156,6 @@ define(function (require, exports, module) {
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
-            var wasDirty = this.isDirty;
             this.isDirty = !editor._codeMirror.isClean();
                     
             // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the

@@ -157,7 +157,7 @@ define(function (require, exports, module) {
                 });
                    
                 runs(function () {
-                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 5000);
+                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 10000);
                 });
                 
                 runs(function () {
