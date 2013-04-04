@@ -390,9 +390,10 @@ define(function (require, exports, module) {
      * list items are re-rendered. Both happen synchronously just after we return. Called even when results is empty.
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
-        // Give visual clue when there are no results
+        // Give visual clue when there are no results (unless we're in "Go To Line" mode, where there
+        // are never results, or we're in file search mode and waiting for the index to get rebuilt)
         var isNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
-        this.$searchField.toggleClass("no-results", isNoResults);
+        this.$searchField.toggleClass("no-results", Boolean(isNoResults));
     };
     
     /**
