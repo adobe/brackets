@@ -973,14 +973,6 @@ define(function (require, exports, module) {
         return this._codeMirror.defaultTextHeight();
     };
     
-    /*
-     * Returns the current width of a character of the editor.
-     * @returns {number} Width of a character in pixels
-     */
-    Editor.prototype.getCharWidth = function () {
-        return this._codeMirror.defaultCharWidth();
-    };
-    
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
