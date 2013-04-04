@@ -235,9 +235,11 @@ function RemoteFunctions(experimental) {
             var stylesToSet = {
                 "left": _screenOffset(element, "offsetLeft") + "px",
                 "top": _screenOffset(element, "offsetTop") + "px",
-                "width": (elementBounds.width - 2) + "px",
-                "height": (elementBounds.height - 2) + "px",
+                "width": elementBounds.width + "px",
+                "height": elementBounds.height + "px",
                 "z-index": 2000000,
+                "margin": 0,
+                "padding": 0,
                 "position": "absolute",
                 "pointer-events": "none",
                 "border-top-left-radius": styles.borderTopLeftRadius,
