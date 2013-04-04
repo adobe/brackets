@@ -367,6 +367,7 @@ define(function (require, exports, module) {
 
         // Replace the current token with the completion
         session.editor.document.replaceRange(completion, start, end);
+        session.editor.setCursorPos(start.line, start.ch + completion.length);
 
         // Return false to indicate that another hinting session is not needed
         return false;
