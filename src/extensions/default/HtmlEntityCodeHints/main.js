@@ -96,7 +96,7 @@ define(function (require, exports, module) {
             return query !== null;
         }
         
-        return implicitChar === "&" || query !== null;
+        return query !== null;
     };
        
     /**
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
         var query,
             result;
 
-        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
+        if (implicitChar === null || this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
             this.currentQuery = query = this._getQuery();
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
@@ -129,7 +129,10 @@ define(function (require, exports, module) {
                 }
             }).sort(this._internalSort);
             
-            query = _encodeValue(query);
+            if (query !== null) {
+                query = _encodeValue(query);
+            }
+            
             return {
                 hints: result,
                 match: query,
@@ -170,6 +173,10 @@ define(function (require, exports, module) {
      * The Query for which to search
      */
     SpecialCharHints.prototype._getQuery = function () {
+        if (HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName !== "") {
+            return null;
+        }
+        
         var query,
             lineContent,
             startChar,
@@ -192,7 +199,7 @@ define(function (require, exports, module) {
             }, this.editor.getCursorPos());
         }
 
-        if (startChar !== -1 && HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName === "" && endChar < startChar) {
+        if (startChar !== -1 && endChar < startChar) {
             return query;
         }
             
