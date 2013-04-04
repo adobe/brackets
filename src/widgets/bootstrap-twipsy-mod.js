@@ -30,11 +30,9 @@
   $(window)
     .focus(function _onWindowGainedFocus() {
       _windowHasFocus = true;
-      console.log("focus", _windowHasFocus);
     })
     .blur(function _onWindowLostFocus() {
       _windowHasFocus = false;
-      console.log("focus", _windowHasFocus);
     });
   
  /* CSS TRANSITION SUPPORT (https://gist.github.com/373874)
