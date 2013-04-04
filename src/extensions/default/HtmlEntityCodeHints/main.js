@@ -192,7 +192,7 @@ define(function (require, exports, module) {
             }, this.editor.getCursorPos());
         }
 
-        if (startChar !== -1 && HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName === "") {
+        if (startChar !== -1 && HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName === "" && endChar < startChar) {
             return query;
         }
             
