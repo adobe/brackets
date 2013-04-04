@@ -53,80 +53,16 @@ define(function (require, exports, module) {
      * Handlers for commands related to document handling (opening, saving, etc.)
      */
     
-    /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
-    var _$title = null;
-    /** @type {jQueryObject} Container for dirty dot; must be an inline element */
-    var _$dirtydot = null;
-    /** @type {jQueryObject} Container for _$title; need not be an inline element */
-    var _$titleWrapper = null;
-    /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
-    var _currentTitlePath = null;
-    
-    /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
-    var _$titleContainerToolbar = null;
-    /** @type {Number} Last known height of _$titleContainerToolbar */
-    var _lastToolbarHeight = null;
-    
-    function updateTitle() {
-        var currentDoc = DocumentManager.getCurrentDocument();
-        if (currentDoc) {
-            _$title.text(_currentTitlePath);
-            _$title.attr("title", currentDoc.file.fullPath);
-            // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-            _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
-        } else {
-            _$title.text("");
-            _$title.attr("title", "");
-            _$dirtydot.css("visibility", "hidden");
-        }
-        
-        // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
-        // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-        // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
-        _$titleWrapper.css("width", "");
-        var newWidth = _$title.width();
-        _$titleWrapper.css("width", newWidth);
-        
-        // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
-        // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
-        var newToolbarHeight = _$titleContainerToolbar.height();
-        if (_lastToolbarHeight !== newToolbarHeight) {
-            _lastToolbarHeight = newToolbarHeight;
-            EditorManager.resizeEditor();
-        }
-    }
-    
     function updateDocumentTitle() {
-        var newDocument = DocumentManager.getCurrentDocument();
-
-        // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
-        // exception. This code should be removed (if not needed), or updated with a unique
-        // timer name (if needed).
-        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            title = brackets.config.app_title;
         
-        if (newDocument) {
-            var fullPath = newDocument.file.fullPath;
-    
-            // In the main toolbar, show the project-relative path (if the file is inside the current project)
-            // or the full absolute path (if it's not in the project).
-            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
-            
-        } else {
-            _currentTitlePath = null;
+        if (currentDoc) {
+            title = currentDoc.file.name + " \u2014 " + title;
+            title = (currentDoc.isDirty) ? "• " + title : title;
         }
         
-        // Update title text & "dirty dot" display
-        updateTitle();
-
-        // PerfUtils.addMeasurement(perfTimerName);
-    }
-    
-    function handleDirtyChange(event, changedDoc) {
-        var currentDoc = DocumentManager.getCurrentDocument();
-        
-        if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
-            updateTitle();
-        }
+        window.document.title = title;
     }
 
     /**
@@ -821,15 +757,6 @@ define(function (require, exports, module) {
     function handleShowInTree() {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
-    
-    // Init DOM elements
-    AppInit.htmlReady(function () {
-        var $titleContainerToolbar = $("#main-toolbar");
-        _$titleContainerToolbar = $titleContainerToolbar;
-        _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
-        _$title = $(".title", _$titleWrapper);
-        _$dirtydot = $(".dirty-dot", _$titleWrapper);
-    });
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
@@ -859,8 +786,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
     
-    // Listen for changes that require updating the editor titlebar
-    $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
+    // Listen for changes that require updating the window title
+    $(DocumentManager).on("dirtyFlagChange currentDocumentChange fileNameChange", updateDocumentTitle);
 
 });
