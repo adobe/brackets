@@ -151,6 +151,7 @@ define(function (require, exports, module) {
             } else {
                 this.editor.document.replaceRange(completion, start);
             }
+            this.editor.setCursorPos(start.line, start.ch + completion.length);
         }
         
         return false;
@@ -602,6 +603,7 @@ define(function (require, exports, module) {
             } else {
                 this.editor.document.replaceRange(completion, start);
             }
+            this.editor.setCursorPos(start.line, start.ch + completion.length);
         }
 
         if (!this.closeOnSelect) {
