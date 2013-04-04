@@ -180,7 +180,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
-    "CMD_INSTALL_EXTENSION"               : "Install Extension...",
+    "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -272,11 +272,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "JSLINT_ERRORS"                        : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
@@ -312,10 +307,10 @@ define({
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
-    "INSTALLING_FROM"                      : "Installing extension from {0}...",
+    "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Installation successful!",
     "INSTALL_FAILED"                       : "Installation failed.",
-    "CANCELING_INSTALL"                    : "Canceling...",
+    "CANCELING_INSTALL"                    : "Canceling\u2026",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
@@ -338,6 +333,13 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
+    
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
+    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

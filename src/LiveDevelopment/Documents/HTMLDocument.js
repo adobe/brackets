@@ -44,26 +44,31 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
-        HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
-        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
+    var DocumentManager     = require("document/DocumentManager"),
+        DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
+        HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLInstrumentation = require("language/HTMLInstrumentation"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment");
 
     /** Constructor
      *
      * @param Document the source document from Brackets
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
+        this.doc = doc;
         if (!editor) {
             return;
         }
-        this.doc = doc;
         this.editor = editor;
-
+        HTMLInstrumentation._markText(this.editor);
         this.onCursorActivity = this.onCursorActivity.bind(this);
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
 
+        this.onDocumentSaved = this.onDocumentSaved.bind(this);
+        $(DocumentManager).on("documentSaved", this.onDocumentSaved);
+        
         // Experimental code
         if (LiveDevelopment.config.experimental) {
 
@@ -83,6 +88,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         $(this.editor).off("cursorActivity", this.onCursorActivity);
+        $(DocumentManager).off("documentSaved", this.onDocumentSaved);
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -99,16 +105,29 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on cursor activity by the editor */
     HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+        if (!this.editor) {
+            return;
+        }
         var codeMirror = this.editor._codeMirror;
-        if (LiveDevelopment.config.experimental && Inspector.config.highlight) {
-            var location = codeMirror.indexFromPos(codeMirror.getCursor());
-            var node = DOMAgent.allNodesAtLocation(location).pop();
-            HighlightAgent.node(node);
+        if (Inspector.config.highlight) {
+            var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
+                this.editor,
+                codeMirror.getCursor()
+            );
+            
+            if (tagID === -1) {
+                HighlightAgent.hide();
+            } else {
+                HighlightAgent.domElement(tagID);
+            }
         }
     };
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        if (!this.editor) {
+            return;
+        }
         var codeMirror = this.editor._codeMirror;
         while (change) {
             var from = codeMirror.indexFromPos(change.from);
@@ -121,7 +140,7 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
     HTMLDocument.prototype.onHighlight = function onHighlight(event, node) {
-        if (!node || !node.location) {
+        if (!node || !node.location || !this.editor) {
             if (this._highlight) {
                 this._highlight.clear();
                 delete this._highlight;
@@ -142,6 +161,14 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
+    /** Triggered when a document is saved */
+    HTMLDocument.prototype.onDocumentSaved = function onDocumentSaved(event, doc) {
+        if (doc === this.doc) {
+            HTMLInstrumentation.scanDocument(this.doc);
+            HTMLInstrumentation._markText(this.editor);
+        }
+    };
+    
     // Export the class
     module.exports = HTMLDocument;
 });

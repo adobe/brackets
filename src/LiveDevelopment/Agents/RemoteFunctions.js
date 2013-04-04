@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, document */
+/*global define, $, window, document, navigator */
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This
@@ -224,7 +224,12 @@ function RemoteFunctions(experimental) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
                 styles = window.getComputedStyle(element);
-                
+            
+            // Don't highlight elements with 0 width & height
+            if (elementBounds.width === 0 && elementBounds.height === 0) {
+                return;
+            }
+            
             highlight.className = HIGHLIGHT_CLASSNAME;
             
             var stylesToSet = {
@@ -241,7 +246,8 @@ function RemoteFunctions(experimental) {
                 "border-bottom-right-radius": styles.borderBottomRightRadius,
                 "border-style": "solid",
                 "border-width": "1px",
-                "border-color": "rgb(94,167,255)"
+                "border-color": "rgb(94,167,255)",
+                "box-sizing": "border-box"
             };
             
             var animateStartValues = {
