@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -25,7 +25,7 @@
 /*global define: false, describe: false, $: false, beforeEach: false, afterEach: false, it: false, expect: false, brackets: false */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var ViewUtils = require("utils/ViewUtils");
