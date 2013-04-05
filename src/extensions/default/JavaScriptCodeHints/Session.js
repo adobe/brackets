@@ -519,7 +519,7 @@ define(function (require, exports, module) {
             }
 
         } else if ( type.showFunctionType ) {
-            hints = this.fnType ? [{value:this.fnType, positions:[]}] : [];            
+            hints = this.getFunctionTypeHint();            
         } else {
             hints = ternHints || [];
             hints.sort(compareIdentifiers());
@@ -539,6 +539,31 @@ define(function (require, exports, module) {
     };
     Session.prototype.setFnType = function (newFnType) {
         this.fnType = newFnType;        
-    };       
+    };
+    
+    /**
+     * Get the function type hint.  This will format the hint so
+     * that it has the called variable name instead of just "fn()".
+     */
+    Session.prototype.getFunctionTypeHint = function() {
+        var fnHint = this.fnType,
+            hints = [];
+        
+        if (fnHint && (fnHint.substring(0,3) === "fn(")) {
+            var sessionType = this.getType(),
+                cursor = sessionType.functionCallPos,
+                token = cursor ? this.getToken(cursor) : undefined,
+                varName;
+            if (token) {
+                varName = token.string;
+                if (varName) {
+                    fnHint = varName + fnHint.substr(2);
+                }
+            }
+            hints[0] = {value:fnHint, positions:[]};
+        } 
+        return hints;
+    };
+    
     module.exports = Session;
 });
