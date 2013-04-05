@@ -151,15 +151,15 @@ importScripts("thirdparty/requirejs/require.js");
             for (var i = 0; i < data.completions.length; ++i) {
                 var property = data.completions[i];//, className = typeToIcon(completion.type);
                 //if (data.guess) className += " Tern-completion-guess";
-                properties.push({value: completion.name, type: completion.type, guess: true /*, className: className*/});
+                properties.push({value: property, guess: true});
             }
 
-                // Post a message back to the main thread with the completions
+            // Post a message back to the main thread with the completions
             self.postMessage({type: HintUtils.TERN_GET_PROPERTIES_MSG,
-                    dir: dir,
-                    file: file,
-                    completions: properties
-                });
+                              dir: dir,
+                              file: file,
+                              properties: properties
+            });
         });
     }
 
@@ -220,7 +220,8 @@ importScripts("thirdparty/requirejs/require.js");
         } else if ( type === HintUtils.TERN_GET_PROPERTIES_MSG) {
             var file    = request.file,
                 dir     = request.dir;
-            handleGetProperties(file, dir);
+                text    = request.text;
+            handleGetProperties(dir, file, text);
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
             file = request.file,
             text = request.text;

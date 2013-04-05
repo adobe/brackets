@@ -41,8 +41,8 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
         this.ternHints = [];
-        this.ternProperies = [];
-        this.fnType = null;        
+        this.ternProperties = [];
+        this.fnType = null;
     }
 
     /**
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
      * @return {string} - the text of the line
      */
     Session.prototype.getLine = function (line) {
-        var doc = this.editor.document;        
+        var doc = this.editor.document;
         return doc.getLine(line);
     };
     
@@ -230,26 +230,29 @@ define(function (require, exports, module) {
      *      function being called     
      */
     Session.prototype.getType = function () {
-        var propertyLookup  = false,
-            inFunctionCall  = false,
-            showFunctionType= false,            
-            context         = null,
-            cursor          = this.getCursor(),
-            functionCallPos,            
-            token           = this.getToken(cursor);
+        var propertyLookup   = false,
+            inFunctionCall   = false,
+            showFunctionType = false,
+            context          = null,
+            cursor           = this.getCursor(),
+            functionCallPos,
+            token            = this.getToken(cursor);
 
         if (token) {
-            if( token.state.lexical.info === "call" ) {
+            if (token.state.lexical.info === "call") {
                 inFunctionCall = true;
-                if( this.getQuery().length > 0 ) {
+                if (this.getQuery().length > 0) {
                     inFunctionCall = false;
-                    showFunctionType = false;                    
-                } else {                
-                    showFunctionType = true;                    
-                    var col = token.state.lexical.column;                
-                    for (var line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
+                    showFunctionType = false;
+                } else {
+                    showFunctionType = true;
+                    var col = token.state.lexical.column,
+                        line,
+                        e,
+                        found;
+                    for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
                         if (this.getLine(line).charAt(col) === "(") {
-                            found = true; 
+                            found = true;
                             break;
                         }
                     }
@@ -287,12 +290,110 @@ define(function (require, exports, module) {
     /**
      * Get a list of hints for the current session using the current scope
      * information. 
-     * 
+     *
+     * @param {string} query - the query prefix (optional)
      * @return {Array.<Object>} - the sorted list of hints for the current 
      *      session.
      */
-    Session.prototype.getHints = function () {
-        
+    Session.prototype.getHints = function (query) {
+
+        if (query === undefined) {
+            query = "";
+        }
+
+        var MAX_DISPLAYED_HINTS = 500,
+            QUERY_PREFIX_LENGTH = 1;    // Any query of this size or less is matched as a prefix of a hint.
+
+        /*
+         * Filter a list of tokens using the query string in the closure.
+         *
+         * @param {Array.<Object>} tokens - list of hints to filter
+         * @param {number} limit - maximum numberof tokens to return
+         * @return {Array.<Object>} - filtered list of hints
+         */
+        function filterWithQuery(tokens, limit) {
+
+            /*
+             * Filter arr using test, returning at most limit results from the
+             * front of the array.
+             *
+             * @param {Array} arr - array to filter
+             * @param {Function} test - test to determine if an element should
+             *      be included in the results
+             * @param {number} limit - the maximum number of elements to return
+             * @return {Array.<Object>} - new array of filtered elements
+             */
+            function filterArrayPrefix(arr, test, limit) {
+                var i = 0,
+                    results = [],
+                    elem;
+
+                for (i; i < arr.length && results.length <= limit; i++) {
+                    elem = arr[i];
+                    if (test(elem)) {
+                        results.push(elem);
+                    }
+                }
+
+                return results;
+            }
+
+            if (query.length > 0) {
+                return filterArrayPrefix(tokens, function (token) {
+                    if (token.literal && token.kind === "string") {
+                        return false;
+                    } else {
+                        if (query.length > QUERY_PREFIX_LENGTH) {
+                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+                        } else {
+                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) === 0);
+                        }
+                    }
+                }, limit);
+            } else {
+                return tokens.slice(0, limit);
+            }
+        }
+
+        /**
+         * Sort the better matching items to the top.
+         * Prefix matches are considered the best and all others are equal.
+         * @param a
+         * @param b
+         */
+        function compareByBestMatch(a, b) {
+            var index1 = a.value.toLowerCase().indexOf(query.toLowerCase()),
+                index2 = b.value.toLowerCase().indexOf(query.toLowerCase());
+
+            if (index1 === 0 && index2 !== 0) {
+                return -1;
+            } else if (index1 !== 0 && index2 === 0) {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        /*
+         * Comparator for sorting tokens by name
+         *
+         * @param {Object} a - a token
+         * @param {Object} b - another token
+         * @return {number} - comparator value that indicates whether the name
+         *      of token a is lexicographically lower than the name of token b
+         */
+        function compareByName(a, b) {
+            var aLowerCase = a.value.toLowerCase();
+            var bLowerCase = b.value.toLowerCase();
+
+            if (aLowerCase === bLowerCase) {
+                return 0;
+            } else if (aLowerCase < bLowerCase) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
         /**
          * sort by scope depth.
          *
@@ -317,27 +418,6 @@ define(function (require, exports, module) {
             }
         }
 
-        /*
-         * Comparator for sorting tokens by name
-         * 
-         * @param {Object} a - a token
-         * @param {Object} b - another token
-         * @return {number} - comparator value that indicates whether the name
-         *      of token a is lexicographically lower than the name of token b
-         */
-        function compareByName(a, b) {
-            var aLowerCase = a.value.toLowerCase();
-            var bLowerCase = b.value.toLowerCase();
-
-            if (aLowerCase === bLowerCase) {
-                return 0;
-            } else if (aLowerCase < bLowerCase) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
-        
         /*
          * Forms the lexicographical composition of comparators, i.e., 
          * "a lex(c1,c2) b" iff "a c1 b or (a = b and a c2 b)"
@@ -364,8 +444,52 @@ define(function (require, exports, module) {
          *
          * @return {Function} - the comparator function
          */
+        function compareProperties() {
+            return (query.length > QUERY_PREFIX_LENGTH) ?
+                       lexicographic(compareByBestMatch, compareByName) :
+                       compareByName;
+        }
+
+        /*
+         * A comparator for identifiers: the lexicographic combination of
+         * scope and name.
+         *
+         * @return {Function} - the comparator function
+         */
         function compareIdentifiers() {
-            return lexicographic(compareByScopeDepth, compareByName);
+            return (query.length > QUERY_PREFIX_LENGTH) ?
+                       lexicographic(compareByBestMatch,
+                           lexicographic(compareByScopeDepth, compareByName)) :
+                       lexicographic(compareByScopeDepth, compareByName);
+        }
+
+        /*
+         *  Determine if guesses should be added to the hints.
+         *
+         *  @param {Array} hints - current filtered hints
+         *  @return true if guesses should be added, false otherwise.
+         */
+        function shouldAddGuesses(hints) {
+            return (hints.length === 0);
+        }
+
+        /*
+         *  Remove the special "<i>" property from the hints.
+         *
+         *  @param {Array} hints - sorted hints
+         */
+        function removeArrayIndexProperty(hints) {
+            var n = hints.length,
+                i;
+            for (i = 0; i < n; i++) {
+                var value = hints[i].value;
+                if (value === "<i>") {
+                    hints.splice(i, 1);
+                    return;
+                } else if (value > "<i>") {
+                    return;
+                }
+            }
         }
 
         var cursor = this.editor.getCursorPos(),
@@ -376,32 +500,44 @@ define(function (require, exports, module) {
 
         var ternHints = this.ternHints;
         if (type.property) {
-            if( ternHints && ternHints.length > 0 ) {
+            if (ternHints && ternHints.length > 0) {
                 hints = ternHints;
-                hints.sort(compareByName);
-            }
-            else {
+                hints = filterWithQuery(hints, MAX_DISPLAYED_HINTS);
+            } else {
                 hints = [];
             }
+
+            hints.sort(compareProperties());
+
+            // Add guesses if appropriate. If guesses and hints are
+            // mixed guesses are kept below the hints.
+            if (shouldAddGuesses(hints)) {
+                var guesses = filterWithQuery(this.ternProperties, MAX_DISPLAYED_HINTS - hints.length);
+                guesses.sort(compareProperties());
+                removeArrayIndexProperty(guesses);
+                hints = hints.concat(guesses);
+            }
+
         } else if ( type.showFunctionType ) {
             hints = this.fnType ? [{value:this.fnType, positions:[]}] : [];            
         } else {
-            hints = ternHints ? ternHints : [];
+            hints = ternHints || [];
             hints.sort(compareIdentifiers());
             hints = hints.concat(HintUtils.LITERALS);
             hints = hints.concat(HintUtils.KEYWORDS);
+            hints = filterWithQuery(hints, MAX_DISPLAYED_HINTS);
         }
 
         return hints;
     };
     
-    Session.prototype.setTernHints = function(newHints) {
+    Session.prototype.setTernHints = function (newHints) {
         this.ternHints = newHints;
     };
-    Session.prototype.setTernProperties = function(newProperties) {
-        this.ternProperies = newProperties;
-    }
-    Session.prototype.setFnType = function(newFnType) {
+    Session.prototype.setTernProperties = function (newProperties) {
+        this.ternProperties = newProperties;
+    };
+    Session.prototype.setFnType = function (newFnType) {
         this.fnType = newFnType;        
     };       
     module.exports = Session;

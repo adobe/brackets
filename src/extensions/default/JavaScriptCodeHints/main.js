@@ -41,9 +41,6 @@ define(function (require, exports, module) {
         cachedType  = null,  // describes the lookup type and the object context
         cachedLine  = null;  // the line number for the cached scope
 
-    var MAX_DISPLAYED_HINTS = 100,
-        QUERY_PREFIX_LENGTH = 1;    // Any query of this size or less is matched as a prefix of a hint.
-
     /**
      * Creates a hint response object. Filters the hint list using the query
      * string, formats the hints for display, and returns a hint response
@@ -57,98 +54,7 @@ define(function (require, exports, module) {
     function getHintResponse(hints, query, type) {
 
         var trimmedQuery,
-            filteredHints,
             formattedHints;
-
-        /*
-         * Filter a list of tokens using the query string in the closure.
-         * 
-         * @param {Array.<Object>} tokens - list of hints to filter
-         * @param {number} limit - maximum numberof tokens to return
-         * @return {Array.<Object>} - filtered list of hints
-         */
-        function filterWithQuery(tokens, limit) {
-
-            /*
-             * Filter arr using test, returning at most limit results from the
-             * front of the array.
-             * 
-             * @param {Array} arr - array to filter
-             * @param {Function} test - test to determine if an element should
-             *      be included in the results
-             * @param {number} limit - the maximum number of elements to return
-             * @return {Array.<Object>} - new array of filtered elements
-             */
-            function filterArrayPrefix(arr, test, limit) {
-                var i = 0,
-                    results = [],
-                    elem;
-
-                for (i; i < arr.length && results.length <= limit; i++) {
-                    elem = arr[i];
-                    if (test(elem)) {
-                        results.push(elem);
-                    }
-                }
-
-                return results;
-            }
-
-            // If the query is a string literal (i.e., if it starts with a
-            // string literal delimiter, and hence if trimmedQuery !== query)
-            // then only string literal hints should be returned, and matching
-            // should be performed w.r.t. trimmedQuery. If the query is 
-            // otherwise non-empty, no string literals should match. If the
-            // query is empty then no hints are filtered.
-            if (trimmedQuery !== query) {
-                return filterArrayPrefix(tokens, function (token) {
-                    if (token.literal && token.kind === "string") {
-                        if (query.length > (QUERY_PREFIX_LENGTH + 1)) {
-                            return (token.value.toLowerCase().indexOf(trimmedQuery.toLowerCase()) !== -1);
-                        } else {
-                            return (token.value.toLowerCase().indexOf(trimmedQuery.toLowerCase()) === 0);
-                        }
-                    } else {
-                        return false;
-                    }
-                }, limit);
-            } else if (query.length > 0) {
-                return filterArrayPrefix(tokens, function (token) {
-                    if (token.literal && token.kind === "string") {
-                        return false;
-                    } else {
-                        if (query.length > QUERY_PREFIX_LENGTH) {
-                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-                        } else {
-                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) === 0);
-                        }
-                    }
-                }, limit);
-            } else {
-                return tokens.slice(0, limit);
-            }
-        }
-
-        /*
-         * Comparator for sorting tokens by name
-         *
-         * @param {Object} a - a token
-         * @param {Object} b - another token
-         * @return {number} - comparator value that indicates whether the name
-         *      of token a is lexicographically lower than the name of token b
-         */
-        function compareByName(a, b) {
-            var aLowerCase = a.value.toLowerCase();
-            var bLowerCase = b.value.toLowerCase();
-
-            if (aLowerCase === bLowerCase) {
-                return 0;
-            } else if (aLowerCase < bLowerCase) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
 
         /*
          * Returns a formatted list of hints with the query substring
@@ -161,28 +67,10 @@ define(function (require, exports, module) {
          *      objects
          */
         function formatHints(hints, query) {
-            if (query.length > QUERY_PREFIX_LENGTH) {
-
-                // raise the hints that match on prefix to the top of the list.
-                hints.sort(function (hint1, hint2) {
-                    var index1 = hint1.value.toLowerCase().indexOf(query.toLowerCase()),
-                        index2 = hint2.value.toLowerCase().indexOf(query.toLowerCase());
-
-                    if (index1 === 0 && index2 !== 0) {
-                        return -1;
-                    } else if (index1 !== 0 && index2 === 0) {
-                        return 1;
-                    }
-
-                    return compareByName(hint1, hint2);
-                });
-            }
-
             return hints.map(function (token) {
                 var hint        = token.value,
                     index       = hint.toLowerCase().indexOf(query.toLowerCase()),
-                    $hintObj    = $("<span>").addClass("brackets-js-hints"),
-                    delimiter   = "";
+                    $hintObj    = $("<span>").addClass("brackets-js-hints");
 
                 // level indicates either variable scope or property confidence
                 if (!type.property && token.depth !== undefined) {
@@ -211,32 +99,24 @@ define(function (require, exports, module) {
                     $hintObj.addClass("global-hint");
                 }
                 
-                // is the token a literal?
-                if (token.literal) {
-                    $hintObj.addClass("literal-hint");
-                    if (token.kind === "string") {
-                        delimiter = HintUtils.DOUBLE_QUOTE;
-                    }
-                }
-                
                 // is the token a keyword?
                 if (token.keyword) {
                     $hintObj.addClass("keyword-hint");
                 }
              
                 // higlight the matched portion of each hint
-                if (index >= 0) {
-                    var prefix  = StringUtils.htmlEscape(hint.slice(0, index)),
-                        match   = StringUtils.htmlEscape(hint.slice(index, index + query.length)),
-                        suffix  = StringUtils.htmlEscape(hint.slice(index + query.length));
+                if (query.length > 0 && index >= 0) {
+                    var prefix  = hint.slice(0, index),
+                        match   = hint.slice(index, index + query.length),
+                        suffix  = hint.slice(index + query.length);
 
-                    $hintObj.append(delimiter + prefix)
+                    $hintObj.append(prefix)
                         .append($("<span>")
                                 .append(match)
                                 .addClass("matched-hint"))
-                        .append(suffix + delimiter);
+                        .append(suffix);
                 } else {
-                    $hintObj.text(delimiter + hint + delimiter);
+                    $hintObj.text(hint);
                 }
                 $hintObj.data("token", token);
                 
@@ -257,10 +137,8 @@ define(function (require, exports, module) {
         }
 
         if (hints) {
-            filteredHints = filterWithQuery(hints, MAX_DISPLAYED_HINTS);
-            formattedHints = formatHints(filteredHints, trimmedQuery);
-        }
-        else {
+            formattedHints = formatHints(hints, trimmedQuery);
+        } else {
             formattedHints = [];
         }
 
@@ -329,14 +207,13 @@ define(function (require, exports, module) {
             if (token) {
                 var type    = session.getType(),
                     query   = session.getQuery();
-
+                
                 // Compute fresh hints if none exist, or if the session
                 // type has changed since the last hint computation
                 if (!cachedHints ||
-                    type.property !== cachedType.property ||
-                    type.context !== cachedType.context ||
-                    type.showFunctionType !== cachedType.showFunctionType ||                    
-                    query.length == 0) {
+                        type.property !== cachedType.property ||
+                        type.context !== cachedType.context ||
+                        type.showFunctionType !== cachedType.showFunctionType ||                                               query.length === 0) {
                     var offset          = session.getOffset(),
                         scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
                         self            = this;
@@ -346,13 +223,13 @@ define(function (require, exports, module) {
                         scopeResponse.promise.done(function () {
                             cachedLine = cursor.line;
                             cachedType = session.getType();
-                            cachedHints = session.getHints();
+                            cachedHints = session.getHints(query);
 
                             $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
 
                             if ($deferredHints.state() === "pending") {
-                                var query           = session.getQuery(),
-                                    hintResponse    = getHintResponse(cachedHints, query, type);
+                                query = session.getQuery();
+                                var hintResponse    = getHintResponse(cachedHints, query, type);
 
                                 $deferredHints.resolveWith(null, [hintResponse]);
                                 $(self).triggerHandler("hintResponse", [query]);
@@ -371,17 +248,7 @@ define(function (require, exports, module) {
                 }
 
                 if (cachedHints) {
-                    type    = session.getType(),
-                    query   = session.getQuery();
-
-                    // Compute fresh hints if none exist, or if the session
-                    // type has changed since the last hint computation
-                    if (type.property !== cachedType.property ||
-                            type.context !== cachedType.context ||
-                            type.showFunctionType !== cachedType.showFunctionType) {
-                        cachedType = type;
-                        cachedHints = session.getHints();
-                    }
+                    cachedHints = session.getHints(session.getQuery());
                     return getHintResponse(cachedHints, query, type);
                 }
             }
@@ -434,11 +301,11 @@ define(function (require, exports, module) {
             completion = delimeter + completion + delimeter;
         }
 
-        if( session.getType().showFunctionType ) {
+        if (session.getType().showFunctionType) {
             // function types show up as hints, so don't insert anything
             // if we were displaying a function type            
             return false;
-        }            
+        }
         // Replace the current token with the completion
         session.editor.document.replaceRange(completion, start, end);
 

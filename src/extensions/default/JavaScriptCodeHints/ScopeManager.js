@@ -79,10 +79,10 @@ define(function (require, exports, module) {
         var dirEntry    = new NativeFileSystem.DirectoryEntry(path),
             reader      = dirEntry.createReader();
         
-        files.forEach(function(i) {
-            DocumentManager.getDocumentForPath(path + i).done(function(document){
+        files.forEach(function (i) {
+            DocumentManager.getDocumentForPath(path + i).done(function (document) {
                 ternEnvironment.push(JSON.parse(document.getText()));
-            }).fail(function(error){
+            }).fail(function (error) {
                 console.log("failed to read tern config file " + i);
             });
         });
@@ -162,10 +162,19 @@ define(function (require, exports, module) {
         
         var $deferredHints = $.Deferred(),
             hintPromise,
-            fnTypePromise;
+            fnTypePromise,
+            propsPromise;
         
         hintPromise = getTernHints(dir, file, offset, document.getText());
         var sessionType = session.getType();
+        if (sessionType.property) {
+            propsPromise = getTernProperties(dir, file, document.getText());
+        } else {
+            var $propsDeferred = $.Deferred();
+            propsPromise = $propsDeferred.promise();
+            $propsDeferred.resolveWith(null);
+        }
+
         if( sessionType.showFunctionType ) {
             // Show function sig
             fnTypePromise = getTernFunctionType(dir, file, sessionType.functionCallPos, document.getText());            
@@ -173,11 +182,12 @@ define(function (require, exports, module) {
             var $fnTypeDeferred = $.Deferred();
             fnTypePromise = $fnTypeDeferred.promise();
             $fnTypeDeferred.resolveWith(null);
-        }            
-        $.when(hintPromise, fnTypePromise).done(
-            function(completions, fnType){
+        }
+        $.when(hintPromise, fnTypePromise, propsPromise).done(
+            function(completions, fnType, properties){
                 session.setTernHints(completions);
-                session.setFnType(fnType);                    
+                session.setFnType(fnType);
+                session.setTernProperties(properties);
 
                 $deferredHints.resolveWith(null);
             });
@@ -215,15 +225,15 @@ define(function (require, exports, module) {
         var path    = document.file.fullPath,
             split   = HintUtils.splitPath(path),
             dir     = split.dir,
+
             file    = split.file;
 
         var $deferredHints = $.Deferred(),
-            propertiesPromise,
-            fnTypePromise;
+            propertiesPromise;
 
         propertiesPromise = getTernProperties(dir, file, document.getText());
-        $.when(hintPromise).done(
-            function(properties){
+        $.when(propertiesPromise).done(
+            function (properties) {
                 session.setTernProperties(properties);
                 $deferredHints.resolveWith(null);
             });
@@ -241,11 +251,12 @@ define(function (require, exports, module) {
         ternWorker.postMessage({
             type: HintUtils.TERN_GET_PROPERTIES_MSG,
             dir:dir,
-            file:file
+            file:file,
+            text:text
         });
 
         var $deferredHints = $.Deferred();
-        addPendingRequest(file, HintUtils.TERN_PROPERTIES_MSG, $deferredHints);
+        addPendingRequest(file, HintUtils.TERN_GET_PROPERTIES_MSG, $deferredHints);
         return $deferredHints.promise();
     }
 
@@ -310,6 +321,7 @@ define(function (require, exports, module) {
             file = response.file,
             offset = response.offset,
             completions = response.completions,
+            properties = response.properties,
             fnType  = response.fnType,
             type = response.type,            
             $deferredHints = getPendingRequest(file, type);
@@ -317,8 +329,10 @@ define(function (require, exports, module) {
         if( $deferredHints ) {
             if( completions ) {            
                 $deferredHints.resolveWith(null, [completions]);
+            } else if ( properties ) {
+                $deferredHints.resolveWith(null, [properties])
             } else if ( fnType ) {
-                $deferredHints.resolveWith(null, [fnType]);                
+                $deferredHints.resolveWith(null, [fnType]);
             }                
         }
     }
@@ -429,9 +443,12 @@ define(function (require, exports, module) {
     ternWorker.addEventListener("message", function (e) {
         var response = e.data,
             type = response.type;
-        
+
+        console.log("ternWorker event listener: message =" + type);
+
         if( type === HintUtils.TERN_COMPLETIONS_MSG ||
-            type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG) {
+            type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG ||
+            type === HintUtils.TERN_GET_PROPERTIES_MSG) {
             // handle any completions the worker calculated
             handleTernCompletions(response);
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
