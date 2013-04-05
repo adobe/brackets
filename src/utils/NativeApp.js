@@ -54,7 +54,10 @@ define(function (require, exports, module) {
         
         brackets.app.openLiveBrowser(url, enableRemoteDebugging, function onRun(err, pid) {
             if (!err) {
-                liveBrowserOpenedPIDs.push(pid);
+                // Undefined ids never get removed from list, so don't push them on
+                if (pid !== undefined) {
+                    liveBrowserOpenedPIDs.push(pid);
+                }
                 result.resolve(pid);
             } else {
                 result.reject(_browserErrToFileError(err));

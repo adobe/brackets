@@ -76,24 +76,60 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _fontSizePrefsLoaded = false;
-
+    
     
     /**
      * @private
-     * Removes the styles used to update the font size and updates the editor if refresh is true
-     * @param {boolean} refresh - True to refresh the current full editor
+     * Removes the styles used to update the font size
      */
-    function _removeDynamicFontSize(refresh) {
+    function _removeDynamicFontSize() {
         $("#" + DYNAMIC_FONT_STYLE_ID).remove();
-        if (refresh) {
-            EditorManager.getCurrentFullEditor().refreshAll();
+    }
+    
+    /**
+     * @private
+     * Sets the font size and restores the scroll position as best as possible.
+     * TODO: Remove the viewportTop hack and direclty use scrollPos.y once #3115 is fixed.
+     * @param {string} fontSizeStyle A string with the font size and the size unit
+     * @param {string} lineHeightStyle A string with the line height and a the size unit
+     */
+    function _setSizeAndRestoreScroll(fontSizeStyle, lineHeightStyle) {
+        var editor      = EditorManager.getCurrentFullEditor(),
+            oldWidth    = editor._codeMirror.defaultCharWidth(),
+            oldHeight   = editor.getTextHeight(),
+            scrollPos   = editor.getScrollPos(),
+            viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
+            scrollTop   = scrollPos.y - viewportTop;
+        
+        // It's necessary to inject a new rule to address all editors.
+        _removeDynamicFontSize();
+        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
+        style.html(".CodeMirror {" +
+                   "font-size: "   + fontSizeStyle   + " !important;" +
+                   "line-height: " + lineHeightStyle + " !important;}");
+        $("head").append(style);
+        
+        editor.refreshAll();
+        
+        // Calculate the new scroll based on the old font sizes and scroll position
+        var newWidth    = editor._codeMirror.defaultCharWidth(),
+            newHeight   = editor.getTextHeight(),
+            deltaX      = scrollPos.x / oldWidth,
+            deltaY      = scrollTop / oldHeight,
+            scrollPosX  = scrollPos.x + Math.round(deltaX * (newWidth - oldWidth)),
+            scrollPosY  = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
+        
+        // Scroll the document back to its original position, but not on the first load since the position
+        // was saved with the new height and already been restored.
+        if (_fontSizePrefsLoaded) {
+            editor.setScrollPos(scrollPosX, scrollPosY);
         }
     }
     
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {number} negative number to make the font smaller; positive number to make it bigger.
+     * @param {number} adjustment Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
@@ -136,48 +172,28 @@ define(function (require, exports, module) {
             return false;
         }
         
-        // It's necessary to inject a new rule to address all editors.
-        _removeDynamicFontSize(false);
-        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
-        style.html(".CodeMirror {" +
-                   "font-size: "   + fsStr + " !important;" +
-                   "line-height: " + lhStr + " !important;}");
-        $("head").append(style);
-        
-        var editor = EditorManager.getCurrentFullEditor();
-        editor.refreshAll();
-        
-        // Scroll the document back to its original position. This can only happen
-        // if the font size is specified in pixels (which it currently is).
-        if (fsUnits === "px") {
-            var scrollPos = editor.getScrollPos();
-            var scrollDeltaX = Math.round(scrollPos.x / lhOld);
-            var scrollDeltaY = Math.round(scrollPos.y / lhOld);
-            
-            scrollDeltaX = (adjustment >= 0 ? scrollDeltaX : -scrollDeltaX);
-            scrollDeltaY = (adjustment >= 0 ? scrollDeltaY : -scrollDeltaY);
-            
-            editor.setScrollPos((scrollPos.x + scrollDeltaX),
-                                (scrollPos.y + scrollDeltaY));
-        }
+        _setSizeAndRestoreScroll(fsStr, lhStr);
         
         return true;
     }
     
+    /** Increases the font size by 1 */
     function _handleIncreaseFontSize() {
         if (_adjustFontSize(1)) {
             _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
         }
     }
-
+    
+    /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
         if (_adjustFontSize(-1)) {
             _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
         }
     }
     
+    /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _removeDynamicFontSize(true);
+        _adjustFontSize(-_prefs.getValue("fontSizeAdjustment"));
         _prefs.setValue("fontSizeAdjustment", 0);
     }
     
@@ -198,7 +214,7 @@ define(function (require, exports, module) {
             
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
-                _removeDynamicFontSize(false);
+                _removeDynamicFontSize();
                 _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
                 _fontSizePrefsLoaded = true;
             }
@@ -216,10 +232,10 @@ define(function (require, exports, module) {
     /**
      * @private
      * Calculates the first and last visible lines of the focused editor
-     * @param {!number} textHeight
-     * @param {!number} scrollTop
-     * @param {!number} editorHeight
-     * @param {!number} viewportFrom
+     * @param {number} textHeight
+     * @param {number} scrollTop
+     * @param {number} editorHeight
+     * @param {number} viewportFrom
      * @return {{first: number, last: number}}
      */
     function _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom) {
@@ -237,7 +253,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Scroll the viewport one line up or down.
-     * @param {number} -1 to scroll one line up; 1 to scroll one line down.
+     * @param {number} direction -1 to scroll one line up; 1 to scroll one line down.
      */
     function _scrollLine(direction) {
         var editor        = EditorManager.getCurrentFullEditor(),
@@ -306,10 +322,12 @@ define(function (require, exports, module) {
         }
     }
     
+    /** Scrolls one line up */
     function _handleScrollLineUp() {
         _scrollLine(-1);
     }
     
+    /** Scrolls one line down */
     function _handleScrollLineDown() {
         _scrollLine(1);
     }
@@ -326,7 +344,7 @@ define(function (require, exports, module) {
     KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_UP);
     KeyBindingManager.addBinding(Commands.VIEW_SCROLL_LINE_DOWN);
 
-    // Init PreferenceStorage
+    // Initialize the PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);
 
     // Update UI when opening or closing a document

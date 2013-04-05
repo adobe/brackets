@@ -180,7 +180,7 @@ define({
     "CMD_SELECT_LINE"                     : "Välj rad",
     "CMD_FIND"                            : "Hitta",
     "CMD_FIND_IN_FILES"                   : "Hitta i filer",
-    "CMD_FIND_IN_SUBTREE"                 : "Hitta i...",
+    "CMD_FIND_IN_SUBTREE"                 : "Hitta i\u2026",
     "CMD_FIND_NEXT"                       : "Hitta nästa",
     "CMD_FIND_PREVIOUS"                   : "Hitta föregående",
     "CMD_REPLACE"                         : "Ersätt",
