@@ -39,10 +39,10 @@ define(function (require, exports, module) {
     var session     = null,  // object that encapsulates the current session state
         cachedHints = null,  // sorted hints for the current hinting session
         cachedType  = null,  // describes the lookup type and the object context
-        cachedScope = null,  // the inner-most scope returned by the query worker
         cachedLine  = null;  // the line number for the cached scope
 
-    var MAX_DISPLAYED_HINTS = 100;
+    var MAX_DISPLAYED_HINTS = 100,
+        QUERY_PREFIX_LENGTH = 1;    // Any query of this size or less is matched as a prefix of a hint.
 
     /**
      * Creates a hint response object. Filters the hint list using the query
@@ -51,9 +51,10 @@ define(function (require, exports, module) {
      *
      * @param {Array.<Object>} hints - hints to be included in the response
      * @param {string} query - querystring with which to filter the hint list
+     * @param {Object} type - the type of query, property vs. identifier
      * @return {Object} - hint response as defined by the CodeHintManager API 
      */
-    function getHintResponse(hints, query) {
+    function getHintResponse(hints, query, type) {
 
         var trimmedQuery,
             filteredHints,
@@ -102,7 +103,11 @@ define(function (require, exports, module) {
             if (trimmedQuery !== query) {
                 return filterArrayPrefix(tokens, function (token) {
                     if (token.literal && token.kind === "string") {
-                        return (token.value.indexOf(trimmedQuery) === 0);
+                        if (query.length > (QUERY_PREFIX_LENGTH + 1)) {
+                            return (token.value.toLowerCase().indexOf(trimmedQuery.toLowerCase()) !== -1);
+                        } else {
+                            return (token.value.toLowerCase().indexOf(trimmedQuery.toLowerCase()) === 0);
+                        }
                     } else {
                         return false;
                     }
@@ -112,11 +117,36 @@ define(function (require, exports, module) {
                     if (token.literal && token.kind === "string") {
                         return false;
                     } else {
-                        return (token.value.indexOf(query) === 0);
+                        if (query.length > QUERY_PREFIX_LENGTH) {
+                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+                        } else {
+                            return (token.value.toLowerCase().indexOf(query.toLowerCase()) === 0);
+                        }
                     }
                 }, limit);
             } else {
                 return tokens.slice(0, limit);
+            }
+        }
+
+        /*
+         * Comparator for sorting tokens by name
+         *
+         * @param {Object} a - a token
+         * @param {Object} b - another token
+         * @return {number} - comparator value that indicates whether the name
+         *      of token a is lexicographically lower than the name of token b
+         */
+        function compareByName(a, b) {
+            var aLowerCase = a.value.toLowerCase();
+            var bLowerCase = b.value.toLowerCase();
+
+            if (aLowerCase === bLowerCase) {
+                return 0;
+            } else if (aLowerCase < bLowerCase) {
+                return -1;
+            } else {
+                return 1;
             }
         }
 
@@ -127,28 +157,53 @@ define(function (require, exports, module) {
          * @param {Array.<Object>} hints - the list of hints to format
          * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
-         * @param {Array.<jQuery.Object>} - array of hints formatted as jQuery
+         * @return {Array.<jQuery.Object>} - array of hints formatted as jQuery
          *      objects
          */
         function formatHints(hints, query) {
+            if (query.length > QUERY_PREFIX_LENGTH) {
+
+                // raise the hints that match on prefix to the top of the list.
+                hints.sort(function (hint1, hint2) {
+                    var index1 = hint1.value.toLowerCase().indexOf(query.toLowerCase()),
+                        index2 = hint2.value.toLowerCase().indexOf(query.toLowerCase());
+
+                    if (index1 === 0 && index2 !== 0) {
+                        return -1;
+                    } else if (index1 !== 0 && index2 === 0) {
+                        return 1;
+                    }
+
+                    return compareByName(hint1, hint2);
+                });
+            }
+
             return hints.map(function (token) {
                 var hint        = token.value,
-                    index       = hint.indexOf(query),
+                    index       = hint.toLowerCase().indexOf(query.toLowerCase()),
                     $hintObj    = $("<span>").addClass("brackets-js-hints"),
                     delimiter   = "";
 
                 // level indicates either variable scope or property confidence
-                switch (token.level) {
-                case 0:
-                    $hintObj.addClass("priority-high");
-                    break;
-                case 1:
-                    $hintObj.addClass("priority-medium");
-                    break;
-                case 2:
-                    $hintObj.addClass("priority-low");
-                    break;
+                if (!type.property && token.depth !== undefined) {
+                    switch (token.depth) {
+                        case 0:
+                            $hintObj.addClass("priority-high");
+                            break;
+                        case 1:
+                            $hintObj.addClass("priority-medium");
+                            break;
+                        case 2:
+                            $hintObj.addClass("priority-low");
+                            break;
+                        default:
+                            $hintObj.addClass("priority-lowest");
+                            break;
+                    }
                 }
+
+                if (token.guess)
+                    $hintObj.addClass("guess-hint");
 
                 // is the token a global variable?
                 if (token.global) {
@@ -200,8 +255,13 @@ define(function (require, exports, module) {
             trimmedQuery = query;
         }
 
-        filteredHints = filterWithQuery(hints, MAX_DISPLAYED_HINTS);
-        formattedHints = formatHints(filteredHints, trimmedQuery);
+        if (hints) {
+            filteredHints = filterWithQuery(hints, MAX_DISPLAYED_HINTS);
+            formattedHints = formatHints(filteredHints, trimmedQuery);
+        }
+        else {
+            formattedHints = [];
+        }
 
         return {
             hints: formattedHints,
@@ -230,17 +290,20 @@ define(function (require, exports, module) {
 
             // don't autocomplete within strings or comments, etc.
             if (token && HintUtils.hintable(token)) {
-                var offset = session.getOffset();
+                var offset = session.getOffset(),
+                    type    = session.getType(),
+                    query   = session.getQuery();
 
                 // Invalidate cached information if: 1) no scope exists; 2) the
                 // cursor has moved a line; 3) the scope is dirty; or 4) if the
                 // cursor has moved into a different scope. Cached information
                 // is also reset on editor change.
-                if (!cachedScope ||
+                if (!cachedHints ||
                         cachedLine !== cursor.line ||
-                        ScopeManager.isScopeDirty(session.editor.document) ||
-                        !cachedScope.containsPositionImmediate(offset)) {
-                    cachedScope = null;
+                        type.property !== cachedType.property ||
+                        type.context !== cachedType.context ||
+                        type.showFunctionType !== cachedType.showFunctionType) {
+                    //console.log("clear hints");
                     cachedLine = null;
                     cachedHints = null;
                 }
@@ -263,16 +326,24 @@ define(function (require, exports, module) {
             token = session.getToken(cursor);
         if ((key === null) || HintUtils.hintable(token)) {
             if (token) {
-                if (!cachedScope) {
+                var type    = session.getType(),
+                    query   = session.getQuery();
+
+                // Compute fresh hints if none exist, or if the session
+                // type has changed since the last hint computation
+                if (!cachedHints ||
+                    type.property !== cachedType.property ||
+                    type.context !== cachedType.context ||
+                    type.showFunctionType !== cachedType.showFunctionType ||                    
+                    query.length == 0 ||
+                    (cachedHints.length == 0 && query.length == 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
                     var offset          = session.getOffset(),
-                        scopeResponse   = ScopeManager.getScopeInfo(session.editor.document, offset),
+                        scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
                         self            = this;
 
                     if (scopeResponse.hasOwnProperty("promise")) {
                         var $deferredHints = $.Deferred();
-                        scopeResponse.promise.done(function (scopeInfo) {
-                            session.setScopeInfo(scopeInfo);
-                            cachedScope = scopeInfo.scope;
+                        scopeResponse.promise.done(function () {
                             cachedLine = cursor.line;
                             cachedType = session.getType();
                             cachedHints = session.getHints();
@@ -281,7 +352,7 @@ define(function (require, exports, module) {
 
                             if ($deferredHints.state() === "pending") {
                                 var query           = session.getQuery(),
-                                    hintResponse    = getHintResponse(cachedHints, query);
+                                    hintResponse    = getHintResponse(cachedHints, query, type);
 
                                 $deferredHints.resolveWith(null, [hintResponse]);
                                 $(self).triggerHandler("hintResponse", [query]);
@@ -295,25 +366,23 @@ define(function (require, exports, module) {
                         $(this).triggerHandler("deferredResponse");
                         return $deferredHints;
                     } else {
-                        session.setScopeInfo(scopeResponse);
-                        cachedScope = scopeResponse.scope;
                         cachedLine = cursor.line;
                     }
                 }
 
-                if (cachedScope) {
+                if (cachedHints) {
                     var type    = session.getType(),
                         query   = session.getQuery();
 
                     // Compute fresh hints if none exist, or if the session
                     // type has changed since the last hint computation
-                    if (!cachedHints ||
-                            type.property !== cachedType.property ||
-                            type.context !== cachedType.context) {
+                    if (type.property !== cachedType.property ||
+                            type.context !== cachedType.context ||
+                            type.showFunctionType !== cachedType.showFunctionType) {
                         cachedType = type;
                         cachedHints = session.getHints();
                     }
-                    return getHintResponse(cachedHints, query);
+                    return getHintResponse(cachedHints, query, type);
                 }
             }
         }
@@ -365,6 +434,11 @@ define(function (require, exports, module) {
             completion = delimeter + completion + delimeter;
         }
 
+        if( session.getType().showFunctionType ) {
+            // function types show up as hints, so don't insert anything
+            // if we were displaying a function type            
+            return false;
+        }            
         // Replace the current token with the completion
         session.editor.document.replaceRange(completion, start, end);
 
@@ -395,7 +469,6 @@ define(function (require, exports, module) {
          */
         function installEditorListeners(editor) {
             // always clean up cached scope and hint info
-            cachedScope = null;
             cachedLine = null;
             cachedHints = null;
             cachedType = null;
