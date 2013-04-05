@@ -295,6 +295,9 @@ define(function (require, exports, module) {
         var editor = document._masterEditor;
 
         if (!editor) {
+            if (!(document instanceof DocumentManager.Document)) {
+                throw new Error("_destroyEditorIfUnneeded() takes a Document arg, not an Editor");
+            }
             return;
         }
         

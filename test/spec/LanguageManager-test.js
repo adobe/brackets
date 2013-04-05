@@ -386,7 +386,7 @@ define(function (require, exports, module) {
             it("should update the document's language when a file is renamed", function () {
                 var javascript  = LanguageManager.getLanguage("javascript"),
                     html        = LanguageManager.getLanguage("html"),
-                    doc         = SpecRunnerUtils.createMockDocument("foo", javascript),
+                    doc         = SpecRunnerUtils.createMockActiveDocument({ filename: "foo.js", language: "javascript" }),
                     spy         = jasmine.createSpy("languageChanged event handler");
                 
                 // sanity check language
@@ -394,40 +394,6 @@ define(function (require, exports, module) {
                 
                 // Documents are only 'active' while referenced; they won't be maintained by DocumentManager
                 // for global updates like rename otherwise.
-                // Undo createMockDocument()'s shimming to allow this.
-                doc.addRef = DocumentManager.Document.prototype.addRef;
-                doc.releaseRef = DocumentManager.Document.prototype.releaseRef;
-                doc.addRef();
-                
-                // listen for event
-                $(doc).on("languageChanged", spy);
-                
-                // trigger a rename
-                DocumentManager.notifyPathNameChanged(doc.file.name, "dummy.html", false);
-                
-                // language should change
-                expect(doc.getLanguage()).toBe(html);
-                expect(spy).toHaveBeenCalled();
-                expect(spy.callCount).toEqual(1);
-                
-                // check callback args (arg 0 is a jQuery event)
-                expect(spy.mostRecentCall.args[1]).toBe(javascript);
-                expect(spy.mostRecentCall.args[2]).toBe(html);
-                
-                // cleanup
-                doc.releaseRef();
-            });
-            
-            it("should update the document's language when a language is added", function () {
-                var javascript  = LanguageManager.getLanguage("javascript"),
-                    html        = LanguageManager.getLanguage("html"),
-                    doc         = SpecRunnerUtils.createMockActiveDocument({ filename: "foo.js", language: "javascript" }),
-                    spy         = jasmine.createSpy("languageChanged event handler");
-                
-                // sanity check language
-                expect(doc.getLanguage()).toBe(javascript);
-                
-                // make active
                 doc.addRef();
                 
                 // listen for event

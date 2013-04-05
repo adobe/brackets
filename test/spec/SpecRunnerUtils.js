@@ -142,8 +142,14 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns a Document suitable for use with an Editor in isolation, but
-     * maintained active for global updates like name and language changes.
+     * Returns a Document suitable for use with an Editor in isolation, but that can be registered with
+     * DocumentManager via addRef() so it is maintained for global updates like name and language changes.
+     * 
+     * Like a normal Document, if you cause an addRef() on this you MUST call releaseRef() later.
+     * 
+     * @param {!{language:?string, filename:?string, content:?string }} options
+     * Language defaults to JavaScript, filename defaults to a placeholder name, and
+     * content defaults to "".
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
@@ -173,6 +179,11 @@ define(function (require, exports, module) {
     /**
      * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
      * never be set as the currentDocument or added to the working set.
+     * 
+     * Unlike a real Document, does NOT need to be explicitly cleaned up.
+     * 
+     * @param {?string} initialContent  Defaults to ""
+     * @param {?string} languageId      Defaults to JavaScript
      */
     function createMockDocument(initialContent, languageId) {
         var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
@@ -183,14 +194,23 @@ define(function (require, exports, module) {
         // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
         docToShim.addRef = function () {};
         docToShim.releaseRef = function () {};
+        docToShim._ensureMasterEditor = function () {
+            if (!this._masterEditor) {
+                // Don't let Document create an Editor itself via EditorManager; the unit test can't clean that up
+                throw new Error("Use create/destroyMockEditor() to test edit operations");
+            }
+        };
         
         return docToShim;
     }
     
     /**
-     * Returns a Document and Editor suitable for use with an Editor in
-     * isolation: i.e., a Document that will never be set as the
-     * currentDocument or added to the working set.
+     * Returns a Document and Editor suitable for use with an Editor in isolation: i.e., a
+     * Document that will never be set as the currentDocument or added to the working set.
+     * The Editor *will* be reported as the "active editor" by EditorManager, however.
+     * 
+     * Must be cleaned up by calling destroyMockEditor(document) later.
+     * 
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
     function createMockEditor(initialContent, languageId, visibleRange) {
@@ -216,9 +236,10 @@ define(function (require, exports, module) {
     
     /**
      * Destroy the Editor instance for a given mock Document.
-     * @param {!Document} doc
+     * @param {!Document} doc  Document whose master editor to destroy
      */
     function destroyMockEditor(doc) {
+        EditorManager._notifyActiveEditorChanged(null);
         EditorManager._destroyEditorIfUnneeded(doc);
 
         // Clear editor holder so EditorManager doesn't try to resize destroyed object

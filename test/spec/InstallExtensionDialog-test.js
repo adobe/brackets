@@ -495,6 +495,7 @@ define(function (require, exports, module) {
                 });
             });
             
+            
             it("should close when hitting Esc after timing out if cancel doesn't complete quickly", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
@@ -512,7 +513,20 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should keep close button enabled and not throw an exception if install succeeds after cancelation", function () {
+            it("should keep close button enabled and not throw an exception if install succeeds quickly after cancelation", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                    deferred.resolve();
+                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                });
+            });
+            
+            it("should keep close button enabled and not throw an exception if install succeeds slowly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
                 runs(function () {
@@ -527,8 +541,36 @@ define(function (require, exports, module) {
                     expect(fields.$okButton.attr("disabled")).toBeFalsy();
                 });
             });
-
-            it("should keep close button enabled and not throw an exception if install fails after cancelation", function () {
+            it("should keep close button enabled and not throw an exception if install succeeds after cancelation & force close", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    fields.$okButton.click();
+                    deferred.resolve();
+                    expect(fields.$dlg.is(":visible")).toBeFalsy();
+                });
+            });
+            
+            it("should keep close button enabled and not throw an exception if install fails quickly after cancelation", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                    deferred.reject();
+                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                });
+            });
+            it("should keep close button enabled and not throw an exception if install fails slowly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
                 runs(function () {
@@ -544,7 +586,37 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should keep close button enabled and not throw an exception if install cancelation completes after cancelation", function () {
+            it("should keep close button enabled and not throw an exception if install fails after cancelation & force close", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    fields.$okButton.click();
+                    deferred.reject();
+                    expect(fields.$dlg.is(":visible")).toBeFalsy();
+                });
+            });
+            
+            it("should keep close button enabled and not throw an exception if install cancelation completes quickly after cancelation", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                    deferred.reject("CANCELED");
+                    expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                });
+            });
+            
+            it("should keep close button enabled and not throw an exception if install cancelation completes slowly after cancelation", function () {
                 var deferred = new $.Deferred(),
                     installer = makeInstaller(null, deferred);
                 runs(function () {
@@ -557,6 +629,23 @@ define(function (require, exports, module) {
                 runs(function () {
                     deferred.reject("CANCELED");
                     expect(fields.$okButton.attr("disabled")).toBeFalsy();
+                });
+            });
+            
+            it("should keep close button enabled and not throw an exception if install cancelation completes after cancelation & force close", function () {
+                var deferred = new $.Deferred(),
+                    installer = makeInstaller(null, deferred);
+                runs(function () {
+                    setUrl();
+                    dialog._cancelTimeout = 50;
+                    fields.$okButton.click();
+                    fields.$cancelButton.click();
+                });
+                waits(100);
+                runs(function () {
+                    fields.$okButton.click();
+                    deferred.reject("CANCELED");
+                    expect(fields.$dlg.is(":visible")).toBeFalsy();
                 });
                 
                 // This must be in the last spec in the suite.
