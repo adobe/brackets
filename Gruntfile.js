@@ -36,6 +36,8 @@ module.exports = function (grunt) {
                 '!src/widgets/bootstrap-*.js',
                 '!src/extensions/**/unittest-files/**/*.js',
                 '!src/extensions/**/thirdparty/**/*.js',
+                '!src/extensions/default/JavaScriptCodeHints/acorn/**',
+                '!src/extensions/default/JavaScriptCodeHints/tern/**',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
                 '!**/node_modules/**/*.js',
