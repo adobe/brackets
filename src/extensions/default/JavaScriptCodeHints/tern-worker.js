@@ -143,7 +143,7 @@ importScripts("thirdparty/requirejs/require.js");
     function handleGetProperties(dir, file, text) {
 
         var request = buildRequest(dir, file, "properties", undefined, text);
-        _log("request " + request.type + dir + " " + file);
+        //_log("request " + request.type + dir + " " + file);
         ternServer.request(request, function(error, data) {
             //if (error) return displayError(error);
             //_log("completions = " + data.completions.length);
