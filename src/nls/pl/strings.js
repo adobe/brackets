@@ -79,7 +79,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Aby uruchomić Podgląd Błyskawiczny na plikach serwerowych (np. plikach PHP) musisz podać adres dla tego projektu.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Błąd przy próbie zainicjowania serwera HTTP dla Podglądu błyskawicznego. Spróbuj ponownie.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Witaj w Podglądzie Błyskawicznym!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Podgląd Błyskawiczny podłączył {APP_NAME} do twojej przeglądarki. Pokazuje on twoją stronę HTML bezpośrednio w przeglądarce, oraz aktualizuje ją natychmist po wprowadzeniu zmian w kodzie.<br /><br />W aktualnej wersji {APP_NAME}, Podgląd Błyskawiczny działa wyłącznie z <strong>Google Chrome</strong> i aktualizuje w czasie rzeczywistym <strong>pliki CSS</strong>. Zmiany w plikach HTML lub JavaScript są ładowane automatycznie po zapisaniu pliku.<br /><br />(Ta wiadomość wyświetla się tylko raz.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Podgląd Błyskawiczny podłączył {APP_NAME} do twojej przeglądarki. Pokazuje on twoją stronę HTML bezpośrednio w przeglądarce, oraz aktualizuje ją natychmiast po wprowadzeniu zmian w kodzie.<br /><br />W aktualnej wersji {APP_NAME}, Podgląd Błyskawiczny działa wyłącznie z <strong>Google Chrome</strong> i aktualizuje w czasie rzeczywistym <strong>pliki CSS</strong>. Zmiany w plikach HTML lub JavaScript są ładowane automatycznie po zapisaniu pliku.<br /><br />(Ta wiadomość wyświetla się tylko raz.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Więcej informacji znajdziesz w tym dokumencie <a class=\"clickable-link\" data-href=\"{0}\">Rozwiązywanie problemów z Podglądem Błyskawicznym</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Podgląd Błyskawiczny",
@@ -135,7 +135,7 @@ define({
      * ProjectManager
      */
     "PROJECT_LOADING" : "Ładowanie\u2026",
-    "UNTITLED" : "Bez_znawy",
+    "UNTITLED" : "Bez_nazwy",
 
     /**
      * Keyboard modifier names
@@ -176,7 +176,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Błyskawiczne podwietlanie",
     "CMD_PROJECT_SETTINGS"                : "Ustawienia Projektu\u2026",
     "CMD_FILE_RENAME"                     : "Zmień nazwę",
-    "CMD_INSTALL_EXTENSION"               : "Zainstaluj Rozszerzenie...",
+    "CMD_INSTALL_EXTENSION"               : "Zainstaluj Rozszerzenie\u2026",
     "CMD_QUIT"                            : "Wyjdź",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Wyjdź",
@@ -308,10 +308,10 @@ define({
     "INSTALL_EXTENSION_TITLE"              : "Zainstaluj Rozszerzenie",
     "INSTALL_EXTENSION_LABEL"              : "Adres URL Rozszerzenia",
     "INSTALL_EXTENSION_HINT"               : "Adres URL do pliku zip lub repozytorium na GitHub dla rozszerzenia",
-    "INSTALLING_FROM"                      : "Zainstaluj Rozszerzenie z {0}...",
+    "INSTALLING_FROM"                      : "Zainstaluj Rozszerzenie z {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Instalacja zakończona sukcesem.",
     "INSTALL_FAILED"                       : "Instalacja nie powiodła się.",
-    "CANCELING_INSTALL"                    : "Anulowanie...",
+    "CANCELING_INSTALL"                    : "Anulowanie\u2026",
     "CANCELING_HUNG"                       : "Anulowanie instalacji trwa zbyt długo. Możliwe, że wystąpił błąd wewnętrzny.",
     "INSTALL_CANCELED"                     : "Instalacja anulowana.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
