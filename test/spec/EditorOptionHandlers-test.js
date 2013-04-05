@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                 checkLineNumbers(true);
             });
             
-            it("should NOT show line numbers after turning it off in the main editor", function () {
+            it("should NOT show line numbers in main editor after turning it off", function () {
                 // Turn off show line numbers
                 toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
                 
@@ -281,7 +281,7 @@ define(function (require, exports, module) {
                 checkLineNumbers(false);
             });
             
-            it("should NOT show line numbers after turning it off in inline editors", function () {
+            it("should NOT show line numbers in inline editor after turning it off", function () {
                 // Turn off show line numbers
                 toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
                 
@@ -312,7 +312,7 @@ define(function (require, exports, module) {
                 checkCloseBraces({line: 1, ch: 15}, null, OPEN_BRACKET, ".shortLineClass { color: red; }");
             });
             
-            it("should auto close braces after turning it on in the main editor", function () {
+            it("should auto close braces in the main editor after turning it on", function () {
                 // Turn on auto close braces
                 toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
                 
@@ -320,7 +320,7 @@ define(function (require, exports, module) {
                 checkCloseBraces({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]");
             });
             
-            it("should auto close braces after turning it on in inline editors", function () {
+            it("should auto close braces in inline editor after turning it on", function () {
                 // Turn on auto close braces
                 toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
                 
