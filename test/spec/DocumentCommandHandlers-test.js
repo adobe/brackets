@@ -77,7 +77,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
+                    expect(testWindow.document.title).toBe(brackets.config.app_title);
                 });
             });
 
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
+                    expect(testWindow.document.title).toBe(brackets.config.app_title);
                 });
             });
         });
@@ -232,6 +232,7 @@ define(function (require, exports, module) {
             it("should report clean immediately after opening a file", function () {
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
+                    expect(testWindow.document.title).toBe("test.js — " + brackets.config.app_title);
                 });
             });
             
@@ -244,6 +245,7 @@ define(function (require, exports, module) {
                     
                     // verify Document dirty status
                     expect(doc.isDirty).toBe(true);
+                    expect(testWindow.document.title).toBe("• test.js — " + brackets.config.app_title);
                 });
             });
 
