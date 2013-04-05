@@ -127,10 +127,10 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
-	"LANGUAGE_MESSAGE": "Langage :",
+	"LANGUAGE_MESSAGE": "Langue :",
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
-	"LANGUAGE_SYSTEM_DEFAULT": "[6751330] !é=System Default=!",
+	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     /**
      * ProjectManager
@@ -177,7 +177,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
-	"CMD_INSTALL_EXTENSION": "[6737430] !é=Install Extension\u2026=!",
+	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -304,10 +304,10 @@ define({
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
-	"INSTALLING_FROM": "[6737435] !é=Installing extension from {0}\u2026=!",
+	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie.",
 	"INSTALL_FAILED": "Echec de l’installation.",
-	"CANCELING_INSTALL": "[6743050] !é=Canceling\u2026=!",
+	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
 	"INSTALL_CANCELED": "Installation annulée.",
     // These must match the error codes in ExtensionsDomain.Errors.* :

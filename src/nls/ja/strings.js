@@ -130,7 +130,7 @@ define({
 	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
-	"LANGUAGE_SYSTEM_DEFAULT": "!能=[6751330] System Default_=!",
+	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
 
     /**
      * ProjectManager
@@ -177,7 +177,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
-	"CMD_INSTALL_EXTENSION": "!能=[6737430] Install Extension\u2026_=!",
+	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -304,10 +304,10 @@ define({
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
-	"INSTALLING_FROM": "!能=[6737435] Installing extension from {0}\u2026_=!",
+	"INSTALLING_FROM": "{0} から拡張機能をインストール\u2026",
 	"INSTALL_SUCCEEDED": "インストールは成功しました。",
 	"INSTALL_FAILED": "インストールは失敗しました。",
-	"CANCELING_INSTALL": "!能=[6743050] Canceling\u2026_=!",
+	"CANCELING_INSTALL": "キャンセルしています\u2026",
 	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
     // These must match the error codes in ExtensionsDomain.Errors.* :
