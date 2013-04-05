@@ -214,33 +214,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Request properties from Tern.
-     *
-     * @param {Document} document - the document for which scope info is
-     *      desired
-     * @return {jQuery.Promise} - The promise will not complete until the tern
-     *      hints have completed.
-     */
-    function requestProperties(session, document) {
-        var path    = document.file.fullPath,
-            split   = HintUtils.splitPath(path),
-            dir     = split.dir,
-
-            file    = split.file;
-
-        var $deferredHints = $.Deferred(),
-            propertiesPromise;
-
-        propertiesPromise = getTernProperties(dir, file, document.getText());
-        $.when(propertiesPromise).done(
-            function (properties) {
-                session.setTernProperties(properties);
-                $deferredHints.resolveWith(null);
-            });
-        return {promise:$deferredHints.promise()};
-    }
-
-    /**
      * Get a Promise for all of the known properties from TernJS, for the directory and file.
      * The properties will be used as guesses in tern.
      *
@@ -444,8 +417,6 @@ define(function (require, exports, module) {
         var response = e.data,
             type = response.type;
 
-        console.log("ternWorker event listener: message =" + type);
-
         if( type === HintUtils.TERN_COMPLETIONS_MSG ||
             type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG ||
             type === HintUtils.TERN_GET_PROPERTIES_MSG) {
@@ -491,7 +462,6 @@ define(function (require, exports, module) {
     exports.handleEditorChange = handleEditorChange;
     exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
-    exports.requestProperties = requestProperties;
     exports.isScopeDirty = isScopeDirty;
     exports.getTernHints = getTernHints;
 });
