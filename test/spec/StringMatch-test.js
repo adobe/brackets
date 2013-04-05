@@ -594,7 +594,7 @@ define(function (require, exports, module) {
         });
         
         describe("StringMatcher", function () {
-            it("should manage its caches properly", function () {
+            beforeEach(function () {
                 this.addMatchers({
                     toBeInCache: function (matcher, cacheName) {
                         var value = matcher[cacheName][this.actual];
@@ -607,7 +607,9 @@ define(function (require, exports, module) {
                         return value !== undefined;
                     }
                 });
-                
+            });
+            
+            it("should manage its caches properly", function () {
                 var matcher = new StringMatch.StringMatcher();
                 expect(matcher._noMatchCache).toEqual({});
                 expect(matcher._specialsCache).toEqual({});
@@ -645,6 +647,16 @@ define(function (require, exports, module) {
                 // Object.prototype has hasOwnProperty
                 var hasOwnPropertyResult = matcher.match("hasOwnProperty", "h");
                 expect(hasOwnPropertyResult).toBeTruthy();
+            });
+            
+            it("can reset the caches", function () {
+                var matcher = new StringMatch.StringMatcher();
+                matcher.match("foo", "spec/live");
+                expect("foo").toBeInCache(matcher, "_specialsCache");
+                expect("foo").toBeInCache(matcher, "_noMatchCache");
+                matcher.reset();
+                expect("foo").not.toBeInCache(matcher, "_specialsCache");
+                expect("foo").not.toBeInCache(matcher, "_noMatchCache");
             });
         });
     });
