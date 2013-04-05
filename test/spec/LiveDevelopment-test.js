@@ -47,15 +47,15 @@ define(function (require, exports, module) {
     
     // Used as mocks
     require("LiveDevelopment/main");
-    var CommandsModule          = require("command/Commands"),
-        CommandsManagerModule   = require("command/CommandManager"),
-        LiveDevelopmentModule   = require("LiveDevelopment/LiveDevelopment"),
-        InspectorModule         = require("LiveDevelopment/Inspector/Inspector"),
-        CSSDocumentModule       = require("LiveDevelopment/Documents/CSSDocument"),
-        CSSAgentModule          = require("LiveDevelopment/Agents/CSSAgent"),
-        HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent"),
-        HTMLDocumentModule      = require("LiveDevelopment/Documents/HTMLDocument"),
-        HTMLInstrumentModule    = require("language/HTMLInstrumentation");
+    var CommandsModule            = require("command/Commands"),
+        CommandsManagerModule     = require("command/CommandManager"),
+        LiveDevelopmentModule     = require("LiveDevelopment/LiveDevelopment"),
+        InspectorModule           = require("LiveDevelopment/Inspector/Inspector"),
+        CSSDocumentModule         = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSAgentModule            = require("LiveDevelopment/Agents/CSSAgent"),
+        HighlightAgentModule      = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLDocumentModule        = require("LiveDevelopment/Documents/HTMLDocument"),
+        HTMLInstrumentationModule = require("language/HTMLInstrumentation");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -652,7 +652,7 @@ define(function (require, exports, module) {
                 }
             }
         
-            function createIdToTagMap(instrumentedHTML) {
+            function createIdToTagMap(html) {
                 var elementIdRegEx = /<(\w+?)\s+(?:[^<]*?\s)*?data-brackets-id='(\S+?)'/gi,
                     match,
                     tagID,
@@ -660,7 +660,7 @@ define(function (require, exports, module) {
                 
                 elementIds = {};
                 do {
-                    match = elementIdRegEx.exec(instrumentedHTML);
+                    match = elementIdRegEx.exec(html);
                     if (match) {
                         tagID = match[2];
                         tagName = match[1];
@@ -673,7 +673,9 @@ define(function (require, exports, module) {
                 } while (match);
             }
             
-            function verifyTagWithId(id, tag) {
+            function verifyTagWithId(line, ch, tag) {
+                testEditor.setCursorPos(line, ch);
+                var id = HighlightAgentModule.domElement.mostRecentCall.args[0];
                 expect(elementIds[id]).toEqual(tag);
             }
             
@@ -691,19 +693,16 @@ define(function (require, exports, module) {
                     LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
                     HighlightAgentModule.load();
                     
-                    // module spies
-                    spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
-                    spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
+                    // module spies -- used to mock actual API calls so that we can test those
+                    // APIs without having to actually launch the browser.
                     spyOn(HighlightAgentModule, "hide").andCallFake(function () {});
                     spyOn(HighlightAgentModule, "domElement").andCallFake(function () {});
-                    spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
-                    spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
                     
                     var mock = SpecRunnerUtils.createMockEditor(fileContent, "html");
                     testDocument = mock.doc;
                     testEditor = mock.editor;
                     
-                    instrumentedHtml = HTMLInstrumentModule.generateInstrumentedHTML(testDocument);
+                    instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
                     createIdToTagMap(instrumentedHtml);
                     testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
                 });
@@ -722,29 +721,15 @@ define(function (require, exports, module) {
             });
             
             it("should highlight the image for cursor positions inside img tag.", function () {
-                var id;
-                testEditor.setCursorPos(58, 4);  // before <img
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "img");
-                
-                testEditor.setCursorPos(58, 95); // after />
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "img");
+                verifyTagWithId(58, 4, "img");  // before <img
+                verifyTagWithId(58, 95, "img"); // after />
+                verifyTagWithId(58, 65, "img"); // inside src attribute value
 
-                testEditor.setCursorPos(58, 65); // inside src attribute value
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "img");
             });
 
             it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
-                var id;
-                testEditor.setCursorPos(58, 1);  // before "   <img"
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "a");
-
-                testEditor.setCursorPos(59, 0);  // before </a>
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "a");
+                verifyTagWithId(58, 1, "a");  // before "   <img"
+                verifyTagWithId(59, 0, "a");  // before </a>
             });
 
             it("No highlight when the cursor position is outside of the 'html' tag", function () {
@@ -761,58 +746,26 @@ define(function (require, exports, module) {
             });
 
             it("Should highlight the entire body for all cursor positions inside an html comment", function () {
-                var id;
-                testEditor.setCursorPos(15, 1);  // cursor between < and ! in the comment start
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "body");
-
-                testEditor.setCursorPos(16, 15);
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "body");
-
-                testEditor.setCursorPos(17, 3);  // cursor after -->
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "body");
+                verifyTagWithId(15, 1, "body");  // cursor between < and ! in the comment start
+                verifyTagWithId(16, 15, "body");
+                verifyTagWithId(17, 3, "body");  // cursor after -->
             });
 
             it("should highlight 'meta/link' tag for cursor positions in meta/link tags, not 'head' tag", function () {
-                var id;
-                testEditor.setCursorPos(5, 60);
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "meta");
-
-                testEditor.setCursorPos(8, 12);
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "link");
+                verifyTagWithId(5, 60, "meta");
+                verifyTagWithId(8, 12, "link");
             });
 
             it("Should highlight 'title' tag at cursor positions (either in the content or begin/end tag)", function () {
-                var id;
-                testEditor.setCursorPos(6, 11);  // inside the begin tag
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "title");
-
-                testEditor.setCursorPos(6, 30);  // in the content
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "title");
-                
-                testEditor.setCursorPos(6, 50);  // inside the end tag
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "title");
+                verifyTagWithId(6, 11, "title");  // inside the begin tag
+                verifyTagWithId(6, 30, "title");  // in the content
+                verifyTagWithId(6, 50, "title");  // inside the end tag
             });
 
             it("Should get 'h2' tag at cursor positions (either in the content or begin or end tag)", function () {
-                var id;
-                testEditor.setCursorPos(13, 1);  // inside the begin tag
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "h2");
-
-                testEditor.setCursorPos(13, 20); // in the content
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "h2");
-                testEditor.setCursorPos(13, 27); // inside the end tag
-                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
-                verifyTagWithId(id, "h2");
+                verifyTagWithId(13, 1, "h2");  // inside the begin tag
+                verifyTagWithId(13, 20, "h2"); // in the content
+                verifyTagWithId(13, 27, "h2"); // inside the end tag
             });
         });
     });
