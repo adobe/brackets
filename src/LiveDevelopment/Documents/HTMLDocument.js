@@ -44,27 +44,41 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
-    var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var DocumentManager     = require("document/DocumentManager"),
+        DOMAgent            = require("LiveDevelopment/Agents/DOMAgent"),
+        HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLInstrumentation = require("language/HTMLInstrumentation"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment");
 
     /** Constructor
      *
      * @param Document the source document from Brackets
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
+        this.doc = doc;
         if (!editor) {
             return;
         }
-        this.doc = doc;
         this.editor = editor;
-        this.onHighlight = this.onHighlight.bind(this);
-        this.onChange = this.onChange.bind(this);
+        HTMLInstrumentation._markText(this.editor);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(HighlightAgent).on("highlight", this.onHighlight);
-        $(this.editor).on("change", this.onChange);
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
+
+        this.onDocumentSaved = this.onDocumentSaved.bind(this);
+        $(DocumentManager).on("documentSaved", this.onDocumentSaved);
+        
+        // Experimental code
+        if (LiveDevelopment.config.experimental) {
+
+            // Used by highlight agent to highlight editor text as selected in browser
+            this.onHighlight = this.onHighlight.bind(this);
+            $(HighlightAgent).on("highlight", this.onHighlight);
+
+            this.onChange = this.onChange.bind(this);
+            $(this.editor).on("change", this.onChange);
+        }
     };
 
     /** Close the document */
@@ -72,10 +86,18 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (!this.editor) {
             return;
         }
-        $(HighlightAgent).off("highlight", this.onHighlight);
-        $(this.editor).off("change", this.onChange);
+
         $(this.editor).off("cursorActivity", this.onCursorActivity);
-        this.onHighlight();
+        $(DocumentManager).off("documentSaved", this.onDocumentSaved);
+
+        // Experimental code
+        if (LiveDevelopment.config.experimental) {
+
+            $(HighlightAgent).off("highlight", this.onHighlight);
+            this.onHighlight();
+
+            $(this.editor).off("change", this.onChange);
+        }
     };
 
 
@@ -83,16 +105,29 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered on cursor activity by the editor */
     HTMLDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+        if (!this.editor) {
+            return;
+        }
         var codeMirror = this.editor._codeMirror;
         if (Inspector.config.highlight) {
-            var location = codeMirror.indexFromPos(codeMirror.getCursor());
-            var node = DOMAgent.allNodesAtLocation(location).pop();
-            HighlightAgent.node(node);
+            var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
+                this.editor,
+                codeMirror.getCursor()
+            );
+            
+            if (tagID === -1) {
+                HighlightAgent.hide();
+            } else {
+                HighlightAgent.domElement(tagID);
+            }
         }
     };
 
     /** Triggered on change by the editor */
     HTMLDocument.prototype.onChange = function onChange(event, editor, change) {
+        if (!this.editor) {
+            return;
+        }
         var codeMirror = this.editor._codeMirror;
         while (change) {
             var from = codeMirror.indexFromPos(change.from);
@@ -105,7 +140,7 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
     HTMLDocument.prototype.onHighlight = function onHighlight(event, node) {
-        if (!node || !node.location) {
+        if (!node || !node.location || !this.editor) {
             if (this._highlight) {
                 this._highlight.clear();
                 delete this._highlight;
@@ -126,6 +161,14 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._highlight = codeMirror.markText(from, to, { className: "highlight" });
     };
 
+    /** Triggered when a document is saved */
+    HTMLDocument.prototype.onDocumentSaved = function onDocumentSaved(event, doc) {
+        if (doc === this.doc) {
+            HTMLInstrumentation.scanDocument(this.doc);
+            HTMLInstrumentation._markText(this.editor);
+        }
+    };
+    
     // Export the class
     module.exports = HTMLDocument;
 });

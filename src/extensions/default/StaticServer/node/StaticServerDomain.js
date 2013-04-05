@@ -28,8 +28,23 @@ maxerr: 50, node: true */
 (function () {
     "use strict";
     
-    var http    = require("http"),
-        connect = require("connect");
+    var http     = require("http"),
+        pathJoin = require("path").join,
+        connect  = require("connect"),
+        utils    = require("connect/lib/utils"),
+        mime     = require("connect/node_modules/send/node_modules/mime"),
+        parse    = utils.parseUrl;
+    
+    var _domainManager;
+
+    var FILTER_REQUEST_TIMEOUT = 5000;
+
+    /**
+     * @private
+     * @type {number}
+     * Duration to wait before passing a filtered request to the static file server.
+     */
+    var _filterRequestTimeout = FILTER_REQUEST_TIMEOUT;
 
     /**
      * When Chrome has a css stylesheet replaced over live development,
@@ -54,6 +69,42 @@ maxerr: 50, node: true */
     
     /**
      * @private
+     * @type {Object.<string, {Object.<string, http.ServerResponse>}}
+     * A map from root paths to its request/response mapping.
+     */
+    var _requests = {};
+    
+    /**
+     * @private
+     * @type {Object.<string, {Object.<string>}}
+     * A map from root paths to relative paths to rewrite
+     */
+    var _rewritePaths = {};
+
+    var PATH_KEY_PREFIX = "LiveDev_";
+    
+    /**
+     * @private
+     * Removes trailing forward slash for the project root absolute path
+     * @param {string} path Absolute path for a server
+     * @returns {string}
+     */
+    function normalizeRootPath(path) {
+        return (path && path[path.length - 1] === "/") ? path.slice(0, -1) : path;
+    }
+    
+    /**
+     * @private
+     * Generates a key based on a server's absolute path
+     * @param {string} path Absolute path for a server
+     * @returns {string}
+     */
+    function getPathKey(path) {
+        return PATH_KEY_PREFIX + normalizeRootPath(path);
+    }
+    
+    /**
+     * @private
      * Helper function to create a new server.
      * @param {string} path The absolute path that should be the document root
      * @param {function(?string, ?httpServer)} cb Callback function that receives
@@ -61,8 +112,16 @@ maxerr: 50, node: true */
      *    was an error). 
      */
     function _createServer(path, createCompleteCallback) {
+        var server,
+            app,
+            address,
+            pathKey = getPathKey(path);
+
+        // create a new map for this server's requests
+        _requests[pathKey] = {};
+        
         function requestRoot(server, cb) {
-            var address = server.address();
+            address = server.address();
             
             // Request the root file from the project in order to ensure that the
             // server is actually initialized. If we don't do this, it seems like
@@ -78,13 +137,82 @@ maxerr: 50, node: true */
             });
         }
         
-        var app = connect();
+        function rewrite(req, res, next) {
+            var location = {pathname: parse(req).pathname},
+                hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
+                timeoutId;
+            
+            // ignore most HTTP methods and files that we're not watching
+            if (("GET" !== req.method && "HEAD" !== req.method) || !hasListener) {
+                return next();
+            }
+            
+            // pause the request and wait for listeners to possibly respond
+            var pause = utils.pause(req);
+            
+            function resume(doNext) {
+                // delete the callback after it's used or we hit the timeout.
+                // if this path is requested again, a new callback is generated.
+                delete _requests[pathKey][location.pathname];
+
+                // pass request to next middleware
+                if (doNext) {
+                    next();
+                }
+
+                pause.resume();
+            }
+            
+            // map request pathname to response callback
+            _requests[pathKey][location.pathname] = function (resData) {
+                // clear timeout immediately when this callback is called
+                clearTimeout(timeoutId);
+
+                // response data is optional
+                if (resData) {
+                    // HTTP headers
+                    var type    = mime.lookup(location.pathname),
+                        charset = mime.charsets.lookup(type);
+
+                    res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
+
+                    // TODO (jasonsanjose): off-by-1 error here, why?
+                    // Chrome seems to handle the request without issues when Content-Length is not specified
+                    //res.setHeader("Content-Length", Buffer.byteLength(resData.body /* TODO encoding? */));
+
+                    // response body
+                    res.end(resData.body);
+                }
+
+                // resume the HTTP ServerResponse, pass to next middleware if 
+                // no response data was passed
+                resume(!resData);
+            };
+
+            location.hostname = address.address;
+            location.port = address.port;
+            location.root = path;
+
+            var request = {
+                headers:    req.headers,
+                location:   location
+            };
+            
+            // dispatch request event
+            _domainManager.emitEvent("staticServer", "requestFilter", [request]);
+            
+            // set a timeout if custom responses are not returned
+            timeoutId = setTimeout(function () { resume(true); }, _filterRequestTimeout);
+        }
+        
+        app = connect();
+        app.use(rewrite);
         // JSLint complains if we use `connect.static` because static is a
         // reserved word.
-        app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }))
-            .use(connect.directory(path));
+        app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }));
+        app.use(connect.directory(path));
 
-        var server = http.createServer(app);
+        server = http.createServer(app);
         server.listen(0, "127.0.0.1", function () {
             requestRoot(
                 server,
@@ -98,8 +226,6 @@ maxerr: 50, node: true */
             );
         });
     }
-
-    var PATH_KEY_PREFIX = "LiveDev_";
     
     /**
      * @private
@@ -116,7 +242,7 @@ maxerr: 50, node: true */
      */
     function _cmdGetServer(path, cb) {
         // Make sure the key doesn't conflict with some built-in property of Object.
-        var pathKey = PATH_KEY_PREFIX + path;
+        var pathKey = getPathKey(path);
         if (_servers[pathKey]) {
             cb(null, _servers[pathKey].address());
         } else {
@@ -125,6 +251,7 @@ maxerr: 50, node: true */
                     cb(err, null);
                 } else {
                     _servers[pathKey] = server;
+                    _rewritePaths[pathKey] = {};
                     cb(null, server.address());
                 }
             });
@@ -144,7 +271,7 @@ maxerr: 50, node: true */
      * @return {boolean} true if there was a server for that path, false otherwise
      */
     function _cmdCloseServer(path, cba) {
-        var pathKey = PATH_KEY_PREFIX + path;
+        var pathKey = getPathKey(path);
         if (_servers[pathKey]) {
             var serverToClose = _servers[pathKey];
             delete _servers[pathKey];
@@ -155,14 +282,79 @@ maxerr: 50, node: true */
     }
     
     /**
+     * @private
+     * Defines a set of paths from a server's root path to watch and fire "request" events for.
+     *
+     * @param {string} path The absolute path whose server we should watch
+     * @param {Array.<string>} paths An array of root-relative paths to watch.
+     *     Each path should begin with a forward slash "/".
+     */
+    function _cmdSetRequestFilterPaths(root, paths) {
+        var rootPath = normalizeRootPath(root),
+            pathKey  = getPathKey(root),
+            rewritePaths = _rewritePaths[pathKey];
+        
+        paths.forEach(function (path) {
+            rewritePaths[path] = pathJoin(root, path);
+        });
+    }
+    
+    /**
+     * @private
+     * Overrides the server response from static middleware with the provided
+     * response data. This should be called only in response to a filtered request.
+     *
+     * @param {string} path The absolute path of the server
+     * @param {string} root The relative path of the file beginning with a forward slash "/"
+     * @param {Object} resData Response data to use
+     */
+    function _cmdWriteFilteredResponse(root, path, resData) {
+        var pathKey  = getPathKey(root),
+            callback = _requests[pathKey][path];
+
+        if (callback) {
+            callback(resData);
+        } else {
+            console.warn("writeFilteredResponse: Missing callback for %s. This command must only be called after a requestFilter event has fired for a path.", pathJoin(root, path));
+        }
+    }
+
+    /**
+     * @private
+     * Unit tests only. Set, or reset, timeout value for filtered requests.
+     *
+     * @param {number=} timeout Duration to wait before passing a filtered request to the static file server.
+     *     If omitted, timeout is reset to FILTER_REQUEST_TIMEOUT (5s).
+     */
+    function _cmdSetRequestFilterTimeout(timeout) {
+        timeout = (timeout === undefined) ? FILTER_REQUEST_TIMEOUT : timeout;
+        _filterRequestTimeout = timeout;
+    }
+    
+    /**
      * Initializes the StaticServer domain with its commands.
      * @param {DomainManager} domainManager The DomainManager for the server
      */
     function init(domainManager) {
+        _domainManager = domainManager;
+        
         if (!domainManager.hasDomain("staticServer")) {
             domainManager.registerDomain("staticServer", {major: 0, minor: 1});
         }
-        domainManager.registerCommand(
+        _domainManager.registerCommand(
+            "staticServer",
+            "_setRequestFilterTimeout",
+            _cmdSetRequestFilterTimeout,
+            false,
+            "Unit tests only. Set timeout value for filtered requests.",
+            [{
+                name: "timeout",
+                type: "number",
+                description: "Duration to wait before passing a filtered request to the static file server."
+            }],
+            []
+        );
+        _domainManager.registerCommand(
             "staticServer",
             "getServer",
             _cmdGetServer,
@@ -179,7 +371,7 @@ maxerr: 50, node: true */
                 description: "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
             }]
         );
-        domainManager.registerCommand(
+        _domainManager.registerCommand(
             "staticServer",
             "closeServer",
             _cmdCloseServer,
@@ -194,6 +386,60 @@ maxerr: 50, node: true */
                 name: "result",
                 type: "boolean",
                 description: "indicates whether a server was found for the specific path then closed"
+            }]
+        );
+        _domainManager.registerCommand(
+            "staticServer",
+            "setRequestFilterPaths",
+            _cmdSetRequestFilterPaths,
+            false,
+            "Defines a set of paths from a server's root path to watch and fire 'requestFilter' events for.",
+            [
+                {
+                    name: "root",
+                    type: "string",
+                    description: "absolute filesystem path for root of server"
+                },
+                {
+                    name: "paths",
+                    type: "Array",
+                    description: "path to notify"
+                }
+            ],
+            []
+        );
+        _domainManager.registerCommand(
+            "staticServer",
+            "writeFilteredResponse",
+            _cmdWriteFilteredResponse,
+            false,
+            "Overrides the server response from static middleware with the provided response data. This should be called only in response to a filtered request.",
+            [
+                {
+                    name: "root",
+                    type: "string",
+                    description: "absolute filesystem path for root of server"
+                },
+                {
+                    name: "path",
+                    type: "string",
+                    description: "path to rewrite"
+                },
+                {
+                    name: "resData",
+                    type: "{body: string, headers: Array}",
+                    description: "TODO"
+                }
+            ],
+            []
+        );
+        _domainManager.registerEvent(
+            "staticServer",
+            "requestFilter",
+            [{
+                name: "location",
+                type: "{hostname: string, pathname: string, port: number, root: string}",
+                description: "request path"
             }]
         );
     }

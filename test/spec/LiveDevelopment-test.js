@@ -377,11 +377,11 @@ define(function (require, exports, module) {
                 }, "LiveDevelopment STATUS_OUT_OF_SYNC and DOMAgent.root", 10000);
                 
                 // Grab the node that we've just modified in Brackets.
-                // Verify that we get the original text and not modified text.
+                // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(230);
-                    expect(originalNode.value).toBe("Brackets is awesome!");
+                    originalNode = DOMAgent.nodeAtLocation(388);
+                    expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
                 // wait for LiveDevelopment to unload and reload agents after saving
@@ -406,12 +406,11 @@ define(function (require, exports, module) {
                 }, "LiveDevelopment re-load and re-activate", 10000);
                 
                 // Grab the node that we've modified in Brackets. 
-                // This time we should have modified text since the file has been saved in Brackets.
                 var updatedNode, doneSyncing = false;
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(230);
+                    updatedNode = DOMAgent.nodeAtLocation(388);
                     liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
@@ -424,7 +423,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
                     
-                    // Verify that we have modified text
+                    // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                     
