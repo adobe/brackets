@@ -173,30 +173,31 @@ define(function (require, exports, module) {
      * The Query for which to search
      */
     SpecialCharHints.prototype._getQuery = function () {
-        if (HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName !== "") {
-            return null;
-        }
-        
         var query,
             lineContent,
             startChar,
-            endChar;
+            endChar,
+            cursor = this.editor.getCursorPos();
+        
+        if (HTMLUtils.getTagInfo(this.editor, cursor).tagName !== "") {
+            return null;
+        }
         
         query = "&";
                 
         lineContent = this.editor.document.getRange({
-            line: this.editor.getCursorPos().line,
+            line: cursor.line,
             ch: 0
-        }, this.editor.getCursorPos());
+        }, cursor);
         
         startChar = lineContent.lastIndexOf("&");
         endChar = lineContent.lastIndexOf(";");
         
         if (endChar < startChar) {
             query = this.editor.document.getRange({
-                line: this.editor.getCursorPos().line,
+                line: cursor.line,
                 ch: startChar
-            }, this.editor.getCursorPos());
+            }, cursor);
         }
 
         if (startChar !== -1 && endChar < startChar) {
@@ -219,11 +220,19 @@ define(function (require, exports, module) {
     SpecialCharHints.prototype.insertHint = function (completion) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
-            cursor = this.editor.getCursorPos();
+            cursor = this.editor.getCursorPos(),
+            match;
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - this.currentQuery.length;
+        match = this.editor.document.getLine(cursor.line).slice(cursor.ch);
         end.ch = start.ch + this.currentQuery.length;
+        
+        if (match.indexOf(";") !== -1 && /^(#*[0-9]+)|([a-zA-Z]+)$/.test(match.slice(0, match.indexOf(";")))) {
+            console.log("In Entity");
+            end.ch = this.editor.document.getLine(cursor.line).indexOf(";", start.ch) + 1;
+        }
+        
         completion = completion.slice(0, completion.indexOf(" "));
         completion = _decodeValue(completion);
         if (start.ch !== end.ch) {
