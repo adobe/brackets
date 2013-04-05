@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine */
 
 define(function (require, exports, module) {
@@ -30,7 +30,9 @@ define(function (require, exports, module) {
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),
         Strings                 = require("strings"),
-        StringUtils             = require("utils/StringUtils");
+        StringUtils             = require("utils/StringUtils"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils               = require("file/FileUtils");
 
     // The following are all loaded from the test window
     var CommandManager,
@@ -51,7 +53,9 @@ define(function (require, exports, module) {
         InspectorModule         = require("LiveDevelopment/Inspector/Inspector"),
         CSSDocumentModule       = require("LiveDevelopment/Documents/CSSDocument"),
         CSSAgentModule          = require("LiveDevelopment/Agents/CSSAgent"),
-        HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent");
+        HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLDocumentModule      = require("LiveDevelopment/Documents/HTMLDocument"),
+        HTMLInstrumentModule    = require("language/HTMLInstrumentation");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -619,6 +623,196 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(2, 0);
                 expect(HighlightAgentModule.rule.calls.length).toEqual(3);
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div");
+            });
+        });
+
+        describe("Highlighting elements in browser from cursor positions in HTML page", function () {
+            
+            var testDocument,
+                testEditor,
+                testHTMLDoc,
+                liveDevelopmentConfig,
+                inspectorConfig,
+                fileContent = null,
+                instrumentedHtml = "",
+                elementIds = {},
+                testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
+                WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html");
+          
+            function init(fileEntry) {
+                if (fileEntry) {
+                    runs(function () {
+                        FileUtils.readAsText(fileEntry)
+                            .done(function (text) {
+                                fileContent = text;
+                            });
+                    });
+                    
+                    waitsFor(function () { return (fileContent !== null); }, 1000);
+                }
+            }
+        
+            function createIdToTagMap(instrumentedHTML) {
+                var elementIdRegEx = /<(\w+?)\s+(?:[^<]*?\s)*?data-brackets-id='(\S+?)'/gi,
+                    match,
+                    tagID,
+                    tagName;
+                
+                elementIds = {};
+                do {
+                    match = elementIdRegEx.exec(instrumentedHTML);
+                    if (match) {
+                        tagID = match[2];
+                        tagName = match[1];
+                        
+                        // Verify that the newly found ID is unique.
+                        expect(elementIds[tagID]).toBeUndefined();
+                        
+                        elementIds[tagID] = tagName.toLowerCase();
+                    }
+                } while (match);
+            }
+            
+            function verifyTagWithId(id, tag) {
+                expect(elementIds[id]).toEqual(tag);
+            }
+            
+            beforeEach(function () {
+                if (!fileContent) {
+                    init(WellFormedFileEntry);
+                }
+                
+                runs(function () {
+                    // save original configs
+                    liveDevelopmentConfig = LiveDevelopmentModule.config;
+                    inspectorConfig = InspectorModule.config;
+                    
+                    // force init
+                    LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
+                    HighlightAgentModule.load();
+                    
+                    // module spies
+                    spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
+                    spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
+                    spyOn(HighlightAgentModule, "hide").andCallFake(function () {});
+                    spyOn(HighlightAgentModule, "domElement").andCallFake(function () {});
+                    spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
+                    spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                    
+                    var mock = SpecRunnerUtils.createMockEditor(fileContent, "html");
+                    testDocument = mock.doc;
+                    testEditor = mock.editor;
+                    
+                    instrumentedHtml = HTMLInstrumentModule.generateInstrumentedHTML(testDocument);
+                    createIdToTagMap(instrumentedHtml);
+                    testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
+                });
+            });
+            
+            afterEach(function () {
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
+                
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testDocument = null;
+                testEditor = null;
+                
+                instrumentedHtml = "";
+                elementIds = {};
+            });
+            
+            it("should highlight the image for cursor positions inside img tag.", function () {
+                var id;
+                testEditor.setCursorPos(58, 4);  // before <img
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "img");
+                
+                testEditor.setCursorPos(58, 95); // after />
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "img");
+
+                testEditor.setCursorPos(58, 65); // inside src attribute value
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "img");
+            });
+
+            it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
+                var id;
+                testEditor.setCursorPos(58, 1);  // before "   <img"
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "a");
+
+                testEditor.setCursorPos(59, 0);  // before </a>
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "a");
+            });
+
+            it("No highlight when the cursor position is outside of the 'html' tag", function () {
+                var count = HighlightAgentModule.hide.callCount;
+                
+                testEditor.setCursorPos(0, 5);  // inside 'doctype' tag
+                expect(HighlightAgentModule.hide).toHaveBeenCalled();
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 1);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+
+                testEditor.setCursorPos(147, 5);  // after </html>
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 2);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+            });
+
+            it("Should highlight the entire body for all cursor positions inside an html comment", function () {
+                var id;
+                testEditor.setCursorPos(15, 1);  // cursor between < and ! in the comment start
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "body");
+
+                testEditor.setCursorPos(16, 15);
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "body");
+
+                testEditor.setCursorPos(17, 3);  // cursor after -->
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "body");
+            });
+
+            it("should highlight 'meta/link' tag for cursor positions in meta/link tags, not 'head' tag", function () {
+                var id;
+                testEditor.setCursorPos(5, 60);
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "meta");
+
+                testEditor.setCursorPos(8, 12);
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "link");
+            });
+
+            it("Should highlight 'title' tag at cursor positions (either in the content or begin/end tag)", function () {
+                var id;
+                testEditor.setCursorPos(6, 11);  // inside the begin tag
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "title");
+
+                testEditor.setCursorPos(6, 30);  // in the content
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "title");
+                
+                testEditor.setCursorPos(6, 50);  // inside the end tag
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "title");
+            });
+
+            it("Should get 'h2' tag at cursor positions (either in the content or begin or end tag)", function () {
+                var id;
+                testEditor.setCursorPos(13, 1);  // inside the begin tag
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "h2");
+
+                testEditor.setCursorPos(13, 20); // in the content
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "h2");
+                testEditor.setCursorPos(13, 27); // inside the end tag
+                id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                verifyTagWithId(id, "h2");
             });
         });
     });
