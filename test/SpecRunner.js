@@ -93,7 +93,7 @@ define(function (require, exports, module) {
             paths = ["default"];
         
         // load dev and user extensions only when running the extension test suite
-        if (selectedSuites.indexOf("extension")) {
+        if (selectedSuites.indexOf("extension") >= 0) {
             paths.push("dev");
             paths.push(ExtensionLoader.getUserExtensionPath());
         }
