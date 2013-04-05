@@ -218,9 +218,9 @@ importScripts("thirdparty/requirejs/require.js");
             var offset  = request.offset;
             getTernHints(dir, file, offset, text);
         } else if ( type === HintUtils.TERN_GET_PROPERTIES_MSG) {
-            var file    = request.file,
-                dir     = request.dir;
-                text    = request.text;
+            file    = request.file,
+            dir     = request.dir;
+            text    = request.text;
             handleGetProperties(dir, file, text);
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
             file = request.file,

@@ -303,7 +303,7 @@ define(function (require, exports, module) {
             if( completions ) {            
                 $deferredHints.resolveWith(null, [completions]);
             } else if ( properties ) {
-                $deferredHints.resolveWith(null, [properties])
+                $deferredHints.resolveWith(null, [properties]);
             } else if ( fnType ) {
                 $deferredHints.resolveWith(null, [fnType]);
             }                
