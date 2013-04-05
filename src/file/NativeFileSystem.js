@@ -946,6 +946,11 @@ define(function (require, exports, module) {
      * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
+        if (!this._directory.fullPath) {
+            errorCallback(new NativeFileError(NativeFileError.PATH_EXISTS_ERR));
+            return;
+        }
+        
         var rootPath = this._directory.fullPath,
             filesystem = this.filesystem,
             timeout = NativeFileSystem.ASYNC_TIMEOUT,

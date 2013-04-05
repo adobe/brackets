@@ -157,7 +157,7 @@ define(function (require, exports, module) {
                 });
                    
                 runs(function () {
-                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 5000);
+                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 10000);
                 });
                 
                 runs(function () {
@@ -380,7 +380,7 @@ define(function (require, exports, module) {
                 // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
-                    originalNode = DOMAgent.nodeAtLocation(325);
+                    originalNode = DOMAgent.nodeAtLocation(388);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
                 
@@ -410,7 +410,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testWindow.$(LiveDevelopment).off("statusChange", statusChangeHandler);
                     
-                    updatedNode = DOMAgent.nodeAtLocation(325);
+                    updatedNode = DOMAgent.nodeAtLocation(388);
                     liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
