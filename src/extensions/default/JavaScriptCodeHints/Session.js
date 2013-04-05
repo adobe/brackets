@@ -247,7 +247,7 @@ define(function (require, exports, module) {
                     showFunctionType = true;                    
                     var col = token.state.lexical.column;                
                     for (var line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
-                        if (this.getLine(line).charAt(col) == "(") {
+                        if (this.getLine(line).charAt(col) === "(") {
                             found = true; 
                             break;
                         }
@@ -396,9 +396,9 @@ define(function (require, exports, module) {
     
     Session.prototype.setTernHints = function(newHints) {
         this.ternHints = newHints;
-    }
+    };
     Session.prototype.setFnType = function(newFnType) {
         this.fnType = newFnType;        
-    }        
+    };       
     module.exports = Session;
 });

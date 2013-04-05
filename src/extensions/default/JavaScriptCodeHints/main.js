@@ -187,23 +187,24 @@ define(function (require, exports, module) {
                 // level indicates either variable scope or property confidence
                 if (!type.property && token.depth !== undefined) {
                     switch (token.depth) {
-                        case 0:
-                            $hintObj.addClass("priority-high");
-                            break;
-                        case 1:
-                            $hintObj.addClass("priority-medium");
-                            break;
-                        case 2:
-                            $hintObj.addClass("priority-low");
-                            break;
-                        default:
-                            $hintObj.addClass("priority-lowest");
-                            break;
+                    case 0:
+                        $hintObj.addClass("priority-high");
+                        break;
+                    case 1:
+                        $hintObj.addClass("priority-medium");
+                        break;
+                    case 2:
+                        $hintObj.addClass("priority-low");
+                        break;
+                    default:
+                        $hintObj.addClass("priority-lowest");
+                        break;
                     }
                 }
 
-                if (token.guess)
+                if (token.guess) {
                     $hintObj.addClass("guess-hint");
+                }
 
                 // is the token a global variable?
                 if (token.global) {
@@ -335,8 +336,8 @@ define(function (require, exports, module) {
                     type.property !== cachedType.property ||
                     type.context !== cachedType.context ||
                     type.showFunctionType !== cachedType.showFunctionType ||                    
-                    query.length == 0 ||
-                    (cachedHints.length == 0 && query.length == 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
+                    query.length === 0 ||
+                    (cachedHints.length === 0 && query.length === 2)) {    // FIXME: length of 2 is special because that is when tern starts guessing
                     var offset          = session.getOffset(),
                         scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
                         self            = this;
@@ -371,8 +372,8 @@ define(function (require, exports, module) {
                 }
 
                 if (cachedHints) {
-                    var type    = session.getType(),
-                        query   = session.getQuery();
+                    type    = session.getType(),
+                    query   = session.getQuery();
 
                     // Compute fresh hints if none exist, or if the session
                     // type has changed since the last hint computation

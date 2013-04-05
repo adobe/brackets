@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, pluspluss: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global self, importScripts */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*global self, importScripts, require */
 
 importScripts("thirdparty/requirejs/require.js");
 
@@ -76,7 +76,7 @@ importScripts("thirdparty/requirejs/require.js");
             defs:env,
             async:true,
             getFile: getFile
-            };
+        };
         ternServer = new Tern.Server(ternOptions);
         
         files.forEach(function (file){
@@ -119,9 +119,9 @@ importScripts("thirdparty/requirejs/require.js");
             var completions = [];
             var ternHints = [];    
             for (var i = 0; i < data.completions.length; ++i) {
-              var completion = data.completions[i];//, className = typeToIcon(completion.type);
-              //if (data.guess) className += " Tern-completion-guess";
-              completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess /*, className: className*/});
+                var completion = data.completions[i];//, className = typeToIcon(completion.type);
+                //if (data.guess) className += " Tern-completion-guess";
+                completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess /*, className: className*/});
             }
             
             // Post a message back to the main thread with the completions
@@ -170,32 +170,32 @@ importScripts("thirdparty/requirejs/require.js");
     }
 
     self.addEventListener("message", function (e) {
-        var request = e.data,
+        var dir, file, text,
+            request = e.data,
             type = request.type;
 
         if (type === HintUtils.TERN_INIT_MSG) {
             
-            var dir     = request.dir,
-                env     = request.env,         
+            dir         = request.dir;
+            var env     = request.env,         
                 files   = request.files;
             initTernServer(env, dir, files);
             
         } else if( type === HintUtils.TERN_COMPLETIONS_MSG) {
-            
-            var file    = request.file,
-                dir     = request.dir,
-                offset  = request.offset,
-                text    = request.text;
+            dir = request.dir;
+            file = request.file;
+            text    = request.text;
+            var offset  = request.offset;
             getTernHints(dir, file, offset, text);
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
-            var file = request.file,
-                text = request.text;
+            file = request.file,
+            text = request.text;
             handleGetFile(file, text);
         } else if ( type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG ) {
-            var file    = request.file,
-                text    = request.text,
-                dir     = request.dir,
-                pos     = request.pos;
+            dir     = request.dir;
+            file    = request.file;
+            text    = request.text;
+            var pos = request.pos;
             handleFunctionType(dir, file, pos, text);            
         } else {
             _log("Unknown message: " + JSON.stringify(request));

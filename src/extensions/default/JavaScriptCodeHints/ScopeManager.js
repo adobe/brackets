@@ -61,11 +61,11 @@ define(function (require, exports, module) {
      */
     function initTernServer(dir, files) {
         ternWorker.postMessage({
-                    type        : HintUtils.TERN_INIT_MSG,
-                    dir         : dir,
-                    files       : files,
-                    env         : ternEnvironment
-                });
+            type        : HintUtils.TERN_INIT_MSG,
+            dir         : dir,
+            files       : files,
+            env         : ternEnvironment
+        });
         rootTernDir = dir;
     }
     
@@ -291,8 +291,7 @@ define(function (require, exports, module) {
                 file:name, 
                 text:document.getText()
             });
-        })
-
+        });
     }
     
     /**
