@@ -37,10 +37,11 @@ module.exports = function (grunt) {
             opts            = { cwd: process.cwd() },
             cmd             = common.resolve(grunt.option("shell") || grunt.config("shell." + platform)),
             spec            = grunt.option("spec") || "all",
+            suite           = grunt.option("suite") || "all",
             results         = grunt.option("results") || process.cwd() + "/results.json",
             resultsPath     = common.resolve(results),
             specRunnerPath  = common.resolve("test/SpecRunner.html"),
-            args            = " --startup-path=\"" + specRunnerPath + "?suite=all&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
+            args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
 
         if (platform === "win") {
             cmd += args;
