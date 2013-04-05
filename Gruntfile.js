@@ -38,7 +38,6 @@ module.exports = function (grunt) {
                 '!src/extensions/**/thirdparty/**/*.js',
                 '!src/extensions/default/JavaScriptCodeHints/acorn/**',
                 '!src/extensions/default/JavaScriptCodeHints/tern/**',
-                '!src/extensions/default/JavaScriptCodeHints/test.js',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
                 '!**/node_modules/**/*.js',
