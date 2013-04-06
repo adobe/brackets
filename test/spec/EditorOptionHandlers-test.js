@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         
         var testPath = SpecRunnerUtils.getTestPath("/spec/EditorOptionHandlers-test-files"),
             testWindow,
-            editor;
+            editor = null;
         
         var CSS_FILE  = testPath + "/test.css",
             HTML_FILE = testPath + "/test.html",
@@ -67,11 +67,11 @@ define(function (require, exports, module) {
                
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
-            editor = null;
         });
 
         afterEach(function () {
             SpecRunnerUtils.closeTestWindow();
+            editor = null;
         });
         
         
@@ -113,16 +113,16 @@ define(function (require, exports, module) {
         
         function checkLineNumbers(shouldShow) {
             runs(function () {
-                var gutterElement, $gutter;
+                var gutterElement, $lineNumbers;
                 
                 expect(editor).toBeTruthy();
                 gutterElement = editor._codeMirror.getGutterElement();
-                $gutter = testWindow.$(gutterElement).find(".CodeMirror-linenumbers");
+                $lineNumbers = $(gutterElement).find(".CodeMirror-linenumbers");
                 
                 if (shouldShow) {
-                    expect($gutter.length).toNotBe(0);
+                    expect($lineNumbers.length).toNotBe(0);
                 } else {
-                    expect($gutter.length).toBe(0);
+                    expect($lineNumbers.length).toBe(0);
                 }
             });
         }
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
     
             it("should NOT wrap the long lines in another document when word-wrap off", function () {
                 openEditor(CSS_FILE);
-    
+                
                 // Turn off word-wrap
                 toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 
