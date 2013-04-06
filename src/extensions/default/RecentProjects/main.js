@@ -168,8 +168,7 @@ define(function (require, exports, module) {
         hideDeleteButton();
         renderDelete()
             .css("top", $target.position().top + 6)
-            .appendTo($target)
-            .data("path", $target.data("path"));
+            .appendTo($target);
     }
     
     /**
@@ -218,11 +217,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Create the DOM node for a single recent folder path in the dropdown menu.
+     * Parses the path and returns an object with the full path, the folder name and the path without the folder.
      * @param {string} path The full path to the folder.
      * @return {{path: string, folder: string, rest: string}}
      */
-    function renderPath(path) {
+    function parsePath(path) {
         var lastSlash = path.lastIndexOf("/"), folder, rest;
         if (lastSlash === path.length - 1) {
             lastSlash = path.slice(0, path.length - 1).lastIndexOf("/");
@@ -249,7 +248,7 @@ define(function (require, exports, module) {
         
         recentProjects.forEach(function (root) {
             if (root !== currentProject) {
-                projectList.push(renderPath(root));
+                projectList.push(parsePath(root));
             }
         });
         var templateVars = {projectList: projectList, hasProject: projectList.length};
