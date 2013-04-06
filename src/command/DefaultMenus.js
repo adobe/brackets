@@ -186,6 +186,8 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        project_cmenu.addMenuDivider();
+        project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
