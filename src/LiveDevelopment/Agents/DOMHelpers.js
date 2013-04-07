@@ -129,6 +129,10 @@ define(function DOMHelpersModule(require, exports, module) {
             // script tag
             to = _find(src.toLowerCase(), "</script>", from + 7);
             inc = 9;
+        } else if (src.substr(from, 6).toLowerCase() === "<style") {
+            // style tag
+            to = _find(src.toLowerCase(), "</style>", from + 6);
+            inc = 8;
         } else {
             to = _find(src, ">", from + 1, true);
             inc = 1;
@@ -209,9 +213,9 @@ define(function DOMHelpersModule(require, exports, module) {
                 payload.closed = true;
             }
 
-            // Special handling for script tag since we've already collected
+            // Special handling for script/style tag since we've already collected
             // everything up to the end tag.
-            if (payload.nodeName === "SCRIPT") {
+            if (payload.nodeName === "SCRIPT" || payload.nodeName === "STYLE") {
                 payload.closed = true;
             }
         }
