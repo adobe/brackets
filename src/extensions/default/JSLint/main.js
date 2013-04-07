@@ -217,7 +217,7 @@ define(function (require, exports, module) {
 
         // Scroll cursor back into view only if cursor
         if (mustShow) {
-            edistor._codeMirror.scrollIntoView();
+            editor._codeMirror.scrollIntoView();
         }
     }
     
