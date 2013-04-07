@@ -41,8 +41,7 @@ define(function (require, exports, module) {
         this.category = "integration";
         
         var testPath = SpecRunnerUtils.getTestPath("/spec/EditorOptionHandlers-test-files"),
-            testWindow,
-            editor = null;
+            testWindow;
         
         var CSS_FILE  = testPath + "/test.css",
             HTML_FILE = testPath + "/test.html",
@@ -55,27 +54,37 @@ define(function (require, exports, module) {
         
         
         beforeEach(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
-
-                // Load module instances from brackets.test
-                CommandManager      = testWindow.brackets.test.CommandManager;
-                Commands            = testWindow.brackets.test.Commands;
-                EditorManager       = testWindow.brackets.test.EditorManager;
-                DocumentManager     = testWindow.brackets.test.DocumentManager;
-                FileViewController  = testWindow.brackets.test.FileViewController;
-               
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
+            // Create a new window that will be shared by ALL tests in this spec.
+            if (!testWindow) {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+    
+                    // Load module instances from brackets.test
+                    CommandManager      = testWindow.brackets.test.CommandManager;
+                    Commands            = testWindow.brackets.test.Commands;
+                    EditorManager       = testWindow.brackets.test.EditorManager;
+                    DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
+                   
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            }
         });
 
         afterEach(function () {
-            SpecRunnerUtils.closeTestWindow();
-            editor = null;
+            runs(function () {
+                var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                waitsForDone(promise, "Close all open files in working set");
+                
+                var $dlg = testWindow.$(".modal.instance");
+                if ($dlg.length) {
+                    SpecRunnerUtils.clickDialogButton("dontsave");
+                }
+            });
         });
         
         
-        function checkLineWrapping(firstPos, secondPos, shouldWrap) {
+        function checkLineWrapping(editor, firstPos, secondPos, shouldWrap) {
             runs(function () {
                 var firstLineBottom, nextLineBottom;
                 
@@ -95,7 +104,7 @@ define(function (require, exports, module) {
             });
         }
         
-        function checkActiveLine(line, shouldShow) {
+        function checkActiveLine(editor, line, shouldShow) {
             runs(function () {
                 var lineInfo;
                 
@@ -111,7 +120,7 @@ define(function (require, exports, module) {
             });
         }
         
-        function checkLineNumbers(shouldShow) {
+        function checkLineNumbers(editor, shouldShow) {
             runs(function () {
                 var gutterElement, $lineNumbers;
                 
@@ -127,7 +136,7 @@ define(function (require, exports, module) {
             });
         }
         
-        function checkCloseBraces(startSel, endSel, keyCode, expectedText) {
+        function checkCloseBraces(editor, startSel, endSel, keyCode, expectedText) {
             runs(function () {
                 var input, line;
                 
@@ -154,10 +163,6 @@ define(function (require, exports, module) {
                 var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
                 waitsForDone(promise, "Open into working set");
             });
-            
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-            });
         }
         
         function openAnotherEditor(fullpath) {
@@ -165,10 +170,6 @@ define(function (require, exports, module) {
                 // Open another document and bring it to the front
                 waitsForDone(FileViewController.openAndSelectDocument(fullpath, FileViewController.PROJECT_MANAGER),
                              "FILE_OPEN on file timeout", 1000);
-            });
-            
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
             });
         }
         
@@ -180,10 +181,6 @@ define(function (require, exports, module) {
                 // Open inline editor onto test.css's ".testClass" rule
                 var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), toggleEditorAt);
                 waitsForDone(promise, "Open inline editor");
-            });
-            
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
             });
         }
         
@@ -199,34 +196,45 @@ define(function (require, exports, module) {
             it("should wrap long lines in main editor by default", function () {
                 openEditor(HTML_FILE);
                 
-                // Use two cursor positions to detect line wrapping. First position at 
-                // the beginning of a long line and the second position to be
-                // somewhere on the long line that will be part of an extra line 
-                // created by word-wrap and get its bottom coordinate.
-                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, true);
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    
+                    // Use two cursor positions to detect line wrapping. First position at 
+                    // the beginning of a long line and the second position to be
+                    // somewhere on the long line that will be part of an extra line 
+                    // created by word-wrap and get its bottom coordinate.
+                    checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 210}, true);
+                });
             });
     
             it("should also wrap long lines in inline editor by default", function () {
                 openInlineEditor();
-                checkLineWrapping({line: 0, ch: 0}, {line: 0, ch: 160}, true);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkLineWrapping(editor, {line: 0, ch: 0}, {line: 0, ch: 160}, true);
+                });
             });
             
             it("should NOT wrap the long lines after turning off word-wrap", function () {
                 // Turn off word-wrap
                 toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
-                
                 openEditor(CSS_FILE);
-                checkLineWrapping({line: 0, ch: 1}, {line: 0, ch: 180}, false);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineWrapping(editor, {line: 0, ch: 1}, {line: 0, ch: 180}, false);
+                });
             });
     
             it("should NOT wrap the long lines in another document when word-wrap off", function () {
                 openEditor(CSS_FILE);
-                
-                // Turn off word-wrap
-                toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
-                
                 openAnotherEditor(HTML_FILE);
-                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, false);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 210}, false);
+                });
             });
         });
         
@@ -234,30 +242,41 @@ define(function (require, exports, module) {
         describe("Toggle Active Line", function () {
             it("should NOT show active line in main editor by default", function () {
                 openEditor(HTML_FILE);
-                checkActiveLine(5, false);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkActiveLine(editor, 5, false);
+                });
             });
             
             it("should NOT show active line in inline editor by default", function () {
                 openInlineEditor();
-                checkActiveLine(0, false);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkActiveLine(editor, 0, false);
+                });
             });
             
             it("should style active line after turning it on", function () {
                 // Turn on show active line
                 toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
-                
                 openEditor(CSS_FILE);
-                checkActiveLine(0, true);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkActiveLine(editor, 0, true);
+                });
             });
             
             it("should style the active line when opening another document with show active line on", function () {
                 openEditor(CSS_FILE);
-                
-                // Turn on show active line
-                toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
-                
                 openAnotherEditor(HTML_FILE);
-                checkActiveLine(3, true);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkActiveLine(editor, 3, true);
+                });
             });
         });
         
@@ -265,38 +284,50 @@ define(function (require, exports, module) {
         describe("Toggle Line Numbers", function () {
             it("should show line numbers in main editor by default", function () {
                 openEditor(HTML_FILE);
-                checkLineNumbers(true);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineNumbers(editor, true);
+                });
             });
             
             it("should also show line numbers in inline editor by default", function () {
                 openInlineEditor();
-                checkLineNumbers(true);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkLineNumbers(editor, true);
+                });
             });
             
             it("should NOT show line numbers in main editor after turning it off", function () {
                 // Turn off show line numbers
                 toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
-                
                 openEditor(CSS_FILE);
-                checkLineNumbers(false);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineNumbers(editor, false);
+                });
             });
             
             it("should NOT show line numbers in inline editor after turning it off", function () {
-                // Turn off show line numbers
-                toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
-                
                 openInlineEditor();
-                checkLineNumbers(false);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkLineNumbers(editor, false);
+                });
             });
             
             it("should NOT show line numbers when opening another document with show line numbers off", function () {
                 openEditor(CSS_FILE);
-                
-                // Turn off show line numbers
-                toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
-                
                 openAnotherEditor(HTML_FILE);
-                checkLineNumbers(false);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineNumbers(editor, false);
+                });
             });
         });
         
@@ -304,92 +335,116 @@ define(function (require, exports, module) {
         describe("Toggle Auto Close Braces", function () {
             it("should NOT auto close braces in main editor by default", function () {
                 openEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
+                });
             });
             
             it("should NOT auto close braces in inline editor by default", function () {
                 openInlineEditor({line: 9, ch: 11});
-                checkCloseBraces({line: 1, ch: 15}, null, OPEN_BRACKET, ".shortLineClass { color: red; }");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkCloseBraces(editor, {line: 1, ch: 15}, null, OPEN_BRACKET, ".shortLineClass { color: red; }");
+                });
             });
             
             it("should auto close braces in the main editor after turning it on", function () {
                 // Turn on auto close braces
                 toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
-                
                 openEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]");
+                });
             });
             
             it("should auto close braces in inline editor after turning it on", function () {
-                // Turn on auto close braces
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
-                
                 openInlineEditor({line: 9, ch: 11});
-                checkCloseBraces({line: 1, ch: 32}, null, OPEN_BRACKET, ".shortLineClass { color: red; }[]");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkCloseBraces(editor, {line: 1, ch: 32}, null, OPEN_BRACKET, ".shortLineClass { color: red; }[]");
+                });
             });
             
             it("should auto close braces when opening another document with auto close braces on", function () {
                 openEditor(CSS_FILE);
-                
-                // Turn on auto close braces
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
-                
                 openAnotherEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]");
+                });
             });
             
             it("should only auto close braces before spaces, closing braces or end of lines", function () {
-                // Turn on auto close braces
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close brackets");
-                
                 openEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 0}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
-                checkCloseBraces({line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
-                checkCloseBraces({line: 0, ch: 16}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";");
-                checkCloseBraces({line: 0, ch: 39}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";[]");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 0}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 16}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 39}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";[]");
+                });
             });
             
             it("should overwrite a close brace when writing a close brace before the same close brace", function () {
-                // Turn on auto close braces
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
-                
                 openEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
                 
-                checkCloseBraces({line: 0, ch: 16}, null, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";");
                 runs(function () {
-                    expect(editor.getCursorPos()).toEqual({line: 0, ch: 17});
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 16}, null, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    
+                    runs(function () {
+                        expect(editor.getCursorPos()).toEqual({line: 0, ch: 17});
+                    });
                 });
             });
             
             it("should wrap a selection between braces", function () {
-                // Turn on auto close braces
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
-                
                 openEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];");
                 
                 runs(function () {
-                    expect(editor.getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}});
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];");
+                    
+                    runs(function () {
+                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}});
+                    });
                 });
             });
             
             it("should delete both open and close braces when both are together and backspacing", function () {
-                // Turn on auto close brackets
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
-                
                 openEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
-                checkCloseBraces({line: 0, ch: 16}, null, BACKSPACE, "var myContent = \"This is awesome!\";");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 16}, null, BACKSPACE, "var myContent = \"This is awesome!\";");
+                });
             });
             
             it("should NOT auto close single quotes inside comments", function () {
-                // Turn on auto close brackets
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
-                
                 openEditor(JS_FILE);
-                checkCloseBraces({line: 0, ch: 15}, null, SINGLE_QUOTE, "var myContent ='' \"This is awesome!\";");
-                checkCloseBraces({line: 1, ch: 7}, null, SINGLE_QUOTE, "// Yes, it is!");
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, SINGLE_QUOTE, "var myContent ='' \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 1, ch: 7}, null, SINGLE_QUOTE, "// Yes, it is!");
+                });
+                
+                // This must be in the last spec in the suite.
+                runs(function () {
+                    this.after(function () {
+                        SpecRunnerUtils.closeTestWindow();
+                    });
+                });
             });
         });
     });
