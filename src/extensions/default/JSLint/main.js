@@ -104,6 +104,9 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument(),
             editor = EditorManager.getCurrentFullEditor();
         
+        // Set default action to false
+        var mustShow = false;
+
         // Make sure that we're not switching files
         // and still on an active editor
         if (editor) {
@@ -116,8 +119,7 @@ define(function (require, exports, module) {
             var currScroll = scrollInfo.top,
                 height = scrollInfo.clientHeight,
                 textHeight = editor.getTextHeight(),
-                currLine = editor.getCursorPos().line,
-                mustShow = false;
+                currLine = editor.getCursorPos().line;
 
             var lastLine = Math.floor((currScroll + height) / textHeight) - 2;
             var threshold = lastLine - Math.ceil(185 / textHeight);
