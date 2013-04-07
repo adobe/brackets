@@ -103,30 +103,34 @@ define(function (require, exports, module) {
     function run() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             editor = EditorManager.getCurrentFullEditor();
-            
-        // Disable word wrap for line counting
-        var wordWrap = _prefs.getValue('wordWrap');
-        editor._codeMirror.setOption('lineWrapping', false);
+        
+        // Make sure that we're not switching files
+        // and still on an active editor
+        if (editor) {
+            // Disable word wrap for line counting
+            var wordWrap = _prefs.getValue('wordWrap');
+            editor._codeMirror.setOption('lineWrapping', false);
 
-        // Gather info to determine whether to scroll after editor resizes
-        var scrollInfo = editor._codeMirror.getScrollInfo();
-        var currScroll = scrollInfo.top,
-            height = scrollInfo.clientHeight,
-            textHeight = editor.getTextHeight(),
-            currLine = editor.getCursorPos().line,
-            mustShow = false;
+            // Gather info to determine whether to scroll after editor resizes
+            var scrollInfo = editor._codeMirror.getScrollInfo();
+            var currScroll = scrollInfo.top,
+                height = scrollInfo.clientHeight,
+                textHeight = editor.getTextHeight(),
+                currLine = editor.getCursorPos().line,
+                mustShow = false;
 
-        var lastLine = Math.floor((currScroll + height) / textHeight) - 2;
-        var threshold = lastLine - Math.ceil(185 / textHeight);
+            var lastLine = Math.floor((currScroll + height) / textHeight) - 2;
+            var threshold = lastLine - Math.ceil(185 / textHeight);
 
-        // Reset word wrap to initial
-        editor._codeMirror.setOption('lineWrapping', wordWrap);
+            // Reset word wrap to initial
+            editor._codeMirror.setOption('lineWrapping', wordWrap);
 
-        // Detrmine whether panel would block text at cursor
-        // If so, set variable to determine action after
-        // editor is resized
-        if (currLine >= threshold && currLine <= lastLine) {
-            mustShow = true;
+            // Detrmine whether panel would block text at cursor
+            // If so, set variable to determine action after
+            // editor is resized
+            if (currLine >= threshold && currLine <= lastLine) {
+                mustShow = true;
+            }
         }
 
         
@@ -216,7 +220,7 @@ define(function (require, exports, module) {
         EditorManager.resizeEditor();
 
         // Scroll cursor back into view only if cursor
-        if (mustShow) {
+        if (mustShow && editor) {
             editor._codeMirror.scrollIntoView();
         }
     }
