@@ -118,7 +118,7 @@ define(function (require, exports, module) {
                 textHeight = editor.getTextHeight(),
                 cursorTop = editor._codeMirror.cursorCoords().top;
 
-            var bottom = cursorTop - 36 + textHeight - height;
+            var bottom = cursorTop - $('.CodeMirror').offset().top + textHeight - height;
 
             // Determine whether panel would block text at cursor
             // If so, set variable to determine action after
