@@ -170,7 +170,7 @@ define(function (require, exports, module) {
      */
     SpecialCharHints.prototype._getQuery = function () {
         var query,
-            lineContent,
+            lineContentBeforeCursor,
             startChar,
             endChar,
             cursor = this.editor.getCursorPos();
@@ -179,13 +179,13 @@ define(function (require, exports, module) {
             return null;
         }
                 
-        lineContent = this.editor.document.getRange({
+        lineContentBeforeCursor = this.editor.document.getRange({
             line: cursor.line,
             ch: 0
         }, cursor);
         
-        startChar = lineContent.lastIndexOf("&");
-        endChar = lineContent.lastIndexOf(";");
+        startChar = lineContentBeforeCursor.lastIndexOf("&");
+        endChar = lineContentBeforeCursor.lastIndexOf(";");
         
         if (endChar < startChar) {
             query = this.editor.document.getRange({
