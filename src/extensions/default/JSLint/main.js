@@ -214,7 +214,7 @@ define(function (require, exports, module) {
         
         EditorManager.resizeEditor();
 
-        // Scroll cursor back into view only if cursor
+        // Scroll cursor back into view only if cursor is hidden by panel
         if (mustShow && _gotoEnabled) {
             editor._codeMirror.scrollIntoView();
         }
