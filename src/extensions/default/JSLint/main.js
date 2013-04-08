@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     var INDICATOR_ID = "JSLintStatus",
-        defaultPrefs = { enabled: true, wordWrap: true };
+        defaultPrefs = { enabled: true };
     
     
     /** @const {string} JSLint commands ID */
@@ -112,22 +112,20 @@ define(function (require, exports, module) {
         if (editor) {
 
             // Gather info to determine whether to scroll after editor resizes
-            var scrollInfo = editor._codeMirror.getScrollInfo();
-            var currScroll = scrollInfo.top,
+            var scrollInfo = editor._codeMirror.getScrollInfo(),
+                currScroll = scrollInfo.top,
                 height = scrollInfo.clientHeight,
                 textHeight = editor.getTextHeight(),
                 cursorTop = editor._codeMirror.cursorCoords().top;
 
             var bottom = cursorTop - 36 + textHeight - height;
 
-            // Detrmine whether panel would block text at cursor
+            // Determine whether panel would block text at cursor
             // If so, set variable to determine action after
             // editor is resized
-            if (bottom >= -185 && bottom <= 5) {
+            if (bottom >= -$('#jslint-results').height() && bottom <= 5) {
                 mustShow = true;
             }
-
-            console.log(bottom);
         }
 
         
@@ -217,7 +215,7 @@ define(function (require, exports, module) {
         EditorManager.resizeEditor();
 
         // Scroll cursor back into view only if cursor
-        if (mustShow && editor) {
+        if (mustShow && _gotoEnabled) {
             editor._codeMirror.scrollIntoView();
         }
     }
