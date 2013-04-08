@@ -91,9 +91,10 @@ function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialP
 }
 
 // file stats
-function _stat(path, callback) {
+function _stat(pathArg, callback) {
     "use strict";
-    fs.stat(path, function (err, statData) {
+    
+    fs.stat(pathArg, function (err, statData) {
         if (statData && callback) {
             // store the values of the extra StatData functions
             statData._isFile = statData.isFile();
@@ -135,4 +136,5 @@ exports.readFile = _wrap(fs.readFile);
 exports.writeFile = _wrap(fs.writeFile);
 exports.chmod = _wrap(fs.chmod);
 exports.unlink = _wrap(fs.unlink);
+exports.makedir = _wrap(fs.mkdir);
 exports.cwd = _wrap(_cwd);

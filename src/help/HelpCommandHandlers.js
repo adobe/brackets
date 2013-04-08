@@ -23,12 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, PathUtils, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Global                  = require("utils/Global"),
+    var AppInit                 = require("utils/AppInit"),
+        Global                  = require("utils/Global"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -37,49 +38,107 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
-        StringUtils             = require("utils/StringUtils");
+        StringUtils             = require("utils/StringUtils"),
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
     var buildInfo;
+    
+	
+    function _handleCheckForUpdates() {
+        UpdateNotification.checkForUpdate(true);
+    }
+    
+    function _handleLinkMenuItem(url) {
+        return function () {
+            if (!url) {
+                return;
+            }
+            NativeApp.openURLInDefaultBrowser(url);
+        };
+    }
     
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
-            function (err) {
-                // Ignore errors
-            }
+            function (err) {} /* Ignore errors */
         );
-    }
-    
-    function _handleCheckForUpdates() {
-        UpdateNotification.checkForUpdate(true);
     }
 
     function _handleAboutDialog() {
-        if (buildInfo) {
-            $("#about-build-number").text(" (" + buildInfo + ")");
-        }
+        var templateVars = $.extend({
+            ABOUT_ICON          : brackets.config.about_icon,
+            APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+            BUILD_INFO          : buildInfo || ""
+        }, Strings);
         
-        Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+        
+        // Get containers
+        var $dlg = $(".about-dialog.instance"),
+            $contributors = $dlg.find(".about-contributors"),
+            $spinner = $dlg.find(".spinner");
+        
+        $spinner.addClass("spin");
+        
+        // Get all the project contributors and add them to the dialog
+        $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
+            
+            // Populate the contributors data
+            var totalContributors = contributorsInfo.length;
+            var contributorsCount = 0;
+            
+            $contributors.html(Mustache.render(ContributorsTemplate, contributorsInfo));
+            
+            // This is used to create an opacity transition when each image is loaded
+            $contributors.find("img").one("load", function () {
+                $(this).css("opacity", 1);
+                
+                // Count the contributors loaded and hide the spinner once all are loaded
+                contributorsCount++;
+                if (contributorsCount >= totalContributors) {
+                    $spinner.removeClass("spin");
+                }
+            }).each(function () {
+                if (this.complete) {
+                    $(this).trigger("load");
+                }
+            });
+            
+            // Create a link for each contributor image to their github account
+            $contributors.on("click", "img", function (e) {
+                var url = $(e.target).data("url");
+                if (url) {
+                    // Make sure the URL has a domain that we know about
+                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                    }
+                }
+            });
+        }).fail(function () {
+            $spinner.removeClass("spin");
+            $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
+        });
     }
 
-    function _handleForum() {
-        if (!brackets.config.forum_url) {
-            return;
-        }
-
-        NativeApp.openURLInDefaultBrowser(brackets.config.forum_url);
-    }
-    
-    // Read "build number" SHAs off disk immediately at load time, instead
+    // Read "build number" SHAs off disk immediately at APP_READY, instead
     // of later, when they may have been updated to a different version
-    BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
-        // If we've successfully determined a "build number" via .git metadata, add it to dialog
-        sha = sha ? sha.substr(0, 9) : "";
-        buildInfo = StringUtils.format("{0} {1}", branch, sha).trim();
+    AppInit.appReady(function () {
+        BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
+            // If we've successfully determined a "build number" via .git metadata, add it to dialog
+            sha = sha ? sha.substr(0, 9) : "";
+            if (branch || sha) {
+                buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
+            }
+        });
     });
-    
-    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
+
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
-    CommandManager.register(Strings.CMD_FORUM,                  Commands.HELP_FORUM,                _handleForum);
+    CommandManager.register(Strings.CMD_HOW_TO_USE_BRACKETS,    Commands.HELP_HOW_TO_USE_BRACKETS,  _handleLinkMenuItem(brackets.config.how_to_use_url));
+    CommandManager.register(Strings.CMD_FORUM,                  Commands.HELP_FORUM,                _handleLinkMenuItem(brackets.config.forum_url));
+    CommandManager.register(Strings.CMD_RELEASE_NOTES,          Commands.HELP_RELEASE_NOTES,        _handleLinkMenuItem(brackets.config.release_notes_url));
+    CommandManager.register(Strings.CMD_REPORT_AN_ISSUE,        Commands.HELP_REPORT_AN_ISSUE,      _handleLinkMenuItem(brackets.config.report_issue_url));
+    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
+    CommandManager.register(Strings.CMD_TWITTER,                Commands.HELP_TWITTER,              _handleLinkMenuItem(brackets.config.twitter_url));
     CommandManager.register(Strings.CMD_ABOUT,                  Commands.HELP_ABOUT,                _handleAboutDialog);
 });

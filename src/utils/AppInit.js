@@ -58,8 +58,8 @@ define(function (require, exports, module) {
             // add callbacks to this, we need to be robust to exceptions
             handler();
         } catch (e) {
-            console.log("Exception when calling a 'brackets done loading' handler");
-            console.log(e);
+            console.error("Exception when calling a 'brackets done loading' handler:");
+            console.log(e.stack);
         }
     }
 
@@ -93,9 +93,6 @@ define(function (require, exports, module) {
      * @param {function} handler
      */
     function appReady(callback) {
-        // WARNING: "ready" won't fire if ANY extension fails to load or
-        // throws an error during init. To fix this, we need to make a change
-        // to _initExtensions (filed as issue 1029)
         _addListener(APP_READY, callback);
     }
 

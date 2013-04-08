@@ -56,6 +56,10 @@ define(function (require, exports, module) {
         return NativeProxy.send("fs", "unlink", path, callback);
     }
 
+    function makedir(path, callback) {
+        return NativeProxy.send("fs", "makedir", path, callback);
+    }
+
     function cwd(callback) {
         return NativeProxy.send("fs", "cwd", callback);
     }
@@ -77,5 +81,6 @@ define(function (require, exports, module) {
     exports.writeFile = writeFile;
     exports.chmod = chmod;
     exports.unlink = unlink;
+    exports.makedir = makedir;
     exports.cwd = cwd;
 });

@@ -99,12 +99,12 @@ define(function JSDocumentModule(require, exports, module) {
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
-    JSDocument.prototype.onHighlight = function onHighlight(node) {
+    JSDocument.prototype.onHighlight = function onHighlight(event, node) {
         // clear an existing highlight
         var codeMirror = this.editor._codeMirror;
         var i;
         for (i in this._highlight) {
-            codeMirror.setLineClass(this._highlight[i]);
+            codeMirror.removeLineClass(this._highlight[i], "wrap", "highlight");
         }
         this._highlight = [];
         if (!node || !node.trace) {
@@ -118,7 +118,7 @@ define(function JSDocumentModule(require, exports, module) {
             callFrame = node.trace[i];
             if (callFrame.location && callFrame.location.scriptId === scriptId) {
                 line = callFrame.location.lineNumber;
-                codeMirror.setLineClass(line, "highlight");
+                codeMirror.addLineClass(line, "wrap", "highlight");
                 this._highlight.push(line);
             }
         }

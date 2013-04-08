@@ -192,7 +192,7 @@ define(function (require, exports, module) {
         
         var updateSelectionTriangle = function () {
             var selectionMarkerHeight = $selectionMarker.height(),
-                selectionMarkerOffset = $selectionMarker.offset(),
+                selectionMarkerOffset = $selectionMarker.offset(),  // offset relative to *document*
                 scrollerOffset = $scrollerElement.offset(),
                 triangleHeight = $selectionTriangle.outerHeight(),
                 scrollerTop = scrollerOffset.top,
@@ -302,12 +302,18 @@ define(function (require, exports, module) {
             elementOffset = $element.offset();
 
         // scroll minimum amount
-        if (elementOffset.top + $element.height() >= (viewOffset.top + $view.height())) {
+        var delta = (elementOffset.top + $element.height()) - (viewOffset.top + $view.height());
+        
+        if (delta > 0) {
             // below viewport
-            element.scrollIntoView(false);
-        } else if (elementOffset.top <= viewOffset.top) {
-            // above viewport
-            element.scrollIntoView(true);
+            $view.scrollTop($view.scrollTop() + delta);
+        } else {
+            delta = viewOffset.top - elementOffset.top;
+            
+            if (delta > 0) {
+                // above viewport
+                $view.scrollTop($view.scrollTop() - delta);
+            }
         }
 
         if (scrollHorizontal) {

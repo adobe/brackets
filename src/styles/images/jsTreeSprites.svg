@@ -3,10 +3,24 @@
 		<filter id="blur" x="-10" y="-10" width="12" height="12">
 			<feGaussianBlur in="SourceGraphic" stdDeviation=".25"/>
 		</filter>
+        <polyline id="arrow-r-shadow" points="11,10.5 5,7 5,14 11,10.5" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
+        <polyline id="arrow-r" points="11,10.5 5,7 5,14 11,10.5"/>
+        <polyline id="arrow-d-shadow" points="25.5,13 29,7 22,7 25.5,13" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
+        <polyline id="arrow-d" points="25.5,13 29,7 22,7 25.5,13"/>
 	</defs>
 
-	<polyline points="11,10.5 5,7 5,14 11,10.5" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
-	<polyline points="25.5,13 29,7 22,7 25.5,13" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
-	<polyline fill="#878787" points="11,10.5 5,7 5,14 11,10.5"/>
-	<polyline fill="#fff" points="25.5,13 29,7 22,7 25.5,13"/>
+    <!-- Project tree: dark background -->
+    <use xlink:href="#arrow-r-shadow" />
+    <use xlink:href="#arrow-r" fill="#878787" />
+    
+    <use xlink:href="#arrow-d-shadow" />
+    <use xlink:href="#arrow-d" fill="#fff" />
+    
+    <!-- Elsewhere: light background -->
+    <use xlink:href="#arrow-r-shadow" y="14" />
+    <use xlink:href="#arrow-r" y="14" fill="#878787" />
+    
+    <use xlink:href="#arrow-d-shadow" y="14" />
+    <use xlink:href="#arrow-d" y="14" fill="#555" />
+    
 </svg>

@@ -32,20 +32,29 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var CommandManager     = require("command/CommandManager");
+    var CommandManager = require("command/CommandManager"),
+        Commands       = require("command/Commands");
 
     /**
      * The native function BracketsShellAPI::DispatchBracketsJSCommand calls this function in order to enable
      * calling Brackets commands from the native shell.
      */
     function executeCommand(eventName) {
-        var evt = window.document.createEvent("Event");
-        evt.initEvent(eventName, false, true);
-        
-        CommandManager.execute(eventName, {evt: evt});
-        
-        //return if default was prevented
-        return evt.defaultPrevented;
+        // Temporary fix for #2616 - don't execute the command if a modal dialog is open.
+        // This should really be fixed with proper menu enabling.
+        if ($(".modal.instance").length) {
+            // Another hack to fix issue #3219 so that all test windows are closed 
+            // as before the fix for #3152 has been introduced. isBracketsTestWindow 
+            // property is explicitly set in createTestWindowAndRun() in SpecRunnerUtils.js.
+            if (window.isBracketsTestWindow) {
+                return false;
+            }
+            // Return false for all commands except file.close_window command for 
+            // which we have to return true (issue #3152).
+            return (eventName === Commands.FILE_CLOSE_WINDOW);
+        }
+        var promise = CommandManager.execute(eventName);
+        return (promise && promise.state() === "rejected") ? false : true;
     }
 
     exports.executeCommand = executeCommand;

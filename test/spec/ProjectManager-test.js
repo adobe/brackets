@@ -32,6 +32,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("ProjectManager", function () {
+        
+        this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files"),
             brackets;
@@ -166,6 +168,20 @@ define(function (require, exports, module) {
                     waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 1000);
                     runs(assertFile);
                 }
+            });
+        });
+        
+        describe("File Display", function () {
+            it("should not show useless directory entries", function () {
+                var shouldShow = ProjectManager.shouldShow;
+                var makeEntry = function (name) {
+                    return { name: name };
+                };
+                
+                expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
+                expect(shouldShow(makeEntry("foobar"))).toBe(true);
+                expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
+                expect(shouldShow(makeEntry("module.pyc"))).toBe(false);
             });
         });
 

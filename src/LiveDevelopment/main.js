@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global brackets, define, $, less, window, XMLHttpRequest */
+/*global brackets, define, $, less, window */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -47,16 +47,16 @@ define(function main(require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        ExtensionUtils      = require("utils/ExtensionUtils");
 
-    var PREFERENCES_KEY = "com.adobe.brackets.live-development";
     var prefs;
     var params = new UrlParams();
     var config = {
         experimental: false, // enable experimental features
         debug: true, // enable debug output and helpers
         autoconnect: false, // go live automatically after startup?
-        highlight: false, // enable highlighting?
+        highlight: true, // enable highlighting?
         highlightConfig: { // the highlight configuration for the Inspector
             borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
             contentColor: {r: 111, g: 168, b: 220, a: 0.55},
@@ -78,17 +78,13 @@ define(function main(require, exports, module) {
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/main.less", true);
-        request.onload = function onLoad(event) {
-            var parser = new less.Parser();
-            parser.parse(request.responseText, function onParse(err, tree) {
-                console.assert(!err, err);
-                $("<style>" + tree.toCSS() + "</style>")
-                    .appendTo(window.document.head);
-            });
-        };
-        request.send(null);
+        var lessText    = require("text!LiveDevelopment/main.less"),
+            parser      = new less.Parser();
+        
+        parser.parse(lessText, function onParse(err, tree) {
+            console.assert(!err, err);
+            ExtensionUtils.addEmbeddedStyleSheet(tree.toCSS());
+        });
     }
 
     /**
@@ -170,28 +166,25 @@ define(function main(require, exports, module) {
             // Update the checkmark next to 'Live Preview' menu item
             // Add checkmark when status is STATUS_ACTIVE; otherwise remove it 
             CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);
+            CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(status === LiveDevelopment.STATUS_ACTIVE);
         });
     }
 
-    /** Create the menu item "Highlight" */
-    function _setupHighlightButton() {
-        // TODO: this should be moved into index.html like the Go Live button once it's re-enabled
-        _$btnHighlight = $("<a href=\"#\">Highlight </a>");
-        $(".nav").append($("<li>").append(_$btnHighlight));
-        _$btnHighlight.click(function onClick() {
-            config.highlight = !config.highlight;
-            if (config.highlight) {
-                _setLabel(_$btnHighlight, _checkMark, "success");
-            } else {
-                _setLabel(_$btnHighlight);
-                LiveDevelopment.hideHighlight();
-            }
-        });
+    function _updateHighlightCheckmark() {
+        CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setChecked(config.highlight);
+    }
+    
+    function _handlePreviewHighlightCommand() {
+        config.highlight = !config.highlight;
+        _updateHighlightCheckmark();
         if (config.highlight) {
-            _setLabel(_$btnHighlight, _checkMark, "success");
+            LiveDevelopment.showHighlight();
+        } else {
+            LiveDevelopment.hideHighlight();
         }
+        prefs.setValue("highlight", config.highlight);
     }
-
+    
     /** Setup window references to useful LiveDevelopment modules */
     function _setupDebugHelpers() {
         window.ld = LiveDevelopment;
@@ -200,8 +193,7 @@ define(function main(require, exports, module) {
     }
 
     /** Initialize LiveDevelopment */
-    function init() {
-        prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY);
+    AppInit.appReady(function () {
         params.parse();
 
         Inspector.init(config);
@@ -210,29 +202,39 @@ define(function main(require, exports, module) {
         _setupGoLiveButton();
         _setupGoLiveMenu();
 
-        /* _setupHighlightButton(); FUTURE - Highlight button */
+        _updateHighlightCheckmark();
+        
         if (config.debug) {
             _setupDebugHelpers();
         }
 
         // trigger autoconnect
-        if (config.autoconnect && window.sessionStorage.getItem("live.enabled") === "true") {
-            AppInit.appReady(function () {
-                if (DocumentManager.getCurrentDocument()) {
-                    _handleGoLiveCommand();
-                } else {
-                    $(DocumentManager).on("currentDocumentChange", _handleGoLiveCommand);
-                    window.setTimeout(function () {
-                        $(DocumentManager).off("currentDocumentChange", _handleGoLiveCommand);
-                    }, 200);
-                }
-            });
+        if (config.autoconnect &&
+                window.sessionStorage.getItem("live.enabled") === "true" &&
+                DocumentManager.getCurrentDocument()) {
+            _handleGoLiveCommand();
         }
-    }
-    window.setTimeout(init);
+        
+        // Redraw highlights when window gets focus. This ensures that the highlights
+        // will be in sync with any DOM changes that may have occurred.
+        $(window).focus(function () {
+            if (Inspector.connected() && config.highlight) {
+                LiveDevelopment.redrawHighlight();
+            }
+        });
+    });
+    
+    // init prefs
+    prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.live-development");
+    
+    config.highlight = prefs.getValue("highlight");
    
+    // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
+    CommandManager.register(Strings.CMD_LIVE_HIGHLIGHT, Commands.FILE_LIVE_HIGHLIGHT, _handlePreviewHighlightCommand);
+    CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(false);
 
     // Export public functions
-    exports.init = init;
 });

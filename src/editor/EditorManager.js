@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -35,35 +35,59 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- Fires after the focused editor (full or inline)
- *                             changes and size/visibility are complete.
+ *    - activeEditorChange --  Fires after the active editor (full or inline) changes and size/visibility
+ *                             are complete. Doesn't fire when editor temporarily loses focus to a non-editor
+ *                             control (e.g. search toolbar or modal dialog, or window deactivation). Does
+ *                             fire when focus moves between inline editor and its full-size container.
+ *                             This event tracks getActiveEditor() changes, while DocumentManager's
+ *                             currentDocumentChange tracks getCurrentFullEditor() changes.
+ *                             The 2nd arg to the listener is which Editor became active; the 3rd arg is
+ *                             which Editor is deactivated as a result. Either one may be null.
+ *                             NOTE (#1257): getFocusedEditor() sometimes lags behind this event. Listeners
+ *                             should use the arguments or call getActiveEditor() to reliably see which Editor 
+ *                             just gained focus.
  */
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        FileUtils           = require("file/FileUtils"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        KeyEvent            = require("utils/KeyEvent"),
-        EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
     
-    /** @type {Editor} */
+    /**
+     * Currently visible full-size Editor, or null if no editors open
+     * @type {?Editor}
+     */
     var _currentEditor = null;
-    /** @type {Document} */
+    /** @type {?Document} */
     var _currentEditorsDocument = null;
+    
+    /**
+     * Currently focused Editor (full-size, inline, or otherwise)
+     * @type {?Editor}
+     */
+    var _lastFocusedEditor = null;
+    
+    /**
+     * Maps full path to scroll pos & cursor/selection info. Not kept up to date while an editor is current.
+     * Only updated when switching / closing editor, or when requested explicitly via _getViewState().
+     * @type {Object<string, {scrollPos:{x:number, y:number}, selection:{start:{line:number, ch:number}, end:{line:number, ch:number}}}>}
+     */
+    var _viewStateCache = {};
+    
+    /**
+     * Last known editor area width, used to detect when the window is resized horizontally.
+     */
+    var _lastEditorWidth = null;
     
     /**
      * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
@@ -71,41 +95,25 @@ define(function (require, exports, module) {
      */
     var _inlineEditProviders = [];
     
-    /* StatusBar indicators */
-    var $modeInfo,
-        $cursorInfo,
-        $fileInfo,
-        $indentType,
-        $indentWidthLabel,
-        $indentWidthInput;
-    
-    /**
-     * Adds keyboard command handlers to an Editor instance.
-     * @param {Editor} editor 
-     * @param {!Object.<string,function(Editor)>} to destination key mapping
-     * @param {!Object.<string,function(Editor)>} from source key mapping
+	/**
+     * @private
+     * @param {?Editor} current
      */
-    function mergeExtraKeys(editor, to, from) {
-        // Merge in the additionalKeys we were passed
-        function wrapEventHandler(externalHandler) {
-            return function (instance) {
-                externalHandler(editor);
-            };
+    function _notifyActiveEditorChanged(current) {
+        // Skip if the Editor that gained focus was already the most recently focused editor.
+        // This may happen e.g. if the window loses then regains focus.
+        if (_lastFocusedEditor === current) {
+            return;
         }
-        var key;
-        for (key in from) {
-            if (from.hasOwnProperty(key)) {
-                if (to.hasOwnProperty(key)) {
-                    console.log("Warning: overwriting standard Editor shortcut " + key);
-                }
-                to[key] = (editor !== null) ? wrapEventHandler(from[key]) : from[key];
-            }
-        }
+        var previous = _lastFocusedEditor;
+        _lastFocusedEditor = current;
+        
+        $(exports).triggerHandler("activeEditorChange", [current, previous]);
     }
-    
+	
     /**
-     * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
-     * file extension. The editor is appended to the given container as a visible child.
+     * Creates a new Editor bound to the given Document.
+     * The editor is appended to the given container as a visible child.
      * @param {!Document} doc  Document for the Editor's content
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
@@ -114,10 +122,14 @@ define(function (require, exports, module) {
      *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, range, additionalKeys) {
-        var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
+    function _createEditorForDocument(doc, makeMasterEditor, container, range) {
+        var editor = new Editor(doc, makeMasterEditor, container, range);
+
+        $(editor).on("focus", function () {
+            _notifyActiveEditorChanged(this);
+        });
         
-        return new Editor(doc, makeMasterEditor, mode, container, additionalKeys, range);
+        return editor;
     }
     
     /**
@@ -166,14 +178,13 @@ define(function (require, exports, module) {
      * is). The widget's onClosed() callback will be run as a result.
      * @param {!Editor} hostEditor The editor containing the widget.
      * @param {!InlineWidget} inlineWidget The inline widget to close.
-     * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
-     *      near the inline's location.
      */
-    function closeInlineWidget(hostEditor, inlineWidget, moveFocus) {
-        if (moveFocus) {
+    function closeInlineWidget(hostEditor, inlineWidget) {
+        // If widget has focus, return it to the hostEditor & move the cursor to where the inline used to be
+        if (inlineWidget.hasFocus()) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
             // If cursor's already on that line, leave it be to preserve column position
-            var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineWidget.id).line;
+            var widgetLine = hostEditor._codeMirror.getLineNumber(inlineWidget.info.line);
             var cursorLine = hostEditor.getCursorPos().line;
             if (cursorLine !== widgetLine) {
                 hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
@@ -248,8 +259,8 @@ define(function (require, exports, module) {
 
     
     /**
-     * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
-     * based on the file extension. The editor is not yet visible or attached to a host editor.
+     * Creates a new inline Editor instance for the given Document.
+     * The editor is not yet visible or attached to a host editor.
      * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
@@ -258,9 +269,9 @@ define(function (require, exports, module) {
      *
      * @return {{content:DOMElement, editor:Editor}}
      */
-    function createInlineEditorForDocument(doc, range, inlineContent, additionalKeys) {
+    function createInlineEditorForDocument(doc, range, inlineContent) {
         // Create the Editor
-        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range, additionalKeys);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range);
         
         return { content: inlineContent, editor: inlineEditor };
     }
@@ -302,10 +313,14 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Focus the currently visible full-size editor. If no editor visible, does nothing. */
+    /** 
+     * Returns focus to the last visible editor that had focus. If no editor visible, does nothing.
+     * This function should be called to restore editor focus after it has been temporarily
+     * removed. For example, after a dialog with editable text is closed.
+     */
     function focusEditor() {
-        if (_currentEditor) {
-            _currentEditor.focus();
+        if (_lastFocusedEditor) {
+            _lastFocusedEditor.focus();
         }
     }
     
@@ -324,18 +339,36 @@ define(function (require, exports, module) {
                 availableHt -= $elem.outerHeight();
             }
         });
-        return availableHt;
+        
+        // Clip value to 0 (it could be negative if a panel wants more space than we have)
+        return Math.max(availableHt, 0);
     }
     
+    /**
+     * Flag for resizeEditor() to always force refresh.
+     * @const
+     * @type {string}
+     */
+    var REFRESH_FORCE = "force";
+    
+    /**
+     * Flag for resizeEditor() to never refresh.
+     * @const
+     * @type {string}
+     */
+    var REFRESH_SKIP = "skip";
+
     /** 
      * Resize the editor. This must be called any time the contents of the editor area are swapped
      * or any time the editor area might change height. EditorManager takes care of calling this when
      * the Editor is swapped, and on window resize. But anyone who changes size/visiblity of editor
      * area siblings (toolbar, status bar, bottom panels) *must* manually call resizeEditor().
      *
-     * @param {boolean=} skipRefresh For internal use, to avoid redundant refresh()es during window resize
+     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
+     *    "skip" to ensure the editor does not refresh, or leave undefined to let resizeEditor() determine 
+     *    whether it needs to refresh.
      */
-    function resizeEditor(skipRefresh) {
+    function resizeEditor(refreshFlag) {
         if (!_editorHolder) {
             return;  // still too early during init
         }
@@ -344,9 +377,22 @@ define(function (require, exports, module) {
         _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
         
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(editorAreaHt);
-            if (!skipRefresh) {
-                _currentEditor.refresh();
+            var curRoot = _currentEditor.getRootElement(),
+                curWidth = $(curRoot).width();
+            if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
+                $(curRoot).height(editorAreaHt);
+                if (refreshFlag === undefined) {
+                    refreshFlag = REFRESH_FORCE;
+                }
+            } else if (curWidth !== _lastEditorWidth) {
+                if (refreshFlag === undefined) {
+                    refreshFlag = REFRESH_FORCE;
+                }
+            }
+            _lastEditorWidth = curWidth;
+
+            if (refreshFlag === REFRESH_FORCE) {
+                _currentEditor.refreshAll(true);
             }
         }
     }
@@ -356,47 +402,61 @@ define(function (require, exports, module) {
      * height.
      */
     function _updateEditorDuringResize() {
-        // skipRefresh=true since CodeMirror will call refresh() itself when it sees the resize event
-        resizeEditor(true);
+        // always skip the refresh since CodeMirror will call refresh() itself when it sees the resize event
+        resizeEditor(REFRESH_SKIP);
     }
     
-    /**
-     * @private
-     */
-    function _doFocusedEditorChanged(current, previous) {
-        // Skip if the new editor is already the focused editor.
-        // This may happen if the window loses then regains focus.
-        if (previous === current) {
-            return;
-        }
-
-        // if switching to no-editor, hide the last full editor
-        if (_currentEditor && !current) {
-            _currentEditor.setVisible(false);
-        }
-
-        // _currentEditor must be a full editor or null (show no editor).
-        // _currentEditor must not be an inline editor
-        if (!current || (current && !current._visibleRange)) {
-            _currentEditor = current;
-        }
-
-        // Window may have been resized since last time editor was visible, so kick it now
-        if (_currentEditor) {
-            _currentEditor.setVisible(true);
-            resizeEditor();
-        }
-
-        $(exports).triggerHandler("focusedEditorChange", [current, previous]);
+    
+    /** Updates _viewStateCache from the given editor's actual current state */
+    function _saveEditorViewState(editor) {
+        _viewStateCache[editor.document.file.fullPath] = {
+            selection: editor.getSelection(),
+            scrollPos: editor.getScrollPos()
+        };
     }
     
+    /** Updates the given editor's actual state from _viewStateCache, if any state stored */
+    function _restoreEditorViewState(editor) {
+        // We want to ignore the current state of the editor, so don't call _getViewState()
+        var viewState = _viewStateCache[editor.document.file.fullPath];
+        if (viewState) {
+            if (viewState.selection) {
+                editor.setSelection(viewState.selection.start, viewState.selection.end);
+            }
+            if (viewState.scrollPos) {
+                editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);
+            }
+        }
+    }
+    
+    /** Returns up-to-date view state for the given file, or null if file not open and no state cached */
+    function _getViewState(fullPath) {
+        if (_currentEditorsDocument && _currentEditorsDocument.file.fullPath === fullPath) {
+            _saveEditorViewState(_currentEditor);
+        }
+        return _viewStateCache[fullPath];
+    }
+    
+    /** Removes all cached view state info and replaces it with the given mapping */
+    function _resetViewStates(viewStates) {
+        _viewStateCache = viewStates;
+    }
+
     /**
      * @private
      */
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _doFocusedEditorChanged(document._masterEditor, _currentEditor);
+        _currentEditor = document._masterEditor;
+        
+        // Skip refreshing the editor since we're going to refresh it in resizeEditor() later.
+        _currentEditor.setVisible(true, false);
+        _currentEditor.focus();
+        
+        // Resize and refresh the editor, since it might have changed size or had other edits applied
+        // since it was last visible.
+        resizeEditor(REFRESH_FORCE);
     }
 
     /**
@@ -409,29 +469,41 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#not-editor").css("display", "none");
         } else {
+            _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
         // Ensure a main editor exists for this document to show in the UI
+        var createdNewEditor = false;
         if (!document._masterEditor) {
+            createdNewEditor = true;
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
         
         _doShow(document);
+        
+        if (createdNewEditor) {
+            _restoreEditorViewState(document._masterEditor);
+        }
     }
     
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
-            var origCurrentEditor = _currentEditor;
+            _saveEditorViewState(_currentEditor);
+            _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
-            _doFocusedEditorChanged(null, origCurrentEditor);
+            
             _currentEditorsDocument = null;
+            _currentEditor = null;
             
             $("#not-editor").css("display", "");
+            
+            // No other Editor is gaining focus, so in this one special case we must trigger event manually
+            _notifyActiveEditorChanged(null);
         }
     }
 
@@ -498,7 +570,8 @@ define(function (require, exports, module) {
      */
     function setEditorHolder(holder) {
         if (_currentEditor) {
-            throw new Error("Cannot change editor area after an editor has already been created!");
+            console.error("Cannot change editor area after an editor has already been created!");
+            return;
         }
         
         _editorHolder = holder;
@@ -507,20 +580,16 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the currently focused inline widget.
-     * @returns {?{widget:!InlineTextEditor, editor:!Editor}}
+     * Returns the currently focused inline widget, if any.
+     * @return {?InlineWidget}
      */
     function getFocusedInlineWidget() {
         var result = null;
         
         if (_currentEditor) {
             _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    widget.editors.forEach(function (editor) {
-                        if (editor.hasFocus()) {
-                            result = { widget: widget, editor: editor };
-                        }
-                    });
+                if (widget.hasFocus()) {
+                    result = widget;
                 }
             });
         }
@@ -528,18 +597,26 @@ define(function (require, exports, module) {
         return result;
     }
 
+    /**
+     * Returns the focused Editor within an inline text editor, or null if something else has focus
+     * @return {?Editor}
+     */
     function _getFocusedInlineEditor() {
-        var focusedInline = getFocusedInlineWidget();
-        if (focusedInline) {
-            return focusedInline.editor;
+        var focusedWidget = getFocusedInlineWidget();
+        if (focusedWidget instanceof InlineTextEditor) {
+            return focusedWidget.getFocusedEditor();
         }
-
         return null;
     }
     
     /**
      * Returns the currently focused editor instance (full-sized OR inline editor).
-     * @returns {Editor}
+     * This function is similar to getActiveEditor(), with one main difference: this
+     * function will only return editors that currently have focus, whereas 
+     * getActiveEditor() will return the last visible editor that was given focus (but
+     * may not currently have focus because, for example, a dialog with editable text
+     * is open).
+     * @returns {?Editor}
      */
     function getFocusedEditor() {
         if (_currentEditor) {
@@ -560,6 +637,18 @@ define(function (require, exports, module) {
     }
  
     /**
+     * Returns the current active editor (full-sized OR inline editor). This editor may not 
+     * have focus at the moment, but it is visible and was the last editor that was given 
+     * focus. Returns null if no editors are active.
+     * @see getFocusedEditor()
+     * @returns {?Editor}
+     */
+    function getActiveEditor() {
+        return _lastFocusedEditor;
+    }
+    
+    
+    /**
      * Toggle Quick Edit command handler
      * @return {!Promise} A promise resolved with true if an inline editor
      *   is opened or false when closed. The promise is rejected if there
@@ -569,12 +658,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         if (_currentEditor) {
-            var inlineWidget = null,
-                focusedWidgetResult = getFocusedInlineWidget();
-            
-            if (focusedWidgetResult) {
-                inlineWidget = focusedWidgetResult.widget;
-            }
+            var inlineWidget = getFocusedInlineWidget();
             
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
@@ -600,140 +684,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function _updateModeInfo(editor) {
-        $modeInfo.text(editor.getModeForSelection());
-    }
-    
-    function _updateFileInfo(editor) {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
-    }
-    
-    function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
-        $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
-        $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
-        $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
-    }
-
-    function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
-    }
-    
-    function _updateIndentSize() {
-        var size = _getIndentSize();
-        $indentWidthLabel.text(size);
-        $indentWidthInput.val(size);
-    }
-    
-    function _toggleIndentType() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        _updateIndentType();
-        _updateIndentSize();
-    }
-    
-    function _updateCursorInfo(event, editor) {
-        editor = editor || getFocusedEditor();
-
-        // compute columns, account for tab size
-        var cursor = editor.getCursorPos(true);
-        
-        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1));
-    }
-    
-    function _changeIndentWidth(value) {
-        $indentWidthLabel.removeClass("hidden");
-        $indentWidthInput.addClass("hidden");
-        
-        // remove all event handlers from the input field
-        $indentWidthInput.off("blur keyup");
-        
-        // restore focus to the editor
-        focusEditor();
-
-        if (!value || isNaN(value)) {
-            return;
-        }
-        
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
-        } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
-        }
-
-        // update indicator
-        _updateIndentSize();
-
-        // column position may change when tab size changes
-        _updateCursorInfo();
-    }
-    
-    function _onFocusedEditorChange(event, current, previous) {
-        if (previous) {
-            $(previous).off("cursorActivity.statusbar");
-            $(previous).off("change.statusbar");
-        }
-        
-        if (!current) {
-            StatusBar.hide();
-            resizeEditor();
-        } else {
-            // Check if the statusbar is not visible to show it
-            StatusBar.show();
-            resizeEditor();
-            
-            $(current).on("cursorActivity.statusbar", _updateCursorInfo);
-            $(current).on("change.statusbar", function () {
-                // async update to keep typing speed smooth
-                window.setTimeout(function () { _updateFileInfo(current); }, 0);
-            });
-            
-            _updateCursorInfo(null, current);
-            _updateModeInfo(current);
-            _updateFileInfo(current);
-            _updateIndentType();
-            _updateIndentSize();
-        }
-    }
-
-    function _init() {
-        StatusBar.init($(".main-view .content"));
-
-        $modeInfo           = $("#status-mode");
-        $cursorInfo         = $("#status-cursor");
-        $fileInfo           = $("#status-file");
-        $indentType         = $("#indent-type");
-        $indentWidthLabel   = $("#indent-width-label");
-        $indentWidthInput   = $("#indent-width-input");
-        
-        // indentation event handlers
-        $indentType.on("click", _toggleIndentType);
-        $indentWidthLabel
-            .on("click", function () {
-                // update the input value before displaying
-                $indentWidthInput.val(_getIndentSize());
-
-                $indentWidthLabel.addClass("hidden");
-                $indentWidthInput.removeClass("hidden");
-                $indentWidthInput.focus();
-        
-                $indentWidthInput
-                    .on("blur", function () {
-                        _changeIndentWidth($indentWidthInput.val());
-                    })
-                    .on("keyup", function (event) {
-                        if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
-                            $indentWidthInput.blur();
-                        } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(false);
-                        }
-                    });
-            });
-
-        $indentWidthInput.focus(function () { $indentWidthInput.select(); });
-
-        _onFocusedEditorChange(null, getFocusedEditor(), null);
-    }
-
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
     
@@ -746,17 +696,17 @@ define(function (require, exports, module) {
     // refresh on resize.
     window.addEventListener("resize", _updateEditorDuringResize, true);
     
-    // Initialize: status bar focused listener
-    $(exports).on("focusedEditorChange", _onFocusedEditorChange);
-    
-    AppInit.htmlReady(_init);
-    
     // For unit tests and internal use only
-    exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
-    exports._doFocusedEditorChanged = _doFocusedEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
+    exports._getViewState = _getViewState;
+    exports._resetViewStates = _resetViewStates;
+    exports._doShow = _doShow;
+    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
+    
+    exports.REFRESH_FORCE = REFRESH_FORCE;
+    exports.REFRESH_SKIP = REFRESH_SKIP;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
@@ -764,10 +714,10 @@ define(function (require, exports, module) {
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
+    exports.getActiveEditor = getActiveEditor;
     exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
-    exports.mergeExtraKeys = mergeExtraKeys;
 });
