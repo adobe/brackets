@@ -140,6 +140,63 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Get a Promise for the definition from TernJS, for the file & offset passed in.
+     * @return {jQuery.Promise} - a promise that will resolve to definition when
+     *      it is done
+     */
+    function getJumptoDef(dir, file, offset, text) {
+        ternWorker.postMessage({
+            type: HintUtils.TERN_JUMPTODEF_MSG,
+            dir:dir,
+            file:file,
+            offset:offset,
+            text:text
+        });
+
+        var $deferredJump = $.Deferred();
+        pendingTernRequests[file] = $deferredJump;
+        return $deferredJump.promise();
+    }
+
+    /**
+     * Request Jump-To-Definition from Tern.
+     *
+     * @param {session} session - the session
+     * @param {Document} document - the document
+     * @param {number} offset - the offset into the document
+     * @return {jQuery.Promise} - The promise will not complete until tern
+     *      has completed.
+     */
+    function requestJumptoDef(session, document, offset) {
+        var path    = document.file.fullPath,
+            split   = HintUtils.splitPath(path),
+            dir     = split.dir,
+            file    = split.file;
+        
+        var ternPromise = getJumptoDef(dir, file, offset, document.getText());
+        
+        return {promise:ternPromise};
+    }
+
+    /**
+     * Handle the response from the tern web worker when
+     * it responds with the definition
+     *
+     * @param response - the response from the worker
+     */
+    function handleJumptoDef(response) {
+        
+        var file = response.file;
+        var $deferredJump = pendingTernRequests[file];
+        
+        pendingTernRequests[file] = null;
+        
+        if( $deferredJump ) { 
+            $deferredJump.resolveWith(null, [response]);
+        }
+    }
+    
+    /**
      * Request hints from Tern.
      *
      * Note that successive calls to getScope may return the same objects, so
@@ -425,6 +482,8 @@ define(function (require, exports, module) {
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
             // handle a request for the contents of a file
             handleTernGetFile(response);
+        } else if ( type === HintUtils.TERN_JUMPTODEF_MSG ) {
+             handleJumptoDef(response);
         } else{
             console.log("Worker: " + (response.log || response));
         }
@@ -461,6 +520,7 @@ define(function (require, exports, module) {
     
     exports.handleEditorChange = handleEditorChange;
     exports.handleFileChange = handleFileChange;
+    exports.requestJumptoDef = requestJumptoDef;
     exports.requestHints = requestHints;
     exports.isScopeDirty = isScopeDirty;
     exports.getTernHints = getTernHints;

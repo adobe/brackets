@@ -29,12 +29,20 @@ define(function (require, exports, module) {
 
     var CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
+        Commands        = brackets.getModule("command/Commands"),
+        CommandManager  = brackets.getModule("command/CommandManager"),
+        Menus           = brackets.getModule("command/Menus"),
+        Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session");
+
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+
+    var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
 
     var session     = null,  // object that encapsulates the current session state
         cachedHints = null,  // sorted hints for the current hinting session
@@ -375,6 +383,33 @@ define(function (require, exports, module) {
             uninstallEditorListeners(previous);
             installEditorListeners(current);
         }
+        
+        /*
+         * Handle JumptoDefiniton menu/keyboard command.
+         */
+        function handleJumpToDefinition() {
+            var offset     = session.getOffset(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            if (response.hasOwnProperty("promise")) {
+                response.promise.done(function (jumpResp) {
+
+                    session.editor.setSelection(jumpResp.start, jumpResp.end);
+                    session.editor.setCursorPos(jumpResp.start);
+                    session.editor.centerOnCursor();
+
+                }).fail(function () {
+                    response.reject();
+                });
+            }
+        }
+
+        // Register command handler
+        CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
+        
+        // Add the menu item
+        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
+        menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.BEFORE, Commands.NAVIGATE_GOTO_DEFINITION);
         
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         

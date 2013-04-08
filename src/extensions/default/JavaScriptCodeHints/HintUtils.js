@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         SINGLE_QUOTE                = "\'",
         DOUBLE_QUOTE                = "\"",
         TERN_INIT_MSG               = "Init",
+        TERN_JUMPTODEF_MSG          = "JumptoDef",
         TERN_COMPLETIONS_MSG        = "Completions",
         TERN_GET_FILE_MSG           = "GetFile",
         TERN_GET_PROPERTIES_MSG     = "Properties",
@@ -200,6 +201,7 @@ define(function (require, exports, module) {
     exports.LANGUAGE_ID             = LANGUAGE_ID;
     exports.SINGLE_QUOTE            = SINGLE_QUOTE;
     exports.DOUBLE_QUOTE            = DOUBLE_QUOTE;
+    exports.TERN_JUMPTODEF_MSG      = TERN_JUMPTODEF_MSG;
     exports.TERN_COMPLETIONS_MSG    = TERN_COMPLETIONS_MSG;
     exports.TERN_INIT_MSG           = TERN_INIT_MSG;
     exports.TERN_GET_FILE_MSG       = TERN_GET_FILE_MSG;
