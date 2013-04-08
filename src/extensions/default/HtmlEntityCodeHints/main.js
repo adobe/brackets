@@ -46,7 +46,7 @@ define(function (require, exports, module) {
      * The encoded string
      */
     function _encodeValue(value) {
-        return (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("&", "&amp;").replace("#", "&#35;");
+        return value.replace("&", "&amp;").replace("#", "&#35;");
     }
     
     /**
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
      * The decoded string
      */
     function _decodeValue(value) {
-        return value.replace("&#35;", "#").replace("&amp;", "&").replace("&#59;", ";");
+        return value.replace("&amp;", "&").replace("&#35;", "#");
     }
     
     /**
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
                     var shownValue = _encodeValue(value);
-                    return shownValue  + "&#59; <span class='entity-display-character'>" + value + ";</span>";
+                    return shownValue  + "; <span class='entity-display-character'>" + value + ";</span>";
                 }
             }).sort(this._internalSort);
             
@@ -187,18 +187,17 @@ define(function (require, exports, module) {
         startChar = lineContentBeforeCursor.lastIndexOf("&");
         endChar = lineContentBeforeCursor.lastIndexOf(";");
         
-        if (endChar < startChar) {
-            query = this.editor.document.getRange({
-                line: cursor.line,
-                ch: startChar
-            }, cursor);
+        // If no startChar was found or the endChar is greater than the startChar then it is no entity
+        if (startChar === -1 || endChar > startChar) {
+            return null;
         }
-
-        if (endChar < startChar) {
-            return query;
-        }
-            
-        return null;
+        
+        query = this.editor.document.getRange({
+            line: cursor.line,
+            ch: startChar
+        }, cursor);
+        
+        return query;
     };
     
     /**
@@ -223,7 +222,6 @@ define(function (require, exports, module) {
         end.ch = start.ch + this.currentQuery.length;
         
         if (match.indexOf(";") !== -1 && /^(#*[0-9]+)|([a-zA-Z]+)$/.test(match.slice(0, match.indexOf(";")))) {
-            console.log("In Entity");
             end.ch = this.editor.document.getLine(cursor.line).indexOf(";", start.ch) + 1;
         }
         
