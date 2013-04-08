@@ -53,10 +53,7 @@ define(function (require, exports, module) {
         DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
-        DIALOG_ID_OPEN_FOLDER = "open-folder-dialog",
-        DIALOG_ID_OPEN_FILE = "open-file-dialog",
-        DIALOG_ID_CONNECT = "error-connect";
+        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
