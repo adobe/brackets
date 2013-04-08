@@ -53,6 +53,7 @@
     margin-left: -12px;
     background: url('point.svg') no-repeat center;
     z-index: 100;
+    -webkit-transform: rotate(180deg);
 }
 
 #popover-container .cubic-bezier-highlight {
