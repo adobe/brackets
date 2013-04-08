@@ -37,7 +37,7 @@
  *   |         |
  *   |         |
  *   |         |
- *   +---------+ <-- inner popover box has height of 150
+ *   +---------+ <-- inner popover box has height of 149
  *   .         .
  *   . . . . . . <-- canvas has height of 300 (extra 75 above/below)
  * 
@@ -291,7 +291,7 @@ define(function (require, exports, module) {
                 handleThickness: 0.008,
                 vBorderThickness: 0.02,
                 hBorderThickness: 0.01,
-                bezierColor: "black",
+                bezierColor: "rgb(128,128,128)",
                 bezierThickness: 0.02
             };
 
@@ -503,7 +503,7 @@ define(function (require, exports, module) {
         // with keyboard, but disallow clicking outside 0-1 range. This is because
         // UI gives no visual range for this, and user most likely wants to change
         // selection in editor.
-        if (y < 0 || y > 150) {
+        if (y < 0 || y > 149) {
             return;
         }
 
@@ -755,7 +755,7 @@ define(function (require, exports, module) {
                     "<button class='control-point' id='P1'></button> " +
                     "<button class='control-point' id='P2'></button> " +
                     "<span class='control-point' id='P3'></span> " +
-                    "<canvas height='300' width='150' id='curve'></canvas> " +
+                    "<canvas height='300' width='149' id='curve'></canvas> " +
                 "</div>" +
             "</div>"
         );

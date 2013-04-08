@@ -3,15 +3,18 @@
  */
 #popover-container {
     display: none;
-    background-color: #fff;
+    background-color: #E0E1E3;
     position: absolute;
     z-index: 5000;
     left: 200px;
     top: 40px;
-    padding: 10px;
+    padding: 17px;
     text-align: center;
-    width: 160px;
-    height: 160px;
+    width: 149px;
+    height: 149px;
+    border-radius: 5px;
+    /*border: 1px solid #A6A6A6;*/
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 0 0 1px #A6A6A6, inset 0 0 0 2px #EBEDEC;
 }
 
 #popover-container .cubic-bezier {
@@ -19,49 +22,37 @@
     height: 170px;
 }
 
-#popover-container {
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
 /* popover is above element so arrow is below */
 #popover-container.popoverAbove:before {
-    border-bottom: 25px solid transparent;
-    border-right: 25px solid #eee;
-    bottom: -13px;
-    content: '';
-    position: absolute;
-    left: 40%;
-    -webkit-transform:rotate(135deg);
+    display: none;
 }
 #popover-container.popoverAbove:after {
-    border-bottom: 25px solid transparent;
-    border-right: 25px solid #fff;
+    width: 24px;
+    height: 14px;
     bottom: -12px;
     content: '';
     position: absolute;
-    left: 40%;
-    -webkit-transform:rotate(135deg);
+    left: 50%;
+    margin-left: -12px;
+    background: url('point.svg') no-repeat center;
+    z-index: 100;
 }
 
 /* popover is below element so arrow is above */
-#popover-container.popoverBelow:before {
-    border-top: 25px solid transparent;
-    border-left: 25px solid #eee;
-    top: -13px;
-    content: '';
-    position: absolute;
-    left: 40%;
-    -webkit-transform:rotate(135deg);
-}
+
 #popover-container.popoverBelow:after {
-    border-top: 25px solid transparent;
-    border-left: 25px solid #fff;
+    display: none;
+}
+#popover-container.popoverBelow:before {
+    width: 24px;
+    height: 14px;
     top: -12px;
     content: '';
     position: absolute;
-    left: 40%;
-    -webkit-transform:rotate(135deg);
+    left: 50%;
+    margin-left: -12px;
+    background: url('point.svg') no-repeat center;
+    z-index: 100;
 }
 
 #popover-container .cubic-bezier-highlight {
@@ -75,7 +66,6 @@
 #popover-container {
 	position: relative;
 	margin: 1em 5% 0;
-	background: white;
 	font-family: 'Hiragino Kaku Gothic Pro', 'Segoe UI', 'Apple Gothic', Tahoma, 'Helvetica Neue', sans-serif;
 	line-height: 1.4;
 }
@@ -83,7 +73,7 @@
 #popover-container button, #popover-container .button {
 	padding: .3em .5em;
 	border: 0;
-	background: #ccc;
+	background: #808080;
 	color: white;
 	font-size: 50%;
 	text-transform: uppercase;
@@ -93,24 +83,25 @@
 }
 
 #popover-container button:hover, #popover-container .button:hover {
-	background: #f08;
+	background: #4F80FF;
 }
 
 #popover-container button:focus, #popover-container .button:focus {
-	box-shadow: 0 0 5px 2px yellow;
+	background: #4F80FF;
+    /*box-shadow: 0 0 5px 2px yellow;*/
 }
 
 #popover-container .coordinate-plane { 
 	position: absolute;
-	top: 1em;
-	left: 1em;
-    border-width: 1px;
-    border-color: #000;
-    border-style: dashed solid;
-    width: 151px;
-    height: 151px;
+	top: 1.25em;
+	left: 1.25em;
+    border: 1px solid #A6A8A8;
+    width: 149px;
+    height: 149px;
+    border-radius: 2px;
     -moz-box-sizing: content-box;
     box-sizing: content-box;
+    background: url(grid_bg.svg) top left #FFF;
 }
 #popover-container .coordinate-plane:before,
 #popover-container .coordinate-plane:after {
@@ -130,7 +121,7 @@
 }
 
 #popover-container .coordinate-plane:before {
-    content: 'Progression';
+    /*content: 'Progression';
        -moz-transform: rotate(-90deg);
         -ms-transform: rotate(-90deg);
          -o-transform: rotate(-90deg);
@@ -141,32 +132,32 @@
          -o-transform-origin: bottom left;
     -webkit-transform-origin: bottom left;
             transform-origin: bottom left;
-    white-space: nowrap;
+    white-space: nowrap;*/
 }
 #popover-container .coordinate-plane:after {
-    content: 'Time';
+    /*content: 'Time';
     margin-bottom: -1.5em;
-    white-space: nowrap;
+    white-space: nowrap;*/
 }
 #popover-container .coordinate-plane:hover:before {
-    content: 'Progression (' attr(data-progression) '%)';
+    /*content: 'Progression (' attr(data-progression) '%)';*/
 }
 #popover-container .coordinate-plane:hover:after {
-    content: 'Time (' attr(data-time) '%)';
+    /*content: 'Time (' attr(data-time) '%)';*/
 }
 
 #popover-container .control-point { 
 	position: absolute;
 	z-index: 2;
-	height: 20px; 
-	width: 20px; 
-	border: 1px solid rgba(0,0,0,.3);
-	margin: -10px 0 0 -10px;
+	height: 10px; 
+	width: 10px; 
+	margin: -5px 0 0 -5px;
 	outline: none;
+    border: none;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
-	-moz-border-radius: 10px; 
-	border-radius: 10px; 
+	-moz-border-radius: 5px; 
+	border-radius: 5px; 
 }
 
 #P0, #P3 {
@@ -174,20 +165,33 @@
 }
 #P1, #P2 {
 	cursor: pointer;
+    background: #808080;
 }
-#P0 { 
-	left: 0;
-	top: 150px;
+#P0.control-point {
+    left: -1px;
+    bottom: -1px;
+    background: transparent;
+    border-bottom: 1px solid #A6A8A8;
+    border-left: 1px solid #A6A8A8;
+    border-radius: 0px;
+    border-bottom-left-radius: 2px;
+    box-shadow: -1px 1px 0 1px #E0E1E3;
+    width: 4px;
+    height: 4px;
+    margin: 0;
 }
-#P1 { 
-	background: #f08;
-}
-#P2 { 
-	background: #0ab;
-}
-#P3 {
-	left: 150px; 
-	top: 0;
+#P3.control-point {
+	right: -1px;
+	top: -1px;
+    background: transparent;
+    border-top: 1px solid #A6A8A8;
+    border-right: 1px solid #A6A8A8;
+    border-radius: 0px;
+    border-top-right-radius: 2px;
+    box-shadow: 1px -1px 0 1px #E0E1E3;
+    width: 4px;
+    height: 4px;
+    margin: 0;
 }
 
 canvas#curve { 
@@ -195,8 +199,7 @@ canvas#curve {
 	z-index: 1;
 	top: -75px;
     left: 0;
-
-	background:
+	/*background:
         -moz-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%, transparent) center no-repeat,
 		-moz-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
 	background:
@@ -212,7 +215,7 @@ canvas#curve {
         linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
 		repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
 	background-size: 100% 50%, 100% 50%;
-	background-position: 0, -25%;
+	background-position: 0, -25%;*/
 	
 	-moz-user-select: none;
 	-webkit-user-select: none;
