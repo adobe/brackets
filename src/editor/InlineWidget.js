@@ -67,16 +67,22 @@ define(function (require, exports, module) {
      * Closes this inline widget and all its contained Editors
      */
     InlineWidget.prototype.close = function () {
-        var shouldMoveFocus = this._editorHasFocus();
-        EditorManager.closeInlineWidget(this.hostEditor, this, shouldMoveFocus);
+        EditorManager.closeInlineWidget(this.hostEditor, this);
         // closeInlineWidget() causes our onClosed() handler to be called
     };
     
+    /** @return {boolean} True if any part of the inline widget is focused */
+    InlineWidget.prototype.hasFocus = function () {
+        var focusedItem = window.document.activeElement,
+            htmlContent = this.$htmlContent[0];
+        return $.contains(htmlContent, focusedItem) || htmlContent === focusedItem;
+    };
+    
     /**
-     * Called any time inline is closed, whether manually or automatically
+     * Called any time inline is closed, whether manually or automatically.
      */
     InlineWidget.prototype.onClosed = function () {
-        // do nothing - base implementation
+        // Does nothing in base implementation.
     };
 
     /**
@@ -84,7 +90,7 @@ define(function (require, exports, module) {
      * focus or measuring content, which require htmlContent to be in the DOM tree.
      */
     InlineWidget.prototype.onAdded = function () {
-        // do nothing - base implementation
+        // Does nothing in base implementation.
     };
 
     /**
@@ -92,20 +98,22 @@ define(function (require, exports, module) {
      */
     InlineWidget.prototype.load = function (hostEditor) {
         this.hostEditor = hostEditor;
-
-        // TODO: incomplete impelementation. It's not clear yet if InlineTextEditor
-        // will fuction as an abstract class or as generic inline editor implementation
-        // that just shows a range of text. See CSSInlineEditor.css for an implementation of load()
     };
     
-
     /**
      * Called when the editor containing the inline is made visible.
      */
     InlineWidget.prototype.onParentShown = function () {
         // do nothing - base implementation
     };
-
+    
+    /**
+     * Called when the parent editor does a full refresh--for example, when the font size changes.
+     */
+    InlineWidget.prototype.refresh = function () {
+        // do nothing - base implementation
+    };
+    
     exports.InlineWidget = InlineWidget;
 
 });

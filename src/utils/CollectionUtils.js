@@ -46,7 +46,37 @@ define(function (require, exports, module) {
         return -1;
     }
     
+    /**
+     * Iterates over all the properties in an object or elements in an array. Differs from
+     * $.each in that it iterates over array-like objects like regular objects.
+     * @param {*} object The object or array to iterate over.
+     * @param {function(value, key)} callback The function that will be executed on every object.
+     */
+    function forEach(object, callback) {
+        var keys = Object.keys(object),
+            len = keys.length,
+            i;
+        
+        for (i = 0; i < len; i++) {
+            callback(object[keys[i]], keys[i]);
+        }
+    }
+    
+    /**
+     * Returns true if the object has the specified property.
+     * This calls the Object.prototype.hasOwnProperty function directly, rather than
+     * depending on the object having a function named "hasOwnProperty". This way the
+     * object *can* have a property named "hasOwnProperty" that is not a function.
+     * @param {*} object The object to test
+     * @param {string} property The name of the property to query
+     * @return {boolean} True if the object contains the property
+     */
+    function hasProperty(object, property) {
+        return Object.prototype.hasOwnProperty.apply(object, [property]);
+    }
     
     // Define public API
     exports.indexOf = indexOf;
+    exports.forEach = forEach;
+    exports.hasProperty = hasProperty;
 });

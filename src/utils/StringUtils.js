@@ -118,6 +118,16 @@ define(function (require, exports, module) {
             return textOrLines.substr(0, offset).split("\n").length - 1;
         }
     }
+    
+    /**
+     * Returns true if the given string ends with the given suffix.
+     *
+     * @param {string} str
+     * @param {string} suffix
+     */
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
 
     function urlSort(a, b) {
         var a2, b2;
@@ -163,4 +173,5 @@ define(function (require, exports, module) {
     exports.offsetToLineNum = offsetToLineNum;
     exports.urlSort         = urlSort;
     exports.breakableUrl    = breakableUrl;
+    exports.endsWith        = endsWith;
 });

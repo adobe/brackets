@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, window */
+/*global define, $, brackets, PathUtils, window, Mustache */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -31,19 +31,26 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs             = require("widgets/Dialogs"),
-        NativeApp           = require("utils/NativeApp"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        Global              = require("utils/Global");
+    var Dialogs              = require("widgets/Dialogs"),
+        NativeApp            = require("utils/NativeApp"),
+        PreferencesManager   = require("preferences/PreferencesManager"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils"),
+        Global               = require("utils/Global"),
+        UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
+        UpdateListTemplate   = require("text!htmlContent/update-list.html");
+    
+    var defaultPrefs = {lastNotifiedBuildNumber: 0};
+    
     
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
     
     // PreferenceStorage
-    var _prefs = PreferencesManager.getPreferenceStorage(module.id, {lastNotifiedBuildNumber: 0});
-        
+    var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, module.id);
+    
     // This is the last version we notified the user about. If checkForUpdate()
     // is called with "false", only show the update notification dialog if there
     // is an update newer than this one. This value is saved in preferences.
@@ -191,7 +198,7 @@ define(function (require, exports, module) {
      * Show a dialog that shows the update 
      */
     function _showUpdateNotificationDialog(updates) {
-        Dialogs.showModalDialog(Dialogs.DIALOG_ID_UPDATE)
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(UpdateDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_DOWNLOAD) {
                     // The first entry in the updates array has the latest download link
@@ -202,32 +209,9 @@ define(function (require, exports, module) {
         // Populate the update data
         var $dlg = $(".update-dialog.instance");
         var $updateList = $dlg.find(".update-info");
+        var templateVars = $.extend(updates, Strings);
         
-        // TODO: Use a template instead of hand-rolling HTML code
-        updates.forEach(function (item, index) {
-            var $features = $("<ul>");
-            
-            item.newFeatures.forEach(function (feature, index) {
-                $features.append(
-                    "<li><b>" +
-                        StringUtils.htmlEscape(feature.name) +
-                        "</b> - " +
-                        StringUtils.htmlEscape(feature.description) +
-                        "</li>"
-                );
-            });
-            
-            var $item = $("<div>")
-                .append("<h3>" +
-                        StringUtils.htmlEscape(item.versionString) +
-                        " - " +
-                        StringUtils.htmlEscape(item.dateString) +
-                        " (<a href='#' data-url='" + item.releaseNotesURL + "'>" +
-                        Strings.RELEASE_NOTES +
-                        "</a>)</h3>")
-                .append($features)
-                .appendTo($updateList);
-        });
+        $updateList.html(Mustache.render(UpdateListTemplate, templateVars));
         
         $dlg.on("click", "a", function (e) {
             var url = $(e.target).attr("data-url");
@@ -363,7 +347,7 @@ define(function (require, exports, module) {
     }
     
     // Append locale to version info URL
-    _versionInfoURL = brackets.config.update_info_url + (window.localStorage.getItem("locale") || brackets.app.language) + ".json";
+    _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
     
     // Define public API
     exports.checkForUpdate = checkForUpdate;

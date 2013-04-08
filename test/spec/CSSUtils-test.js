@@ -22,25 +22,27 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
+/*global define: false, describe: false, xdescribe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        Async                   = require("utils/Async"),
-        FileUtils               = require("file/FileUtils"),
-        CSSUtils                = require("language/CSSUtils"),
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+    var NativeFileSystem           = require("file/NativeFileSystem").NativeFileSystem,
+        Async                      = require("utils/Async"),
+        FileUtils                  = require("file/FileUtils"),
+        CSSUtils                   = require("language/CSSUtils"),
+        SpecRunnerUtils            = require("spec/SpecRunnerUtils");
     
-    var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
-        simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
-        universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
-        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
-        offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
-        bootstrapCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
-        escapesCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css");
+    var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
+        simpleCssFileEntry         = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
+        universalCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
+        groupsFileEntry            = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
+        offsetsCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
+        bootstrapCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
+        escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css");
     
+    var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
+        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -253,38 +255,38 @@ define(function (require, exports, module) {
         });
         
         
-        describe("escapes", function() {
+        describe("escapes", function () {
             
             beforeEach(function () {
                 init(this, escapesCssFileEntry);
             });
             
-            it("should remove simple backslashes for simple characters", function() { 
+            it("should remove simple backslashes for simple characters", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[0].selector).toEqual(".simple");
             });
             
-            it("should remove simple backslashes with escaped characters", function() { 
+            it("should remove simple backslashes with escaped characters", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[1].selector).toEqual(".not\\so|simple?");
             });
             
-            it("should parse '\\XX ' as a single character", function() {
+            it("should parse '\\XX ' as a single character", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[2].selector).toEqual(".twodigits");
             });
             
-            it("should parse '\\XXXX ' as a single character", function() {
+            it("should parse '\\XXXX ' as a single character", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[3].selector).toEqual(".fourdigits");
             });
             
-            it("should parse '\\XXXXXX' as a single character", function() {
+            it("should parse '\\XXXXXX' as a single character", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[4].selector).toEqual(".sixdigits");
             });
             
-            it("should not trim end spaces", function() {
+            it("should not trim end spaces", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[5].selector).toEqual(".two-digit-endspace");
                 
@@ -292,30 +294,30 @@ define(function (require, exports, module) {
                 expect(selectors[6].selector).toEqual(".four-digit-endspace");
                 
                 selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
-                expect(selectors[7].selector).toEqual(".six-digit-endspace");                
+                expect(selectors[7].selector).toEqual(".six-digit-endspace");
             });
             
-            it("should detect all combinations", function() {
+            it("should detect all combinations", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[8].selector).toEqual(".mixin-it-all");
             });
             
-            it("should parse '\\AX' as AX", function() {
+            it("should parse '\\AX' as AX", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[9].selector).toEqual(".two-wi74out-space");
             });
             
-            it("should parse '\\AXXX' as AXXX", function() {
+            it("should parse '\\AXXX' as AXXX", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[10].selector).toEqual(".four-n0085-space");
             });
             
-            it("should replace out of range characters with �", function() {
+            it("should replace out of range characters with U+FFFD", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
-                expect(selectors[11].selector).toEqual(".�ut�frange");
+                expect(selectors[11].selector).toEqual(".\uFFFDut\uFFFDfrange");
             });
             
-            it("should parse everything less does", function() {
+            it("should parse everything less does", function () {
                 var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
                 expect(selectors[12].selector).toEqual(".escape|random|char");
                 expect(selectors[13].selector).toEqual(".mixin!tUp");
@@ -326,6 +328,237 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("findSelectorAtDocumentPos selector groups", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, groupsFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            it("should find the selector at a document pos", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 9, ch: 0});
+                expect(selector).toEqual("h1");
+            });
+            
+            it("should return empty string if selection is not in a style rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual("");
+            });
+            
+            it("should return a comma separated string of all selectors for the rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 13, ch: 0});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should support multiple rules on the same line", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 31, ch: 24});
+                expect(selector).toEqual(".g,.h");
+            });
+            
+            it("should support multiple rules on multiple lines", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 28, ch: 0});
+                expect(selector).toEqual(".a,.b, .c,.d");
+            });
+        });
+        
+        describe("findSelectorAtDocumentPos comments", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, offsetsCssFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            it("should ignore rules inside comments", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 45, ch: 22});
+                expect(selector).toEqual("");
+            });
+            
+            it("should find rules adjacent to comments", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 47, ch: 4});
+                expect(selector).toEqual("div");
+            });
+            
+            it("should find rules when the position is inside a nested comment", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 49, ch: 14});
+                expect(selector).toEqual("div");
+            });
+            
+        });
+        
+        describe("findSelectorAtDocumentPos pseudo-classes and at-rules", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, offsetsCssFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            it("should find a simple pseudo selector", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 8, ch: 11});
+                expect(selector).toEqual("a:visited");
+            });
+            
+            it("should find a selector with a preceding at-rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 18, ch: 0});
+                expect(selector).toEqual("a");
+            });
+            
+            it("should not find a selector when inside an at-rule", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 15, ch: 12});
+                expect(selector).toEqual("");
+                
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 28, ch: 31});
+                expect(selector).toEqual("");
+                
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 22, ch: 16});
+                expect(selector).toEqual("");
+            });
+        });
+        
+        describe("findSelectorAtDocumentPos complex selectors", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, bootstrapCssFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            it("should find pseudo selectors", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 72, ch: 0});
+                expect(selector).toEqual("button::-moz-focus-inner, input::-moz-focus-inner");
+            });
+            
+            it("should find attribute selectors", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 83, ch: 0});
+                expect(selector).toEqual('input[type="search"]');
+            });
+            
+            it("should find structural pseudo-classes", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 1053, ch: 0});
+                expect(selector).toEqual(".table-striped tbody tr:nth-child(odd) td, .table-striped tbody tr:nth-child(odd) th");
+            });
+            
+            it("should find combinators", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 2073, ch: 0});
+                expect(selector).toEqual(".alert-block p + p");
+            });
+            
+        });
+        
+        describe("findSelectorAtDocumentPos beginning, middle and end of selector", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, groupsFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            it("should find selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 0});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should find selector when pos is in the middle of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 3});
+                expect(selector).toEqual('h3, h2, h1');
+            });
+            
+            it("should find selector when pos is at the end of a selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 10});
+                expect(selector).toEqual("h3, h2, h1");
+            });
+            
+            it("should not find selector when pos is before a selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual("");
+            });
+            
+        });
+        
+        describe("find correct positions of selectors", function () {
+            var selectors;
+                
+            selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
+            
+            it("should find selector positions when whitespace between selector and '{'", function () {
+                expect([selectors[0].selectorStartChar, selectors[0].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when no whitespace between selector and '{'", function () {
+                expect([selectors[1].selectorStartChar, selectors[1].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when '{' on the next line", function () {
+                expect([selectors[2].selectorStartChar, selectors[2].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when '{' on the next line and selector is indented", function () {
+                expect([selectors[3].selectorStartChar, selectors[3].selectorEndChar]).toEqual([4, 7]);
+            });
+            
+            it("should find selector positions when '{' on the next line and selector is indented with tabs", function () {
+                expect([selectors[4].selectorStartChar, selectors[4].selectorEndChar]).toEqual([1, 4]);
+            });
+            
+            it("should find selector positions in a selector group when '{' on the next line", function () {
+                var expected = [0, 2, 4, 6, 8, 10],
+                    result = [
+                        selectors[5].selectorStartChar, selectors[5].selectorEndChar,
+                        selectors[6].selectorStartChar, selectors[6].selectorEndChar,
+                        selectors[7].selectorStartChar, selectors[7].selectorEndChar
+                    ];
+                
+                expect(result).toEqual(expected);
+            });
+            
+            it("should find selector positions in a selector group when '{' on the next line and selector group is indented", function () {
+                var expected = [4, 6, 8, 10, 12, 14],
+                    result = [
+                        selectors[8].selectorStartChar, selectors[8].selectorEndChar,
+                        selectors[9].selectorStartChar, selectors[9].selectorEndChar,
+                        selectors[10].selectorStartChar, selectors[10].selectorEndChar
+                    ];
+                
+                expect(result).toEqual(expected);
+            });
+        });
     }); // describe("CSSUtils")
 
     
@@ -914,9 +1147,8 @@ define(function (require, exports, module) {
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                // TODO (issue #389): false positive match from @keyframes animation identifier
-                // result = matchAgain({ tag: "slide" });
-                // expect(result.length).toBe(0);
+                result = matchAgain({ tag: "slide" });
+                expect(result.length).toBe(0);
                 
                 result = matchAgain({ tag: "from" });
                 expect(result.length).toBe(0);
@@ -1130,6 +1362,8 @@ define(function (require, exports, module) {
 
 
         describe("Working with real public CSSUtils API", function () {
+            this.category = "integration";
+            
             var CSSUtils;
             
             beforeEach(function () {
@@ -1165,6 +1399,8 @@ define(function (require, exports, module) {
         
         
         describe("Working with unsaved changes", function () {
+            this.category = "integration";
+            
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
                 CSSUtils,
                 DocumentManager,
@@ -1259,4 +1495,387 @@ define(function (require, exports, module) {
         });
     }); //describe("CSS Parsing")
     
+    // These tests are based on the implementation spec at https://github.com/adobe/brackets/wiki/CSS-Context-API-implementation-spec.
+    describe("CSS Context Info", function () {
+        var contextTest = SpecRunnerUtils.parseOffsetsFromText(contextTestCss),
+            testEditor,
+            result,
+            i;
+        
+        beforeEach(function () {
+            var mock = SpecRunnerUtils.createMockEditor(contextTest.text, "css");
+            testEditor = mock.editor;
+        });
+        
+        afterEach(function () {
+            SpecRunnerUtils.destroyMockEditor(testEditor.document);
+            testEditor = null;
+        });
+        
+        function expectContext(result, expected) {
+            expect(result.context).toBe(expected.context === undefined ? "" : expected.context);
+            expect(result.name).toBe(expected.name === undefined ? "" : expected.name);
+            expect(result.offset).toBe(expected.offset === undefined ? 0 : expected.offset);
+            expect(result.isNewItem).toBe(expected.isNewItem === undefined ? false : expected.isNewItem);
+            expect(result.index).toBe(expected.index === undefined ? -1 : expected.index);
+            expect(result.values).toEqual(expected.values === undefined ? [] : expected.values);
+        }
+        
+        function checkInfoAtOffsets(first, last, expected) {
+            for (i = first; i <= last; i++) {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
+                expected.offset = contextTest.offsets[i].ch - contextTest.offsets[first].ch;
+                expectContext(result, expected);
+            }
+        }
+        
+        function expectEmptyPropName(offsets) {
+            offsets.forEach(function (index) {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[index]);
+                expectContext(result, { context: CSSUtils.PROP_NAME });
+            });
+        }
+        
+        describe("property names and values", function () {
+
+            it("should return PROP_NAME with empty name immediately after rule start brace", function () {
+                expectEmptyPropName([4, 22, 23, 25, 81]);
+            });
+            it("should return PROP_NAME with empty name immediately before end brace", function () {
+                expectEmptyPropName([14, 24, 28, 90]);
+            });
+            it("should return PROP_NAME with empty name before whitespace before property name", function () {
+                expectEmptyPropName([5, 17, 26]);
+            });
+            it("should return PROP_NAME with empty name in middle of whitespace before property name", function () {
+                expectEmptyPropName([29, 30, 31]);
+            });
+            it("should return PROP_NAME with empty name at end of whitespace in rule with no property name", function () {
+                expectEmptyPropName([27]);
+            });
+            it("should return PROP_NAME with empty name immediately after semicolon", function () {
+                expectEmptyPropName([13, 89, 106]);
+            });
+            
+            it("should return PROP_NAME at beginning/middle/end of a simple property name", function () {
+                checkInfoAtOffsets(6, 8, {
+                    context: CSSUtils.PROP_NAME,
+                    name: "width",
+                    index: -1,
+                    values: []
+                });
+                checkInfoAtOffsets(82, 84, {
+                    context: CSSUtils.PROP_NAME,
+                    name: "width",
+                    index: -1,
+                    values: []
+                });
+            });
+                
+            it("should return PROP_NAME at beginning/middle/end of a hyphenated property name", function () {
+                checkInfoAtOffsets(18, 21, {
+                    context: CSSUtils.PROP_NAME,
+                    name: "font-size"
+                });
+            });
+                
+            it("should return PROP_VALUE with 'new value' flag set immediately after colon", function () {
+                [9, 85].forEach(function (offset) {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[offset]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        offset: 0,
+                        name: "width",
+                        index: 0,
+                        values: ["100%"],
+                        isNewItem: true
+                    });
+                });
+            });
+                
+            it("should return PROP_VALUE without 'new value' flag set at beginning/middle/end of a simple property value", function () {
+                checkInfoAtOffsets(10, 12, {
+                    context: CSSUtils.PROP_VALUE,
+                    name: "width",
+                    index: 0,
+                    values: ["100%"],
+                    isNewItem: false
+                });
+                checkInfoAtOffsets(86, 88, {
+                    context: CSSUtils.PROP_VALUE,
+                    name: "width",
+                    index: 0,
+                    values: ["100%"],
+                    isNewItem: false
+                });
+            });
+                
+            it("should return PROP_VALUE with correct values at beginning/middle of first multi-value property", function () {
+                checkInfoAtOffsets(32, 35, {
+                    context: CSSUtils.PROP_VALUE,
+                    name: "font-family",
+                    index: 0,
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                });
+            });
+            it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value property", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[36]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "font-family",
+                    offset: 0,
+                    isNewItem: true,
+                    index: 1,
+                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'] // whitespace after cursor is deliberately lost
+                });
+            });
+            it("should return PROP_VALUE with correct values at beginning/middle of second multi-value property", function () {
+                checkInfoAtOffsets(37, 39, {
+                    context: CSSUtils.PROP_VALUE,
+                    name: "font-family",
+                    index: 1,
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                });
+            });
+            it("should return PROP_VALUE with 'new value' flag set at end of second multi-value property", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[40]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "font-family",
+                    offset: 0,
+                    isNewItem: true,
+                    index: 2,
+                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                });
+            });
+            it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value property", function () {
+                // No "isNew" in case 44 because we're right before the semicolon.
+                checkInfoAtOffsets(41, 44, {
+                    context: CSSUtils.PROP_VALUE,
+                    name: "font-family",
+                    index: 2,
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                });
+            });
+            
+            describe("multi-line cases", function () {
+                it("should return PROP_VALUE with correct values at beginning/middle of first multi-value multi-line property", function () {
+                    checkInfoAtOffsets(93, 95, {
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        index: 0,
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                    });
+                });
+                it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[96]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 1,
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    });
+                });
+                it("should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property", function () {
+                    checkInfoAtOffsets(98, 100, {
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        index: 1,
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                    });
+                });
+                it("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[101]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 2,
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    });
+                });
+                it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property", function () {
+                    // No "isNew" in case 105 because we're right before the semicolon.
+                    checkInfoAtOffsets(103, 105, {
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        index: 2,
+                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif']
+                    });
+                });
+                
+                it("should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value multi-line property", function () {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[91]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 0,
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                    });
+                });
+                
+                it("should return PROP_VALUE with 'new value' flag and existing values at beginning of whitespace before value in multi-line property", function () {
+                    for (i = 0; i <= 1; i++) {
+                        result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[92 + (i * 5)]);
+                        expect(result).toEqual({
+                            context: CSSUtils.PROP_VALUE,
+                            name: "font-family",
+                            offset: 0,
+                            isNewItem: true,
+                            index: i,
+                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                        });
+                    }
+
+                    // Note this test was split out of the previous loop because whitespace differed across cases
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[102]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 2,
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                    });
+                });
+            }); // multi-line cases
+    
+            it("should return PROP_VALUE with 'new value' flag and existing values immediately after colon with multi-value property", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[45]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "font-family",
+                    offset: 0,
+                    isNewItem: true,
+                    index: 0,
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                });
+            });
+            it("should return PROP_VALUE with 'new value' flag and existing values at end of line after comma (possibly with whitespace)", function () {
+                for (i = 46; i <= 47; i++) {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 1,
+                        values: ["Arial,"]
+                    });
+                }
+                for (i = 48; i <= 49; i++) {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "font-family",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 1,
+                        values: ["Arial, "]
+                    });
+                }
+            });
+            
+            it("should return PROP_VALUE with 'new value' flag at end of line when there are no existing values", function () {
+                for (i = 70; i <= 74; i++) {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "width",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 0,
+                        values: []
+                    });
+                }
+            });
+            
+            // This isn't ideal, but it's as spec'ed.
+            it("should treat a value like rgba(0, 0, 0, 0) as separate tokens", function () {
+                for (i = 0; i <= 1; i++) {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[75 + i]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "color",
+                        offset: 0,
+                        index: i,
+                        values: ["rgba(50, ", "100, ", "200, ", "0.3)"],
+                        isNewItem: false
+                    });
+                }
+            });
+        });
+        
+        describe("quoting", function () {
+            
+            it("should properly parse a value with single quotes", function () {
+                checkInfoAtOffsets(50, 54, {
+                    context: CSSUtils.PROP_VALUE,
+                    name: "font-family",
+                    index: 0,
+                    values: ["'Helvetica Neue', ", "Arial"],
+                    isNewItem: false
+                });
+            });
+            it("should properly parse values with special characters", function () {
+                var values = ['"my:font"', '"my,font"', '"my, font"', '"my\'font"', "'my\"font'", '"my;font"', '"my{font"', '"my}font"'];
+                for (i = 0; i < values.length; i++) {
+                    result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i + 55]);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        offset: 6,
+                        name: "font-family",
+                        index: 0,
+                        values: [values[i]],
+                        isNewItem: false
+                    });
+                }
+            });
+            
+        });
+        
+        describe("invalid contexts", function () {
+            
+            var emptyInfo = {
+                context: "",
+                offset: 0,
+                name: "",
+                index: -1,
+                values: [],
+                isNewItem: false
+            };
+            
+            function expectEmptyInfo(offset) {
+                expect(CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[offset]))
+                    .toEqual(emptyInfo);
+            }
+            
+            it("should return empty context for a non-css document", function () {
+                var nonCSSEditor = SpecRunnerUtils.createMockEditor("function () {}", "javascript").editor;
+                expect(CSSUtils.getInfoAtPos(nonCSSEditor, {line: 0, ch: 2}))
+                    .toEqual(emptyInfo);
+                SpecRunnerUtils.destroyMockEditor(nonCSSEditor.document);
+            });
+            
+            // Selector context is currently unsupported. This unit test should fail once we implement selectors.
+            it("should return empty context for unsupported context", function () {
+                for (i = 63; i < 68; i++) {
+                    expectEmptyInfo(i);
+                }
+            });
+
+            it("should return empty context for comment", function () {
+                expectEmptyInfo(69);
+            });
+
+            it("should return empty context for comment in declaration", function () {
+                expectEmptyInfo(80);
+            });
+        });
+    });
 });

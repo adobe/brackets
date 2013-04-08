@@ -34,12 +34,11 @@ define(function (require, exports, module) {
         Commands,                   // loaded from brackets.test
         DocumentCommandHandlers,    // loaded from brackets.test
         PerfUtils,                  // loaded from brackets.test
-        JSLintUtils,                // loaded from brackets.test
         DocumentManager,            // loaded from brackets.test
         SpecRunnerUtils             = require("spec/SpecRunnerUtils"),
-        PerformanceReporter         = require("perf/PerformanceReporter");
+        UnitTestReporter            = require("test/UnitTestReporter");
 
-    var jsLintPrevSetting;
+    var jsLintCommand, jsLintPrevSetting;
 
     describe("Performance Tests", function () {
         
@@ -61,8 +60,9 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
-                PerformanceReporter.logTestWindow(/Open File:\t,*/, path);
-                PerformanceReporter.clearTestWindow();
+                var reporter = UnitTestReporter.getActiveReporter();
+                reporter.logTestWindow(/Open File:\t,*/, path);
+                reporter.clearTestWindow();
             });
         }
         
@@ -76,10 +76,14 @@ define(function (require, exports, module) {
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 PerfUtils           = testWindow.brackets.test.PerfUtils;
-                JSLintUtils         = testWindow.brackets.test.JSLintUtils;
         
-                jsLintPrevSetting = JSLintUtils.getEnabled();
-                JSLintUtils.setEnabled(false);
+                jsLintCommand = CommandManager.get("jslint.toggleEnabled");
+                if (jsLintCommand) {
+                    jsLintPrevSetting = jsLintCommand.getChecked();
+                    if (jsLintPrevSetting) {
+                        jsLintCommand.execute();
+                    }
+                }
             });
         });
         

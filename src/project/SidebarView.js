@@ -40,20 +40,14 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
         EditorManager       = require("editor/EditorManager"),
-        Global              = require("utils/Global");
-
-    var isSidebarClosed         = false;
-
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
-        defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
+        Global              = require("utils/Global"),
+        Resizer             = require("utils/Resizer");
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
     var $sidebar,
         $sidebarMenuText,
-        $sidebarResizer,
         $openFilesContainer,
         $projectTitle,
         $projectFilesContainer;
@@ -63,205 +57,74 @@ define(function (require, exports, module) {
      * Update project title when the project root changes
      */
     function _updateProjectTitle() {
-        $projectTitle.html(ProjectManager.getProjectRoot().name);
-        $projectTitle.attr("title", ProjectManager.getProjectRoot().fullPath);
-    }
-    
-    /**
-     * @private
-     * Sets sidebar width and resizes editor. Does not change internal sidebar open/closed state.
-     * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
-     * @param {!boolean} updateMenu Updates "View" menu label to indicate current sidebar state.
-     * @param {!boolean} displayTriangle Display selection marker triangle in the active view.
-     */
-    function _setWidth(width, updateMenu, displayTriangle) {
-        // if we specify a width with the handler call, use that. Otherwise use
-        // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
+        var displayName = ProjectManager.getProjectRoot().name;
+        var fullPath = ProjectManager.getProjectRoot().fullPath;
         
-        var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
-            sidebarWidth            = Math.max(prefs.getValue("sidebarWidth"), 10);
-        
-        width = width || Math.max($sidebar.width(), sidebarWidth);
-        
-        if (typeof displayTriangle === "boolean") {
-            var display = (displayTriangle) ? "block" : "none";
-            $sidebar.find(".sidebar-selection-triangle").css("display", display);
+        if (displayName === "" && fullPath === "/") {
+            displayName = "/";
         }
         
-        if (isSidebarClosed) {
-            $sidebarResizer.css("left", 0);
-            
-            // Adjust content area left/width - see below
-            $(".content", $sidebar.parent()).css("margin-left", 0);
-            
-        } else {
-            $sidebar.width(width);
-            $sidebarResizer.css("left", width - 1);
-            
-            // This maintains the content area's position to the right of the sidebar. (A simple float is not enough
-            // because the non-floated content technically underlaps the floated sidebar; this breaks CodeMirror
-            // listeners and relative positioning).
-            // TODO: Ultimately this should go into EditorManager.js, triggered via an event we dispatch
-            $(".content", $sidebar.parent()).css("margin-left", width);
-            
-            // This helps resize things within the sidebar when it's shown.
-            // TODO: Ultimately this should go into ProjectManager.js, triggered via an event we dispatch
-            $sidebar.find(".sidebar-selection").width(width);
-            
-            if (width > 10) {
-                prefs.setValue("sidebarWidth", width);
-            }
-        }
+        $projectTitle.html(displayName);
+        $projectTitle.attr("title", fullPath);
         
-        if (updateMenu) {
-            var text = (isSidebarClosed) ? Strings.CMD_SHOW_SIDEBAR : Strings.CMD_HIDE_SIDEBAR;
-            CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(text);
-        }
-        EditorManager.resizeEditor();
+        // Trigger a scroll on the project files container to 
+        // reposition the scroller shadows and avoid issue #2255
+        $projectFilesContainer.trigger("scroll");
     }
     
     /**
      * Toggle sidebar visibility.
      */
     function toggleSidebar(width) {
-        if (isSidebarClosed) {
-            $sidebar.show();
-            $(exports).triggerHandler("show");
-        } else {
-            $sidebar.hide();
-            $(exports).triggerHandler("hide");
-        }
-        
-        isSidebarClosed = !isSidebarClosed;
-        
-        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-        prefs.setValue("sidebarClosed", isSidebarClosed);
-        _setWidth(width, true, !isSidebarClosed);
-    }
-    
-    /**
-     * @private
-     * Install sidebar resize handling.
-     */
-    function _initSidebarResizer() {
-        var $mainView               = $(".main-view"),
-            $body                   = $(document.body),
-            prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
-            sidebarWidth            = prefs.getValue("sidebarWidth"),
-            startingSidebarPosition = sidebarWidth,
-            animationRequest        = null,
-            isMouseDown             = false;
-        
-        $sidebarResizer.css("left", sidebarWidth - 1);
-        
-        // Initially size sidebar at app startup
-        if (prefs.getValue("sidebarClosed")) {
-            toggleSidebar(sidebarWidth);
-        } else {
-            _setWidth(sidebarWidth, true, true);
-        }
-        
-        $sidebarResizer.on("dblclick", function () {
-            if ($sidebar.width() < 10) {
-                //mousedown is fired first. Sidebar is already toggeled open to at least 10px.
-                _setWidth(null, true, true);
-                $projectFilesContainer.triggerHandler("scroll");
-                $openFilesContainer.triggerHandler("scroll");
-            } else {
-                toggleSidebar(sidebarWidth);
-            }
-        });
-        $sidebarResizer.on("mousedown.sidebar", function (e) {
-            var startX = e.clientX,
-                newWidth = Math.max(e.clientX, 0),
-                doResize = true;
-            
-            isMouseDown = true;
-
-            // take away the shadows (for performance reasons during sidebar movement)
-            $sidebar.find(".scroller-shadow").css("display", "none");
-            
-            $body.toggleClass("resizing");
-            
-            // check to see if we're currently in hidden mode
-            if (isSidebarClosed) {
-                toggleSidebar(1);
-            }
-                        
-            
-            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
-                // only run this if the mouse is down so we don't constantly loop even 
-                // after we're done resizing.
-                if (!isMouseDown) {
-                    return;
-                }
-                    
-                // if we've gone below 10 pixels on a mouse move, and the
-                // sidebar is shrinking, hide the sidebar automatically an
-                // unbind the mouse event. 
-                if ((startX > 10) && (newWidth < 10)) {
-                    toggleSidebar(startingSidebarPosition);
-                    $mainView.off("mousemove.sidebar");
-                        
-                    // turn off the mouseup event so that it doesn't fire twice and retoggle the 
-                    // resizing class
-                    $mainView.off("mouseup.sidebar");
-                    $body.toggleClass("resizing");
-                    doResize = false;
-                    startX = 0;
-                        
-                    // force isMouseDown so that we don't keep calling requestAnimationFrame
-                    // this keeps the sidebar from stuttering
-                    isMouseDown = false;
-                        
-                }
-                
-                if (doResize) {
-                    // for right now, displayTriangle is always going to be false for _setWidth
-                    // because we want to hide it when we move, and _setWidth only gets called
-                    // on mousemove now.
-                    _setWidth(newWidth, false, false);
-                }
-                
-                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
-            });
-            
-            $mainView.on("mousemove.sidebar", function (e) {
-                newWidth = Math.max(e.clientX, 0);
-                
-                e.preventDefault();
-            });
-                
-            $mainView.one("mouseup.sidebar", function (e) {
-                isMouseDown = false;
-                
-                // replace shadows and triangle
-                $sidebar.find(".sidebar-selection-triangle").css("display", "block");
-                $sidebar.find(".scroller-shadow").css("display", "block");
-                
-                $projectFilesContainer.triggerHandler("scroll");
-                $openFilesContainer.triggerHandler("scroll");
-                $mainView.off("mousemove.sidebar");
-                $body.toggleClass("resizing");
-                startingSidebarPosition = $sidebar.width();
-            });
-            
-            e.preventDefault();
-        });
+        Resizer.toggle($sidebar);
     }
 
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
         $sidebarMenuText        = $("#menu-view-hide-sidebar span");
-        $sidebarResizer         = $("#sidebar-resizer");
         $openFilesContainer     = $("#open-files-container");
         $projectTitle           = $("#project-title");
         $projectFilesContainer  = $("#project-files-container");
 
         // init
         WorkingSetView.create($openFilesContainer);
-        _initSidebarResizer();
+        
+        $sidebar.on("panelResizeStart", function (evt, width) {
+            $sidebar.find(".sidebar-selection-triangle").css("display", "none");
+            $sidebar.find(".scroller-shadow").css("display", "none");
+        });
+        
+        $sidebar.on("panelResizeUpdate", function (evt, width) {
+            $sidebar.find(".sidebar-selection").width(width);
+        });
+        
+        $sidebar.on("panelResizeEnd", function (evt, width) {
+            $sidebar.find(".sidebar-selection").width(width);
+            $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
+            $sidebar.find(".scroller-shadow").css("display", "block");
+            $projectFilesContainer.triggerHandler("scroll");
+            $openFilesContainer.triggerHandler("scroll");
+        });
+		
+        $sidebar.on("panelCollapsed", function (evt, width) {
+            CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_SHOW_SIDEBAR);
+        });
+        
+        $sidebar.on("panelExpanded", function (evt, width) {
+            $sidebar.find(".sidebar-selection").width(width);
+            $sidebar.find(".scroller-shadow").css("display", "block");
+            $sidebar.find(".sidebar-selection-triangle").css("left", width);
+            $projectFilesContainer.triggerHandler("scroll");
+            $openFilesContainer.triggerHandler("scroll");
+            CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
+        });
+        
+        // AppInit.htmlReady in utils/Resizer executes before, so it's possible that the sidebar
+        // is collapsed before we add the event. Check here initially
+        if (!$sidebar.is(":visible")) {
+            $sidebar.trigger("panelCollapsed");
+        }
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);

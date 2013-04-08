@@ -42,6 +42,7 @@ define(function DOMAgent(require, exports, module) {
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
+    var EditAgent = require("LiveDevelopment/Agents/EditAgent");
     var DOMNode = require("LiveDevelopment/Agents/DOMNode");
     var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
 
@@ -174,15 +175,21 @@ define(function DOMAgent(require, exports, module) {
 
     /** Load the source document and match it with the DOM tree*/
     function _onFinishedLoadingDOM() {
-        console.assert(exports.url.substr(0, 7) === "file://", "Can only load file urls");
         var request = new XMLHttpRequest();
         request.open("GET", exports.url);
         request.onload = function onLoad() {
-            _mapDocumentToSource(request.response);
-            _load.resolve();
+            if ((request.status >= 200 && request.status < 300) ||
+                    request.status === 304 || request.status === 0) {
+                _mapDocumentToSource(request.response);
+                _load.resolve();
+            } else {
+                var msg = "Received status " + request.status + " from XMLHttpRequest while attempting to load source file at " + exports.url;
+                _load.reject(msg, { message: msg });
+            }
         };
         request.onerror = function onError() {
-            _load.reject("Could not load source file at " + exports.url);
+            var msg = "Could not load source file at " + exports.url;
+            _load.reject(msg, { message: msg });
         };
         request.send(null);
     }
@@ -202,7 +209,9 @@ define(function DOMAgent(require, exports, module) {
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
-        exports.url = _cleanURL(res.frame.url);
+        if (!res.frame.parentId) {
+            exports.url = _cleanURL(res.frame.url);
+        }
     }
 
      // WebInspector Event: DOM.documentUpdated
@@ -269,7 +278,10 @@ define(function DOMAgent(require, exports, module) {
             value += text;
             value += node.value.substr(to - node.location);
             node.value = value;
-            Inspector.DOM.setNodeValue(node.nodeId, node.value);
+            if (!EditAgent.isEditing) {
+                // only update the DOM if the change was not caused by the edit agent
+                Inspector.DOM.setNodeValue(node.nodeId, node.value);
+            }
         } else {
             console.warn("Changing non-text nodes not supported.");
         }
@@ -280,6 +292,9 @@ define(function DOMAgent(require, exports, module) {
             exports.root.each(function each(n) {
                 if (n.location > node.location) {
                     n.location += delta;
+                }
+                if (n.closeLocation !== undefined && n.closeLocation > node.location) {
+                    n.closeLocation += delta;
                 }
             });
         }
@@ -298,7 +313,6 @@ define(function DOMAgent(require, exports, module) {
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
         Inspector.Page.enable();
-        Inspector.Page.reload();
         return _load.promise();
     }
 

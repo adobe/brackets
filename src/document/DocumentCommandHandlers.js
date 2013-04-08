@@ -31,7 +31,8 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     
     // Load dependent modules
-    var CommandManager      = require("command/CommandManager"),
+    var AppInit             = require("utils/AppInit"),
+        CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
@@ -154,7 +155,7 @@ define(function (require, exports, module) {
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
-                    FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
+                    FileUtils.showFileOpenError(fileError.name, fullPath).done(function () {
                         // For performance, we do lazy checking of file existence, so it may be in working set
                         DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
                         EditorManager.focusEditor();
@@ -365,14 +366,14 @@ define(function (require, exports, module) {
         _handleNewItemInProject(true);
     }
 
-    function showSaveFileError(code, path) {
+    function showSaveFileError(name, path) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
                 StringUtils.htmlEscape(path),
-                FileUtils.getFileErrorString(code)
+                FileUtils.getFileErrorString(name)
             )
         );
     }
@@ -382,7 +383,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         function handleError(error, fileEntry) {
-            showSaveFileError(error.code, fileEntry.fullPath)
+            showSaveFileError(error.name, fileEntry.fullPath)
                 .always(function () {
                     result.reject(error);
                 });
@@ -434,10 +435,10 @@ define(function (require, exports, module) {
             doc = commandData.doc;
         }
         if (!doc) {
-            var focusedEditor = EditorManager.getFocusedEditor();
+            var activeEditor = EditorManager.getActiveEditor();
             
-            if (focusedEditor) {
-                doc = focusedEditor.document;
+            if (activeEditor) {
+                doc = activeEditor.document;
             }
             
             // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
@@ -486,7 +487,7 @@ define(function (require, exports, module) {
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileError if the
+     * @return {$.Promise} a Promise that's resolved when done, or rejected with a NativeFileError if the
      *      file cannot be read (after showing an error dialog to the user).
      */
     function doRevert(doc) {
@@ -498,7 +499,7 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error.code, doc.file.fullPath)
+                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
                     .always(function () {
                         result.reject(error);
                     });
@@ -507,7 +508,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-
+    
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
@@ -611,7 +612,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            promptOnly = commandData && commandData.promptOnly;
         
         var unsavedDocs = [];
         DocumentManager.getWorkingSet().forEach(function (file) {
@@ -627,7 +629,7 @@ define(function (require, exports, module) {
             
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: commandData.promptOnly };
+            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
 
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents
@@ -642,9 +644,9 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li><span class='dialog-filename'>"
-                    + StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
-                    + "</span></li>";
+                message += "<li><span class='dialog-filename'>" +
+                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
+                    "</span></li>";
             });
             message += "</ul>";
             
@@ -673,7 +675,7 @@ define(function (require, exports, module) {
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
         result.done(function () {
-            if (!commandData || !commandData.promptOnly) {
+            if (!promptOnly) {
                 DocumentManager.closeAll();
             }
         });
@@ -682,30 +684,35 @@ define(function (require, exports, module) {
     }
     
     /**
-    * @private - tracks our closing state if we get called again
-    */
+     * @private - tracks our closing state if we get called again
+     */
     var _windowGoingAway = false;
     
     /**
-    * @private
-    * Common implementation for close/quit/reload which all mostly
-    * the same except for the final step
+     * @private
+     * Common implementation for close/quit/reload which all mostly
+     * the same except for the final step
     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
-            return (new $.Deferred()).resolve().promise();
-        }
-        
-        //prevent the default action of closing the window until we can save all the files
-        if (commandData && commandData.evt && commandData.evt.cancelable) {
-            commandData.evt.preventDefault();
+            return (new $.Deferred()).reject().promise();
         }
 
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 _windowGoingAway = true;
+                
+                // Give everyone a chance to save their state - but don't let any problems block
+                // us from quitting
+                try {
+                    $(ProjectManager).triggerHandler("beforeAppClose");
+                } catch (ex) {
+                    console.error(ex);
+                }
+                
                 PreferencesManager.savePreferences();
+                
                 postCloseHandler();
             })
             .fail(function () {
@@ -715,11 +722,11 @@ define(function (require, exports, module) {
                 }
             });
     }
-
+	
     /**
-    * @private
-    * Implementation for abortQuit callback to reset quit sequence settings
-    */
+     * @private
+     * Implementation for abortQuit callback to reset quit sequence settings
+     */
     function _handleAbortQuit() {
         _windowGoingAway = false;
     }
@@ -741,8 +748,15 @@ define(function (require, exports, module) {
         );
     }
     
+    /** Show a textfield to rename whatever is currently selected in the sidebar (working set OR tree) */
     function handleFileRename() {
-        ProjectManager.renameSelectedItem();
+        // Prefer selected tree item (which could be a folder); else use current file
+        var entry = ProjectManager.getSelectedItem();
+        if (!entry) {
+            var doc = DocumentManager.getCurrentDocument();
+            entry = doc && doc.file;
+        }
+        ProjectManager.renameItemInline(entry);
     }
 
     /** Closes the window, then quits the app */
@@ -762,13 +776,6 @@ define(function (require, exports, module) {
         );
     }
 
-    /** Does a full reload of the browser window */
-    function handleFileReload(commandData) {
-        return _handleWindowGoingAway(commandData, function () {
-            window.location.reload(true);
-        });
-    }
-    
     
     /** Are we already listening for a keyup to call detectDocumentNavEnd()? */
     var _addedNavKeyHandler = false;
@@ -815,42 +822,45 @@ define(function (require, exports, module) {
         ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
     }
     
-
-    function init($titleContainerToolbar) {
+    // Init DOM elements
+    AppInit.htmlReady(function () {
+        var $titleContainerToolbar = $("#main-toolbar");
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
+    });
 
-        // Register global commands
-        CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
-        CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
-        // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
-        // File > New should open a new blank tab, and handleFileNewInProject should
-        // be called from a "+" button in the project
-        CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
-        CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-        CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
-        CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
-        CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
-        
-        CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
-        CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-        CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
-        CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
-        CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-        CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
-        
-        CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-        CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-        CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-        
-        // Listen for changes that require updating the editor titlebar
-        $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-        $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
+    // Register global commands
+    CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+    // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
+    // File > New should open a new blank tab, and handleFileNewInProject should
+    // be called from a "+" button in the project
+    CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
+    
+    CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
+
+    if (brackets.platform === "win") {
+        CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
+    } else {
+        CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
     }
 
-    // Define public API
-    exports.init = init;
-});
+    CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
+    
+    CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+    
+    // Listen for changes that require updating the editor titlebar
+    $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
+    $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
 
+});

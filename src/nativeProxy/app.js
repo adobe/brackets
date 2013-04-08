@@ -43,6 +43,14 @@ define(function (require, exports, module) {
         console.log("Not implemented in NativeProxy: app.showExtensionsFolder()", arguments);
     }
 
+    function getApplicationSupportDirectory() {
+        return ".";
+    }
+
+    function getNodeState(callback) {
+        callback(-3); // ERR_NODE_FAILED
+    }
+
     exports.language = window.localStorage.getItem("locale") || navigator.language;
 
     exports.quit = quit;
@@ -53,4 +61,6 @@ define(function (require, exports, module) {
     exports.closeLiveBrowser = closeLiveBrowser;
     exports.openURLInDefaultBrowser = openURLInDefaultBrowser;
     exports.showExtensionsFolder = showExtensionsFolder;
+    exports.getApplicationSupportDirectory = getApplicationSupportDirectory;
+    exports.getNodeState = getNodeState;
 });

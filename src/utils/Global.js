@@ -29,12 +29,12 @@
  * Initializes the global "brackets" variable and it's properties.
  * Modules should not access the global.brackets object until either
  * (a) the module requires this module, i.e. require("utils/Global") or
- * (b) the module receives a "ready" callback from the utils/AppReady module.
+ * (b) the module receives a "appReady" callback from the utils/AppReady module.
  */
 define(function (require, exports, module) {
     "use strict";
     
-    var packageJSON = require("text!package.json");
+    var configJSON = require("text!config.json");
     var NativeProxy = require("nativeProxy/NativeProxy");
     
     // Define core brackets namespace if it isn't already defined
@@ -57,11 +57,14 @@ define(function (require, exports, module) {
         NativeProxy.init();
     } else {
         global.brackets.inBrowser = false;
+
+        // Load native shell when brackets is run in a native shell rather than the browser
+        global.brackets.shellAPI = require("utils/ShellAPI");
     }
     
     // Parse src/config.json
     try {
-        global.brackets.metadata = JSON.parse(packageJSON);
+        global.brackets.metadata = JSON.parse(configJSON);
         global.brackets.config = global.brackets.metadata.config;
     } catch (err) {
         console.log(err);
@@ -71,12 +74,36 @@ define(function (require, exports, module) {
     // asynchronously. This should only be done for testing/debugging.
     // NOTE: Make sure this line is commented out again before committing!
     //brackets.forceAsyncCallbacks = true;
-
-    // Load native shell when brackets is run in a native shell rather than the browser
-    // TODO: (issue #266) load conditionally
-    global.brackets.shellAPI = require("utils/ShellAPI");
     
-    global.brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
+    if (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") {
+        global.brackets.platform = "mac";
+    } else if (global.navigator.platform.indexOf("Linux") >= 0) {
+        global.brackets.platform = "linux";
+    } else {
+        global.brackets.platform = "win";
+    }
+    
+    global.brackets.isLocaleDefault = function () {
+        return !global.localStorage.getItem("locale");
+    };
+    
+    global.brackets.getLocale = function () {
+        // By default use the locale that was determined in brackets.js
+        return global.localStorage.getItem("locale") || global.require.s.contexts._.config.locale;
+    };
+
+    global.brackets.setLocale = function (locale) {
+        if (locale) {
+            global.localStorage.setItem("locale", locale);
+        } else {
+            global.localStorage.removeItem("locale");
+        }
+    };
+    
+    // Create empty app namespace if running in-browser
+    if (!global.brackets.app) {
+        global.brackets.app = {};
+    }
     
     // Loading extensions requires creating new require.js contexts, which
     // requires access to the global 'require' object that always gets hidden
@@ -91,6 +118,6 @@ define(function (require, exports, module) {
     // the same thing as 'require' in AMD-wrapped modules. The extension will
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
-    
+
     exports.global = global;
 });

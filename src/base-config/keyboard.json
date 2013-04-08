@@ -1,0 +1,240 @@
+{
+    "file.new":  [
+        "Ctrl-N"
+    ],
+    "file.open":  [
+        "Ctrl-O"
+    ],
+    "file.close":  [
+        "Ctrl-W"
+    ],
+    "file.close_all":  [
+        "Ctrl-Shift-W"
+    ],
+    "file.save":  [
+        "Ctrl-S"
+    ],
+    "file.saveAll":  [
+        "Ctrl-Alt-S"
+    ],
+    "file.liveFilePreview":  [
+        "Ctrl-Alt-P"
+    ],
+    "file.previewHighlight":  [
+        "Ctrl-Shift-C"
+    ],
+    "file.quit":  [
+        "Ctrl-Q"
+    ],
+    "edit.undo": [
+        "Ctrl-Z"
+    ],
+    "edit.redo": [
+        {
+            "key": "Ctrl-Y"
+        },
+        {
+            "key": "Cmd-Shift-Z",
+            "platform": "mac"
+        }
+    ],
+    "edit.cut": [
+        "Ctrl-X"
+    ],
+    "edit.copy": [
+        "Ctrl-C"
+    ],
+    "edit.paste": [
+        "Ctrl-V"
+    ],
+    "edit.selectAll":  [
+        "Ctrl-A"
+    ],
+    "edit.selectLine":  [
+        {
+            "key": "Ctrl-L"
+        },
+        {
+            "key": "Ctrl-L",
+            "platform": "mac"
+        }
+    ],
+    "edit.find":  [
+        "Ctrl-F"
+    ],
+    "edit.findInFiles":  [
+        "Ctrl-Shift-F"
+    ],
+    "edit.findNext":  [
+        {
+            "key": "F3"
+        },
+        {
+            "key": "Cmd-G",
+            "platform": "mac"
+        }
+    ],
+    "edit.findPrevious":  [
+        {
+            "key": "Shift-F3"
+        },
+        {
+            "key": "Cmd-Shift-G",
+            "platform": "mac"
+        }
+    ],
+    "edit.replace":  [
+        {
+            "key": "Ctrl-H"
+        },
+        {
+            "key": "Cmd-Alt-F",
+            "platform": "mac"
+        }
+    ],
+    "edit.indent":  [
+        {
+            "key": "Ctrl-]"
+        }
+    ],
+    "edit.unindent":  [
+        {
+            "key": "Ctrl-["
+        }
+    ],
+    "edit.duplicate":  [
+        "Ctrl-D"
+    ],
+    "edit.deletelines":  [
+        "Ctrl-Shift-D"
+    ],
+    "edit.lineUp":  [
+        {
+            "key": "Ctrl-Shift-Up",
+            "displayKey": "Ctrl-Shift-↑"
+        },
+        {
+            "key": "Cmd-Ctrl-Up",
+            "displayKey": "Cmd-Ctrl-↑",
+            "platform": "mac"
+        }
+    ],
+    "edit.lineDown":  [
+        {
+            "key": "Ctrl-Shift-Down",
+            "displayKey": "Ctrl-Shift-↓"
+        },
+        {
+            "key": "Cmd-Ctrl-Down",
+            "displayKey": "Cmd-Ctrl-↓",
+            "platform": "mac"
+        }
+    ],
+    "edit.lineComment":  [
+        "Ctrl-/"
+    ],
+    "edit.blockComment":  [
+        {
+            "key": "Ctrl-Shift-/"
+        },
+        {
+            "key": "Cmd-Opt-/",
+            "platform": "mac"
+        }
+    ],
+    "view.hideSidebar":  [
+        "Ctrl-Shift-H"
+    ],
+    "view.increaseFontSize":  [
+        {
+            "key": "Ctrl-=",
+            "displayKey": "Cmd-+"
+        },
+        {
+            "key": "Ctrl-+",
+            "displayKey": "Cmd-+"
+        }
+    ],
+    "view.decreaseFontSize":  [
+        {
+            "key": "Ctrl--",
+            "displayKey": "Cmd-−"
+        }
+    ],
+    "view.restoreFontSize":  [
+        "Ctrl-0"
+    ],
+    "view.scrollLineUp":  [
+        {
+            "key": "Ctrl-Up",
+            "displayKey": "Ctrl-\u2191"
+        },
+        {
+            "key": "Ctrl-Alt-Up",
+            "displayKey": "Ctrl-Alt-\u2191",
+            "platform": "mac"
+        }
+    ],
+    "view.scrollLineDown":  [
+        {
+            "key": "Ctrl-Down",
+            "displayKey": "Ctrl-\u2193"
+        },
+        {
+            "key": "Ctrl-Alt-Down",
+            "displayKey": "Ctrl-Alt-\u2193",
+            "platform": "mac"
+        }
+    ],
+    "navigate.quickOpen":  [
+        "Ctrl-Shift-O"
+    ],
+    "navigate.gotoLine":  [
+        {
+            "key": "Ctrl-G"
+        },
+        {
+            "key": "Cmd-L",
+            "platform": "mac"
+        }
+    ],
+    "navigate.gotoDefinition":  [
+        "Ctrl-T"
+    ],
+    "navigate.nextDoc":  [
+        {
+            "key": "Ctrl-Tab"
+        },
+        {
+            "key": "Ctrl-Tab",
+            "platform": "mac"
+        }
+    ],
+    "navigate.prevDoc":  [
+        {
+            "key": "Ctrl-Shift-Tab"
+        },
+        {
+            "key": "Ctrl-Shift-Tab",
+            "platform": "mac"
+        }
+    ],
+    "navigate.toggleQuickEdit":  [
+        "Ctrl-E"
+    ],
+    "navigate.previousMatch":  [
+        {
+            "key": "Alt-Up",
+            "displayKey": "Alt-↑"
+        }
+    ],
+    "navigate.nextMatch":  [
+        {
+            "key": "Alt-Down",
+            "displayKey": "Alt-↓"
+        }
+    ],
+    "file.rename":  [
+        "F2"
+    ]
+}

@@ -34,14 +34,55 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
-        UrlParams           = require("utils/UrlParams").UrlParams;
+        ExtensionLoader     = require("utils/ExtensionLoader"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        LanguageManager     = require("language/LanguageManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
-        RE_MARKER               = /[^\\]?\{\{(\d+)[^\\]?\}\}/g,
+        RE_MARKER               = /\{\{(\d+)\}\}/g,
         _testWindow,
-        _doLoadExtensions;
+        _doLoadExtensions,
+        nfs;
+    
+    /**
+     * Resolves a path string to a FileEntry or DirectoryEntry
+     * @param {!string} path Path to a file or directory
+     * @return {$.Promise} A promise resolved when the file/directory is found or
+     *     rejected when any error occurs.
+     */
+    function resolveNativeFileSystemPath(path) {
+        var deferred = new $.Deferred();
+        
+        NativeFileSystem.resolveNativeFileSystemPath(
+            path,
+            function success(entry) {
+                deferred.resolve(entry);
+            },
+            function error(domError) {
+                deferred.reject();
+            }
+        );
+        
+        return deferred.promise();
+    }
+    
+    /**
+     * Get or create a NativeFileSystem rooted at the system root.
+     * @return {$.Promise} A promise resolved when the native file system is found or rejected when an error occurs.
+     */
+    function getRoot() {
+        var deferred = new $.Deferred();
+        
+        if (nfs) {
+            deferred.resolve(nfs.root);
+        }
+        
+        resolveNativeFileSystemPath("/").pipe(deferred.resolve, deferred.reject);
+        
+        return deferred.promise();
+    }
     
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
@@ -54,6 +95,14 @@ define(function (require, exports, module) {
     function getTestPath(path) {
         return getTestRoot() + path;
     }
+
+    /**
+     * Get the temporary unit test project path. Use this path for unit tests that need to modify files on disk.
+     * @return {$.string} Path to the temporary unit test project
+     */
+    function getTempDirectory() {
+        return getTestPath("/temp");
+    }
     
     function getBracketsSourceRoot() {
         var path = FileUtils.getNativeBracketsDirectoryPath();
@@ -64,7 +113,7 @@ define(function (require, exports, module) {
     
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
-     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
      * the runs() that generates the promise.
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
@@ -92,23 +141,21 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
-     * never be set as the currentDocument or added to the working set.
+     * Returns a Document suitable for use with an Editor in isolation, but
+     * maintained active for global updates like name and language changes.
      */
-    function createMockDocument(initialContent, createEditor) {
+    function createMockActiveDocument(options) {
+        var language    = options.language || LanguageManager.getLanguage("javascript"),
+            filename    = options.filename || "_unitTestDummyFile_." + language._fileExtensions[0],
+            content     = options.content || "";
+        
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
-        
-        var docToShim = new DocumentManager.Document(dummyFile, new Date(), initialContent);
-        
-        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
-        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
-        docToShim.addRef = function () {};
-        docToShim.releaseRef = function () {};
+        var dummyFile = new NativeFileSystem.FileEntry(filename);
+        var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
-            this.isDirty = true;
+            this.isDirty = !editor._codeMirror.isClean();
                     
             // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
             // future, we should fix things so that we either don't need mock documents or that this
@@ -118,6 +165,24 @@ define(function (require, exports, module) {
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
         };
+        
+        return docToShim;
+    }
+    
+    /**
+     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
+     * never be set as the currentDocument or added to the working set.
+     */
+    function createMockDocument(initialContent, languageId) {
+        var language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript"),
+            options     = { language: language, content: initialContent },
+            docToShim   = createMockActiveDocument(options);
+        
+        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
+        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
+        docToShim.addRef = function () {};
+        docToShim.releaseRef = function () {};
+        
         return docToShim;
     }
     
@@ -127,20 +192,23 @@ define(function (require, exports, module) {
      * currentDocument or added to the working set.
      * @return {!{doc:{Document}, editor:{Editor}}}
      */
-    function createMockEditor(initialContent, mode) {
-        mode = mode || "";
-        
-        // Initialize EditorManager
-        var $editorHolder = $("<div id='mock-editor-holder'/>");
+    function createMockEditor(initialContent, languageId, visibleRange) {
+        // Initialize EditorManager and position the editor-holder offscreen
+        var $editorHolder = $("<div id='mock-editor-holder'/>")
+            .css({
+                position: "absolute",
+                left: "-10000px",
+                top: "-10000px"
+            });
         EditorManager.setEditorHolder($editorHolder);
-        EditorManager._init();
         $("body").append($editorHolder);
         
         // create dummy Document for the Editor
-        var doc = createMockDocument(initialContent);
+        var doc = createMockDocument(initialContent, languageId);
         
         // create Editor instance
-        var editor = new Editor(doc, true, mode, $editorHolder.get(0), {});
+        var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
+        EditorManager._notifyActiveEditorChanged(editor);
         
         return { doc: doc, editor: editor };
     }
@@ -151,6 +219,9 @@ define(function (require, exports, module) {
      */
     function destroyMockEditor(doc) {
         EditorManager._destroyEditorIfUnneeded(doc);
+
+        // Clear editor holder so EditorManager doesn't try to resize destroyed object
+        EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
 
@@ -167,7 +238,9 @@ define(function (require, exports, module) {
             var params = new UrlParams();
             
             // setup extension loading in the test window
-            params.put("extensions", _doLoadExtensions ? "default,user" : "default");
+            params.put("extensions", _doLoadExtensions ?
+                        "default,dev," + ExtensionLoader.getUserExtensionPath() :
+                        "default");
             
             // disable update check in test windows
             params.put("skipUpdateCheck", true);
@@ -179,6 +252,8 @@ define(function (require, exports, module) {
             params.put("skipLiveDevelopmentInfo", true);
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
+            
+            _testWindow.isBracketsTestWindow = true;
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
@@ -270,7 +345,7 @@ define(function (require, exports, module) {
             output  = [],
             i       = 0,
             line    = 0,
-            char    = 0,
+            charAt  = 0,
             ch      = 0,
             length  = text.length,
             exec    = null,
@@ -283,7 +358,7 @@ define(function (require, exports, module) {
                 // find "{{[0-9]+}}"
                 RE_MARKER.lastIndex = i;
                 exec = RE_MARKER.exec(text);
-                found = (exec !== null);
+                found = (exec !== null && exec.index === i);
                 
                 if (found) {
                     // record offset info
@@ -295,10 +370,10 @@ define(function (require, exports, module) {
             }
             
             if (!found) {
-                char = text.substr(i, 1);
-                output.push(char);
+                charAt = text.substr(i, 1);
+                output.push(charAt);
                 
-                if (char === '\n') {
+                if (charAt === '\n') {
                     line++;
                     ch = 0;
                 } else {
@@ -422,78 +497,195 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-    
+
     /**
-     * Opens a file path, parses offset markup then saves the results to the original file.
-     * @param {!string} path Project relative file path to open
-     * @return {$.Promise} A promise resolved with the offset information results of parseOffsetsFromFile.
+     * Create or overwrite a text file
+     * @param {!string} path Path for a file to be created/overwritten
+     * @param {!string} text Text content for the new file
+     * @return {$.Promise} A promise resolved when the file is written or rejected when an error occurs.
      */
-    function saveFileWithoutOffsets(path) {
-        var result = new $.Deferred(),
-            fileEntry = new NativeFileSystem.FileEntry(path);
-        
-        parseOffsetsFromFile(fileEntry).done(function (info) {
-            // rewrite file without offset markup
-            FileUtils.writeText(fileEntry, info.text).done(function () {
-                result.resolve(info);
-            }).fail(function () {
-                result.reject();
+    function createTextFile(path, text) {
+        var deferred = new $.Deferred();
+
+        getRoot().done(function (nfs) {
+            // create the new FileEntry
+            nfs.getFile(path, { create: true }, function success(entry) {
+                // write text this new FileEntry 
+                FileUtils.writeText(entry, text).done(function () {
+                    deferred.resolve(entry);
+                }).fail(function () {
+                    deferred.reject();
+                });
+            }, function error() {
+                deferred.reject();
             });
-        }).fail(function () {
-            result.reject();
         });
-        
-        return result.promise();
-    }
-    
-    
-    /**
-     * Opens an array of file paths, parses offset markup then saves the results to each original file.
-     * @param {!Array.<string>|string} paths Project relative or absolute file paths to open. May pass a single string path or array.
-     * @return {!$.Promise} A promised resolved with a map of offset information indexed by project-relative file path.
-     */
-    function saveFilesWithoutOffsets(paths) {
-        var result = new $.Deferred(),
-            infos  = {},
-            fullpaths = makeArray(makeAbsolute(paths)),
-            keys = makeArray(makeRelative(paths));
-        
-        var parallel = Async.doSequentially(fullpaths, function (path, i) {
-            var one = new $.Deferred();
-        
-            saveFileWithoutOffsets(path).done(function (info) {
-                infos[keys[i]] = info;
-                one.resolve();
-            }).fail(function () {
-                one.reject();
-            });
-        
-            return one.promise();
-        }, false);
-        
-        parallel.done(function () {
-            result.resolve(infos);
-        }).fail(function () {
-            result.reject();
-        });
-        
-        return result.promise();
+
+        return deferred.promise();
     }
     
     /**
-     * Restore file content with offset markup. When using saveFileWithoutOffsets(), 
-     * remember to call this function during spec teardown (after()).
-     * @param {$.Promise} A promise resolved when all files are re-written to their original content.
+     * Copy a file source path to a destination
+     * @param {!FileEntry} source Entry for the source file to copy
+     * @param {!string} destination Destination path to copy the source file
+     * @param {?{parseOffsets:boolean}} options parseOffsets allows optional
+     *     offset markup parsing. File is written to the destination path
+     *     without offsets. Offset data is passed to the doneCallbacks of the
+     *     promise.
+     * @return {$.Promise} A promise resolved when the file is copied to the
+     *     destination.
      */
-    function saveFilesWithOffsets(infos) {
-        var arr = [];
-        $.each(infos, function (index, value) {
-            arr.push(value);
+    function copyFileEntry(source, destination, options) {
+        options = options || {};
+        
+        var deferred = new $.Deferred();
+        
+        // read the source file
+        FileUtils.readAsText(source).done(function (text, modificationTime) {
+            getRoot().done(function (nfs) {
+                var offsets;
+                
+                // optionally parse offsets
+                if (options.parseOffsets) {
+                    var parseInfo = parseOffsetsFromText(text);
+                    text = parseInfo.text;
+                    offsets = parseInfo.offsets;
+                }
+                
+                // create the new FileEntry
+                createTextFile(destination, text).done(function (entry) {
+                    deferred.resolve(entry, offsets, text);
+                }).fail(function () {
+                    deferred.reject();
+                });
+            });
+        }).fail(function () {
+            deferred.reject();
         });
         
-        return Async.doInParallel(arr, function (info) {
-            return FileUtils.writeText(info.fileEntry, info.original);
-        }, false);
+        return deferred.promise();
+    }
+    
+    /**
+     * Copy a directory source to a destination
+     * @param {!DirectoryEntry} source Entry for the source directory to copy
+     * @param {!string} destination Destination path to copy the source directory
+     * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
+     *     parseOffsets - allows optional offset markup parsing. File is written to the
+     *       destination path without offsets. Offset data is passed to the
+     *       doneCallbacks of the promise.
+     *     infos - an optional Object used when parseOffsets is true. Offset
+     *       information is attached here, indexed by the file destination path.
+     *     removePrefix - When parseOffsets is true, set removePrefix true
+     *       to add a new key to the infos array that drops the destination
+     *       path root.
+     * @return {$.Promise} A promise resolved when the directory and all it's
+     *     contents are copied to the destination or rejected immediately
+     *     upon the first error.
+     */
+    function copyDirectoryEntry(source, destination, options) {
+        options = options || {};
+        options.infos = options.infos || {};
+        
+        var parseOffsets    = options.parseOffsets || false,
+            removePrefix    = options.removePrefix || true,
+            deferred        = new $.Deferred();
+        
+        // create the destination folder
+        brackets.fs.makedir(destination, parseInt("644", 8), function callback(err) {
+            if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
+                deferred.reject();
+                return;
+            }
+            
+            source.createReader().readEntries(function handleEntries(entries) {
+                if (entries.length === 0) {
+                    deferred.resolve();
+                    return;
+                }
+
+                // copy all children of this directory
+                var copyChildrenPromise = Async.doInParallel(
+                    entries,
+                    function copyChild(child) {
+                        var childDestination = destination + "/" + child.name,
+                            promise;
+                        
+                        if (child.isDirectory) {
+                            promise = copyDirectoryEntry(child, childDestination, options);
+                        } else {
+                            promise = copyFileEntry(child, childDestination, options);
+                            
+                            if (parseOffsets) {
+                                // save offset data for each file path
+                                promise.done(function (destinationEntry, offsets, text) {
+                                    options.infos[childDestination] = {
+                                        offsets     : offsets,
+                                        fileEntry   : destinationEntry,
+                                        text        : text
+                                    };
+                                });
+                            }
+                        }
+                        
+                        return promise;
+                    },
+                    true
+                );
+                
+                copyChildrenPromise.pipe(deferred.resolve, deferred.reject);
+            });
+        });
+
+        deferred.always(function () {
+            // remove destination path prefix
+            if (removePrefix && options.infos) {
+                var shortKey;
+                Object.keys(options.infos).forEach(function (key) {
+                    shortKey = key.substr(destination.length + 1);
+                    options.infos[shortKey] = options.infos[key];
+                });
+            }
+        });
+        
+        return deferred.promise();
+    }
+    
+    /**
+     * Copy a file or directory source path to a destination
+     * @param {!string} source Path for the source file or directory to copy
+     * @param {!string} destination Destination path to copy the source file or directory
+     * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
+     *     parseOffsets - allows optional offset markup parsing. File is written to the
+     *       destination path without offsets. Offset data is passed to the
+     *       doneCallbacks of the promise.
+     *     infos - an optional Object used when parseOffsets is true. Offset
+     *       information is attached here, indexed by the file destination path.
+     *     removePrefix - When parseOffsets is true, set removePrefix true
+     *       to add a new key to the infos array that drops the destination
+     *       path root.
+     * @return {$.Promise} A promise resolved when the directory and all it's
+     *     contents are copied to the destination or rejected immediately
+     *     upon the first error.
+     */
+    function copyPath(source, destination, options) {
+        var deferred = new $.Deferred();
+        
+        resolveNativeFileSystemPath(source).done(function (entry) {
+            var promise;
+            
+            if (entry.isDirectory) {
+                promise = copyDirectoryEntry(entry, destination, options);
+            } else {
+                promise = copyFileEntry(entry, destination, options);
+            }
+            
+            promise.pipe(deferred.resolve, deferred.reject);
+        }).fail(function () {
+            deferred.reject();
+        });
+        
+        return deferred.promise();
     }
     
     /**
@@ -513,7 +705,7 @@ define(function (require, exports, module) {
      * @param {string} fullPath
      * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
      */
-    function deleteFile(fullPath) {
+    function deletePath(fullPath) {
         var result = new $.Deferred();
         brackets.fs.unlink(fullPath, function (err) {
             if (err) {
@@ -522,6 +714,7 @@ define(function (require, exports, module) {
                 result.resolve();
             }
         });
+
         return result.promise();
     }
 
@@ -579,14 +772,123 @@ define(function (require, exports, module) {
     function setLoadExtensionsInTestWindow(doLoadExtensions) {
         _doLoadExtensions = doLoadExtensions;
     }
+    
+    /**
+     * Extracts the jasmine.log() and/or jasmine.expect() messages from the given result,
+     * including stack traces if available.
+     * @param {Object} result A jasmine result item (from results.getItems()).
+     * @return {string} the error message from that item.
+     */
+    function getResultMessage(result) {
+        var message;
+        if (result.type === 'log') {
+            message = result.toString();
+        } else if (result.type === 'expect' && result.passed && !result.passed()) {
+            message = result.message;
+            
+            if (result.trace.stack) {
+                message = result.trace.stack;
+            }
+        }
+        return message;
+    }
 
+    /**
+     * Set permissions on a path
+     * @param {!string} path Path to change permissions on
+     * @param {!string} mode New mode as an octal string
+     * @return {$.Promise} Resolved when permissions are set or rejected if an error occurs
+     */
+    function chmod(path, mode) {
+        var deferred = new $.Deferred();
+
+        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
+            if (err) {
+                deferred.reject(err);
+            } else {
+                deferred.resolve();
+            }
+        });
+
+        return deferred.promise();
+    }
+    
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
+        return d.promise();
+    }
+    
+    beforeEach(function () {
+        this.addMatchers({
+            /**
+             * Expects the given editor's selection to be a cursor at the given position (no range selected)
+             */
+            toHaveCursorPosition: function (line, ch) {
+                var editor = this.actual;
+                var selection = editor.getSelection();
+                var notString = this.isNot ? "not " : "";
+                
+                var start = selection.start;
+                var end = selection.end;
+                var selectionMoreThanOneCharacter = start.line !== end.line || start.ch !== end.ch;
+                
+                this.message = function () {
+                    var message = "Expected the cursor to " + notString + "be at (" + line + ", " + ch +
+                        ") but it was actually at (" + start.line + ", " + start.ch + ")";
+                    if (!this.isNot && selectionMoreThanOneCharacter) {
+                        message += " and more than one character was selected.";
+                    }
+                    return message;
+                };
+                
+                var positionsMatch = start.line === line && start.ch === ch;
+                
+                // when adding the not operator, it's confusing to check both the size of the
+                // selection and the position. We just check the position in that case.
+                if (this.isNot) {
+                    return positionsMatch;
+                } else {
+                    return !selectionMoreThanOneCharacter && positionsMatch;
+                }
+            }
+        });
+    });
+    
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
+    exports.chmod                           = chmod;
+    exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
+    exports.getTempDirectory                = getTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.createMockDocument              = createMockDocument;
+    exports.createMockActiveDocument        = createMockActiveDocument;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
@@ -595,11 +897,14 @@ define(function (require, exports, module) {
     exports.loadProjectInTestWindow         = loadProjectInTestWindow;
     exports.openProjectFiles                = openProjectFiles;
     exports.toggleQuickEditAtOffset         = toggleQuickEditAtOffset;
-    exports.saveFilesWithOffsets            = saveFilesWithOffsets;
-    exports.saveFilesWithoutOffsets         = saveFilesWithoutOffsets;
-    exports.saveFileWithoutOffsets          = saveFileWithoutOffsets;
-    exports.deleteFile                      = deleteFile;
+    exports.createTextFile                  = createTextFile;
+    exports.copyDirectoryEntry              = copyDirectoryEntry;
+    exports.copyFileEntry                   = copyFileEntry;
+    exports.copyPath                        = copyPath;
+    exports.deletePath                      = deletePath;
     exports.getTestWindow                   = getTestWindow;
     exports.simulateKeyEvent                = simulateKeyEvent;
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
+    exports.getResultMessage                = getResultMessage;
+    exports.parseOffsetsFromText            = parseOffsetsFromText;
 });
