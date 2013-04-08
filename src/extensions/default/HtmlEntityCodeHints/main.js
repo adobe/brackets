@@ -92,10 +92,6 @@ define(function (require, exports, module) {
         
         var query = this._getQuery();
 
-        if (implicitChar === null) {
-            return query !== null;
-        }
-        
         return query !== null;
     };
        
@@ -182,8 +178,6 @@ define(function (require, exports, module) {
         if (HTMLUtils.getTagInfo(this.editor, cursor).tagName !== "") {
             return null;
         }
-        
-        query = "&";
                 
         lineContent = this.editor.document.getRange({
             line: cursor.line,
@@ -200,7 +194,7 @@ define(function (require, exports, module) {
             }, cursor);
         }
 
-        if (startChar !== -1 && endChar < startChar) {
+        if (endChar < startChar) {
             return query;
         }
             
