@@ -188,12 +188,9 @@ define(function (require, exports, module) {
         
         EditorManager.resizeEditor();
 
-        // Set default action to false
-        var mustShow = false;
-
         // Make sure that we're not switching files
         // and still on an active editor
-        if (editor) {
+        if (editor && _gotoEnabled) {
 
             // Gather info to determine whether to scroll after editor resizes
             var scrollInfo = editor._codeMirror.getScrollInfo(),
@@ -204,20 +201,14 @@ define(function (require, exports, module) {
 
             var bottom = cursorTop - $("#editor-holder").offset().top + textHeight - height;
 
-            console.log(bottom);
-
             // Determine whether panel would block text at cursor
-            // If so, set variable to determine action after
-            // editor is resized
+            // If so, scroll the editor to expose the cursor above
+            // the panel
             if (bottom <= $("#jslint-results").height() && bottom >= 5) {
-                mustShow = true;
+                editor._codeMirror.scrollIntoView();
             }
         }
 
-        // Scroll cursor back into view only if cursor is hidden by panel
-        if (mustShow && _gotoEnabled) {
-            editor._codeMirror.scrollIntoView();
-        }
     }
     
     /**
