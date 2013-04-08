@@ -1,0 +1,220 @@
+/*
+ *
+ */
+#popover-container {
+    display: none;
+    background-color: #fff;
+    position: absolute;
+    z-index: 5000;
+    left: 200px;
+    top: 40px;
+    padding: 10px;
+    text-align: center;
+    width: 160px;
+    height: 160px;
+}
+
+#popover-container .cubic-bezier {
+    width: 170px;
+    height: 170px;
+}
+
+#popover-container {
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* popover is above element so arrow is below */
+#popover-container.popoverAbove:before {
+    border-bottom: 25px solid transparent;
+    border-right: 25px solid #eee;
+    bottom: -13px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(135deg);
+}
+#popover-container.popoverAbove:after {
+    border-bottom: 25px solid transparent;
+    border-right: 25px solid #fff;
+    bottom: -12px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(135deg);
+}
+
+/* popover is below element so arrow is above */
+#popover-container.popoverBelow:before {
+    border-top: 25px solid transparent;
+    border-left: 25px solid #eee;
+    top: -13px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(135deg);
+}
+#popover-container.popoverBelow:after {
+    border-top: 25px solid transparent;
+    border-left: 25px solid #fff;
+    top: -12px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(135deg);
+}
+
+#popover-container .cubic-bezier-highlight {
+    background-color: #DDC;
+}
+
+#popover-container * {
+	margin: 0;
+}
+
+#popover-container {
+	position: relative;
+	margin: 1em 5% 0;
+	background: white;
+	font-family: 'Hiragino Kaku Gothic Pro', 'Segoe UI', 'Apple Gothic', Tahoma, 'Helvetica Neue', sans-serif;
+	line-height: 1.4;
+}
+
+#popover-container button, #popover-container .button {
+	padding: .3em .5em;
+	border: 0;
+	background: #ccc;
+	color: white;
+	font-size: 50%;
+	text-transform: uppercase;
+	vertical-align: .25em;
+	cursor: pointer;
+	border-radius: .3em;
+}
+
+#popover-container button:hover, #popover-container .button:hover {
+	background: #f08;
+}
+
+#popover-container button:focus, #popover-container .button:focus {
+	box-shadow: 0 0 5px 2px yellow;
+}
+
+#popover-container .coordinate-plane { 
+	position: absolute;
+	top: 1em;
+	left: 1em;
+    border-width: 1px;
+    border-color: #000;
+    border-style: dashed solid;
+    width: 151px;
+    height: 151px;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+#popover-container .coordinate-plane:before,
+#popover-container .coordinate-plane:after {
+    position: absolute;
+    bottom: 0%;
+    left: 0;
+    width: 100%;
+    padding: .3em .5em;
+    
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    color: rgba(0,0,0,.6);
+    text-transform: uppercase;
+    font-size: 75%;
+    line-height: 1;
+}
+
+#popover-container .coordinate-plane:before {
+    content: 'Progression';
+       -moz-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+         -o-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+            transform: rotate(-90deg);
+       -moz-transform-origin: bottom left;
+        -ms-transform-origin: bottom left;
+         -o-transform-origin: bottom left;
+    -webkit-transform-origin: bottom left;
+            transform-origin: bottom left;
+    white-space: nowrap;
+}
+#popover-container .coordinate-plane:after {
+    content: 'Time';
+    margin-bottom: -1.5em;
+    white-space: nowrap;
+}
+#popover-container .coordinate-plane:hover:before {
+    content: 'Progression (' attr(data-progression) '%)';
+}
+#popover-container .coordinate-plane:hover:after {
+    content: 'Time (' attr(data-time) '%)';
+}
+
+#popover-container .control-point { 
+	position: absolute;
+	z-index: 2;
+	height: 20px; 
+	width: 20px; 
+	border: 1px solid rgba(0,0,0,.3);
+	margin: -10px 0 0 -10px;
+	outline: none;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	-moz-border-radius: 10px; 
+	border-radius: 10px; 
+}
+
+#P0, #P3 {
+	background: white;
+}
+#P1, #P2 {
+	cursor: pointer;
+}
+#P0 { 
+	left: 0;
+	top: 150px;
+}
+#P1 { 
+	background: #f08;
+}
+#P2 { 
+	background: #0ab;
+}
+#P3 {
+	left: 150px; 
+	top: 0;
+}
+
+canvas#curve { 
+	position: absolute;
+	z-index: 1;
+	top: -75px;
+    left: 0;
+
+	background:
+        -moz-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%, transparent) center no-repeat,
+		-moz-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
+	background:
+        -ms-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
+		-ms-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
+	background:
+        -o-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
+		-o-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
+	background:
+        -webkit-linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
+		-webkit-repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
+	background:
+        linear-gradient(-45deg, transparent 49%, rgba(0,0,0,.1) 49%, rgba(0,0,0,.1) 51%, transparent 51%) center no-repeat,
+		repeating-linear-gradient(#eee, #eee 15px, transparent 15px, transparent 30px) no-repeat;
+	background-size: 100% 50%, 100% 50%;
+	background-position: 0, -25%;
+	
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
