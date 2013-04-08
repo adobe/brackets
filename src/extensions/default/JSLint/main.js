@@ -123,7 +123,7 @@ define(function (require, exports, module) {
             // Detrmine whether panel would block text at cursor
             // If so, set variable to determine action after
             // editor is resized
-            if (bottom >= -180 && bottom <= 5) {
+            if (bottom >= -185 && bottom <= 5) {
                 mustShow = true;
             }
 
