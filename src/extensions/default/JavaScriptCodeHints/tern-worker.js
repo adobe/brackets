@@ -111,24 +111,8 @@ importScripts("thirdparty/requirejs/require.js");
      */
     function getJumptoDef(dir, file, offset, text) {
         
-        function buildRequest(dir, file, query, offset){
-            query = {type:query};
-            query.start = offset;
-            query.end = offset;
-            query.file = file;
-            query.filter = false;
-            query.sort = false;
-            query.depths = true;
-            query.types = true;
-            query.lineCharPositions = true;
-
-            var request = {query:query, files:[], offset:offset};
-            request.files.push({type:"full", name:file, text:text});
-
-            return request;
-        }
-        
-        var request = buildRequest(dir, file, "definition", offset);
+        var request = buildRequest(dir, file, "definition", offset, text);
+        request.query.lineCharPositions = true;
         ternServer.request(request, function(error, data) {
             if (error) {
                 _log("definition error: " + JSON.stringify(data));
