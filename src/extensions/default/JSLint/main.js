@@ -110,29 +110,24 @@ define(function (require, exports, module) {
         // Make sure that we're not switching files
         // and still on an active editor
         if (editor) {
-            // Disable word wrap for line counting
-            var wordWrap = _prefs.getValue('wordWrap');
-            editor._codeMirror.setOption('lineWrapping', false);
 
             // Gather info to determine whether to scroll after editor resizes
             var scrollInfo = editor._codeMirror.getScrollInfo();
             var currScroll = scrollInfo.top,
                 height = scrollInfo.clientHeight,
                 textHeight = editor.getTextHeight(),
-                currLine = editor.getCursorPos().line;
+                cursorTop = editor._codeMirror.cursorCoords().top;
 
-            var lastLine = Math.floor((currScroll + height) / textHeight) - 2;
-            var threshold = lastLine - Math.ceil(185 / textHeight);
-
-            // Reset word wrap to initial
-            editor._codeMirror.setOption('lineWrapping', wordWrap);
+            var bottom = cursorTop - 36 + textHeight - height;
 
             // Detrmine whether panel would block text at cursor
             // If so, set variable to determine action after
             // editor is resized
-            if (currLine >= threshold && currLine <= lastLine) {
+            if (bottom >= -180 && bottom <= 5) {
                 mustShow = true;
             }
+
+            console.log(bottom);
         }
 
         
