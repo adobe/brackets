@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
-            this.isDirty = true;
+            this.isDirty = !editor._codeMirror.isClean();
                     
             // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
             // future, we should fix things so that we either don't need mock documents or that this
@@ -751,9 +751,14 @@ define(function (require, exports, module) {
                 return this.keyCodeVal;
             }
         });
+        Object.defineProperty(oEvent, 'charCode', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
 
         if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
         } else {
             oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
         }

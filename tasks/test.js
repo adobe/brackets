@@ -37,14 +37,16 @@ module.exports = function (grunt) {
             opts            = { cwd: process.cwd() },
             cmd             = common.resolve(grunt.option("shell") || grunt.config("shell." + platform)),
             spec            = grunt.option("spec") || "all",
+            suite           = grunt.option("suite") || "all",
             results         = grunt.option("results") || process.cwd() + "/results.json",
             resultsPath     = common.resolve(results),
-            specRunnerPath  = common.resolve("test/SpecRunner.html");
+            specRunnerPath  = common.resolve("test/SpecRunner.html"),
+            args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
 
         if (platform === "win") {
-            cmd += " --startup-path=" + specRunnerPath + "?spec=" + spec + "^&resultsPath=" + encodeURIComponent(resultsPath);
+            cmd += args;
         } else if (platform === "mac") {
-            cmd = "open \"" + cmd + "\" -W --args --startup-path=\"" + specRunnerPath + "?spec=" + spec + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
+            cmd = "open \"" + cmd + "\" -W --args " + args;
         }
         
         grunt.log.writeln(cmd);
@@ -56,8 +58,5 @@ module.exports = function (grunt) {
             done(false);
         });
     });
-
-    function execTest(task, platform) {
-    }
     
 };

@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var MODE_NAME       = "javascript",
+    var LANGUAGE_ID     = "javascript",
         SCOPE_MSG_TYPE  = "outerScope",
         SINGLE_QUOTE    = "\'",
         DOUBLE_QUOTE    = "\"";
@@ -380,7 +380,7 @@ define(function (require, exports, module) {
     exports.BUILTIN_GLOBALS         = BUILTIN_GLOBALS;
     exports.KEYWORDS                = KEYWORDS;
     exports.LITERALS                = LITERALS;
-    exports.MODE_NAME               = MODE_NAME;
+    exports.LANGUAGE_ID             = LANGUAGE_ID;
     exports.SCOPE_MSG_TYPE          = SCOPE_MSG_TYPE;
     exports.SINGLE_QUOTE            = SINGLE_QUOTE;
     exports.DOUBLE_QUOTE            = DOUBLE_QUOTE;
