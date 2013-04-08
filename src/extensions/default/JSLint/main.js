@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
+        Editor                  = brackets.getModule("editor/Editor").Editor,
         LanguageManager         = brackets.getModule("language/LanguageManager"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
@@ -55,7 +56,7 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     var INDICATOR_ID = "JSLintStatus",
-        defaultPrefs = { enabled: true };
+        defaultPrefs = { enabled: true, wordWrap: true };
     
     
     /** @const {string} JSLint commands ID */
@@ -100,7 +101,35 @@ define(function (require, exports, module) {
      * a gold star when no errors are found.
      */
     function run() {
-        var currentDoc = DocumentManager.getCurrentDocument();
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            editor = EditorManager.getCurrentFullEditor();
+        
+        // Set default action to false
+        var mustShow = false;
+
+        // Make sure that we're not switching files
+        // and still on an active editor
+        if (editor) {
+
+            // Gather info to determine whether to scroll after editor resizes
+            var scrollInfo = editor._codeMirror.getScrollInfo();
+            var currScroll = scrollInfo.top,
+                height = scrollInfo.clientHeight,
+                textHeight = editor.getTextHeight(),
+                cursorTop = editor._codeMirror.cursorCoords().top;
+
+            var bottom = cursorTop - 36 + textHeight - height;
+
+            // Detrmine whether panel would block text at cursor
+            // If so, set variable to determine action after
+            // editor is resized
+            if (bottom >= -180 && bottom <= 5) {
+                mustShow = true;
+            }
+
+            console.log(bottom);
+        }
+
         
         var perfTimerDOM,
             perfTimerLint;
@@ -148,7 +177,6 @@ define(function (require, exports, module) {
                         var line      = lineTd.text();
                         var character = lineTd.data("character");
         
-                        var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line - 1, character - 1, true);
                         EditorManager.focusEditor();
                     });
@@ -187,6 +215,11 @@ define(function (require, exports, module) {
         }
         
         EditorManager.resizeEditor();
+
+        // Scroll cursor back into view only if cursor
+        if (mustShow && editor) {
+            editor._codeMirror.scrollIntoView();
+        }
     }
     
     /**
