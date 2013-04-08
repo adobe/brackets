@@ -773,12 +773,16 @@ a, img {
 .smart_autocomplete_container {
     
     border: 1px solid #999;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
     background-color: #FFFFFF;
+
+    box-shadow: 0 2px 8px rgba(82,168,238,0.6);
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
     padding: 0px 8px 0px 0px;
-    margin: 9px 0px 0px 0px;
+    margin: 7px 0px 0px 0px;
 
     .quick-open-path {
         font-size: 11px;
@@ -787,10 +791,15 @@ a, img {
 
     li {
         color: black;
-        border-bottom: 1px solid;
+        border-bottom: 1px solid #AAA;
         list-style: none;
         cursor: default;
-        padding: 0px 2px 0px 4px;
+        width: 100%;
+        padding: 1px 4px 1px 4px;
+    }
+
+    li:last-child {
+        border-bottom: none;
     }
 }
 
@@ -799,12 +808,12 @@ li.smart_autocomplete_highlight {
 }
 
 .quicksearch-pathmatch {
-    font-weight: bold;
+    font-weight: 700;
     color: #555;
 }
 
 .quicksearch-namematch {
-    font-weight: bold;
+    font-weight: 700;
 }
 
 
