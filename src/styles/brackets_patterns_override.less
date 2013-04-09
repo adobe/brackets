@@ -32,7 +32,7 @@
  */
 
 .project-panel-background {
-    background: #3C3F41 url("images/propertiespanel_back.png") repeat-x 0 0;
+    background: @project-panel-base-color url("images/propertiespanel_back.png") repeat-x 0 0;
 }
 
 .panel {
@@ -68,7 +68,7 @@
     }
 }
 
-/* Horizontal editor titlebar/menubar (in-browser only)
+/* Horizontal titlebar/menubar (in-browser only)
 
    CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
    This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
@@ -84,9 +84,8 @@
 */
 #titlebar {
     // Visible only in-browser
-    display: none;
-    body.in-browser & {
-        display: block;
+    body.in-appshell & {
+        display: none;
     }
     
     text-align: center;
@@ -106,7 +105,7 @@
 }
 
 /* Vertical icon toolbar on right */
-#main-toolbar.toolbar {
+#main-toolbar {
     position: absolute;
     top: 0;
     right: 0;
@@ -114,7 +113,7 @@
     height: 100%;
     box-sizing: border-box;
     
-    background: #5D5F60;
+    background: @main-toolbar-background-color;
     padding: 5px 0px;
     
     // Ensure icons are vertically stacked & horizontally centered
