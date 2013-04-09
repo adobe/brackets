@@ -130,6 +130,7 @@ define({
     "LANGUAGE_MESSAGE"                  : "Por favor, elige el idioma deseado de la siguiente lista:",
     "LANGUAGE_SUBMIT"                   : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancelar",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "Lenguage predeterminado",
 
     /**
      * ProjectManager
@@ -320,6 +321,8 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} no es un nombre de paquete válido.",
     "MISSING_PACKAGE_VERSION"              : "El archivo package.json no especifica la versión del paquete.",
     "INVALID_VERSION_NUMBER"               : "El número de paquete de la versión ({0}) no es válido.",
+    "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de Brackets {{0}} no es válido.",
+    "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
     "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de Brackets. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
     "ALREADY_INSTALLED"                    : "Ya hay instalada una extensión con el mismo nombre. La nueva extensión está en la carpeta de extensiones deshabilitadas.",
