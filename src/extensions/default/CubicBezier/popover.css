@@ -161,14 +161,14 @@
 	border-radius: 5px; 
 }
 
-#P0, #P3 {
+#popover-container #P0, #popover-container #P3 {
 	background: white;
 }
-#P1, #P2 {
+#popover-container #P1, #popover-container #P2 {
 	cursor: pointer;
     background: #808080;
 }
-#P0.control-point {
+#popover-container #P0.control-point {
     left: -1px;
     bottom: -1px;
     background: transparent;
@@ -181,7 +181,7 @@
     height: 4px;
     margin: 0;
 }
-#P3.control-point {
+#popover-container #P3.control-point {
 	right: -1px;
 	top: -1px;
     background: transparent;
@@ -195,7 +195,7 @@
     margin: 0;
 }
 
-canvas#curve { 
+#popover-container canvas#curve {
 	position: absolute;
 	z-index: 1;
 	top: -75px;
