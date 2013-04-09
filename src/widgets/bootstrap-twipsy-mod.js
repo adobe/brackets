@@ -23,7 +23,8 @@
 !function( $ ) {
 
   "use strict"
-  
+
+  /***** [changed for Brackets] *****/
   // Undefined until the focus state changed once
   var _windowHasFocus;
   
@@ -34,6 +35,7 @@
     .blur(function _onWindowLostFocus() {
       _windowHasFocus = false;
     });
+  /***** [/changed for Brackets] *****/
   
  /* CSS TRANSITION SUPPORT (https://gist.github.com/373874)
   * ======================================================= */
@@ -71,15 +73,19 @@
     this.$element = $(element)
     this.options = options
     this.enabled = true
+    /***** [changed for Brackets] *****/
     this.autoHideTimeout = null;
+    /***** [/changed for Brackets] *****/
     this.fixTitle()
   }
 
   Twipsy.prototype = {
 
     show: function() {
+      /***** [changed for Brackets: moved some variables to updatePosition()] *****/
       var $tip
         , that = this;
+      /***** [/changed for Brackets] *****/
       
       if (this.hasContent() && this.enabled) {
         $tip = this.tip()
@@ -94,6 +100,7 @@
           .css({ top: 0, left: 0, display: 'block' })
           .prependTo(document.body)
 
+/***** [changed for Brackets] *****/
         this.updatePosition();
         
         $(window).off("resize", this.resizeHandler);
@@ -190,6 +197,7 @@
 
       $tip.css(tp);
     }
+/***** [/changed for Brackets] *****/
 
   , setContent: function () {
       var $tip = this.tip()
@@ -211,8 +219,10 @@
         $tip.bind(transitionEnd, removeElement) :
         removeElement()
 
+      /***** [changed for Brackets] *****/
       window.clearTimeout(this.autoHideTimeout);
       $(window).off("resize", this.resizeHandler)
+      /***** [/changed for Brackets] *****/
     }
 
   , fixTitle: function() {

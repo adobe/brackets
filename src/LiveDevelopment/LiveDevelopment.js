@@ -42,7 +42,9 @@
  * # STATUS
  *
  * Status updates are dispatched as `statusChange` jQuery events. The status
- * codes are:
+ * is passed as the first parameter and the reason for the change as the second
+ * parameter. Currently only the "Inactive" status supports the reason parameter.
+ * The status codes are:
  *
  * -1: Error
  *  0: Inactive
@@ -50,6 +52,13 @@
  *  2: Loading agents
  *  3: Active
  *  4: Out of sync
+ *
+ * The reason codes are:
+ * - null (Unknown reason)
+ * - "explicit_close" (LiveDevelopment.close() was called)
+ * - "navigated_away" (The browser changed to a location outside of the project)
+ * - "detached_target_closed" (The tab or window was closed)
+ * - "detached_replaced_with_devtools" (The developer tools were opened in the browser)
  */
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
@@ -133,6 +142,7 @@ define(function LiveDevelopment(require, exports, module) {
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _serverProvider;      // current LiveDevServerProvider
+    var _closeReason;         // reason why live preview was closed
     
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -451,8 +461,14 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {integer} new status
      */
     function _setStatus(status) {
+        // Don't send a notification when the status didn't actually change
+        if (status === exports.status) {
+            return;
+        }
+        
         exports.status = status;
-        $(exports).triggerHandler("statusChange", status);
+        var reason = status === STATUS_INACTIVE ? _closeReason : null;
+        $(exports).triggerHandler("statusChange", [status, reason]);
     }
 
     /** Triggered by Inspector.error */
@@ -532,6 +548,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (!url.match(baseUrlRegExp)) {
             // No longer in site, so terminate live dev, but don't close browser window
             Inspector.disconnect();
+            _closeReason = "navigated_away";
             _setStatus(STATUS_INACTIVE);
             _serverProvider = null;
         }
@@ -545,6 +562,17 @@ define(function LiveDevelopment(require, exports, module) {
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
+    }
+
+    function _onDetached(event, res) {
+        // If there already is a reason for closing the session, do not overwrite it
+        if (!_closeReason) {
+            // Get the explanation from res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
+            // Examples taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
+            // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
+            // Prefix with "detached_" to create a quasi-namespace for Chrome's reasons
+            _closeReason = "detached_" + res.reason;
+        }
     }
 
     function reconnect() {
@@ -562,6 +590,8 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = _getCurrentDocument();
         var browserStarted = false;
         var retryCount = 0;
+
+        _closeReason = null;
 
         function showWrongDocError() {
             Dialogs.showModalDialog(
@@ -716,6 +746,8 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {jQuery.Promise} Resolves once the connection is closed
      */
     function close() {
+        _closeReason = "explicit_close";
+
         var deferred = $.Deferred();
             
         /*
@@ -953,6 +985,7 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector).on("connect", _onConnect)
             .on("disconnect", _onDisconnect)
             .on("error", _onError);
+        $(Inspector.Inspector).on("detached", _onDetached);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
