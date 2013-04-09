@@ -80,6 +80,37 @@ define(function (require, exports, module) {
         if (showFunc) {
             showFunc.apply(element);
         }
+
+        var _currentEditor = EditorManager.getCurrentFullEditor();
+
+        // Make sure that we're not switching files
+        // and still on an active editor
+        if (_currentEditor) {
+
+            // Gather info to determine whether to scroll after editor resizes
+            var scrollInfo = _currentEditor._codeMirror.getScrollInfo(),
+                currScroll = scrollInfo.top,
+                height     = scrollInfo.clientHeight,
+                textHeight = _currentEditor.getTextHeight(),
+                cursorTop  = _currentEditor._codeMirror.cursorCoords().top,
+                allHeight  = 0;
+
+            var bottom = cursorTop - $("#editor-holder").offset().top + textHeight - height;
+
+            // Get the total height of all the open panels
+            if ($('.bottom-panel:visible')) {
+                $('.bottom-panel:visible').each(function () {
+                    allHeight += $(this).height();
+                });
+            }
+
+            // Determine whether panel would block text at cursor
+            // If so, scroll the editor to expose the cursor above
+            // the panel
+            if (bottom <= allHeight && bottom >= 5) {
+                _currentEditor._codeMirror.scrollIntoView();
+            }
+        }
     }
     
     /**

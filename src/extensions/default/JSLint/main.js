@@ -153,7 +153,8 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
-                $lintResults.show();
+                Resizer.show($lintResults);
+
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
@@ -172,7 +173,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
             
             } else {
-                $lintResults.hide();
+                Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
             }
@@ -181,33 +182,12 @@ define(function (require, exports, module) {
 
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
-            $lintResults.hide();
+            Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
         }
         
         EditorManager.resizeEditor();
-
-        // Make sure that we're not switching files
-        // and still on an active editor
-        if (editor && _gotoEnabled) {
-
-            // Gather info to determine whether to scroll after editor resizes
-            var scrollInfo = editor._codeMirror.getScrollInfo(),
-                currScroll = scrollInfo.top,
-                height     = scrollInfo.clientHeight,
-                textHeight = editor.getTextHeight(),
-                cursorTop  = editor._codeMirror.cursorCoords().top;
-
-            var bottom = cursorTop - $("#editor-holder").offset().top + textHeight - height;
-
-            // Determine whether panel would block text at cursor
-            // If so, scroll the editor to expose the cursor above
-            // the panel
-            if (bottom <= $("#jslint-results").height() && bottom >= 5) {
-                editor._codeMirror.scrollIntoView();
-            }
-        }
 
     }
     
