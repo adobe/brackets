@@ -57,6 +57,8 @@
 .simple-toolbar-layout.toolbar {
     .hbox;
     .box-align(center);
+    overflow: hidden;
+    
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
            directly on a flexing box in Chrome currently. */
