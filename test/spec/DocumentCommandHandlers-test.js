@@ -222,6 +222,8 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 var promise;
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
@@ -232,7 +234,9 @@ define(function (require, exports, module) {
             it("should report clean immediately after opening a file", function () {
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
-                    expect(testWindow.document.title).toBe("test.js — " + brackets.config.app_title);
+                    
+                    var expectedTitle = (brackets.platform === "mac" ? ("test.js — " + brackets.config.app_title) : ("test.js - " + brackets.config.app_title));
+                    expect(testWindow.document.title).toBe(expectedTitle);
                 });
             });
             
@@ -245,7 +249,8 @@ define(function (require, exports, module) {
                     
                     // verify Document dirty status
                     expect(doc.isDirty).toBe(true);
-                    expect(testWindow.document.title).toBe("• test.js — " + brackets.config.app_title);
+                    var expectedTitle = (brackets.platform === "mac" ? ("• test.js — " + brackets.config.app_title) : ("• test.js - " + brackets.config.app_title));
+                    expect(testWindow.document.title).toBe(expectedTitle);
                 });
             });
 
