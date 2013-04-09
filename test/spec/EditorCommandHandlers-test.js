@@ -2071,6 +2071,8 @@ define(function (require, exports, module) {
         
         
         describe("Move Lines Up/Down - inline editor", function () {
+            this.category = "integration";
+            
             var testWindow, promise, editor;
             var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files");
             
@@ -2108,11 +2110,18 @@ define(function (require, exports, module) {
                 }
             });
             
+            afterEach(function () {
+                // Restore the content
+                editor.document.setText(moveContent);
+            });
+            
+            
             it("should not move the first line of the inline editor up", function () {
                 editor.setCursorPos({line: 0, ch: 5});
                 CommandManager.execute(Commands.EDIT_LINE_UP, editor);
                 
                 expect(editor.document.getText()).toEqual(moveContent);
+                expect(editor._codeMirror.doc.historySize().undo).toBe(0);
                 expect(editor.getFirstVisibleLine()).toBe(0);
                 expect(editor.getLastVisibleLine()).toBe(2);
             });
@@ -2122,6 +2131,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, editor);
                 
                 expect(editor.document.getText()).toEqual(moveContent);
+                expect(editor._codeMirror.doc.historySize().undo).toBe(1);
                 expect(editor.getFirstVisibleLine()).toBe(0);
                 expect(editor.getLastVisibleLine()).toBe(2);
             });
@@ -2139,9 +2149,6 @@ define(function (require, exports, module) {
                 expect(editor.document.getText()).toEqual(expectedText);
                 expect(editor.getFirstVisibleLine()).toBe(0);
                 expect(editor.getLastVisibleLine()).toBe(2);
-                
-                // Restore the content
-                editor.document.setText(moveContent);
             });
             
             it("should be able to move the last line of the inline editor up", function () {
