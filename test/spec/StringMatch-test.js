@@ -473,7 +473,7 @@ define(function (require, exports, module) {
                 expect(goodRelativeOrdering("quick", [
                     "src/search/QuickOpen.js",
                     "test/spec/QuickOpen-test.js",
-                    "samples/root/Getting Started/screenshots/brackets-quick-edit.png",
+                    "samples/root/Getting Started/screenshots/quick-edit.png",
                     "src/extensions/default/QuickOpenCSS/main.js"
                 ])).toBe(true);
             });
