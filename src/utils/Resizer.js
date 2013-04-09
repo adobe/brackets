@@ -133,10 +133,10 @@ define(function (require, exports, module) {
      * @param {?number} minSize Minimum size (width or height) of the element. Defaults to 0.
      * @param {?boolean} collapsible Indicates the panel is collapsible on double click on the
      *                          resizer. Defaults to false.
-     * @param {?string} forcemargin CSS selector indicating element whose margin-left should be locked to
-     *                          the resizable elemnt's size.
+     * @param {?string} forcepadding CSS selector indicating element whose padding-left should be locked to
+     *                          the resizable elemnt's size. Must lie in element's parent's subtree.
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forcemargin) {
+    function makeResizable(element, direction, position, minSize, collapsible, forcepadding) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
@@ -156,9 +156,9 @@ define(function (require, exports, module) {
         
         $element.prepend($resizer);
         
-        function forceMargins(size) {
-            if (forcemargin !== undefined) {
-                $(forcemargin, $element.parent()).css("padding-left", size);
+        function forcePadding(size) {
+            if (forcepadding !== undefined) {
+                $(forcepadding, $element.parent()).css("padding-left", size);
             }
         }
         
@@ -193,7 +193,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            forceMargins(elementSize);
+            forcePadding(elementSize);
             
             // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
             EditorManager.resizeEditor();
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            forceMargins(0);
+            forcePadding(0);
             
             // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
             EditorManager.resizeEditor();
@@ -283,7 +283,7 @@ define(function (require, exports, module) {
                             // Resize the main element to the new size. If there is a content element, 
                             // its size is the new size minus the size of the non-resizable elements
                             resizeElement(newSize, (newSize - baseSize));
-                            forceMargins(newSize);
+                            forcePadding(newSize);
                             
                             $element.trigger("panelResizeUpdate", [newSize]);
                         }
@@ -379,7 +379,7 @@ define(function (require, exports, module) {
             if (elementPrefs.visible !== undefined && !elementPrefs.visible) {
                 hide($element);
             } else {
-                forceMargins(elementSizeFunction.apply($element));
+                forcePadding(elementSizeFunction.apply($element));
                 repositionResizer(elementSizeFunction.apply($element));
             }
         }
@@ -422,7 +422,7 @@ define(function (require, exports, module) {
             //}
 
             if ($(element).hasClass("right-resizer")) {
-                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forcemargin);
+                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forcepadding);
             }
         });
     });

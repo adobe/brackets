@@ -96,7 +96,7 @@ a, img {
         position: absolute;
         left: 0;
         top: 0;
-        z-index: 4; // TODO: use a const
+        z-index: @z-index-brackets-ui;  // keep above .content, whose left padding area covers us
     }
 
     .content {
@@ -107,7 +107,6 @@ a, img {
         box-sizing: border-box;
         top: 0;
         left: 0;
-        z-index: 1; // TODO: use a const
     }
 }
 
@@ -118,21 +117,9 @@ a, img {
     position: relative;
     z-index: @z-index-brackets-toolbar;
 }
-#main-toolbar {
-    // .CodeMirror-scroll background extends 30px to the right & below its content box, and it has z-index > 0 and is
-    // in the toolbar's stacking context. So make sure we draw on top of it.
-    z-index: @z-index-brackets-toolbar;
-}
 
 .busyCursor {
     cursor: wait !important;
-}
-#main-toolbar .buttons > a, #main-toolbar .buttons-bottom > a { // TODO: move to patterns-override with the other toolbar styles?
-    margin: 5px 0px 5px 0px !important;
-    padding: 0 !important;
-    position: static !important;
-    top: 0 !important;
-    left: 0 !important;
 }
 
 #status-bar {
@@ -309,7 +296,6 @@ a, img {
 }
 
 #update-notification {
-    padding-right: 5px;
     margin-bottom: -1px;
     .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");
     &:hover {

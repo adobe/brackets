@@ -107,26 +107,38 @@
 
 /* Vertical icon toolbar on right */
 #main-toolbar.toolbar {
-    text-align: center;
-    background: #5D5F60;
-    .vbox;
-    .box-flex(1);
-    width: @main-toolbar-width;
-    height: 100%;
-    box-sizing: border-box;
-    padding: 5px 0px;
-    .buttons {
-        text-align: center;
-        margin: 0;
-    }
     position: absolute;
     top: 0;
     right: 0;
+    width: @main-toolbar-width;
+    height: 100%;
+    box-sizing: border-box;
+    
+    background: #5D5F60;
+    padding: 5px 0px;
+    
+    // Ensure icons are vertically stacked & horizontally centered
+    .vbox;
+    .box-flex(1);
+    text-align: center;
+    
+    .buttons {
+        text-align: center;
+        margin: 0;
+        
+        > a {
+            margin: 5px 0px 5px 0px !important;
+            padding: 0 !important;
+            position: static !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+    }
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
 
-@toolbar-top-gap-px: 5px; // TODO: is this var name still reaonable?
+@toolbar-top-gap-px: 5px;
     
 .toolbar {
     font-size: @label-font-size;
@@ -157,7 +169,7 @@
         text-overflow: ellipsis;
     }
     
-    .buttons { // TODO: remove?
+    .buttons {
         margin: @toolbar-top-gap-px 0 0 4px;
         
         span, a {
