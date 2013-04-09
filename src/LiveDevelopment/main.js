@@ -114,9 +114,6 @@ define(function main(require, exports, module) {
 
     /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
     function _handleGoLiveCommand() {
-        // Hide the tooltip that shows the reason why live preview was cancelled
-        _$btnGoLive.twipsy("hide");
-        
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
         } else {
@@ -135,29 +132,33 @@ define(function main(require, exports, module) {
         }
     }
 
-    /** Triggered by Inspector.detached */
-    function _onDetached(event, res) {
-        // Get the explanation using res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
-        // Examples taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
-        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
-        var reason = Strings["LIVE_DEV_" + res.reason.toUpperCase()];
-        if (!reason) {
-            reason = StringUtils.format(Strings.LIVE_DEV_DETACHED_UNKNOWN_REASON, res.reason);
+    /** Called on status change */
+    function _showStatusChangeReason(reason) {
+        // Destroy the previous twipsy (options are not updated otherwise)    
+        _$btnGoLive.twipsy("hide").removeData("twipsy");
+        
+        // If there was no reason or the action was an explicit request by the user, don't show a twipsy
+        if (!reason || reason === "explicit_close") {
+            return;
+        }
+
+        // Translate the reason
+        var translatedReason = Strings["LIVE_DEV_" + reason.toUpperCase()];
+        if (!translatedReason) {
+            translatedReason = StringUtils.format(Strings.LIVE_DEV_CLOSED_UNKNOWN_REASON, reason);
         }
         
-        // Tooltip options
+        // Configure the twipsy
         var options = {
             placement: "below",
             trigger: "manual",
             autoHideDelay: 5000,
             title: function () {
-                return reason;
+                return translatedReason;
             }
         };
 
-        // Destroy the previous twipsy (options are not updated otherwise)    
-        _$btnGoLive.twipsy("hide").removeData("twipsy");
-        // Show a tooltip explaning why live preview was cancelled
+        // Show the twipsy with the explanation
         _$btnGoLive.twipsy(options).twipsy("show");
     }
     
@@ -167,11 +168,12 @@ define(function main(require, exports, module) {
         _$btnGoLive.click(function onGoLive() {
             _handleGoLiveCommand();
         });
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+        $(LiveDevelopment).on("statusChange", function statusChange(event, status, reason) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
+            _showStatusChangeReason(reason);
             if (config.autoconnect) {
                 window.sessionStorage.setItem("live.enabled", status === 3);
             }
@@ -221,7 +223,6 @@ define(function main(require, exports, module) {
         params.parse();
 
         Inspector.init(config);
-        $(Inspector.Inspector).on("detached", _onDetached);
         LiveDevelopment.init(config);
         _loadStyles();
         _setupGoLiveButton();
