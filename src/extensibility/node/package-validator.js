@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
-indent: 4, maxerr: 50 */
+indent: 4, maxerr: 50, regexp: true */
 
 "use strict";
 
@@ -69,6 +69,50 @@ function validateName(name) {
         return true;
     }
     return false;
+}
+
+// Parses strings of the form "name <email> (url)" where email and url are optional
+var _personRegex = /^([^<\(]+)(?:\s+<([^>]+)>)?(?:\s+\(([^\)]+)\))?$/;
+
+/**
+ * Normalizes person fields from package.json.
+ *
+ * These fields can be an object with name, email and url properties or a
+ * string of the form "name <email> <url>". This does a tolerant parsing of
+ * the data to try to return an object with name and optional email and url.
+ * If the string does not match the format, the string is returned as the
+ * name on the resulting object.
+ *
+ * If an object other than a string is passed in, it's returned as is.
+ *
+ * @param <String|Object> object to normalize
+ * @return {Object} person object with name and optional email and url
+ */
+function parsePersonString(obj) {
+    if (typeof (obj) === "string") {
+        var parts = _personRegex.exec(obj);
+        
+        // No regex match, so we just synthesize an object with an opaque name string
+        if (!parts) {
+            return {
+                name: obj
+            };
+        } else {
+            var result = {
+                name: parts[1]
+            };
+            if (parts[2]) {
+                result.email = parts[2];
+            }
+            if (parts[3]) {
+                result.url = parts[3];
+            }
+            return result;
+        }
+    } else {
+        // obj is not a string, so return as is
+        return obj;
+    }
 }
 
 /**
@@ -184,6 +228,25 @@ function validate(path, options, callback) {
                             } else if (!semver.valid(metadata.version)) {
                                 errors.push([Errors.INVALID_VERSION_NUMBER, metadata.version, path]);
                             }
+                            
+                            // normalize the author
+                            if (metadata.author) {
+                                metadata.author = parsePersonString(metadata.author);
+                            }
+                            
+                            // contributors should be an array of people.
+                            // normalize each entry.
+                            if (metadata.contributors) {
+                                if (metadata.contributors.map) {
+                                    metadata.contributors = metadata.contributors.map(function (person) {
+                                        return parsePersonString(person);
+                                    });
+                                } else {
+                                    metadata.contributors = [
+                                        parsePersonString(metadata.contributors)
+                                    ];
+                                }
+                            }
                         });
                 } else if (fileName === "main.js") {
                     foundMainIn = commonPrefix;
@@ -219,6 +282,9 @@ function validate(path, options, callback) {
             });
     });
 }
+
+// exported for unit testing
+exports._parsePersonString = parsePersonString;
 
 exports.errors = Errors;
 exports.validate = validate;
