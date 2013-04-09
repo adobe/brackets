@@ -114,9 +114,9 @@ define(function (require, exports, module) {
              
                 // higlight the matched portion of each hint
                 if (query.length > 0 && index >= 0) {
-                    var prefix  = hint.slice(0, index),
-                        match   = hint.slice(index, index + query.length),
-                        suffix  = hint.slice(index + query.length);
+                    var prefix  = StringUtils.htmlEscape(hint.slice(0, index)),
+                        match   = StringUtils.htmlEscape(hint.slice(index, index + query.length)),
+                        suffix  = StringUtils.htmlEscape(hint.slice(index + query.length));
 
                     $hintObj.append(prefix)
                         .append($("<span>")

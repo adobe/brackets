@@ -93,7 +93,6 @@ importScripts("thirdparty/requirejs/require.js");
         query.filter = false;
         query.sort = false;
         query.depths = true;
-        query.types = true;
         query.guess = false;
 
         var request = {query:query, files:[], offset:offset};
@@ -148,7 +147,7 @@ importScripts("thirdparty/requirejs/require.js");
             for (var i = 0; i < data.completions.length; ++i) {
                 var completion = data.completions[i];//, className = typeToIcon(completion.type);
                 //if (data.guess) className += " Tern-completion-guess";
-                completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess /*, className: className*/});
+                completions.push({value: completion.name, depth: completion.depth, guess: completion.guess});
             }
 
             // Post a message back to the main thread with the completions
