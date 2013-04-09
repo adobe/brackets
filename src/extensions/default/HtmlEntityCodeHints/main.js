@@ -89,10 +89,8 @@ define(function (require, exports, module) {
      */
     SpecialCharHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        
-        var query = this._getQuery();
 
-        return query !== null;
+        return this._getQuery() !== null;
     };
        
     /**
@@ -156,7 +154,7 @@ define(function (require, exports, module) {
             var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
                 num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
                     
-            return (num1 === num2) ? 0 : (num1 > num2) ? 1 : -1;
+            return (num1 - num2);
         }
                 
         return a.localeCompare(b);
@@ -214,14 +212,16 @@ define(function (require, exports, module) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             cursor = this.editor.getCursorPos(),
-            match;
+            match,
+            matchSemicolonPos;
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - this.currentQuery.length;
         match = this.editor.document.getLine(cursor.line).slice(cursor.ch);
+        matchSemicolonPos = match.indexOf(";");
         end.ch = start.ch + this.currentQuery.length;
         
-        if (match.indexOf(";") !== -1 && /^(#*[0-9]+)|([a-zA-Z]+)$/.test(match.slice(0, match.indexOf(";")))) {
+        if (matchSemicolonPos !== -1 && /^(#*[0-9]+)|([a-zA-Z]+)$/.test(match.slice(0, matchSemicolonPos))) {
             end.ch = this.editor.document.getLine(cursor.line).indexOf(";", start.ch) + 1;
         }
         
