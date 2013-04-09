@@ -1,0 +1,295 @@
+<html>
+<head><title>JSLint, The JavaScript Code Quality Tool</title>
+<link rel="icon" type="image/gif" href="http://www.JSLint.com/favicon.gif">
+<style>
+#JSLINT_TABLE td span {
+    border: 2px solid black;
+}
+table {
+    cursor: pointer;
+}
+i {
+    font-family: serif;
+    font-style: italic;
+}
+p {
+    padding-left: 10pt;
+}
+input[type="button"] {
+    background-color: navajowhite;
+    border: 2px solid black;
+    color: black;
+}
+input[type="button"]:hover {
+    background-color: lightsteelblue;
+    text-decoration: underline;
+}
+input[type="button"]:active {
+    background-color: indianred;
+    text-decoration: none;
+}
+input[type="text"] {
+    border: 2px solid black;
+    text-align: center;
+}
+a:link {
+    color: darkblue;
+}
+a:visited {
+    color: purple;
+}
+a:hover {
+    color: blue;
+}
+a:active {
+    color: red;
+}
+body {
+    background-color: gainsboro;
+    padding-left: 5%;
+    padding-right: 5%;
+    text-align: center;
+}
+.leftcolumn {
+    float: left;
+    margin: 1em;
+}
+#errors {
+    margin: 1em;
+    border: 2px solid black;
+    padding: 1em;
+    background-color: mistyrose;
+}
+#errors p {
+    margin-left: 2em;
+}
+#errors p.evidence {
+    margin-left: 0;
+    font-family: monospace;
+}
+#functions {
+    background-color: white;
+}
+#members {
+    background-color: peachpuff;
+}
+#functions, #members {
+    border: 2px solid black;
+    font-family: monospace;
+    margin: 1em;
+    padding: 1em;
+}
+#functions div {
+    margin-left: 10em;
+    text-indent: -5em;
+}
+#functions div.function {
+    margin-left: 0;
+    text-indent: 0;
+}
+#JSLINT_OUTPUT {
+    text-align: left;
+}
+#JSLINT_INPUT{
+    border: 2px solid black;
+    color: black;
+    font-family: monospace;
+    height: 3in;
+    overflow: auto;
+    padding: 0.5em;
+    width: 100%;
+}
+#JSLINT_JSLINTSTRING {
+    background-color: peachpuff;
+    border: 2px solid black;
+    font-family: monospace;
+    margin: 1em;
+    padding: 1em;
+}
+#JSLINT_OPTIONS {
+    border: 2px solid black;
+    color: black;
+    margin: 1em;
+    padding: 8px;
+    text-align: left;
+    background-color: linen;
+}
+#JSLINT_TREE, #JSLINT_FIELDS {
+    text-align: left;
+}
+</style></head>
+<body>
+<table border="0" cols="2"><tbody>
+  <tr>
+    <td><img src="jslint.gif" width="383" height="120" alt="JSLint"> </td>
+    <td valign="middle" align="left">
+      <p><big>The&nbsp;<a href="http://javascript.crockford.com/">JavaScript</a>&nbsp;Code Quality Tool</big></p>
+      <p id=JSLINT_EDITION></p>
+      <p>
+        <a href="http://www.JSLint.com/lint.html">Read the instructions.</a>&nbsp;
+        <a href="#JSLINT_OPTIONS">Set the options.</a>&nbsp;
+        <a href="http://www.amazon.com/exec/obidos/ASIN/0596517742/wrrrldwideweb"
+              target="_blank">Enjoy&nbsp;<i>The Good Parts</i>.</a></p>
+    </td></tr></tbody></table>
+<script src="web_jslint.js">
+// json2.js+jslint.js+adsafe.js+intercept.js
+</script>
+
+<div id="JSLINT_">
+
+<p style="background-color: transparent;"><textarea id="JSLINT_INPUT"></textarea></p>
+<p>
+    <input type="button" name="jslint" value="JSLint">
+    &nbsp; &nbsp;
+    <input type="button" name="tree" value="Syntax Tree">
+    &nbsp; &nbsp;
+    <input type="button" name="clear" value="clear">
+</p>
+<div id="JSLINT_OUTPUT">
+
+      <div style="text-align: center;">Paste your program into the text box
+        above and click a&nbsp;<input type="button" name="jslint" value="JSLint">&nbsp;
+        button.</div>
+      <div style="text-align: center; margin: 1em; border: 2px solid black; padding: 1em; background-color: papayawhip;">
+<big>Warning! JSLint will hurt your feelings.</big></div>
+</div>
+<pre id="JSLINT_TREE"></pre>
+<p>
+    <input type="button" name="jslint" value="JSLint">
+    &nbsp; &nbsp;
+    <input type="button" name="tree" value="Syntax Tree">
+    &nbsp; &nbsp;
+    <input type="button" name="clear" value="clear">
+    &nbsp; &nbsp;
+    <input type="button" id="JSLINT_CLEARALL" value="Clear All Options">
+</p>
+<p id="JSLINT_OPTIONS">
+      <table id="JSLINT_TABLE" border="0">
+          <tr>
+              <td><span title="devel">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="devel">Assume&nbsp;<code>console</code>,&nbsp;<code>alert</code>,&nbsp;...</td>
+              <td><span title="bitwise">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="bitwise">Tolerate bitwise operators</td>
+              <td><span title="regexp">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="regexp">Tolerate&nbsp;<tt>.</tt>&nbsp;and&nbsp;<tt>[^</tt>...<tt>]</tt>&nbsp;in&nbsp;/RegExp/</td>
+          </tr>
+          <tr>
+              <td><span title="browser">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="browser">Assume a browser</td>
+              <td><span title="confusion">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="confusion">Tolerate&nbsp;type&nbsp;confusion</td>
+              <td><span title="undef">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="undef">Tolerate&nbsp;misordered&nbsp;definitions</td>
+          </tr>
+          <tr>
+              <td><span title="node">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="node">Assume&nbsp;<a href="http://nodejs.org/">Node.js</a></td>
+              <td><span title="continue">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="continue">Tolerate&nbsp;<tt>continue</tt></td>
+              <td><span title="unparam">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="unparam">Tolerate&nbsp;unused&nbsp;parameters</td>
+          </tr>
+          <tr>
+              <td><span title="rhino">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="rhino">Assume&nbsp;<a href="http://www.mozilla.org/rhino/">Rhino</a></td>
+              <td><span title="debug">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="debug">Tolerate&nbsp;<tt>debugger</tt>&nbsp;statements</td>
+              <td><span title="sloppy">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="sloppy">Tolerate&nbsp;missing&nbsp;<code>'use&nbsp;strict'</code>&nbsp;pragma</td>
+          </tr>
+          <tr>
+              <td><span title="widget">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="widget">Assume a&nbsp;<a href="http://widgets.yahoo.com/tools/">Yahoo Widget</a></td>
+              <td><span title="eqeq">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="eqeq">Tolerate&nbsp;<code>==</code>&nbsp;and&nbsp;<code>!=</code></td>
+              <td><span title="sub">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="sub">Tolerate&nbsp;inefficient&nbsp;subscripting</td>
+          </tr>
+          <tr>
+              <td><span title="windows">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="windows">Assume&nbsp;Windows</td>
+              <td><span title="es5">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="es5">Tolerate&nbsp;ES5&nbsp;syntax</td>
+              <td><span title="vars">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="vars">Tolerate many&nbsp;<tt>var</tt>&nbsp;statements per function</td>
+          </tr>
+          <tr>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td><span title="evil">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="evil">Tolerate&nbsp;<tt>eval</tt></td>
+              <td><span title="white">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="white">Tolerate&nbsp;messy&nbsp;white space</td>
+          </tr>
+          <tr>
+              <td><span title="passfail">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="passfail">Stop&nbsp;on&nbsp;first&nbsp;error</td>
+              <td><span title="forin">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="forin">Tolerate&nbsp;<a href="http://yuiblog.com/blog/2006/09/26/for-in-intrigue/">unfiltered</a>&nbsp;<tt>for</tt>&nbsp;<tt>in</tt></td>
+              <td><span title="css">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="css">Tolerate&nbsp;CSS&nbsp;workarounds</td>
+          </tr>
+          <tr>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td><span title="newcap">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="newcap">Tolerate uncapitalized constructors</td>
+              <td><span title="cap">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="cap">Tolerate&nbsp;<tt>HTML</tt>&nbsp;case</td>
+          </tr>
+          <tr>
+              <td><span title="safe">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="safe">Safe&nbsp;Subset</td>
+              <td><span title="nomen">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="nomen">Tolerate dangling&nbsp;<tt>_</tt>&nbsp;in identifiers</td>
+              <td><span title="on">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="on">Tolerate&nbsp;<tt>HTML</tt>&nbsp;event handlers</td>
+          </tr>
+          <tr>
+              <td><span title="adsafe">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="adsafe">Verify&nbsp;<a href="http://www.ADsafe.org">ADsafe</a></td>
+              <td><span title="plusplus">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="plusplus">Tolerate&nbsp;<tt>++</tt>&nbsp;and&nbsp;<tt>--</tt></td>
+              <td><span title="fragment">&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+              <td title="fragment">Tolerate&nbsp;<tt>HTML</tt>&nbsp;fragments</td>
+          </tr>
+      </table>
+      <p><br clear=all>
+    </p>
+<div id=JSLINT_FIELDS>
+    <input id="JSLINT_INDENT" type="text" size="2" title="indent" value="" autocomplete=off> <label for="JSLINT_INDENT" title="indent">Indentation</label><br>
+    <input id="JSLINT_MAXLEN" type="text" size="2" title="maxlen" value="" autocomplete=off> <label for="JSLINT_MAXLEN" title="maxlen">Maximum line length</label><br>
+    <input id="JSLINT_MAXERR" type="text" size="2" title="maxerr" value="" autocomplete=off> <label for="JSLINT_MAXERR" title="maxerr">Maximum number of errors</label><br>
+    <label title=predef for="JSLINT_PREDEF">Predefined&nbsp;<small>(&nbsp;<code>,</code>&nbsp;separated)</small></label>&nbsp;<input id="JSLINT_PREDEF" type="text" size="72" autocomplete=off title=predef>
+  </div>
+</p>
+<p id="JSLINT_JSLINTSTRING"></p>
+<p> Copyright 2002&nbsp;<a href="http://www.JSLint.com/lint.html">Douglas
+  Crockford.</a>&nbsp;<a target="_blank" href="http://www.crockford.com/">All
+  Rights Reserved Wrrrldwide and Beyond!</a> <br>
+  <a href="http://javascript.crockford.com/code.html" target="_blank">Code
+  Conventions for the JavaScript Programming Language.</a><br>
+  <a href="http://tech.groups.yahoo.com/group/jslint_com/" target="_blank">Join
+  the JSLint Group.</a> </p>
+ <script>
+ADSAFE.id("JSLINT_");
+</script>
+
+<script src="init_ui.js"></script>
+
+<script>
+ADSAFE.go("JSLINT_", function (dom, lib) {
+    "use strict";
+    lib.init_ui(dom);
+});
+</script>
+
+</div>
+
+<a href="http://www.JSLint.com/"><img src="jslintpill.gif" width="36" height="17" border="0"></a>
+<a href="http://tech.groups.yahoo.com/group/jslint_com/"><img src="y.gif" width="31" height="17" border="0"></a>
+<a href="https://github.com/douglascrockford/JSLint"><img src="github.gif" width="39" height="16" border="0"></a>
+<a href="http://www.ADsafe.org/"><img src="adsafepill.gif" width="36" height="17" border="0"></a>
+<a href="http://www.JSON.org/"><img src="jsonpill.gif" width="36" height="17" border="0"></a>
+<a href="http://www.1and1.com/?k_id=10219574"><img src="1and1pill.gif" width="36" height="17" border="0"></a>
+</body></html>
