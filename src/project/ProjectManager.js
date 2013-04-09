@@ -915,8 +915,11 @@ define(function (require, exports, module) {
     function showInTree(entry) {
         return _findTreeNode(entry)
             .done(function ($node) {
-                // jsTree will automatically expand parent nodes to ensure visible
-                _projectTree.jstree("select_node", $node, false);
+                _projectTree.jstree("deselect_node", _lastSelected);
+                _lastSelected = null;
+                _projectTree.jstree("select_node", $node);
+                _lastSelected = $node;
+                _redraw(true, true);
             });
     }
     
