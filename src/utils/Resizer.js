@@ -97,17 +97,10 @@ define(function (require, exports, module) {
 
             var bottom = cursorTop - $("#editor-holder").offset().top + textHeight - height;
 
-            // Get the total height of all the open panels
-            if ($('.bottom-panel:visible')) {
-                $('.bottom-panel:visible').each(function () {
-                    allHeight += $(this).height();
-                });
-            }
-
             // Determine whether panel would block text at cursor
             // If so, scroll the editor to expose the cursor above
             // the panel
-            if (bottom <= allHeight && bottom >= 5) {
+            if (bottom <= $(element).height() && bottom >= 5) {
                 _currentEditor._codeMirror.scrollIntoView();
             }
         }
