@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        StringUtils         = require("utils/StringUtils");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -61,6 +62,8 @@ define(function (require, exports, module) {
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
+    /** @type {string} String template for window title. Use emdash on mac only. */
+    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
@@ -101,7 +104,7 @@ define(function (require, exports, module) {
 
         // build shell/browser window title, e.g. "• file.html — Brackets"
         if (currentDoc) {
-            windowTitle = currentDoc.file.name + " \u2014 " + windowTitle;
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
         }
 
