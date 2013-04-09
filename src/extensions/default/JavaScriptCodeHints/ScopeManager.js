@@ -483,8 +483,8 @@ define(function (require, exports, module) {
             // handle a request for the contents of a file
             handleTernGetFile(response);
         } else if ( type === HintUtils.TERN_JUMPTODEF_MSG ) {
-             handleJumptoDef(response);
-        } else{
+            handleJumptoDef(response);
+        } else {
             console.log("Worker: " + (response.log || response));
         }
     });

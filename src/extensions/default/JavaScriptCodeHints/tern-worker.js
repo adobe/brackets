@@ -116,7 +116,7 @@ importScripts("thirdparty/requirejs/require.js");
         ternServer.request(request, function(error, data) {
             if (error) {
                 _log("definition error: " + JSON.stringify(data));
-                self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG,});
+                self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG});
                 return;
             }
             
@@ -260,11 +260,11 @@ importScripts("thirdparty/requirejs/require.js");
             var pos = request.pos;
             handleFunctionType(dir, file, pos, text);            
         } else if ( type === HintUtils.TERN_JUMPTODEF_MSG ) {
-            var file    = request.file,
-                dir     = request.dir,
-                offset  = request.offset,
-                text    = request.text;
-            getJumptoDef(dir, file, offset, text);
+            file    = request.file;
+            dir     = request.dir;
+            text    = request.text;
+            var off = request.offset;
+            getJumptoDef(dir, file, off, text);
         } else {
             _log("Unknown message: " + JSON.stringify(request));
         }
