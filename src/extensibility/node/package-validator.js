@@ -46,7 +46,8 @@ var Errors = {
     INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",     // {0} is version string in JSON, {1} is path to ZIP file
     MISSING_MAIN: "MISSING_MAIN",                         // {0} is path to ZIP file
     MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON",         // {0} is path to ZIP file
-    INVALID_BRACKETS_VERSION: "INVALID_BRACKETS_VERSION"  // {0} is the version string in JSON, {1} is the path to the zip file
+    INVALID_BRACKETS_VERSION: "INVALID_BRACKETS_VERSION", // {0} is the version string in JSON, {1} is the path to the zip file,
+    DISALLOWED_WORDS: "DISALLOWED_WORDS"                  // {0} is the field with the word, {1} is a string list of words that were in violation, {2} is the path to the zip file
 };
 
 /*
@@ -117,6 +118,25 @@ function parsePersonString(obj) {
 }
 
 /**
+ * Determines if any of the words in wordlist appear in str.
+ *
+ * @param {String[]} list of words to check
+ * @param {String} string to check for words
+ * @return {String[]} words that matched
+ */
+function containsWords(wordlist, str) {
+    var i;
+    var matches = [];
+    for (i = 0; i < wordlist.length; i++) {
+        var re = new RegExp("\\b" + wordlist[i] + "\\b", "i");
+        if (re.exec(str)) {
+            matches.push(wordlist[i]);
+        }
+    }
+    return matches;
+}
+
+/**
  * Implements the "validate" command in the "extensions" domain.
  * Validates the zipped package at path.
  *
@@ -132,7 +152,7 @@ function parsePersonString(obj) {
  * read successfully from package.json in the zip file.
  *
  * @param {string} Absolute path to the package zip file
- * @param {{requirePackageJSON: ?boolean}} validation options
+ * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} validation options
  * @param {function} callback (err, result)
  */
 function validate(path, options, callback) {
@@ -254,6 +274,15 @@ function validate(path, options, callback) {
                                 if (!semver.validRange(range)) {
                                     errors.push([Errors.INVALID_BRACKETS_VERSION, range, path]);
                                 }
+                            }
+                            
+                            if (options.disallowedWords) {
+                                ["title", "description", "name"].forEach(function (field) {
+                                    var words = containsWords(options.disallowedWords, metadata[field]);
+                                    if (words.length > 0) {
+                                        errors.push([Errors.DISALLOWED_WORDS, field, words.toString(), path]);
+                                    }
+                                });
                             }
                         });
                 } else if (fileName === "main.js") {

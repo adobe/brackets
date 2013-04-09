@@ -253,4 +253,20 @@ describe("Package Validation", function () {
             done();
         });
     });
+    
+    it("should reject a package with rejected words in title or description", function (done) {
+        packageValidator.validate(basicValidExtension, {
+            disallowedWords: ["valid"]
+        }, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(2);
+            expect(result.errors[0][0]).toEqual("DISALLOWED_WORDS");
+            expect(result.errors[0][1]).toEqual("title");
+            expect(result.errors[0][2]).toEqual("valid");
+            expect(result.errors[1][0]).toEqual("DISALLOWED_WORDS");
+            expect(result.errors[1][1]).toEqual("name");
+            expect(result.errors[1][2]).toEqual("valid");
+            done();
+        });
+    });
 });
