@@ -120,6 +120,7 @@ define(function (require, exports, module) {
             });
         });
         state.marked.length = 0;
+        $("#pfpf").empty();
     }
 
     function clearSearch(cm) {
@@ -153,6 +154,61 @@ define(function (require, exports, module) {
     var queryDialog = Strings.CMD_FIND +
             ": <input type='text' style='width: 10em'/> <div class='message'><span id='find-counter'></span> " +
             "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span></div><div class='error'></div>";
+    
+
+    
+    var scrollHt;
+    var scrollOffset;
+    var sbHt;
+    
+    // other TODOs:
+    //  - quick go-to-def for items of the form Modile.foo by reading imports to find Module's path
+    //      (or failing that, making inferences for blah.foo by finding a module that "blah" is a case-insensitive prefix of,
+    //       e.g. editor, doc, document)
+    //  - JsDoc popup based on same principles
+    
+    function toggleHighlighting(editor, enabled) {
+        if (enabled) {
+            if ($(editor.getRootElement()).hasClass("find-highlighting")) {
+                return;
+            }
+            
+            // Temporarily change selection color to improve highlighting - see LESS code for details
+            $(editor.getRootElement()).addClass("find-highlighting");
+            
+            // TODO: inline editor case must work differently...
+            // TODO: what if no v scrollbar?
+            // TODO: what if window resized while Find is active?
+            var $sb = $(".CodeMirror-vscrollbar", editor.getRootElement());
+            var $overlay = $("<div id='pfpf' style='position:absolute;bottom:0px;top:0px;right:0px;width:16px;z-index:7;pointer-events:none'></div>");
+            $sb.parent().append($overlay);
+            
+            scrollHt = $sb[0].scrollHeight;
+            sbHt = $sb[0].offsetHeight;
+            
+            scrollOffset = 17;
+            sbHt -= scrollOffset * 2;
+            
+        } else {
+            $(editor.getRootElement()).removeClass("find-highlighting");
+            
+            $("#pfpf").remove();
+        }
+    }
+    
+    function addHighlight(editor, state, cursor) {
+        var cm = editor._codeMirror;
+        state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
+        
+        var pos = Math.round(cursor.from().line / editor.lineCount() * sbHt) + scrollOffset;
+        // TODO: pos -= tickmarkHt/2;
+        
+//        var style = "height:3px;background-color:#eddd23;";
+//        var style = "height:1px;background-color:#eddd23;border:1px solid #d4c620";
+        var style = "height:1px;background-color:#eddd23;border-top:1px solid #e0d123;border-bottom:1px solid #d4c620;opacity:0.85";
+        
+        $("#pfpf").append("<div style='position:absolute;top:" + pos + "px;width:16px;pointer-events:auto;cursor:pointer;" + style + "'></div>");
+    }
 
     /**
      * If no search pending, opens the search dialog. If search is already open, moves to
@@ -194,14 +250,13 @@ define(function (require, exports, module) {
                 // Highlight all matches
                 // (Except on huge documents, where this is too expensive)
                 if (cm.getValue().length < 500000) {
-                    // Temporarily change selection color to improve highlighting - see LESS code for details
-                    $(cm.getWrapperElement()).addClass("find-highlighting");
+                    toggleHighlighting(editor, true);
                     
                     // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
                     var resultCount = 0;
                     var cursor = getSearchCursor(cm, state.query);
                     while (cursor.findNext()) {
-                        state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
+                        addHighlight(editor, state, cursor);
                         resultCount++;
 
                         //Remove this section when https://github.com/marijnh/CodeMirror/issues/1155 will be fixed
@@ -249,7 +304,7 @@ define(function (require, exports, module) {
             clearHighlights(cm, state);
             
             // As soon as focus goes back to the editor, restore normal selection color
-            $(cm.getWrapperElement()).removeClass("find-highlighting");
+            toggleHighlighting(editor, false);
         });
         
         var $input = getDialogTextField();
