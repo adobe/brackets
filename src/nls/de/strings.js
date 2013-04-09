@@ -132,9 +132,10 @@ define({
     
     // Switch language
     "LANGUAGE_TITLE"                    : "Sprache wechseln",
-    "LANGUAGE_MESSAGE"                  : "Bitte wählen Sie die gewünschte Sprache aus der folgenden Liste aus:",
+    "LANGUAGE_MESSAGE"                  : "Sprache:",
     "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
 
     /**
      * ProjectManager
@@ -273,11 +274,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
-    "JSLINT_ERRORS"                        : "JSLint-Fehler",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
-    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
-    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
     "SEARCH_RESULTS"                       : "Suchergebnisse",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nicht speichern",
@@ -326,6 +322,8 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
     "MISSING_PACKAGE_VERSION"              : "Die JSON Paketdatei hat keine definierte Paketversion.",
     "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
+    "INVALID_BRACKETS_VERSION"             : "Die Brackets-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
+    "DISALLOWED_WORDS"                     : "Die Wörter {{1}} sind im Feld {{1}} nicht erlaubt.",
     "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js Datei.",
     "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
@@ -370,6 +368,13 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "URL muss mit http oder https anfangen.",
     "UNKNOWN_ERROR"                        : "Unbekannter interner Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
+
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "JSLint-Fehler",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
+    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
