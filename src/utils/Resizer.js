@@ -158,7 +158,7 @@ define(function (require, exports, module) {
         
         function forcePadding(size) {
             if (forcepadding !== undefined) {
-                $(forcepadding, $element.parent()).css("padding-left", size);
+                $(forcepadding, $element.parent()).css("left", size);
             }
         }
         

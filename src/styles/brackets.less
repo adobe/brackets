@@ -96,17 +96,15 @@ a, img {
         position: absolute;
         left: 0;
         top: 0;
-        z-index: @z-index-brackets-ui;  // keep above .content, whose left padding area covers us
     }
 
     .content {
         height: 100%;
-        width: 100%;
         position: absolute;
-        padding: 0 @main-toolbar-width 0 @sidebar-width;  // padding-left changed dynamically via Resizer
-        box-sizing: border-box;
+        padding: 0;
         top: 0;
-        left: 0;
+        left: @sidebar-width;  // changed dynamically via Resizer
+        right: @main-toolbar-width;
     }
 }
 
