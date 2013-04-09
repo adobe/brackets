@@ -47,8 +47,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        KeyEvent            = require("utils/KeyEvent"),
-        StringUtils         = require("utils/StringUtils");
+        KeyEvent            = require("utils/KeyEvent");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
