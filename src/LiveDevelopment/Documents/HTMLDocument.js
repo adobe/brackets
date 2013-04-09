@@ -61,17 +61,15 @@ define(function HTMLDocumentModule(require, exports, module) {
             return;
         }
         this.editor = editor;
-        HTMLInstrumentation._markText(this.editor);
-        this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(this.editor).on("cursorActivity", this.onCursorActivity);
-        this.onCursorActivity();
 
+        this.onCursorActivity = this.onCursorActivity.bind(this);
         this.onDocumentSaved = this.onDocumentSaved.bind(this);
+        
+        $(this.editor).on("cursorActivity", this.onCursorActivity);
         $(DocumentManager).on("documentSaved", this.onDocumentSaved);
         
         // Experimental code
         if (LiveDevelopment.config.experimental) {
-
             // Used by highlight agent to highlight editor text as selected in browser
             this.onHighlight = this.onHighlight.bind(this);
             $(HighlightAgent).on("highlight", this.onHighlight);
@@ -79,6 +77,34 @@ define(function HTMLDocumentModule(require, exports, module) {
             this.onChange = this.onChange.bind(this);
             $(this.editor).on("change", this.onChange);
         }
+    };
+    
+    /**
+     * Enable instrumented HTML
+     * @param enabled {boolean} 
+     */
+    HTMLDocument.prototype.setInstrumentationEnabled = function setInstrumentationEnabled(enabled) {
+        if (enabled && !this._instrumentationEnabled) {
+            HTMLInstrumentation.scanDocument(this.doc);
+            HTMLInstrumentation._markText(this.editor);
+        }
+        
+        this._instrumentationEnabled = enabled;
+    };
+    
+    HTMLDocument.prototype._instrumentationEnabled = false;
+    
+    /**
+     * Returns a JSON object with HTTP response overrides
+     * @returns {{body: string}}
+     */
+    HTMLDocument.prototype.getResponseData = function getResponseData(enabled) {
+        var body = (this._instrumentationEnabled) ?
+                HTMLInstrumentation.generateInstrumentedHTML(this.doc) : this.doc.getText();
+        
+        return {
+            body: body
+        };
     };
 
     /** Close the document */
@@ -92,7 +118,6 @@ define(function HTMLDocumentModule(require, exports, module) {
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
-
             $(HighlightAgent).off("highlight", this.onHighlight);
             this.onHighlight();
 
