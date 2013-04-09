@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Randy Edmunds
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, curve, P1, P2 */
+/*global define, brackets, $, window, curve, P1, P2, hidePopover */
 
 define(function (require, exports, module) {
     "use strict";
@@ -734,7 +734,7 @@ define(function (require, exports, module) {
     function init() {
         var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
 
-        prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: true });
+        prefs = PreferencesManager.getPreferenceStorage(module, { enabled: true });
         enabled = prefs.getValue("enabled");
 
         // Add menu command
@@ -757,7 +757,7 @@ define(function (require, exports, module) {
                     "<span class='control-point' id='P3'></span> " +
                     "<canvas height='300' width='149' id='curve'></canvas> " +
                 "</div>" +
-            "</div>"
+                "</div>"
         );
     
         $popoverContainer = $("<div id='popover-container' style='display:none;'>").appendTo($("body"));
