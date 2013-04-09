@@ -42,10 +42,10 @@ define(function (require, exports, module) {
     /**
      * List of constants
      */
-    var DIRECTION_UP      = -1;
-    var DIRECTION_DOWN    = +1;
-    var DEFAULT_OPEN_TAG  = "<p>";
-    var DEFAULT_CLOSE_TAG = "</p>";
+    var DIRECTION_UP      = -1,
+        DIRECTION_DOWN    = +1,
+        DEFAULT_OPEN_TAG  = "<p>",
+        DEFAULT_CLOSE_TAG = "</p>";
     
     
     /**
@@ -555,6 +555,7 @@ define(function (require, exports, module) {
     /**
      * Duplicates the selected text, or current line if no selection. The cursor/selection is left
      * on the second copy.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
     function duplicateText(editor) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -585,6 +586,7 @@ define(function (require, exports, module) {
     /**
      * Deletes the current line if there is no selection or the lines for the selection
      * (removing the end of line too)
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
     function deleteCurrentLines(editor) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -618,8 +620,8 @@ define(function (require, exports, module) {
     /**
      * Moves the selected text, or current line if no selection. The cursor/selection 
      * moves with the line/lines.
-     * @param {Editor} editor - target editor
-     * @param {Number} direction - direction of the move (-1,+1) => (Up,Down)
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     * @param {number} direction Direction of the move (-1,+1) => (Up,Down)
      */
     function moveLine(editor, direction) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -688,6 +690,7 @@ define(function (require, exports, module) {
     /**
      * Moves the selected text, or current line if no selection, one line up. The cursor/selection 
      * moves with the line/lines.
+     * @param {?Editor} editor Target editor
      */
     function moveLineUp(editor) {
         moveLine(editor, DIRECTION_UP);
@@ -696,6 +699,7 @@ define(function (require, exports, module) {
     /**
      * Moves the selected text, or current line if no selection, one line down. The cursor/selection 
      * moves with the line/lines.
+     * @param {?Editor} editor Target editor
      */
     function moveLineDown(editor) {
         moveLine(editor, DIRECTION_DOWN);
@@ -728,8 +732,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Selects/extends the selection to select a complete line and keeps extendin it to select following lines
-     * @param {Editor} editor - target editor
+     * Selects/extends the selection to select a complete line and keeps extending it to select following lines
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
     function selectLine(editor) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -752,9 +756,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Wraps the selection with the default HTML Tags and creates a syncronization so that modifying the open tag,
+     * Wraps the selection with the default HTML Tags and creates a synchronization so that modifying the open tag,
      * modifies the close tag until the cursor moves outside of the content of the open tag.
-     * @param {Editor} editor - target editor
+     * @param {Editor} editor Target editor
      */
     function _doWrapSelectionWithTag(editor) {
         var sel       = editor.getSelection(),
@@ -783,12 +787,12 @@ define(function (require, exports, module) {
         
         
         /**
-         * Syncronize the content between the open and close tag
-         * @param {!$.Event} event
-         * @param {!Document} docmnt - the Document that changed, should be the current one
-         * @param {!Object} change - a linked list as described in the Document constructor
+         * Synchronize the content between the open and close tags
+         * @param {$.Event} event
+         * @param {Document} curDoc The document that changed, should be the current one
+         * @param {Object} change A linked list as described in the Document constructor
          */
-        function syncTags(event, docmnt, change) {
+        function syncTags(event, curDoc, change) {
             var openFind  = openTag.find();
             var closeFind = closeTag.find();
             
@@ -828,8 +832,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns true if the selection is outside a tag
-     * @param {Editor} editor - target editor
+     * Determines if the selection is outside a tag
+     * @param {Editor} editor Target editor
+     * @return {boolean} true if the selection is outside a tag
      */
     function _isOutsideTag(editor) {
         var sel       = editor.getSelection(),
@@ -860,23 +865,32 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns true if the selection is inside a comment or a string
-     * @param {Editor} editor - target editor
+     * Determines if the selection is inside a string
+     * @param {Editor} editor Target editor
+     * @return {boolean} true if the selection is inside a string
      */
-    function _isInCommentString(editor) {
-        var sel        = editor.getSelection(),
-            startClass = TokenUtils.getInitialContext(editor._codeMirror, sel.start).token.className,
-            endClass   = TokenUtils.getInitialContext(editor._codeMirror, sel.end).token.className;
+    function _isInString(editor) {
+        var sel    = editor.getSelection(),
+            ctx    = TokenUtils.getInitialContext(editor._codeMirror, sel.start),
+            endExp = /"$|'$|\\$/,
+            result = true;
         
-        return (startClass === "comment" && endClass === "comment") ||
-            (startClass === "string" && endClass === "string");
+        var isString, endToken, atEnd;
+        
+        do {
+            isString = result && ctx.token.className === "string";
+            endToken = ctx.token.end - (ctx.token.string.match(endExp) ? 1 : 0);
+            atEnd    = ctx.pos.line === sel.end.line && endToken >= sel.end.ch;
+            result   = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+        } while (isString && !atEnd);
+        
+        return isString;
     }
     
     /**
-     * Wraps the selection with the default HTML Tags and creates a syncronization so that modifying the open tag,
+     * Wraps the selection with the default HTML Tags and creates a synchronization so that modifying the open tag,
      * modifies the close tag until the cursor moves outside of the content of the open tag.
-     * close tag until the cursor moves outside of the content of the open tag
-     * @param {Editor} editor - target editor
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
     function wrapSelectionWithTag(editor) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -888,7 +902,7 @@ define(function (require, exports, module) {
         
         if ((languageId === "html" || languageId === "xml") && _isOutsideTag(editor)) {
             _doWrapSelectionWithTag(editor);
-        } else if (languageId === "javascript" && _isInCommentString(editor)) {
+        } else if (languageId === "javascript" && _isInString(editor)) {
             _doWrapSelectionWithTag(editor);
         }
     }
@@ -925,8 +939,8 @@ define(function (require, exports, module) {
         // Do nothing. The shell will call the native handler for the command.
         return (new $.Deferred()).reject().promise();
     }
-	
-	function _handleSelectAll() {
+    
+    function _handleSelectAll() {
         var result = new $.Deferred(),
             editor = EditorManager.getFocusedEditor();
 
@@ -942,21 +956,21 @@ define(function (require, exports, module) {
     
         
     // Register commands
-    CommandManager.register(Strings.CMD_INDENT,             Commands.EDIT_INDENT,             indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,           Commands.EDIT_UNINDENT,           unidentText);
-    CommandManager.register(Strings.CMD_COMMENT,            Commands.EDIT_LINE_COMMENT,       lineComment);
-    CommandManager.register(Strings.CMD_BLOCK_COMMENT,      Commands.EDIT_BLOCK_COMMENT,      blockComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,          Commands.EDIT_DUPLICATE,          duplicateText);
-    CommandManager.register(Strings.CMD_DELETE_LINES,       Commands.EDIT_DELETE_LINES,       deleteCurrentLines);
-    CommandManager.register(Strings.CMD_LINE_UP,            Commands.EDIT_LINE_UP,            moveLineUp);
-    CommandManager.register(Strings.CMD_LINE_DOWN,          Commands.EDIT_LINE_DOWN,          moveLineDown);
-    CommandManager.register(Strings.CMD_SELECT_LINE,        Commands.EDIT_SELECT_LINE,        selectLine);
-    CommandManager.register(Strings.CMD_WRAP_SELECTION_TAG, Commands.EDIT_WRAP_SELECTION_TAG, wrapSelectionWithTag);
+    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,         indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,       unidentText);
+    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,   lineComment);
+    CommandManager.register(Strings.CMD_BLOCK_COMMENT,  Commands.EDIT_BLOCK_COMMENT,  blockComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,      duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,   deleteCurrentLines);
+    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,        moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,      moveLineDown);
+    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,    selectLine);
+    CommandManager.register(Strings.CMD_WRAP_TAG,       Commands.EDIT_WRAP_TAG,       wrapSelectionWithTag);
     
-    CommandManager.register(Strings.CMD_UNDO,               Commands.EDIT_UNDO,               handleUndo);
-    CommandManager.register(Strings.CMD_REDO,               Commands.EDIT_REDO,               handleRedo);
-    CommandManager.register(Strings.CMD_CUT,                Commands.EDIT_CUT,                ignoreCommand);
-    CommandManager.register(Strings.CMD_COPY,               Commands.EDIT_COPY,               ignoreCommand);
-    CommandManager.register(Strings.CMD_PASTE,              Commands.EDIT_PASTE,              ignoreCommand);
-    CommandManager.register(Strings.CMD_SELECT_ALL,         Commands.EDIT_SELECT_ALL,         _handleSelectAll);
+    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,           handleUndo);
+    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,           handleRedo);
+    CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,            ignoreCommand);
+    CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,           ignoreCommand);
+    CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,          ignoreCommand);
+    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,     _handleSelectAll);
 });

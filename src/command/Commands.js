@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     exports.EDIT_BLOCK_COMMENT          = "edit.blockComment";
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";
-    exports.EDIT_WRAP_SELECTION_TAG     = "edit.wrapSelectionWithTag";
+    exports.EDIT_WRAP_TAG               = "edit.wrapTag";
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
 
     // VIEW
