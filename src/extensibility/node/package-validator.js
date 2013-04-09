@@ -37,15 +37,16 @@ var unzip   = require("unzip"),
 
 
 var Errors = {
-    NOT_FOUND_ERR: "NOT_FOUND_ERR",                 // {0} is path where ZIP file was expected
-    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",           // {0} is path to ZIP file
-    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",   // {0} is JSON parse error, {1} is path to ZIP file
-    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",   // {0} is path to ZIP file
-    BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",           // {0} is the name
-    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",  // {0} is path to ZIP file
-    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
-    MISSING_MAIN: "MISSING_MAIN",                    // {0} is path to ZIP file
-    MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON"     // {0} is path to ZIP file
+    NOT_FOUND_ERR: "NOT_FOUND_ERR",                       // {0} is path where ZIP file was expected
+    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",                 // {0} is path to ZIP file
+    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",         // {0} is JSON parse error, {1} is path to ZIP file
+    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",         // {0} is path to ZIP file
+    BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",                 // {0} is the name
+    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",   // {0} is path to ZIP file
+    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",     // {0} is version string in JSON, {1} is path to ZIP file
+    MISSING_MAIN: "MISSING_MAIN",                         // {0} is path to ZIP file
+    MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON",         // {0} is path to ZIP file
+    INVALID_BRACKETS_VERSION: "INVALID_BRACKETS_VERSION"  // {0} is the version string in JSON, {1} is the path to the zip file
 };
 
 /*
@@ -245,6 +246,13 @@ function validate(path, options, callback) {
                                     metadata.contributors = [
                                         parsePersonString(metadata.contributors)
                                     ];
+                                }
+                            }
+                            
+                            if (metadata.engines && metadata.engines.brackets) {
+                                var range = metadata.engines.brackets;
+                                if (!semver.validRange(range)) {
+                                    errors.push([Errors.INVALID_BRACKETS_VERSION, range, path]);
                                 }
                             }
                         });

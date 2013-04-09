@@ -40,18 +40,19 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
                                     "spec",
                                     "extension-test-files");
 
-var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.zip"),
-    basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
-    missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip"),
-    invalidJSON          = path.join(testFilesDirectory, "invalid-json.zip"),
-    invalidZip           = path.join(testFilesDirectory, "invalid-zip-file.zip"),
-    missingNameVersion   = path.join(testFilesDirectory, "missing-name-version.zip"),
-    missingMain          = path.join(testFilesDirectory, "missing-main.zip"),
-    oneLevelDown         = path.join(testFilesDirectory, "one-level-extension-master.zip"),
-    bogusTopDir          = path.join(testFilesDirectory, "bogus-top-dir.zip"),
-    badname              = path.join(testFilesDirectory, "badname.zip"),
-    mainInDirectory      = path.join(testFilesDirectory, "main-in-directory.zip"),
-    invalidVersion       = path.join(testFilesDirectory, "invalid-version.zip");
+var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extension.zip"),
+    basicValidExtension2   = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
+    missingPackageJSON     = path.join(testFilesDirectory, "missing-package-json.zip"),
+    invalidJSON            = path.join(testFilesDirectory, "invalid-json.zip"),
+    invalidZip             = path.join(testFilesDirectory, "invalid-zip-file.zip"),
+    missingNameVersion     = path.join(testFilesDirectory, "missing-name-version.zip"),
+    missingMain            = path.join(testFilesDirectory, "missing-main.zip"),
+    oneLevelDown           = path.join(testFilesDirectory, "one-level-extension-master.zip"),
+    bogusTopDir            = path.join(testFilesDirectory, "bogus-top-dir.zip"),
+    badname                = path.join(testFilesDirectory, "badname.zip"),
+    mainInDirectory        = path.join(testFilesDirectory, "main-in-directory.zip"),
+    invalidVersion         = path.join(testFilesDirectory, "invalid-version.zip"),
+    invalidBracketsVersion = path.join(testFilesDirectory, "invalid-brackets-version.zip");
 
 describe("Package Validation", function () {
     it("should handle a good package", function (done) {
@@ -239,6 +240,16 @@ describe("Package Validation", function () {
                 name: "Jens Einstein",
                 email: "jens@thoseeinsteins.org"
             });
+            done();
+        });
+    });
+    
+    it("should validate the Brackets version", function (done) {
+        packageValidator.validate(invalidBracketsVersion, {}, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(1);
+            expect(result.errors[0][0]).toEqual("INVALID_BRACKETS_VERSION");
+            expect(result.errors[0][1]).toEqual("foo");
             done();
         });
     });
