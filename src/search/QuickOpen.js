@@ -400,9 +400,10 @@ define(function (require, exports, module) {
      * list items are re-rendered. Both happen synchronously just after we return. Called even when results is empty.
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
-        // Give visual clue when there are no results
-        var isNoResults = (results.length === 0 && !this._isValidLineNumberQuery(this.$searchField.val()));
-        this.$searchField.toggleClass("no-results", isNoResults);
+        // Give visual clue when there are no results (unless we're in "Go To Line" mode, where there
+        // are never results, or we're in file search mode and waiting for the index to get rebuilt)
+        var isNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
+        this.$searchField.toggleClass("no-results", Boolean(isNoResults));
     };
     
     /**
@@ -787,12 +788,12 @@ define(function (require, exports, module) {
         
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileList = null;
         fileListPromise = FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
-            });
+                this._filenameMatcher.reset();
+            }.bind(this));
     };
 
     function getCurrentEditorSelectedText() {
@@ -834,8 +835,11 @@ define(function (require, exports, module) {
             beginSearch("@", getCurrentEditorSelectedText());
         }
     }
-
-
+    
+    // Listen for a change of project to invalidate our file list
+    $(ProjectManager).on("projectOpen", function () {
+        fileList = null;
+    });
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);

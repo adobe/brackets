@@ -397,12 +397,11 @@ define(function (require, exports, module) {
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageID(language.getId());
         
-        $.each(enabledProviders, function (index, item) {
+        enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {
                 sessionProvider = item.provider;
-                return false;
+                return true;
             }
-            return true;
         });
 
         // If a provider is found, initialize the hint list and update it

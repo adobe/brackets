@@ -425,33 +425,37 @@ define(function (require, exports, module) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
-            file        = split.file,
-            dirEntry    = new NativeFileSystem.DirectoryEntry(dir),
-            reader      = dirEntry.createReader();
-        
-        markFileDirty(dir, file);
+            file        = split.file;
 
-        reader.readEntries(function (entries) {
-            entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
-                if (entry.isFile) {
-                    var path    = entry.fullPath,
-                        split   = HintUtils.splitPath(path),
-                        dir     = split.dir,
-                        file    = split.file;
-                    
-                    if (file.indexOf(".") > 1) { // ignore /.dotfiles
-                        var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
-                        if (languageID === HintUtils.LANGUAGE_ID) {
-                            DocumentManager.getDocumentForPath(path).done(function (document) {
-                                refreshOuterScope(dir, file, document.getText());
-                            });
+        NativeFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
+            var reader = dirEntry.createReader();
+
+            markFileDirty(dir, file);
+
+            reader.readEntries(function (entries) {
+                entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
+                    if (entry.isFile) {
+                        var path    = entry.fullPath,
+                            split   = HintUtils.splitPath(path),
+                            dir     = split.dir,
+                            file    = split.file;
+                        
+                        if (file.indexOf(".") > 1) { // ignore /.dotfiles
+                            var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
+                            if (languageID === HintUtils.LANGUAGE_ID) {
+                                DocumentManager.getDocumentForPath(path).done(function (document) {
+                                    refreshOuterScope(dir, file, document.getText());
+                                });
+                            }
                         }
                     }
-                }
+                });
+            }, function (err) {
+                console.log("Unable to refresh directory: " + err);
+                refreshOuterScope(dir, file, document.getText());
             });
         }, function (err) {
-            console.log("Unable to refresh directory: " + err);
-            refreshOuterScope(dir, file, document.getText());
+            console.log("Directory \"%s\" does not exist", dir);
         });
     }
 

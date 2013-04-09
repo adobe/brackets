@@ -99,7 +99,21 @@ define(function LiveDevelopment(require, exports, module) {
         "edit"      : require("LiveDevelopment/Agents/EditAgent")
     };
 
-    var launcherUrl = window.location.href.replace(/\/index.html.*/, "") + "/LiveDevelopment/launch.html";
+    // construct path to launch.html
+    // window location is can be one of the following:
+    // Installed:                /path/to/Brackets.app/Contents/www/index.html
+    // Installed, dev:           /path/to/Brackets.app/Contents/dev/src/index.html
+    // Installed, dev, test:     /path/to/Brackets.app/Contents/dev/test/SpecRunner.html
+    // Arbitrary git repo:       /path/to/brackets/src/index.html
+    // Arbitrary git repo, test: /path/to/brackets/test/SpecRunner.html
+    var launcherUrl = window.location.pathname;
+
+    // special case for test/SpecRunner.html since we can't tell how requirejs
+    // baseUrl is configured dynamically
+    launcherUrl = launcherUrl.replace("/test/SpecRunner.html", "/src/index.html");
+
+    launcherUrl = launcherUrl.substr(0, launcherUrl.lastIndexOf("/")) + "/LiveDevelopment/launch.html";
+    launcherUrl = window.location.origin + launcherUrl;
 
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().
@@ -549,9 +563,6 @@ define(function LiveDevelopment(require, exports, module) {
         // helper function that actually does the launch once we are sure we have
         // a doc and the server for that doc is up and running.
         function doLaunchAfterServerReady() {
-            var targetUrl = doc.root.url;
-            var interstitialUrl = launcherUrl + "?" + encodeURIComponent(targetUrl);
-
             _setStatus(STATUS_CONNECTING);
             
             if (_serverProvider) {
@@ -572,7 +583,7 @@ define(function LiveDevelopment(require, exports, module) {
                 });
             }
 
-            Inspector.connectToURL(interstitialUrl).done(result.resolve).fail(function onConnectFail(err) {
+            Inspector.connectToURL(launcherUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -610,7 +621,7 @@ define(function LiveDevelopment(require, exports, module) {
 
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
                     NativeApp.openLiveBrowser(
-                        interstitialUrl,
+                        launcherUrl,
                         true        // enable remote debugging
                     )
                         .done(function () {
@@ -643,7 +654,7 @@ define(function LiveDevelopment(require, exports, module) {
                     
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(interstitialUrl).done(result.resolve).fail(onConnectFail);
+                        Inspector.connectToURL(launcherUrl).done(result.resolve).fail(onConnectFail);
                     }, 500);
                 }
             });
