@@ -62,7 +62,21 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Returns true if the object has the specified property.
+     * This calls the Object.prototype.hasOwnProperty function directly, rather than
+     * depending on the object having a function named "hasOwnProperty". This way the
+     * object *can* have a property named "hasOwnProperty" that is not a function.
+     * @param {*} object The object to test
+     * @param {string} property The name of the property to query
+     * @return {boolean} True if the object contains the property
+     */
+    function hasProperty(object, property) {
+        return Object.prototype.hasOwnProperty.apply(object, [property]);
+    }
+    
     // Define public API
     exports.indexOf = indexOf;
     exports.forEach = forEach;
+    exports.hasProperty = hasProperty;
 });

@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
-            this.isDirty = true;
+            this.isDirty = !editor._codeMirror.isClean();
                     
             // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
             // future, we should fix things so that we either don't need mock documents or that this
@@ -253,6 +253,8 @@ define(function (require, exports, module) {
             params.put("skipLiveDevelopmentInfo", true);
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
+            
+            _testWindow.isBracketsTestWindow = true;
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
@@ -749,9 +751,14 @@ define(function (require, exports, module) {
                 return this.keyCodeVal;
             }
         });
+        Object.defineProperty(oEvent, 'charCode', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
 
         if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
         } else {
             oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
         }
@@ -812,6 +819,35 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
+        return d.promise();
+    }
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -851,6 +887,7 @@ define(function (require, exports, module) {
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
     exports.chmod                           = chmod;
+    exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;

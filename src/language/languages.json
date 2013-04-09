@@ -155,5 +155,12 @@
         "name": "Haxe",
         "mode": "haxe",
         "fileExtensions": ["hx"]
+    },
+    
+    "bash": {
+        "name": "Bash",
+        "mode": ["shell", "text/x-sh"],
+        "fileExtensions": ["sh"],
+        "lineComment": ["#"]
     }
 }

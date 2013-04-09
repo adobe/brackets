@@ -761,11 +761,7 @@ define(function (require, exports, module) {
      * (This object's caches are all stored in "_" prefixed properties.)
      */
     function StringMatcher() {
-        // We keep track of the last query to know when we need to invalidate.
-        this._lastQuery = null;
-        
-        this._specialsCache = {};
-        this._noMatchCache = {};
+        this.reset();
     }
     
     /**
@@ -781,6 +777,17 @@ define(function (require, exports, module) {
      * @type {Object.<string, boolean>}
      */
     StringMatcher.prototype._noMatchCache = null;
+    
+    /**
+     * Clears the caches. Use this in the event that the caches may be invalid.
+     */
+    StringMatcher.prototype.reset = function () {
+        // We keep track of the last query to know when we need to invalidate.
+        this._lastQuery = null;
+        
+        this._specialsCache = {};
+        this._noMatchCache = {};
+    };
     
     /**
      * Performs a single match using the stringMatch function. See stringMatch for full documentation.
@@ -805,7 +812,7 @@ define(function (require, exports, module) {
         }
         
         // Load up the cached specials information (or build it if this is our first time through).
-        var special = this._specialsCache.hasOwnProperty(str) ? this._specialsCache[str] : undefined;
+        var special = CollectionUtils.hasProperty(this._specialsCache, str) ? this._specialsCache[str] : undefined;
         if (special === undefined) {
             special = findSpecialCharacters(str);
             this._specialsCache[str] = special;
