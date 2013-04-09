@@ -215,9 +215,6 @@ define(function main(require, exports, module) {
         window.report = function report(params) { window.params = params; console.info(params); };
     }
 
-    function _onInspectorDone() {
-    }
-
     /** Initialize LiveDevelopment */
     AppInit.appReady(function () {
         params.parse();
