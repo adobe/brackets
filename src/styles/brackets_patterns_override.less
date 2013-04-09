@@ -68,7 +68,7 @@
     }
 }
 
-/* Editor toolbar layout
+/* Horizontal editor titlebar/menubar (in-browser only)
 
    CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
    This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
@@ -82,9 +82,15 @@
     - the window resizes (handled by general listener in EditorManager)
     - title content changes (the same JS code that sets .title-wrapper's fixed width is expected to handle this)
 */
-#main-toolbar.toolbar {
+#titlebar {
+    // Visible only in-browser
+    display: none;
+    body.in-browser & {
+        display: block;
+    }
+    
     text-align: center;
-    .nav {
+    .nav {  // menubar
         float: left;
         text-align: left;
     }
@@ -97,15 +103,30 @@
         display: block;  // must be a block for the fixed width applied by JS to be respected
         // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
     }
+}
+
+/* Vertical icon toolbar on right */
+#main-toolbar.toolbar {
+    text-align: center;
+    background: #5D5F60;
+    .vbox;
+    .box-flex(1);
+    width: @main-toolbar-width;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 5px 0px;
     .buttons {
-        float: right;
-        text-align: left;
+        text-align: center;
+        margin: 0;
     }
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
 
-@toolbar-top-gap-px: 5px;
+@toolbar-top-gap-px: 5px; // TODO: is this var name still reaonable?
     
 .toolbar {
     font-size: @label-font-size;
@@ -113,8 +134,7 @@
     background-color: @bc-white;
     color: @bc-black;
     
-    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
     
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -137,18 +157,9 @@
         text-overflow: ellipsis;
     }
     
-    .buttons {
+    .buttons { // TODO: remove?
         margin: @toolbar-top-gap-px 0 0 4px;
         
-        .experimental-label {
-            color: #a0a0a0;
-            font-size: 15px;
-            line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
-            font-weight: normal;
-            font-style: italic;
-            padding-right: 22px;
-        }
-
         span, a {
             cursor: default;
         }

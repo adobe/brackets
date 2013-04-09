@@ -158,7 +158,7 @@ define(function (require, exports, module) {
         
         function forceMargins(size) {
             if (forcemargin !== undefined) {
-                $(forcemargin, $element.parent()).css("margin-left", size);
+                $(forcemargin, $element.parent()).css("padding-left", size);
             }
         }
         

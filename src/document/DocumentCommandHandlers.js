@@ -82,7 +82,7 @@ define(function (require, exports, module) {
         
         // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
         // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-        // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
+        // fixed width set on it (see the "#titlebar" CSS rule for details).
         _$titleWrapper.css("width", "");
         var newWidth = _$title.width();
         _$titleWrapper.css("width", newWidth);
@@ -824,7 +824,7 @@ define(function (require, exports, module) {
     
     // Init DOM elements
     AppInit.htmlReady(function () {
-        var $titleContainerToolbar = $("#main-toolbar");
+        var $titleContainerToolbar = $("#titlebar");
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);

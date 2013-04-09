@@ -272,7 +272,7 @@ define(function (require, exports, module) {
         // Switch menus when the mouse enters an adjacent menu
         // Only open the menu if another one has already been opened
         // by clicking
-        $(window.document).on("mouseenter", "#main-toolbar .dropdown", function (e) {
+        $(window.document).on("mouseenter", "#titlebar .dropdown", function (e) {
             var open = $(this).siblings(".open");
             if (open.length > 0) {
                 open.removeClass("open");

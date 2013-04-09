@@ -77,7 +77,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
+                    expect(testWindow.$("#titlebar .title").text()).toBe("");
                 });
             });
 
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
+                    expect(testWindow.$("#titlebar .title").text()).toBe("");
                 });
             });
         });
