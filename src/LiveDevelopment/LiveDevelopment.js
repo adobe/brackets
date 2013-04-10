@@ -343,6 +343,7 @@ define(function LiveDevelopment(require, exports, module) {
                 
                 // Send custom HTTP response for the current live document
                 $(_serverProvider).on("request.livedev", function (event, request) {
+                    // response can be null in which case the StaticServerDomain reverts to simple file serving.
                     var response = _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
                     request.send(response);
                 });

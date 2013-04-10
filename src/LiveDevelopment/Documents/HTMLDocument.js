@@ -61,6 +61,7 @@ define(function HTMLDocumentModule(require, exports, module) {
             return;
         }
         this.editor = editor;
+        this._instrumentationEnabled = false;
 
         this.onCursorActivity = this.onCursorActivity.bind(this);
         this.onDocumentSaved = this.onDocumentSaved.bind(this);
@@ -91,8 +92,6 @@ define(function HTMLDocumentModule(require, exports, module) {
         
         this._instrumentationEnabled = enabled;
     };
-    
-    HTMLDocument.prototype._instrumentationEnabled = false;
     
     /**
      * Returns a JSON object with HTTP response overrides
