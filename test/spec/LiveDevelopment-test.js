@@ -725,6 +725,7 @@ define(function (require, exports, module) {
                     instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
                     createIdToTagMap(instrumentedHtml);
                     testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
+                    testHTMLDoc.setInstrumentationEnabled(true);
                 });
             });
             
