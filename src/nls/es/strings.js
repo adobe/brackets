@@ -127,7 +127,7 @@ define({
     
     // Switch language
     "LANGUAGE_TITLE"                    : "Cambiar idioma",
-    "LANGUAGE_MESSAGE"                  : "Por favor, elige el idioma deseado de la siguiente lista:",
+    "LANGUAGE_MESSAGE"                  : "Idioma:",
     "LANGUAGE_SUBMIT"                   : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancelar",
     "LANGUAGE_SYSTEM_DEFAULT"           : "Lenguage predeterminado",
@@ -268,11 +268,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
-    "JSLINT_ERRORS"                        : "Errores de JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
-    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
-    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
     "SEARCH_RESULTS"                       : "Resultados de búsqueda",
     "OK"                                   : "Aceptar",
     "DONT_SAVE"                            : "No guardar",
@@ -335,6 +330,13 @@ define({
     "MALFORMED_URL"                        : "La URL no es válida. Por favor, comprueba que la has escrito correctamente.",
     "UNSUPPORTED_PROTOCOL"                 : "La URL debe ser una dirección http o https.",
     "UNKNOWN_ERROR"                        : "Error interno desconocido.",
+    
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "Errores de JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
+    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
+    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
