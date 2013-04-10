@@ -2301,7 +2301,10 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
                 CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
                 
-                myDocument.replaceRange("h1", {line: 2, ch: 9}, {line: 2, ch: 10});
+                myDocument.replaceRange("", {line: 2, ch: 9}, {line: 2, ch: 10});
+                expect(myDocument.getLine(2)).toEqual("        <>Hello World</>");
+                
+                myDocument.replaceRange("h1", {line: 2, ch: 9}, {line: 2, ch: 9});
                 expect(myDocument.getLine(2)).toEqual("        <h1>Hello World</h1>");
                 
                 myDocument.replaceRange("2", {line: 2, ch: 10}, {line: 2, ch: 11});
@@ -2314,7 +2317,7 @@ define(function (require, exports, module) {
                 expect(myDocument.getLine(2)).toEqual("        <h>Hello World</h>");
             });
             
-            it("should NOT synchronize any content of the open tap after a space", function () {
+            it("should NOT synchronize any content of the open tag after a space", function () {
                 myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
                 CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
                 
@@ -2342,7 +2345,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
                 expect(myDocument.getLine(3)).toEqual(expectedText);
                 
-                myEditor.setSelection({line: 10, ch: 2}, {line: 3, ch: 20});
+                myEditor.setSelection({line: 3, ch: 2}, {line: 3, ch: 20});
                 CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
                 expect(myDocument.getLine(3)).toEqual(expectedText);
                 

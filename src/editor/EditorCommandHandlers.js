@@ -772,7 +772,7 @@ define(function (require, exports, module) {
             $doc      = $(doc),
             $editor   = $(editor);
         
-        // Lets start by adding the default open and close tags around the selection
+        // Let's start by adding the default open and close tags around the selection
         doc.batchOperation(function () {
             doc.replaceRange(DEFAULT_CLOSE_TAG, sel.end);
             doc.replaceRange(DEFAULT_OPEN_TAG,  sel.start);
@@ -782,8 +782,8 @@ define(function (require, exports, module) {
         editor.setSelection(openFrom, openTo);
         
         // Create text marks for the content of the open and close tags
-        var openTag  = editor._codeMirror.markText(openFrom, openTo, options);
-        var closeTag = editor._codeMirror.markText(closeFrom, closeTo, options);
+        var openTagMarker  = editor._codeMirror.markText(openFrom, openTo, options);
+        var closeTagMarker = editor._codeMirror.markText(closeFrom, closeTo, options);
         
         
         /**
@@ -793,18 +793,18 @@ define(function (require, exports, module) {
          * @param {Object} change A linked list as described in the Document constructor
          */
         function syncTags(event, curDoc, change) {
-            var openFind  = openTag.find();
-            var closeFind = closeTag.find();
+            var openTagPos  = openTagMarker.find();
+            var closeTagPos = closeTagMarker.find();
             
-            // Just sync if it is not an undo/redo change and if we can find the range
-            if (openFind && change.origin !== "undo" && change.origin !== "redo") {
+            // Just sync if it is not an undo/redo change and if we can find the open marker
+            if (openTagPos && change.origin !== "undo" && change.origin !== "redo") {
                 // Get the open tag: The content in the range until the first space
-                var openText = doc.getRange(openFind.from, openFind.to).split(" ")[0];
+                var openTagText = doc.getRange(openTagPos.from, openTagPos.to).split(" ")[0];
                 
                 // Replace the content of the close tag with the open tag. We do it in between
                 // listeners to avoid an infinite loop
                 $doc.off(".wrapSelection");
-                doc.replaceRange(openText, closeFind.from, closeFind.to, "+input");
+                doc.replaceRange(openTagText, closeTagPos.from, closeTagPos.to, change.origin);
                 $doc.on("change.wrapSelection", syncTags);
             }
         }
@@ -813,15 +813,15 @@ define(function (require, exports, module) {
          * End the synchronization when the cursor moves outside the open marker
          */
         function endSync() {
-            var openFind  = openTag.find();
-            var cursorPos = editor.getCursorPos();
+            var openTagPos = openTagMarker.find();
+            var cursorPos  = editor.getCursorPos();
             
-            if (openFind && !editor.posWithinRange(cursorPos, openFind.from, openFind.to)) {
+            if (openTagPos && !editor.posWithinRange(cursorPos, openTagPos.from, openTagPos.to)) {
                 $doc.off(".wrapSelection");
                 $editor.off(".wrapSelection");
                     
-                openTag.clear();
-                closeTag.clear();
+                openTagMarker.clear();
+                closeTagMarker.clear();
             }
         }
         

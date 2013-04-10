@@ -142,7 +142,7 @@
             "platform": "mac"
         }
     ],
-    "edit.wrapSelectionWithTag": [
+    "edit.wrapTag": [
         "Alt-Shift-W"
     ],
     "view.hideSidebar":  [
