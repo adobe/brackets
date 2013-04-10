@@ -317,6 +317,8 @@ define({
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
 	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
+	"INVALID_BRACKETS_VERSION": "!能=[6771123] The Brackets compatibility string {{0}} is invalid._=!",
+	"DISALLOWED_WORDS": "!能=[6771122] The words {{1}} are not allowed in the {{0}} field._=!",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
