@@ -220,7 +220,10 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var KeyEvent        = require("utils/KeyEvent"),
+    var AppInit         = require("utils/AppInit"),
+        Editor          = require("editor/Editor"),
+        EditorManager   = require("editor/EditorManager"),
+        KeyEvent        = require("utils/KeyEvent"),
         CodeHintList    = require("editor/CodeHintList").CodeHintList;
 
     var hintProviders   = { "all" : [] },
@@ -508,6 +511,31 @@ define(function (require, exports, module) {
     function _getCodeHintList() {
         return hintList;
     }
+    
+    AppInit.htmlReady(function () {
+        var editor = EditorManager.getFocusedEditor();
+        
+        var changeHandler = function (event, editor) {
+                handleChange(editor);
+            },
+            keyEventHandler = function (jqEvent, editor, event) {
+                handleKeyEvent(editor, event);
+            };
+        
+        $(EditorManager).on("activeEditorChange", function (event, current, previous) {
+            $(current).on("change", changeHandler);
+            $(current).on("keyEvent", keyEventHandler);
+            
+            //Removing all old Handlers
+            $(previous).on("change", changeHandler);
+            $(previous).on("keyEvent", keyEventHandler);
+        });
+        
+        $(editor).on("change", "*", changeHandler);
+        
+        $(editor).on("keyEvent", "*", keyEventHandler);
+    });
+    
     exports._getCodeHintList        = _getCodeHintList;
     
     // Define public API
