@@ -31,7 +31,7 @@ importScripts("thirdparty/requirejs/require.js");
     
     var HintUtils;
     var Tern;
-    require(["./HintUtils", "./tern/tern"], function(hintUtils, tern) {
+    require(["./HintUtils", "./tern/tern", "./tern/plugin/requirejs"], function(hintUtils, tern, requirejs) {
         HintUtils = hintUtils;
         Tern = tern;
     } );
@@ -75,7 +75,8 @@ importScripts("thirdparty/requirejs/require.js");
         var ternOptions = {
             defs:env,
             async:true,
-            getFile: getFile
+            getFile: getFile,
+            plugins: {requirejs: {}}
         };
         ternServer = new Tern.Server(ternOptions);
         
@@ -141,13 +142,14 @@ importScripts("thirdparty/requirejs/require.js");
         var request = buildRequest(dir, file, "completions", offset, text);
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function(error, data) {
-            //if (error) return displayError(error);
-            //_log("completions = " + data.completions.length);
+            if (error) {
+                _log("Error: " + error);
+                return;
+            }
             var completions = [];
             for (var i = 0; i < data.completions.length; ++i) {
-                var completion = data.completions[i];//, className = typeToIcon(completion.type);
-                //if (data.guess) className += " Tern-completion-guess";
-                completions.push({value: completion.name, depth: completion.depth, guess: completion.guess});
+                var completion = data.completions[i];
+                completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess});
             }
 
             // Post a message back to the main thread with the completions
@@ -171,12 +173,14 @@ importScripts("thirdparty/requirejs/require.js");
         var request = buildRequest(dir, file, "properties", undefined, text);
         //_log("request " + request.type + dir + " " + file);
         ternServer.request(request, function(error, data) {
-            //if (error) return displayError(error);
+            if (error) {
+                _log("Error: " + error);
+                return;
+            }
             //_log("completions = " + data.completions.length);
             var properties = [];
             for (var i = 0; i < data.completions.length; ++i) {
-                var property = data.completions[i];//, className = typeToIcon(completion.type);
-                //if (data.guess) className += " Tern-completion-guess";
+                var property = data.completions[i];
                 properties.push({value: property, guess: true});
             }
 
