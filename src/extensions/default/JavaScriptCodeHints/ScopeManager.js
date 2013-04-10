@@ -66,7 +66,7 @@ define(function (require, exports, module) {
             files       : files,
             env         : ternEnvironment
         });
-        rootTernDir = dir;
+        rootTernDir = dir + "/";
     }
     
     /**
@@ -380,6 +380,15 @@ define(function (require, exports, module) {
                 type:HintUtils.TERN_GET_FILE_MSG,
                 file:name, 
                 text:document.getText()
+            });
+        })
+        .fail(function(){
+            // Need to send something back to tern - it will wait
+            // until all the files have been retrieved before doing its calculations
+            ternWorker.postMessage({
+                type:HintUtils.TERN_GET_FILE_MSG,
+                file:name, 
+                text:""
             });
         });
     }
