@@ -195,17 +195,32 @@ define(function (require, exports, module) {
     function _documentSelectionFocusChange() {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && _hasFileSelectionFocus()) {
-            $("#project-files-container li").is(function (index) {
-                var entry = $(this).data("entry");
-                if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
-                    //we don't want to trigger another selection change event, so manually deselect
-                    //and select without sending out notifications
-                    _projectTree.jstree("deselect_all");
-                    _projectTree.jstree("select_node", $(this), false);
+            var nodeFound = $("#project-files-container li").is(function (index) {
+                var $treeNode = $(this),
+                    entry = $treeNode.data("entry");
+                if (entry && entry.fullPath === curDoc.file.fullPath) {
+                    if (!_projectTree.jstree("is_selected", $treeNode)) {
+                        if ($treeNode.parents(".jstree-closed").length) {
+                            //don't auto-expand tree to show file - but remember it if parent is manually expanded later
+                            _projectTree.jstree("deselect_all");
+                            _lastSelected = $treeNode;
+                        } else {
+                            //we don't want to trigger another selection change event, so manually deselect
+                            //and select without sending out notifications
+                            _projectTree.jstree("deselect_all");
+                            _projectTree.jstree("select_node", $treeNode, false);  // sets _lastSelected
+                        }
+                    }
                     return true;
                 }
                 return false;
             });
+            
+            // file is outside project subtree, or in a folder that's never been expanded yet
+            if (!nodeFound) {
+                _projectTree.jstree("deselect_all");
+                _lastSelected = null;
+            }
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
             _lastSelected = null;
@@ -915,11 +930,8 @@ define(function (require, exports, module) {
     function showInTree(entry) {
         return _findTreeNode(entry)
             .done(function ($node) {
-                _projectTree.jstree("deselect_node", _lastSelected);
-                _lastSelected = null;
-                _projectTree.jstree("select_node", $node);
-                _lastSelected = $node;
-                _redraw(true, true);
+                // jsTree will automatically expand parent nodes to ensure visible
+                _projectTree.jstree("select_node", $node, false);
             });
     }
     
