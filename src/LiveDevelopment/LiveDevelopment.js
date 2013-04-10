@@ -923,7 +923,7 @@ define(function LiveDevelopment(require, exports, module) {
             return false;
         }
 
-        return true;
+        return _isHtmlFileExt(localPath);
     };
 
     /**
