@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
+        StringMatch     = brackets.getModule("utils/StringMatch"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session");
@@ -48,7 +49,8 @@ define(function (require, exports, module) {
     var session     = null,  // object that encapsulates the current session state
         cachedHints = null,  // sorted hints for the current hinting session
         cachedType  = null,  // describes the lookup type and the object context
-        cachedLine  = null;  // the line number for the cached scope
+        cachedLine  = null,  // the line number for the cached scope
+        matcher     = null;  // string matcher for hints
 
     /**
      * Creates a hint response object. Filters the hint list using the query
@@ -77,9 +79,7 @@ define(function (require, exports, module) {
          */
         function formatHints(hints, query) {
             return hints.map(function (token) {
-                var hint        = token.value,
-                    index       = hint.toLowerCase().indexOf(query.toLowerCase()),
-                    $hintObj    = $("<span>").addClass("brackets-js-hints");
+                var $hintObj    = $("<span>").addClass("brackets-js-hints");
 
                 // level indicates either variable scope or property confidence
                 if (!type.property && token.depth !== undefined) {
@@ -113,19 +113,19 @@ define(function (require, exports, module) {
                     $hintObj.addClass("keyword-hint");
                 }
              
-                // higlight the matched portion of each hint
-                if (query.length > 0 && index >= 0) {
-                    var prefix  = StringUtils.htmlEscape(hint.slice(0, index)),
-                        match   = StringUtils.htmlEscape(hint.slice(index, index + query.length)),
-                        suffix  = StringUtils.htmlEscape(hint.slice(index + query.length));
-
-                    $hintObj.append(prefix)
-                        .append($("<span>")
-                                .append(match)
-                                .addClass("matched-hint"))
-                        .append(suffix);
+                // highlight the matched portion of each hint
+                if (token.stringRanges) {
+                    token.stringRanges.forEach(function (item) {
+                        if (item.matched) {
+                            $hintObj.append($("<span>")
+                                .append(StringUtils.htmlEscape(item.text))
+                                .addClass("matched-hint"));
+                        } else {
+                            $hintObj.append(StringUtils.htmlEscape(item.text));
+                        }
+                    });
                 } else {
-                    $hintObj.text(hint);
+                    $hintObj.text(token.label);
                 }
                 $hintObj.data("token", token);
                 
@@ -194,6 +194,7 @@ define(function (require, exports, module) {
                     //console.log("clear hints");
                     cachedLine = null;
                     cachedHints = null;
+                    matcher = null;
                 }
                 return true;
             }
@@ -232,7 +233,8 @@ define(function (require, exports, module) {
                         scopeResponse.promise.done(function () {
                             cachedLine = cursor.line;
                             cachedType = session.getType();
-                            cachedHints = session.getHints(query);
+                            matcher = new StringMatch.StringMatcher();
+                            cachedHints = session.getHints(query, matcher);
 
                             $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
 
@@ -257,7 +259,7 @@ define(function (require, exports, module) {
                 }
 
                 if (cachedHints) {
-                    cachedHints = session.getHints(session.getQuery());
+                    cachedHints = session.getHints(session.getQuery(), matcher);
                     return getHintResponse(cachedHints, query, type);
                 }
             }
@@ -275,7 +277,7 @@ define(function (require, exports, module) {
      */
     JSHints.prototype.insertHint = function ($hintObj) {
         var hint        = $hintObj.data("token"),
-            completion  = hint.value,
+            completion  = hint.label,
             cursor      = session.getCursor(),
             token       = session.getToken(cursor),
             query       = session.getQuery(),
