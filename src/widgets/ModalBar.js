@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         
         this._$root = $("<div class='modal-bar'/>")
             .html(template)
-            .appendTo("#main-toolbar");
+            .insertBefore("#editor-holder");
         
         if (autoClose) {
             this._autoClose = true;
