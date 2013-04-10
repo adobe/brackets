@@ -130,7 +130,7 @@ define({
     "LANGUAGE_MESSAGE"                  : "Idioma:",
     "LANGUAGE_SUBMIT"                   : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancelar",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Lenguage predeterminado",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "Idioma predeterminado",
 
     /**
      * ProjectManager
