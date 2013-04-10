@@ -317,6 +317,8 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
     "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
+    "INVALID_BRACKETS_VERSION"             : "The Brackets compatibility string {{0}} is invalid.",
+    "DISALLOWED_WORDS"                     : "The words {{1}} are not allowed in the {{0}} field.",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of Brackets. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",

@@ -127,9 +127,10 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "言語を切り替える",
-	"LANGUAGE_MESSAGE": "以下のリストから言語を選択してください :",
+	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
+	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
 
     /**
      * ProjectManager
@@ -176,7 +177,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
-	"CMD_INSTALL_EXTENSION": "拡張機能をインストール...",
+	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -215,9 +216,9 @@ define({
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
 	"CMD_SCROLL_LINE_UP": "1 行上にスクロール",
 	"CMD_SCROLL_LINE_DOWN": "1 行下にスクロール",
-	"CMD_TOGGLE_LINE_NUMBERS": "行番号を表示",
-	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行を表示",
-	"CMD_TOGGLE_WORD_WRAP": "文字列の折り返しを有効にする",
+	"CMD_TOGGLE_LINE_NUMBERS": "行番号",
+	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行をハイライト",
+	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
@@ -268,11 +269,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"JSLINT_ERRORS": "JSLint エラー",
-	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
-	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
-	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
-	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
 	"SEARCH_RESULTS": "検索結果",
 	"OK": "OK",
 	"DONT_SAVE": "保存しない",
@@ -308,10 +304,10 @@ define({
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
-	"INSTALLING_FROM": "{0} から拡張機能をインストール...",
+	"INSTALLING_FROM": "{0} から拡張機能をインストール\u2026",
 	"INSTALL_SUCCEEDED": "インストールは成功しました。",
 	"INSTALL_FAILED": "インストールは失敗しました。",
-	"CANCELING_INSTALL": "キャンセル中...",
+	"CANCELING_INSTALL": "キャンセルしています\u2026",
 	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
     // These must match the error codes in ExtensionsDomain.Errors.* :
@@ -321,6 +317,8 @@ define({
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
 	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
+	"INVALID_BRACKETS_VERSION": "!能=[6771123] The Brackets compatibility string {{0}} is invalid._=!",
+	"DISALLOWED_WORDS": "!能=[6771122] The words {{1}} are not allowed in the {{0}} field._=!",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
@@ -334,6 +332,13 @@ define({
 	"UNSUPPORTED_PROTOCOL": "URL は http または https URL である必要があります。",
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
+    
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "JSLint エラー",
+	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
+	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
+	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
+	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

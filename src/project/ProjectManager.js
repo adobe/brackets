@@ -623,6 +623,39 @@ define(function (require, exports, module) {
      */
     function _treeDataProvider(treeNode, jsTreeCallback) {
         var dirEntry, isProjectRoot = false;
+        
+        function processEntries(entries) {
+            var subtreeJSON = _convertEntriesToJSON(entries),
+                wasNodeOpen = false,
+                emptyDirectory = (subtreeJSON.length === 0);
+            
+            if (emptyDirectory) {
+                if (!isProjectRoot) {
+                    wasNodeOpen = treeNode.hasClass("jstree-open");
+                } else {
+                    // project root is a special case, add a placeholder
+                    subtreeJSON.push({});
+                }
+            }
+            
+            jsTreeCallback(subtreeJSON);
+            
+            if (!isProjectRoot && emptyDirectory) {
+                // If the directory is empty, force it to appear as an open or closed node.
+                // This is a workaround for issue #149 where jstree would show this node as a leaf.
+                var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
+                
+                treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
+                        .addClass(classToAdd);
+                
+                // This is a workaround for a part of issue #2085, where the file creation process
+                // depends on the open_node.jstree event being triggered, which doesn't happen on 
+                // empty folders
+                if (!wasNodeOpen) {
+                    treeNode.trigger("open_node.jstree");
+                }
+            }
+        }
 
         if (treeNode === -1) {
             // Special case: root of tree
@@ -635,46 +668,20 @@ define(function (require, exports, module) {
 
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
-            function (entries) {
-                var subtreeJSON = _convertEntriesToJSON(entries),
-                    wasNodeOpen = false,
-                    emptyDirectory = (subtreeJSON.length === 0);
-                
-                if (emptyDirectory) {
-                    if (!isProjectRoot) {
-                        wasNodeOpen = treeNode.hasClass("jstree-open");
-                    } else {
-                        // project root is a special case, add a placeholder
-                        subtreeJSON.push({});
-                    }
+            processEntries,
+            function (error, entries) {
+                if (entries) {
+                    // some but not all entries failed to load, so render what we can
+                    processEntries(entries);
+                } else {
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_LOADING_PROJECT,
+                        StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
+                            StringUtils.htmlEscape(dirEntry.fullPath),
+                            error.name)
+                    );
                 }
-                
-                jsTreeCallback(subtreeJSON);
-                
-                if (!isProjectRoot && emptyDirectory) {
-                    // If the directory is empty, force it to appear as an open or closed node.
-                    // This is a workaround for issue #149 where jstree would show this node as a leaf.
-                    var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
-                    
-                    treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
-                            .addClass(classToAdd);
-                    
-                    // This is a workaround for a part of issue #2085, where the file creation process
-                    // depends on the open_node.jstree event being triggered, which doesn't happen on 
-                    // empty folders
-                    if (!wasNodeOpen) {
-                        treeNode.trigger("open_node.jstree");
-                    }
-                }
-            },
-            function (error) {
-                Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_LOADING_PROJECT,
-                    StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                        StringUtils.htmlEscape(dirEntry.fullPath),
-                        error.name)
-                );
             }
         );
 
@@ -908,8 +915,11 @@ define(function (require, exports, module) {
     function showInTree(entry) {
         return _findTreeNode(entry)
             .done(function ($node) {
-                // jsTree will automatically expand parent nodes to ensure visible
-                _projectTree.jstree("select_node", $node, false);
+                _projectTree.jstree("deselect_node", _lastSelected);
+                _lastSelected = null;
+                _projectTree.jstree("select_node", $node);
+                _lastSelected = $node;
+                _redraw(true, true);
             });
     }
     

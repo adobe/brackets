@@ -32,7 +32,7 @@
  */
 
 .project-panel-background {
-    background: #3C3F41 url("images/propertiespanel_back.png") repeat-x 0 0;
+    background: @project-panel-base-color url("images/propertiespanel_back.png") repeat-x 0 0;
 }
 
 .panel {
@@ -57,6 +57,8 @@
 .simple-toolbar-layout.toolbar {
     .hbox;
     .box-align(center);
+    overflow: hidden;
+    
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
            directly on a flexing box in Chrome currently. */
@@ -68,7 +70,7 @@
     }
 }
 
-/* Editor toolbar layout
+/* Horizontal titlebar/menubar (in-browser only)
 
    CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
    This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
@@ -82,9 +84,14 @@
     - the window resizes (handled by general listener in EditorManager)
     - title content changes (the same JS code that sets .title-wrapper's fixed width is expected to handle this)
 */
-#main-toolbar.toolbar {
+#titlebar {
+    // Visible only in-browser
+    body.in-appshell & {
+        display: none;
+    }
+    
     text-align: center;
-    .nav {
+    .nav {  // menubar
         float: left;
         text-align: left;
     }
@@ -97,9 +104,36 @@
         display: block;  // must be a block for the fixed width applied by JS to be respected
         // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
     }
+}
+
+/* Vertical icon toolbar on right */
+#main-toolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: @main-toolbar-width;
+    height: 100%;
+    box-sizing: border-box;
+    
+    background: @main-toolbar-background-color;
+    padding: 5px 0px;
+    
+    // Ensure icons are vertically stacked & horizontally centered
+    .vbox;
+    .box-flex(1);
+    text-align: center;
+    
     .buttons {
-        float: right;
-        text-align: left;
+        text-align: center;
+        margin: 0;
+        
+        > a {
+            margin: 5px 0px 5px 0px !important;
+            padding: 0 !important;
+            position: static !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
     }
 }
 
@@ -113,8 +147,7 @@
     background-color: @bc-white;
     color: @bc-black;
     
-    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
     
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -140,15 +173,6 @@
     .buttons {
         margin: @toolbar-top-gap-px 0 0 4px;
         
-        .experimental-label {
-            color: #a0a0a0;
-            font-size: 15px;
-            line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
-            font-weight: normal;
-            font-style: italic;
-            padding-right: 22px;
-        }
-
         span, a {
             cursor: default;
         }
