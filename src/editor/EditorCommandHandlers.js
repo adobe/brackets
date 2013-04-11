@@ -732,8 +732,8 @@ define(function (require, exports, module) {
         doc.batchOperation(function () {
             doc.replaceRange("\n", {line: line, ch: 0});
             cm.indentLine(line);
-            editor.setSelection({line: line, ch: null});
         });
+        editor.setSelection({line: line, ch: null});
     }
 
     /**

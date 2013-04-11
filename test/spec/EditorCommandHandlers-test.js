@@ -2276,7 +2276,7 @@ define(function (require, exports, module) {
         });
       
         describe("Open Line Above and Below", function () {
-            var indentUnit = Editor.getIndentUnit();
+            var indentUnit = Editor.getSpaceUnits();
             
             var indentation = (function () {
                 // generate indent string once
