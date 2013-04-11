@@ -127,11 +127,6 @@ define(function (require, exports, module) {
     var _projectBaseUrl = "";
 
     /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = PreferencesManager.getClientId(module.id);
-    
-    /**
      * @private
      * @type {PreferenceStorage}
      */
@@ -200,17 +195,32 @@ define(function (require, exports, module) {
     function _documentSelectionFocusChange() {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && _hasFileSelectionFocus()) {
-            $("#project-files-container li").is(function (index) {
-                var entry = $(this).data("entry");
-                if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
-                    //we don't want to trigger another selection change event, so manually deselect
-                    //and select without sending out notifications
-                    _projectTree.jstree("deselect_all");
-                    _projectTree.jstree("select_node", $(this), false);
+            var nodeFound = $("#project-files-container li").is(function (index) {
+                var $treeNode = $(this),
+                    entry = $treeNode.data("entry");
+                if (entry && entry.fullPath === curDoc.file.fullPath) {
+                    if (!_projectTree.jstree("is_selected", $treeNode)) {
+                        if ($treeNode.parents(".jstree-closed").length) {
+                            //don't auto-expand tree to show file - but remember it if parent is manually expanded later
+                            _projectTree.jstree("deselect_all");
+                            _lastSelected = $treeNode;
+                        } else {
+                            //we don't want to trigger another selection change event, so manually deselect
+                            //and select without sending out notifications
+                            _projectTree.jstree("deselect_all");
+                            _projectTree.jstree("select_node", $treeNode, false);  // sets _lastSelected
+                        }
+                    }
                     return true;
                 }
                 return false;
             });
+            
+            // file is outside project subtree, or in a folder that's never been expanded yet
+            if (!nodeFound) {
+                _projectTree.jstree("deselect_all");
+                _lastSelected = null;
+            }
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
             _lastSelected = null;
@@ -393,11 +403,10 @@ define(function (require, exports, module) {
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                 ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
                 json_data : { data: treeDataProvider, correct_state: false },
-                core : { animation: 0 },
+                core : { animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
-                strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" },
                 sort :  function (a, b) {
                     if (brackets.platform === "win") {
                         // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
@@ -465,7 +474,7 @@ define(function (require, exports, module) {
                             node        = null;
         
                         // use path to lookup ID
-                        $.each(toOpenPaths, function (index, value) {
+                        toOpenPaths.forEach(function (value, index) {
                             node = _projectInitialLoad.fullPathToIdMap[value];
                             
                             if (node) {
@@ -629,6 +638,39 @@ define(function (require, exports, module) {
      */
     function _treeDataProvider(treeNode, jsTreeCallback) {
         var dirEntry, isProjectRoot = false;
+        
+        function processEntries(entries) {
+            var subtreeJSON = _convertEntriesToJSON(entries),
+                wasNodeOpen = false,
+                emptyDirectory = (subtreeJSON.length === 0);
+            
+            if (emptyDirectory) {
+                if (!isProjectRoot) {
+                    wasNodeOpen = treeNode.hasClass("jstree-open");
+                } else {
+                    // project root is a special case, add a placeholder
+                    subtreeJSON.push({});
+                }
+            }
+            
+            jsTreeCallback(subtreeJSON);
+            
+            if (!isProjectRoot && emptyDirectory) {
+                // If the directory is empty, force it to appear as an open or closed node.
+                // This is a workaround for issue #149 where jstree would show this node as a leaf.
+                var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
+                
+                treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
+                        .addClass(classToAdd);
+                
+                // This is a workaround for a part of issue #2085, where the file creation process
+                // depends on the open_node.jstree event being triggered, which doesn't happen on 
+                // empty folders
+                if (!wasNodeOpen) {
+                    treeNode.trigger("open_node.jstree");
+                }
+            }
+        }
 
         if (treeNode === -1) {
             // Special case: root of tree
@@ -641,46 +683,20 @@ define(function (require, exports, module) {
 
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
-            function (entries) {
-                var subtreeJSON = _convertEntriesToJSON(entries),
-                    wasNodeOpen = false,
-                    emptyDirectory = (subtreeJSON.length === 0);
-                
-                if (emptyDirectory) {
-                    if (!isProjectRoot) {
-                        wasNodeOpen = treeNode.hasClass("jstree-open");
-                    } else {
-                        // project root is a special case, add a placeholder
-                        subtreeJSON.push({});
-                    }
+            processEntries,
+            function (error, entries) {
+                if (entries) {
+                    // some but not all entries failed to load, so render what we can
+                    processEntries(entries);
+                } else {
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_LOADING_PROJECT,
+                        StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
+                            StringUtils.htmlEscape(dirEntry.fullPath),
+                            error.name)
+                    );
                 }
-                
-                jsTreeCallback(subtreeJSON);
-                
-                if (!isProjectRoot && emptyDirectory) {
-                    // If the directory is empty, force it to appear as an open or closed node.
-                    // This is a workaround for issue #149 where jstree would show this node as a leaf.
-                    var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
-                    
-                    treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
-                            .addClass(classToAdd);
-                    
-                    // This is a workaround for a part of issue #2085, where the file creation process
-                    // depends on the open_node.jstree event being triggered, which doesn't happen on 
-                    // empty folders
-                    if (!wasNodeOpen) {
-                        treeNode.trigger("open_node.jstree");
-                    }
-                }
-            },
-            function (error) {
-                Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_LOADING_PROJECT,
-                    StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                        StringUtils.htmlEscape(dirEntry.fullPath),
-                        error.name)
-                );
             }
         );
 
@@ -1348,9 +1364,9 @@ define(function (require, exports, module) {
     var defaults = {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager", defaults);
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
     
     if (!_prefs.getValue("welcomeProjectsFixed")) {
         // One-time cleanup of duplicates in the welcome projects list--there used to be a bug where

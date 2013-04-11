@@ -67,7 +67,11 @@ define(function CSSAgent(require, exports, module) {
      * @param {string} url
      */
     function styleForURL(url) {
-        return _urlToStyle[_canonicalize(url)];
+        if (_urlToStyle) {
+            return _urlToStyle[_canonicalize(url)];
+        }
+        
+        return null;
     }
 
     /** Get a list of all loaded stylesheet files by URL */

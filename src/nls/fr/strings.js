@@ -74,6 +74,7 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur du module Aperçu en direct",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Live Development",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
@@ -96,7 +97,7 @@ define({
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
-	"FIND_RESULT_COUNT": "[6734353] !é={0} results=!",
+	"FIND_RESULT_COUNT": "{0} résultats",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
@@ -126,14 +127,15 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
-	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
+	"LANGUAGE_MESSAGE": "Langue :",
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
+	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     /**
      * ProjectManager
      */
-	"PROJECT_LOADING": "[6735416] !é=Loading\u2026=!",
+	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
 
     /**
@@ -175,6 +177,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
+	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -202,7 +205,7 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
-	"CMD_TOGGLE_CLOSE_BRACKETS": "[6734352] !é=Auto Close Braces=!",
+	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -211,8 +214,11 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
 	"CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
-	"CMD_SCROLL_LINE_UP": "[6735595] !é=Scroll Line Up=!",
-	"CMD_SCROLL_LINE_DOWN": "[6735594] !é=Scroll Line Down=!",
+	"CMD_SCROLL_LINE_UP": "Faire défiler d’une ligne vers le haut",
+	"CMD_SCROLL_LINE_DOWN": "Faire défiler d’une ligne vers le bas",
+	"CMD_TOGGLE_LINE_NUMBERS": "Numéros de ligne",
+	"CMD_TOGGLE_ACTIVE_LINE": "Surligner la ligne active",
+	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
@@ -263,11 +269,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
-	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
-	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -277,6 +278,7 @@ define({
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
+	"INSTALL": "Installer",
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
@@ -297,6 +299,46 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
+    
+    // Extension Management strings
+	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
+	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
+	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
+	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
+	"INSTALL_SUCCEEDED": "Installation réussie.",
+	"INSTALL_FAILED": "Echec de l’installation.",
+	"CANCELING_INSTALL": "Annulation en cours\u2026",
+	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
+	"INSTALL_CANCELED": "Installation annulée.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
+	"INVALID_PACKAGE_JSON": "Le fichier package.json n’est pas valide (erreur : {0}).",
+	"MISSING_PACKAGE_NAME": "Le fichier package.json n’indique pas le nom du pack.",
+	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
+	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
+	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
+	"INVALID_BRACKETS_VERSION": "[6771123] !é=The Brackets compatibility string {{0}} is invalid.=!",
+	"DISALLOWED_WORDS": "[6771122] !é=The words {{1}} are not allowed in the {{0}} field.=!",
+	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
+	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
+	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
+	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
+	"DOWNLOAD_ID_IN_USE": "Erreur interne : l’ID de téléchargement est déjà utilisé.",
+	"NO_SERVER_RESPONSE": "Impossible de se connecter au serveur.",
+	"BAD_HTTP_STATUS": "Fichier introuvable sur le serveur (HTTP {0}).",
+	"CANNOT_WRITE_TEMP": "Impossible d’enregistrer le téléchargement vers le fichier temporaire.",
+	"ERROR_LOADING": "Une erreur s’est produite au démarrage de l’extension.",
+	"MALFORMED_URL": "URL non valide. Veuillez vérifier l’URL saisie.",
+	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
+	"UNKNOWN_ERROR": "Erreur interne inconnue.",
+    // For NOT_FOUND_ERR, see generic strings above
+    
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
+	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
+	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
+	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

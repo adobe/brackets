@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
+        LanguageManager       = require("language/LanguageManager"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils");
 
     describe("EditorCommandHandlers", function () {
@@ -404,6 +405,79 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
             
+        });
+        
+        describe("Line comment in languages with mutiple line comment prefixes", function () {
+            // Define a special version of JavaScript for testing purposes
+            LanguageManager.defineLanguage("javascript2", {
+                "name": "JavaScript2",
+                "mode": "javascript",
+                "fileExtensions": ["js2"],
+                "lineComment": ["//", "////", "#"]
+            });
+            
+            beforeEach(function () {
+                setupFullEditor(null, "javascript2");
+            });
+            
+            it("should comment using the first prefix", function () {
+                // select first 2 lines
+                myEditor.setSelection({line: 0, ch: 4}, {line: 1, ch: 12});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines[0] = "//function foo() {";
+                lines[1] = "//    function bar() {";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 0, ch: 6}, end: {line: 1, ch: 14}});
+            });
+            
+            it("should uncomment every prefix", function () {
+                // Start with lines 1-5 commented out, with multiple line comment variations
+                var lines = defaultContent.split("\n");
+                lines[1] = "//    function bar() {";
+                lines[2] = "    //    ";
+                lines[3] = "    ////    a();";
+                lines[4] = "        ";
+                lines[5] = "#    }";
+                var startingContent = lines.join("\n");
+                myDocument.setText(startingContent);
+                
+                // select lines 1-5
+                myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+            });
+            
+            it("should only uncomment the first prefix", function () {
+                // Start with lines 1-3 commented out, with multiple line comment variations
+                var lines = defaultContent.split("\n");
+                lines[1] = "//#    function bar() {";
+                lines[2] = "//        ";
+                lines[3] = "//////        a();";
+                var startingContent = lines.join("\n");
+                myDocument.setText(startingContent);
+                
+                lines = defaultContent.split("\n");
+                lines[1] = "#    function bar() {";
+                lines[2] = "        ";
+                lines[3] = "//        a();";
+                var expectedContent = lines.join("\n");
+                
+                // select lines 1-3
+                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedContent);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+            });
         });
         
         
