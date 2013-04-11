@@ -44,7 +44,8 @@ define(function (require, exports, module) {
         ternEnvironment     = [],
         pendingTernRequests = {},
         rootTernDir             = null,
-        ternWorker          = (function () {
+        ternPromise         = null,
+        _ternWorker          = (function () {
             var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
             return new Worker(path + "tern-worker.js");
         }());
@@ -56,7 +57,7 @@ define(function (require, exports, module) {
      * Create a new tern server.
      */
     function initTernServer(dir, files) {
-        ternWorker.postMessage({
+        _ternWorker.postMessage({
             type        : HintUtils.TERN_INIT_MSG,
             dir         : dir,
             files       : files,
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
      *      it is done
      */
     function getJumptoDef(dir, file, offset, text) {
-        ternWorker.postMessage({
+        postMessage({
             type: HintUtils.TERN_JUMPTODEF_MSG,
             dir:dir,
             file:file,
@@ -224,19 +225,29 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Send a message to the tern worker - if the worker is being initialized,
+     * the message will not be posted until initialization is complete
+     */
+    function postMessage(msg) {
+        ternPromise.done(function (ternWorker){
+            ternWorker.postMessage(msg);
+        });
+    }
+    
+    /**
      * Get a Promise for the completions from TernJS, for the file & offset passed in.
      * @return {jQuery.Promise} - a promise that will resolve to an array of completions when
      *      it is done
      */
     function getTernHints(dir, file, offset, text) {
-        ternWorker.postMessage({
+        postMessage({
             type: HintUtils.TERN_COMPLETIONS_MSG,
             dir:dir,
             file:file,
             offset:offset,
             text:text
         });
-
+        
         var $deferredHints = $.Deferred();
         addPendingRequest(file, HintUtils.TERN_COMPLETIONS_MSG, $deferredHints);        
         return $deferredHints.promise();
@@ -250,7 +261,7 @@ define(function (require, exports, module) {
      *      it is done
      */
     function getTernProperties(dir, file, text) {
-        ternWorker.postMessage({
+        postMessage({
             type: HintUtils.TERN_GET_PROPERTIES_MSG,
             dir:dir,
             file:file,
@@ -267,7 +278,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} - a promise that will resolve to the function type of the function being called.
      */
     function getTernFunctionType(dir, file, pos, text) {
-        ternWorker.postMessage({
+        postMessage({
             type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
             dir:dir,
             file:file,
@@ -346,7 +357,7 @@ define(function (require, exports, module) {
     function handleTernGetFile(request) {
         var name = request.file;
         DocumentManager.getDocumentForPath(rootTernDir + name).done(function(document){
-            ternWorker.postMessage({
+            postMessage({
                 type:HintUtils.TERN_GET_FILE_MSG,
                 file:name, 
                 text:document.getText()
@@ -355,7 +366,7 @@ define(function (require, exports, module) {
         .fail(function(){
             // Need to send something back to tern - it will wait
             // until all the files have been retrieved before doing its calculations
-            ternWorker.postMessage({
+            postMessage({
                 type:HintUtils.TERN_GET_FILE_MSG,
                 file:name, 
                 text:""
@@ -377,6 +388,9 @@ define(function (require, exports, module) {
             reader      = dirEntry.createReader(),
             files       = [];
         
+        var ternDeferred = $.Deferred();
+        ternPromise = ternDeferred.promise();
+        
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {
@@ -393,6 +407,7 @@ define(function (require, exports, module) {
                 }
             });
             initTernServer(dir, files);
+            ternDeferred.resolveWith(null, [_ternWorker]);
         }, function (err) {
             console.log("Unable to refresh directory: " + err);
         });
@@ -408,7 +423,7 @@ define(function (require, exports, module) {
     function handleFileChange(document) {
     }
 
-    ternWorker.addEventListener("message", function (e) {
+    _ternWorker.addEventListener("message", function (e) {
         var response = e.data,
             type = response.type;
 
