@@ -115,7 +115,7 @@ importScripts("thirdparty/requirejs/require.js");
         request.query.lineCharPositions = true;
         ternServer.request(request, function(error, data) {
             if (error) {
-                _log("definition error: " + JSON.stringify(data));
+                _log("Error returned from Tern 'definition' request: " + error);
                 self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG});
                 return;
             }
@@ -143,7 +143,7 @@ importScripts("thirdparty/requirejs/require.js");
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function(error, data) {
             if (error) {
-                _log("Error: " + error);
+                _log("Error returned from Tern 'completions' request: " + error);
                 return;
             }
             var completions = [];
@@ -174,7 +174,7 @@ importScripts("thirdparty/requirejs/require.js");
         //_log("request " + request.type + dir + " " + file);
         ternServer.request(request, function(error, data) {
             if (error) {
-                _log("Error: " + error);
+                _log("Error returned from Tern 'properties' request: " + error);
                 return;
             }
             //_log("completions = " + data.completions.length);
@@ -208,7 +208,10 @@ importScripts("thirdparty/requirejs/require.js");
         
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function(error, data) {
-            //if (error) return displayError(error);
+            if (error) {
+                _log("Error returned from Tern 'type' request: " + error);
+                return;
+            }
             var fnType = data.type;            
             
             // Post a message back to the main thread with the completions
