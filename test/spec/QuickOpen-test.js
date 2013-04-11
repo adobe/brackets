@@ -157,8 +157,8 @@ define(function (require, exports, module) {
                 var editorHeight = scroller.height();
                 var cursorPos = editor._codeMirror.cursorCoords(null, "page").bottom;
                 // the +/- 1 below are to accommodate rounding differences
-                expect(cursorPos).toBeGreaterThan(editorHeight * 0.45 - offset - 1);
-                expect(cursorPos).toBeLessThan(editorHeight * 0.55 - offset + 1);
+                expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 - offset);
+                expect(cursorPos).toBeLessThan(editorHeight * 0.6 - offset);
             });
         });
 
