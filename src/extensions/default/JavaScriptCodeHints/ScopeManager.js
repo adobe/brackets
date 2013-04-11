@@ -198,7 +198,7 @@ define(function (require, exports, module) {
         hintPromise = getTernHints(dir, file, offset, document.getText());
         var sessionType = session.getType();
         if (sessionType.property) {
-            propsPromise = getTernProperties(dir, file, document.getText());
+            propsPromise = getTernProperties(dir, file, offset, document.getText());
         } else {
             var $propsDeferred = $.Deferred();
             propsPromise = $propsDeferred.promise();
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
 
         if( sessionType.showFunctionType ) {
             // Show function sig
-            fnTypePromise = getTernFunctionType(dir, file, sessionType.functionCallPos, document.getText());            
+            fnTypePromise = getTernFunctionType(dir, file, sessionType.functionCallPos, offset, document.getText());            
         } else {
             var $fnTypeDeferred = $.Deferred();
             fnTypePromise = $fnTypeDeferred.promise();
@@ -248,9 +248,7 @@ define(function (require, exports, module) {
             text:text
         });
         
-        var $deferredHints = $.Deferred();
-        addPendingRequest(file, HintUtils.TERN_COMPLETIONS_MSG, $deferredHints);        
-        return $deferredHints.promise();
+        return addPendingRequest(file, offset, HintUtils.TERN_COMPLETIONS_MSG);        
     }
 
     /**
@@ -260,35 +258,33 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} - a promise that will resolve to an array of properties when
      *      it is done
      */
-    function getTernProperties(dir, file, text) {
+    function getTernProperties(dir, file, offset, text) {
         postMessage({
             type: HintUtils.TERN_GET_PROPERTIES_MSG,
             dir:dir,
             file:file,
+            offset: offset,
             text:text
         });
 
-        var $deferredHints = $.Deferred();
-        addPendingRequest(file, HintUtils.TERN_GET_PROPERTIES_MSG, $deferredHints);
-        return $deferredHints.promise();
+        return addPendingRequest(file, offset, HintUtils.TERN_GET_PROPERTIES_MSG);
     }
 
     /**
      * Get a Promise for the function type from TernJS.
      * @return {jQuery.Promise} - a promise that will resolve to the function type of the function being called.
      */
-    function getTernFunctionType(dir, file, pos, text) {
+    function getTernFunctionType(dir, file, pos, offset, text) {
         postMessage({
             type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
             dir:dir,
             file:file,
             pos:pos,
+            offset:offset,
             text:text
         });
 
-        var $deferredHints = $.Deferred();
-        addPendingRequest(file, HintUtils.TERN_CALLED_FUNC_TYPE_MSG, $deferredHints);        
-        return $deferredHints.promise();
+        return addPendingRequest(file, offset, HintUtils.TERN_CALLED_FUNC_TYPE_MSG);        
     }
     
     /**
@@ -298,15 +294,23 @@ define(function (require, exports, module) {
      * @param {string} type - the type of request
      * @param {jQuery.Deferred} deferredRequest - the $.Deferred object to save     
      */     
-    function addPendingRequest(file, type, $deferredRequest) {
-        var requests;        
-        if( Object.prototype.hasOwnProperty.call(pendingTernRequests, file) ) {
-            requests = pendingTernRequests[file];
+    function addPendingRequest(file, offset, type) {
+        var requests,
+            key = file+"@"+offset,
+            $deferredRequest;
+        if( Object.prototype.hasOwnProperty.call(pendingTernRequests, key) ) {
+            requests = pendingTernRequests[key];
         } else {
             requests = {};
-            pendingTernRequests[file] = requests;            
+            pendingTernRequests[key] = requests;            
         }
-        requests[type] = $deferredRequest;        
+
+        if (Object.prototype.hasOwnProperty.call(requests, type)) {
+            $deferredRequest = requests[type];
+        } else {
+            requests[type] = $deferredRequest = $.Deferred();        
+        }
+        return $deferredRequest.promise();
     }        
     
     /**
@@ -315,9 +319,10 @@ define(function (require, exports, module) {
      * @param {string} type - the type of request
      * @param {jQuery.Deferred} - the $.Deferred for the request     
      */     
-    function getPendingRequest(file, type) {
-        if( Object.prototype.hasOwnProperty.call(pendingTernRequests, file) ) {
-            var requests = pendingTernRequests[file];
+    function getPendingRequest(file, offset, type) {
+        var key = file +"@"+offset;
+        if( Object.prototype.hasOwnProperty.call(pendingTernRequests, key) ) {
+            var requests = pendingTernRequests[key];
             return requests[type];            
         }            
     }   
@@ -331,11 +336,12 @@ define(function (require, exports, module) {
     function handleTernCompletions(response) {
         
         var file = response.file,
+            offset = response.offset,
             completions = response.completions,
             properties = response.properties,
             fnType  = response.fnType,
             type = response.type,            
-            $deferredHints = getPendingRequest(file, type);
+            $deferredHints = getPendingRequest(file, offset, type);
         
         if( $deferredHints ) {
             if( completions ) {            
@@ -390,7 +396,7 @@ define(function (require, exports, module) {
         
         var ternDeferred = $.Deferred();
         ternPromise = ternDeferred.promise();
-        
+        pendingTernRequests = [];
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {

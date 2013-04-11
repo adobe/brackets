@@ -123,6 +123,7 @@ importScripts("thirdparty/requirejs/require.js");
             // Post a message back to the main thread with the definition
             self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG,
                               file: data.file,
+                              offset: offset,
                               start: data.start,
                               end: data.end
                              });
@@ -147,6 +148,7 @@ importScripts("thirdparty/requirejs/require.js");
                 return;
             }
             var completions = [];
+            _log("found " + completions.length + " for " + file + "@" + offset);
             for (var i = 0; i < data.completions.length; ++i) {
                 var completion = data.completions[i];
                 completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess});
@@ -156,6 +158,7 @@ importScripts("thirdparty/requirejs/require.js");
             self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
                               dir: dir,
                               file: file,
+                              offset: offset,
                               completions: completions
                              });
         });
@@ -168,7 +171,7 @@ importScripts("thirdparty/requirejs/require.js");
      * @param {string} file     - the file name
      * @param {string} text     - the text of the file
      */
-    function handleGetProperties(dir, file, text) {
+    function handleGetProperties(dir, file, offset, text) {
 
         var request = buildRequest(dir, file, "properties", undefined, text);
         //_log("request " + request.type + dir + " " + file);
@@ -188,6 +191,7 @@ importScripts("thirdparty/requirejs/require.js");
             self.postMessage({type: HintUtils.TERN_GET_PROPERTIES_MSG,
                               dir: dir,
                               file: file,
+                              offset: offset,
                               properties: properties
             });
         });
@@ -200,7 +204,7 @@ importScripts("thirdparty/requirejs/require.js");
      * @param {number} offset   - the offset into the file where we want completions for
      * @param {string} text     - the text of the file
      */
-    function handleFunctionType(dir, file, pos, text) {
+    function handleFunctionType(dir, file, pos, offset, text) {
         
         var request = buildRequest(dir, file, "type", pos, text);
             
@@ -218,6 +222,7 @@ importScripts("thirdparty/requirejs/require.js");
             self.postMessage({type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
                               dir: dir,
                               file: file,
+                              offset: offset,
                               fnType: fnType
                              });
         });
@@ -233,7 +238,7 @@ importScripts("thirdparty/requirejs/require.js");
     }
 
     self.addEventListener("message", function (e) {
-        var dir, file, text,
+        var dir, file, text, offset,
             request = e.data,
             type = request.type;
 
@@ -248,13 +253,14 @@ importScripts("thirdparty/requirejs/require.js");
             dir = request.dir;
             file = request.file;
             text    = request.text;
-            var offset  = request.offset;
+            offset  = request.offset;
             getTernHints(dir, file, offset, text);
         } else if ( type === HintUtils.TERN_GET_PROPERTIES_MSG) {
             file    = request.file,
             dir     = request.dir;
             text    = request.text;
-            handleGetProperties(dir, file, text);
+            offset  = request.offset;
+            handleGetProperties(dir, file, offset, text);
         } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
             file = request.file,
             text = request.text;
@@ -263,14 +269,15 @@ importScripts("thirdparty/requirejs/require.js");
             dir     = request.dir;
             file    = request.file;
             text    = request.text;
+            offset  = request.offset;
             var pos = request.pos;
-            handleFunctionType(dir, file, pos, text);            
+            handleFunctionType(dir, file, pos, offset, text);            
         } else if ( type === HintUtils.TERN_JUMPTODEF_MSG ) {
             file    = request.file;
             dir     = request.dir;
             text    = request.text;
-            var off = request.offset;
-            getJumptoDef(dir, file, off, text);
+            offset  = request.offset;
+            getJumptoDef(dir, file, offset, text);
         } else {
             _log("Unknown message: " + JSON.stringify(request));
         }
