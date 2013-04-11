@@ -407,7 +407,11 @@ define(function (require, exports, module) {
             
             // Check to see if this is the closing of a tag (either the start or end) closing tag
             if (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/") {
-                return createTagInfo(CLOSING_TAG, offset, ctx.token.string.slice(2, ctx.token.string.indexOf(">")));
+                if (ctx.token.string.indexOf(">") === -1) {
+                    return createTagInfo(CLOSING_TAG, offset, ctx.token.string.slice(2));
+                } else {
+                    return createTagInfo(CLOSING_TAG, offset, ctx.token.string.slice(2, ctx.token.string.indexOf(">") + 1));
+                }
             }
             
             // Make sure the cursor is not after an equal sign or a quote before we report the context as a tag.

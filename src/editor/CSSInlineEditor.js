@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         var tagInfo = HTMLUtils.getTagInfo(editor, pos),
             selectorName = "";
         
-        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME || tagInfo.position.tokenType === HTMLUtils.CLOSING_TAG) {
             // Type selector
             selectorName = tagInfo.tagName;
         } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME ||
