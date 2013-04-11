@@ -36,15 +36,11 @@ define(function (require, exports, module) {
 
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
-        HintUtils           = require("HintUtils"),
-        Scope               = require("Scope"),
-        Tern                = require("tern/tern");
-
-    var pendingRequest      = null,     // information about a deferred scope request
-        fileState           = {},       // directory -> file -> state
+        HintUtils           = require("HintUtils");
+    
+    var fileState           = {},       // directory -> file -> state
         ternEnvironment     = [],
         pendingTernRequests = {},
         rootTernDir             = null,
@@ -75,9 +71,6 @@ define(function (require, exports, module) {
     function initTernEnv() {
         var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/defs/";
         var files = ["ecma5.json", "browser.json"];//, "plugin/requirejs/requirejs.json", "jquery.json"];
-        
-        var dirEntry    = new NativeFileSystem.DirectoryEntry(path),
-            reader      = dirEntry.createReader();
         
         files.forEach(function (i) {
             DocumentManager.getDocumentForPath(path + i).done(function (document) {
@@ -115,27 +108,6 @@ define(function (require, exports, module) {
                     active          : false
                 };
             }
-        }
-    }
-
-    /**
-     * Get the file state for a given path. If just the directory is given
-     * instead of the whole path, a set of file states is returned, one for
-     * each (known) file in the directory.
-     * 
-     * @param {string} dir - the directory name for which state is desired
-     * @param {string=} file - the file name for which state is desired
-     * @return {Object} - a file state object (as documented within 
-     *      intializeFileState above), or a set of file state objects if
-     *      file is omitted.
-     */
-    function getFileState(dir, file) {
-        initFileState(dir, file);
-
-        if (file === undefined) {
-            return fileState[dir];
-        } else {
-            return fileState[dir][file];
         }
     }
 
@@ -347,9 +319,7 @@ define(function (require, exports, module) {
      */
     function handleTernCompletions(response) {
         
-        var dir = response.dir,
-            file = response.file,
-            offset = response.offset,
+        var file = response.file,
             completions = response.completions,
             properties = response.properties,
             fnType  = response.fnType,
@@ -394,37 +364,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Is the inner scope dirty? (It is if the outer scope has changed since
-     * the last inner scope request)
-     * 
-     * @param {Document} document - the document for which the last requested
-     *      inner scope may or may not be dirty
-     * @return {boolean} - is the inner scope dirty?
-     */
-    function isScopeDirty(document) {
-        var path    = document.file.fullPath,
-            split   = HintUtils.splitPath(path),
-            dir     = split.dir,
-            file    = split.file,
-            state   = getFileState(dir, file);
-        
-        return state.dirtyScope;
-    }
-
-    /**
-     * Mark a file as dirty, which may cause a later outer scope request to
-     * trigger a reparse request. 
-     * 
-     * @param {string} dir - the directory name of the file to be marked dirty
-     * @param {string} file - the file name of the file to be marked dirty
-     */
-    function markFileDirty(dir, file) {
-        var state = getFileState(dir, file);
-
-        state.dirtyFile = true;
-    }
-
-    /**
      * Called each time a new editor becomes active. Refreshes the outer scopes
      * of the given file as well as of the other files in the given directory.
      * 
@@ -434,19 +373,15 @@ define(function (require, exports, module) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
-            file        = split.file,
             dirEntry    = new NativeFileSystem.DirectoryEntry(dir),
             reader      = dirEntry.createReader(),
             files       = [];
         
-        markFileDirty(dir, file);
-
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {
                     var path    = entry.fullPath,
                         split   = HintUtils.splitPath(path),
-                        dir     = split.dir,
                         file    = split.file;
                     
                     if (file.indexOf(".") > 1) { // ignore /.dotfiles
@@ -471,12 +406,6 @@ define(function (require, exports, module) {
      * @param {Document} document - the document that has changed
      */
     function handleFileChange(document) {
-        var path    = document.file.fullPath,
-            split   = HintUtils.splitPath(path),
-            dir     = split.dir,
-            file    = split.file;
-        
-        markFileDirty(dir, file);
     }
 
     ternWorker.addEventListener("message", function (e) {
@@ -531,6 +460,5 @@ define(function (require, exports, module) {
     exports.handleFileChange = handleFileChange;
     exports.requestJumptoDef = requestJumptoDef;
     exports.requestHints = requestHints;
-    exports.isScopeDirty = isScopeDirty;
     exports.getTernHints = getTernHints;
 });

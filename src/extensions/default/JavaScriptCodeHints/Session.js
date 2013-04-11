@@ -27,8 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var HintUtils       = require("HintUtils"),
-        ScopeManager    = require("ScopeManager");
+    var HintUtils       = require("HintUtils");
 
     /**
      * Session objects encapsulate state associated with a hinting session
@@ -492,10 +491,7 @@ define(function (require, exports, module) {
             }
         }
 
-        var cursor = this.editor.getCursorPos(),
-            offset = this.editor.indexFromPos(cursor),
-            type = this.getType(),
-            association,
+        var type = this.getType(),
             hints;
 
         var ternHints = this.ternHints;

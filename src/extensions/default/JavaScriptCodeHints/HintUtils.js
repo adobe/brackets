@@ -28,7 +28,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var LANGUAGE_ID                 = "javascript",
-        MODE_NAME                   = "javascript",
         SINGLE_QUOTE                = "\'",
         DOUBLE_QUOTE                = "\"",
         TERN_INIT_MSG               = "Init",
