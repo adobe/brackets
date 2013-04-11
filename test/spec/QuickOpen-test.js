@@ -156,7 +156,7 @@ define(function (require, exports, module) {
                 var offset = scroller.offset().top;
                 var editorHeight = scroller.height();
                 var cursorPos = editor._codeMirror.cursorCoords(null, "page").bottom;
-                // the +/- 1 below are to accommodate rounding differences
+                
                 expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 - offset);
                 expect(cursorPos).toBeLessThan(editorHeight * 0.6 - offset);
             });
