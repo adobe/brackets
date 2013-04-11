@@ -807,7 +807,7 @@ define(function (require, exports, module) {
         this._lastQuery = query;
         
         // Check for a known non-matching string.
-        if (this._noMatchCache.hasOwnProperty(str)) {
+        if (Object.prototype.hasOwnProperty.call(this._noMatchCache, str)) {
             return undefined;
         }
         
