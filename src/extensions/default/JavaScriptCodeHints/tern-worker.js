@@ -31,7 +31,7 @@ importScripts("thirdparty/requirejs/require.js");
     
     var HintUtils;
     var Tern;
-    require(["./HintUtils", "./tern/tern", "./tern/plugin/requirejs"], function(hintUtils, tern, requirejs) {
+    require(["./HintUtils", "./tern/lib/tern", "./tern/plugin/requirejs"], function(hintUtils, tern, requirejs) {
         HintUtils = hintUtils;
         Tern = tern;
     } );
@@ -148,7 +148,7 @@ importScripts("thirdparty/requirejs/require.js");
                 return;
             }
             var completions = [];
-            _log("found " + completions.length + " for " + file + "@" + offset);
+            //_log("found " + completions.length + " for " + file + "@" + offset);
             for (var i = 0; i < data.completions.length; ++i) {
                 var completion = data.completions[i];
                 completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess});
