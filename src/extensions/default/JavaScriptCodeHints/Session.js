@@ -28,7 +28,8 @@ define(function (require, exports, module) {
     "use strict";
 
     var StringMatch     = brackets.getModule("utils/StringMatch"),
-        HintUtils       = require("HintUtils");
+        HintUtils       = require("HintUtils"),
+        ScopeManager    = require("ScopeManager");
 
     /**
      * Session objects encapsulate state associated with a hinting session
@@ -43,6 +44,17 @@ define(function (require, exports, module) {
         this.ternHints = [];
         this.ternProperties = [];
         this.fnType = null;
+        this.builtins = ScopeManager.getBuiltins().map(function (builtin) {
+            // remove extension from name, if any.
+            var index = builtin.lastIndexOf(".");
+            if (index !== -1) {
+                builtin = builtin.substring(0, index);
+            }
+
+            return builtin;
+        });
+
+        this.builtins.push("requirejs.js");     // consider these globals as well.
     }
 
     /**
@@ -304,23 +316,13 @@ define(function (require, exports, module) {
 
         var MAX_DISPLAYED_HINTS = 500;
 
-        /*
-         *  Remove the special "<i>" property from the hints.
+        /**
+         *  Is the origin one of the builtin files.
          *
-         *  @param {Array} hints - sorted hints
+         * @param {string} origin
          */
-        function removeArrayIndexProperty(hints) {
-            var n = hints.length,
-                i;
-            for (i = 0; i < n; i++) {
-                var value = hints[i].label;
-                if (value === "<i>") {
-                    hints.splice(i, 1);
-                    return;
-                } else if (value > "<i>") {
-                    return;
-                }
-            }
+        function isBuiltin(origin) {
+            return builtins.indexOf(origin) !== -1;
         }
 
         /**
@@ -341,6 +343,13 @@ define(function (require, exports, module) {
                     if (hint.depth !== undefined) {
                         searchResult.depth = hint.depth;
                     }
+
+                    if (!type.property && !type.showFunctionType && hint.origin &&
+                        isBuiltin(hint.origin)) {
+                        searchResult.builtin = 1;
+                    } else {
+                        searchResult.builtin = 0;
+                    }
                 }
 
                 return searchResult;
@@ -350,6 +359,7 @@ define(function (require, exports, module) {
         }
 
         var type = this.getType(),
+            builtins = this.builtins,
             hints;
 
         if (type.property) {
@@ -362,7 +372,6 @@ define(function (require, exports, module) {
             }
 
             StringMatch.multiFieldSort(hints, { matchGoodness: 0, label: 1 });
-            removeArrayIndexProperty(hints);
         } else if ( type.showFunctionType ) {
             hints = this.getFunctionTypeHint();            
         } else {     // identifiers, literals, and keywords
@@ -370,7 +379,7 @@ define(function (require, exports, module) {
             hints = hints.concat(HintUtils.LITERALS);
             hints = hints.concat(HintUtils.KEYWORDS);
             hints = filterWithQueryAndMatcher(hints, matcher);
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, label: 2 });
+            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, builtin: 2, label: 3 });
         }
 
         if (hints.length > MAX_DISPLAYED_HINTS) {

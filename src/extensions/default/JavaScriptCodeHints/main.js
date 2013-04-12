@@ -127,6 +127,7 @@ define(function (require, exports, module) {
                 } else {
                     $hintObj.text(token.label);
                 }
+
                 $hintObj.data("token", token);
                 
                 return $hintObj;

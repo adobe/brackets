@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     var fileState           = {},       // directory -> file -> state
         ternEnvironment     = [],
         pendingTernRequests = {},
+        _builtins            = ["ecma5.json", "browser.json"],
         rootTernDir         = null,
         projectRoot         = null,
         ternPromise         = null,
@@ -67,14 +68,23 @@ define(function (require, exports, module) {
         });
         rootTernDir = dir + "/";
     }
-    
+
+    /**
+     *  An array of JSON files names contain JavaScript builtins definitions.
+     *
+     * @returns {Array} - array of filenames.
+     */
+    function getBuiltins() {
+        return _builtins;
+    }
+
     /**
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
         var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "thirdparty/tern/defs/";
-        var files = ["ecma5.json", "browser.json"];//, "plugin/requirejs/requirejs.json", "jquery.json"];
-        
+        var files = getBuiltins();
+
         files.forEach(function (i) {
             DocumentManager.getDocumentForPath(path + i).done(function (document) {
                 ternEnvironment.push(JSON.parse(document.getText()));
@@ -509,7 +519,7 @@ define(function (require, exports, module) {
                 }
             });
 
-    
+    exports.getBuiltins = getBuiltins;
     exports.handleEditorChange = handleEditorChange;
     exports.handleFileChange = handleFileChange;
     exports.requestJumptoDef = requestJumptoDef;

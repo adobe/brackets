@@ -97,7 +97,9 @@ importScripts("thirdparty/requirejs/require.js");
         query.filter = false;
         query.sort = false;
         query.depths = true;
-        query.guess = false;
+        query.guess = true;
+        query.origins = true;
+        query.expandWordForward = true;
 
         var request = {query:query, files:[], offset:offset};
         request.files.push({type:"full", name:file, text:text});
@@ -155,7 +157,8 @@ importScripts("thirdparty/requirejs/require.js");
             //_log("found " + completions.length + " for " + file + "@" + offset);
             for (var i = 0; i < data.completions.length; ++i) {
                 var completion = data.completions[i];
-                completions.push({value: completion.name, type: completion.type, depth: completion.depth, guess: completion.guess});
+                completions.push({value: completion.name, type: completion.type, depth: completion.depth,
+                    guess: completion.guess, origin: completion.origin});
             }
 
             // Post a message back to the main thread with the completions
