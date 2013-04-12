@@ -335,6 +335,7 @@ define(function (require, exports, module) {
         function initializeSession(editor) {
             ScopeManager.handleEditorChange(editor.document);
             session = new Session(editor);
+            cachedHints = null;
         }
 
         /*

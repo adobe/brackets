@@ -226,6 +226,22 @@ define(function (require, exports, module) {
             });
         }
 
+        /**
+         * Find the index of a string in a list of hints.
+         * @param {Array} hintList - the list of hints
+         * @param {string} hintSelection - the string represenation of the hint
+         *  to find the index of
+         * @return {number} the index of the hint corresponding to the hintSelection
+         */
+        function findHint(hintList, hintSelection) {
+            for (var i = 0, l = hintList.length; i < l; ++i) {
+                var current = hintList[i].data("token");
+                if (hintSelection === current.value) {
+                    return i;
+                }
+            }
+            return -1;
+        }
         /*
          * Simulation of selection of a particular hint in a hint list.
          * Presumably results in side effects in the hint provider's 
@@ -234,13 +250,13 @@ define(function (require, exports, module) {
          * @param {Object} provider - a CodeHint provider object
          * @param {Object} hintObj - a hint response object from that provider,
          *      possibly deferred
-         * @param {number} index - the index into the hint list at which a hint
-         *      is to be selected
+         * @param {string} hintSelection - the hint to select
          */
-        function selectHint(provider, hintObj, index) {
+        function selectHint(provider, hintObj, hintSelection) {
             var hintList = expectHints(provider);
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
+                var index = findHint(hintList, hintSelection);
                 expect(hintList[index].data("token")).not.toBeNull();
                 expect(provider.insertHint(hintList[index])).toBe(false);
             });
@@ -451,7 +467,7 @@ define(function (require, exports, module) {
 
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, 1); // hint 2 is "A2"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "A2"); // hint 2 is "A2"
                 runs(function () {
                     //expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, end)).toEqual("A2");
@@ -466,7 +482,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["A1", "A2", "A3"]);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, 0); // hint 1 is "A1"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "A1"); // hint 1 is "A1"
                 runs(function () {
                     //expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(before, end)).toEqual("A1");
@@ -481,7 +497,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, 0); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
@@ -498,7 +514,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.prop", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, 0); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
@@ -515,7 +531,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.pro", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, 0); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, end)).toEqual("A1.propA");
@@ -531,7 +547,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.propB", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, 0); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, end)).toEqual("A1.propA");
@@ -548,7 +564,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("(A1.prop)", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, 0); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
