@@ -43,7 +43,8 @@ define(function (require, exports, module) {
     var fileState           = {},       // directory -> file -> state
         ternEnvironment     = [],
         pendingTernRequests = {},
-        rootTernDir             = null,
+        rootTernDir         = null,
+        projectRoot         = null,
         ternPromise         = null,
         _ternWorker          = (function () {
             var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
@@ -361,22 +362,33 @@ define(function (require, exports, module) {
      *      of the file tern wants the contents of 
      */
     function handleTernGetFile(request) {
+
+        function replyWith(name, txt) {
+            postMessage({
+                type:HintUtils.TERN_GET_FILE_MSG,
+                file:name, 
+                text:txt
+            });
+        }
+
         var name = request.file;
         DocumentManager.getDocumentForPath(rootTernDir + name).done(function(document){
-            postMessage({
-                type:HintUtils.TERN_GET_FILE_MSG,
-                file:name, 
-                text:document.getText()
-            });
+            replyWith(name, document.getText());
         })
         .fail(function(){
-            // Need to send something back to tern - it will wait
-            // until all the files have been retrieved before doing its calculations
-            postMessage({
-                type:HintUtils.TERN_GET_FILE_MSG,
-                file:name, 
-                text:""
-            });
+            if (projectRoot) {
+                // Try relative to project root
+                DocumentManager.getDocumentForPath(projectRoot + name).done(function(document) {
+                    replyWith(name, document.getText());
+                })
+                .fail(function(){
+                    replyWith(name, "");
+                });
+            } else {
+                // Need to send something back to tern - it will wait
+                // until all the files have been retrieved before doing its calculations
+                replyWith(name, "");    
+            }
         });
     }
     
@@ -397,6 +409,7 @@ define(function (require, exports, module) {
         var ternDeferred = $.Deferred();
         ternPromise = ternDeferred.promise();
         pendingTernRequests = [];
+        projectRoot = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
                 if (entry.isFile) {
