@@ -89,7 +89,7 @@ define(function (require, exports, module) {
             
         });
 
-        it("should handle simultaneous requests without doing extra work", function () {  // #330
+        it("should handle identical simultaneous requests without doing extra work", function () {  // #330
             // Open a directory
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
                     .done(function (result) {
                         allFiles1 = result;
                     });
-                promise2 = FileIndexManager.getFileInfoList("all")
+                promise2 = FileIndexManager.getFileInfoList("all") // same request again
                     .done(function (result) {
                         allFiles2 = result;
                     });
@@ -118,6 +118,41 @@ define(function (require, exports, module) {
                 // Correct response to both promises
                 expect(allFiles1.length).toEqual(8);
                 expect(allFiles2.length).toEqual(8);
+                
+                // Didn't scan project tree twice
+                expect(projectRoot.createReader.callCount).toBe(1);
+            });
+        });
+        
+        it("should handle differing simultaneous requests without doing extra work", function () {  // #330
+            // Open a directory
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
+            var projectRoot;
+            var promise1, promise2;
+            var allFiles1, allFiles2;
+            runs(function () {
+                projectRoot = ProjectManager.getProjectRoot();
+                spyOn(projectRoot, "createReader").andCallThrough();
+                
+                // Kick off two index requests in parallel
+                promise1 = FileIndexManager.getFileInfoList("all")
+                    .done(function (result) {
+                        allFiles1 = result;
+                    });
+                promise2 = FileIndexManager.getFileInfoList("css") // different request in parallel
+                    .done(function (result) {
+                        allFiles2 = result;
+                    });
+                
+                waitsForDone(promise1, "First FileIndexManager.getFileInfoList()");
+                waitsForDone(promise2, "Second FileIndexManager.getFileInfoList()");
+            });
+            
+            runs(function () {
+                // Correct response to both promises
+                expect(allFiles1.length).toEqual(8);
+                expect(allFiles2.length).toEqual(3);
                 
                 // Didn't scan project tree twice
                 expect(projectRoot.createReader.callCount).toBe(1);

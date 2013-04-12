@@ -1161,34 +1161,25 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
     function notifyPathNameChanged(oldName, newName, isFolder) {
-        var i, path;
+        var i;
         
         // Update open documents. This will update _currentDocument too, since 
         // the current document is always open.
         var keysToDelete = [];
-        for (path in _openDocuments) {
-            if (_openDocuments.hasOwnProperty(path)) {
-                if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
-                    var doc = _openDocuments[path];
-                    
-                    // Copy value to new key
-                    var newKey = path.replace(oldName, newName);
-                    _openDocuments[newKey] = doc;
-                    
-                    keysToDelete.push(path);
-                    
-                    // Update document file
-                    FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
-                    doc._notifyFilePathChanged();
-                    
-                    if (!isFolder) {
-                        // If the path name is a file, there can only be one matched entry in the open document
-                        // list, which we just updated. Break out of the for .. in loop. 
-                        break;
-                    }
-                }
+        CollectionUtils.forEach(_openDocuments, function (doc, path) {
+            if (FileUtils.isAffectedWhenRenaming(path, oldName, newName, isFolder)) {
+                // Copy value to new key
+                var newKey = path.replace(oldName, newName);
+                _openDocuments[newKey] = doc;
+                
+                keysToDelete.push(path);
+                
+                // Update document file
+                FileUtils.updateFileEntryPath(doc.file, oldName, newName, isFolder);
+                doc._notifyFilePathChanged();
             }
-        }
+        });
+        
         // Delete the old keys
         for (i = 0; i < keysToDelete.length; i++) {
             delete _openDocuments[keysToDelete[i]];

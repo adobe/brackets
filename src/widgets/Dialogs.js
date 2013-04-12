@@ -215,7 +215,7 @@ define(function (require, exports, module) {
      * -- the HTML for the dialog contains elements with "title" and "message" classes, as well as a number 
      *    of elements with "dialog-button" class, each of which has a "data-button-id".
      *
-     * @param {string} dlgClass The class of the dialog node in the HTML.
+     * @param {string} dlgClass The class of the dialog node in the HTML. Typically one of DIALOG_ID_*.
      * @param {string=} title The title of the error dialog. Can contain HTML markup. If unspecified, title in
      *      the HTML template is used unchanged.
      * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If

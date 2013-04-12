@@ -338,23 +338,18 @@ define(function (require, exports, module) {
         dismissButton.click();
 
         // Dialog should resolve/reject the promise
-        waitsForDone(promise);
+        waitsForDone(promise, "dismiss dialog");
     }
     
     
     function loadProjectInTestWindow(path) {
-        var isReady = false;
-
         runs(function () {
             // begin loading project path
             var result = _testWindow.brackets.test.ProjectManager.openProject(path);
-            result.done(function () {
-                isReady = true;
-            });
+            
+            // wait for file system to finish loading
+            waitsForDone(result, "ProjectManager.openProject()");
         });
-
-        // wait for file system to finish loading
-        waitsFor(function () { return isReady; }, "openProject() timeout", 1000);
     }
     
     /**

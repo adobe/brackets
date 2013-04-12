@@ -1404,18 +1404,14 @@ define(function (require, exports, module) {
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
                 CSSUtils,
                 DocumentManager,
-                FileViewController,
-                ProjectManager,
-                brackets;
+                FileViewController;
     
             beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                     // Load module instances from brackets.test
-                    brackets            = testWindow.brackets;
                     CSSUtils            = testWindow.brackets.test.CSSUtils;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
-                    ProjectManager      = testWindow.brackets.test.ProjectManager;
 
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });

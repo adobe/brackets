@@ -129,11 +129,21 @@ define(function (require, exports, module) {
             
             it("should map file extensions to languages", function () {
                 var html    = LanguageManager.getLanguage("html"),
+                    css     = LanguageManager.getLanguage("css"),
                     unknown = LanguageManager.getLanguage("unknown");
                 
+                // Bare file names
                 expect(LanguageManager.getLanguageForPath("foo.html")).toBe(html);
                 expect(LanguageManager.getLanguageForPath("INDEX.HTML")).toBe(html);
                 expect(LanguageManager.getLanguageForPath("foo.doesNotExist")).toBe(unknown);
+                
+                // URIs
+                expect(LanguageManager.getLanguageForPath("file:///only/testing/the/path.html")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("http://only.org/testing/the/path.css?v=2")).toBe(css);
+                
+                // Things that aren't extensions
+                expect(LanguageManager.getLanguageForPath("/code/html")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("/code/foo.html.notreally")).toBe(unknown);
             });
             
             it("should map complex file extensions to languages", function () {
