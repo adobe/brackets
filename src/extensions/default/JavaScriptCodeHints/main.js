@@ -396,28 +396,23 @@ define(function (require, exports, module) {
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
 
-                    if (jumpResp.resultFile && (jumpResp.resultFile !== jumpResp.file)) {
-
-                        var doc = DocumentManager.getCurrentDocument();
-                        var x = doc.file.fullPath.lastIndexOf("/");
-                        var dir;
-                        if (x >= 0) {
-                            dir = doc.file.fullPath.slice(0, x + 1);
+                    if (jumpResp.resultFile) {
+                        if (jumpResp.resultFile !== jumpResp.file) {
+                            var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
+                            if (resolvedPath) {
+                                CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
+                                    .done(function() {
+                                        session.editor.setCursorPos(jumpResp.start);
+                                        session.editor.setSelection(jumpResp.start, jumpResp.end);
+                                        session.editor.centerOnCursor();
+                                    });
+                            }
                         } else {
-                            dir = "";
+                            session.editor.setCursorPos(jumpResp.start);
+                            session.editor.setSelection(jumpResp.start, jumpResp.end);
+                            session.editor.centerOnCursor();
                         }
-                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: dir+jumpResp.resultFile })
-                            .done(function() {
-                                session.editor.setCursorPos(jumpResp.start);
-                                session.editor.setSelection(jumpResp.start, jumpResp.end);
-                                session.editor.centerOnCursor();
-                            });
-                        return;
                     }
-
-                    session.editor.setCursorPos(jumpResp.start);
-                    session.editor.setSelection(jumpResp.start, jumpResp.end);
-                    session.editor.centerOnCursor();
 
                 }).fail(function () {
                     response.reject();

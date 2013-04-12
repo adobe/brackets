@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         rootTernDir         = null,
         projectRoot         = null,
         ternPromise         = null,
+        resolvedFiles       = {},       // file -> resolved file
         _ternWorker          = (function () {
             var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
             return new Worker(path + "tern-worker.js");
@@ -356,6 +357,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @param {string} file a relative path
+     * @return {string} returns the path we resolved when we tried to parse the file, or undefined
+     */
+    function getResolvedPath(file) {
+        return resolvedFiles[file];
+    }
+
+    /**
      * Handle a request from the worker for text of a file
      *
      * @param {{file:string}} request - the request from the worker.  Should be an Object containing the name
@@ -373,12 +382,14 @@ define(function (require, exports, module) {
 
         var name = request.file;
         DocumentManager.getDocumentForPath(rootTernDir + name).done(function(document){
+            resolvedFiles[name] = rootTernDir + name;
             replyWith(name, document.getText());
         })
         .fail(function(){
             if (projectRoot) {
                 // Try relative to project root
                 DocumentManager.getDocumentForPath(projectRoot + name).done(function(document) {
+                    resolvedFiles[name] = projectRoot + name;
                     replyWith(name, document.getText());
                 })
                 .fail(function(){
@@ -409,6 +420,7 @@ define(function (require, exports, module) {
         var ternDeferred = $.Deferred();
         ternPromise = ternDeferred.promise();
         pendingTernRequests = [];
+        resolvedFiles = {};
         projectRoot = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
         reader.readEntries(function (entries) {
             entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
@@ -495,4 +507,5 @@ define(function (require, exports, module) {
     exports.requestJumptoDef = requestJumptoDef;
     exports.requestHints = requestHints;
     exports.getTernHints = getTernHints;
+    exports.getResolvedPath = getResolvedPath;
 });
