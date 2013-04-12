@@ -31,9 +31,12 @@ importScripts("thirdparty/requirejs/require.js");
     
     var HintUtils;
     var Tern;
-    require(["./HintUtils", "./tern/lib/tern", "./tern/plugin/requirejs"], function(hintUtils, tern, requirejs) {
+    require(["./HintUtils"], function(hintUtils) {
         HintUtils = hintUtils;
-        Tern = tern;
+        var ternRequire = require.config({baseUrl: "./thirdparty"});
+        ternRequire(["tern/lib/tern", "tern/plugin/requirejs"], function(tern, requirejs) {
+            Tern = tern;
+        } );
     } );
 
     var ternServer  = null;

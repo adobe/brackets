@@ -70,7 +70,7 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "tern/defs/";
+        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "thirdparty/tern/defs/";
         var files = ["ecma5.json", "browser.json"];//, "plugin/requirejs/requirejs.json", "jquery.json"];
         
         files.forEach(function (i) {
