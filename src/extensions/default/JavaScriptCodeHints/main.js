@@ -265,8 +265,7 @@ define(function (require, exports, module) {
             if (token) {
                 if (!cachedScope) {
                     var offset          = session.getOffset(),
-                        scopeResponse   = ScopeManager.getScopeInfo(session.editor.document, offset),
-                        self            = this;
+                        scopeResponse   = ScopeManager.getScopeInfo(session.editor.document, offset);
 
                     if (scopeResponse.hasOwnProperty("promise")) {
                         var $deferredHints = $.Deferred();
@@ -277,14 +276,11 @@ define(function (require, exports, module) {
                             cachedType = session.getType();
                             cachedHints = session.getHints();
 
-                            $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
-
                             if ($deferredHints.state() === "pending") {
                                 var query           = session.getQuery(),
                                     hintResponse    = getHintResponse(cachedHints, query);
 
                                 $deferredHints.resolveWith(null, [hintResponse]);
-                                $(self).triggerHandler("hintResponse", [query]);
                             }
                         }).fail(function () {
                             if ($deferredHints.state() === "pending") {
@@ -292,7 +288,6 @@ define(function (require, exports, module) {
                             }
                         });
 
-                        $(this).triggerHandler("deferredResponse");
                         return $deferredHints;
                     } else {
                         session.setScopeInfo(scopeResponse);
