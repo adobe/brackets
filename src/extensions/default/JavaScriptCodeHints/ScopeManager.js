@@ -416,6 +416,12 @@ define(function (require, exports, module) {
             files       = [],
             file        = split.file;
 
+        var ternDeferred = $.Deferred();
+        ternPromise = ternDeferred.promise();
+        pendingTernRequests = [];
+        resolvedFiles = {};
+        projectRoot = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
+
         NativeFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
             var reader = dirEntry.createReader();
 
@@ -431,7 +437,6 @@ define(function (require, exports, module) {
                             var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
                             if (languageID === HintUtils.LANGUAGE_ID) {
                                 files.push(file);
-                                });
                             }
                         }
                     }
