@@ -122,7 +122,8 @@ importScripts("thirdparty/requirejs/require.js");
             
             // Post a message back to the main thread with the definition
             self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG,
-                              file: data.file,
+                              file: file,
+                              resultFile: data.file,
                               offset: offset,
                               start: data.start,
                               end: data.end
