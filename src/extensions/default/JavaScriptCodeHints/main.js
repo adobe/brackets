@@ -395,7 +395,7 @@ define(function (require, exports, module) {
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
 
-                    if (jumpResp.resultFile !== jumpResp.file) {
+                    if (jumpResp.resultFile && (jumpResp.resultFile !== jumpResp.file)) {
 
                         var doc = DocumentManager.getCurrentDocument();
                         var x = doc.file.fullPath.lastIndexOf("/");
