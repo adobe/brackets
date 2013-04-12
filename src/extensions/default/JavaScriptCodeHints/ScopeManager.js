@@ -413,34 +413,37 @@ define(function (require, exports, module) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
-            dirEntry    = new NativeFileSystem.DirectoryEntry(dir),
-            reader      = dirEntry.createReader(),
-            files       = [];
-        
-        var ternDeferred = $.Deferred();
-        ternPromise = ternDeferred.promise();
-        pendingTernRequests = [];
-        resolvedFiles = {};
-        projectRoot = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
-        reader.readEntries(function (entries) {
-            entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
-                if (entry.isFile) {
-                    var path    = entry.fullPath,
-                        split   = HintUtils.splitPath(path),
-                        file    = split.file;
-                    
-                    if (file.indexOf(".") > 1) { // ignore /.dotfiles
-                        var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
-                        if (languageID === HintUtils.LANGUAGE_ID) {
-                            files.push(file);
+            files       = [],
+            file        = split.file;
+
+        NativeFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
+            var reader = dirEntry.createReader();
+
+            reader.readEntries(function (entries) {
+                entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
+                    if (entry.isFile) {
+                        var path    = entry.fullPath,
+                            split   = HintUtils.splitPath(path),
+                            dir     = split.dir,
+                            file    = split.file;
+                        
+                        if (file.indexOf(".") > 1) { // ignore /.dotfiles
+                            var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
+                            if (languageID === HintUtils.LANGUAGE_ID) {
+                                files.push(file);
+                                });
+                            }
                         }
                     }
-                }
+                });
+                initTernServer(dir, files);
+                ternDeferred.resolveWith(null, [_ternWorker]);
+            }, function (err) {
+                console.log("Unable to refresh directory: " + err);
+                refreshOuterScope(dir, file, document.getText());
             });
-            initTernServer(dir, files);
-            ternDeferred.resolveWith(null, [_ternWorker]);
         }, function (err) {
-            console.log("Unable to refresh directory: " + err);
+            console.log("Directory \"%s\" does not exist", dir);
         });
         
     }

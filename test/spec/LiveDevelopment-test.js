@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, spyOn, jasmine */
 
 define(function (require, exports, module) {
@@ -30,7 +30,9 @@ define(function (require, exports, module) {
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),
         Strings                 = require("strings"),
-        StringUtils             = require("utils/StringUtils");
+        StringUtils             = require("utils/StringUtils"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils               = require("file/FileUtils");
 
     // The following are all loaded from the test window
     var CommandManager,
@@ -45,13 +47,15 @@ define(function (require, exports, module) {
     
     // Used as mocks
     require("LiveDevelopment/main");
-    var CommandsModule          = require("command/Commands"),
-        CommandsManagerModule   = require("command/CommandManager"),
-        LiveDevelopmentModule   = require("LiveDevelopment/LiveDevelopment"),
-        InspectorModule         = require("LiveDevelopment/Inspector/Inspector"),
-        CSSDocumentModule       = require("LiveDevelopment/Documents/CSSDocument"),
-        CSSAgentModule          = require("LiveDevelopment/Agents/CSSAgent"),
-        HighlightAgentModule    = require("LiveDevelopment/Agents/HighlightAgent");
+    var CommandsModule            = require("command/Commands"),
+        CommandsManagerModule     = require("command/CommandManager"),
+        LiveDevelopmentModule     = require("LiveDevelopment/LiveDevelopment"),
+        InspectorModule           = require("LiveDevelopment/Inspector/Inspector"),
+        CSSDocumentModule         = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSAgentModule            = require("LiveDevelopment/Agents/CSSAgent"),
+        HighlightAgentModule      = require("LiveDevelopment/Agents/HighlightAgent"),
+        HTMLDocumentModule        = require("LiveDevelopment/Documents/HTMLDocument"),
+        HTMLInstrumentationModule = require("language/HTMLInstrumentation");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
@@ -146,7 +150,9 @@ define(function (require, exports, module) {
             
             it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
                 var id  = Math.floor(Math.random() * 100000),
-                    url = LiveDevelopment.launcherUrl + "?id=" + id;
+                    url = LiveDevelopment.launcherUrl + "?id=" + id,
+                    connected = false,
+                    failed = false;
                 
                 runs(function () {
                     waitsForDone(
@@ -157,10 +163,28 @@ define(function (require, exports, module) {
                 });
                    
                 runs(function () {
-                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 5000);
+                    var retries = 0;
+                    function tryConnect() {
+                        if (retries < 10) {
+                            retries++;
+                            Inspector.connectToURL(url)
+                                .done(function () {
+                                    connected = true;
+                                })
+                                .fail(function () {
+                                    window.setTimeout(tryConnect, 500);
+                                });
+                        } else {
+                            failed = true;
+                        }
+                    }
+                    tryConnect();
                 });
                 
+                waitsFor(function () { return connected || failed; }, 10000);
+                
                 runs(function () {
+                    expect(failed).toBe(false);
                     expect(Inspector.connected()).toBeTruthy();
                 });
                 
@@ -619,6 +643,150 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(2, 0);
                 expect(HighlightAgentModule.rule.calls.length).toEqual(3);
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div");
+            });
+        });
+
+        describe("Highlighting elements in browser from cursor positions in HTML page", function () {
+            
+            var testDocument,
+                testEditor,
+                testHTMLDoc,
+                liveDevelopmentConfig,
+                inspectorConfig,
+                fileContent = null,
+                instrumentedHtml = "",
+                elementIds = {},
+                testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
+                WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html");
+          
+            function init(fileEntry) {
+                if (fileEntry) {
+                    runs(function () {
+                        FileUtils.readAsText(fileEntry)
+                            .done(function (text) {
+                                fileContent = text;
+                            });
+                    });
+                    
+                    waitsFor(function () { return (fileContent !== null); }, 1000);
+                }
+            }
+        
+            function createIdToTagMap(html) {
+                var elementIdRegEx = /<(\w+?)\s+(?:[^<]*?\s)*?data-brackets-id='(\S+?)'/gi,
+                    match,
+                    tagID,
+                    tagName;
+                
+                elementIds = {};
+                do {
+                    match = elementIdRegEx.exec(html);
+                    if (match) {
+                        tagID = match[2];
+                        tagName = match[1];
+                        
+                        // Verify that the newly found ID is unique.
+                        expect(elementIds[tagID]).toBeUndefined();
+                        
+                        elementIds[tagID] = tagName.toLowerCase();
+                    }
+                } while (match);
+            }
+            
+            function verifyTagWithId(line, ch, tag) {
+                testEditor.setCursorPos(line, ch);
+                var id = HighlightAgentModule.domElement.mostRecentCall.args[0];
+                expect(elementIds[id]).toEqual(tag);
+            }
+            
+            beforeEach(function () {
+                if (!fileContent) {
+                    init(WellFormedFileEntry);
+                }
+                
+                runs(function () {
+                    // save original configs
+                    liveDevelopmentConfig = LiveDevelopmentModule.config;
+                    inspectorConfig = InspectorModule.config;
+                    
+                    // force init
+                    LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
+                    HighlightAgentModule.load();
+                    
+                    // module spies -- used to mock actual API calls so that we can test those
+                    // APIs without having to actually launch the browser.
+                    spyOn(HighlightAgentModule, "hide").andCallFake(function () {});
+                    spyOn(HighlightAgentModule, "domElement").andCallFake(function () {});
+                    
+                    var mock = SpecRunnerUtils.createMockEditor(fileContent, "html");
+                    testDocument = mock.doc;
+                    testEditor = mock.editor;
+                    
+                    instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
+                    createIdToTagMap(instrumentedHtml);
+                    testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
+                    testHTMLDoc.setInstrumentationEnabled(true);
+                });
+            });
+            
+            afterEach(function () {
+                LiveDevelopmentModule.config = liveDevelopmentConfig;
+                InspectorModule.config = inspectorConfig;
+                
+                SpecRunnerUtils.destroyMockEditor(testDocument);
+                testDocument = null;
+                testEditor = null;
+                
+                instrumentedHtml = "";
+                elementIds = {};
+            });
+            
+            it("should highlight the image for cursor positions inside img tag.", function () {
+                verifyTagWithId(58, 4, "img");  // before <img
+                verifyTagWithId(58, 95, "img"); // after />
+                verifyTagWithId(58, 65, "img"); // inside src attribute value
+
+            });
+
+            it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
+                verifyTagWithId(58, 1, "a");  // before "   <img"
+                verifyTagWithId(59, 0, "a");  // before </a>
+            });
+
+            it("No highlight when the cursor position is outside of the 'html' tag", function () {
+                var count = HighlightAgentModule.hide.callCount;
+                
+                testEditor.setCursorPos(0, 5);  // inside 'doctype' tag
+                expect(HighlightAgentModule.hide).toHaveBeenCalled();
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 1);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+
+                testEditor.setCursorPos(147, 5);  // after </html>
+                expect(HighlightAgentModule.hide.callCount).toBe(count + 2);
+                expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
+            });
+
+            it("Should highlight the entire body for all cursor positions inside an html comment", function () {
+                verifyTagWithId(15, 1, "body");  // cursor between < and ! in the comment start
+                verifyTagWithId(16, 15, "body");
+                verifyTagWithId(17, 3, "body");  // cursor after -->
+            });
+
+            it("should highlight 'meta/link' tag for cursor positions in meta/link tags, not 'head' tag", function () {
+                verifyTagWithId(5, 60, "meta");
+                verifyTagWithId(8, 12, "link");
+            });
+
+            it("Should highlight 'title' tag at cursor positions (either in the content or begin/end tag)", function () {
+                verifyTagWithId(6, 11, "title");  // inside the begin tag
+                verifyTagWithId(6, 30, "title");  // in the content
+                verifyTagWithId(6, 50, "title");  // inside the end tag
+            });
+
+            it("Should get 'h2' tag at cursor positions (either in the content or begin or end tag)", function () {
+                verifyTagWithId(13, 1, "h2");  // inside the begin tag
+                verifyTagWithId(13, 20, "h2"); // in the content
+                verifyTagWithId(13, 27, "h2"); // inside the end tag
             });
         });
     });

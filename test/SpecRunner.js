@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
     
-    var selectedSuite,
+    var selectedSuites,
         params = new UrlParams(),
         reporter,
         _nodeConnectionDeferred = new $.Deferred(),
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
 
     params.parse();
     
-    function _loadExtensionTests(suite) {
+    function _loadExtensionTests() {
         // augment jasmine to identify extension unit tests
         var addSuite = jasmine.Runner.prototype.addSuite;
         jasmine.Runner.prototype.addSuite = function (suite) {
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
             paths = ["default"];
         
         // load dev and user extensions only when running the extension test suite
-        if (suite === "ExtensionTestSuite") {
+        if (selectedSuites.indexOf("extension") >= 0) {
             paths.push("dev");
             paths.push(ExtensionLoader.getUserExtensionPath());
         }
@@ -127,7 +127,9 @@ define(function (require, exports, module) {
             window.location.reload(true);
         });
         
-        $("#" + selectedSuite).closest("li").toggleClass("active", true);
+        if (selectedSuites.length === 1) {
+            $("#" + (selectedSuites[0])).closest("li").toggleClass("active", true);
+        }
         
         AppInit._dispatchReady(AppInit.APP_READY);
         
@@ -200,22 +202,10 @@ define(function (require, exports, module) {
                 );
         });
 
-        selectedSuite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        selectedSuites = (params.get("suite") || localStorage.getItem("SpecRunner.suite") || "unit").split(",");
         
         // Create a top-level filter to show/hide performance and extensions tests
-        var runAll = (selectedSuite === "all"),
-            isPerfSuite = (selectedSuite === "PerformanceTestSuite"),
-            isExtSuite = (selectedSuite === "ExtensionTestSuite"),
-            isIntegrationSuite = (selectedSuite === "IntegrationTestSuite"),
-            category;
-            
-        if (isPerfSuite) {
-            category = "performance";
-        } else if (isIntegrationSuite) {
-            category = "integration";
-        } else if (isExtSuite) {
-            category = "extension";
-        }
+        var runAll = (selectedSuites.indexOf("all") >= 0);
         
         var topLevelFilter = function (spec) {
             // special case "all" suite to run unit, perf, extension, and integration tests
@@ -223,40 +213,25 @@ define(function (require, exports, module) {
                 return true;
             }
 
-            var currentSuite = spec.suite;
-            
-            // unit test suites have no category
-            if (!isPerfSuite && !isExtSuite && !isIntegrationSuite) {
-                if (spec.category !== undefined) {
-                    // if an individualy spec has a category, filter it out
-                    return false;
-                }
-                
+            var currentSuite = spec.suite,
+                category = spec.category;
+
+            if (!category) {
+                // find the category from the closest suite
                 while (currentSuite) {
-                    if (currentSuite.category !== undefined) {
-                        // any suite in the hierarchy may specify a category
-                        return false;
+                    if (currentSuite.category) {
+                        category = currentSuite.category;
+                        break;
                     }
-                    
+
                     currentSuite = currentSuite.parentSuite;
                 }
-                
-                return true;
             }
             
-            if (spec.category === category) {
-                return true;
-            }
-            
-            while (currentSuite) {
-                if (currentSuite.category === category) {
-                    return true;
-                }
-                
-                currentSuite = currentSuite.parentSuite;
-            }
-            
-            return false;
+            // if unit tests are selected, make sure there is no category in the heirarchy
+            // if not a unit test, make sure the category is selected
+            return (selectedSuites.indexOf("unit") >= 0 && category === undefined) ||
+                (selectedSuites.indexOf(category) >= 0);
         };
         
         /*
@@ -266,9 +241,9 @@ define(function (require, exports, module) {
          */
         
         // configure spawned test windows to load extensions
-        SpecRunnerUtils.setLoadExtensionsInTestWindow(isExtSuite);
+        SpecRunnerUtils.setLoadExtensionsInTestWindow(selectedSuites.indexOf("extension") >= 0);
         
-        _loadExtensionTests(selectedSuite).done(function () {
+        _loadExtensionTests(selectedSuites).done(function () {
             var jasmineEnv = jasmine.getEnv();
             
             // Initiailize unit test preferences for each spec
@@ -302,7 +277,7 @@ define(function (require, exports, module) {
             reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
-            localStorage.setItem("SpecRunner.suite", selectedSuite);
+            localStorage.setItem("SpecRunner.suite", selectedSuites);
             
             $(window.document).ready(_documentReadyHandler);
         });
