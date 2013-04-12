@@ -29,6 +29,7 @@ define(function (require, exports, module) {
 
     var CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
+        DocumentManager = brackets.getModule("document/DocumentManager"),
         Commands        = brackets.getModule("command/Commands"),
         CommandManager  = brackets.getModule("command/CommandManager"),
         Menus           = brackets.getModule("command/Menus"),
@@ -394,8 +395,27 @@ define(function (require, exports, module) {
             if (response.hasOwnProperty("promise")) {
                 response.promise.done(function (jumpResp) {
 
-                    session.editor.setSelection(jumpResp.start, jumpResp.end);
+                    if (jumpResp.resultFile !== jumpResp.file) {
+
+                        var doc = DocumentManager.getCurrentDocument();
+                        var x = doc.file.fullPath.lastIndexOf("/");
+                        var dir;
+                        if (x >= 0) {
+                            dir = doc.file.fullPath.slice(0, x + 1);
+                        } else {
+                            dir = "";
+                        }
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: dir+jumpResp.resultFile })
+                            .done(function() {
+                                session.editor.setCursorPos(jumpResp.start);
+                                session.editor.setSelection(jumpResp.start, jumpResp.end);
+                                session.editor.centerOnCursor();
+                            });
+                        return;
+                    }
+
                     session.editor.setCursorPos(jumpResp.start);
+                    session.editor.setSelection(jumpResp.start, jumpResp.end);
                     session.editor.centerOnCursor();
 
                 }).fail(function () {
