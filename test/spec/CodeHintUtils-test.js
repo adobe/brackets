@@ -186,6 +186,16 @@ define(function (require, exports, module) {
                 expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.TAG_NAME));
             });
             
+            it("should hint tagname for a closing tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                setContentAndUpdatePos(pos,
+                    ["<html>", "<body>", "<div id='test' class='foo'></div>"],
+                    "</body></ht", "ml>");
+                
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.CLOSING_TAG, 6, "html"));
+            });
+            
             it("should find the tagname of the current tag if two tags are right next to each other", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
@@ -232,16 +242,6 @@ define(function (require, exports, module) {
                     ["<html>", "<body>"],
                     "<div><span></span>", "</div>",
                     ["</body>", "</html>"]);
-                
-                var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo());
-            });
-            
-            it("should not hint anything inside a closing tag", function () {
-                var pos = {"ch": 0, "line": 0};
-                setContentAndUpdatePos(pos,
-                    ["<html>", "<body>", "<div id='test' class='foo'></div>"],
-                    "</body></ht", "ml>");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(HTMLUtils.createTagInfo());
