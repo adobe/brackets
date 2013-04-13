@@ -125,7 +125,7 @@ define(function (require, exports, module) {
                         }
                     });
                 } else {
-                    $hintObj.text(token.label);
+                    $hintObj.text(token.value);
                 }
 
                 $hintObj.data("token", token);
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
      */
     JSHints.prototype.insertHint = function ($hintObj) {
         var hint        = $hintObj.data("token"),
-            completion  = hint.label,
+            completion  = hint.value,
             cursor      = session.getCursor(),
             token       = session.getToken(cursor),
             query       = session.getQuery(),

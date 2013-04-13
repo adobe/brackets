@@ -339,6 +339,7 @@ define(function (require, exports, module) {
             var matchResults = $.map(hints, function (hint) {
                 var searchResult = matcher.match(hint.value, query);
                 if (searchResult) {
+                    searchResult.value = hint.value;
                     searchResult.guess = hint.guess;
                     if (hint.depth !== undefined) {
                         searchResult.depth = hint.depth;
@@ -371,7 +372,7 @@ define(function (require, exports, module) {
                 hints = filterWithQueryAndMatcher(this.ternProperties, matcher);
             }
 
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, label: 1 });
+            StringMatch.multiFieldSort(hints, { matchGoodness: 0, value: 1 });
         } else if ( type.showFunctionType ) {
             hints = this.getFunctionTypeHint();            
         } else {     // identifiers, literals, and keywords
@@ -379,7 +380,7 @@ define(function (require, exports, module) {
             hints = hints.concat(HintUtils.LITERALS);
             hints = hints.concat(HintUtils.KEYWORDS);
             hints = filterWithQueryAndMatcher(hints, matcher);
-            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, builtin: 2, label: 3 });
+            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, builtin: 2, value: 3 });
         }
 
         if (hints.length > MAX_DISPLAYED_HINTS) {
@@ -417,7 +418,7 @@ define(function (require, exports, module) {
                     fnHint = varName + fnHint.substr(2);
                 }
             }
-            hints[0] = {label:fnHint, positions:[]};
+            hints[0] = {value:fnHint, positions:[]};
         } 
         return hints;
     };

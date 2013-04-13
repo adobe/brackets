@@ -111,7 +111,7 @@ define(function (require, exports, module) {
                 counter = 0;
             
             for (counter; counter < hintList.length; counter++) {
-                if (hintList[counter].data("token").label === hint) {
+                if (hintList[counter].data("token").value === hint) {
                     index = counter;
                     break;
                 }
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).not.toBeNull();
                 expectedHints.forEach(function (expectedHint, index) {
-                    expect(hintList[index].data("token").label).toBe(expectedHint);
+                    expect(hintList[index].data("token").value).toBe(expectedHint);
                 });
             });
         }
@@ -236,7 +236,7 @@ define(function (require, exports, module) {
         function findHint(hintList, hintSelection) {
             for (var i = 0, l = hintList.length; i < l; ++i) {
                 var current = hintList[i].data("token");
-                if (hintSelection === current.label) {
+                if (hintSelection === current.value) {
                     return i;
                 }
             }
