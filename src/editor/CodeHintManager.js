@@ -220,9 +220,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit         = require("utils/AppInit"),
-        Editor          = require("editor/Editor"),
-        EditorManager   = require("editor/EditorManager"),
+    var EditorManager   = require("editor/EditorManager"),
         KeyEvent        = require("utils/KeyEvent"),
         CodeHintList    = require("editor/CodeHintList").CodeHintList;
 
@@ -512,9 +510,7 @@ define(function (require, exports, module) {
         return hintList;
     }
     
-    AppInit.htmlReady(function () {
-        var editor = EditorManager.getFocusedEditor();
-        
+    function activeEditorChangeHandler(event, current, previous) {
         var changeHandler = function (event, editor) {
                 handleChange(editor);
             },
@@ -522,24 +518,22 @@ define(function (require, exports, module) {
                 handleKeyEvent(editor, event);
             };
         
-        $(EditorManager).on("activeEditorChange", function (event, current, previous) {
-            $(current).on("change", changeHandler);
-            $(current).on("keyEvent", keyEventHandler);
+        $(current).on("change", changeHandler);
+        $(current).on("keyEvent", keyEventHandler);
             
-            //Removing all old Handlers
-            $(previous).on("change", changeHandler);
-            $(previous).on("keyEvent", keyEventHandler);
-        });
-        
-        $(editor).on("change", "*", changeHandler);
-        
-        $(editor).on("keyEvent", "*", keyEventHandler);
-    });
+        //Removing all old Handlers
+        $(previous).off("change", changeHandler);
+        $(previous).off("keyEvent", keyEventHandler);
+    }
+    
+    activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
+    
+    $(EditorManager).on("activeEditorChange", activeEditorChangeHandler);
     
     exports._getCodeHintList        = _getCodeHintList;
+    exports._handleKeyEvent          = handleKeyEvent;
+    exports._handleChange            = handleChange;
     
     // Define public API
-    exports.handleKeyEvent          = handleKeyEvent;
-    exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
 });

@@ -562,7 +562,13 @@ define(function (require, exports, module) {
         // Else, Master editor:
         // we're the ground truth; nothing else to do, since Document listens directly to us
         // note: this change might have been a real edit made by the user, OR this might have
-        // been a change synced from another editor
+        // been a change synced from another editor.
+        
+        // The "editorChange" event is mostly for the use of the CodeHintManager.
+        // It differs from the normal "change" event, that it's actually publicly usable,
+        // whereas the "change" event should be listend to on the document. Also the 
+        // Editor dispatches a change event before this event is dispatched, because 
+        // CodeHintManager needs to hook in here when other things are already done.
         $(this).triggerHandler("editorChange", [this]);
     };
     
