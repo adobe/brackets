@@ -12,6 +12,7 @@
         "twitter_url"       : "https://twitter.com/brackets",
         "troubleshoot_url"  : "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
         "twitter_name"      : "@brackets",
-        "contributors_url"  : "https://api.github.com/repos/adobe/brackets/contributors"
+        "contributors_url"  : "https://api.github.com/repos/adobe/brackets/contributors",
+        "extension_registry": "https://s3.amazonaws.com/repository.brackets.io/registry.json"
     }
 }
