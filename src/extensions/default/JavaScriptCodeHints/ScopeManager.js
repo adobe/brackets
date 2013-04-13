@@ -455,7 +455,6 @@ define(function (require, exports, module) {
                 ternDeferred.resolveWith(null, [_ternWorker]);
             }, function (err) {
                 console.log("Unable to refresh directory: " + err);
-                refreshOuterScope(dir, file, document.getText());
             });
         }, function (err) {
             console.log("Directory \"%s\" does not exist", dir);
