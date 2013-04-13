@@ -127,9 +127,10 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
-	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
+	"LANGUAGE_MESSAGE": "Langue :",
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
+	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     /**
      * ProjectManager
@@ -176,7 +177,7 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
-	"CMD_INSTALL_EXTENSION": "Installer l’extension...",
+	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -215,9 +216,9 @@ define({
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
 	"CMD_SCROLL_LINE_UP": "Faire défiler d’une ligne vers le haut",
 	"CMD_SCROLL_LINE_DOWN": "Faire défiler d’une ligne vers le bas",
-	"CMD_TOGGLE_LINE_NUMBERS": "Afficher les numéros de ligne",
-	"CMD_TOGGLE_ACTIVE_LINE": "Afficher la ligne active",
-	"CMD_TOGGLE_WORD_WRAP": "Activer le retour à la ligne",
+	"CMD_TOGGLE_LINE_NUMBERS": "Numéros de ligne",
+	"CMD_TOGGLE_ACTIVE_LINE": "Surligner la ligne active",
+	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
@@ -268,11 +269,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
-	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
-	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -308,10 +304,10 @@ define({
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
-	"INSTALLING_FROM": "Installation de l’extension depuis {0}...",
+	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie.",
 	"INSTALL_FAILED": "Echec de l’installation.",
-	"CANCELING_INSTALL": "Annulation en cours...",
+	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
 	"INSTALL_CANCELED": "Installation annulée.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
@@ -321,6 +317,8 @@ define({
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
 	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
+	"INVALID_BRACKETS_VERSION": "[6771123] !é=The Brackets compatibility string {{0}} is invalid.=!",
+	"DISALLOWED_WORDS": "[6771122] !é=The words {{1}} are not allowed in the {{0}} field.=!",
 	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
@@ -334,6 +332,13 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
+    
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
+	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
+	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
+	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

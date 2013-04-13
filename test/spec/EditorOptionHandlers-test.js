@@ -26,7 +26,7 @@
 /*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var CommandManager,      // loaded from brackets.test
@@ -42,31 +42,51 @@ define(function (require, exports, module) {
         
         var testPath = SpecRunnerUtils.getTestPath("/spec/EditorOptionHandlers-test-files"),
             testWindow;
-
+        
+        var CSS_FILE  = testPath + "/test.css",
+            HTML_FILE = testPath + "/test.html",
+            JS_FILE   = testPath + "/test.js";
+        
+        var OPEN_BRACKET  = 91,
+            CLOSE_BRACKET = 93,
+            SINGLE_QUOTE  = 39,
+            BACKSPACE     = 8;
+        
+        
         beforeEach(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
-
-                // Load module instances from brackets.test
-                CommandManager      = testWindow.brackets.test.CommandManager;
-                Commands            = testWindow.brackets.test.Commands;
-                EditorManager       = testWindow.brackets.test.EditorManager;
-                DocumentManager     = testWindow.brackets.test.DocumentManager;
-                FileViewController  = testWindow.brackets.test.FileViewController;
-               
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
+            // Create a new window that will be shared by ALL tests in this spec.
+            if (!testWindow) {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+    
+                    // Load module instances from brackets.test
+                    CommandManager      = testWindow.brackets.test.CommandManager;
+                    Commands            = testWindow.brackets.test.Commands;
+                    EditorManager       = testWindow.brackets.test.EditorManager;
+                    DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
+                   
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            }
         });
 
         afterEach(function () {
-            SpecRunnerUtils.closeTestWindow();
+            runs(function () {
+                var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                waitsForDone(promise, "Close all open files in working set");
+                
+                var $dlg = testWindow.$(".modal.instance");
+                if ($dlg.length) {
+                    SpecRunnerUtils.clickDialogButton("dontsave");
+                }
+            });
         });
         
-        function checkLineWrapping(firstPos, secondPos, shouldWrap, inlineEditor) {
+        
+        function checkLineWrapping(editor, firstPos, secondPos, shouldWrap) {
             runs(function () {
-                var firstLineBottom,
-                    nextLineBottom,
-                    editor = inlineEditor || EditorManager.getCurrentFullEditor();
+                var firstLineBottom, nextLineBottom;
                 
                 expect(editor).toBeTruthy();
 
@@ -75,6 +95,7 @@ define(function (require, exports, module) {
 
                 editor.setCursorPos(secondPos);
                 nextLineBottom = editor._codeMirror.cursorCoords(null, "local").bottom;
+                
                 if (shouldWrap) {
                     expect(firstLineBottom).toBeLessThan(nextLineBottom);
                 } else {
@@ -82,190 +103,348 @@ define(function (require, exports, module) {
                 }
             });
         }
-
-        var CSS_FILE  = testPath + "/test.css",
-            HTML_FILE = testPath + "/test.html";
-
-        it("should wrap long lines in main editor by default", function () {
-            var promise,
-                editor;
-            
+        
+        function checkActiveLine(editor, line, shouldShow) {
             runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
-
-                // Use two cursor positions to detect line wrapping. First position at 
-                // the beginning of a long line and the second position to be
-                // somewhere on the long line that will be part of an extra line 
-                // created by word-wrap and get its bottom coordinate.
-                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, true);
+                var lineInfo;
+                
+                expect(editor).toBeTruthy();
+                editor.setCursorPos({line: line, ch: 0});
+                lineInfo = editor._codeMirror.lineInfo(line);
+                
+                if (shouldShow) {
+                    expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+                } else {
+                    expect(lineInfo.wrapClass).toBeUndefined();
+                }
             });
-        });
-
-        it("should also wrap long lines in inline editor by default", function () {
-            var promise,
-                inlineEditor;
-                        
+        }
+        
+        function checkLineNumbers(editor, shouldShow) {
             runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                var gutterElement, $lineNumbers;
+                
+                expect(editor).toBeTruthy();
+                gutterElement = editor._codeMirror.getGutterElement();
+                $lineNumbers = $(gutterElement).find(".CodeMirror-linenumbers");
+                
+                if (shouldShow) {
+                    expect($lineNumbers.length).toNotBe(0);
+                } else {
+                    expect($lineNumbers.length).toBe(0);
+                }
+            });
+        }
+        
+        function checkCloseBraces(editor, startSel, endSel, keyCode, expectedText) {
+            runs(function () {
+                var input, line;
+                
+                expect(editor).toBeTruthy();
+                input = editor._codeMirror.getInputField();
+                
+                if (endSel) {
+                    editor.setSelection(startSel, endSel);
+                } else {
+                    editor.setCursorPos(startSel);
+                }
+                
+                SpecRunnerUtils.simulateKeyEvent(keyCode, keyCode === BACKSPACE ? "keydown" : "keypress", input);
+                
+                line = editor._codeMirror.getLine(startSel.line);
+                expect(line).toBe(expectedText);
+            });
+        }
+        
+        
+        // Helper functions to open editors / toggle options
+        function openEditor(fullPath) {
+            runs(function () {
+                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
                 waitsForDone(promise, "Open into working set");
             });
+        }
+        
+        function openAnotherEditor(fullpath) {
+            runs(function () {
+                // Open another document and bring it to the front
+                waitsForDone(FileViewController.openAndSelectDocument(fullpath, FileViewController.PROJECT_MANAGER),
+                             "FILE_OPEN on file timeout", 1000);
+            });
+        }
+        
+        function openInlineEditor(toggleEditorAt) {
+            toggleEditorAt = toggleEditorAt || {line: 8, ch: 11};
+            openEditor(HTML_FILE);
             
             runs(function () {
                 // Open inline editor onto test.css's ".testClass" rule
-                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), toggleEditorAt);
                 waitsForDone(promise, "Open inline editor");
             });
-            
+        }
+        
+        function toggleOption(commandID, text) {
             runs(function () {
-                inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                expect(inlineEditor).toBeTruthy();
+                var promise = CommandManager.execute(commandID);
+                waitsForDone(promise, text);
+            });
+        }
 
-                checkLineWrapping({line: 0, ch: 0}, {line: 0, ch: 160}, true, inlineEditor);
+        
+        describe("Toggle Word Wrap", function () {
+            it("should wrap long lines in main editor by default", function () {
+                openEditor(HTML_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    
+                    // Use two cursor positions to detect line wrapping. First position at 
+                    // the beginning of a long line and the second position to be
+                    // somewhere on the long line that will be part of an extra line 
+                    // created by word-wrap and get its bottom coordinate.
+                    checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 210}, true);
+                });
+            });
+    
+            it("should also wrap long lines in inline editor by default", function () {
+                openInlineEditor();
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkLineWrapping(editor, {line: 0, ch: 0}, {line: 0, ch: 160}, true);
+                });
+            });
+            
+            it("should NOT wrap the long lines after turning off word-wrap", function () {
+                // Turn off word-wrap
+                toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
+                openEditor(CSS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineWrapping(editor, {line: 0, ch: 1}, {line: 0, ch: 180}, false);
+                });
+            });
+    
+            it("should NOT wrap the long lines in another document when word-wrap off", function () {
+                openEditor(CSS_FILE);
+                openAnotherEditor(HTML_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 210}, false);
+                });
             });
         });
         
-        it("should NOT wrap the long lines after turning off word-wrap", function () {
-            var promise,
-                editor;
-            
-            // Turn off word-wrap
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_WORD_WRAP);
-                waitsForDone(promise, "Toggle word-wrap");
-            });
-
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
-                checkLineWrapping({line: 0, ch: 1}, {line: 0, ch: 180}, false);
-            });
-        });
-
-        it("should NOT wrap the long lines in another document when word-wrap off", function () {
-            var promise,
-                editor,
-                firstLineBottom,
-                nextLineBottom;
-            
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
-
-            // Turn off word-wrap
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_WORD_WRAP);
-                waitsForDone(promise, "Toggle word-wrap");
-            });
         
-            runs(function () {
-                // Open another document and bring it to the front
-                waitsForDone(FileViewController.openAndSelectDocument(HTML_FILE, FileViewController.PROJECT_MANAGER),
-                             "FILE_OPEN on file timeout", 1000);
-                checkLineWrapping({line: 8, ch: 0}, {line: 8, ch: 210}, false);
-            });
-        });
-
-        it("should NOT show active line in main editor by default", function () {
-            var promise,
-                editor,
-                lineInfo;
-            
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
+        describe("Toggle Active Line", function () {
+            it("should NOT show active line in main editor by default", function () {
+                openEditor(HTML_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkActiveLine(editor, 5, false);
+                });
             });
             
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                editor.setCursorPos({line: 5, ch: 0});
-                lineInfo = editor._codeMirror.lineInfo(5);
-                expect(lineInfo.wrapClass).toBeUndefined();
-            });
-        });
-
-        it("should NOT show active line in inline editor by default", function () {
-            var promise,
-                inlineEditor,
-                lineInfo;
-                        
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
+            it("should NOT show active line in inline editor by default", function () {
+                openInlineEditor();
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkActiveLine(editor, 0, false);
+                });
             });
             
-            runs(function () {
-                // Open inline editor onto test.css's ".testClass" rule
-                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
-                waitsForDone(promise, "Open inline editor");
+            it("should style active line after turning it on", function () {
+                // Turn on show active line
+                toggleOption(Commands.TOGGLE_ACTIVE_LINE, "Toggle active line");
+                openEditor(CSS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkActiveLine(editor, 0, true);
+                });
             });
             
-            runs(function () {
-                inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                expect(inlineEditor).toBeTruthy();
-
-                lineInfo = inlineEditor._codeMirror.lineInfo(0);
-                expect(lineInfo.wrapClass).toBeUndefined();
+            it("should style the active line when opening another document with show active line on", function () {
+                openEditor(CSS_FILE);
+                openAnotherEditor(HTML_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkActiveLine(editor, 3, true);
+                });
             });
         });
         
-        it("should style active line after turning it on", function () {
-            var promise,
-                editor,
-                lineInfo;
+        
+        describe("Toggle Line Numbers", function () {
+            it("should show line numbers in main editor by default", function () {
+                openEditor(HTML_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineNumbers(editor, true);
+                });
+            });
             
-            // Turn on show active line
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_ACTIVE_LINE);
-                waitsForDone(promise, "Toggle active line");
+            it("should also show line numbers in inline editor by default", function () {
+                openInlineEditor();
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkLineNumbers(editor, true);
+                });
             });
-
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
+            
+            it("should NOT show line numbers in main editor after turning it off", function () {
+                // Turn off show line numbers
+                toggleOption(Commands.TOGGLE_LINE_NUMBERS, "Toggle line numbers");
+                openEditor(CSS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineNumbers(editor, false);
+                });
             });
-
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                lineInfo = editor._codeMirror.lineInfo(0);
-                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+            
+            it("should NOT show line numbers in inline editor after turning it off", function () {
+                openInlineEditor();
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkLineNumbers(editor, false);
+                });
+            });
+            
+            it("should NOT show line numbers when opening another document with show line numbers off", function () {
+                openEditor(CSS_FILE);
+                openAnotherEditor(HTML_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkLineNumbers(editor, false);
+                });
             });
         });
-
-        it("should style the active line when opening another document with show active line on", function () {
-            var promise,
-                editor,
-                lineInfo;
-            
-            runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: CSS_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
-
-            // Turn on show active line
-            runs(function () {
-                promise = CommandManager.execute(Commands.TOGGLE_ACTIVE_LINE);
-                waitsForDone(promise, "Toggle active line");
-            });
         
-            runs(function () {
-                // Open another document and bring it to the front
-                waitsForDone(FileViewController.openAndSelectDocument(HTML_FILE, FileViewController.PROJECT_MANAGER),
-                             "FILE_OPEN on file timeout", 1000);
+        
+        describe("Toggle Auto Close Braces", function () {
+            it("should NOT auto close braces in main editor by default", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
+                });
             });
             
-            runs(function () {
-                editor = EditorManager.getCurrentFullEditor();
-                expect(editor).toBeTruthy();
-
-                editor.setCursorPos({line: 3, ch: 5});
-                lineInfo = editor._codeMirror.lineInfo(3);
-                expect(lineInfo.wrapClass).toBe("CodeMirror-activeline");
+            it("should NOT auto close braces in inline editor by default", function () {
+                openInlineEditor({line: 9, ch: 11});
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkCloseBraces(editor, {line: 1, ch: 15}, null, OPEN_BRACKET, ".shortLineClass { color: red; }");
+                });
+            });
+            
+            it("should auto close braces in the main editor after turning it on", function () {
+                // Turn on auto close braces
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]");
+                });
+            });
+            
+            it("should auto close braces in inline editor after turning it on", function () {
+                openInlineEditor({line: 9, ch: 11});
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                    checkCloseBraces(editor, {line: 1, ch: 32}, null, OPEN_BRACKET, ".shortLineClass { color: red; }[]");
+                });
+            });
+            
+            it("should auto close braces when opening another document with auto close braces on", function () {
+                openEditor(CSS_FILE);
+                openAnotherEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";[]");
+                });
+            });
+            
+            it("should only auto close braces before spaces, closing braces or end of lines", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 0}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 16}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 39}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";[]");
+                });
+            });
+            
+            it("should overwrite a close brace when writing a close brace before the same close brace", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 16}, null, CLOSE_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    
+                    runs(function () {
+                        expect(editor.getCursorPos()).toEqual({line: 0, ch: 17});
+                    });
+                });
+            });
+            
+            it("should wrap a selection between braces", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];");
+                    
+                    runs(function () {
+                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}});
+                    });
+                });
+            });
+            
+            it("should delete both open and close braces when both are together and backspacing", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 16}, null, BACKSPACE, "var myContent = \"This is awesome!\";");
+                });
+            });
+            
+            it("should NOT auto close single quotes inside comments", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, SINGLE_QUOTE, "var myContent ='' \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 1, ch: 7}, null, SINGLE_QUOTE, "// Yes, it is!");
+                });
+                
+                // This must be in the last spec in the suite.
+                runs(function () {
+                    this.after(function () {
+                        SpecRunnerUtils.closeTestWindow();
+                    });
+                });
             });
         });
     });
