@@ -288,7 +288,6 @@ define(function (require, exports, module) {
         var doc            = editor.document,
             sel            = editor.getSelection(),
             ctx            = TokenUtils.getInitialContext(editor._codeMirror, {line: sel.start.line, ch: sel.start.ch}),
-            line           = doc.getLine(sel.start.line),
             selEndIndex    = editor.indexFromPos(sel.end),
             lineExp        = _createLineExpressions(linePrefixes, prefix, suffix),
             prefixExp      = new RegExp("^" + StringUtils.regexEscape(prefix), "g"),
@@ -299,16 +298,17 @@ define(function (require, exports, module) {
             isBlockComment = false,
             canComment     = false,
             invalidComment = false,
-            lineUncomment  = false;
+            lineUncomment  = false,
+            result         = true;
         
-        var searchCtx, atSuffix, newSelection, result = true;
+        var searchCtx, atSuffix, newSelection, initialPos, endLine;
         
         // First move the context to the first none white-space token
         if (!ctx.token.className && ctx.token.string.trim().length === 0) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
         
-        // Next, loop util we find a comment inside the selection
+        // Next, move forwards until we find a comment inside the selection
         while (result && ctx.token.className !== "comment") {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
                 editor.indexFromPos(ctx.pos) <= selEndIndex;
@@ -317,31 +317,28 @@ define(function (require, exports, module) {
         
         // We are now in a comment, lets check if it is a block or a line comment
         if (result && ctx.token.className === "comment") {
-            line = doc.getLine(ctx.pos.line);
-            
+            // This token might be at a line comment, but we can't be sure yet
             if (_matchExpressions(ctx.token.string, lineExp)) {
-                // This is a line comment, lets check if the whole line is a line comment too
-                if (_matchExpressions(line, lineExp)) {
-                    // If we found this comment at the start of the selection, we need to search backwards until we get can tell
-                    // if we are in a block or a line comment
-                    if (commentAtStart) {
-                        searchCtx      = TokenUtils.getInitialContext(editor._codeMirror, {line: ctx.pos.line, ch: ctx.token.start});
-                        isBlockComment = _isPrevTokenABlockComment(searchCtx, prefix, suffix, prefixExp, suffixExp, lineExp);
-                    // If not, we already know that is a line comment
-                    } else {
-                        isBlockComment = false;
-                    }
-                // If it was not a whole line comment, then we can just comment
+                // If the token starts at ch 0 with no starting white spaces, then this might be a block comment or a line
+                // comment over the whole line, and if we found this comment at the start of the selection, we need to search
+                // backwards until we get can tell if we are in a block or a line comment
+                if (ctx.token.start === 0 && !ctx.token.string.match(/^\\s*/) && commentAtStart) {
+                    searchCtx      = TokenUtils.getInitialContext(editor._codeMirror, {line: ctx.pos.line, ch: ctx.token.start});
+                    isBlockComment = _isPrevTokenABlockComment(searchCtx, prefix, suffix, prefixExp, suffixExp, lineExp);
+                
+                // If not, we already know that is a line comment
                 } else {
-                    canComment = true;
+                    isBlockComment = false;
                 }
+            
             // If it was not a line comment, it has to be a block comment
             } else {
                 isBlockComment = true;
                 
-                // If we are in a line that only has a prefix or suffix and the prefix and suffix are the same string,
-                // Lets find first if this is a prefix or suffix and move the token to the inside of the block comment
-                if (ctx.token.string.match(prefixExp) && prefix === suffix && ctx.token.string.length === prefix.length) {
+                // If we are in a line that only has a prefix or a suffix and the prefix and suffix are the same string,
+                // lets find first if this is a prefix or suffix and move the token to the inside of the block comment.
+                // This is required so that later we can find the prefix by moving backwards and the suffix by moving forwards.
+                if (ctx.token.string === prefix && prefix === suffix) {
                     searchCtx = TokenUtils.getInitialContext(editor._codeMirror, {line: ctx.pos.line, ch: ctx.token.start});
                     atSuffix  = _isPrevTokenABlockComment(searchCtx, prefix, suffix, prefixExp, suffixExp, lineExp);
                     if (atSuffix) {
@@ -351,14 +348,10 @@ define(function (require, exports, module) {
                     }
                 }
             }
-        } else {
-            canComment = true;
-        }
-        
-        if (!canComment) {
+            
             if (isBlockComment) {
                 // Save the initial position to start searching for the suffix from here
-                var initialPos = $.extend({}, ctx.pos);
+                initialPos = $.extend({}, ctx.pos);
                 
                 // Find the position of the start of the prefix
                 result = true;
@@ -386,10 +379,10 @@ define(function (require, exports, module) {
                 if (prefixPos && editor.indexFromPos(sel.end) < editor.indexFromPos(prefixPos)) {
                     canComment = true;
                 }
-            
+                
             } else {
-                // In full-line selection, cursor pos is start of next line - but don't want to modify that line
-                var endLine = sel.end.line;
+                // In full-line selection, cursor pos is at the start of next line - but don't want to modify that line
+                endLine = sel.end.line;
                 if (sel.end.ch === 0 && editor.hasSelection()) {
                     endLine--;
                 }
@@ -401,20 +394,21 @@ define(function (require, exports, module) {
                     canComment = true;
                 }
             }
+        // If not, we can comment
+        } else {
+            canComment = true;
         }
         
-        // Make the edit
-        if (invalidComment) {
-            return;
         
-        } else if (lineUncomment) {
+        // Make the edit
+        if (lineUncomment) {
             lineCommentPrefix(editor, linePrefixes, prefix, suffix);
         
-        } else {
+        } else if (!invalidComment) {
             doc.batchOperation(function () {
                 
+                // Comment out - add the suffix to the start and the prefix to the end of the selection.
                 if (canComment) {
-                    // Comment out - add the suffix to the start and the prefix to the end.
                     var completeLineSel = sel.start.ch === 0 && sel.end.ch === 0 && sel.start.line < sel.end.line;
                     if (completeLineSel) {
                         doc.replaceRange(suffix + "\n", sel.end);
@@ -436,13 +430,13 @@ define(function (require, exports, module) {
                         }
                     }
                 
-                // Uncomment - remove prefix and suffix.
+                // Uncomment - remove prefix and suffix found.
                 } else {
                     // Find if the prefix and suffix are at the ch 0 and if they are the only thing in the line.
                     // If both are found we assume that a complete line selection comment added new lines, so we remove them.
                     var prefixAtStart = false, suffixAtStart = false;
                     
-                    line = doc.getLine(prefixPos.line).trim();
+                    var line = doc.getLine(prefixPos.line).trim();
                     prefixAtStart = prefixPos.ch === 0 && prefix.length === line.length;
                     if (suffixPos) {
                         line = doc.getLine(suffixPos.line).trim();
