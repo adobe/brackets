@@ -33,14 +33,14 @@
     color: rgb(0, 0, 100); /* blue */
 }
 
+.brackets-js-hints.priority-lowest {
+    color: rgb(0, 0, 0); /* black */
+}
+
 .brackets-js-hints.variable-hint {
 }
 
 .brackets-js-hints.property-hint {
-}
-
-.brackets-js-hints.global-hint {
-    font-style: italic;
 }
 
 .brackets-js-hints.literal-hint {
@@ -54,3 +54,9 @@
 .brackets-js-hints .matched-hint {
     font-weight: bold;
 }
+
+.brackets-js-hints.guess-hint {
+    font-style: italic;
+}
+
+
