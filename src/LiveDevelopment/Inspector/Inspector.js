@@ -122,7 +122,7 @@ define(function Inspector(require, exports, module) {
         }
 
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
-        var id, callback, args, i, params = {}, deferred, promise;
+        var id, callback, args, i, params = {}, promise;
 
         // extract the parameters, the callback function, and the message id
         args = Array.prototype.slice.call(arguments, 2);
