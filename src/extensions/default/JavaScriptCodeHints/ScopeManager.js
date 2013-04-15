@@ -308,20 +308,19 @@ define(function (require, exports, module) {
      */
     function getPendingRequest(file, offset, type) {
         var key = file + "@" + offset;
-        if (Object.prototype.hasOwnProperty.call(pendingTernRequests, key)) {
+        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
             var requests = pendingTernRequests[key],
                 requestType = requests[type],
                 anyProperties = false;
 
             delete pendingTernRequests[key][type];
-
-            for (var prop in requests) {
-                if (CollectionUtils.hasProperty(requests, prop)) {
+             
+            CollectionUtils.forEach(requests, function (requestValue, requestKey) {
+                if (CollectionUtils.hasProperty(requests, requestKey)) {
                     anyProperties = true;
-                    break;
                 }
-            }
-
+            });
+            
             if (!anyProperties) {
                 delete pendingTernRequests[key];
             }
