@@ -1,0 +1,95 @@
+#hover-preview-container {
+    display: none;
+    
+    background: #fff;
+    position: absolute;
+    z-index: 5000;
+    left: 200px;
+    top: 40px;
+    pointer-events: none;
+    
+    padding: 10px;
+    text-align: center;
+}
+
+#hover-preview-container .color-swatch-bg {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAChJREFUeNpiPHPmDAMMGBsbw9lMDDgA6RKM%2F%2F%2F%2Fh3POnj1LCzsAAgwAQtYIcFfEyzkAAAAASUVORK5CYII%3D');
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.10);
+}
+
+#hover-preview-container .color-swatch {
+    width: 100px;
+    height: 100px;
+    background-size: 99.99%;
+}
+
+#hover-preview-container .image-preview {
+    width: 100px;
+    max-height: 100px;
+}
+
+#hover-preview-container .image-preview img {
+    max-width: 100%;
+    margin-bottom: -5px;
+}
+
+#hover-preview-container .img-size {
+    font-size: 0.85em;
+    color: #aaa;
+    margin-top: -5px;
+}
+
+#hover-preview-container.small-padding-bottom {
+    padding-bottom: 3px;
+}
+
+.preview-bubble, .preview-bubble-below {
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.preview-bubble:before {
+    border-bottom: 25px solid transparent;
+    border-right: 25px solid rgba(0, 0, 0, 0.1);
+    bottom: -13px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(135deg);
+}
+
+.preview-bubble:after {
+    border-bottom: 25px solid transparent;
+    border-right: 25px solid #fff;
+    bottom: -12px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(135deg);
+}
+
+
+.preview-bubble-below:before {
+    border-top: 25px solid transparent;
+    border-right: 25px solid rgba(0, 0, 0, 0.1);
+    top: -13px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(225deg);
+}
+
+.preview-bubble-below:after {
+    border-top: 25px solid transparent;
+    border-right: 25px solid #fff;
+    top: -12px;
+    content: '';
+    position: absolute;
+    left: 40%;
+    -webkit-transform:rotate(225deg);
+}
+
+.preview-highlight {
+    background-color: rgba(200, 200, 150, 0.4); 
+}
