@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
+        CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
         HintUtils           = require("HintUtils");
     
     var ternEnvironment     = [],
@@ -314,9 +315,11 @@ define(function (require, exports, module) {
 
             delete pendingTernRequests[key][type];
 
-            for (var prop in pendingTernRequests[key]) {
-                anyProperties = true;
-                break;
+            for (var prop in requests) {
+                if (CollectionUtils.hasProperty(requests, prop)) {
+                    anyProperties = true;
+                    break;
+                }
             }
 
             if (!anyProperties) {
