@@ -404,7 +404,7 @@ define(function (require, exports, module) {
                             var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
                             if (resolvedPath) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
-                                    .done(function() {
+                                    .done(function () {
                                         session.editor.setCursorPos(jumpResp.start);
                                         session.editor.setSelection(jumpResp.start, jumpResp.end);
                                         session.editor.centerOnCursor();

@@ -234,7 +234,8 @@ define(function (require, exports, module) {
          * @return {number} the index of the hint corresponding to the hintSelection
          */
         function findHint(hintList, hintSelection) {
-            for (var i = 0, l = hintList.length; i < l; ++i) {
+            var i, l;
+            for (i = 0, l = hintList.length; i < l; ++i) {
                 var current = hintList[i].data("token");
                 if (hintSelection === current.value) {
                     return i;
@@ -321,7 +322,7 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["alert", "console", "confirm", "navigator", "window", "frames"]);
             });
- */           
+ */
             it("should NOT list implicitly defined globals from missing JSLint annotations", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -375,7 +376,7 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["use strict"]);
             });
-*/            
+*/
             it("should NOT list string literals from other files", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);

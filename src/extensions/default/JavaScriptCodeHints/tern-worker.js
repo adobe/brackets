@@ -31,13 +31,13 @@ importScripts("thirdparty/requirejs/require.js");
     
     var HintUtils;
     var Tern;
-    require(["./HintUtils"], function(hintUtils) {
+    require(["./HintUtils"], function (hintUtils) {
         HintUtils = hintUtils;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/plugin/requirejs"], function(tern, requirejs) {
+        ternRequire(["tern/lib/tern", "tern/plugin/requirejs"], function (tern, requirejs) {
             Tern = tern;
-        } );
-    } );
+        });
+    });
 
     var ternServer  = null;
 
@@ -65,7 +65,7 @@ importScripts("thirdparty/requirejs/require.js");
      */
     function handleGetFile(file, text) {
         var next = fileCallBacks[file];
-        if( next ) {
+        if (next) {
             next(null, text);
         }
         delete fileCallBacks[file];
@@ -76,21 +76,21 @@ importScripts("thirdparty/requirejs/require.js");
      */
     function initTernServer(env, dir, files) {
         var ternOptions = {
-            defs:env,
-            async:true,
+            defs: env,
+            async: true,
             getFile: getFile,
             plugins: {requirejs: {}}
         };
         ternServer = new Tern.Server(ternOptions);
         
-        files.forEach(function (file){
-            ternServer.addFile(file);    
+        files.forEach(function (file) {
+            ternServer.addFile(file);
         });
         
     }
 
-    function buildRequest(dir, file, query, offset, text){
-        query = {type:query};
+    function buildRequest(dir, file, query, offset, text) {
+        query = {type: query};
         query.start = offset;
         query.end = offset;
         query.file = file;
@@ -101,10 +101,19 @@ importScripts("thirdparty/requirejs/require.js");
         query.origins = true;
         query.expandWordForward = true;
 
-        var request = {query:query, files:[], offset:offset};
-        request.files.push({type:"full", name:file, text:text});
+        var request = {query: query, files: [], offset: offset};
+        request.files.push({type: "full", name: file, text: text});
 
         return request;
+    }
+
+    /**
+     * Send a log message back from the worker to the main thread
+     * 
+     * @param {string} msg - the log message
+     */
+    function _log(msg) {
+        self.postMessage({log: msg });
     }
     
     /**
@@ -118,7 +127,7 @@ importScripts("thirdparty/requirejs/require.js");
         
         var request = buildRequest(dir, file, "definition", offset, text);
         request.query.lineCharPositions = true;
-        ternServer.request(request, function(error, data) {
+        ternServer.request(request, function (error, data) {
             if (error) {
                 _log("Error returned from Tern 'definition' request: " + error);
                 self.postMessage({type: HintUtils.TERN_JUMPTODEF_MSG});
@@ -146,16 +155,17 @@ importScripts("thirdparty/requirejs/require.js");
      */
     function getTernHints(dir, file, offset, text) {
         
-        var request = buildRequest(dir, file, "completions", offset, text);
+        var request = buildRequest(dir, file, "completions", offset, text),
+            i;
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
-        ternServer.request(request, function(error, data) {
+        ternServer.request(request, function (error, data) {
             if (error) {
                 _log("Error returned from Tern 'completions' request: " + error);
                 return;
             }
             var completions = [];
             //_log("found " + completions.length + " for " + file + "@" + offset);
-            for (var i = 0; i < data.completions.length; ++i) {
+            for (i = 0; i < data.completions.length; ++i) {
                 var completion = data.completions[i];
                 completions.push({value: completion.name, type: completion.type, depth: completion.depth,
                     guess: completion.guess, origin: completion.origin});
@@ -180,16 +190,17 @@ importScripts("thirdparty/requirejs/require.js");
      */
     function handleGetProperties(dir, file, offset, text) {
 
-        var request = buildRequest(dir, file, "properties", undefined, text);
+        var request = buildRequest(dir, file, "properties", undefined, text),
+            i;
         //_log("request " + request.type + dir + " " + file);
-        ternServer.request(request, function(error, data) {
+        ternServer.request(request, function (error, data) {
             if (error) {
                 _log("Error returned from Tern 'properties' request: " + error);
                 return;
             }
             //_log("completions = " + data.completions.length);
             var properties = [];
-            for (var i = 0; i < data.completions.length; ++i) {
+            for (i = 0; i < data.completions.length; ++i) {
                 var property = data.completions[i];
                 properties.push({value: property, guess: true});
             }
@@ -200,7 +211,7 @@ importScripts("thirdparty/requirejs/require.js");
                               file: file,
                               offset: offset,
                               properties: properties
-            });
+                });
         });
     }
 
@@ -218,12 +229,12 @@ importScripts("thirdparty/requirejs/require.js");
         request.preferFunction = true;
         
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
-        ternServer.request(request, function(error, data) {
+        ternServer.request(request, function (error, data) {
             if (error) {
                 _log("Error returned from Tern 'type' request: " + error);
                 return;
             }
-            var fnType = data.type;            
+            var fnType = data.type;
             
             // Post a message back to the main thread with the completions
             self.postMessage({type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
@@ -235,15 +246,6 @@ importScripts("thirdparty/requirejs/require.js");
         });
     }
     
-    /**
-     * Send a log message back from the worker to the main thread
-     * 
-     * @param {string} msg - the log message
-     */
-    function _log(msg) {
-        self.postMessage({log: msg });
-    }
-
     self.addEventListener("message", function (e) {
         var dir, file, text, offset,
             request = e.data,
@@ -252,34 +254,34 @@ importScripts("thirdparty/requirejs/require.js");
         if (type === HintUtils.TERN_INIT_MSG) {
             
             dir         = request.dir;
-            var env     = request.env,         
+            var env     = request.env,
                 files   = request.files;
             initTernServer(env, dir, files);
             
-        } else if( type === HintUtils.TERN_COMPLETIONS_MSG) {
+        } else if (type === HintUtils.TERN_COMPLETIONS_MSG) {
             dir = request.dir;
             file = request.file;
             text    = request.text;
             offset  = request.offset;
             getTernHints(dir, file, offset, text);
-        } else if ( type === HintUtils.TERN_GET_PROPERTIES_MSG) {
-            file    = request.file,
+        } else if (type === HintUtils.TERN_GET_PROPERTIES_MSG) {
+            file    = request.file;
             dir     = request.dir;
             text    = request.text;
             offset  = request.offset;
             handleGetProperties(dir, file, offset, text);
-        } else if ( type === HintUtils.TERN_GET_FILE_MSG ) {
-            file = request.file,
+        } else if (type === HintUtils.TERN_GET_FILE_MSG) {
+            file = request.file;
             text = request.text;
             handleGetFile(file, text);
-        } else if ( type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG ) {
+        } else if (type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG) {
             dir     = request.dir;
             file    = request.file;
             text    = request.text;
             offset  = request.offset;
             var pos = request.pos;
-            handleFunctionType(dir, file, pos, offset, text);            
-        } else if ( type === HintUtils.TERN_JUMPTODEF_MSG ) {
+            handleFunctionType(dir, file, pos, offset, text);
+        } else if (type === HintUtils.TERN_JUMPTODEF_MSG) {
             file    = request.file;
             dir     = request.dir;
             text    = request.text;

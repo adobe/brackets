@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     function splitPath(path) {
         var index   = path.lastIndexOf("/"),
             dir     = path.substring(0, index),
-            file    = path.substring(index+1, path.length);
+            file    = path.substring(index + 1, path.length);
         
         return {dir: dir, file: file };
     }

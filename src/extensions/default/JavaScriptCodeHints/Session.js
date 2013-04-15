@@ -268,10 +268,10 @@ define(function (require, exports, module) {
                             break;
                         }
                     }
-                    if ( found ) {
-                        functionCallPos = {line:line, ch:col};                    
-                    }   
-                }                    
+                    if (found) {
+                        functionCallPos = {line: line, ch: col};
+                    }
+                }
             }
             if (token.string === ".") {
                 propertyLookup = true;
@@ -287,14 +287,14 @@ define(function (require, exports, module) {
                     context = this.getContext(cursor);
                 }
             }
-            if( propertyLookup ) { showFunctionType = false; }            
-        } 
+            if (propertyLookup) { showFunctionType = false; }
+        }
         
         return {
             property: propertyLookup,
             inFunctionCall: inFunctionCall,
-            showFunctionType: showFunctionType,            
-            functionCallPos: functionCallPos,            
+            showFunctionType: showFunctionType,
+            functionCallPos: functionCallPos,
             context: context
         };
     };
@@ -314,7 +314,10 @@ define(function (require, exports, module) {
             query = "";
         }
 
-        var MAX_DISPLAYED_HINTS = 500;
+        var MAX_DISPLAYED_HINTS = 500,
+            type = this.getType(),
+            builtins = this.builtins,
+            hints;
 
         /**
          *  Is the origin one of the builtin files.
@@ -346,7 +349,7 @@ define(function (require, exports, module) {
                     }
 
                     if (!type.property && !type.showFunctionType && hint.origin &&
-                        isBuiltin(hint.origin)) {
+                            isBuiltin(hint.origin)) {
                         searchResult.builtin = 1;
                     } else {
                         searchResult.builtin = 0;
@@ -359,10 +362,6 @@ define(function (require, exports, module) {
             return matchResults;
         }
 
-        var type = this.getType(),
-            builtins = this.builtins,
-            hints;
-
         if (type.property) {
             hints = this.ternHints || [];
             hints = filterWithQueryAndMatcher(hints, matcher);
@@ -373,8 +372,8 @@ define(function (require, exports, module) {
             }
 
             StringMatch.multiFieldSort(hints, { matchGoodness: 0, value: 1 });
-        } else if ( type.showFunctionType ) {
-            hints = this.getFunctionTypeHint();            
+        } else if (type.showFunctionType) {
+            hints = this.getFunctionTypeHint();
         } else {     // identifiers, literals, and keywords
             hints = this.ternHints || [];
             hints = hints.concat(HintUtils.LITERALS);
@@ -396,18 +395,18 @@ define(function (require, exports, module) {
         this.ternProperties = newProperties;
     };
     Session.prototype.setFnType = function (newFnType) {
-        this.fnType = newFnType;        
+        this.fnType = newFnType;
     };
     
     /**
      * Get the function type hint.  This will format the hint so
      * that it has the called variable name instead of just "fn()".
      */
-    Session.prototype.getFunctionTypeHint = function() {
+    Session.prototype.getFunctionTypeHint = function () {
         var fnHint = this.fnType,
             hints = [];
         
-        if (fnHint && (fnHint.substring(0,3) === "fn(")) {
+        if (fnHint && (fnHint.substring(0, 3) === "fn(")) {
             var sessionType = this.getType(),
                 cursor = sessionType.functionCallPos,
                 token = cursor ? this.getToken(cursor) : undefined,
@@ -418,8 +417,8 @@ define(function (require, exports, module) {
                     fnHint = varName + fnHint.substr(2);
                 }
             }
-            hints[0] = {value:fnHint, positions:[]};
-        } 
+            hints[0] = {value: fnHint, positions: []};
+        }
         return hints;
     };
     
