@@ -32,11 +32,10 @@ define(function (require, exports, module) {
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus"),
-        Strings             = brackets.getModule("strings"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        Strings             = brackets.getModule("strings");
     
-    var PREFERENCES_CLIENT_ID      = "com.adobe.hoverPreview",
-        defaultPrefs               = { enabled: true },
+    var defaultPrefs               = { enabled: true },
         enabled                    = true,   // Only show preview if true
         prefs                      = null,   // Preferences
         previewMark,                         // CodeMirror marker highlighting the preview text
@@ -91,53 +90,20 @@ define(function (require, exports, module) {
                 event.clientY <= offset.top + $div.height());
     }
     
-    function charCoords(cm, pos) {
-        var coords = cm.charCoords(pos);
-        
-        // CodeMirror 2 uses x, y, ybot
-        // CodeMirror 3 uses left, top, bottom
-        // Since this code was written for CodeMirror 2, return 
-        // a CM2-normalized struct
-        return {
-            x: coords.x || coords.left,
-            y: coords.y || coords.top,
-            yBot: coords.ybot || coords.bottom
-        };
-    }
-    
-    function coordsChar(cm, coords) {
-        if (CodeMirror.version) {
-            coords.left = coords.x;
-            coords.top = coords.y;
-        }
-        
-        return cm.coordsChar(coords);
-    }
-    
-    function markText(cm, start, end, className) {
-        if (CodeMirror.version) {
-            return cm.markText(start, end, {className: className});
-        } else {
-            return cm.markText(start, end, className);
-        }
-    }
-    
-    function queryPreviewProviders(editor, pos, token, line, event) {
-        
-        // TODO: Support plugin providers. For now we just hard-code...
+    function colorAndGradientPreviewProvider(editor, pos, token, line, event) {
         var cm = editor._codeMirror;
-        
-        if (!cm || !editor) {
-            return;
-        }
-        
-        var editorWidth = $(editor.getRootElement()).width();
         
         // Check for gradient
         var gradientRegEx = /-webkit-gradient\([^;]*;?|(-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient\([^;]*);?|(-moz-|-ms-|-o-|-webkit-)(radial-gradient\([^;]*);?/,
             gradientMatch = line.match(gradientRegEx),
             prefix = "",
             colorValue;
+        
+        // If the gradient match has "@" in it, it is most likely a less or sass variable. Ignore it since it won't
+        // be displayed correctly.
+        if (gradientMatch && gradientMatch[0].indexOf("@") !== -1) {
+            gradientMatch = null;
+        }
         
         // If it was a linear-gradient or radial-gradient variant, prefix with "-webkit-" so it
         // shows up correctly in Brackets.
@@ -157,7 +123,7 @@ define(function (require, exports, module) {
             match = gradientMatch || colorMatch;
 
         while (match) {
-            if (match && pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+            if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
                 var preview = "<div class='color-swatch-bg'>"                           +
                               "    <div class='color-swatch' style='background:"        +
                                         prefix + (colorValue || match[0]) + ";'>"       +
@@ -165,21 +131,26 @@ define(function (require, exports, module) {
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
                     endPos = {line: pos.line, ch: match.index + match[0].length},
-                    startCoords = charCoords(cm, startPos),
+                    startCoords = cm.charCoords(startPos),
                     xPos;
                 
-                xPos = (charCoords(cm, endPos).x - startCoords.x) / 2 + startCoords.x;
-                showPreview(preview, xPos, startCoords.y, startCoords.yBot);
-                previewMark = markText(
-                    cm,
+                xPos = (cm.charCoords(endPos).left - startCoords.left) / 2 + startCoords.left;
+                showPreview(preview, xPos, startCoords.top, startCoords.bottom);
+                previewMark = cm.markText(
                     startPos,
                     endPos,
-                    "preview-highlight"
+                    {className: "hover-preview-highlight"}
                 );
-                return;
+                return true;
             }
             match = colorRegEx.exec(line);
         }
+        
+        return false;
+    }
+    
+    function imagePreviewProvider(editor, pos, token, line, event) {
+        var cm = editor._codeMirror;
         
         // Check for image name
         var urlRegEx = /url\(([^\)]*)\)/,
@@ -221,10 +192,10 @@ define(function (require, exports, module) {
                                      "    <img src=\"" + imgPath + "\">"    +
                                      "</div>";
                     if (imgPreview !== currentImagePreviewContent) {
-                        var coord = charCoords(cm, sPos);
-                        var xpos = (charCoords(cm, ePos).x - coord.x) / 2 + coord.x;
-                        var ypos = coord.y;
-                        var ybot = coord.yBot;
+                        var coord = cm.charCoords(sPos);
+                        var xpos = (cm.charCoords(ePos).left - coord.left) / 2 + coord.left;
+                        var ypos = coord.top;
+                        var ybot = coord.bottom;
                         showPreview(imgPreview, xpos, ypos, ybot);
                         
                         // Hide the preview container until the image is loaded.
@@ -240,20 +211,28 @@ define(function (require, exports, module) {
                             $previewContainer.show();
                             positionPreview(xpos, ypos, ybot);
                         });
-                        previewMark = markText(
-                            cm,
+                        previewMark = cm.markText(
                             sPos,
                             ePos,
-                            "preview-highlight"
+                            {className: "hover-preview-highlight"}
                         );
                         currentImagePreviewContent = imgPreview;
                     }
-                    return;
+                    return true;
                 }
             }
         }
         
-        hidePreview();
+        return false;
+    }
+    
+    function queryPreviewProviders(editor, pos, token, line, event) {
+        
+        // FUTURE: Support plugin providers. For now we just hard-code...
+        if (!colorAndGradientPreviewProvider(editor, pos, token, line, event)
+                && !imagePreviewProvider(editor, pos, token, line, event)) {
+            hidePreview();
+        }
     }
     
     function handleMouseMove(event) {
@@ -292,7 +271,7 @@ define(function (require, exports, module) {
         
         if (editor && editor._codeMirror) {
             var cm = editor._codeMirror;
-            var pos = coordsChar(cm, {x: event.clientX, y: event.clientY});
+            var pos = cm.coordsChar({left: event.clientX, top: event.clientY});
             var token = cm.getTokenAt(pos);
             var line = cm.getLine(pos.line);
             
@@ -302,17 +281,7 @@ define(function (require, exports, module) {
         }
     }
     
-    // Init: Listen to all mousemoves in the editor area
-    $("#editor-holder")[0].addEventListener("mousemove", handleMouseMove, true);
-    $("#editor-holder")[0].addEventListener("scroll", hidePreview, true);
-    
-    // Create the preview container
-    $previewContainer = $("<div id='hover-preview-container' class='preview-bubble'>").appendTo($("body"));
-    
-    // Load our stylesheet
-    ExtensionUtils.loadStyleSheet(module, "HoverPreview.css");
-    
-    // Add menu command
+    // Menu command handlers
     var CMD_ENABLE_HOVER_PREVIEW  = "view.enableHoverPreview";
 
     function updateMenuItemCheckmark() {
@@ -334,13 +303,23 @@ define(function (require, exports, module) {
     function toggleEnableHoverPreview() {
         setEnabled(!enabled);
     }
-      
+    
+    // Init: Listen to all mousemoves in the editor area
+    $("#editor-holder")[0].addEventListener("mousemove", handleMouseMove, true);
+    $("#editor-holder")[0].addEventListener("scroll", hidePreview, true);
+    
+    // Create the preview container
+    $previewContainer = $("<div id='hover-preview-container' class='preview-bubble'>").appendTo($("body"));
+    
+    // Load our stylesheet
+    ExtensionUtils.loadStyleSheet(module, "HoverPreview.css");
+    
+    // Register command
     CommandManager.register(Strings.CMD_ENABLE_HOVER_PREVIEW, CMD_ENABLE_HOVER_PREVIEW, toggleEnableHoverPreview);
-    var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    menu.addMenuItem(CMD_ENABLE_HOVER_PREVIEW);
+    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_HOVER_PREVIEW);
     
     // Init PreferenceStorage
-    prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
 
     // Setup initial UI state
     setEnabled(prefs.getValue("enabled"));

@@ -20,16 +20,16 @@
 #hover-preview-container .color-swatch {
     width: 100px;
     height: 100px;
-    background-size: 99.99%;
+    background-size: 100%;
 }
 
 #hover-preview-container .image-preview {
     width: 100px;
-    max-height: 100px;
 }
 
 #hover-preview-container .image-preview img {
-    max-width: 100%;
+    max-width: 100px;
+    max-height: 100px;
     margin-bottom: -5px;
 }
 
@@ -43,13 +43,13 @@
     padding-bottom: 3px;
 }
 
-.preview-bubble, .preview-bubble-below {
+#hover-preview-container.preview-bubble, #hover-preview-container.preview-bubble-below {
     border: 1px solid rgba(0, 0, 0, 0.10);
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.preview-bubble:before {
+#hover-preview-container.preview-bubble:before {
     border-bottom: 25px solid transparent;
     border-right: 25px solid rgba(0, 0, 0, 0.1);
     bottom: -13px;
@@ -59,7 +59,7 @@
     -webkit-transform:rotate(135deg);
 }
 
-.preview-bubble:after {
+#hover-preview-container.preview-bubble:after {
     border-bottom: 25px solid transparent;
     border-right: 25px solid #fff;
     bottom: -12px;
@@ -70,7 +70,7 @@
 }
 
 
-.preview-bubble-below:before {
+#hover-preview-container.preview-bubble-below:before {
     border-top: 25px solid transparent;
     border-right: 25px solid rgba(0, 0, 0, 0.1);
     top: -13px;
@@ -80,7 +80,7 @@
     -webkit-transform:rotate(225deg);
 }
 
-.preview-bubble-below:after {
+#hover-preview-container.preview-bubble-below:after {
     border-top: 25px solid transparent;
     border-right: 25px solid #fff;
     top: -12px;
@@ -90,6 +90,6 @@
     -webkit-transform:rotate(225deg);
 }
 
-.preview-highlight {
+.hover-preview-highlight {
     background-color: rgba(200, 200, 150, 0.4); 
 }
