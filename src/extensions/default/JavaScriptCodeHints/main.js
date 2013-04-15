@@ -103,11 +103,6 @@ define(function (require, exports, module) {
                     $hintObj.addClass("guess-hint");
                 }
 
-                // is the token a global variable?
-                if (token.global) {
-                    $hintObj.addClass("global-hint");
-                }
-                
                 // is the token a keyword?
                 if (token.keyword) {
                     $hintObj.addClass("keyword-hint");

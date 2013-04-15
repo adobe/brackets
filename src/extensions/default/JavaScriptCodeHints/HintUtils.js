@@ -112,21 +112,6 @@ define(function (require, exports, module) {
     }
 
     /*
-     * Annotate a list of tokens as being global variables
-     *
-     * @param {Array.<Object>} globals - list of identifier tokens
-     * @return {Array.<Object>} - the input array; to each object in the array a
-     *      new global {boolean} property has been added to indicate that it is
-     *      a global variable.
-     */
-    function annotateGlobals(globals) {
-        return globals.map(function (t) {
-            t.global = true;
-            return t;
-        });
-    }
-
-    /*
      * Annotate a list of tokens as literals of a particular kind;
      * if string literals, annotate with an appropriate delimiter.
      *
@@ -196,7 +181,6 @@ define(function (require, exports, module) {
     exports.splitPath               = splitPath;
     exports.eventName               = eventName;
     exports.annotateLiterals        = annotateLiterals;
-    exports.annotateGlobals         = annotateGlobals;
     exports.KEYWORDS                = KEYWORDS;
     exports.LITERALS                = LITERALS;
     exports.LANGUAGE_ID             = LANGUAGE_ID;
