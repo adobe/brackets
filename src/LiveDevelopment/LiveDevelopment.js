@@ -403,8 +403,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
-        var name, promises = [];
-        var agentsToLoad;
+        var name, promises = [], agentsToLoad, promise;
+
         if (exports.config.experimental) {
             // load all agents
             agentsToLoad = agents;
@@ -414,7 +414,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
         for (name in agentsToLoad) {
             if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
-                promises.push(agents[name].load());
+                promise = agents[name].load();
+
+                if (promise) {
+                    promises.push(promise);
+                }
+
                 _loadedAgentNames.push(name);
             }
         }
@@ -542,8 +547,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
-        $(Inspector.Inspector).off("detached", _onDetached);
-        $(Inspector.Page).off("frameNavigated.DOMAgent", _onFrameNavigated);
+        $(Inspector.Inspector).off("detached.livedev");
+        $(Inspector.Page).off("frameNavigated.livedev");
 
         unloadAgents();
         _closeDocument();
@@ -814,22 +819,25 @@ define(function LiveDevelopment(require, exports, module) {
          * interstitial page has finished loading.
          */
         function onInterstitialPageLoad() {
+            // Page domain must be enabled first before loading other agents
+            Inspector.Page.enable().done(function () {
+                // Load the right document (some agents are waiting for the page's load event)
+                var doc = _getCurrentDocument();
+                if (doc) {
+                    Inspector.Page.navigate(doc.root.url);
+                } else {
+                    close();
+                }
+            });
+
             // Load agents
             _setStatus(STATUS_LOADING_AGENTS);
             var promises = loadAgents();
             $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
-            
-            // Load the right document (some agents are waiting for the page's load event)
-            var doc = _getCurrentDocument();
-            if (doc) {
-                Inspector.Page.navigate(doc.root.url);
-            } else {
-                close();
-            }
         }
         
-        $(Inspector.Inspector).on("detached", _onDetached);
-        $(Inspector.Page).on("frameNavigated.DOMAgent", _onFrameNavigated);
+        $(Inspector.Inspector).on("detached.livedev", _onDetached);
+        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
 		
         waitForInterstitialPageLoad()
             .fail(function () {
