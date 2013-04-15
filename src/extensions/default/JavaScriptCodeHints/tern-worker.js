@@ -159,16 +159,16 @@ importScripts("thirdparty/requirejs/require.js");
             i;
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function (error, data) {
+            var completions = [];
             if (error) {
                 _log("Error returned from Tern 'completions' request: " + error);
-                return;
-            }
-            var completions = [];
-            //_log("found " + completions.length + " for " + file + "@" + offset);
-            for (i = 0; i < data.completions.length; ++i) {
-                var completion = data.completions[i];
-                completions.push({value: completion.name, type: completion.type, depth: completion.depth,
-                    guess: completion.guess, origin: completion.origin});
+            } else {
+                //_log("found " + data.completions.length + " for " + file + "@" + offset);
+                for (i = 0; i < data.completions.length; ++i) {
+                    var completion = data.completions[i];
+                    completions.push({value: completion.name, type: completion.type, depth: completion.depth,
+                        guess: completion.guess, origin: completion.origin});
+                }
             }
 
             // Post a message back to the main thread with the completions
@@ -194,15 +194,15 @@ importScripts("thirdparty/requirejs/require.js");
             i;
         //_log("request " + request.type + dir + " " + file);
         ternServer.request(request, function (error, data) {
+            var properties = [];
             if (error) {
                 _log("Error returned from Tern 'properties' request: " + error);
-                return;
-            }
-            //_log("completions = " + data.completions.length);
-            var properties = [];
-            for (i = 0; i < data.completions.length; ++i) {
-                var property = data.completions[i];
-                properties.push({value: property, guess: true});
+            } else {
+                //_log("completions = " + data.completions.length);
+                for (i = 0; i < data.completions.length; ++i) {
+                    var property = data.completions[i];
+                    properties.push({value: property, guess: true});
+                }
             }
 
             // Post a message back to the main thread with the completions
@@ -230,12 +230,13 @@ importScripts("thirdparty/requirejs/require.js");
         
         //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
         ternServer.request(request, function (error, data) {
+            var fnType = "";
             if (error) {
                 _log("Error returned from Tern 'type' request: " + error);
-                return;
+            } else {
+                fnType = data.type;
             }
-            var fnType = data.type;
-            
+
             // Post a message back to the main thread with the completions
             self.postMessage({type: HintUtils.TERN_CALLED_FUNC_TYPE_MSG,
                               dir: dir,

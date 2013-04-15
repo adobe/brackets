@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
+        CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
         HintUtils           = require("HintUtils");
     
     var ternEnvironment     = [],
@@ -308,8 +309,24 @@ define(function (require, exports, module) {
     function getPendingRequest(file, offset, type) {
         var key = file + "@" + offset;
         if (Object.prototype.hasOwnProperty.call(pendingTernRequests, key)) {
-            var requests = pendingTernRequests[key];
-            return requests[type];
+            var requests = pendingTernRequests[key],
+                requestType = requests[type],
+                anyProperties = false;
+
+            delete pendingTernRequests[key][type];
+
+            for (var prop in requests) {
+                if (CollectionUtils.hasProperty(requests, prop)) {
+                    anyProperties = true;
+                    break;
+                }
+            }
+
+            if (!anyProperties) {
+                delete pendingTernRequests[key];
+            }
+
+            return requestType;
         }
     }
     
