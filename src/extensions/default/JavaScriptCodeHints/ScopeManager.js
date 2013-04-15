@@ -40,8 +40,7 @@ define(function (require, exports, module) {
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         HintUtils           = require("HintUtils");
     
-    var fileState           = {},       // directory -> file -> state
-        ternEnvironment     = [],
+    var ternEnvironment     = [],
         pendingTernRequests = {},
         _builtins            = ["ecma5.json", "browser.json"],
         rootTernDir         = null,
@@ -96,34 +95,6 @@ define(function (require, exports, module) {
 
     initTernEnv();
     
-    /** 
-     * Initialize state for a given directory and file name
-     *
-     * @param {string} dir - the directory name to initialize
-     * @param {string} file - the file name to initialize
-     */
-    function initFileState(dir, file) {
-        // initialize outerScope, etc. at dir
-        if (!fileState.hasOwnProperty(dir)) {
-            fileState[dir] = {};
-        }
-
-        if (file !== undefined) {
-            if (!fileState[dir].hasOwnProperty(file)) {
-                fileState[dir][file] = {
-                    // has the file changed since the scope was updated?
-                    dirtyFile       : true,
-
-                    // has the scope changed since the last inner scope request?
-                    dirtyScope      : true,
-
-                    // is the parser worker active for this file?
-                    active          : false
-                };
-            }
-        }
-    }
-
     /**
      * Send a message to the tern worker - if the worker is being initialized,
      * the message will not be posted until initialization is complete
@@ -493,34 +464,6 @@ define(function (require, exports, module) {
         }
     });
     
-    // reset state on project change
-    $(ProjectManager)
-        .on(HintUtils.eventName("beforeProjectClose"),
-            function (event, projectRoot) {
-                fileState = {};
-            });
-    
-    // relocate scope information on file rename
-    $(DocumentManager)
-        .on(HintUtils.eventName("fileNameChange"),
-            function (event, oldName, newName) {
-                var oldSplit    = HintUtils.splitPath(oldName),
-                    oldDir      = oldSplit.dir,
-                    oldFile     = oldSplit.file,
-                    newSplit    = HintUtils.splitPath(newName),
-                    newDir      = newSplit.dir,
-                    newFile     = newSplit.file;
-        
-                if (fileState.hasOwnProperty(oldDir) &&
-                        fileState[oldDir].hasOwnProperty(oldFile)) {
-                    if (!fileState.hasOwnProperty(newDir)) {
-                        fileState[newDir] = {};
-                    }
-                    fileState[newDir][newFile] = fileState[oldDir][oldFile];
-                    delete fileState[oldDir][oldFile];
-                }
-            });
-
     exports.getBuiltins = getBuiltins;
     exports.handleEditorChange = handleEditorChange;
     exports.handleFileChange = handleFileChange;
