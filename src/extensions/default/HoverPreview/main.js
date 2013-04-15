@@ -229,8 +229,8 @@ define(function (require, exports, module) {
     function queryPreviewProviders(editor, pos, token, line, event) {
         
         // FUTURE: Support plugin providers. For now we just hard-code...
-        if (!colorAndGradientPreviewProvider(editor, pos, token, line, event)
-                && !imagePreviewProvider(editor, pos, token, line, event)) {
+        if (!colorAndGradientPreviewProvider(editor, pos, token, line, event) &&
+                !imagePreviewProvider(editor, pos, token, line, event)) {
             hidePreview();
         }
     }
