@@ -308,8 +308,22 @@ define(function (require, exports, module) {
     function getPendingRequest(file, offset, type) {
         var key = file + "@" + offset;
         if (Object.prototype.hasOwnProperty.call(pendingTernRequests, key)) {
-            var requests = pendingTernRequests[key];
-            return requests[type];
+            var requests = pendingTernRequests[key],
+                requestType = requests[type],
+                anyProperties = false;
+
+            delete pendingTernRequests[key][type];
+
+            for (var prop in pendingTernRequests[key]) {
+                anyProperties = true;
+                break;
+            }
+
+            if (!anyProperties) {
+                delete pendingTernRequests[key];
+            }
+
+            return requestType;
         }
     }
     
