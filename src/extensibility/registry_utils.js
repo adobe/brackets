@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     
     /**
      * Gets the last version from the given object and returns the short form of its date.
-     * Called by Mustache with "this" as the registry item.
+     * Assumes "this" is the current template context.
      * @return {string} The formatted date.
      */
     exports.lastVersionDate = function () {
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns a more friendly display form of the owner's internal user id.
-     * Called by Mustache with "this" as the registry item.
+     * Assumes "this" is the current template context.
      * @return {string} A display version in the form "id (service)".
      */
     exports.formatUserId = function () {
@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     /**
      * Given a registry item, returns a URL that represents its owner's page on the auth service.
      * Currently only handles GitHub.
-     * Called by Mustache with "this" as the registry item.
+     * Assumes "this" is the current template context.
      * @return {string} A link to that user's page on the service.
      */
     exports.ownerLink = function () {
