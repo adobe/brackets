@@ -45,14 +45,15 @@ define(function (require, exports, module) {
     var liveBrowserOpenedPIDs = [];
 
     /** openLiveBrowser
-     *
-     * @param {string} url
+     * Open the given URL in the user's system browser, optionally enabling debugging.
+     * @param {string} url The URL to open.
+     * @param {boolean=} enableRemoteDebugging Whether to turn on remote debugging. Default false.
      * @return {$.Promise} 
      */
     function openLiveBrowser(url, enableRemoteDebugging) {
         var result = new $.Deferred();
         
-        brackets.app.openLiveBrowser(url, enableRemoteDebugging, function onRun(err, pid) {
+        brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
             if (!err) {
                 // Undefined ids never get removed from list, so don't push them on
                 if (pid !== undefined) {
