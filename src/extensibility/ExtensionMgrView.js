@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         $(this.$el).on("click", "a", function (e) {
             e.stopImmediatePropagation();
             e.preventDefault();
-            NativeApp.openLiveBrowser($(e.target).attr("href"));
+            NativeApp.openURLInDefaultBrowser($(e.target).attr("href"));
         });
         
         var $spinner = $("<div class='spinner large spin'/>")

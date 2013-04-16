@@ -868,6 +868,8 @@ define(function (require, exports, module) {
      * @return true if content was found
      */
     function findDOMText(root, content) {
+        // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
+        // you can't escape quotes in it.
         var i;
         if (root instanceof $) {
             root = root.get(0);

@@ -149,6 +149,26 @@ define(function (require, exports, module) {
                     expect(gotDone).toBe(false);
                 });
             });
+            
+            it("should fail if registry content is malformed", function () {
+                var gotDone = false, gotFail = false;
+                runs(function () {
+                    mockRegistry = "{malformed json";
+                    model.getRegistry()
+                        .done(function () {
+                            gotDone = true;
+                        })
+                        .fail(function () {
+                            gotFail = true;
+                        });
+                });
+                waitsFor(function () { return gotDone || gotFail; }, "bad mock data");
+                
+                runs(function () {
+                    expect(gotFail).toBe(true);
+                    expect(gotDone).toBe(false);
+                });
+            });
         });
         
         describe("ExtensionMgrView", function () {
@@ -270,9 +290,9 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     var origHref = window.location.href;
-                    spyOn(NativeApp, "openLiveBrowser");
+                    spyOn(NativeApp, "openURLInDefaultBrowser");
                     $("a", view.$el).first().click();
-                    expect(NativeApp.openLiveBrowser).toHaveBeenCalledWith("https://github.com/njx");
+                    expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/njx");
                     expect(window.location.href).toBe(origHref);
                 });
             });
