@@ -28,7 +28,8 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var packageValidator = require("../package-validator"),
+var rewire           = require("rewire"),
+    packageValidator = rewire("../package-validator"),
     path             = require("path");
 
 var testFilesDirectory = path.join(path.dirname(module.filename),
@@ -268,5 +269,19 @@ describe("Package Validation", function () {
             expect(result.errors[1][2]).toEqual("valid");
             done();
         });
+    });
+    
+    it("should only allow certain characters in the name", function () {
+        var validateName = packageValidator.__get__("validateName");
+        expect(validateName("Foo")).toEqual(false);
+        expect(validateName("foo")).toEqual(true);
+        expect(validateName("foo2")).toEqual(true);
+        expect(validateName("foo.bar")).toEqual(true);
+        expect(validateName("foo-bar")).toEqual(true);
+        expect(validateName("foo_bar")).toEqual(true);
+        expect(validateName("foo&bar")).toEqual(false);
+        expect(validateName("foo/bar")).toEqual(false);
+        expect(validateName("..")).toEqual(false);
+        expect(validateName(".")).toEqual(false);
     });
 });
