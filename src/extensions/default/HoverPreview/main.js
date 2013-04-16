@@ -329,4 +329,8 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.getValue("enabled"));
+
+    // For unit testing
+    exports.colorAndGradientPreviewProvider = colorAndGradientPreviewProvider;
+    exports.imagePreviewProvider            = imagePreviewProvider;
 });

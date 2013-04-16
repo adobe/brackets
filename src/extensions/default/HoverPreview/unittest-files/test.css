@@ -1,0 +1,189 @@
+/* Sample CSS for testing the HoverPreview extension. */
+
+.hex_values {
+    #369;
+    #2491F5;
+}
+
+.rgb_rgba_values {
+    rgb(255, 0, 0);
+    rgb(100%, 0%, 0%);
+    rgb(50%, 75%, 25%);
+    rgba(255, 0, 0, 0.5);
+    rgba(100%, 0%, 0%, 0.5);
+    rgba(50%, 75%, 25%, 0.5);
+    rgba(255, 0, 0, 1);
+    rgba(255, 0, 0, .5);
+}
+
+.hsl_hsla_values {
+    hsl(0, 100%, 50%);
+    hsla(0, 100%, 50%, 0.5);
+    hsla(0, 100%, 50%, .5);
+}
+
+.color_names {
+    color: aliceblue;
+    color: antiquewhite;
+    color: aqua;
+    color: aquamarine;
+    color: azure;
+    color: beige;
+    color: bisque;
+    color: black;
+    color: blanchedalmond;
+    color: blue;
+    color: blueviolet;
+    color: brown;
+    color: burlywood;
+    color: cadetblue;
+    color: chartreuse;
+    color: chocolate;
+    color: coral;
+    color: cornflowerblue;
+    color: cornsilk;
+    color: crimson;
+    color: cyan;
+    color: darkblue;
+    color: darkcyan;
+    color: darkgoldenrod;
+    color: darkgray;
+    color: darkgreen;
+    color: darkgrey;
+    color: darkkhaki;
+    color: darkmagenta;
+    color: darkolivegreen;
+    color: darkorange;
+    color: darkorchid;
+    color: darkred;
+    color: darksalmon;
+    color: darkseagreen;
+    color: darkslateblue;
+    color: darkslategray;
+    color: darkslategrey;
+    color: darkturquoise;
+    color: darkviolet;
+    color: deeppink;
+    color: deepskyblue;
+    color: dimgray;
+    color: dimgrey;
+    color: dodgerblue;
+    color: firebrick;
+    color: floralwhite;
+    color: forestgreen;
+    color: fuchsia;
+    color: gainsboro;
+    color: ghostwhite;
+    color: gold;
+    color: goldenrod;
+    color: gray;
+    color: green;
+    color: greenyellow;
+    color: grey;
+    color: honeydew;
+    color: hotpink;
+    color: indianred;
+    color: indigo;
+    color: ivory;
+    color: khaki;
+    color: lavender;
+    color: lavenderblush;
+    color: lawngreen;
+    color: lemonchiffon;
+    color: lightblue;
+    color: lightcoral;
+    color: lightcyan;
+    color: lightgoldenrodyellow;
+    color: lightgray;
+    color: lightgreen;
+    color: lightgrey;
+    color: lightpink;
+    color: lightsalmon;
+    color: lightseagreen;
+    color: lightskyblue;
+    color: lightslategray;
+    color: lightslategrey;
+    color: lightsteelblue;
+    color: lightyellow;
+    color: lime;
+    color: limegreen;
+    color: linen;
+    color: magenta;
+    color: maroon;
+    color: mediumaquamarine;
+    color: mediumblue;
+    color: mediumorchid;
+    color: mediumpurple;
+    color: mediumseagreen;
+    color: mediumslateblue;
+    color: mediumspringgreen;
+    color: mediumturquoise;
+    color: mediumvioletred;
+    color: midnightblue;
+    color: mintcream;
+    color: mistyrose;
+    color: moccasin;
+    color: navajowhite;
+    color: navy;
+    color: oldlace;
+    color: olive;
+    color: olivedrab;
+    color: orange;
+    color: orangered;
+    color: orchid;
+    color: palegoldenrod;
+    color: palegreen;
+    color: paleturquoise;
+    color: palevioletred;
+    color: papayawhip;
+    color: peachpuff;
+    color: peru;
+    color: pink;
+    color: plum;
+    color: powderblue;
+    color: purple;
+    color: red;
+    color: rosybrown;
+    color: royalblue;
+    color: saddlebrown;
+    color: salmon;
+    color: sandybrown;
+    color: seagreen;
+    color: seashell;
+    color: sienna;
+    color: silver;
+    color: skyblue;
+    color: slateblue;
+    color: slategray;
+    color: slategrey;
+    color: snow;
+    color: springgreen;
+    color: steelblue;
+    color: tan;
+    color: teal;
+    color: thistle;
+    color: tomato;
+    color: turquoise;
+    color: violet;
+    color: wheat;
+    color: white;
+    color: whitesmoke;
+    color: yellow;
+    color: yellowgreen;
+}
+
+.gradients {
+background: #d2dfed; /* Old browsers */
+background: -moz-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%); /* FF3.6+ */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8)); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%); /* IE10+ */
+}
+
+.images {
+    background: url("screenshots/Color.png");
+    background: "screenshots/Gradient.png";
+    background: "https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png";
+}
+    
