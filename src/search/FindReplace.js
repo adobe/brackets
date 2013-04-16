@@ -387,8 +387,8 @@ define(function (require, exports, module) {
         }
     }
 
-    CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND,          _launchFind);
-    CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,     _findNext);
-    CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE,       _replace);
-    CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS, _findPrevious);
+    CommandManager.register(Strings.CMD_FIND,           Commands.SEARCH_FIND,          _launchFind);
+    CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.SEARCH_FIND_NEXT,     _findNext);
+    CommandManager.register(Strings.CMD_REPLACE,        Commands.SEARCH_REPLACE,       _replace);
+    CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.SEARCH_FIND_PREVIOUS, _findPrevious);
 });

@@ -59,12 +59,6 @@ define(function (require, exports, module) {
     exports.EDIT_PASTE                  = "edit.paste";
     exports.EDIT_SELECT_ALL             = "edit.selectAll";
     exports.EDIT_SELECT_LINE            = "edit.selectLine";
-    exports.EDIT_FIND                   = "edit.find";
-    exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";
-    exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";
-    exports.EDIT_FIND_NEXT              = "edit.findNext";
-    exports.EDIT_FIND_PREVIOUS          = "edit.findPrevious";
-    exports.EDIT_REPLACE                = "edit.replace";
     exports.EDIT_INDENT                 = "edit.indent";
     exports.EDIT_UNINDENT               = "edit.unindent";
     exports.EDIT_DUPLICATE              = "edit.duplicate";
@@ -74,6 +68,17 @@ define(function (require, exports, module) {
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
+
+    // SEARCH
+    exports.SEARCH_FIND                 = "search.find";
+    exports.SEARCH_FIND_NEXT            = "search.findNext";
+    exports.SEARCH_FIND_PREVIOUS        = "search.findPrevious";
+    exports.SEARCH_REPLACE              = "search.replace";
+    exports.SEARCH_FIND_IN_FILES        = "search.findInFiles";
+    exports.SEARCH_FIND_IN_SUBTREE      = "search.findInSubtree";
+    exports.SEARCH_FIND_IN_WORKING_SET  = "search.findInWorkingSet";
+    exports.SEARCH_NEXT_RESULT          = "search.nextResult";
+    exports.SEARCH_PREVIOUS_RESULT      = "search.previousResult";
 
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";

@@ -59,39 +59,6 @@
             "platform": "mac"
         }
     ],
-    "edit.find":  [
-        "Ctrl-F"
-    ],
-    "edit.findInFiles":  [
-        "Ctrl-Shift-F"
-    ],
-    "edit.findNext":  [
-        {
-            "key": "F3"
-        },
-        {
-            "key": "Cmd-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.findPrevious":  [
-        {
-            "key": "Shift-F3"
-        },
-        {
-            "key": "Cmd-Shift-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.replace":  [
-        {
-            "key": "Ctrl-H"
-        },
-        {
-            "key": "Cmd-Alt-F",
-            "platform": "mac"
-        }
-    ],
     "edit.indent":  [
         {
             "key": "Ctrl-]"
@@ -139,6 +106,57 @@
         },
         {
             "key": "Cmd-Opt-/",
+            "platform": "mac"
+        }
+    ],
+    "search.find":  [
+        "Ctrl-F"
+    ],
+    "search.findNext":  [
+        {
+            "key": "F3"
+        },
+        {
+            "key": "Cmd-G",
+            "platform": "mac"
+        }
+    ],
+    "search.findPrevious":  [
+        {
+            "key": "Shift-F3"
+        },
+        {
+            "key": "Cmd-Shift-G",
+            "platform": "mac"
+        }
+    ],
+    "search.replace":  [
+        {
+            "key": "Ctrl-H"
+        },
+        {
+            "key": "Cmd-Alt-F",
+            "platform": "mac"
+        }
+    ],
+    "search.findInFiles":  [
+        "Ctrl-Shift-F"
+    ],
+    "search.nextResult":  [
+        {
+            "key": "F4"
+        },
+        {
+            "key": "Cmd-J",
+            "platform": "mac"
+        }
+    ],
+    "search.previousResult":  [
+        {
+            "key": "Shift-F4"
+        },
+        {
+            "key": "Cmd-Shift-J",
             "platform": "mac"
         }
     ],

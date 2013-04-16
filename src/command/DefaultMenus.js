@@ -80,15 +80,6 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_FIND);
-        menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
-        menu.addMenuItem(Commands.EDIT_FIND_NEXT);
-
-        menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
-
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_REPLACE);
-        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_INDENT);
         menu.addMenuItem(Commands.EDIT_UNINDENT);
         menu.addMenuItem(Commands.EDIT_DUPLICATE);
@@ -100,6 +91,22 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
+
+        /*
+         * Search menu
+         */
+        menu = Menus.addMenu(Strings.SEARCH_MENU, Menus.AppMenuBar.SEARCH_MENU);
+        menu.addMenuItem(Commands.SEARCH_FIND);
+        menu.addMenuItem(Commands.SEARCH_FIND_NEXT);
+        menu.addMenuItem(Commands.SEARCH_FIND_PREVIOUS);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.SEARCH_REPLACE);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.SEARCH_FIND_IN_FILES);
+        menu.addMenuItem(Commands.SEARCH_FIND_IN_WORKING_SET);
+        menu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
+        menu.addMenuItem(Commands.SEARCH_NEXT_RESULT);
+        menu.addMenuItem(Commands.SEARCH_PREVIOUS_RESULT);
 
         /*
          * View menu
@@ -179,7 +186,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
         project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        project_cmenu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
@@ -187,7 +194,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        working_set_cmenu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
         working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);

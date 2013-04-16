@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     var AppMenuBar = {
         FILE_MENU       : "file-menu",
         EDIT_MENU       : "edit-menu",
+        SEARCH_MENU     : "search-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
         HELP_MENU       : "help-menu"
@@ -77,10 +78,15 @@ define(function (require, exports, module) {
         FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
         FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
 
+        EDIT_UNDO_REDO_COMMANDS:            {sectionMarker: Commands.EDIT_UNDO},
+        EDIT_TEXT_COMMANDS:                 {sectionMarker: Commands.EDIT_CUT},
         EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
-        EDIT_FIND:                          {sectionMarker: Commands.EDIT_FIND},
-        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
         EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
+        EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
+
+        SEARCH_FIND_COMMANDS:               {sectionMarker: Commands.SEARCH_FIND},
+        SEARCH_REPLACE_COMMANDS:            {sectionMarker: Commands.SEARCH_REPLACE},
+        SEARCH_FIND_IN_FILES_COMMANDS:      {sectionMarker: Commands.SEARCH_FIND_IN_FILES},
 
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
