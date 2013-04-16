@@ -223,6 +223,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
+	"CMD_ENABLE_HOVER_PREVIEW": "!能=[6774420] Enable Hover Preview_=!",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -304,7 +305,7 @@ define({
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
-	"INSTALLING_FROM": "{0} から拡張機能をインストール\u2026",
+	"INSTALLING_FROM": "{0} から拡張機能をインストールしています\u2026",
 	"INSTALL_SUCCEEDED": "インストールは成功しました。",
 	"INSTALL_FAILED": "インストールは失敗しました。",
 	"CANCELING_INSTALL": "キャンセルしています\u2026",

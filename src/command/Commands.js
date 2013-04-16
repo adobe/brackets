@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
     exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
+    exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT

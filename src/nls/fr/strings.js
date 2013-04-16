@@ -223,6 +223,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_ENABLE_HOVER_PREVIEW": "[6774420] !é=Enable Hover Preview=!",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -302,7 +303,7 @@ define({
     
     // Extension Management strings
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
-	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
+	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie.",

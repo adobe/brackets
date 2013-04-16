@@ -105,6 +105,7 @@ define(function (require, exports, module) {
     require("search/FindInFiles");
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
+    require("extensibility/ExtensionManagerDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
