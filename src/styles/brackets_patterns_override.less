@@ -464,32 +464,39 @@
 }
 
 /* Extension Manager dialog */
-.extension-manager-dialog .modal-body {
-    width: 700px;
-    height: 500px;
-    text-align: center;
-    overflow-y: scroll;
+.extension-manager-dialog {
+    top: 50%;
+    left: 50%;
+    margin-top: -325px;
+    margin-left: -350px;
     
-    .extension-list {
-        .ext-desc {
-            width: 70%;
-        }
-        .ext-version,
-        .ext-date,
-        .ext-author {
-            font-size: 0.8em;
-        }
-    
-        .spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            margin-top: -18px;
-            margin-left: -18px;
-        }
-        .alert-message {
-            display: inline-block;
-            margin-top: 240px;
+    .modal-body {
+        width: 700px;
+        height: 500px;
+        text-align: center;
+        overflow-y: scroll;
+        
+        .extension-list {
+            .ext-desc {
+                width: 70%;
+            }
+            .ext-version,
+            .ext-date,
+            .ext-author {
+                font-size: 0.8em;
+            }
+        
+            .spinner {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin-top: -18px;
+                margin-left: -18px;
+            }
+            .alert-message {
+                display: inline-block;
+                margin-top: 240px;
+            }
         }
     }
 }
