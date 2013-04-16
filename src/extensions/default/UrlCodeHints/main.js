@@ -235,7 +235,12 @@ define(function (require, exports, module) {
     UrlCodeHints.prototype._getUrlHints = function (query) {
         var hints = [],
             sortFunc = null;
-        
+
+        // Do not show hints after "?" in url
+        if (query.queryStr.indexOf("?") !== -1) {
+            return null;
+        }
+
         // Default behavior for url hints is do not close on select.
         this.closeOnSelect = false;
         hints = this._getUrlList(query);
