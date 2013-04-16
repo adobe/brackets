@@ -403,7 +403,7 @@ define(function (require, exports, module) {
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                 ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
                 json_data : { data: treeDataProvider, correct_state: false },
-                core : { animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
+                core : { html_titles: true, animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
@@ -601,20 +601,24 @@ define(function (require, exports, module) {
     function _convertEntriesToJSON(entries) {
         var jsonEntryList = [],
             entry,
-            entryI;
+            entryI,
+            jsonEntry;
 
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
             if (shouldShow(entry)) {
-                var jsonEntry = {
+                jsonEntry = {
                     data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
                     metadata: { entry: entry }
                 };
+
                 if (entry.isDirectory) {
                     jsonEntry.children = [];
                     jsonEntry.state = "closed";
+                } else {
+                    jsonEntry.data = ViewUtils.getFileEntryDisplay(entry);
                 }
     
                 // For more info on jsTree's JSON format see: http://www.jstree.com/documentation/json_data

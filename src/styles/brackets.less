@@ -334,7 +334,9 @@ a, img {
 
 #project-header {
     /* Fixed height blank space for now. The mockups have the window "stoplights" or a logo here. */
-    height: 29px;
+    height: 19px;
+    padding: 10px 0 9px 12px;
+    background: #3C3F41;
 }
 
 #sidebar-resizer {
@@ -349,24 +351,25 @@ a, img {
 #file-section {
     .vbox;
     .box-flex(1);
-    margin: 5px 0px 0px 0px;
     position: relative;
-    
-    .project-file-header-area {
-        padding: 6px 6px 2px 10px;
-        font-size: 13px;
-        color: #929292;
-    }
 
     .file-list-divider {
         border-bottom: 1px solid #9a9a9a;  
         box-shadow: 0px 1px #eeeeee;
     }
 }
+    
+#project-files-header {
+    padding: 8px 0 9px 12px;
+    font-size: 13px;
+    color: #929292;
+}
 
 #open-files-container {
     .box-flex(0);
-    margin: 0 0 22px 0;
+    background: #3C3F41;
+    border-bottom: 1px solid #57595A;
+    margin: 0;
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
@@ -383,10 +386,14 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
+        
+        &.selected .extension {
+            color: #fff;
+        }
     }
             
     a {
-        color: #BBB;
+        color: #fff;
         
         font-size: 13px;
         text-decoration: none;
@@ -400,8 +407,8 @@ a, img {
         cursor: default;
     }
     
-    .selected a {
-        color: #fff;
+    .extension {
+        color: #8e9a9d;
     }
 }
 
