@@ -80,7 +80,8 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'src/thirdparty/jquery-1.7.js',
+                    'src/thirdparty/jquery-1.9.1.min.js',
+                    'src/thirdparty/jquery-migrate-1.1.1.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
