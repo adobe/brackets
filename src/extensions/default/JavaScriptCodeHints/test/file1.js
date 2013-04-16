@@ -38,4 +38,8 @@ function funD(a, b) {
 
 require(["MyModule"], function (myModule) {
     'use strict';
+    var x = myModule.a;
 });
+
+funB();
+var x = A1;

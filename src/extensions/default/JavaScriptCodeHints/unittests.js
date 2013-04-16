@@ -263,6 +263,43 @@ define(function (require, exports, module) {
             });
         }
 
+        /**
+         * Wait for the editor to change positions, such as after a jump to
+         * definition has been triggered.  Will timeout after 3 seconds
+         *
+         * @param {{line:number, ch:number}} oldLocation - the original line/col
+         * @param {Function} callback - the callback to apply once the editor has changed position
+         */
+        function _waitForJump(oldLocation, callback) {
+            waitsFor(function () {
+                var cursor = testEditor.getCursorPos();
+                return (cursor.line !== oldLocation.line) ||
+                        (cursor.ch !== oldLocation.ch);
+            }, "Expected jump did not occur", 3000);
+
+            runs(function () { callback(testEditor.getCursorPos()); });
+        }
+        
+        /**
+         * Trigger a jump to definition, and verify that the editor jumped to 
+         * the expected location.
+         *
+         * @param {{line:number, ch:number}} expectedLocation - the location the editor should
+         *      jump to.
+         */
+        function editorJumped(expectedLocation) {
+            var oldLocation = testEditor.getCursorPos();
+            
+            JSCodeHints.handleJumpToDefinition();
+            
+            
+            _waitForJump(oldLocation, function (newCursor) {
+                expect(newCursor.line).toBe(expectedLocation.line);
+                expect(newCursor.ch).toBe(expectedLocation.ch);
+            });
+            
+        }
+        
         describe("JavaScript Code Hinting", function () {
    
             beforeEach(function () {
@@ -599,14 +636,30 @@ define(function (require, exports, module) {
             });
 
             it("should list exports from a requirejs module", function () {
-                var start = { line: 39, ch: 0 },
-                    middle = { line: 39, ch: 9 };
+                var start = { line: 40, ch: 21 };
                 
-                testDoc.replaceRange("myModule.", start, start);
-                testEditor.setCursorPos(middle);
+                testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["a", "b"]);
+                    hintsPresentExact(hintObj, ["a", "b", "j"]);
+                });
+            });
+
+            it("should jump to function", function () {
+                var start = { line: 43, ch: 0 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 7, ch: 13});
+                });
+            });
+
+            it("should jump to var", function () {
+                var start = { line: 44, ch: 10 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 3, ch: 6});
                 });
             });
 

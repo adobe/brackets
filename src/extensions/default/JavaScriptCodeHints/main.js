@@ -443,5 +443,6 @@ define(function (require, exports, module) {
         // for unit testing
         exports.jsHintProvider = jsHints;
         exports.initializeSession = initializeSession;
+        exports.handleJumpToDefinition = handleJumpToDefinition;
     });
 });
