@@ -279,7 +279,7 @@ define(function (require, exports, module) {
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
             end         = {line: cursor.line, ch: (token ? token.end : cursor.ch)},
-            delimeter;
+            delimiter;
 
         if (token && token.string === ".") {
             var nextCursor  = session.getNextCursorOnLine(),
@@ -296,16 +296,16 @@ define(function (require, exports, module) {
         // to wrap it, preserving the existing delimiter if possible.
         if (hint.literal && hint.kind === "string") {
             if (token.string.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-                delimeter = HintUtils.DOUBLE_QUOTE;
+                delimiter = HintUtils.DOUBLE_QUOTE;
             } else if (token.string.indexOf(HintUtils.SINGLE_QUOTE) === 0) {
-                delimeter = HintUtils.SINGLE_QUOTE;
+                delimiter = HintUtils.SINGLE_QUOTE;
             } else {
-                delimeter = hint.delimeter;
+                delimiter = hint.delimiter;
             }
 
             completion = completion.replace("\\", "\\\\");
-            completion = completion.replace(delimeter, "\\" + delimeter);
-            completion = delimeter + completion + delimeter;
+            completion = completion.replace(delimiter, "\\" + delimiter);
+            completion = delimiter + completion + delimiter;
         }
 
         if (session.getType().showFunctionType) {

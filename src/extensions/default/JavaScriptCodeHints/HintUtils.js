@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var LANGUAGE_ID                 = "javascript",
-        SINGLE_QUOTE                = "\'",
+        SINGLE_QUOTE                = "'",
         DOUBLE_QUOTE                = "\"",
         TERN_INIT_MSG               = "Init",
         TERN_JUMPTODEF_MSG          = "JumptoDef",
@@ -131,9 +131,9 @@ define(function (require, exports, module) {
             t.origin = "ecma5";
             if (kind === "string") {
                 if (/[\\\\]*[^\\]"/.test(t.value)) {
-                    t.delimeter = SINGLE_QUOTE;
+                    t.delimiter = SINGLE_QUOTE;
                 } else {
-                    t.delimeter = DOUBLE_QUOTE;
+                    t.delimiter = DOUBLE_QUOTE;
                 }
             }
             return t;
