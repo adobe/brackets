@@ -367,7 +367,7 @@ define(function (require, exports, module) {
         if (attrInfo) {
             if (attrInfo.type === "boolean") {
                 hints = ["false", "true"];
-            } else if (attrInfo.type === "url") {
+            } else if (attrInfo.type === "url" && (query.queryStr.indexOf("?") === -1)) {
                 // Default behavior for url hints is do not close on select.
                 this.closeOnSelect = false;
                 hints = this._getUrlList(query);
