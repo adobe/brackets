@@ -254,15 +254,15 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Check inlines first
+        // Check for inline Editor instances first
         var inlines = fullEditor.getInlineWidgets(),
             i,
             editor;
         
         for (i = 0; i < inlines.length; i++) {
-            var $inlineDiv = inlines[i].$editorsDiv;
+            var $inlineDiv = inlines[i].$editorsDiv;  // see MultiRangeInlineEditor
             
-            if (divContainsMouse($inlineDiv, event)) {
+            if ($inlineDiv && divContainsMouse($inlineDiv, event)) {
                 editor = inlines[i].editors[0];
                 break;
             }
