@@ -52,12 +52,38 @@ define(function (require, exports, module) {
      */
     var _nodeConnectionDeferred = $.Deferred();
     
+    /**
+     * @private
+     * @type {NodeConnection}
+     */
+    var _nodeConnection = new NodeConnection();
+    
     var _baseUrl = "";
 
     /**
      * @constructor
+     * 
+     * StaticServerProvider dispatches the following events:
+     * 
+     * request -- Passes {location: {hostname: string, port: number, root: string, pathname: string}, send: function({body: string}) }
+     *     Listeners define paths to intercept requests for by supplying those
+     *     paths to setRequestFilterPaths([path1,...,pathN]).
+     *
+     *     When requests for those paths are received on the server, StaticServerProvider
+     *     creates a "request" event with a send() callback that allows the listener to
+     *     override the default static file server response.
+     *
+     *     Listeners to this event should be installed before any HTTP
+     *     requests are sent to the server.
      */
     function StaticServerProvider() {}
+
+    /**
+     * @private
+     * @type {string}
+     * Absolute file system path for the root of a server
+     */
+    StaticServerProvider.prototype.root = null;
 
     /**
      * Determines whether we can serve local file.
@@ -70,7 +96,7 @@ define(function (require, exports, module) {
      */
     StaticServerProvider.prototype.canServe = function (localPath) {
 
-        if (!_nodeConnectionDeferred.isResolved()) {
+        if (!_nodeConnection.connected()) {
             return false;
         }
         
@@ -109,45 +135,70 @@ define(function (require, exports, module) {
      *     the server is ready/failed.
      */
     StaticServerProvider.prototype.readyToServe = function () {
-        var readyToServeDeferred = $.Deferred();
+        var readyToServeDeferred = $.Deferred(),
+            self = this;
 
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.staticServer.getServer(
-                    ProjectManager.getProjectRoot().fullPath
-                ).done(function (address) {
-                    _baseUrl = "http://" + address.address + ":" + address.port + "/";
-                    readyToServeDeferred.resolve();
-                }).fail(function () {
-                    _baseUrl = "";
-                    readyToServeDeferred.reject();
-                });
-            } else {
-                // nodeConnection has been connected once (because the deferred
-                // resolved, but is not currently connected).
-                //
-                // If we are in this case, then the node process has crashed
-                // and is in the process of restarting. Once that happens, the
-                // node connection will automatically reconnect and reload the
-                // domain. Unfortunately, we don't have any promise to wait on
-                // to know when that happens. The best we can do is reject this
-                // readyToServe so that the user gets an error message to try
-                // again later.
-                //
-                // The user will get the error immediately in this state, and
-                // the new node process should start up in a matter of seconds
-                // (assuming there isn't a more widespread error). So, asking
-                // them to retry in a second is reasonable.
+        if (_nodeConnection.connected()) {
+            self.root = ProjectManager.getProjectRoot().fullPath;
+
+            _nodeConnection.domains.staticServer.getServer(self.root).done(function (address) {
+                _baseUrl = "http://" + address.address + ":" + address.port + "/";
+                readyToServeDeferred.resolve();
+            }).fail(function () {
+                _baseUrl = "";
                 readyToServeDeferred.reject();
-            }
-        });
-        
-        _nodeConnectionDeferred.fail(function () {
+            });
+        } else {
+            // nodeConnection has been connected once (because the deferred
+            // resolved, but is not currently connected).
+            //
+            // If we are in this case, then the node process has crashed
+            // and is in the process of restarting. Once that happens, the
+            // node connection will automatically reconnect and reload the
+            // domain. Unfortunately, we don't have any promise to wait on
+            // to know when that happens. The best we can do is reject this
+            // readyToServe so that the user gets an error message to try
+            // again later.
+            //
+            // The user will get the error immediately in this state, and
+            // the new node process should start up in a matter of seconds
+            // (assuming there isn't a more widespread error). So, asking
+            // them to retry in a second is reasonable.
             readyToServeDeferred.reject();
-        });
+        }
         
         return readyToServeDeferred.promise();
     };
+
+    /**
+     * Defines a set of paths from a server's root path to watch and fire "request" events for.
+     * 
+     * @param {Array.<string>} paths An array of root-relative paths to watch.
+     *     Each path should begin with a forward slash "/".
+     */
+    StaticServerProvider.prototype.setRequestFilterPaths = function (paths) {
+        var self = this;
+
+        if (_nodeConnection.connected()) {
+            return _nodeConnection.domains.staticServer.setRequestFilterPaths(self.root, paths);
+        }
+
+        return new $.Deferred().reject().promise();
+    };
+
+    /**
+     * @private
+     * Callback for "request" event handlers to override the HTTP ServerResponse.
+     */
+    function _send(location) {
+        return function (resData) {
+            if (_nodeConnection.connected()) {
+                return _nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, resData);
+            }
+
+            return new $.Deferred().reject().promise();
+        };
+    }
 
     /**
      * @private
@@ -189,13 +240,25 @@ define(function (require, exports, module) {
             _nodeConnectionDeferred.reject();
         }, NODE_CONNECTION_TIMEOUT);
         
-        var _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
             _nodeConnection.loadDomains(
                 [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
                 true
             ).then(
                 function () {
+                    var $staticServerProvider = $(_staticServerProvider);
+                    
+                    $(_nodeConnection).on("staticServer.requestFilter", function (event, request) {
+                        /* create result object to pass to event handlers */
+                        var requestData = {
+                            headers     : request.headers,
+                            location    : request.location,
+                            send        : _send(request.location)
+                        };
+
+                        $staticServerProvider.triggerHandler("request", [requestData]);
+                    });
+
                     clearTimeout(connectionTimeout);
                     _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
                 },

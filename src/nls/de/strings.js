@@ -74,8 +74,10 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Laden der Live-Vorschau nicht möglich",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei, um die Live-Vorschau zu starten.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben..",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Ein Fehler ist beim Starten des HTTP-Servers oder der Live-Vorschau-Dateien aufgetreten. Bitte versuchen Sie es später erneut.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a class=\"clickable-link\" data-href=\"{0}\">Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
@@ -99,6 +101,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
+    "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
@@ -128,14 +131,16 @@ define({
     
     // Switch language
     "LANGUAGE_TITLE"                    : "Sprache wechseln",
-    "LANGUAGE_MESSAGE"                  : "Bitte wählen Sie die gewünschte Sprache aus der folgenden Liste aus:",
+    "LANGUAGE_MESSAGE"                  : "Sprache:",
     "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
 
     /**
      * ProjectManager
      */
 
+    "PROJECT_LOADING" : "Lädt\u2026",
     "UNTITLED" : "Unbenannt",
 
     /**
@@ -172,11 +177,12 @@ define({
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
-    "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
-    "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live-Highlight",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
+    "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_INSTALL_EXTENSION"               : "Erweiterung installieren\u2026",
     "CMD_QUIT"                            : "Beenden",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Beenden",
@@ -204,6 +210,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Block (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
      
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -212,6 +219,11 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Schriftart vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schriftart verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftart zurücksetzen",
+    "CMD_SCROLL_LINE_UP"                  : "Zeile hoch scrollen",
+    "CMD_SCROLL_LINE_DOWN"                : "Zeile runter scrollen",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Zeilennummern anzeigen",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Aktive Zeile hervorheben",
+    "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
@@ -238,8 +250,11 @@ define({
     "CMD_JSLINT"                          : "JSLint aktivieren",
     "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
+    "CMD_ENABLE_NODE_DEBUGGER"            : "Node-Debugger aktivieren",
+    "CMD_LOG_NODE_STATE"                  : "Node-Status in Konsole anzeigen",
+    "CMD_RESTART_NODE"                    : "Node neu starten",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -258,11 +273,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
-    "JSLINT_ERRORS"                        : "JSLint-Fehler",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
-    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
-    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
     "SEARCH_RESULTS"                       : "Suchergebnisse",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nicht speichern",
@@ -272,25 +282,68 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
+    "INSTALL"                              : "Installieren",
     "ABOUT"                                : "Über",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE5"                     : "Gemacht mit \u2764 und JavaScript von:",
+    "ABOUT_TEXT_LINE6"                     : "…vielen Leuten (…leider haben wir aber gerade Probleme, diese Daten zu laden).",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
     "GET_IT_NOW"                           : "Jetzt updaten!",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(leer lassen für Datei-URL)",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(um einen lokalen Server zu verwenden, URL angeben)",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Das Protokoll {0} wird von der Live-Vorschau nicht unterstützt &ndash; bitte http: oder https: verwenden.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
-    
+
+    // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
+    "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
+    "INSTALL_EXTENSION_HINT"               : "URL der Erweiterungs-ZIP-Datei oder GitHub-Repo",
+    "INSTALLING_FROM"                      : "Erweiterung installieren von {0}\u2026",
+    "INSTALL_SUCCEEDED"                    : "Installation abgeschlossen!",
+    "INSTALL_FAILED"                       : "Installation fehlgeschlagen.",
+    "CANCELING_INSTALL"                    : "Abgebrochen\u2026",
+    "CANCELING_HUNG"                       : "Das Abbrechen der Installation nimmt bereits einige Minuten in Anspruch. Ein interner Fehler könnte aufgetreten sein.",
+    "INSTALL_CANCELED"                     : "Installation abgebrochen.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "Der heruntergeladene Inhalt ist keine gültige ZIP-Datei.",
+    "INVALID_PACKAGE_JSON"                 : "Die JSON-Paketdatei ist ungültig (Fehler: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Die JSON-Paketdatei hat kein definierten Paketnamen.",
+    "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
+    "MISSING_PACKAGE_VERSION"              : "Die JSON-Paketdatei hat keine definierte Paketversion.",
+    "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
+    "INVALID_BRACKETS_VERSION"             : "Die Brackets-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
+    "DISALLOWED_WORDS"                     : "Die Wörter {{1}} sind im Feld {{0}} nicht erlaubt.",
+    "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
+    "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
+    "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
+    "NO_DISABLED_DIRECTORY"                : "Die Erweiterung konnte nicht gespeichert werden, weil der Ordner für deaktivierte Erweiterungen nicht existiert.",
+    "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
+    "NO_SERVER_RESPONSE"                   : "Verbindung konnte nicht hergestellt werden.",
+    "BAD_HTTP_STATUS"                      : "Die Datei wurde auf dem Server nicht gefunden (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Konnte den Download nicht in einer temporären Datei speichern.",
+    "ERROR_LOADING"                        : "Beim Starten der Erweiterung ist ein Fehler aufgetreten.",
+    "MALFORMED_URL"                        : "Die URL ist ungültig. Bitte prüfen Sie, ob es sich um eine gültige URL handelt.",
+    "UNSUPPORTED_PROTOCOL"                 : "Bitte geben Sie eine http- oder https-URL an.",
+    "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
+    // For NOT_FOUND_ERR, see generic strings above
+
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "JSLint-Fehler",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
+    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original-Farbe",

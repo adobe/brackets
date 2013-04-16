@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         
         // Prevent adding doc to working set
         docToShim._handleEditorChange = function (event, editor, changeList) {
-            this.isDirty = true;
+            this.isDirty = !editor._codeMirror.isClean();
                     
             // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
             // future, we should fix things so that we either don't need mock documents or that this
@@ -188,6 +188,22 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns a mock element (in the test runner window) that's offscreen, for
+     * parenting UI you want to unit-test. When done, make sure to delete it with
+     * remove().
+     * @return {jQueryObject} a jQuery object for an offscreen div
+     */
+    function createMockElement() {
+        return $("<div/>")
+            .css({
+                position: "absolute",
+                left: "-10000px",
+                top: "-10000px"
+            })
+            .appendTo($("body"));
+    }
+
+    /**
      * Returns a Document and Editor suitable for use with an Editor in
      * isolation: i.e., a Document that will never be set as the
      * currentDocument or added to the working set.
@@ -195,15 +211,8 @@ define(function (require, exports, module) {
      */
     function createMockEditor(initialContent, languageId, visibleRange) {
         // Initialize EditorManager and position the editor-holder offscreen
-        var $editorHolder = $("<div id='mock-editor-holder'/>")
-            .css({
-                position: "absolute",
-                left: "-10000px",
-                top: "-10000px"
-            });
+        var $editorHolder = createMockElement().attr("id", "mock-editor-holder");
         EditorManager.setEditorHolder($editorHolder);
-        EditorManager._init();
-        $("body").append($editorHolder);
         
         // create dummy Document for the Editor
         var doc = createMockDocument(initialContent, languageId);
@@ -226,7 +235,7 @@ define(function (require, exports, module) {
         EditorManager.setEditorHolder(null);
         $("#mock-editor-holder").remove();
     }
-
+    
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
             // Position popup windows in the lower right so they're out of the way
@@ -254,6 +263,8 @@ define(function (require, exports, module) {
             params.put("skipLiveDevelopmentInfo", true);
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
+            
+            _testWindow.isBracketsTestWindow = true;
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
@@ -750,9 +761,14 @@ define(function (require, exports, module) {
                 return this.keyCodeVal;
             }
         });
+        Object.defineProperty(oEvent, 'charCode', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
 
         if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
         } else {
             oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
         }
@@ -813,6 +829,66 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Remove a directory (recursively) or file
+     *
+     * @param {!string} path Path to remove
+     * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
+     */
+    function remove(path) {
+        var d = new $.Deferred();
+        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
+        nodeDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.testing.remove(path)
+                        .done(function () {
+                            d.resolve();
+                        })
+                        .fail(function () {
+                            d.reject();
+                        });
+                } else {
+                    d.reject();
+                }
+            })
+            .fail(function () {
+                d.reject();
+            });
+        return d.promise();
+    }
+    
+    /**
+     * Searches the DOM tree for text containing the given content. Useful for verifying
+     * that data you expect to show up in the UI somewhere is actually there.
+     *
+     * @param {jQueryObject|Node} root The root element to search from. Can be either a jQuery object
+     *     or a raw DOM node.
+     * @param {string} content The content to find.
+     * @return true if content was found
+     */
+    function findDOMText(root, content) {
+        // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
+        // you can't escape quotes in it.
+        var i;
+        if (root instanceof $) {
+            root = root.get(0);
+        }
+        if (!root) {
+            return false;
+        } else if (root.nodeType === 3) { // text node
+            return root.textContent.indexOf(content) !== -1;
+        } else {
+            var children = root.childNodes;
+            for (i = 0; i < children.length; i++) {
+                if (findDOMText(children[i], content)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
     beforeEach(function () {
         this.addMatchers({
             /**
@@ -852,6 +928,7 @@ define(function (require, exports, module) {
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
     exports.chmod                           = chmod;
+    exports.remove                          = remove;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
@@ -859,6 +936,7 @@ define(function (require, exports, module) {
     exports.makeAbsolute                    = makeAbsolute;
     exports.createMockDocument              = createMockDocument;
     exports.createMockActiveDocument        = createMockActiveDocument;
+    exports.createMockElement               = createMockElement;
     exports.createMockEditor                = createMockEditor;
     exports.createTestWindowAndRun          = createTestWindowAndRun;
     exports.closeTestWindow                 = closeTestWindow;
@@ -877,4 +955,5 @@ define(function (require, exports, module) {
     exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
+    exports.findDOMText                     = findDOMText;
 });

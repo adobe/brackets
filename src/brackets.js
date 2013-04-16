@@ -74,7 +74,6 @@ define(function (require, exports, module) {
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
-        JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
         QuickOpen               = require("search/QuickOpen"),
@@ -98,17 +97,20 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
+    require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
+    require("editor/EditorOptionHandlers");
     require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
+    require("extensibility/InstallExtensionDialog");
+    require("extensibility/ExtensionManagerDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
-    var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
+    var params = new UrlParams();
     
     // read URL params
     params.parse();
@@ -128,7 +130,6 @@ define(function (require, exports, module) {
             EditorManager           : EditorManager,
             Commands                : Commands,
             WorkingSetView          : WorkingSetView,
-            JSLintUtils             : JSLintUtils,
             PerfUtils               : PerfUtils,
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
@@ -145,6 +146,7 @@ define(function (require, exports, module) {
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
+            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             extensions              : {}, // place for extensions to hang modules for unit tests
             doneLoading             : false
         };
@@ -200,8 +202,11 @@ define(function (require, exports, module) {
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
-                    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
+                    var prefs = PreferencesManager.getPreferenceStorage(module),
                         deferred = new $.Deferred();
+                    //TODO: Remove preferences migration code
+                    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");
+                    
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
@@ -252,6 +257,13 @@ define(function (require, exports, module) {
     function _beforeHTMLReady() {
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
+        
+        // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
+        if (brackets.inBrowser) {
+            $("body").addClass("in-browser");
+        } else {
+            $("body").addClass("in-appshell");
+        }
         
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, Strings));

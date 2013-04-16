@@ -94,11 +94,6 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager");
     
     /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.DocumentManager";
-    
-    /**
      * @private
      * @see DocumentManager.getCurrentDocument()
      */
@@ -600,9 +595,8 @@ define(function (require, exports, module) {
         }
         
         this.file = file;
-        this.refreshText(rawText, initialTimestamp);
-        
         this._updateLanguage();
+        this.refreshText(rawText, initialTimestamp);
         
         // This is a good point to clean up any old dangling Documents
         _gcDocuments();
@@ -919,16 +913,17 @@ define(function (require, exports, module) {
         }
         
         this._markClean();
-        $(exports).triggerHandler("documentSaved", this);
         
         // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
         var thisDoc = this;
         this.file.getMetadata(
             function (metadata) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
+                $(exports).triggerHandler("documentSaved", thisDoc);
             },
             function (error) {
                 console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
+                $(exports).triggerHandler("documentSaved", thisDoc);
             }
         );
     };
@@ -955,8 +950,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
-        var ext = PathUtils.filenameExtension(this.file.fullPath);
-        this.language = LanguageManager.getLanguageForFileExtension(ext);
+        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
@@ -1218,7 +1212,26 @@ define(function (require, exports, module) {
      */
     function _handleLanguageAdded(event, language) {
         CollectionUtils.forEach(_openDocuments, function (doc, key) {
-            doc._updateLanguage();
+            // No need to look at the new language if this document has one already
+            if (doc.getLanguage().isFallbackLanguage()) {
+                doc._updateLanguage();
+            }
+        });
+    }
+
+    /**
+     * @private
+     * Update document
+     */
+    function _handleLanguageModified(event, language) {
+        CollectionUtils.forEach(_openDocuments, function (doc, key) {
+            var docLanguage = doc.getLanguage();
+            // A modified language can affect a document
+            // - if its language was modified
+            // - if the document doesn't have a language yet and its file extension was added to the modified language
+            if (docLanguage === language || docLanguage.isFallbackLanguage()) {
+                doc._updateLanguage();
+            }
         });
     }
 
@@ -1247,7 +1260,9 @@ define(function (require, exports, module) {
     exports.notifyPathNameChanged       = notifyPathNameChanged;
 
     // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    _prefs = PreferencesManager.getPreferenceStorage(module);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.DocumentManager");
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
@@ -1259,4 +1274,5 @@ define(function (require, exports, module) {
     
     // Handle Language change events
     $(LanguageManager).on("languageAdded", _handleLanguageAdded);
+    $(LanguageManager).on("languageModified", _handleLanguageModified);
 });

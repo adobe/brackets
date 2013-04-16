@@ -20,24 +20,27 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
- /*global module, require*/
+/*global module, require*/
+
 module.exports = function (grunt) {
     "use strict";
 
-    var common = require("./lib/common");
+    var common = require("./lib/common")(grunt);
     
     // task: update-sprint-number
     // Updates the version property in package.json
     grunt.registerTask('update-sprint-number', function () {
         var path        = "package.json",
             packageJSON = grunt.file.readJSON(path),
-            sprint      = grunt.option("sprint") || 0;
+            sprint      = grunt.option("sprint") || 0,
+            versionNumberRegexp = /([0-9]+\.)([0-9]+)([\.\-a-zA-Z0-9]*)?/;
 
         if (!sprint) {
             grunt.fail.fatal("Please specify a sprint. e.g. grunt update-sprint-number --sprint=21");
         }
         
-        packageJSON.version = packageJSON.version.replace(/([0-9]+\.)([0-9]+)([\.\-a-zA-Z0-9]*)?/, "$1" + sprint + "$3");
+        packageJSON.version = packageJSON.version.replace(versionNumberRegexp, "$1" + sprint + "$3");
+        packageJSON.apiVersion = packageJSON.apiVersion.replace(versionNumberRegexp, "$1" + sprint + "$3");
 
         common.writeJSON(grunt, path, packageJSON);
     });

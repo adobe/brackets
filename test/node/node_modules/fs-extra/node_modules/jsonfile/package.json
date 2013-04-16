@@ -1,0 +1,37 @@
+{
+  "name": "jsonfile",
+  "version": "0.0.1",
+  "description": "Easily read/write JSON files.",
+  "homepage": [
+    ""
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jprichardson/node-jsonfile.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "JP Richardson",
+    "email": "jprichardson@gmail.com"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": ""
+    }
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "mkdirp": "~0.3.4",
+    "testutil": "~0.2.2",
+    "mocha": "~1.4.2"
+  },
+  "main": "./lib/jsonfile.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "readme": "[![build status](https://secure.travis-ci.org/jprichardson/node-jsonfile.png)](http://travis-ci.org/jprichardson/node-jsonfile)\n\nNode.js - jsonfile\n================\n\nEasily read/write JSON files. \n\n\nWhy?\n----\n\nWriting `JSON.stringify()` and then `fs.writeFile()` and `JSON.parse()` with `fs.readFile()` enclosed in `try/catch` blocks became annoying.\n\n\n\nInstallation\n------------\n\n    npm install jsonfile\n\n\n\nAPI\n---\n\n### readFile()\n\n```javascript\nvar jf = require('jsonfile')\n  , util = require('util');\n\nvar file = '/tmp/data.json';\njs.readFile(file, function(err, obj) {\n   console.log(util.inspect(obj)); \n});\n```\n\n\n### readFileSync()\n\n```javascript\nvar jf = require('jsonfile')\n  , util = require('util');\n\nvar file = '/tmp/data.json';\n\nconsole.log(util.inspect(jf.readFileSync(file)));\n```\n\n\n### writeFile()\n\n```javascript\nvar jf = require('jsonfile')\n\nvar file = '/tmp/data.json';\nvar obj = {name: 'JP'};\n\njf.writeFile(file, obj, function(err) {\n    console.log(err);\n})\n```\n\n### writeFileSync()\n\n```javascript\nvar jf = require('jsonfile')\n\nvar file = '/tmp/data.json';\nvar obj = {name: 'JP'};\n\njf.writeFileSync(file, obj);\n```\n\n\n### spaces\n\nNumber of spaces to indent JSON files. \n\n**default:** 4\n\n```\nvar jf = require('jsonfile');\n\njf.spaces = 2;\n\nvar file = '/tmp/data.json';\nvar obj = {name: 'JP'};\n\njf.writeFile(file, obj, function(err) { //json file has two space indenting now\n    console.log(err);\n});\n```\n\n\nAuthor\n------\n\n`node-jsonfile` was written by [JP Richardson][aboutjp]. You should follow him on Twitter [@jprichardson][twitter]. Also read his coding blog [Procbits][procbits]. If you write software with others, you should checkout [Gitpilot][gitpilot] to make collaboration with Git simple.\n\n\n\nLicense\n-------\n\n(MIT License)\n\nCopyright 2012, JP Richardson  <jprichardson@gmail.com>\n\n\n[aboutjp]: http://about.me/jprichardson\n[twitter]: http://twitter.com/jprichardson\n[procbits]: http://procbits.com\n[gitpilot]: http://gitpilot.com\n\n\n",
+  "readmeFilename": "README.md",
+  "_id": "jsonfile@0.0.1",
+  "_from": "jsonfile@0.0.x"
+}

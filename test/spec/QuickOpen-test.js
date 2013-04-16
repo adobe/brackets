@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
@@ -33,6 +33,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils       = require("spec/SpecRunnerUtils");
     
     describe("QuickOpen", function () {
+        this.category = "integration";
+        
         var testPath = SpecRunnerUtils.getTestPath("/spec/QuickOpen-test-files");
         var brackets, test$, executeCommand, EditorManager, DocumentManager;
 
@@ -90,7 +92,7 @@ define(function (require, exports, module) {
         // TODO: fix me!
         // This test is currently turned off due to failures on Windows 7
         // See https://github.com/adobe/brackets/issues/2696
-        xit("can open a file and jump to a line, centering that line on the screen", function () {
+        it("can open a file and jump to a line, centering that line on the screen", function () {
             var err = false;
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -137,22 +139,26 @@ define(function (require, exports, module) {
                 pressEnter();
                 window.setTimeout(function () {
                     eventLooped = true;
-                }, 10);
+                }, 50);
             });
             
             waitsFor(function () { return eventLooped; });
             
             runs(function () {
                 var editor = EditorManager.getCurrentFullEditor();
-                var scrollPos = editor.getScrollPos();
                 
                 // The user enters a 1-based number, but the reported position
                 // is 0 based, so we check for 49.
                 expect(editor).toHaveCursorPosition(49, 0);
                 
                 // We expect the result to be scrolled roughly to the middle of the window.
-                expect(scrollPos.y).toBeGreaterThan(400);
-                expect(scrollPos.y).toBeLessThan(500);
+                var scroller = $(editor.getScrollerElement());
+                var offset = scroller.offset().top;
+                var editorHeight = scroller.height();
+                var cursorPos = editor._codeMirror.cursorCoords(null, "page").bottom;
+                
+                expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 - offset);
+                expect(cursorPos).toBeLessThan(editorHeight * 0.6 - offset);
             });
         });
 
