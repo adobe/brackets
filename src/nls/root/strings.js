@@ -336,6 +336,7 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the Brackets extension registry. Please try again later.",
+    "INSTALL_FROM_URL"                     : "Install from URL\u2026",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",

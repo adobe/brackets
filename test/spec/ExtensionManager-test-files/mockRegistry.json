@@ -43,6 +43,34 @@
       }
     ]
   },
+  "mock-extension-1": {
+    "metadata": {
+      "name": "mock-extension-1",
+      "description": "First mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-2": {
+    "metadata": {
+      "name": "mock-extension-2",
+      "description": "Second mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
   "malicious-script-extension": {
     "metadata": {
       "name": "malicious-script-extension",
@@ -80,24 +108,6 @@
         "version": "1.0.0",
         "published": "2013-04-10T18:26:47.580Z",
         "brackets": ">0.22.0"
-      }
-    ]
-  },
-  "incompatible-version": {
-    "metadata": {
-      "name": "incompatible-version",
-      "title": "Incompatible Version",
-      "version": "1.0.0",
-      "engines": {
-        "brackets": "<0.22"
-      }
-    },
-    "owner": "github:njx",
-    "versions": [
-      {
-        "version": "1.0.0",
-        "published": "2013-04-10T18:27:31.215Z",
-        "brackets": "<0.22"
       }
     ]
   },

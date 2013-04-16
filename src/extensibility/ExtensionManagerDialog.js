@@ -31,8 +31,7 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
-        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        ExtensionManagerModel = require("extensibility/ExtensionManagerModel").ExtensionManagerModel;
+        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView;
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
@@ -45,8 +44,13 @@ define(function (require, exports, module) {
             Mustache.render(dialogTemplate, Strings)
         );
         
-        var view = new ExtensionManagerView(new ExtensionManagerModel());
+        var view = new ExtensionManagerView();
         view.$el.appendTo($(".extension-manager-dialog .modal-body"));
+        
+        $(".extension-manager-dialog .install-from-url")
+            .click(function () {
+                CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
+            });
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
