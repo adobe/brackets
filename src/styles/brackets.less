@@ -352,14 +352,10 @@ a, img {
     .vbox;
     .box-flex(1);
     position: relative;
-
-    .file-list-divider {
-        border-bottom: 1px solid #9a9a9a;  
-        box-shadow: 0px 1px #eeeeee;
-    }
 }
     
 #project-files-header {
+    border-top: 1px solid #56595a;
     padding: 8px 0 9px 12px;
     font-size: 13px;
     color: #929292;
@@ -368,8 +364,6 @@ a, img {
 #open-files-container {
     .box-flex(0);
     background: #3C3F41;
-    border-bottom: 1px solid #57595A;
-    margin: 0;
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
@@ -377,6 +371,7 @@ a, img {
     ul {
         list-style-type: none;
         margin: 0;
+        padding-bottom: 23px;
     }
         
     li {
@@ -402,7 +397,7 @@ a, img {
         height: 16px;
         line-height: 16px;
         margin-left: 18px;
-        padding: 3px (@triangle-size * 2) 3px 0;
+        padding: 3px (@sidebar-triangle-size * 2) 3px 0;
         
         cursor: default;
     }
@@ -420,7 +415,7 @@ a, img {
 
 .sidebar-selection-triangle {
     background: url("images/active_back.png");
-    width: 10px;
+    width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
 
@@ -430,18 +425,18 @@ a, img {
 .sidebar-selection-triangle.triangle-visible:before {
     content: "";
     
-    border-top: @triangle-size solid transparent;
-    border-bottom: @triangle-size solid transparent; 
-    border-right: @triangle-size solid @background-color-3;
+    border-top: @sidebar-triangle-size solid transparent;
+    border-bottom: @sidebar-triangle-size solid transparent; 
+    border-left: @sidebar-triangle-size solid #2D2E30;
     
     display: block;
     position: absolute;
-    top: 2px;
-    right: 0;
+    top: -1px;
+    right: -9px;
     width: 0;
     height: 0;
     
-    .scale-x(0.9, right, top);
+    .scale-x(0.8, right, top);
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -453,7 +448,7 @@ a, img {
     .box-flex(1);
     
     .jstree-brackets li > a {
-        padding-right: @triangle-size * 2;
+        padding-right: @sidebar-triangle-size * 2;
     }
     
     ul {
@@ -634,10 +629,10 @@ a, img {
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @triangle-size solid @inline-background-color-3;
-        border-bottom: @triangle-size solid @inline-background-color-3;
-        border-left: @triangle-size solid @inline-background-color-1;
-        margin-top: -@triangle-size;
+        border-top: @inline-triangle-size solid @inline-background-color-3;
+        border-bottom: @inline-triangle-size solid @inline-background-color-3;
+        border-left: @inline-triangle-size solid @inline-background-color-1;
+        margin-top: -@inline-triangle-size;
         top: 50%;
         .scale-x(0.9, left, top);
     }
