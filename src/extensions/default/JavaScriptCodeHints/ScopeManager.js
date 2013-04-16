@@ -316,9 +316,7 @@ define(function (require, exports, module) {
             delete pendingTernRequests[key][type];
              
             CollectionUtils.forEach(requests, function (requestValue, requestKey) {
-                if (CollectionUtils.hasProperty(requests, requestKey)) {
-                    anyProperties = true;
-                }
+                anyProperties = true;
             });
             
             if (!anyProperties) {
