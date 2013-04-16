@@ -223,6 +223,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_ENABLE_HOVER_PREVIEW": "[6774420] !é=Enable Hover Preview=!",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
