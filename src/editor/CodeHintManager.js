@@ -502,6 +502,19 @@ define(function (require, exports, module) {
         }
     }
 
+    var dialogMap = {};
+
+    // "((edge-web-fonts))"
+
+    function registerDialog(id, callback) {
+        // TODO: write something to console if already defined
+        dialogMap[id] = callback;
+    }
+
+    function lookupDialog(id) {
+        return dialogMap[id];
+    }
+
     /**
      * Expose CodeHintList for unit testing
      */
@@ -514,4 +527,6 @@ define(function (require, exports, module) {
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
+    exports.registerDialog          = registerDialog;
+    exports.lookupDialog            = lookupDialog;
 });

@@ -28,7 +28,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Menus           = require("command/Menus"),
+    var CodeHintManager = require("editor/CodeHintManager"),
+        Menus           = require("command/Menus"),
         StringUtils     = require("utils/StringUtils"),
         PopUpManager    = require("widgets/PopUpManager"),
         ViewUtils       = require("utils/ViewUtils"),
@@ -147,7 +148,7 @@ define(function (require, exports, module) {
         this.hints = hintObj.hints;
 
         // add a formatted hint to the hint list
-        function _addListItem(hint, formattedHint) {
+        function _addListItem(hint, formattedHint, dialog) {
             var $spanItem = $("<span class='codehint-item'>").append(formattedHint),
                 $anchorItem = $("<a href='#'>").append($spanItem),
                 $listItem = $("<li>").append($anchorItem)
@@ -156,7 +157,11 @@ define(function (require, exports, module) {
                         // hit the close handler in bootstrap-dropdown).
                         e.stopPropagation();
                         if (self.handleSelect) {
-                            self.handleSelect(hint);
+                            if (dialog && CodeHintManager.lookupDialog(dialog)) {
+                                self.handleSelect(CodeHintManager.lookupDialog(dialog).apply());
+                            } else {
+                                self.handleSelect(hint);
+                            }
                         }
                     });
 
@@ -167,17 +172,17 @@ define(function (require, exports, module) {
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
         if (match) {
-            _addHint = function (name) {
+            _addHint = function (name, dialog) {
                 var displayName = $("<span>")
                     .append(name.replace(
                         new RegExp(StringUtils.regexEscape(match), "i"),
                         "<strong>$&</strong>"
                     ));
-                _addListItem(name, displayName);
+                _addListItem(name, displayName, dialog);
             };
         } else {
-            _addHint = function (name) {
-                _addListItem(name, name);
+            _addHint = function (name, dialog) {
+                _addListItem(name, name, dialog);
             };
         }
 
@@ -195,7 +200,11 @@ define(function (require, exports, module) {
                 if (index > self.maxResults) {
                     return true;
                 }
-                _addHint(item);
+                if (typeof item === "string") {
+                    _addHint(item, null);
+                } else {
+                    _addHint(item.display, item.dialog);
+                }
             });
             this._setSelectedIndex(selectInitial ? 0 : -1);
         }
