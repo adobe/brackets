@@ -37,11 +37,11 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings");
-        
+    
     var defaultPrefs = {
-            currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
-            automaticSort: false
-        };
+        currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
+        automaticSort: false
+    };
     
     /**
      * @private
@@ -76,10 +76,21 @@ define(function (require, exports, module) {
     
     /**
      * Retrieves a Sort object by id
-     * @param {string} commandID
-     * @return {Sort}
+     * @param {string|Command} command A command ID or command object
+     * @return {?Sort}
      */
-    function get(commandID) {
+    function get(command) {
+        var commandID;
+        if (!command) {
+            console.error("Attempting to get a Sort method with a missing required parameter: command");
+            return;
+        }
+        
+        if (typeof command === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
         return _sorts[commandID];
     }
     
@@ -88,18 +99,6 @@ define(function (require, exports, module) {
      */
     function getAutomatic() {
         return _automaticSort;
-    }
-    
-    
-    /**
-     * @private
-     * Sets the value of Automatic Sort and updates the menu item.
-     * @param {boolean} value
-     */
-    function _setAutomatic(value) {
-        _automaticSort = value;
-        _prefs.setValue("automaticSort", _automaticSort);
-        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
     }
     
     /**
@@ -111,12 +110,19 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
-     * Disables Automatic Sort.
+     * Enables/Disables Automatic Sort depending on the value.
+     * @param {boolean} enable True to enable, false to disable
      */
-    function _disableAutomatic() {
-        _setAutomatic(false);
-        _removeListeners();
+    function setAutomatic(enable) {
+        _automaticSort = enable;
+        _prefs.setValue("automaticSort", _automaticSort);
+        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
+        
+        if (enable) {
+            _currentSort.sort();
+        } else {
+            _removeListeners();
+        }
     }
     
     /**
@@ -130,30 +136,8 @@ define(function (require, exports, module) {
                     _currentSort.sort();
                 })
                 .on("workingSetSort.sort", function () {
-                    _disableAutomatic();
+                    setAutomatic(false);
                 });
-        }
-    }
-    
-    /**
-     * @private
-     * Enables Automatic Sort.
-     */
-    function _enableAutomatic() {
-        _setAutomatic(true);
-        _addListeners();
-        _currentSort.callAutomaticFn();
-    }
-    
-    /**
-     * Enables/Disables Automatic Sort depending on the value.
-     * @param {boolean} value
-     */
-    function setAutomatic(value) {
-        if (value) {
-            _enableAutomatic();
-        } else {
-            _disableAutomatic();
         }
     }
     
@@ -188,9 +172,9 @@ define(function (require, exports, module) {
      * @constructor
      * @private
      *
-     * @param {!string} commandID - valid command identifier.
-     * @param {!function(FileEntry, FileEntry)} compareFn - a valid sort function (see register for a longer explanation).
-     * @param {!string} events - space-separated DocumentManager possible events ending with ".sort".
+     * @param {string} commandID A valid command identifier.
+     * @param {function(FileEntry, FileEntry): number} compareFn A valid sort function (see register for a longer explanation).
+     * @param {string} events Space-separated DocumentManager possible events ending with ".sort".
      */
     function Sort(commandID, compareFn, events, automaticFn) {
         this._commandID = commandID;
@@ -198,17 +182,17 @@ define(function (require, exports, module) {
         this._events    = events;
     }
     
-    /** @return {CommandID} */
+    /** @return {string} The Command ID */
     Sort.prototype.getCommandID = function () {
         return this._commandID;
     };
     
-    /** @return {CompareFn} */
+    /** @return {function(FileEntry, FileEntry): number} The compare function */
     Sort.prototype.getCompareFn = function () {
         return this._compareFn;
     };
     
-    /** @return {Events} */
+    /** @return {string} The DocumentManager events */
     Sort.prototype.getEvents = function () {
         return this._events;
     };
@@ -235,27 +219,32 @@ define(function (require, exports, module) {
     
     /**
      * Registers a working set sort method.
-     * @param {!string} commandID - valid command identifier used for the sort method.
-     *      Core commands in Brackets use a simple command title as an id, for example "open.file".
-     *      Extensions should use the following format: "author.myextension.mycommandname". 
-     *      For example, "lschmitt.csswizard.format.css".
-     * @param {!function(FileEntry, FileEntry)} compareFn - the function that will be used inside JavaScript's
+     * @param {string|Command} command A command ID or command object
+     * @param {function(FileEntry, FileEntry): number} compareFn The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
      *      the same value when given a specific pair of elements a and b as its two arguments.
      *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
-     * @param {?string} events - one or more space-separated event types that DocumentManger uses.
+     * @param {?string} events One or more space-separated event types that DocumentManger uses.
      *      Each event passed will trigger the automatic sort. If no events are passed, the automatic
      *      sort will be disabled for that sort method.
      * @return {?Sort}
      */
-    function register(commandID, compareFn, events) {
-        if (_sorts[commandID]) {
-            console.log("Attempting to register an already-registered sort: " + commandID);
+    function register(command, compareFn, events) {
+        var commandID = "";
+        
+        if (!command || !compareFn) {
+            console.log("Attempting to register a Sort method with a missing required parameter: command or compare function");
             return;
         }
-        if (!commandID || !compareFn) {
-            console.log("Attempting to register a sort with a missing id, or compare function: " + commandID);
+        if (typeof command === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
+        
+        if (_sorts[commandID]) {
+            console.log("Attempting to register an already-registered Sort method: " + command);
             return;
         }
         
@@ -347,7 +336,7 @@ define(function (require, exports, module) {
             _setCurrentSort(curSort);
         }
         if (autoSort) {
-            _enableAutomatic();
+            setAutomatic(true);
         }
         if (curSort && autoSort) {
             curSort.sort();
