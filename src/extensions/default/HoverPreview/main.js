@@ -36,11 +36,17 @@ define(function (require, exports, module) {
         Strings             = brackets.getModule("strings");
     
     var defaultPrefs               = { enabled: true },
-        enabled                    = true,   // Only show preview if true
+        enabled,                             // Only show preview if true
         prefs                      = null,   // Preferences
         previewMark,                         // CodeMirror marker highlighting the preview text
         $previewContainer,                   // Preview container
         currentImagePreviewContent = "";     // Current image preview content, or "" if no content is showing.
+    
+    // Constants
+    var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
+        POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
+        POINTER_LEFT_OFFSET         = 10,   // Half of the pointer width, used to find the center of the pointer
+        POSITION_BELOW_OFFSET       = 16;   // Amount to adjust to top position when the preview bubble is below the text
     
     function hidePreview() {
         if (previewMark) {
@@ -54,21 +60,21 @@ define(function (require, exports, module) {
     }
     
     function positionPreview(xpos, ypos, ybot) {
-        var top = ypos - $previewContainer.height() - 38;
+        var top = ypos - $previewContainer.height() - POSITION_OFFSET;
         
         if (top < 0) {
-            $previewContainer.removeClass("preview-bubble");
+            $previewContainer.removeClass("preview-bubble-above");
             $previewContainer.addClass("preview-bubble-below");
-            top = ybot + 16;
+            top = ybot + POSITION_BELOW_OFFSET;
             $previewContainer.offset({
-                left: xpos - $previewContainer.width() / 2 - 10,
+                left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
                 top: top
             });
         } else {
             $previewContainer.removeClass("preview-bubble-below");
-            $previewContainer.addClass("preview-bubble");
+            $previewContainer.addClass("preview-bubble-above");
             $previewContainer.offset({
-                left: xpos - $previewContainer.width() / 2 - 10,
+                left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
                 top: top
             });
         }
@@ -90,7 +96,7 @@ define(function (require, exports, module) {
                 event.clientY <= offset.top + $div.height());
     }
     
-    function colorAndGradientPreviewProvider(editor, pos, token, line, event) {
+    function colorAndGradientPreviewProvider(editor, pos, token, line) {
         var cm = editor._codeMirror;
         
         // Check for gradient
@@ -149,15 +155,15 @@ define(function (require, exports, module) {
         return false;
     }
     
-    function imagePreviewProvider(editor, pos, token, line, event) {
+    function imagePreviewProvider(editor, pos, token, line) {
         var cm = editor._codeMirror;
         
         // Check for image name
         var urlRegEx = /url\(([^\)]*)\)/,
             tokenString,
             urlMatch = line.match(urlRegEx);
-
-        if (urlMatch && pos.ch >= urlMatch.indx && pos.ch <= urlMatch.index + urlMatch[0].length) {
+        
+        if (urlMatch && pos.ch >= urlMatch.index && pos.ch <= urlMatch.index + urlMatch[0].length) {
             tokenString = urlMatch[1];
         } else if (token.className === "string") {
             tokenString = token.string;
@@ -226,11 +232,11 @@ define(function (require, exports, module) {
         return false;
     }
     
-    function queryPreviewProviders(editor, pos, token, line, event) {
+    function queryPreviewProviders(editor, pos, token, line) {
         
         // FUTURE: Support plugin providers. For now we just hard-code...
-        if (!colorAndGradientPreviewProvider(editor, pos, token, line, event) &&
-                !imagePreviewProvider(editor, pos, token, line, event)) {
+        if (!colorAndGradientPreviewProvider(editor, pos, token, line) &&
+                !imagePreviewProvider(editor, pos, token, line)) {
             hidePreview();
         }
     }
@@ -275,15 +281,13 @@ define(function (require, exports, module) {
             var token = cm.getTokenAt(pos);
             var line = cm.getLine(pos.line);
             
-            queryPreviewProviders(editor, pos, token, line, event);
+            queryPreviewProviders(editor, pos, token, line);
         } else {
             hidePreview();
         }
     }
     
     // Menu command handlers
-    var CMD_ENABLE_HOVER_PREVIEW  = "view.enableHoverPreview";
-
     function updateMenuItemCheckmark() {
         CommandManager.get(CMD_ENABLE_HOVER_PREVIEW).setChecked(enabled);
     }
@@ -291,7 +295,13 @@ define(function (require, exports, module) {
     function setEnabled(_enabled) {
         if (enabled !== _enabled) {
             enabled = _enabled;
-            if (!enabled) {
+            var editorHolder = $("#editor-holder")[0];
+            if (enabled) {
+                editorHolder.addEventListener("mousemove", handleMouseMove, true);
+                editorHolder.addEventListener("scroll", hidePreview, true);
+            } else {
+                editorHolder.removeEventListener("mousemove", handleMouseMove, true);
+                editorHolder.removeEventListener("scroll", hidePreview, true);
                 hidePreview();
             }
             prefs.setValue("enabled", enabled);
@@ -303,13 +313,9 @@ define(function (require, exports, module) {
     function toggleEnableHoverPreview() {
         setEnabled(!enabled);
     }
-    
-    // Init: Listen to all mousemoves in the editor area
-    $("#editor-holder")[0].addEventListener("mousemove", handleMouseMove, true);
-    $("#editor-holder")[0].addEventListener("scroll", hidePreview, true);
-    
+        
     // Create the preview container
-    $previewContainer = $("<div id='hover-preview-container' class='preview-bubble'>").appendTo($("body"));
+    $previewContainer = $("<div id='hover-preview-container'>").appendTo($("body"));
     
     // Load our stylesheet
     ExtensionUtils.loadStyleSheet(module, "HoverPreview.css");
