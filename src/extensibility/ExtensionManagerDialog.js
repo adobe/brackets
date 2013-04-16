@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerModel = require("extensibility/ExtensionManagerModel").ExtensionManagerModel;
     
-    var dialogTemplate    = require("text!extensibility/extension-manager-dialog.html");
+    var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
     /**
      * @private

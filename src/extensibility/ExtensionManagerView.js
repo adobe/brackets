@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     var Strings          = require("strings"),
         NativeApp        = require("utils/NativeApp"),
         registry_utils   = require("extensibility/registry_utils"),
-        registryTemplate = require("text!extensibility/extension-manager-view.html");
+        registryTemplate = require("text!htmlContent/extension-manager-view.html");
     
     /**
      * @constructor
