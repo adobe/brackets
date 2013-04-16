@@ -387,7 +387,7 @@ define(function (require, exports, module) {
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
-                StringUtils.breakableUrl(StringUtils.htmlEscape(path)),
+                StringUtils.breakableUrl(path),
                 FileUtils.getFileErrorString(name)
             )
         );
@@ -578,7 +578,7 @@ define(function (require, exports, module) {
                 Strings.SAVE_CLOSE_TITLE,
                 StringUtils.format(
                     Strings.SAVE_CLOSE_MESSAGE,
-                    StringUtils.breakableUrl(StringUtils.htmlEscape(filename))
+                    StringUtils.breakableUrl(filename)
                 )
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {

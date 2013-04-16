@@ -279,7 +279,7 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     var displayFileName = StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH,
-                                                             StringUtils.breakableUrl(esc(item.fullPath)));
+                                                             StringUtils.breakableUrl(item.fullPath));
                     $("<tr class='file-section' />")
                         .append("<td colspan='3'><span class='disclosure-triangle expanded'></span>" + displayFileName + "</td>")
                         .click(function () {

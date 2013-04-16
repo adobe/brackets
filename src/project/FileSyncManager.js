@@ -215,7 +215,7 @@ define(function (require, exports, module) {
             Strings.ERROR_RELOADING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
-                StringUtils.breakableUrl(StringUtils.htmlEscape(doc.file.fullPath)),
+                StringUtils.breakableUrl(doc.file.fullPath),
                 FileUtils.getFileErrorString(error.name)
             )
         );
@@ -265,9 +265,7 @@ define(function (require, exports, module) {
                 message = StringUtils.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     StringUtils.breakableUrl(
-                        StringUtils.htmlEscape(
-                            ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
-                        )
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
                 
@@ -277,9 +275,7 @@ define(function (require, exports, module) {
                 message = StringUtils.format(
                     Strings.EXT_DELETED_MESSAGE,
                     StringUtils.breakableUrl(
-                        StringUtils.htmlEscape(
-                            ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
-                        )
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                     )
                 );
             }

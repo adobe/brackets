@@ -604,7 +604,7 @@ define(function (require, exports, module) {
             }
             
             var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
-            displayName += StringUtils.breakableUrl(StringUtils.htmlEscape(rangeText));
+            displayName += StringUtils.breakableUrl(rangeText);
             
             if (range.matched) {
                 displayName += "</span>";
