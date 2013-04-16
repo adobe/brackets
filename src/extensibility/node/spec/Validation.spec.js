@@ -282,5 +282,6 @@ describe("Package Validation", function () {
         expect(validateName("foo&bar")).toEqual(false);
         expect(validateName("foo/bar")).toEqual(false);
         expect(validateName("..")).toEqual(false);
+        expect(validateName(".")).toEqual(false);
     });
 });
