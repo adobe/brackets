@@ -22,32 +22,46 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
+/*global define, window, $, brackets */
+/*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs           = require("widgets/Dialogs"),
-        Strings           = require("strings"),
-        Commands          = require("command/Commands"),
-        CommandManager    = require("command/CommandManager"),
-        ExtensionMgrView  = require("extensibility/ExtensionMgrView").ExtensionMgrView,
-        ExtensionMgrModel = require("extensibility/ExtensionMgrModel").ExtensionMgrModel;
-    
-    var dialogTemplate    = require("text!extensibility/extension-mgr-dialog.html");
-
     /**
-     * @private
-     * Show a dialog that allows the user to browse and manage extensions.
+     * @constructor
+     * Constructs a registry model, which fetches/caches/filters the registry and provides
+     * information about which extensions are already installed.
      */
-    function _showDialog() {
-        Dialogs.showModalDialogUsingTemplate(
-            Mustache.render(dialogTemplate, Strings)
-        );
-        
-        var view = new ExtensionMgrView(new ExtensionMgrModel());
-        view.$el.appendTo($(".extension-mgr-dialog .modal-body"));
+    function ExtensionManagerModel() {
     }
     
-    CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
+    /**
+     * @private
+     * @type {object}
+     * The current registry JSON downloaded from teh server.
+     */
+    ExtensionManagerModel.prototype._registry = null;
+
+    /**
+     * Returns the registry of Brackets extensions and caches the result for subsequent
+     * calls.
+     *
+     * @param {boolean} forceDownload Fetch the registry from S3 even if we have a cached copy.
+     * @return {$.Promise} a promise that's resolved with the registry JSON data
+     * or rejected if the server can't be reached.
+     */
+    ExtensionManagerModel.prototype.getRegistry = function (forceDownload) {
+        var self = this;
+        if (!this._registry || forceDownload) {
+            return $.getJSON(brackets.config.extension_registry, {cache: false})
+                .done(function (data) {
+                    self._registry = data;
+                });
+        } else {
+            return new $.Deferred().resolve(this._registry).promise();
+        }
+    };
+    
+    exports.ExtensionManagerModel = ExtensionManagerModel;
 });

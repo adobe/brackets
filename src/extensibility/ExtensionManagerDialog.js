@@ -22,46 +22,32 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets */
-/*unittests: ExtensionMgr*/
+/*global define, $, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
-    /**
-     * @constructor
-     * Constructs a registry model, which fetches/caches/filters the registry and provides
-     * information about which extensions are already installed.
-     */
-    function ExtensionMgrModel() {
-    }
+    var Dialogs               = require("widgets/Dialogs"),
+        Strings               = require("strings"),
+        Commands              = require("command/Commands"),
+        CommandManager        = require("command/CommandManager"),
+        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+        ExtensionManagerModel = require("extensibility/ExtensionManagerModel").ExtensionManagerModel;
     
-    /**
-     * @private
-     * @type {object}
-     * The current registry JSON downloaded from teh server.
-     */
-    ExtensionMgrModel.prototype._registry = null;
+    var dialogTemplate    = require("text!extensibility/extension-manager-dialog.html");
 
     /**
-     * Returns the registry of Brackets extensions and caches the result for subsequent
-     * calls.
-     *
-     * @param {boolean} forceDownload Fetch the registry from S3 even if we have a cached copy.
-     * @return {$.Promise} a promise that's resolved with the registry JSON data
-     * or rejected if the server can't be reached.
+     * @private
+     * Show a dialog that allows the user to browse and manage extensions.
      */
-    ExtensionMgrModel.prototype.getRegistry = function (forceDownload) {
-        var self = this;
-        if (!this._registry || forceDownload) {
-            return $.getJSON(brackets.config.extension_registry, {cache: false})
-                .done(function (data) {
-                    self._registry = data;
-                });
-        } else {
-            return new $.Deferred().resolve(this._registry).promise();
-        }
-    };
+    function _showDialog() {
+        Dialogs.showModalDialogUsingTemplate(
+            Mustache.render(dialogTemplate, Strings)
+        );
+        
+        var view = new ExtensionManagerView(new ExtensionManagerModel());
+        view.$el.appendTo($(".extension-manager-dialog .modal-body"));
+    }
     
-    exports.ExtensionMgrModel = ExtensionMgrModel;
+    CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
 });

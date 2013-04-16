@@ -26,26 +26,26 @@
 indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
 waitsFor, runs, $, brackets, waitsForDone, spyOn */
-/*unittests: ExtensionMgr*/
+/*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
     "use strict";
     
     require("thirdparty/jquery.mockjax.js");
     
-    var ExtensionMgrModel = require("extensibility/ExtensionMgrModel").ExtensionMgrModel,
-        ExtensionMgrView  = require("extensibility/ExtensionMgrView").ExtensionMgrView,
-        SpecRunnerUtils   = require("spec/SpecRunnerUtils"),
-        CollectionUtils   = require("utils/CollectionUtils"),
-        NativeApp         = require("utils/NativeApp"),
-        mockRegistryText  = require("text!spec/ExtensionMgr-test-files/mockRegistry.json"),
+    var ExtensionManagerModel = require("extensibility/ExtensionManagerModel").ExtensionManagerModel,
+        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
+        CollectionUtils       = require("utils/CollectionUtils"),
+        NativeApp             = require("utils/NativeApp"),
+        mockRegistryText      = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
         mockRegistry;
     
-    describe("ExtensionMgr", function () {
+    describe("ExtensionManager", function () {
         var model, mockId, mockSettings;
         
         beforeEach(function () {
-            model = new ExtensionMgrModel();
+            model = new ExtensionManagerModel();
             
             // Return a canned registry when requested. Individual tests can override this
             // at any point before the request is actually made.
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
             model = null;
         });
         
-        describe("ExtensionMgrModel", function () {
+        describe("ExtensionManagerModel", function () {
             it("should download the extension list from the registry", function () {
                 var registry;
                 runs(function () {
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("ExtensionMgrView", function () {
+        describe("ExtensionManagerView", function () {
             var testWindow, view, model, modelDeferred;
             
             // Sets up a real model (with mock data).
@@ -179,11 +179,11 @@ define(function (require, exports, module) {
                 // Prefetch the model so the view is constructed immediately. (mockjax appears to
                 // add a little asynchronicity even if it's returning data right away.)
                 runs(function () {
-                    model = new ExtensionMgrModel();
+                    model = new ExtensionManagerModel();
                     waitsForDone(model.getRegistry());
                 });
                 runs(function () {
-                    view = new ExtensionMgrView(model);
+                    view = new ExtensionManagerView(model);
                 });
             }
             
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
                         return modelDeferred.promise();
                     }
                 };
-                view = new ExtensionMgrView(model);
+                view = new ExtensionManagerView(model);
             }
             
             beforeEach(function () {

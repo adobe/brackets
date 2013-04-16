@@ -23,7 +23,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, window, $, brackets, Mustache */
-/*unittests: ExtensionMgr*/
+/*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,14 +31,14 @@ define(function (require, exports, module) {
     var Strings          = require("strings"),
         NativeApp        = require("utils/NativeApp"),
         registry_utils   = require("extensibility/registry_utils"),
-        registryTemplate = require("text!extensibility/extension-mgr-view.html");
+        registryTemplate = require("text!extensibility/extension-manager-view.html");
     
     /**
      * @constructor
      * Creates a view listing the contents of the given registry.
-     * @param {ExtensionMgrModel} model The model for this view.
+     * @param {ExtensionManagerModel} model The model for this view.
      */
-    function ExtensionMgrView(model) {
+    function ExtensionManagerView(model) {
         var self = this;
         this._model = model;
         this._template = Mustache.compile(registryTemplate);
@@ -66,29 +66,29 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {ExtensionMgrModel}
+     * @type {ExtensionManagerModel}
      * The model containing the registry data.
      */
-    ExtensionMgrView.prototype._model = null;
+    ExtensionManagerView.prototype._model = null;
     
     /**
      * @private
      * @type {function} The compiled template we use for rendering the registry list.
      */
-    ExtensionMgrView.prototype._template = null;
+    ExtensionManagerView.prototype._template = null;
     
     /**
      * @type {jQueryObject}
      * The root of the view's DOM tree.
      */
-    ExtensionMgrView.prototype.$el = null;
+    ExtensionManagerView.prototype.$el = null;
     
     /**
      * @private
      * Display the given registry data.
      * @param {object} registry The registry data to show.
      */
-    ExtensionMgrView.prototype._render = function (registry) {
+    ExtensionManagerView.prototype._render = function (registry) {
         // Create a Mustache context object containing the registry and our helper functions.
         var context = { registry: registry };
         ["lastVersionDate", "ownerLink", "formatUserId"].forEach(function (helper) {
@@ -99,5 +99,5 @@ define(function (require, exports, module) {
         this.$el.html(this._template(context));
     };
     
-    exports.ExtensionMgrView = ExtensionMgrView;
+    exports.ExtensionManagerView = ExtensionManagerView;
 });
