@@ -130,6 +130,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
 
         /*
          * Help menu
@@ -196,6 +198,7 @@ define(function (require, exports, module) {
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+        editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
         var inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);

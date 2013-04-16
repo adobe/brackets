@@ -1,0 +1,19 @@
+<div class="css-prop-defn" tabIndex="0"> <!-- tabIndex needed: otherwise click focuses CodeMirror scroller -->
+    <h1>{{propName}}</h1>
+    <div class="css-prop-summary">
+        <h2>{{DOCS_SUMMARY}}</h2>
+        <div>{{{summary}}}</div>
+    </div>
+    <div class="css-prop-values">
+        <h2>{{DOCS_VALUES}}</h2>
+        <div>
+            {{#propValues}}
+            <dl>
+                <dt>{{value}}</dt>
+                <dd>{{{description}}}</dd>
+            </dl>
+            {{/propValues}}
+        </div>
+    </div>
+    <p class="more-info"><a href="{{url}}">{{DOCS_MORE_LINK}}</a></p>
+</div>

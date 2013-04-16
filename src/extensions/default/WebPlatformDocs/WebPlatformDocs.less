@@ -1,0 +1,73 @@
+/* Overall inline widget content container */
+.css-prop-defn {
+    margin-left: 20px;
+    
+    color: #3C3C3C;
+    
+    /* Enable text selection */
+    cursor: auto;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -o-user-select: text;
+    user-select: text;
+    
+    &:focus {
+        outline: none;
+    }
+    
+    font-family: SourceSansPro;
+    
+    h1 {
+        font-size: 23px;
+        margin: 0;
+        padding-top: 3px;
+    }
+    h2 {
+        font-size: 17px;
+        line-height: normal;
+    }
+}
+
+/* Left-hand column */
+.css-prop-summary {
+    float: left;
+    width: 30%;
+    
+    p {
+        line-height: 24px;
+        margin: 0px 20px 0px 20px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+    }
+}
+
+/* Right-hand column */
+.css-prop-values {
+    float: right;
+    width: 70%;
+    
+    // Spacing between columns
+    box-sizing: border-box;
+    padding-left: 10px;
+    
+    dl {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        margin: 14px 14px 0px 0px;
+        
+        dd {
+            margin-left: 22px;
+            margin-right: 0px;
+            padding-bottom: 0px;
+        }
+    }
+}
+
+/* Link to full docs, at bottom */
+p.more-info {
+    clear: both;
+    padding-top: 10px;
+    margin: 0;
+}
