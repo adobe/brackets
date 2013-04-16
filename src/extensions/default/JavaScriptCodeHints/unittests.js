@@ -574,6 +574,42 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should list hints for string, as string assigned to 's', 's' assigned to 'r' and 'r' assigned to 't'", function () {
+                var start = { line: 26, ch: 0 },
+                    middle = { line: 26, ch: 2 };
+                
+                testDoc.replaceRange("t.", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentOrdered(hintObj, ["charAt", "charCodeAt", "concat", "indexOf"]);
+                });
+            });
+
+            it("should list function type", function () {
+                var start = { line: 36, ch: 0 },
+                    middle = { line: 36, ch: 5 };
+                
+                testDoc.replaceRange("funD(", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentExact(hintObj, ["funD(a: string, b: number) -> {x, y}"]);
+                });
+            });
+
+            it("should list exports from a requirejs module", function () {
+                var start = { line: 39, ch: 0 },
+                    middle = { line: 39, ch: 9 };
+                
+                testDoc.replaceRange("myModule.", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentExact(hintObj, ["a", "b"]);
+                });
+            });
+
         });
 
     });
