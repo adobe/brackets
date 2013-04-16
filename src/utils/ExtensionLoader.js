@@ -41,6 +41,7 @@ define(function (require, exports, module) {
 
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
+        ExtensionData       = require("extensibility/ExtensionData"),
         Async               = require("utils/Async");
     
     var _init       = false,
@@ -78,7 +79,25 @@ define(function (require, exports, module) {
         return contexts[name];
     }
 
-    
+    function _hackifyExtension(name, baseUrl, extensionRequire, mainModule) {
+        // old fashioned extension
+        if (!mainModule.registering) {
+            return;
+        }
+        extensionRequire(["text!" + baseUrl + "/package.json"],
+            function (metadataText) {
+                var metadata = JSON.parse(metadataText);
+                var extensionRegister = function (registrationName, identifier, data) {
+                    metadata.extensionName = name;
+                    ExtensionData.register(name, registrationName, identifier, data);
+                };
+                mainModule.registering(extensionRegister, metadata);
+            },
+            function (err) {
+                console.error("[Extension] is missing package.json " + baseUrl, err);
+            });
+        
+    }
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
      *
@@ -103,8 +122,9 @@ define(function (require, exports, module) {
         // console.log("[Extension] starting to load " + config.baseUrl);
         
         extensionRequire([entryPoint],
-            function () {
+            function (mainModule) {
                 // console.log("[Extension] finished loading " + config.baseUrl);
+                _hackifyExtension(name, config.baseUrl, extensionRequire, mainModule);
                 result.resolve();
                 $(exports).triggerHandler("load", config.baseUrl);
             },
