@@ -331,7 +331,7 @@ define(function LiveDevelopment(require, exports, module) {
         _liveDocument = _createDocument(doc, editor);
         
         // Enable instrumentation
-        if (_liveDocument.setInstrumentationEnabled) {
+        if (_liveDocument && _liveDocument.setInstrumentationEnabled) {
             var enableInstrumentation = false;
             
             if (_serverProvider && _serverProvider.setRequestFilterPaths) {
