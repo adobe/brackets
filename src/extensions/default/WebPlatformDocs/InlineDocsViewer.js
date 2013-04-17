@@ -49,31 +49,17 @@ define(function (require, exports, module) {
      * @param {!{SUMMARY:string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} cssPropDetails
      */
     function InlineDocsViewer(cssPropName, cssPropDetails) {
-        this.cssPropName = cssPropName;
-        this.cssPropDetails = cssPropDetails;
         InlineWidget.call(this);
-    }
-    
-    InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
-    InlineDocsViewer.prototype.constructor = InlineDocsViewer;
-    InlineDocsViewer.prototype.parentClass = InlineWidget.prototype;
-    
-    InlineDocsViewer.prototype.cssPropName = null;
-    InlineDocsViewer.prototype.cssPropDefn = null;
-    InlineDocsViewer.prototype.$wrapperDiv = null;
-    
-    InlineDocsViewer.prototype.load = function (hostEditor) {
-        InlineDocsViewer.prototype.parentClass.load.apply(this, arguments);
         
-        var propValues = this.cssPropDetails.VALUES.map(function (valueInfo) {
+        var propValues = cssPropDetails.VALUES.map(function (valueInfo) {
             return { value: valueInfo.TITLE, description: valueInfo.DESCRIPTION };
         });
         
         var templateVars = $.extend({
-            propName: this.cssPropName,
-            summary: this.cssPropDetails.SUMMARY,
+            propName: cssPropName,
+            summary: cssPropDetails.SUMMARY,
             propValues: propValues,
-            url: this.cssPropDetails.URL
+            url: cssPropDetails.URL
         }, Strings);
         
         var html = Mustache.render(inlineEditorTemplate, templateVars);
@@ -81,20 +67,28 @@ define(function (require, exports, module) {
         this.$wrapperDiv = $(html);
         this.$htmlContent.append(this.$wrapperDiv);
         
-        this.$wrapperDiv.on("click", "a", function (event) {
-            event.preventDefault();
-            var url = $(event.target).attr("href");
-            if (url) {
-                // URLs in JSON data are relative
-                if (url.substr(0, 4) !== "http") {
-                    url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url.replace(" ", "_");
-                }
-                NativeApp.openURLInDefaultBrowser(url);
+        this.$wrapperDiv.on("click", "a", this._handleLinkClick.bind(this));
+    }
+    
+    InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
+    InlineDocsViewer.prototype.constructor = InlineDocsViewer;
+    InlineDocsViewer.prototype.parentClass = InlineWidget.prototype;
+    
+    InlineDocsViewer.prototype.$wrapperDiv = null;
+    
+    /** Clicking any link should open it in browser, not in Brackets shell */
+    InlineDocsViewer.prototype._handleLinkClick = function (event) {
+        event.preventDefault();
+        var url = $(event.target).attr("href");
+        if (url) {
+            // URLs in JSON data are relative
+            if (url.substr(0, 4) !== "http") {
+                url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url.replace(" ", "_");
             }
-        });
-        
+            NativeApp.openURLInDefaultBrowser(url);
+        }
     };
-
+    
     InlineDocsViewer.prototype.onAdded = function () {
         InlineDocsViewer.prototype.parentClass.onAdded.apply(this, arguments);
         window.setTimeout(this._sizeEditorToContent.bind(this));
@@ -102,10 +96,6 @@ define(function (require, exports, module) {
     
     InlineDocsViewer.prototype._sizeEditorToContent = function () {
         this.hostEditor.setInlineWidgetHeight(this, this.$htmlContent.height() + 20, true);
-        
-        // TODO: scroll only right-hand pane
-//        var summaryHt = this.$wrapperDiv.find(".css-prop-summary").height();
-//        this.hostEditor.setInlineWidgetHeight(this, summaryHt + 20, true);
     };
     
     module.exports = InlineDocsViewer;

@@ -1,19 +1,21 @@
-<div class="css-prop-defn" tabIndex="0"> <!-- tabIndex needed: otherwise click focuses CodeMirror scroller -->
-    <h1>{{propName}}</h1>
+<div class="css-prop-defn">
     <div class="css-prop-summary">
-        <h2>{{DOCS_SUMMARY}}</h2>
+        <h1>{{propName}}</h1>
         <div>{{{summary}}}</div>
     </div>
-    <div class="css-prop-values">
-        <h2>{{DOCS_VALUES}}</h2>
-        <div>
-            {{#propValues}}
+    <div class="divider-holder">
+        <div class="divider"></div>
+    </div>
+    <div class="css-prop-values quiet-scrollbars">
+        <div class="scroller" tabIndex="0"> <!-- tabIndex needed: otherwise click focuses CodeMirror scroller -->
             <dl>
+                {{#propValues}}
                 <dt>{{value}}</dt>
                 <dd>{{{description}}}</dd>
+                {{/propValues}}
             </dl>
-            {{/propValues}}
         </div>
     </div>
-    <p class="more-info"><a href="{{url}}">{{DOCS_MORE_LINK}}</a></p>
+    <div class="content-bottom"></div>
+    <a class="more-info" href="{{url}}">{{DOCS_MORE_LINK}}</a>
 </div>

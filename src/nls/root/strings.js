@@ -354,8 +354,6 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
     
-    // extensions/default/JSLint
-    "DOCS_SUMMARY"                              : "Summary",
-    "DOCS_VALUES"                               : "Values",
-    "DOCS_MORE_LINK"                            : "Read more..."
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Read more"
 });
