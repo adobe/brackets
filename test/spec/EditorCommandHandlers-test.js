@@ -2092,27 +2092,35 @@ define(function (require, exports, module) {
                        
                         SpecRunnerUtils.loadProjectInTestWindow(testPath);
                     });
-                    
-                    runs(function () {
-                        promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
-                        waitsForDone(promise, "Open into working set");
-                    });
-                    
-                    runs(function () {
-                        // Open inline editor onto test.css's ".testClass" rule
-                        promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
-                        waitsForDone(promise, "Open inline editor");
-                    });
-                    
-                    runs(function () {
-                        editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                    });
                 }
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
+                    waitsForDone(promise, "Open into working set");
+                });
+                
+                runs(function () {
+                    // Open inline editor onto test.css's ".testClass" rule
+                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                    waitsForDone(promise, "Open inline editor");
+                });
+                
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                });
             });
             
             afterEach(function () {
-                // Restore the content
-                editor.document.setText(moveContent);
+                runs(function () {
+                    var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, "Close all open files in working set");
+                    
+                    // Close the save dialog without saving the changes
+                    var $dlg = testWindow.$(".modal.instance");
+                    if ($dlg.length) {
+                        SpecRunnerUtils.clickDialogButton("dontsave");
+                    }
+                });
             });
             
             
@@ -2131,7 +2139,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, editor);
                 
                 expect(editor.document.getText()).toEqual(moveContent);
-                expect(editor._codeMirror.doc.historySize().undo).toBe(1);
+                expect(editor._codeMirror.doc.historySize().undo).toBe(0);
                 expect(editor.getFirstVisibleLine()).toBe(0);
                 expect(editor.getLastVisibleLine()).toBe(2);
             });
