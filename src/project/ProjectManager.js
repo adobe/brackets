@@ -692,9 +692,11 @@ define(function (require, exports, module) {
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
-                        StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                            StringUtils.htmlEscape(dirEntry.fullPath),
-                            error.name)
+                        StringUtils.format(
+                            Strings.READ_DIRECTORY_ENTRIES_ERROR,
+                            StringUtils.breakableUrl(dirEntry.fullPath),
+                            error.name
+                        )
                     );
                 }
             }
@@ -835,7 +837,7 @@ define(function (require, exports, module) {
                         Strings.ERROR_LOADING_PROJECT,
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                            StringUtils.htmlEscape(rootPath),
+                            StringUtils.breakableUrl(rootPath),
                             error.name
                         )
                     ).done(function () {
@@ -1131,22 +1133,24 @@ define(function (require, exports, module) {
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                StringUtils.htmlEscape(data.rslt.name))
+                            StringUtils.format(
+                                Strings.FILE_ALREADY_EXISTS,
+                                StringUtils.breakableUrl(data.rslt.name)
+                            )
                         );
                     } else {
                         var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
                                          StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
-                        var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
-                                        StringUtils.htmlEscape(data.rslt.name),
-                                        errString);
-                      
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_CREATING_FILE_TITLE,
-                            errMsg
+                            StringUtils.format(
+                                Strings.ERROR_CREATING_FILE,
+                                StringUtils.breakableUrl(data.rslt.name),
+                                errString
+                            )
                         );
                     }
 
@@ -1271,7 +1275,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_RENAMING_FILE_TITLE,
                     StringUtils.format(
                         Strings.ERROR_RENAMING_FILE,
-                        StringUtils.htmlEscape(newName),
+                        StringUtils.breakableUrl(newName),
                         err === brackets.fs.ERR_FILE_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
                                 FileUtils.getFileErrorString(err)
