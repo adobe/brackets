@@ -299,7 +299,7 @@ define(function (require, exports, module) {
      * @return {String} File extension if found, otherwise return the original file name
      */
     function _getFileExtension(fileName) {
-        var i = fileExt.lastIndexOf("."),
+        var i = fileName.lastIndexOf("."),
             ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
 
         return ext;
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return (_staticHtmlFileExts.indexOf(getFileExtension(fileExt).toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     /**
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return (_serverHtmlFileExts.indexOf(getFileExtension(fileExt).toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     // Define public API
