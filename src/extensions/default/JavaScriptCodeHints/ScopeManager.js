@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     
     var ternEnvironment     = [],
         pendingTernRequests = {},
-        _builtins            = ["ecma5.json", "browser.json"],
+        _builtins            = ["ecma5.json", "browser.json", "jquery.json"],
         rootTernDir         = null,
         projectRoot         = null,
         ternPromise         = null,
