@@ -63,9 +63,19 @@ define(function NetworkAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
+        var deferred = $.Deferred();
+        
         _urlRequested = {};
-        Inspector.Network.enable();
+        Inspector.Network.enable(function (response) {
+            if (response.error) {
+                deferred.reject(null, response.error);
+            } else {
+                deferred.resolve();
+            }
+        });
         $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
+        
+        return deferred.promise();
     }
 
     /** Unload the agent */
