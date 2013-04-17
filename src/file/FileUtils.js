@@ -181,7 +181,7 @@ define(function (require, exports, module) {
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 getFileErrorString(name)
             )
         );
