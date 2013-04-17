@@ -1143,16 +1143,14 @@ define(function (require, exports, module) {
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
                                          StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
-                        var errMsg = StringUtils.format(
-                                Strings.ERROR_CREATING_FILE,
-                                StringUtils.breakableUrl(data.rslt.name),
-                                errString
-                            );
-                      
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_CREATING_FILE_TITLE,
-                            errMsg
+                            StringUtils.format(
+                                Strings.ERROR_CREATING_FILE,
+                                StringUtils.breakableUrl(data.rslt.name),
+                                errString
+                            )
                         );
                     }
 
