@@ -890,11 +890,11 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentSaved(event, doc) {
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Unload and reload agents before reloading the page
+            reconnect();
+
             // Reload HTML page
             Inspector.Page.reload();
-
-            // Reload unsaved changes
-            reconnect();
         }
     }
 
