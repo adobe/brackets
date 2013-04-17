@@ -843,6 +843,24 @@ define(function LiveDevelopment(require, exports, module) {
             .done(onInterstitialPageLoad);
     }
 
+    // ServerProvider is not automatically updated when switching projects
+    function serverProviderMatchesProject(docFullPath) {
+
+        // null server provider uses file:// url, so it's ok
+        if (!_serverProvider || !_serverProvider.root) {
+            return true;
+        }
+
+        // Server provider root should be the path to the document.
+        // Note that this can cause a false positive for nested projects,
+        // but this is caught with subsequent check for server url
+        if (docFullPath.indexOf(_serverProvider.root) !== 0) {
+            return false;
+        }
+
+        return true;
+    }
+
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
         var doc = _getCurrentDocument(),
@@ -855,10 +873,12 @@ define(function LiveDevelopment(require, exports, module) {
 
         if (Inspector.connected()) {
             hideHighlight();
-            if (agents.network && agents.network.wasURLRequested(doc.url)) {
+
+            if (serverProviderMatchesProject(doc.file.fullPath) &&
+                    agents.network && agents.network.wasURLRequested(doc.url)) {
                 _openDocument(doc, EditorManager.getCurrentFullEditor());
-                
                 promise = _getRelatedDocuments();
+
             } else {
                 if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
                     promise = close().done(open);
@@ -944,6 +964,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {jQuery.Promise} Promise that is already resolved
      */
     UserServerProvider.prototype.readyToServe = function () {
+        this.root = ProjectManager.getProjectRoot().fullPath;
         return $.Deferred().resolve().promise();
     };
 
