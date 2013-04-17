@@ -136,6 +136,21 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("foo.doesNotExist")).toBe(unknown);
             });
             
+            it("should map complex file extensions to languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    html    = LanguageManager.getLanguage("html"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(unknown);
+                
+                html.addFileExtension("html.erb");
+                ruby.addFileExtension("erb");
+                
+                expect(LanguageManager.getLanguageForPath("foo.html.erb")).toBe(html);
+                expect(LanguageManager.getLanguageForPath("foo.erb")).toBe(ruby);
+            });
+            
             it("should map file names to languages", function () {
                 var coffee  = LanguageManager.getLanguage("coffeescript"),
                     unknown = LanguageManager.getLanguage("unknown");
@@ -433,19 +448,19 @@ define(function (require, exports, module) {
                 // cleanup
                 doc.releaseRef();
             });
-            
+
             it("should update the document's language when a language is added", function () {
                 var unknown,
                     doc,
                     spy,
-                    shellLanguage,
+                    schemeLanguage,
                     promise;
                 
                 runs(function () {
-                    // Create a shell script file
-                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: "build.sh" });
+                    // Create a scheme script file
+                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: "file.scheme" });
                     
-                    // Initial language will be unknown (shell is not a default language)
+                    // Initial language will be unknown (scheme is not a default language)
                     unknown = LanguageManager.getLanguage("unknown");
                     
                     // listen for event
@@ -458,28 +473,27 @@ define(function (require, exports, module) {
                     // make active
                     doc.addRef();
                     
-                    // Add the shell language, DocumentManager should update all open documents
-                    promise = LanguageManager.defineLanguage("shell", {
-                        name: "Shell",
-                        mode: "shell",
-                        fileExtensions: ["sh"],
-                        lineComment: "#"
+                    // Add the scheme language, DocumentManager should update all open documents
+                    promise = LanguageManager.defineLanguage("scheme", {
+                        name: "Scheme",
+                        mode: "scheme",
+                        fileExtensions: ["scheme"]
                     }).done(function (language) {
-                        shellLanguage = language;
+                        schemeLanguage = language;
                     });
                 
-                    waitsForDone(promise, "loading shell mode", 1000);
+                    waitsForDone(promise, "loading scheme mode", 1000);
                 });
                 
                 runs(function () {
                     // language should change
-                    expect(doc.getLanguage()).toBe(shellLanguage);
+                    expect(doc.getLanguage()).toBe(schemeLanguage);
                     expect(spy).toHaveBeenCalled();
                     expect(spy.callCount).toEqual(1);
                     
                     // check callback args (arg 0 is a jQuery event)
                     expect(spy.mostRecentCall.args[1]).toBe(unknown);
-                    expect(spy.mostRecentCall.args[2]).toBe(shellLanguage);
+                    expect(spy.mostRecentCall.args[2]).toBe(schemeLanguage);
                     
                     // cleanup
                     doc.releaseRef();
@@ -493,10 +507,10 @@ define(function (require, exports, module) {
                     modifiedLanguage,
                     promise;
                 
-                // Create a shell script file
+                // Create a foo script file
                 doc = SpecRunnerUtils.createMockActiveDocument({ filename: "test.foo" });
                 
-                // Initial language will be unknown (shell is not a default language)
+                // Initial language will be unknown (foo is not a default language)
                 unknown = LanguageManager.getLanguage("unknown");
                 
                 // listen for event

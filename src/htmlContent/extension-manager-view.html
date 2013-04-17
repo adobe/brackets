@@ -1,0 +1,34 @@
+<table class="table">
+    {{#registry}}
+        <tr>
+            <td class="ext-name">
+                {{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}
+                <span class="muted ext-version">{{metadata.version}}</span><br/>
+                <span class="muted ext-author">
+                    by 
+                    {{#metadata.author.name}}
+                        {{metadata.author.name}} /
+                    {{/metadata.author.name}}
+                    <a href="{{ownerLink}}">{{formatUserId}}</a>
+                </span>
+                <span class="muted ext-date">on {{lastVersionDate}}</span>
+            </td>
+            <td class="ext-desc">
+                {{#metadata.description}}
+                    {{metadata.description}}
+                {{/metadata.description}}
+                {{^metadata.description}}
+                    <span class="muted"><em>No description</em></span>
+                {{/metadata.description}}
+                {{#metadata.keywords.length}}
+                    <br/>
+                    <span class="ext-keywords">Keywords:
+                    {{#metadata.keywords}}
+                        {{.}}
+                    {{/metadata.keywords}}
+                    </span>
+                {{/metadata.keywords.length}}
+            </td>
+        </tr>
+    {{/registry}}
+</table>

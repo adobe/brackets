@@ -127,9 +127,10 @@ define({
     
     // Switch language
     "LANGUAGE_TITLE"                    : "Switch Language",
-    "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
+    "LANGUAGE_MESSAGE"                  : "Language:",
     "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancel",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
 
     /**
      * ProjectManager
@@ -176,7 +177,8 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Live Highlight",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
-    "CMD_INSTALL_EXTENSION"               : "Install Extension...",
+    "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -222,6 +224,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_ENABLE_HOVER_PREVIEW"            : "Enable Hover Preview",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -268,11 +271,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "JSLINT_ERRORS"                        : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
@@ -308,10 +306,10 @@ define({
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
-    "INSTALLING_FROM"                      : "Installing extension from {0}...",
+    "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Installation successful!",
     "INSTALL_FAILED"                       : "Installation failed.",
-    "CANCELING_INSTALL"                    : "Canceling...",
+    "CANCELING_INSTALL"                    : "Canceling\u2026",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
     "INSTALL_CANCELED"                     : "Installation canceled.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
@@ -321,6 +319,8 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
     "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
+    "INVALID_BRACKETS_VERSION"             : "The Brackets compatibility string {{0}} is invalid.",
+    "DISALLOWED_WORDS"                     : "The words {{1}} are not allowed in the {{0}} field.",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of Brackets. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
@@ -334,6 +334,15 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the Brackets extension registry. Please try again later.",
+    
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
+    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
