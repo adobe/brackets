@@ -67,6 +67,21 @@ define(function (require, exports, module) {
         this.$wrapperDiv = $(html);
         this.$htmlContent.append(this.$wrapperDiv);
         
+        // Preprocess link tags to make URLs absolute
+        this.$wrapperDiv.find("a").each(function (index, elem) {
+            var $elem = $(elem);
+            var url = $elem.attr("href");
+            if (url && url.substr(0, 4) !== "http") {
+                // URLs in JSON data are relative
+                url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url;
+                $elem.attr("href", url);
+                $elem.attr("title", url);
+            }
+        });
+        
+        this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
+        this._handleLinkClick       = this._handleLinkClick.bind(this);
+        
         this.$wrapperDiv.on("click", "a", this._handleLinkClick.bind(this));
     }
     
@@ -76,27 +91,35 @@ define(function (require, exports, module) {
     
     InlineDocsViewer.prototype.$wrapperDiv = null;
     
+    
     /** Clicking any link should open it in browser, not in Brackets shell */
     InlineDocsViewer.prototype._handleLinkClick = function (event) {
         event.preventDefault();
         var url = $(event.target).attr("href");
         if (url) {
-            // URLs in JSON data are relative
-            if (url.substr(0, 4) !== "http") {
-                url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url.replace(" ", "_");
-            }
             NativeApp.openURLInDefaultBrowser(url);
         }
     };
     
+    
     InlineDocsViewer.prototype.onAdded = function () {
         InlineDocsViewer.prototype.parentClass.onAdded.apply(this, arguments);
-        window.setTimeout(this._sizeEditorToContent.bind(this));
+        
+        // Set height initially, and again whenever width might have changed (word wrap)
+        this._sizeEditorToContent();
+        $(window).on("resize", this._sizeEditorToContent);
+    };
+    
+    InlineDocsViewer.prototype.onClosed = function () {
+        InlineDocsViewer.prototype.parentClass.onClosed.apply(this, arguments);
+        
+        $(window).off("resize", this._sizeEditorToContent);
     };
     
     InlineDocsViewer.prototype._sizeEditorToContent = function () {
-        this.hostEditor.setInlineWidgetHeight(this, this.$htmlContent.height() + 20, true);
+        this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.height() + 20, true);
     };
+    
     
     module.exports = InlineDocsViewer;
 });

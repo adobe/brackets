@@ -122,6 +122,9 @@ define(function (require, exports, module) {
                 });
             
             return result.promise();
+            
+        } else {
+            return null;
         }
     }
     
