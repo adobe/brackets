@@ -310,16 +310,11 @@ define(function (require, exports, module) {
         var key = file + "@" + offset;
         if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
             var requests = pendingTernRequests[key],
-                requestType = requests[type],
-                anyProperties = false;
+                requestType = requests[type];
 
             delete pendingTernRequests[key][type];
-             
-            CollectionUtils.forEach(requests, function (requestValue, requestKey) {
-                anyProperties = true;
-            });
-            
-            if (!anyProperties) {
+
+            if (!Object.keys(requests).length) {
                 delete pendingTernRequests[key];
             }
 
