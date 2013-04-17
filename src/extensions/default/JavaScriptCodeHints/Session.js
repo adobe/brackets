@@ -182,7 +182,9 @@ define(function (require, exports, module) {
             query   = "";
         
         if (token) {
-            if (token.string !== "." && token.string !== "(" && token.string !== ',') {
+            // If the token string is not an identifier, then the query string
+            // is empty.
+            if (HintUtils.maybeIdentifier(token.string)) {
                 query = token.string.substring(0, token.string.length - (token.end - cursor.ch));
                 query = query.trim();
             }

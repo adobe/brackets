@@ -62,9 +62,7 @@ define(function (require, exports, module) {
      * @return {boolean} - could key be a valid identifier?
      */
     function maybeIdentifier(key) {
-        return (/[0-9a-z_.\$]/i).test(key) ||
-            (key.indexOf(SINGLE_QUOTE) === 0) ||
-            (key.indexOf(DOUBLE_QUOTE) === 0);
+        return (/[0-9a-z_\$]/i).test(key);
     }
 
     /**
@@ -83,7 +81,18 @@ define(function (require, exports, module) {
             return true;
         }
     }
-    
+
+    /**
+     *  Determine if hints should be displayed for the given key.
+     *
+     * @param {string} key - key entered by the user
+     * @return {boolean} true if the hints should be shown for the key,
+     * false otherwise.
+     */
+    function hintableKey(key) {
+        return (key === null || key === "." || maybeIdentifier(key));
+    }
+
     /**
      * Divide a path into directory and filename parts
      * 
@@ -177,6 +186,7 @@ define(function (require, exports, module) {
 
     exports.makeToken               = makeToken;
     exports.hintable                = hintable;
+    exports.hintableKey             = hintableKey;
     exports.maybeIdentifier         = maybeIdentifier;
     exports.splitPath               = splitPath;
     exports.eventName               = eventName;

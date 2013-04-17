@@ -168,7 +168,7 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
-        if (session && ((key === null) || HintUtils.maybeIdentifier(key))) {
+        if (session && HintUtils.hintableKey(key)) {
             var cursor  = session.getCursor(),
                 token   = session.getToken(cursor);
 
@@ -209,55 +209,53 @@ define(function (require, exports, module) {
     JSHints.prototype.getHints = function (key) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
-        if ((key === null) || HintUtils.hintable(token)) {
-            if (token) {
-                var type    = session.getType(),
-                    query   = session.getQuery();
-                
-                // Compute fresh hints if none exist, or if the session
-                // type has changed since the last hint computation
-                if (!cachedHints ||
-                        type.property !== cachedType.property ||
-                        type.context !== cachedType.context ||
-                        type.showFunctionType !== cachedType.showFunctionType ||                                               query.length === 0) {
-                    var offset          = session.getOffset(),
-                        scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
-                        self            = this;
+        if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
+            var type    = session.getType(),
+                query   = session.getQuery();
 
-                    if (scopeResponse.hasOwnProperty("promise")) {
-                        var $deferredHints = $.Deferred();
-                        scopeResponse.promise.done(function () {
-                            cachedLine = cursor.line;
-                            cachedType = session.getType();
-                            matcher = new StringMatch.StringMatcher();
-                            cachedHints = session.getHints(query, matcher);
+            // Compute fresh hints if none exist, or if the session
+            // type has changed since the last hint computation
+            if (!cachedHints ||
+                    type.property !== cachedType.property ||
+                    type.context !== cachedType.context ||
+                    type.showFunctionType !== cachedType.showFunctionType ||                                               query.length === 0) {
+                var offset          = session.getOffset(),
+                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
+                    self            = this;
 
-                            $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
-
-                            if ($deferredHints.state() === "pending") {
-                                query = session.getQuery();
-                                var hintResponse    = getHintResponse(cachedHints, query, type);
-
-                                $deferredHints.resolveWith(null, [hintResponse]);
-                                $(self).triggerHandler("hintResponse", [query]);
-                            }
-                        }).fail(function () {
-                            if ($deferredHints.state() === "pending") {
-                                $deferredHints.reject();
-                            }
-                        });
-
-                        $(this).triggerHandler("deferredResponse");
-                        return $deferredHints;
-                    } else {
+                if (scopeResponse.hasOwnProperty("promise")) {
+                    var $deferredHints = $.Deferred();
+                    scopeResponse.promise.done(function () {
                         cachedLine = cursor.line;
-                    }
-                }
+                        cachedType = session.getType();
+                        matcher = new StringMatch.StringMatcher();
+                        cachedHints = session.getHints(query, matcher);
 
-                if (cachedHints) {
-                    cachedHints = session.getHints(session.getQuery(), matcher);
-                    return getHintResponse(cachedHints, query, type);
+                        $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
+
+                        if ($deferredHints.state() === "pending") {
+                            query = session.getQuery();
+                            var hintResponse    = getHintResponse(cachedHints, query, type);
+
+                            $deferredHints.resolveWith(null, [hintResponse]);
+                            $(self).triggerHandler("hintResponse", [query]);
+                        }
+                    }).fail(function () {
+                        if ($deferredHints.state() === "pending") {
+                            $deferredHints.reject();
+                        }
+                    });
+
+                    $(this).triggerHandler("deferredResponse");
+                    return $deferredHints;
+                } else {
+                    cachedLine = cursor.line;
                 }
+            }
+
+            if (cachedHints) {
+                cachedHints = session.getHints(session.getQuery(), matcher);
+                return getHintResponse(cachedHints, query, type);
             }
         }
 

@@ -460,6 +460,8 @@ define(function (require, exports, module) {
                 expectHints(JSCodeHints.jsHintProvider, ".");
             });
 
+/*          Single quote and double quote keys cause hasHints() to return false.
+            It used to return true when string literals were supported.
             it("should list implicit hints when typing string literals (single quote)", function () {
                 testEditor.setCursorPos({ line: 9, ch: 0 });
                 expectHints(JSCodeHints.jsHintProvider, "'");
@@ -469,7 +471,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 9, ch: 0 });
                 expectHints(JSCodeHints.jsHintProvider, "\"");
             });
-            
+*/
             it("should give priority to identifier names associated with the current context", function () {
                 testEditor.setCursorPos({ line: 16, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
