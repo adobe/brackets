@@ -105,10 +105,17 @@ define(function (require, exports, module) {
             prefix = "",
             colorValue;
         
-        // If the gradient match has "@" in it, it is most likely a less or sass variable. Ignore it since it won't
-        // be displayed correctly.
-        if (gradientMatch && gradientMatch[0].indexOf("@") !== -1) {
-            gradientMatch = null;
+        if (gradientMatch) {
+            if (gradientMatch[0].indexOf("@") !== -1) {
+                // If the gradient match has "@" in it, it is most likely a less or sass variable.
+                // Ignore it since it won't be displayed correctly.
+                gradientMatch = null;
+
+            } else if (gradientMatch[0].indexOf("to ") !== -1) {
+                // If the gradient match has "to " in it, it's most likely the new gradient syntax
+                // which is not supported until Chrome 26, so we can't yet preview it
+                gradientMatch = null;
+            }
         }
         
         // If it was a linear-gradient or radial-gradient variant, prefix with "-webkit-" so it
