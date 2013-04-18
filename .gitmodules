@@ -16,3 +16,12 @@
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/acorn"]
 	path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn
 	url = https://github.com/marijnh/acorn.git
+[submodule "src/thirdparty/requirejs"]
+	path = src/thirdparty/requirejs
+	url = https://github.com/jrburke/requirejs.git
+[submodule "src/thirdparty/text"]
+	path = src/thirdparty/text
+	url = https://github.com/requirejs/text.git
+[submodule "src/thirdparty/i18n"]
+	path = src/thirdparty/i18n
+	url = https://github.com/requirejs/i18n.git
