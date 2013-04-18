@@ -855,10 +855,9 @@ define(function LiveDevelopment(require, exports, module) {
 
         if (Inspector.connected()) {
             hideHighlight();
-
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _openDocument(doc, EditorManager.getCurrentFullEditor());
-
+                
                 promise = _getRelatedDocuments();
             } else {
                 if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
