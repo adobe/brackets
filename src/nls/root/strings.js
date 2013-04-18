@@ -231,6 +231,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Go to Definition",
+    "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
