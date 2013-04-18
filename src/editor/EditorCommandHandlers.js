@@ -728,10 +728,12 @@ define(function (require, exports, module) {
             return;
         }
         
-        var sel = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
-            cm = editor._codeMirror,
-            doc = editor.document,
+        var sel            = editor.getSelection(),
+            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
+            lastLine       = editor.getLastVisibleLine(),
+            cm             = editor._codeMirror,
+            doc            = editor.document,
             line;
         
         // Insert the new line
@@ -749,7 +751,11 @@ define(function (require, exports, module) {
         }
         
         doc.batchOperation(function () {
-            doc.replaceRange("\n", {line: line, ch: 0});
+            if (line > lastLine && isInlineWidget) {
+                doc.replaceRange("\n", {line: line - 1, ch: doc.getLine(line - 1).length});
+            } else {
+                doc.replaceRange("\n", {line: line, ch: 0});
+            }
             cm.indentLine(line);
         });
         editor.setSelection({line: line, ch: null});
