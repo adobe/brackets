@@ -34,18 +34,22 @@ define(function (require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings");
+   
+    var previewContainerHTML       = require("text!HoverPreviewTemplate.html");
     
     var defaultPrefs               = { enabled: true },
         enabled,                             // Only show preview if true
         prefs                      = null,   // Preferences
         previewMark,                         // CodeMirror marker highlighting the preview text
         $previewContainer,                   // Preview container
+        $previewContent,                     // Preview content holder
         currentImagePreviewContent = "";     // Current image preview content, or "" if no content is showing.
     
     // Constants
     var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
-        POINTER_LEFT_OFFSET         = 10,   // Half of the pointer width, used to find the center of the pointer
+        POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
+        POINTER_TOP_OFFSET          =  7,   // Pointer height, used to shift popover above pointer
         POSITION_BELOW_OFFSET       = 16;   // Amount to adjust to top position when the preview bubble is below the text
     
     function hidePreview() {
@@ -53,9 +57,8 @@ define(function (require, exports, module) {
             previewMark.clear();
             previewMark = null;
         }
-        $previewContainer.empty();
+        $previewContent.empty();
         $previewContainer.hide();
-        $previewContainer.removeClass("small-padding-bottom");
         currentImagePreviewContent = "";
     }
     
@@ -75,14 +78,14 @@ define(function (require, exports, module) {
             $previewContainer.addClass("preview-bubble-above");
             $previewContainer.offset({
                 left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
-                top: top
+                top: top - POINTER_TOP_OFFSET
             });
         }
     }
     
     function showPreview(content, xpos, ypos, ybot) {
         hidePreview();
-        $previewContainer.append(content);
+        $previewContent.append(content);
         $previewContainer.show();
         positionPreview(xpos, ypos, ybot);
     }
@@ -207,13 +210,11 @@ define(function (require, exports, module) {
                         // Hide the preview container until the image is loaded.
                         $previewContainer.hide();
                         $previewContainer.find("img").on("load", function () {
-                            $previewContainer.find(".image-preview")
-                                .append("<br/>"                                                 +
-                                        "<span class='img-size'>"                               +
-                                                this.naturalWidth + " x " + this.naturalHeight  +
-                                        "</span>"
+                            $previewContent
+                                .append("<div class='img-size'>"                                            +
+                                            this.naturalWidth + " x " + this.naturalHeight + " pixels"  +
+                                        "</div>"
                                     );
-                            $previewContainer.addClass("small-padding-bottom");
                             $previewContainer.show();
                             positionPreview(xpos, ypos, ybot);
                         });
@@ -315,7 +316,8 @@ define(function (require, exports, module) {
     }
         
     // Create the preview container
-    $previewContainer = $("<div id='hover-preview-container'>").appendTo($("body"));
+    $previewContainer = $(previewContainerHTML).appendTo($("body"));
+    $previewContent = $previewContainer.find(".preview-content");
     
     // Load our stylesheet
     ExtensionUtils.loadStyleSheet(module, "HoverPreview.css");
