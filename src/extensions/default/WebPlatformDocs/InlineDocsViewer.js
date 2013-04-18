@@ -75,14 +75,14 @@ define(function (require, exports, module) {
                 // URLs in JSON data are relative
                 url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url;
                 $elem.attr("href", url);
-                $elem.attr("title", url);
             }
+            $elem.attr("title", url);
         });
         
         this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
         this._handleLinkClick       = this._handleLinkClick.bind(this);
         
-        this.$wrapperDiv.on("click", "a", this._handleLinkClick.bind(this));
+        this.$wrapperDiv.on("click", "a", this._handleLinkClick);
     }
     
     InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
