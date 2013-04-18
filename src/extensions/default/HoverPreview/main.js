@@ -28,19 +28,22 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var CommandManager      = brackets.getModule("command/CommandManager"),
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings");
     
-    var defaultPrefs               = { enabled: true },
-        enabled,                             // Only show preview if true
-        prefs                      = null,   // Preferences
-        previewMark,                         // CodeMirror marker highlighting the preview text
-        $previewContainer,                   // Preview container
-        currentImagePreviewContent = "";     // Current image preview content, or "" if no content is showing.
+    var defaultPrefs                 = { enabled: true },
+        enabled,                               // Only show preview if true
+        prefs                        = null,   // Preferences
+        previewMark,                           // CodeMirror marker highlighting the preview text
+        $previewContainer,                     // Preview container
+        currentImagePreviewContent   = "",     // Current image preview content, or "" if no content is showing.
+        lastPreviewedColorOrGradient = "",     // Color/gradient value of last previewed.
+        lastPreviewedImagePath       = "";     // Image path of last previewed.
     
     // Constants
     var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
@@ -99,6 +102,8 @@ define(function (require, exports, module) {
     function colorAndGradientPreviewProvider(editor, pos, token, line) {
         var cm = editor._codeMirror;
         
+        lastPreviewedColorOrGradient = "";
+
         // Check for gradient
         var gradientRegEx = /-webkit-gradient\([^;]*;?|(-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient\([^;]*);?|(-moz-|-ms-|-o-|-webkit-)(radial-gradient\([^;]*);?/,
             gradientMatch = line.match(gradientRegEx),
@@ -130,9 +135,10 @@ define(function (require, exports, module) {
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+                lastPreviewedColorOrGradient = (colorValue || match[0]);
                 var preview = "<div class='color-swatch-bg'>"                           +
                               "    <div class='color-swatch' style='background:"        +
-                                        prefix + (colorValue || match[0]) + ";'>"       +
+                                        prefix + lastPreviewedColorOrGradient + ";'>"       +
                               "    </div>"                                              +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
@@ -157,6 +163,8 @@ define(function (require, exports, module) {
     
     function imagePreviewProvider(editor, pos, token, line) {
         var cm = editor._codeMirror;
+        
+        lastPreviewedImagePath = "";
         
         // Check for image name
         var urlRegEx = /url\(([^\)]*)\)/,
@@ -223,6 +231,7 @@ define(function (require, exports, module) {
                             {className: "hover-preview-highlight"}
                         );
                         currentImagePreviewContent = imgPreview;
+                        lastPreviewedImagePath = imgPath;
                     }
                     return true;
                 }
@@ -287,6 +296,14 @@ define(function (require, exports, module) {
         }
     }
     
+    function getLastPreviewedColorOrGradient() {
+        return lastPreviewedColorOrGradient;
+    }
+    
+    function getLastPreviewedImagePath() {
+        return lastPreviewedImagePath;
+    }
+
     // Menu command handlers
     function updateMenuItemCheckmark() {
         CommandManager.get(CMD_ENABLE_HOVER_PREVIEW).setChecked(enabled);
@@ -330,7 +347,15 @@ define(function (require, exports, module) {
     // Setup initial UI state
     setEnabled(prefs.getValue("enabled"));
 
+    AppInit.appReady(function () {
+        if (brackets.test) {
+            brackets.test.extensions.HoverPreview = module.exports;
+        }
+    });
+    
     // For unit testing
     exports.colorAndGradientPreviewProvider = colorAndGradientPreviewProvider;
     exports.imagePreviewProvider            = imagePreviewProvider;
+    exports.getLastPreviewedColorOrGradient = getLastPreviewedColorOrGradient;
+    exports.getLastPreviewedImagePath       = getLastPreviewedImagePath;
 });
