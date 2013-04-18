@@ -29,20 +29,28 @@ define(function (require, exports, module) {
 
     var CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
+        DocumentManager = brackets.getModule("document/DocumentManager"),
+        Commands        = brackets.getModule("command/Commands"),
+        CommandManager  = brackets.getModule("command/CommandManager"),
+        Menus           = brackets.getModule("command/Menus"),
+        Strings         = brackets.getModule("strings"),
         AppInit         = brackets.getModule("utils/AppInit"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
+        StringMatch     = brackets.getModule("utils/StringMatch"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session");
 
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+
+    var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
+
     var session     = null,  // object that encapsulates the current session state
         cachedHints = null,  // sorted hints for the current hinting session
         cachedType  = null,  // describes the lookup type and the object context
-        cachedScope = null,  // the inner-most scope returned by the query worker
-        cachedLine  = null;  // the line number for the cached scope
-
-    var MAX_DISPLAYED_HINTS = 100;
+        cachedLine  = null,  // the line number for the cached scope
+        matcher     = null;  // string matcher for hints
 
     /**
      * Creates a hint response object. Filters the hint list using the query
@@ -51,74 +59,13 @@ define(function (require, exports, module) {
      *
      * @param {Array.<Object>} hints - hints to be included in the response
      * @param {string} query - querystring with which to filter the hint list
+     * @param {Object} type - the type of query, property vs. identifier
      * @return {Object} - hint response as defined by the CodeHintManager API 
      */
-    function getHintResponse(hints, query) {
+    function getHintResponse(hints, query, type) {
 
         var trimmedQuery,
-            filteredHints,
             formattedHints;
-
-        /*
-         * Filter a list of tokens using the query string in the closure.
-         * 
-         * @param {Array.<Object>} tokens - list of hints to filter
-         * @param {number} limit - maximum numberof tokens to return
-         * @return {Array.<Object>} - filtered list of hints
-         */
-        function filterWithQuery(tokens, limit) {
-
-            /*
-             * Filter arr using test, returning at most limit results from the
-             * front of the array.
-             * 
-             * @param {Array} arr - array to filter
-             * @param {Function} test - test to determine if an element should
-             *      be included in the results
-             * @param {number} limit - the maximum number of elements to return
-             * @return {Array.<Object>} - new array of filtered elements
-             */
-            function filterArrayPrefix(arr, test, limit) {
-                var i = 0,
-                    results = [],
-                    elem;
-
-                for (i; i < arr.length && results.length <= limit; i++) {
-                    elem = arr[i];
-                    if (test(elem)) {
-                        results.push(elem);
-                    }
-                }
-
-                return results;
-            }
-
-            // If the query is a string literal (i.e., if it starts with a
-            // string literal delimiter, and hence if trimmedQuery !== query)
-            // then only string literal hints should be returned, and matching
-            // should be performed w.r.t. trimmedQuery. If the query is 
-            // otherwise non-empty, no string literals should match. If the
-            // query is empty then no hints are filtered.
-            if (trimmedQuery !== query) {
-                return filterArrayPrefix(tokens, function (token) {
-                    if (token.literal && token.kind === "string") {
-                        return (token.value.indexOf(trimmedQuery) === 0);
-                    } else {
-                        return false;
-                    }
-                }, limit);
-            } else if (query.length > 0) {
-                return filterArrayPrefix(tokens, function (token) {
-                    if (token.literal && token.kind === "string") {
-                        return false;
-                    } else {
-                        return (token.value.indexOf(query) === 0);
-                    }
-                }, limit);
-            } else {
-                return tokens.slice(0, limit);
-            }
-        }
 
         /*
          * Returns a formatted list of hints with the query substring
@@ -127,61 +74,55 @@ define(function (require, exports, module) {
          * @param {Array.<Object>} hints - the list of hints to format
          * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
-         * @param {Array.<jQuery.Object>} - array of hints formatted as jQuery
+         * @return {Array.<jQuery.Object>} - array of hints formatted as jQuery
          *      objects
          */
         function formatHints(hints, query) {
             return hints.map(function (token) {
-                var hint        = token.value,
-                    index       = hint.indexOf(query),
-                    $hintObj    = $("<span>").addClass("brackets-js-hints"),
-                    delimiter   = "";
+                var $hintObj    = $("<span>").addClass("brackets-js-hints");
 
                 // level indicates either variable scope or property confidence
-                switch (token.level) {
-                case 0:
-                    $hintObj.addClass("priority-high");
-                    break;
-                case 1:
-                    $hintObj.addClass("priority-medium");
-                    break;
-                case 2:
-                    $hintObj.addClass("priority-low");
-                    break;
-                }
-
-                // is the token a global variable?
-                if (token.global) {
-                    $hintObj.addClass("global-hint");
-                }
-                
-                // is the token a literal?
-                if (token.literal) {
-                    $hintObj.addClass("literal-hint");
-                    if (token.kind === "string") {
-                        delimiter = HintUtils.DOUBLE_QUOTE;
+                if (!type.property && token.depth !== undefined) {
+                    switch (token.depth) {
+                    case 0:
+                        $hintObj.addClass("priority-high");
+                        break;
+                    case 1:
+                        $hintObj.addClass("priority-medium");
+                        break;
+                    case 2:
+                        $hintObj.addClass("priority-low");
+                        break;
+                    default:
+                        $hintObj.addClass("priority-lowest");
+                        break;
                     }
                 }
-                
+
+                if (token.guess) {
+                    $hintObj.addClass("guess-hint");
+                }
+
                 // is the token a keyword?
                 if (token.keyword) {
                     $hintObj.addClass("keyword-hint");
                 }
              
-                // higlight the matched portion of each hint
-                if (index >= 0) {
-                    var prefix  = StringUtils.htmlEscape(hint.slice(0, index)),
-                        match   = StringUtils.htmlEscape(hint.slice(index, index + query.length)),
-                        suffix  = StringUtils.htmlEscape(hint.slice(index + query.length));
-
-                    $hintObj.append(delimiter + prefix)
-                        .append($("<span>")
-                                .append(match)
-                                .addClass("matched-hint"))
-                        .append(suffix + delimiter);
+                // highlight the matched portion of each hint
+                if (token.stringRanges) {
+                    token.stringRanges.forEach(function (item) {
+                        if (item.matched) {
+                            $hintObj.append($("<span>")
+                                .append(StringUtils.htmlEscape(item.text))
+                                .addClass("matched-hint"));
+                        } else {
+                            $hintObj.append(StringUtils.htmlEscape(item.text));
+                        }
+                    });
                 } else {
-                    $hintObj.text(delimiter + hint + delimiter);
+                    $hintObj.text(token.value);
                 }
+
                 $hintObj.data("token", token);
                 
                 return $hintObj;
@@ -200,8 +141,11 @@ define(function (require, exports, module) {
             trimmedQuery = query;
         }
 
-        filteredHints = filterWithQuery(hints, MAX_DISPLAYED_HINTS);
-        formattedHints = formatHints(filteredHints, trimmedQuery);
+        if (hints) {
+            formattedHints = formatHints(hints, trimmedQuery);
+        } else {
+            formattedHints = [];
+        }
 
         return {
             hints: formattedHints,
@@ -224,25 +168,29 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
-        if (session && ((key === null) || HintUtils.maybeIdentifier(key))) {
+        if (session && HintUtils.hintableKey(key)) {
             var cursor  = session.getCursor(),
                 token   = session.getToken(cursor);
 
             // don't autocomplete within strings or comments, etc.
             if (token && HintUtils.hintable(token)) {
-                var offset = session.getOffset();
+                var offset = session.getOffset(),
+                    type    = session.getType(),
+                    query   = session.getQuery();
 
                 // Invalidate cached information if: 1) no scope exists; 2) the
                 // cursor has moved a line; 3) the scope is dirty; or 4) if the
                 // cursor has moved into a different scope. Cached information
                 // is also reset on editor change.
-                if (!cachedScope ||
+                if (!cachedHints ||
                         cachedLine !== cursor.line ||
-                        ScopeManager.isScopeDirty(session.editor.document) ||
-                        !cachedScope.containsPositionImmediate(offset)) {
-                    cachedScope = null;
+                        type.property !== cachedType.property ||
+                        type.context !== cachedType.context ||
+                        type.showFunctionType !== cachedType.showFunctionType) {
+                    //console.log("clear hints");
                     cachedLine = null;
                     cachedHints = null;
+                    matcher = null;
                 }
                 return true;
             }
@@ -261,60 +209,53 @@ define(function (require, exports, module) {
     JSHints.prototype.getHints = function (key) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
-        if ((key === null) || HintUtils.hintable(token)) {
-            if (token) {
-                if (!cachedScope) {
-                    var offset          = session.getOffset(),
-                        scopeResponse   = ScopeManager.getScopeInfo(session.editor.document, offset),
-                        self            = this;
+        if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
+            var type    = session.getType(),
+                query   = session.getQuery();
 
-                    if (scopeResponse.hasOwnProperty("promise")) {
-                        var $deferredHints = $.Deferred();
-                        scopeResponse.promise.done(function (scopeInfo) {
-                            session.setScopeInfo(scopeInfo);
-                            cachedScope = scopeInfo.scope;
-                            cachedLine = cursor.line;
-                            cachedType = session.getType();
-                            cachedHints = session.getHints();
+            // Compute fresh hints if none exist, or if the session
+            // type has changed since the last hint computation
+            if (!cachedHints ||
+                    type.property !== cachedType.property ||
+                    type.context !== cachedType.context ||
+                    type.showFunctionType !== cachedType.showFunctionType ||                                               query.length === 0) {
+                var offset          = session.getOffset(),
+                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
+                    self            = this;
 
-                            $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
-
-                            if ($deferredHints.state() === "pending") {
-                                var query           = session.getQuery(),
-                                    hintResponse    = getHintResponse(cachedHints, query);
-
-                                $deferredHints.resolveWith(null, [hintResponse]);
-                                $(self).triggerHandler("hintResponse", [query]);
-                            }
-                        }).fail(function () {
-                            if ($deferredHints.state() === "pending") {
-                                $deferredHints.reject();
-                            }
-                        });
-
-                        $(this).triggerHandler("deferredResponse");
-                        return $deferredHints;
-                    } else {
-                        session.setScopeInfo(scopeResponse);
-                        cachedScope = scopeResponse.scope;
+                if (scopeResponse.hasOwnProperty("promise")) {
+                    var $deferredHints = $.Deferred();
+                    scopeResponse.promise.done(function () {
                         cachedLine = cursor.line;
-                    }
-                }
+                        cachedType = session.getType();
+                        matcher = new StringMatch.StringMatcher();
+                        cachedHints = session.getHints(query, matcher);
 
-                if (cachedScope) {
-                    var type    = session.getType(),
-                        query   = session.getQuery();
+                        $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
 
-                    // Compute fresh hints if none exist, or if the session
-                    // type has changed since the last hint computation
-                    if (!cachedHints ||
-                            type.property !== cachedType.property ||
-                            type.context !== cachedType.context) {
-                        cachedType = type;
-                        cachedHints = session.getHints();
-                    }
-                    return getHintResponse(cachedHints, query);
+                        if ($deferredHints.state() === "pending") {
+                            query = session.getQuery();
+                            var hintResponse    = getHintResponse(cachedHints, query, type);
+
+                            $deferredHints.resolveWith(null, [hintResponse]);
+                            $(self).triggerHandler("hintResponse", [query]);
+                        }
+                    }).fail(function () {
+                        if ($deferredHints.state() === "pending") {
+                            $deferredHints.reject();
+                        }
+                    });
+
+                    $(this).triggerHandler("deferredResponse");
+                    return $deferredHints;
+                } else {
+                    cachedLine = cursor.line;
                 }
+            }
+
+            if (cachedHints) {
+                cachedHints = session.getHints(session.getQuery(), matcher);
+                return getHintResponse(cachedHints, query, type);
             }
         }
 
@@ -336,7 +277,7 @@ define(function (require, exports, module) {
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
             end         = {line: cursor.line, ch: (token ? token.end : cursor.ch)},
-            delimeter;
+            delimiter;
 
         if (token && token.string === ".") {
             var nextCursor  = session.getNextCursorOnLine(),
@@ -353,18 +294,23 @@ define(function (require, exports, module) {
         // to wrap it, preserving the existing delimiter if possible.
         if (hint.literal && hint.kind === "string") {
             if (token.string.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-                delimeter = HintUtils.DOUBLE_QUOTE;
+                delimiter = HintUtils.DOUBLE_QUOTE;
             } else if (token.string.indexOf(HintUtils.SINGLE_QUOTE) === 0) {
-                delimeter = HintUtils.SINGLE_QUOTE;
+                delimiter = HintUtils.SINGLE_QUOTE;
             } else {
-                delimeter = hint.delimeter;
+                delimiter = hint.delimiter;
             }
 
             completion = completion.replace("\\", "\\\\");
-            completion = completion.replace(delimeter, "\\" + delimeter);
-            completion = delimeter + completion + delimeter;
+            completion = completion.replace(delimiter, "\\" + delimiter);
+            completion = delimiter + completion + delimiter;
         }
 
+        if (session.getType().showFunctionType) {
+            // function types show up as hints, so don't insert anything
+            // if we were displaying a function type            
+            return false;
+        }
         // Replace the current token with the completion
         session.editor.document.replaceRange(completion, start, end);
 
@@ -385,6 +331,7 @@ define(function (require, exports, module) {
         function initializeSession(editor) {
             ScopeManager.handleEditorChange(editor.document);
             session = new Session(editor);
+            cachedHints = null;
         }
 
         /*
@@ -395,7 +342,6 @@ define(function (require, exports, module) {
          */
         function installEditorListeners(editor) {
             // always clean up cached scope and hint info
-            cachedScope = null;
             cachedLine = null;
             cachedHints = null;
             cachedType = null;
@@ -436,6 +382,49 @@ define(function (require, exports, module) {
             installEditorListeners(current);
         }
         
+        /*
+         * Handle JumptoDefiniton menu/keyboard command.
+         */
+        function handleJumpToDefinition() {
+            var offset     = session.getOffset(),
+                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+
+            if (response.hasOwnProperty("promise")) {
+                response.promise.done(function (jumpResp) {
+
+                    if (jumpResp.resultFile) {
+                        if (jumpResp.resultFile !== jumpResp.file) {
+                            var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
+                            if (resolvedPath) {
+                                CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
+                                    .done(function () {
+                                        session.editor.setCursorPos(jumpResp.start);
+                                        session.editor.setSelection(jumpResp.start, jumpResp.end);
+                                        session.editor.centerOnCursor();
+                                    });
+                            }
+                        } else {
+                            session.editor.setCursorPos(jumpResp.start);
+                            session.editor.setSelection(jumpResp.start, jumpResp.end);
+                            session.editor.centerOnCursor();
+                        }
+                    }
+
+                }).fail(function () {
+                    response.reject();
+                });
+            }
+        }
+
+        // Register command handler
+        CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, JUMPTO_DEFINITION, handleJumpToDefinition);
+        
+        // Add the menu item
+        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
+        if (menu) {
+            menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.BEFORE, Commands.NAVIGATE_GOTO_DEFINITION);
+        }
+        
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
@@ -452,5 +441,6 @@ define(function (require, exports, module) {
         // for unit testing
         exports.jsHintProvider = jsHints;
         exports.initializeSession = initializeSession;
+        exports.handleJumpToDefinition = handleJumpToDefinition;
     });
 });

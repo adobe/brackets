@@ -27,10 +27,15 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var LANGUAGE_ID     = "javascript",
-        SCOPE_MSG_TYPE  = "outerScope",
-        SINGLE_QUOTE    = "\'",
-        DOUBLE_QUOTE    = "\"";
+    var LANGUAGE_ID                 = "javascript",
+        SINGLE_QUOTE                = "'",
+        DOUBLE_QUOTE                = "\"",
+        TERN_INIT_MSG               = "Init",
+        TERN_JUMPTODEF_MSG          = "JumptoDef",
+        TERN_COMPLETIONS_MSG        = "Completions",
+        TERN_GET_FILE_MSG           = "GetFile",
+        TERN_GET_PROPERTIES_MSG     = "Properties",
+        TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType";
 
     /**
      * Create a hint token with name value that occurs at the given list of
@@ -57,9 +62,7 @@ define(function (require, exports, module) {
      * @return {boolean} - could key be a valid identifier?
      */
     function maybeIdentifier(key) {
-        return (/[0-9a-z_.\$]/i).test(key) ||
-            (key.indexOf(SINGLE_QUOTE) === 0) ||
-            (key.indexOf(DOUBLE_QUOTE) === 0);
+        return (/[0-9a-z_\$]/i).test(key);
     }
 
     /**
@@ -78,7 +81,18 @@ define(function (require, exports, module) {
             return true;
         }
     }
-    
+
+    /**
+     *  Determine if hints should be displayed for the given key.
+     *
+     * @param {string} key - key entered by the user
+     * @return {boolean} true if the hints should be shown for the key,
+     * false otherwise.
+     */
+    function hintableKey(key) {
+        return (key === null || key === "." || maybeIdentifier(key));
+    }
+
     /**
      * Divide a path into directory and filename parts
      * 
@@ -89,7 +103,7 @@ define(function (require, exports, module) {
     function splitPath(path) {
         var index   = path.lastIndexOf("/"),
             dir     = path.substring(0, index),
-            file    = path.substring(index, path.length);
+            file    = path.substring(index + 1, path.length);
         
         return {dir: dir, file: file };
     }
@@ -107,92 +121,35 @@ define(function (require, exports, module) {
     }
 
     /*
-     * Annotate list of identifiers with their scope level.
-     * 
-     * @param {Array.<Object>} identifiers - list of identifier tokens to be
-     *      annotated
-     * @param {Scope} scope - scope object used to determine the scope level of
-     *      each identifier token in the previous list.
-     * @return {Array.<Object>} - the input array; to each object in the array a
-     *      new level {number} property has been added to indicate its scope
-     *      level. 
-     */
-    function annotateWithScope(identifiers, scope) {
-        return identifiers.map(function (t) {
-            var level = scope.contains(t.value);
-
-            if (level >= 0) {
-                t.level = level;
-            } else {
-                t.level = -1;
-            }
-            return t;
-        });
-    }
-
-    /*
-     * Annotate a list of properties with their association level
-     * 
-     * @param {Array.<Object>} properties - list of property tokens
-     * @param {Association} association - an object that maps property
-     *      names to the number of times it occurs in a particular context
-     * @return {Array.<Object>} - the input array; to each object in the array a
-     *      new level {number} property has been added to indicate the number
-     *      of times the property has occurred in the association context.
-     */
-    function annotateWithAssociation(properties, association) {
-        return properties.map(function (t) {
-            if (association[t.value] > 0) {
-                t.level = 0;
-            }
-            return t;
-        });
-    }
-
-    /*
-     * Annotate a list of tokens as being global variables
-     * 
-     * @param {Array.<Object>} globals - list of identifier tokens
-     * @return {Array.<Object>} - the input array; to each object in the array a
-     *      new global {boolean} property has been added to indicate that it is
-     *      a global variable.
-     */
-    function annotateGlobals(globals) {
-        return globals.map(function (t) {
-            t.global = true;
-            return t;
-        });
-    }
-
-    /*
      * Annotate a list of tokens as literals of a particular kind;
-     * if string literals, annotate with an appropriate delimiter. 
-     * 
+     * if string literals, annotate with an appropriate delimiter.
+     *
      * @param {Array.<Object>} literals - list of hint tokens
      * @param {string} kind - the kind of literals in the list (e.g., "string")
      * @return {Array.<Object>} - the input array; to each object in the array a
      *      new literal {boolean} property has been added to indicate that it
      *      is a literal hint, and also a new kind {string} property to indicate
      *      the literal kind. For string literals, a delimiter property is also
-     *      added to indicate what the default delimiter should be (viz. a 
+     *      added to indicate what the default delimiter should be (viz. a
      *      single or double quotation mark).
      */
     function annotateLiterals(literals, kind) {
         return literals.map(function (t) {
             t.literal = true;
             t.kind = kind;
+            t.origin = "ecma5";
             if (kind === "string") {
                 if (/[\\\\]*[^\\]"/.test(t.value)) {
-                    t.delimeter = SINGLE_QUOTE;
+                    t.delimiter = SINGLE_QUOTE;
                 } else {
-                    t.delimeter = DOUBLE_QUOTE;
+                    t.delimiter = DOUBLE_QUOTE;
                 }
             }
             return t;
         });
     }
 
-    /* 
+    /*
      * Annotate a list of tokens as keywords
      * 
      * @param {Array.<Object>} keyword - list of keyword tokens
@@ -203,30 +160,10 @@ define(function (require, exports, module) {
     function annotateKeywords(keywords) {
         return keywords.map(function (t) {
             t.keyword = true;
+            t.origin = "ecma5";
             return t;
         });
     }
-
-    /* 
-     * Annotate a list of tokens with a path name
-     * 
-     * @param {Array.<Object>} tokens - list of hint tokens
-     * @param {string} dir - directory with which to annotate the hints
-     * @param {string} file - file name with which to annotate the hints
-     * @return {Array.<Object>} - the input array; to each object in the array a
-     *      new path {string} property has been added, equal to dir + file.
-     */
-    function annotateWithPath(tokens, dir, file) {
-        var path = dir + file;
-
-        return tokens.map(function (t) {
-            t.path = path;
-            return t;
-        });
-    }
-
-    // TODO 1: The definitions below should be defined in a separate JSON file.
-    // TODO 2: Add properties and associations for the builtin globals.
 
     var KEYWORD_NAMES   = [
         "break", "case", "catch", "continue", "debugger", "default", "delete",
@@ -247,141 +184,22 @@ define(function (require, exports, module) {
         }),
         LITERALS        = annotateLiterals(LITERAL_TOKENS);
 
-    var JSL_GLOBAL_NAMES = [
-        "clearInterval", "clearTimeout", "document", "event", "frames",
-        "history", "Image", "location", "name", "navigator", "Option",
-        "parent", "screen", "setInterval", "setTimeout", "window",
-        "XMLHttpRequest", "alert", "confirm", "console", "Debug", "opera",
-        "prompt", "WSH", "Buffer", "exports", "global", "module", "process",
-        "querystring", "require", "__filename", "__dirname", "defineClass",
-        "deserialize", "gc", "help", "load", "loadClass", "print", "quit",
-        "readFile", "readUrl", "runCommand", "seal", "serialize", "spawn",
-        "sync", "toint32", "version", "ActiveXObject", "CScript", "Enumerator",
-        "System", "VBArray", "WScript"
-    ],
-        JSL_GLOBAL_TOKENS = annotateGlobals(JSL_GLOBAL_NAMES.map(function (t) {
-            return makeToken(t, []);
-        })),
-        JSL_GLOBALS = JSL_GLOBAL_TOKENS.reduce(function (prev, curr) {
-            prev[curr.value] = curr;
-            return prev;
-        }, {}); // builds an object from the array of tokens.
-
-    // Predefined sets of globals as defined by JSLint
-    var JSL_GLOBALS_BROWSER = [
-            JSL_GLOBALS.clearInterval,
-            JSL_GLOBALS.clearTimeout,
-            JSL_GLOBALS.document,
-            JSL_GLOBALS.event,
-            JSL_GLOBALS.frames,
-            JSL_GLOBALS.history,
-            JSL_GLOBALS.Image,
-            JSL_GLOBALS.location,
-            JSL_GLOBALS.name,
-            JSL_GLOBALS.navigator,
-            JSL_GLOBALS.Option,
-            JSL_GLOBALS.parent,
-            JSL_GLOBALS.screen,
-            JSL_GLOBALS.setInterval,
-            JSL_GLOBALS.setTimeout,
-            JSL_GLOBALS.window,
-            JSL_GLOBALS.XMLHttpRequest
-        ],
-        JSL_GLOBALS_DEVEL = [
-            JSL_GLOBALS.alert,
-            JSL_GLOBALS.confirm,
-            JSL_GLOBALS.console,
-            JSL_GLOBALS.Debug,
-            JSL_GLOBALS.opera,
-            JSL_GLOBALS.prompt,
-            JSL_GLOBALS.WSH
-        ],
-        JSL_GLOBALS_NODE = [
-            JSL_GLOBALS.Buffer,
-            JSL_GLOBALS.clearInterval,
-            JSL_GLOBALS.clearTimeout,
-            JSL_GLOBALS.console,
-            JSL_GLOBALS.exports,
-            JSL_GLOBALS.global,
-            JSL_GLOBALS.module,
-            JSL_GLOBALS.process,
-            JSL_GLOBALS.querystring,
-            JSL_GLOBALS.require,
-            JSL_GLOBALS.setInterval,
-            JSL_GLOBALS.setTimeout,
-            JSL_GLOBALS.__filename,
-            JSL_GLOBALS.__dirname
-        ],
-        JSL_GLOBALS_RHINO = [
-            JSL_GLOBALS.defineClass,
-            JSL_GLOBALS.deserialize,
-            JSL_GLOBALS.gc,
-            JSL_GLOBALS.help,
-            JSL_GLOBALS.load,
-            JSL_GLOBALS.loadClass,
-            JSL_GLOBALS.print,
-            JSL_GLOBALS.quit,
-            JSL_GLOBALS.readFile,
-            JSL_GLOBALS.readUrl,
-            JSL_GLOBALS.runCommand,
-            JSL_GLOBALS.seal,
-            JSL_GLOBALS.serialize,
-            JSL_GLOBALS.spawn,
-            JSL_GLOBALS.sync,
-            JSL_GLOBALS.toint32,
-            JSL_GLOBALS.version
-        ],
-        JSL_GLOBALS_WINDOWS = [
-            JSL_GLOBALS.ActiveXObject,
-            JSL_GLOBALS.CScript,
-            JSL_GLOBALS.Debug,
-            JSL_GLOBALS.Enumerator,
-            JSL_GLOBALS.System,
-            JSL_GLOBALS.VBArray,
-            JSL_GLOBALS.WScript,
-            JSL_GLOBALS.WSH
-        ];
-    
-    var JSL_GLOBAL_DEFS = {
-        browser : JSL_GLOBALS_BROWSER,
-        devel   : JSL_GLOBALS_DEVEL,
-        node    : JSL_GLOBALS_NODE,
-        rhino   : JSL_GLOBALS_RHINO,
-        windows : JSL_GLOBALS_WINDOWS
-    };
-    
-    var BUILTIN_GLOBAL_NAMES = [
-        "Array", "Boolean", "Date", "Function", "Iterator", "Number", "Object",
-        "RegExp", "String", "ArrayBuffer", "DataView", "Float32Array",
-        "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array",
-        "Uint32Array", "Uint8Array", "Uint8ClampedArray", "Error", "EvalError",
-        "InternalError", "RangeError", "ReferenceError", "StopIteration",
-        "SyntaxError", "TypeError", "URIError", "decodeURI",
-        "decodeURIComponent", "encodeURI", "encodeURIComponent", "eval",
-        "isFinite", "isNaN", "parseFloat", "parseInt", "uneval", "Infinity",
-        "JSON", "Math", "NaN"
-    ],
-        BUILTIN_GLOBAL_TOKENS = BUILTIN_GLOBAL_NAMES.map(function (t) {
-            return makeToken(t, []);
-        }),
-        BUILTIN_GLOBALS = annotateGlobals(BUILTIN_GLOBAL_TOKENS);
-
     exports.makeToken               = makeToken;
     exports.hintable                = hintable;
+    exports.hintableKey             = hintableKey;
     exports.maybeIdentifier         = maybeIdentifier;
     exports.splitPath               = splitPath;
     exports.eventName               = eventName;
-    exports.annotateWithPath        = annotateWithPath;
     exports.annotateLiterals        = annotateLiterals;
-    exports.annotateGlobals         = annotateGlobals;
-    exports.annotateWithScope       = annotateWithScope;
-    exports.annotateWithAssociation = annotateWithAssociation;
-    exports.JSL_GLOBAL_DEFS         = JSL_GLOBAL_DEFS;
-    exports.BUILTIN_GLOBALS         = BUILTIN_GLOBALS;
     exports.KEYWORDS                = KEYWORDS;
     exports.LITERALS                = LITERALS;
     exports.LANGUAGE_ID             = LANGUAGE_ID;
-    exports.SCOPE_MSG_TYPE          = SCOPE_MSG_TYPE;
     exports.SINGLE_QUOTE            = SINGLE_QUOTE;
     exports.DOUBLE_QUOTE            = DOUBLE_QUOTE;
+    exports.TERN_JUMPTODEF_MSG      = TERN_JUMPTODEF_MSG;
+    exports.TERN_COMPLETIONS_MSG    = TERN_COMPLETIONS_MSG;
+    exports.TERN_INIT_MSG           = TERN_INIT_MSG;
+    exports.TERN_GET_FILE_MSG       = TERN_GET_FILE_MSG;
+    exports.TERN_GET_PROPERTIES_MSG = TERN_GET_PROPERTIES_MSG;
+    exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
 });
