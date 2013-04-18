@@ -964,6 +964,7 @@ define(function LiveDevelopment(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
+        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
 
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();
