@@ -61,13 +61,19 @@ var ignoredPrefixes = {
 /**
  * Returns true if the name presented is acceptable as a package name. This enforces the
  * requirement as presented in the CommonJS spec: http://wiki.commonjs.org/wiki/Packages/1.0
+ * which states:
  *
- * @param {string} Name to test
+ * "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
+ *
+ * We add the additional requirement that the first character must be a letter or number
+ * (there's a security implication to allowing a name like "..", because the name is
+ * used in directory names).
+ *
+ * @param {string} name to test
  * @return {boolean} true if the name is valid
  */
 function validateName(name) {
-    // "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
-    if (/^[a-z0-9._\-]+$/.exec(name)) {
+    if (/^[a-z0-9][a-z0-9._\-]*$/.exec(name)) {
         return true;
     }
     return false;
@@ -87,7 +93,7 @@ var _personRegex = /^([^<\(]+)(?:\s+<([^>]+)>)?(?:\s+\(([^\)]+)\))?$/;
  *
  * If an object other than a string is passed in, it's returned as is.
  *
- * @param <String|Object> object to normalize
+ * @param <String|Object> obj to normalize
  * @return {Object} person object with name and optional email and url
  */
 function parsePersonString(obj) {
@@ -120,8 +126,8 @@ function parsePersonString(obj) {
 /**
  * Determines if any of the words in wordlist appear in str.
  *
- * @param {String[]} list of words to check
- * @param {String} string to check for words
+ * @param {String[]} wordlist list of words to check
+ * @param {String} str to check for words
  * @return {String[]} words that matched
  */
 function containsWords(wordlist, str) {
@@ -151,8 +157,8 @@ function containsWords(wordlist, str) {
  * The result will have a "metadata" property if the metadata was
  * read successfully from package.json in the zip file.
  *
- * @param {string} Absolute path to the package zip file
- * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} validation options
+ * @param {string} path Absolute path to the package zip file
+ * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} options for validation
  * @param {function} callback (err, result)
  */
 function validate(path, options, callback) {

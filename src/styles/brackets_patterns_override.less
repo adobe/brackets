@@ -463,6 +463,49 @@
     }
 }
 
+/* Extension Manager dialog */
+.extension-manager-dialog {
+    top: 50%;
+    left: 50%;
+    margin-top: -325px;
+    margin-left: -350px;
+    
+    .modal-body {
+        width: 700px;
+        height: 500px;
+        text-align: center;
+        overflow-y: scroll;
+        
+        .extension-list {
+            .ext-name {
+                font-weight: bold;
+            }
+            .ext-desc {
+                width: 60%;
+            }
+            .ext-version,
+            .ext-date,
+            .ext-author {
+                font-size: 0.8em;
+            }
+            .spinner {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin-top: -18px;
+                margin-left: -18px;
+            }
+            .load-error {
+                display: inline-block;
+                margin-top: 240px;
+            }
+            .install {
+                width: 90px;
+            }
+        }
+    }
+}
+
 /* About dialog */
 .about-dialog .modal-body {
     // Simple two-column layout: image on left, text taking up remaining space on right

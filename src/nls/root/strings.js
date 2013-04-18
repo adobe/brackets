@@ -178,6 +178,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -225,6 +226,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
+    "CMD_ENABLE_HOVER_PREVIEW"            : "Enable Hover Preview",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -334,6 +336,9 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the Brackets extension registry. Please try again later.",
+    "INSTALL_FROM_URL"                     : "Install from URL\u2026",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",

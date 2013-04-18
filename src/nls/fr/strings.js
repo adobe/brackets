@@ -178,6 +178,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
+	"CMD_EXTENSION_MANAGER": "[6775081] !é=Extension Manager\u2026=!",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -223,6 +224,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_ENABLE_HOVER_PREVIEW": "[6774420] !é=Enable Hover Preview=!",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -302,7 +304,7 @@ define({
     
     // Extension Management strings
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
-	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
+	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie.",
@@ -332,6 +334,8 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
+	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the Brackets extension registry. Please try again later.=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",

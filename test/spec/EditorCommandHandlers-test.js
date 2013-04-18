@@ -22,12 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
     
     var Editor                = require("editor/Editor").Editor,
+        EditorManager         = require("editor/EditorManager"),
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
@@ -59,9 +60,11 @@ define(function (require, exports, module) {
             myEditor.focus();
         }
         
-        function makeEditorWithRange(range) {
+        function makeEditorWithRange(range, content) {
+            content = content || defaultContent;
+            
             // create editor with a visible range
-            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript", range);
+            var mocks = SpecRunnerUtils.createMockEditor(content, "javascript", range);
             myDocument = mocks.doc;
             myEditor = mocks.editor;
             
@@ -69,9 +72,11 @@ define(function (require, exports, module) {
         }
         
         afterEach(function () {
-            SpecRunnerUtils.destroyMockEditor(myDocument);
-            myEditor = null;
-            myDocument = null;
+            if (myDocument) {
+                SpecRunnerUtils.destroyMockEditor(myDocument);
+                myEditor = null;
+                myDocument = null;
+            }
         });
         
         
@@ -2061,6 +2066,119 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(defaultContent);
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
+            });
+        });
+        
+        
+        describe("Move Lines Up/Down - inline editor", function () {
+            this.category = "integration";
+            
+            var testWindow, promise, editor;
+            var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files");
+            
+            var moveContent = ".testClass {\n" +
+                              "    color: red;\n" +
+                              "}";
+            
+            beforeEach(function () {
+                if (!testWindow) {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                        testWindow = w;
+                        
+                        // Load module instances from brackets.test
+                        CommandManager      = testWindow.brackets.test.CommandManager;
+                        Commands            = testWindow.brackets.test.Commands;
+                        EditorManager       = testWindow.brackets.test.EditorManager;
+                       
+                        SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                    });
+                }
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
+                    waitsForDone(promise, "Open into working set");
+                });
+                
+                runs(function () {
+                    // Open inline editor onto test.css's ".testClass" rule
+                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                    waitsForDone(promise, "Open inline editor");
+                });
+                
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                });
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                    waitsForDone(promise, "Close all open files in working set");
+                    
+                    // Close the save dialog without saving the changes
+                    var $dlg = testWindow.$(".modal.instance");
+                    if ($dlg.length) {
+                        SpecRunnerUtils.clickDialogButton("dontsave");
+                    }
+                });
+            });
+            
+            
+            it("should not move the first line of the inline editor up", function () {
+                editor.setCursorPos({line: 0, ch: 5});
+                CommandManager.execute(Commands.EDIT_LINE_UP, editor);
+                
+                expect(editor.document.getText()).toEqual(moveContent);
+                expect(editor._codeMirror.doc.historySize().undo).toBe(0);
+                expect(editor.getFirstVisibleLine()).toBe(0);
+                expect(editor.getLastVisibleLine()).toBe(2);
+            });
+            
+            it("should not move the last line of the inline editor down", function () {
+                editor.setCursorPos({line: 2, ch: 5});
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, editor);
+                
+                expect(editor.document.getText()).toEqual(moveContent);
+                expect(editor._codeMirror.doc.historySize().undo).toBe(0);
+                expect(editor.getFirstVisibleLine()).toBe(0);
+                expect(editor.getLastVisibleLine()).toBe(2);
+            });
+            
+            it("should be able to move the second to last line of the inline editor down", function () {
+                editor.setCursorPos({line: 1, ch: 5});
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, editor);
+                
+                var lines = moveContent.split("\n");
+                var temp = lines[1];
+                lines[1] = lines[2];
+                lines[2] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(editor.document.getText()).toEqual(expectedText);
+                expect(editor.getFirstVisibleLine()).toBe(0);
+                expect(editor.getLastVisibleLine()).toBe(2);
+            });
+            
+            it("should be able to move the last line of the inline editor up", function () {
+                editor.setCursorPos({line: 2, ch: 0});
+                CommandManager.execute(Commands.EDIT_LINE_UP, editor);
+                
+                var lines = moveContent.split("\n");
+                var temp = lines[1];
+                lines[1] = lines[2];
+                lines[2] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(editor.document.getText()).toEqual(expectedText);
+                expect(editor.getFirstVisibleLine()).toBe(0);
+                expect(editor.getLastVisibleLine()).toBe(2);
+                
+                // This must be in the last spec in the suite.
+                runs(function () {
+                    this.after(function () {
+                        SpecRunnerUtils.closeTestWindow();
+                    });
+                });
             });
         });
         
