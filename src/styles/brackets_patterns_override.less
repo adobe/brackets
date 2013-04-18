@@ -477,15 +477,17 @@
         overflow-y: scroll;
         
         .extension-list {
+            .ext-name {
+                font-weight: bold;
+            }
             .ext-desc {
-                width: 70%;
+                width: 60%;
             }
             .ext-version,
             .ext-date,
             .ext-author {
                 font-size: 0.8em;
             }
-        
             .spinner {
                 position: absolute;
                 top: 50%;
@@ -493,9 +495,12 @@
                 margin-top: -18px;
                 margin-left: -18px;
             }
-            .alert-message {
+            .load-error {
                 display: inline-block;
                 margin-top: 240px;
+            }
+            .install {
+                width: 90px;
             }
         }
     }
