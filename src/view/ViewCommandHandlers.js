@@ -177,18 +177,38 @@ define(function (require, exports, module) {
         return true;
     }
     
+    /**
+     * @private
+     * Adjust the font size and updates the preference depending on the result
+     * @param {number} adjustment Negative number to make the font smaller; positive number to make it bigger.
+     */
+    function _handleAdjustFontSize(adjustment) {
+        if (_adjustFontSize(adjustment)) {
+            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + adjustment);
+        }
+    }
+    
+    /**
+     * @private
+     * Adjust the font size when using the mouse wheel and pressing the modifier key
+     * @param {$.Event} event
+     * @param {number} delta 1 for scrolling up, -1 for scrolling down
+     */
+    function _handleWheelFontSize(event, delta) {
+        if (event.shiftKey) {
+            _handleAdjustFontSize(delta);
+            event.preventDefault();
+        }
+    }
+    
     /** Increases the font size by 1 */
     function _handleIncreaseFontSize() {
-        if (_adjustFontSize(1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
-        }
+        _handleAdjustFontSize(1);
     }
     
     /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
-        if (_adjustFontSize(-1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
-        }
+        _handleAdjustFontSize(-1);
     }
     
     /** Restores the font size to the original size */
@@ -350,6 +370,9 @@ define(function (require, exports, module) {
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
 
-    // Update UI when Brackets finishes loading
-    AppInit.appReady(_updateUI);
+    // Update UI when Brackets finishes loading and add the required listeners
+    AppInit.appReady(function () {
+        _updateUI();
+        $(window.document).on("mousewheel", _handleWheelFontSize);
+    });
 });

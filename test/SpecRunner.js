@@ -32,12 +32,16 @@ require.config({
         "perf"      : "../test/perf",
         "spec"      : "../test/spec",
         "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "i18n"      : "thirdparty/i18n",
+        "jquery"    : "thirdparty/jquery-1.7.min"
     }
 });
 
 define(function (require, exports, module) {
     'use strict';
+    
+    // Load dependent non-module scripts
+    require("thirdparty/jquery-mousewheel/jquery.mousewheel");
     
     // Utility dependency
     var AppInit                 = require("utils/AppInit"),

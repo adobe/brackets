@@ -80,6 +80,13 @@ define(function (require, exports, module) {
             };
         }
         
+        function simulateMouseEvent(detail) {
+            var doc    = testWindow.document;
+            var oEvent = doc.createEvent("MouseEvents");
+            oEvent.initMouseEvent("DomMouseScroll", true, true, doc.defaultView, detail, 0, 0, 0, 0, false, false, true, false, 0, null);
+            doc.dispatchEvent(oEvent);
+        }
+        
         
         describe("Adjust the Font Size", function () {
             it("should increase the font size in both editor and inline editor", function () {
@@ -116,6 +123,32 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     CommandManager.execute(Commands.VIEW_RESTORE_FONT_SIZE);
+                    
+                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
+                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                });
+            });
+            
+            it("should increase the font size on Modifier Key + Mouse Wheel Up", function () {
+                runs(function () {
+                    var editors      = getEditors();
+                    var expectedSize = editors.editor.getTextHeight() + 2;
+                    
+                    simulateMouseEvent(-1);
+                    simulateMouseEvent(-1);
+                    
+                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
+                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                });
+            });
+            
+            it("should decrease the font size on Modifier Key + Mouse Wheel Down", function () {
+                runs(function () {
+                    var editors      = getEditors();
+                    var expectedSize = editors.editor.getTextHeight() - 2;
+                    
+                    simulateMouseEvent(1);
+                    simulateMouseEvent(1);
                     
                     expect(editors.editor.getTextHeight()).toBe(expectedSize);
                     expect(editors.inline.getTextHeight()).toBe(expectedSize);
