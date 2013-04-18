@@ -44,16 +44,7 @@ define(function (require, exports, module) {
         this.ternHints = [];
         this.ternProperties = [];
         this.fnType = null;
-        this.builtins = ScopeManager.getBuiltins().map(function (builtin) {
-            // remove extension from name, if any.
-            var index = builtin.lastIndexOf(".");
-            if (index !== -1) {
-                builtin = builtin.substring(0, index);
-            }
-
-            return builtin;
-        });
-
+        this.builtins = ScopeManager.getBuiltins();
         this.builtins.push("requirejs.js");     // consider these globals as well.
     }
 

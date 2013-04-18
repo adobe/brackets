@@ -43,7 +43,8 @@ define(function (require, exports, module) {
     
     var ternEnvironment     = [],
         pendingTernRequests = {},
-        _builtins            = ["ecma5.json", "browser.json", "jquery.json"],
+        builtinFiles       = ["ecma5.json", "browser.json", "jquery.json"],
+        builtinLibraryNames = [],
         rootTernDir         = null,
         projectRoot         = null,
         ternPromise         = null,
@@ -70,24 +71,27 @@ define(function (require, exports, module) {
     }
 
     /**
-     *  An array of JSON files names contain JavaScript builtins definitions.
+     *  An array of library names that contain JavaScript builtins definitions.
      *
-     * @returns {Array} - array of filenames.
+     * @returns {Array} - array of library  names.
      */
     function getBuiltins() {
-        return _builtins;
+        return builtinLibraryNames;
     }
 
     /**
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "thirdparty/tern/defs/";
-        var files = getBuiltins();
+        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "thirdparty/tern/defs/",
+            files = builtinFiles,
+            library;
 
         files.forEach(function (i) {
             DocumentManager.getDocumentForPath(path + i).done(function (document) {
-                ternEnvironment.push(JSON.parse(document.getText()));
+                library = JSON.parse(document.getText());
+                builtinLibraryNames.push(library["!name"]);
+                ternEnvironment.push(library);
             }).fail(function (error) {
                 console.log("failed to read tern config file " + i);
             });
