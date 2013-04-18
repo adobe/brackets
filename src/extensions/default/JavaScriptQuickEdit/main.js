@@ -143,14 +143,14 @@ define(function (require, exports, module) {
         }
         
         // Only provide JavaScript editor if the selection is within a single line
-        var sel = hostEditor.getSelection(false);
+        var sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
             return null;
         }
         
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
-        var functionName = _getFunctionName(hostEditor, hostEditor.getSelection().start);
+        var functionName = _getFunctionName(hostEditor, sel.start);
         if (!functionName) {
             return null;
         }
