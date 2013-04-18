@@ -22,60 +22,76 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, Mustache */
+/*global define, window, $, brackets, Mustache, semver */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Strings          = require("strings"),
-        NativeApp        = require("utils/NativeApp"),
-        registry_utils   = require("extensibility/registry_utils"),
-        registryTemplate = require("text!htmlContent/extension-manager-view.html");
+    var Strings                = require("strings"),
+        NativeApp              = require("utils/NativeApp"),
+        ExtensionManager       = require("extensibility/ExtensionManager"),
+        InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
+        StringUtils            = require("utils/StringUtils"),
+        registry_utils         = require("extensibility/registry_utils"),
+        itemTemplate           = require("text!htmlContent/extension-manager-view-item.html");
+    
+    // semver isn't a proper AMD module, so it will just load into the global namespace.
+    require("extensibility/node/node_modules/semver/semver");
     
     /**
      * @constructor
-     * Creates a view listing the contents of the given registry.
-     * @param {ExtensionManagerModel} model The model for this view.
+     * Creates a view enabling the user to install and manage extensions.
      */
-    function ExtensionManagerView(model) {
+    function ExtensionManagerView() {
         var self = this;
-        this._model = model;
-        this._template = Mustache.compile(registryTemplate);
+        this._itemTemplate = Mustache.compile(itemTemplate);
         this.$el = $("<div class='extension-list'/>");
         
-        // Intercept clicks on external links to open in the native browser.
-        $(this.$el).on("click", "a", function (e) {
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            NativeApp.openURLInDefaultBrowser($(e.target).attr("href"));
+        // Listen for extension status changes.
+        $(ExtensionManager).on("statusChange", function (e, id, status) {
+            // Re-render the registry item.
+            // FUTURE: later on, some of these views might be for installed extensions that aren't 
+            // in the registry, e.g. legacy extensions or local dev extensions.
+            ExtensionManager.getRegistry().done(function (registry) {
+                if (registry[id]) {
+                    var $oldItem = self._itemViews[id],
+                        $newItem = self._renderItem(registry[id]);
+                    if ($oldItem) {
+                        $oldItem.replaceWith($newItem);
+                        self._itemViews[id] = $newItem;
+                    }
+                }
+            });
         });
         
+        // UI event handlers
+        $(this.$el)
+            // Intercept clicks on external links to open in the native browser.
+            .on("click", "a", function (e) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                NativeApp.openURLInDefaultBrowser($(e.target).attr("href"));
+            })
+            // Handle install button clicks
+            .on("click", "button.install", function (e) {
+                self._installUsingDialog($(this).attr("data-extension-id"));
+            });
+        
+        // Show the busy spinner and access the registry.
         var $spinner = $("<div class='spinner large spin'/>")
             .appendTo(this.$el);
-        model.getRegistry().done(function (registry) {
+        ExtensionManager.getRegistry().done(function (registry) {
+            // Display the registry view.
             self._render(registry_utils.sortRegistry(registry));
         }).fail(function () {
-            $("<div class='alert-message error'/>")
+            $("<div class='alert-message error load-error'/>")
                 .text(Strings.EXTENSION_MANAGER_ERROR_LOAD)
                 .appendTo(self.$el);
         }).always(function () {
             $spinner.remove();
         });
     }
-    
-    /**
-     * @private
-     * @type {ExtensionManagerModel}
-     * The model containing the registry data.
-     */
-    ExtensionManagerView.prototype._model = null;
-    
-    /**
-     * @private
-     * @type {function} The compiled template we use for rendering the registry list.
-     */
-    ExtensionManagerView.prototype._template = null;
     
     /**
      * @type {jQueryObject}
@@ -85,18 +101,67 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Display the given registry data.
-     * @param {object} registry The registry data to show.
+     * @type {function} The compiled template we use for rendering items in the registry list.
      */
-    ExtensionManagerView.prototype._render = function (registry) {
-        // Create a Mustache context object containing the registry and our helper functions.
-        var context = { registry: registry };
+    ExtensionManagerView.prototype._itemTemplate = null;
+    
+    /**
+     * @private
+     * @type {Object.<string, jQueryObject>}
+     * The individual views for each item, keyed by the extension ID.
+     */
+    ExtensionManagerView.prototype._itemViews = {};
+    
+    ExtensionManagerView.prototype._renderItem = function (entry) {
+        // Create a Mustache context object containing the entry data and our helper functions.
+        var context = $.extend({}, entry),
+            status = ExtensionManager.getStatus(entry.metadata.name);
+        context.isInstalled = (status === ExtensionManager.ENABLED);
+        
+        var requiredVersion = entry.metadata.engines && entry.metadata.engines.brackets;
+        context.isCompatible = !requiredVersion || semver.satisfies(brackets.metadata.apiVersion, requiredVersion);
+        
+        context.allowInstall = context.isCompatible && !context.isInstalled;
+        
         ["lastVersionDate", "ownerLink", "formatUserId"].forEach(function (helper) {
             context[helper] = registry_utils[helper];
         });
-        
+        return $(this._itemTemplate(context));
+    };
+    
+    /**
+     * @private
+     * Display the given registry data.
+     * @param {Array} registry The sorted list of registry entries to show.
+     */
+    ExtensionManagerView.prototype._render = function (registry) {
         // TODO: localize strings in template
-        this.$el.html(this._template(context));
+        var self = this,
+            $table = $("<table class='table'/>"),
+            $item;
+        this._itemViews = {};
+        registry.forEach(function (entry) {
+            var $item = self._renderItem(entry);
+            self._itemViews[entry.metadata.name] = $item;
+            $item.appendTo($table);
+        });
+        $table.appendTo(this.$el);
+    };
+    
+    /**
+     * @private
+     * Install the extension with the given ID using the install dialog.
+     * @param {string} id ID of the extension to install.
+     */
+    ExtensionManagerView.prototype._installUsingDialog = function (id) {
+        var self = this;
+        ExtensionManager.getRegistry().done(function (registry) {
+            var entry = registry[id];
+            if (entry) {
+                var url = StringUtils.format(brackets.config.extension_url, id, entry.metadata.version);
+                InstallExtensionDialog.installUsingDialog(url);
+            }
+        });
     };
     
     exports.ExtensionManagerView = ExtensionManagerView;
