@@ -218,7 +218,8 @@ define(function (require, exports, module) {
             if (!cachedHints ||
                     type.property !== cachedType.property ||
                     type.context !== cachedType.context ||
-                    type.showFunctionType !== cachedType.showFunctionType ||                                               query.length === 0) {
+                    type.showFunctionType !== cachedType.showFunctionType ||
+                    query.length === 0) {
                 var offset          = session.getOffset(),
                     scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
                     self            = this;
@@ -398,15 +399,11 @@ define(function (require, exports, module) {
                             if (resolvedPath) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
                                     .done(function () {
-                                        session.editor.setCursorPos(jumpResp.start);
-                                        session.editor.setSelection(jumpResp.start, jumpResp.end);
-                                        session.editor.centerOnCursor();
+                                        session.editor.setSelection(jumpResp.end, jumpResp.start, true);
                                     });
                             }
                         } else {
-                            session.editor.setCursorPos(jumpResp.start);
-                            session.editor.setSelection(jumpResp.start, jumpResp.end);
-                            session.editor.centerOnCursor();
+                            session.editor.setSelection(jumpResp.end, jumpResp.start, true);
                         }
                     }
 
