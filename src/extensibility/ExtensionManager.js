@@ -26,7 +26,7 @@
 /*unittests: ExtensionManager*/
 
 /**
- * The ExtensionManager fetches/caches/filters the extension registry and provides
+ * The ExtensionManager fetches/caches the extension registry and provides
  * information about the status of installed extensions. ExtensionManager raises the 
  * following events:
  *     statusChange - indicates that the status of an extension has changed. Second 
@@ -40,7 +40,8 @@ define(function (require, exports, module) {
     
     var FileUtils        = require("file/FileUtils"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
-        ExtensionLoader  = require("utils/ExtensionLoader");
+        ExtensionLoader  = require("utils/ExtensionLoader"),
+        StringUtils      = require("utils/StringUtils");
     
     // semver isn't a proper AMD module, so it will just load into the global namespace.
     require("extensibility/node/node_modules/semver/semver");
@@ -68,7 +69,7 @@ define(function (require, exports, module) {
      *     status: the current status, one of the status constants above
      */
     var _extensions = {};
-    
+
     /**
      * @private
      * Clears out our existing data. For unit testing only.
@@ -194,6 +195,17 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Given an extension id and version number, returns the URL for downloading that extension from
+     * the repository. Does not guarantee that the extension exists at that URL.
+     * @param {string} id The extension's name from the metadata.
+     * @param {string} version The version to download.
+     * @return {string} The URL to download the extension from.
+     */
+    function getExtensionURL(id, version) {
+        return StringUtils.format(brackets.config.extension_url, id, version);
+    }
+    
     // Listen to extension load events
     $(ExtensionLoader).on("load", _handleExtensionLoad);
 
@@ -201,6 +213,7 @@ define(function (require, exports, module) {
     exports.getRegistry = getRegistry;
     exports.getStatus = getStatus;
     exports.getCompatibilityInfo = getCompatibilityInfo;
+    exports.getExtensionURL = getExtensionURL;
     
     exports.NOT_INSTALLED = NOT_INSTALLED;
     exports.ENABLED = ENABLED;
