@@ -49,6 +49,7 @@ define(function (require, exports, module) {
     var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
         POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
+        POINTER_TOP_OFFSET          =  7,   // Pointer height, used to shift popover above pointer
         POSITION_BELOW_OFFSET       = 16;   // Amount to adjust to top position when the preview bubble is below the text
     
     function hidePreview() {
@@ -77,7 +78,7 @@ define(function (require, exports, module) {
             $previewContainer.addClass("preview-bubble-above");
             $previewContainer.offset({
                 left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
-                top: top - 7
+                top: top - POINTER_TOP_OFFSET
             });
         }
     }
