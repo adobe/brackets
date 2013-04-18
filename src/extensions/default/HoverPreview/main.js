@@ -211,7 +211,7 @@ define(function (require, exports, module) {
                         $previewContainer.find("img").on("load", function () {
                             $previewContent
                                 .append("<div class='img-size'>"                                            +
-                                            "w:" + this.naturalWidth + "px&nbsp;&nbsp;h:" + this.naturalHeight + "px"  +
+                                            this.naturalWidth + " x " + this.naturalHeight + " pixels"  +
                                         "</div>"
                                     );
                             $previewContainer.show();

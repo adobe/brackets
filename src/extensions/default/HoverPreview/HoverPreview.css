@@ -29,13 +29,13 @@
 }
 
 #hover-preview-container .image-preview {
-    width: 100px;
     line-height: 0;
 }
 
 #hover-preview-container .image-preview img {
-    max-width: 100px;
-    max-height: 100px;
+    min-width: 100px;
+    max-width: 200px;
+    max-height: 200px;
 }
 
 #hover-preview-container .img-size {
