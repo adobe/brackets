@@ -32,7 +32,7 @@
  *     statusChange - indicates that the status of an extension has changed. Second 
  *          parameter is the extension's ID (or its local folder path for legacy 
  *          extensions with no package json). Third parameter is the new status, which 
- *          is one of the status constants above.
+ *          is one of the status constants below.
  */
 
 define(function (require, exports, module) {
@@ -139,6 +139,9 @@ define(function (require, exports, module) {
                 setData(metadata.name, metadata);
             })
             .fail(function () {
+                // If there's no package.json, this is a legacy extension. It was successfully loaded,
+                // but we don't have an official ID or metadata for it, so we just store it by its
+                // local path and record that it's enabled.
                 setData(path, null);
             });
     }

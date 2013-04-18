@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
+/*global define, describe, it, xit, expect, beforeEach, afterEach,
 waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
@@ -72,17 +72,21 @@ define(function (require, exports, module) {
         
         describe("ExtensionManager", function () {
             function mockLoadExtensions(names) {
+                var numLoaded = 0, numStatusChanges = 0;
                 runs(function () {
+                    $(ExtensionManager).on("statusChange.unit-test", function () {
+                        numStatusChanges++;
+                    });
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     names = names || ["mock-extension-1", "mock-extension-2", "mock-legacy-extension"];
                     names.forEach(function (name) {
+                        numLoaded++;
                         $(ExtensionLoader).triggerHandler("load", mockPath + "/" + name);
                     });
                 });
                 
-                // Delay a bit to make sure that ExtensionManger can finish reading the package file.
-                // TODO: maybe we should mock out the file reader?
-                waits(500, "reading package.json from disk");
+                // Make sure the ExtensionManager has finished reading all the package.jsons before continuing.
+                waitsFor(function () { return numStatusChanges === numLoaded; }, "ExtensionManager status changes");
             }
             
             it("should download the extension list from the registry", function () {
@@ -357,7 +361,7 @@ define(function (require, exports, module) {
                                     "brackets": "<0.1"
                                 }
                             },
-                            "owner": "github:njx",
+                            "owner": "github:someuser",
                             "versions": [
                                 {
                                     "version": "1.0.0",
@@ -384,7 +388,7 @@ define(function (require, exports, module) {
                                 "title": "Basic Valid Extension",
                                 "version": "1.0.0"
                             },
-                            "owner": "github:njx",
+                            "owner": "github:someuser",
                             "versions": [
                                 {
                                     "version": "1.0.0",
@@ -413,7 +417,7 @@ define(function (require, exports, module) {
                                 "title": "Basic Valid Extension",
                                 "version": "1.0.0"
                             },
-                            "owner": "github:njx",
+                            "owner": "github:someuser",
                             "versions": [
                                 {
                                     "version": "1.0.0",
@@ -458,7 +462,7 @@ define(function (require, exports, module) {
                                 "title": "Basic Valid Extension",
                                 "version": "1.0.0"
                             },
-                            "owner": "github:njx",
+                            "owner": "github:someuser",
                             "versions": [
                                 {
                                     "version": "1.0.0",
@@ -473,7 +477,7 @@ define(function (require, exports, module) {
                     var origHref = window.location.href;
                     spyOn(NativeApp, "openURLInDefaultBrowser");
                     $("a", view.$el).first().click();
-                    expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/njx");
+                    expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/someuser");
                     expect(window.location.href).toBe(origHref);
                 });
             });
