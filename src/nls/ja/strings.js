@@ -224,7 +224,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
-	"CMD_ENABLE_HOVER_PREVIEW": "!能=[6774420] Enable Hover Preview_=!",
+	"CMD_ENABLE_HOVER_PREVIEW": "ホバープレビューを有効にする",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -319,8 +319,8 @@ define({
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
 	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
-	"INVALID_BRACKETS_VERSION": "!能=[6771123] The Brackets compatibility string {{0}} is invalid._=!",
-	"DISALLOWED_WORDS": "!能=[6771122] The words {{1}} are not allowed in the {{0}} field._=!",
+	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
+	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
@@ -336,6 +336,7 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
 	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the Brackets extension registry. Please try again later._=!",
+	"INSTALL_FROM_URL": "!能=[6777878] Install from URL\u2026_=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",
