@@ -44,13 +44,25 @@ define(function (require, exports, module) {
             Mustache.render(dialogTemplate, Strings)
         );
         
-        var view = new ExtensionManagerView();
-        view.$el.appendTo($(".extension-manager-dialog .modal-body"));
+        // Create the view.
+        var $dlg = $(".extension-manager-dialog"),
+            view = new ExtensionManagerView();
+        view.$el.appendTo($(".modal-body", $dlg));
+        
+        // Filter the view's model when the user types in the search field.
+        $dlg.on("input", ".search", function (e) {
+            view.model.filter($(this).val());
+        }).on("click", ".search-clear", function (e) {
+            $(".search", $dlg).val("");
+            view.model.filter("");
+        });
         
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
             });
+        
+        $dlg.find(".search").focus();
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);

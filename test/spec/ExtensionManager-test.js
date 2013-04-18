@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     var ExtensionManager       = require("extensibility/ExtensionManager"),
         ExtensionManagerView   = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+        Model                  = require("extensibility/ExtensionManagerView").Model,
         InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
         ExtensionLoader        = require("utils/ExtensionLoader"),
         NativeFileSystem       = require("file/NativeFileSystem").NativeFileSystem,
@@ -43,6 +44,7 @@ define(function (require, exports, module) {
         CollectionUtils        = require("utils/CollectionUtils"),
         NativeApp              = require("utils/NativeApp"),
         mockRegistryText       = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
+        mockRegistryForSearch  = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockRegistry;
     
     describe("ExtensionManager", function () {
@@ -254,6 +256,65 @@ define(function (require, exports, module) {
                     .toEqual({isCompatible: false, requiresNewer: false});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.1.0"))
                     .toEqual({isCompatible: false, requiresNewer: true});
+            });
+            
+            it("should return the correct download URL for an extension", function () {
+                expect(ExtensionManager.getExtensionURL("my-cool-extension", "1.2.3"))
+                    .toBe("https://s3.amazonaws.com/repository.brackets.io/my-cool-extension/my-cool-extension-1.2.3.zip");
+            });
+        });
+
+        describe("ExtensionManagerView Model", function () {
+            var model;
+            
+            beforeEach(function () {
+                runs(function () {
+                    mockRegistry = JSON.parse(mockRegistryForSearch);
+                    model = new Model();
+                    waitsForDone(model.initialize(), "model initialization");
+                });
+            });
+            
+            it("should start with the full set sorted in reverse publish date order", function () {
+                expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
+            });
+            
+            it("should search case-insensitively for a keyword in the metadata for a given list of registry ids", function () {
+                model.filter("uniq1");
+                expect(model.filterSet).toEqual(["find-uniq1-in-name"]);
+                model.filter("uniq2");
+                expect(model.filterSet).toEqual(["item-2"]);
+                model.filter("uniq3");
+                expect(model.filterSet).toEqual(["item-3"]);
+                model.filter("uniq4");
+                expect(model.filterSet).toEqual(["item-4"]);
+                model.filter("uniq5");
+                expect(model.filterSet).toEqual(["item-5"]);
+                model.filter("uniq6");
+                expect(model.filterSet).toEqual(["item-6"]);
+                model.filter("uniqin1and5");
+                expect(model.filterSet).toEqual(["item-5", "find-uniq1-in-name"]); // sorted in reverse publish date order
+            });
+            
+            it("should return correct results when subsequent queries are longer versions of previous queries", function () {
+                model.filter("uniqin1and5");
+                model.filter("uniqin1and5-2");
+                expect(model.filterSet).toEqual(["item-5"]);
+            });
+            
+            it("should go back to the full sorted set when cleared", function () {
+                model.filter("uniq1");
+                model.filter("");
+                expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
+            });
+            
+            it("should trigger filterChange when filtered", function () {
+                var gotEvent = false;
+                $(model).on("filterChange", function () {
+                    gotEvent = true;
+                });
+                model.filter("uniq1");
+                expect(gotEvent).toBe(true);
             });
         });
         

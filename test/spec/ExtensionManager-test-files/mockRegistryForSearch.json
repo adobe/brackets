@@ -1,0 +1,116 @@
+{
+  "find-uniq1-in-name": {
+    "metadata": {
+      "name": "find-uniq1-in-name",
+      "title": "Find item 1",
+      "description": "Find item 1 description with uniqIn1And5",
+      "version": "1.0.1",
+      "author": {
+        "name": "Find item 1 author"
+      },
+      "engines": {
+        "brackets": ">0.20.0"
+      }
+    },
+    "owner": "github:someuser",
+    "versions": [
+      {
+        "version": "1.0.1",
+        "published": "2013-04-10T18:21:27.058Z",
+        "brackets": ">0.20.0"
+      }
+    ]
+  },
+  "item-2": {
+    "metadata": {
+      "name": "item-2",
+      "author": {
+        "name": "Find UNIQ2 in author name"
+      },
+      "description": "Find item 2",
+      "version": "1.0.0"
+    },
+    "owner": "github:anotheruser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-10T18:26:20.553Z"
+      }
+    ]
+  },
+  "item-3": {
+    "metadata": {
+      "name": "item-3",
+      "author": {
+        "name": "Author of item 3"
+      },
+      "description": "Find Uniq3 in description",
+      "version": "1.0.0"
+    },
+    "owner": "github:someuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-10T13:26:20.553Z"
+      }
+    ]
+  },
+  "item-4": {
+    "metadata": {
+      "name": "item-4",
+      "author": {
+        "name": "Author of item 4"
+      },
+      "title": "Find uniq4 in title",
+      "description": "Find item 4",
+      "version": "1.0.0"
+    },
+    "owner": "github:anotheruser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-10T15:26:20.553Z"
+      }
+    ]
+  },
+  "item-5": {
+    "metadata": {
+      "name": "item-5",
+      "author": {
+        "name": "Author of item 5 uniqin1and5-2"
+      },
+      "title": "Find item 5",
+      "description": "Find item 5 description",
+      "version": "1.0.0"
+    },
+    "owner": "github:uniq5",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-16T18:26:20.553Z"
+      }
+    ]
+  },
+  "item-6": {
+    "metadata": {
+      "name": "item-6",
+      "author": {
+        "name": "Author of item 6"
+      },
+      "title": "Find item 6",
+      "description": "Find item 6 description",
+      "version": "1.0.0",
+      "keywords": [
+        "a keyword",
+        "uniq6"
+      ]
+    },
+    "owner": "github:someuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-15T18:26:20.553Z"
+      }
+    ]
+  }
+}
