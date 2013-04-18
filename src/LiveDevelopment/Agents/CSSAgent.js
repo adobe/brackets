@@ -53,13 +53,15 @@ define(function CSSAgent(require, exports, module) {
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
         _urlToStyle = {};
-        Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
-            var i, header;
-            for (i in res.headers) {
-                header = res.headers[i];
-                _urlToStyle[_canonicalize(header.sourceURL)] = header;
-            }
-            _load.resolve();
+        Inspector.CSS.enable().done(function () {
+            Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
+                var i, header;
+                for (i in res.headers) {
+                    header = res.headers[i];
+                    _urlToStyle[_canonicalize(header.sourceURL)] = header;
+                }
+                _load.resolve();
+            });
         });
     }
 
