@@ -64,8 +64,9 @@ define(function NetworkAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _urlRequested = {};
-        Inspector.Network.enable();
-        $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
+        return Inspector.Network.enable().done(function () {
+            $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
+        });
     }
 
     /** Unload the agent */
