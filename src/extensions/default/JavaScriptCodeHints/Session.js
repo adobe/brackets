@@ -244,6 +244,8 @@ define(function (require, exports, module) {
             token            = this.getToken(cursor);
 
         if (token) {
+            // if this token is part of a function call, then the tokens lexical info
+            // will be annotated with "call"
             if (token.state.lexical.info === "call") {
                 inFunctionCall = true;
                 if (this.getQuery().length > 0) {
@@ -251,6 +253,16 @@ define(function (require, exports, module) {
                     showFunctionType = false;
                 } else {
                     showFunctionType = true;
+                    // we need to find the location of the called function so that we can request the functions type.
+                    // the token's lexical info will contain the column where the open "(" for the
+                    // function call occurrs, but for whatever reason it does not have the line, so 
+                    // we have to walk back and try to find the correct location.  We do this by walking
+                    // up the lines starting with the line the token is on, and seeing if any of the lines
+                    // have "(" at the column indicated by the tokens lexical state.  
+                    // We walk back 9 lines, as that should be far enough to find most function calls,
+                    // and it will prevent us from walking back thousands of lines if something went wrong.
+                    // there is nothing magical about 9 lines, and it can be adjusted if it doesn't seem to be
+                    // working well
                     var col = token.state.lexical.column,
                         line,
                         e,
