@@ -22,7 +22,6 @@
  */
 
 .color-editor {
-    -webkit-text-size-adjust: none;
     font-size: 12px;
     min-width: 450px;
     height: 190px;
@@ -75,7 +74,6 @@
     list-style: none;
 }
 .color-editor aside ul.swatches li {
-    -webkit-text-size-adjust: none;
     height: 18px;
     margin-bottom: 2px;
     padding: 0 1px 1px 2px;

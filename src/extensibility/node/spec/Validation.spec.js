@@ -28,7 +28,8 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var packageValidator = require("../package-validator"),
+var rewire           = require("rewire"),
+    packageValidator = rewire("../package-validator"),
     path             = require("path");
 
 var testFilesDirectory = path.join(path.dirname(module.filename),
@@ -40,17 +41,19 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
                                     "spec",
                                     "extension-test-files");
 
-var basicValidExtension = path.join(testFilesDirectory, "basic-valid-extension.zip"),
-    missingPackageJSON  = path.join(testFilesDirectory, "missing-package-json.zip"),
-    invalidJSON         = path.join(testFilesDirectory, "invalid-json.zip"),
-    invalidZip          = path.join(testFilesDirectory, "invalid-zip-file.zip"),
-    missingNameVersion  = path.join(testFilesDirectory, "missing-name-version.zip"),
-    missingMain         = path.join(testFilesDirectory, "missing-main.zip"),
-    oneLevelDown        = path.join(testFilesDirectory, "one-level-extension-master.zip"),
-    bogusTopDir         = path.join(testFilesDirectory, "bogus-top-dir.zip"),
-    badname             = path.join(testFilesDirectory, "badname.zip"),
-    mainInDirectory     = path.join(testFilesDirectory, "main-in-directory.zip"),
-    invalidVersion      = path.join(testFilesDirectory, "invalid-version.zip");
+var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extension.zip"),
+    basicValidExtension2   = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
+    missingPackageJSON     = path.join(testFilesDirectory, "missing-package-json.zip"),
+    invalidJSON            = path.join(testFilesDirectory, "invalid-json.zip"),
+    invalidZip             = path.join(testFilesDirectory, "invalid-zip-file.zip"),
+    missingNameVersion     = path.join(testFilesDirectory, "missing-name-version.zip"),
+    missingMain            = path.join(testFilesDirectory, "missing-main.zip"),
+    oneLevelDown           = path.join(testFilesDirectory, "one-level-extension-master.zip"),
+    bogusTopDir            = path.join(testFilesDirectory, "bogus-top-dir.zip"),
+    badname                = path.join(testFilesDirectory, "badname.zip"),
+    mainInDirectory        = path.join(testFilesDirectory, "main-in-directory.zip"),
+    invalidVersion         = path.join(testFilesDirectory, "invalid-version.zip"),
+    invalidBracketsVersion = path.join(testFilesDirectory, "invalid-brackets-version.zip");
 
 describe("Package Validation", function () {
     it("should handle a good package", function (done) {
@@ -61,6 +64,9 @@ describe("Package Validation", function () {
             expect(metadata.name).toEqual("basic-valid-extension");
             expect(metadata.version).toEqual("1.0.0");
             expect(metadata.title).toEqual("Basic Valid Extension");
+            expect(metadata.author.name).toEqual("Alfred Einstein");
+            expect(metadata.author.email).toEqual("alfred_not_albert@thoseeinsteins.org");
+            expect(metadata.author.url).toBeUndefined();
             done();
         });
     });
@@ -159,6 +165,7 @@ describe("Package Validation", function () {
             expect(result.errors.length).toEqual(0);
             expect(result.metadata.name).toEqual("one-level-extension");
             expect(result.commonPrefix).toEqual("one-level-extension-master");
+            expect(result.metadata.author.name).toEqual("A Person");
             done();
         });
     });
@@ -190,5 +197,91 @@ describe("Package Validation", function () {
             expect(errors[0][0]).toEqual("MISSING_MAIN");
             done();
         });
+    });
+    
+    it("should handle a variety of person forms", function () {
+        var parse = packageValidator._parsePersonString;
+        expect(parse("A Person")).toEqual({
+            name: "A Person"
+        });
+        expect(parse({
+            name: "A Person"
+        })).toEqual({
+            name: "A Person"
+        });
+        expect(parse("A Person (http://foo.bar)")).toEqual({
+            name: "A Person",
+            url: "http://foo.bar"
+        });
+        expect(parse("A Person <foo@bar>")).toEqual({
+            name: "A Person",
+            email: "foo@bar"
+        });
+        expect(parse("A Person <foo@bar> (http://foo.bar)")).toEqual({
+            name: "A Person",
+            email: "foo@bar",
+            url: "http://foo.bar"
+        });
+    });
+    
+    it("should handle contributors", function (done) {
+        packageValidator.validate(basicValidExtension2, {}, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(0);
+            var contrib = result.metadata.contributors;
+            expect(contrib.length).toEqual(3);
+            expect(contrib[0]).toEqual({
+                name: "Johan Einstein"
+            });
+            expect(contrib[1]).toEqual({
+                name: "Albert Einstein Jr.",
+                email: "not_that_albert@thoseeinsteins.org"
+            });
+            expect(contrib[2]).toEqual({
+                name: "Jens Einstein",
+                email: "jens@thoseeinsteins.org"
+            });
+            done();
+        });
+    });
+    
+    it("should validate the Brackets version", function (done) {
+        packageValidator.validate(invalidBracketsVersion, {}, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(1);
+            expect(result.errors[0][0]).toEqual("INVALID_BRACKETS_VERSION");
+            expect(result.errors[0][1]).toEqual("foo");
+            done();
+        });
+    });
+    
+    it("should reject a package with rejected words in title or description", function (done) {
+        packageValidator.validate(basicValidExtension, {
+            disallowedWords: ["valid"]
+        }, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(2);
+            expect(result.errors[0][0]).toEqual("DISALLOWED_WORDS");
+            expect(result.errors[0][1]).toEqual("title");
+            expect(result.errors[0][2]).toEqual("valid");
+            expect(result.errors[1][0]).toEqual("DISALLOWED_WORDS");
+            expect(result.errors[1][1]).toEqual("name");
+            expect(result.errors[1][2]).toEqual("valid");
+            done();
+        });
+    });
+    
+    it("should only allow certain characters in the name", function () {
+        var validateName = packageValidator.__get__("validateName");
+        expect(validateName("Foo")).toEqual(false);
+        expect(validateName("foo")).toEqual(true);
+        expect(validateName("foo2")).toEqual(true);
+        expect(validateName("foo.bar")).toEqual(true);
+        expect(validateName("foo-bar")).toEqual(true);
+        expect(validateName("foo_bar")).toEqual(true);
+        expect(validateName("foo&bar")).toEqual(false);
+        expect(validateName("foo/bar")).toEqual(false);
+        expect(validateName("..")).toEqual(false);
+        expect(validateName(".")).toEqual(false);
     });
 });

@@ -26,7 +26,12 @@
 /*global define, $, CodeMirror, brackets, window */
 
 /**
- * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it
+ * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it.
+ * This module dispatches the following events:
+ *      "load" - when an extension is successfully loaded. The second argument is the file path to the
+ *          extension root.
+ *      "loadFailed" - when an extension load is unsuccessful. The second argument is the file path to the
+ *          extension root.
  */
 
 define(function (require, exports, module) {
@@ -67,7 +72,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} name, used to identify the extension
      * @return {!Object} A require.js require object used to load the extension, or undefined if 
-     * there is no require object ith that name
+     * there is no require object with that name
      */
     function getRequireContextForExtension(name) {
         return contexts[name];
@@ -101,6 +106,7 @@ define(function (require, exports, module) {
             function () {
                 // console.log("[Extension] finished loading " + config.baseUrl);
                 result.resolve();
+                $(exports).triggerHandler("load", config.baseUrl);
             },
             function errback(err) {
                 console.error("[Extension] failed to load " + config.baseUrl, err);
@@ -109,6 +115,7 @@ define(function (require, exports, module) {
                     console.log(err.stack);
                 }
                 result.reject();
+                $(exports).triggerHandler("loadFailed", config.baseUrl);
             });
         
         return result.promise();

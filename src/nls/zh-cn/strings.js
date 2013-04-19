@@ -74,6 +74,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览错误",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "连接至浏览器",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "为了应用实时预览,Chrome需要重启并启用远程调试功能.<br /><br />你确定重新启动Chrome浏览器,并且启用远程调试?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "无法加载实时开发页面.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "需要打开一个HTML文件才能实时预览.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要一个服务端,您需要为这个项目指定一个基本URL地址.(如htt://127.0.0.1/)",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "试图启动HTTP服务器时出现错误,请再试一次.",
@@ -82,8 +83,8 @@ define({
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息,请参考<a class=\"clickable-link\" data-href=\"{0}\">实时预览在线错误信息</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中...\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化...\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "断开实时预览",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "实时预览: 点击断开 (保存文件并更新预览)",
     
@@ -162,7 +163,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "文件",
-    "CMD_FILE_NEW"                        : "新建",
+    "CMD_FILE_NEW"                        : "新建文件",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "添加至工作集合",
@@ -175,6 +176,7 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "在线高亮代码",
     "CMD_PROJECT_SETTINGS"                : "项目设置\u2026",
     "CMD_FILE_RENAME"                     : "重命名",
+    "CMD_INSTALL_EXTENSION"               : "安装扩展",
     "CMD_QUIT"                            : "退出",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "退出",
@@ -186,11 +188,11 @@ define({
     "CMD_CUT"                             : "剪切",
     "CMD_COPY"                            : "复制",
     "CMD_PASTE"                           : "粘帖",
-    "CMD_SELECT_ALL"                      : "选择全部",
+    "CMD_SELECT_ALL"                      : "全选",
     "CMD_SELECT_LINE"                     : "选中当前行",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
-    "CMD_FIND_IN_SUBTREE"                 : "查找中\u2026",
+    "CMD_FIND_IN_SUBTREE"                 : "在该位置查找\u2026",
     "CMD_FIND_NEXT"                       : "查找下一个",
     "CMD_FIND_PREVIOUS"                   : "查找上一个",
     "CMD_REPLACE"                         : "替换",
@@ -213,6 +215,9 @@ define({
     "CMD_RESTORE_FONT_SIZE"               : "恢复编辑器默认字体",
     "CMD_SCROLL_LINE_UP"                  : "向上滚动",
     "CMD_SCROLL_LINE_DOWN"                : "向下滚动",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "显示行号",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "高亮当前行",
+    "CMD_TOGGLE_WORD_WRAP"                : "自动换行",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "根据添加时间排序",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "根据名称排序",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "根据类型排序",
@@ -229,7 +234,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "下一个匹配项",
     "CMD_NEXT_DOC"                        : "下一个文件",
     "CMD_PREV_DOC"                        : "上一个文件",
-    "CMD_SHOW_IN_TREE"                    : "定位于工作目录中",
+    "CMD_SHOW_IN_TREE"                    : "转到工作目录",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "调试",
@@ -277,6 +282,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "选择编辑器中修改的内容",
     "CLOSE_DONT_SAVE"                      : "放弃保存并关闭",
     "RELAUNCH_CHROME"                      : "重新运行Chrome",
+    "INSTALL"                              : "安装",
     "ABOUT"                                : "关于",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
@@ -298,6 +304,38 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "解析地址错误,请确认地址格式",
     
+     // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "安装扩展",
+    "INSTALL_EXTENSION_LABEL"              : "扩展包地址",
+    "INSTALL_EXTENSION_HINT"               : "填写一个基于URL或者Github的ZIP扩展包地址.",
+    "INSTALLING_FROM"                      : "正在从 {0} 安装扩展 ...",
+    "INSTALL_SUCCEEDED"                    : "安装成功!",
+    "INSTALL_FAILED"                       : "安装失败.",
+    "CANCELING_INSTALL"                    : "正在取消...",
+    "CANCELING_HUNG"                       : "取消安装需要很长时间.可能出现了内部错误.",
+    "INSTALL_CANCELLED"                    : "安装已取消.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "{0}不是一个有效的ZIP文件.",
+    "INVALID_PACKAGE_JSON"                 : "扩展包中的Package.json不存在. (错误是: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "扩展包中的Package.json未指定扩展包名称.  {0}.",
+    "BAD_PACKAGE_NAME"                     : "{0} 是一个无效扩展包名.",
+    "MISSING_PACKAGE_VERSION"              : "扩展包中的Package.json未指定版本号 {0}.",
+    "INVALID_VERSION_NUMBER"               : "扩展包版本 ({0}) 是一个无效版本号.",
+    "API_NOT_COMPATIBLE"                   : "这个扩展包不兼容当前的版本,将安装至Disabled扩展文件夹中.",
+    "MISSING_MAIN"                         : "扩展包遗失main.js文件.",
+    "ALREADY_INSTALLED"                    : "该扩展已经存在,将安装至Disabled扩展文件夹中.",
+    "NO_DISABLED_DIRECTORY"                : "由于扩展文件夹不存在\"extensions/disabled\",所以无法保存扩展至扩展文件夹.",
+    "DOWNLOAD_ID_IN_USE"                   : "内部错误:该下载ID已被使用.",
+    "DOWNLOAD_TARGET_EXISTS"               : "临时下载文件已存在: {0}.",
+    "NO_SERVER_RESPONSE"                   : "无法连接到服务器.",
+    "CANNOT_WRITE_TEMP"                    : "无法保存下载文件到临时文件.",
+    "BAD_HTTP_STATUS"                      : "未在服务器上发现该文件 (HTTP {0}).",
+    "ERROR_LOADING"                        : "扩展程序遇到一个错误,将重启扩展.",
+    "MALFORMED_URL"                        : "无法识别的URL地址.",
+    "UNSUPPORTED_PROTOCOL"                 : "需要一个Http或Https协议的地址.",
+    "UNKNOWN_ERROR"                        : "未知内部错误.",
+    // For NOT_FOUND_ERR, see generic strings above
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原来的颜色",
@@ -307,4 +345,3 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} 次)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)"
 });
-
