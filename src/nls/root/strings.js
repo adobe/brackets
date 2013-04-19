@@ -348,6 +348,7 @@ define({
     "EXTENSION_KEYWORDS"                   : "Keywords",
     "EXTENSION_INSTALLED"                  : "Installed",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
+    "EXTENSION_MORE_INFO_LINK"             : "More",
     "EXTENSION_FREE_ON_GITHUB"             : "Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub.",
     
     // extensions/default/JSLint
