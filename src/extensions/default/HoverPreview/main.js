@@ -106,14 +106,14 @@ define(function (require, exports, module) {
         }
 
         // To make code easier to parse remove optional whitespace
-        var s = gradient.trim();
-
         // Whitespace around commas and opening parens is optional. Also before
         // (but not after) closing parens. This is common with colors specified as
         // functions such as rgb().
-        s = s.replace(/\s*,\s*/g, ",");
-        s = s.replace(/\s*\(\s*/g, "(");
-        s = s.replace(/\s*\)/g, ")");
+        var s = gradient
+                    .trim()
+                    .replace(/\s*,\s*/g, ",")
+                    .replace(/\s*\(\s*/g, "(")
+                    .replace(/\s*\)/g, ")");
 
         // Whitespace in first (optional) parameter is supported, but all subsequent
         // (i.e. after first comma) whitespace is from a color stop (<color> <length>).
