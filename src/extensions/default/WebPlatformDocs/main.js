@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     "use strict";
 
     // Core modules
-    var EditorManager        = brackets.getModule("editor/EditorManager"),
+    var AppInit              = brackets.getModule("utils/AppInit"),
+        EditorManager        = brackets.getModule("editor/EditorManager"),
         NativeFileSystem     = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         FileUtils            = brackets.getModule("file/FileUtils"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
@@ -128,7 +129,11 @@ define(function (require, exports, module) {
         }
     }
     
-    
-    // Register as inline docs provider
-    EditorManager.registerInlineDocsProvider(inlineProvider);
+    AppInit.appReady(function () {
+        // Register as inline docs provider
+        EditorManager.registerInlineDocsProvider(inlineProvider);
+    });
+
+    exports._getCSSDocs      = getCSSDocs;
+    exports._inlineProvider  = inlineProvider;
 });
