@@ -562,6 +562,12 @@ define(function (require, exports, module) {
             // handles the initial value of lastMatchIndex which is used for
             // constructing ranges but we don't yet have a true match.
             if (score > 0 && lastMatchIndex + 1 === c) {
+                // Continue boosting for each additional match at the beginning
+                // of the name
+                if (c - numConsecutive === lastSegmentStart) {
+                    newPoints += BEGINNING_OF_NAME_POINTS;
+                }
+
                 // Consecutive matches that started on a special are a
                 // good indicator of intent, so we award an added bonus there.
                 if (currentRangeStartedOnSpecial) {
