@@ -135,8 +135,9 @@ define({
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING" : "Loading\u2026",
-    "UNTITLED" : "Untitled",
+    "PROJECT_LOADING"   : "Loading\u2026",
+    "UNTITLED"          : "Untitled",
+    "WORKING_FILES"     : "Working Files",
 
     /**
      * Keyboard modifier names
