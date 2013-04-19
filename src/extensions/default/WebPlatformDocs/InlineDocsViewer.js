@@ -81,8 +81,10 @@ define(function (require, exports, module) {
         
         this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
         this._handleLinkClick       = this._handleLinkClick.bind(this);
+        this._handleWheelScroll     = this._handleWheelScroll.bind(this);
         
         this.$wrapperDiv.on("click", "a", this._handleLinkClick);
+        this.$wrapperDiv.find(".scroller").on("mousewheel", this._handleWheelScroll);
     }
     
     InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
@@ -98,6 +100,22 @@ define(function (require, exports, module) {
         var url = $(event.target).attr("href");
         if (url) {
             NativeApp.openURLInDefaultBrowser(url);
+        }
+    };
+    
+    
+    /** Don't allow scrollwheel/trackpad to bubble up to host editor - makes scrolling docs painful */
+    InlineDocsViewer.prototype._handleWheelScroll = function (event) {
+        var scrollingUp = (event.originalEvent.wheelDeltaY > 0),
+            scroller = event.currentTarget;
+        
+        // The "bubbling" here is native behavior, not true DOM bubbling: if the docs scroller is at its
+        // limit, then the next closest parent gets scrolled instead. So we need to preventDefault() *only*
+        // in those cases (don't want to block normal scrolling of the docs themselves).
+        if (scrollingUp && scroller.scrollTop === 0) {
+            event.preventDefault();
+        } else if (!scrollingUp && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight) {
+            event.preventDefault();
         }
     };
     
