@@ -262,14 +262,14 @@ define(function (require, exports, module) {
             
             // Sets up a real registry (with mock data).
             function setupRegistryWithMockLoad() {
-                // Prefetch the model so the view is constructed immediately. (mockjax appears to
-                // add a little asynchronicity even if it's returning data right away.)
-                runs(function () {
-                    waitsForDone(ExtensionManager.getRegistry());
-                });
+                var rendered = false;
                 runs(function () {
                     view = new ExtensionManagerView();
+                    $(view).on("render", function () {
+                        rendered = true;
+                    });
                 });
+                waitsFor(function () { return rendered; }, "view rendering");
             }
             
             // Sets up a mock registry (with no data).

@@ -39,6 +39,8 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * Creates a view enabling the user to install and manage extensions.
+     * Events:
+     *     "render": whenever the view fully renders itself.
      */
     function ExtensionManagerView() {
         var self = this;
@@ -78,7 +80,7 @@ define(function (require, exports, module) {
         // Show the busy spinner and access the registry.
         var $spinner = $("<div class='spinner large spin'/>")
             .appendTo(this.$el);
-        ExtensionManager.getRegistry().done(function (registry) {
+        ExtensionManager.getRegistry(true).done(function (registry) {
             // Display the registry view.
             self._render(registry_utils.sortRegistry(registry));
         }).fail(function () {
@@ -150,6 +152,7 @@ define(function (require, exports, module) {
             $item.appendTo($table);
         });
         $table.appendTo(this.$el);
+        $(this).triggerHandler("render");
     };
     
     /**

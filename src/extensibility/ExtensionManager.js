@@ -88,7 +88,11 @@ define(function (require, exports, module) {
      */
     function getRegistry(forceDownload) {
         if (!_registry || forceDownload) {
-            return $.getJSON(brackets.config.extension_registry, {cache: false})
+            return $.ajax({
+                url: brackets.config.extension_registry,
+                dataType: "json",
+                cache: false
+            })
                 .done(function (data) {
                     _registry = data;
                 });
