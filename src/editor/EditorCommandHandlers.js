@@ -750,14 +750,12 @@ define(function (require, exports, module) {
             break;
         }
         
-        doc.batchOperation(function () {
-            if (line > lastLine && isInlineWidget) {
-                doc.replaceRange("\n", {line: line - 1, ch: doc.getLine(line - 1).length});
-            } else {
-                doc.replaceRange("\n", {line: line, ch: 0});
-            }
-            cm.indentLine(line);
-        });
+        if (line > lastLine && isInlineWidget) {
+            doc.replaceRange("\n", {line: line - 1, ch: doc.getLine(line - 1).length}, null, "+input");
+        } else {
+            doc.replaceRange("\n", {line: line, ch: 0}, null, "+input");
+        }
+        cm.indentLine(line, "smart", false);
         editor.setSelection({line: line, ch: null});
     }
 

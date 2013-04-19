@@ -90,6 +90,52 @@ define(function (require, exports, module) {
             expect(myEditor.getSelection()).toEqual(sel);
         }
         
+        
+        // Helper functions for creating / closing a window with an inline editor
+        function createWindowWithInlineEditor(spec, testPath) {
+            var promise;
+            
+            if (!spec.testWindow) {
+                SpecRunnerUtils.createTestWindowAndRun(spec, function (w) {
+                    spec.testWindow = w;
+                    
+                    // Load module instances from brackets.test
+                    CommandManager      = spec.testWindow.brackets.test.CommandManager;
+                    Commands            = spec.testWindow.brackets.test.Commands;
+                    EditorManager       = spec.testWindow.brackets.test.EditorManager;
+                   
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            }
+            
+            runs(function () {
+                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
+                waitsForDone(promise, "Open into working set");
+            });
+            
+            runs(function () {
+                // Open inline editor onto test.css's ".testClass" rule
+                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                waitsForDone(promise, "Open inline editor");
+            });
+            
+            runs(function () {
+                spec.editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+            });
+        }
+        function closeWindowWithInlineEditor(spec) {
+            runs(function () {
+                var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                waitsForDone(promise, "Close all open files in working set");
+                
+                // Close the save dialog without saving the changes
+                var $dlg = spec.testWindow.$(".modal.instance");
+                if ($dlg.length) {
+                    SpecRunnerUtils.clickDialogButton("dontsave");
+                }
+            });
+        }
+        
 
         describe("Line comment/uncomment", function () {
             beforeEach(setupFullEditor);
@@ -2068,12 +2114,13 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
             });
         });
-        
+
         
         describe("Move Lines Up/Down - inline editor", function () {
             this.category = "integration";
             
-            var testWindow, promise, editor;
+            var self = this;
+            
             var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files");
             
             var moveContent = ".testClass {\n" +
@@ -2081,72 +2128,37 @@ define(function (require, exports, module) {
                               "}";
             
             beforeEach(function () {
-                if (!testWindow) {
-                    SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                        testWindow = w;
-                        
-                        // Load module instances from brackets.test
-                        CommandManager      = testWindow.brackets.test.CommandManager;
-                        Commands            = testWindow.brackets.test.Commands;
-                        EditorManager       = testWindow.brackets.test.EditorManager;
-                       
-                        SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                    });
-                }
-                
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
-                    waitsForDone(promise, "Open into working set");
-                });
-                
-                runs(function () {
-                    // Open inline editor onto test.css's ".testClass" rule
-                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
-                    waitsForDone(promise, "Open inline editor");
-                });
-                
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
-                });
+                createWindowWithInlineEditor(self, testPath);
             });
             
             afterEach(function () {
-                runs(function () {
-                    var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-                    waitsForDone(promise, "Close all open files in working set");
-                    
-                    // Close the save dialog without saving the changes
-                    var $dlg = testWindow.$(".modal.instance");
-                    if ($dlg.length) {
-                        SpecRunnerUtils.clickDialogButton("dontsave");
-                    }
-                });
+                closeWindowWithInlineEditor(self);
             });
             
             
             it("should not move the first line of the inline editor up", function () {
-                editor.setCursorPos({line: 0, ch: 5});
-                CommandManager.execute(Commands.EDIT_LINE_UP, editor);
+                self.editor.setCursorPos({line: 0, ch: 5});
+                CommandManager.execute(Commands.EDIT_LINE_UP, self.editor);
                 
-                expect(editor.document.getText()).toEqual(moveContent);
-                expect(editor._codeMirror.doc.historySize().undo).toBe(0);
-                expect(editor.getFirstVisibleLine()).toBe(0);
-                expect(editor.getLastVisibleLine()).toBe(2);
+                expect(self.editor.document.getText()).toEqual(moveContent);
+                expect(self.editor._codeMirror.doc.historySize().undo).toBe(0);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(2);
             });
             
             it("should not move the last line of the inline editor down", function () {
-                editor.setCursorPos({line: 2, ch: 5});
-                CommandManager.execute(Commands.EDIT_LINE_DOWN, editor);
+                self.editor.setCursorPos({line: 2, ch: 5});
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, self.editor);
                 
-                expect(editor.document.getText()).toEqual(moveContent);
-                expect(editor._codeMirror.doc.historySize().undo).toBe(0);
-                expect(editor.getFirstVisibleLine()).toBe(0);
-                expect(editor.getLastVisibleLine()).toBe(2);
+                expect(self.editor.document.getText()).toEqual(moveContent);
+                expect(self.editor._codeMirror.doc.historySize().undo).toBe(0);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(2);
             });
             
             it("should be able to move the second to last line of the inline editor down", function () {
-                editor.setCursorPos({line: 1, ch: 5});
-                CommandManager.execute(Commands.EDIT_LINE_DOWN, editor);
+                self.editor.setCursorPos({line: 1, ch: 5});
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, self.editor);
                 
                 var lines = moveContent.split("\n");
                 var temp = lines[1];
@@ -2154,14 +2166,14 @@ define(function (require, exports, module) {
                 lines[2] = temp;
                 var expectedText = lines.join("\n");
                 
-                expect(editor.document.getText()).toEqual(expectedText);
-                expect(editor.getFirstVisibleLine()).toBe(0);
-                expect(editor.getLastVisibleLine()).toBe(2);
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(2);
             });
             
             it("should be able to move the last line of the inline editor up", function () {
-                editor.setCursorPos({line: 2, ch: 0});
-                CommandManager.execute(Commands.EDIT_LINE_UP, editor);
+                self.editor.setCursorPos({line: 2, ch: 0});
+                CommandManager.execute(Commands.EDIT_LINE_UP, self.editor);
                 
                 var lines = moveContent.split("\n");
                 var temp = lines[1];
@@ -2169,9 +2181,9 @@ define(function (require, exports, module) {
                 lines[2] = temp;
                 var expectedText = lines.join("\n");
                 
-                expect(editor.document.getText()).toEqual(expectedText);
-                expect(editor.getFirstVisibleLine()).toBe(0);
-                expect(editor.getLastVisibleLine()).toBe(2);
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(2);
                 
                 // This must be in the last spec in the suite.
                 runs(function () {
@@ -2601,55 +2613,110 @@ define(function (require, exports, module) {
                 expectCursorAt({line: 5, ch: 4 + indentUnit});
             });
         });
+
         
-        describe("Open Line Above and Below - editor with visible range", function () {
+        describe("Open Line Above and Below - inline editor", function () {
+            this.category = "integration";
             
-            it("should insert new line above the top line of the visible range", function () {
-                makeEditorWithRange({startLine: 0, endLine: 4});
-                myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 6});
-                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
-                
-                var lines = defaultContent.split("\n");
-                lines.splice(0, 0, "");
-                expect(myDocument.getText()).toEqual(lines.join("\n"));
-                expect(myEditor._visibleRange.startLine).toBe(0);
-                expect(myEditor._visibleRange.endLine).toBe(5);
+            var self = this;
+            
+            var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files");
+            
+            var content = ".testClass {\n" +
+                              "    color: red;\n" +
+                              "}";
+            
+            beforeEach(function () {
+                createWindowWithInlineEditor(self, testPath);
             });
             
-            it("should insert new line above the last line of the visible range", function () {
-                makeEditorWithRange({startLine: 0, endLine: 0});
-                myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 6});
-                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
-                
-                var lines = defaultContent.split("\n");
-                lines.splice(0, 0, "");
-                expect(myDocument.getText()).toEqual(lines.join("\n"));
-                expect(myEditor._visibleRange.startLine).toBe(0);
-                expect(myEditor._visibleRange.endLine).toBe(1);
+            afterEach(function () {
+                closeWindowWithInlineEditor(self);
             });
 
-            it("should insert new line below the first line of the visible range", function () {
-                makeEditorWithRange({startLine: 7, endLine: 7});
-                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 1});
-                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+            it("should insert new line above the first line of the inline editor", function () {
+                self.editor.setSelection({line: 0, ch: 4}, {line: 0, ch: 6});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, self.editor);
                 
-                var lines = defaultContent.split("\n");
-                lines.splice(8, 0, "");
-                expect(myDocument.getText()).toEqual(lines.join("\n"));
-                expect(myEditor._visibleRange.startLine).toBe(7);
-                expect(myEditor._visibleRange.endLine).toBe(8);
+                var lines = content.split("\n");
+                lines.splice(0, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(3);
+            });
+            
+            it("should insert new line below the first line of the inline editor", function () {
+                self.editor.setCursorPos({line: 0, ch: 3});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, self.editor);
+                
+                var lines = content.split("\n");
+                lines.splice(1, 0, "    ");
+                var expectedText = lines.join("\n");
+                
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(3);
+            });
+            
+            it("should insert new line above the last line of the inline editor", function () {
+                self.editor.setSelection({line: 2, ch: 0}, {line: 2, ch: 1});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, self.editor);
+                
+                var lines = content.split("\n");
+                lines.splice(2, 0, "    ");
+                var expectedText = lines.join("\n");
+                
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(3);
             });
 
-            it("should insert new line below the last line of the visible range", function () {
-                makeEditorWithRange({startLine: 6, endLine: 7});
-                myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 1});
-                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+            it("should insert new line below the last line of the inline editor", function () {
+                self.editor.setCursorPos({line: 3, ch: 0});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, self.editor);
                 
-                var lines = defaultContent.split("\n");
-                lines.splice(8, 0, "");
-                expect(myDocument.getText()).toEqual(lines.join("\n"));
-                expect(myEditor._visibleRange.startLine).toBe(6);
-                expect(myEditor._visibleRange.endLine).toBe(8);
+                var lines = content.split("\n");
+                lines.splice(3, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(3);
+            });
+            
+            it("should insert new indented line above the second line of the inline editor", function () {
+                self.editor.setCursorPos({line: 1, ch: 5});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, self.editor);
+                
+                var lines = content.split("\n");
+                lines.splice(1, 0, "    ");
+                var expectedText = lines.join("\n");
+                
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(3);
+            });
+            
+            it("should insert new indented line below the second line of the inline editor", function () {
+                self.editor.setCursorPos({line: 1, ch: 5});
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, self.editor);
+                
+                var lines = content.split("\n");
+                lines.splice(2, 0, "    ");
+                var expectedText = lines.join("\n");
+                
+                expect(self.editor.document.getText()).toEqual(expectedText);
+                expect(self.editor.getFirstVisibleLine()).toBe(0);
+                expect(self.editor.getLastVisibleLine()).toBe(3);
+                
+                // This must be in the last spec in the suite.
+                runs(function () {
+                    this.after(function () {
+                        SpecRunnerUtils.closeTestWindow();
+                    });
+                });
             });
         });
     });
