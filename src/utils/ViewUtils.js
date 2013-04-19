@@ -325,6 +325,22 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * HTML formats a file entry name  for display in the sidebar.
+     * @param {!FileEntry} entry File entry to display
+     * @return {string} HTML formatted string
+     */
+    function getFileEntryDisplay(entry) {
+        var name = entry.name,
+            i = name.lastIndexOf(".");
+        
+        if (i >= 0) {
+            name = name.substring(0, i) + "<span class='extension'>" + name.substring(i) + "</span>";
+        }
+        
+        return name;
+    }
+    
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
 
@@ -334,4 +350,5 @@ define(function (require, exports, module) {
     exports.removeScrollerShadow    = removeScrollerShadow;
     exports.sidebarList             = sidebarList;
     exports.scrollElementIntoView   = scrollElementIntoView;
+    exports.getFileEntryDisplay     = getFileEntryDisplay;
 });
