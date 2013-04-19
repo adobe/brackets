@@ -339,6 +339,13 @@ define({
     "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the Brackets extension registry. Please try again later.",
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Author",
+    "EXTENSION_DATE"                       : "Date",
+    "EXTENSION_INCOMPATIBLE"               : "This extension is incompatible with your version of Brackets.",
+    "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_INSTALLED"                  : "Installed",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",

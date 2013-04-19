@@ -3,27 +3,27 @@
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
         <span class="muted ext-version">{{metadata.version}}</span><br/>
         <span class="muted ext-author">
-            by 
+            {{Strings.EXTENSION_AUTHOR}}:
             {{#metadata.author.name}}
                 {{metadata.author.name}} /
             {{/metadata.author.name}}
             <a href="{{ownerLink}}">{{formatUserId}}</a>
-        </span>
-        <span class="muted ext-date">on {{lastVersionDate}}</span>
+        </span><br/>
+        <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
     </td>
     <td class="ext-desc">
         {{^isCompatible}}
-            <div class="alert-message warning">This extension is incompatible with this version of Brackets.</div>
+            <div class="alert-message warning">{{Strings.EXTENSION_INCOMPATIBLE}}</div>
         {{/isCompatible}}
         {{#metadata.description}}
             {{metadata.description}}
         {{/metadata.description}}
         {{^metadata.description}}
-            <span class="muted"><em>No description</em></span>
+            <span class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></span>
         {{/metadata.description}}
         {{#metadata.keywords.length}}
             <br/>
-            <span class="ext-keywords">Keywords:
+            <span class="ext-keywords">{{Strings.EXTENSION_KEYWORDS}}:
             {{#metadata.keywords}}
                 {{.}}
             {{/metadata.keywords}}
@@ -32,8 +32,8 @@
     </td>
     <td>
         <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
-            {{^isInstalled}}Install{{/isInstalled}}
-            {{#isInstalled}}Installed{{/isInstalled}}
+            {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
+            {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
         </button>
     </td>
 </tr>

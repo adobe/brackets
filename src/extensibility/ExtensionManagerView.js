@@ -116,6 +116,12 @@ define(function (require, exports, module) {
         // Create a Mustache context object containing the entry data and our helper functions.
         var context = $.extend({}, entry),
             status = ExtensionManager.getStatus(entry.metadata.name);
+        
+        // Normally we would merge the strings into the context we're passing into the template,
+        // but since we're instantiating the template for every item, it seems wrong to take the hit
+        // of copying all the strings into the context, so we just make it a subfield.
+        context.Strings = Strings;
+        
         context.isInstalled = (status === ExtensionManager.ENABLED);
         
         var requiredVersion = entry.metadata.engines && entry.metadata.engines.brackets;
