@@ -107,6 +107,10 @@ define(function (require, exports, module) {
                 if (token.keyword) {
                     $hintObj.addClass("keyword-hint");
                 }
+
+                if (token.literal) {
+                    $hintObj.addClass("literal-hint");
+                }
              
                 // highlight the matched portion of each hint
                 if (token.stringRanges) {

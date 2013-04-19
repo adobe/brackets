@@ -337,6 +337,15 @@ define(function (require, exports, module) {
                 if (searchResult) {
                     searchResult.value = hint.value;
                     searchResult.guess = hint.guess;
+
+                    if (hint.keyword !== undefined) {
+                        searchResult.keyword = hint.keyword;
+                    }
+
+                    if (hint.literal !== undefined) {
+                        searchResult.literal = hint.literal;
+                    }
+
                     if (hint.depth !== undefined) {
                         searchResult.depth = hint.depth;
                     }
