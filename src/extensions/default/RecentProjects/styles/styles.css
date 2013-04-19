@@ -5,10 +5,12 @@
 }
 .dropdown-arrow {
     display: inline-block;
-    width: 10px;
-    height: 8px;
+    width: 5px;
+    height: 9px;
     margin-left: 4px;
     background-image: url("down-arrow.svg");
+	position: relative;
+	top: 1px;
 }
 
 .trash-icon {
