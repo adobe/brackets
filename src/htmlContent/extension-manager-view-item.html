@@ -13,7 +13,10 @@
     </td>
     <td class="ext-desc">
         {{^isCompatible}}
-            <div class="alert-message warning">{{Strings.EXTENSION_INCOMPATIBLE}}</div>
+            <div class="alert-message warning">
+                {{#requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
+                {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
+            </div>
         {{/isCompatible}}
         {{#metadata.description}}
             {{metadata.description}}

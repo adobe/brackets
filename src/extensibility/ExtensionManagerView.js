@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, Mustache, semver */
+/*global define, window, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -35,9 +35,6 @@ define(function (require, exports, module) {
         StringUtils            = require("utils/StringUtils"),
         registry_utils         = require("extensibility/registry_utils"),
         itemTemplate           = require("text!htmlContent/extension-manager-view-item.html");
-    
-    // semver isn't a proper AMD module, so it will just load into the global namespace.
-    require("extensibility/node/node_modules/semver/semver");
     
     /**
      * @constructor
@@ -124,8 +121,9 @@ define(function (require, exports, module) {
         
         context.isInstalled = (status === ExtensionManager.ENABLED);
         
-        var requiredVersion = entry.metadata.engines && entry.metadata.engines.brackets;
-        context.isCompatible = !requiredVersion || semver.satisfies(brackets.metadata.apiVersion, requiredVersion);
+        var compatInfo = ExtensionManager.getCompatibilityInfo(entry, brackets.metadata.apiVersion);
+        context.isCompatible = compatInfo.isCompatible;
+        context.requiresNewer = compatInfo.requiresNewer;
         
         context.allowInstall = context.isCompatible && !context.isInstalled;
         
