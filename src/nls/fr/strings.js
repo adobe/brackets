@@ -231,8 +231,10 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_JUMPTO_DEFINITION": "[6780638] !é=Jump to Definition=!",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
+	"CMD_TOGGLE_QUICK_DOCS": "[6780639] !é=Quick Docs=!",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
 	"CMD_NEXT_DOC": "Document suivant",
@@ -352,5 +354,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "Format Hex",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "Format HSLa",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} (utilisé {1} fois)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "[6780640] !é=Read more=!"
 });
