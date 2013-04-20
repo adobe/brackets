@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, Mustache, semver */
+/*global define, window, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -36,12 +36,11 @@ define(function (require, exports, module) {
         registry_utils         = require("extensibility/registry_utils"),
         itemTemplate           = require("text!htmlContent/extension-manager-view-item.html");
     
-    // semver isn't a proper AMD module, so it will just load into the global namespace.
-    require("extensibility/node/node_modules/semver/semver");
-    
     /**
      * @constructor
      * Creates a view enabling the user to install and manage extensions.
+     * Events:
+     *     "render": whenever the view fully renders itself.
      */
     function ExtensionManagerView() {
         var self = this;
@@ -81,7 +80,7 @@ define(function (require, exports, module) {
         // Show the busy spinner and access the registry.
         var $spinner = $("<div class='spinner large spin'/>")
             .appendTo(this.$el);
-        ExtensionManager.getRegistry().done(function (registry) {
+        ExtensionManager.getRegistry(true).done(function (registry) {
             // Display the registry view.
             self._render(registry_utils.sortRegistry(registry));
         }).fail(function () {
@@ -116,10 +115,17 @@ define(function (require, exports, module) {
         // Create a Mustache context object containing the entry data and our helper functions.
         var context = $.extend({}, entry),
             status = ExtensionManager.getStatus(entry.metadata.name);
+        
+        // Normally we would merge the strings into the context we're passing into the template,
+        // but since we're instantiating the template for every item, it seems wrong to take the hit
+        // of copying all the strings into the context, so we just make it a subfield.
+        context.Strings = Strings;
+        
         context.isInstalled = (status === ExtensionManager.ENABLED);
         
-        var requiredVersion = entry.metadata.engines && entry.metadata.engines.brackets;
-        context.isCompatible = !requiredVersion || semver.satisfies(brackets.metadata.apiVersion, requiredVersion);
+        var compatInfo = ExtensionManager.getCompatibilityInfo(entry, brackets.metadata.apiVersion);
+        context.isCompatible = compatInfo.isCompatible;
+        context.requiresNewer = compatInfo.requiresNewer;
         
         context.allowInstall = context.isCompatible && !context.isInstalled;
         
@@ -146,6 +152,7 @@ define(function (require, exports, module) {
             $item.appendTo($table);
         });
         $table.appendTo(this.$el);
+        $(this).triggerHandler("render");
     };
     
     /**
