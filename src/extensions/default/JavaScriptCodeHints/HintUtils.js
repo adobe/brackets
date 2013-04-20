@@ -177,7 +177,7 @@ define(function (require, exports, module) {
         KEYWORDS        = annotateKeywords(KEYWORD_TOKENS);
     
     var LITERAL_NAMES   = [
-        "true", "false", "null", "undefined"
+        "true", "false", "null"
     ],
         LITERAL_TOKENS  = LITERAL_NAMES.map(function (t) {
             return makeToken(t, []);
