@@ -48,6 +48,8 @@ define(function (require, exports, module) {
 
         var myDocument, myEditor;
         
+        var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files");
+        
         function setupFullEditor(content, languageId) {
             content = content || defaultContent;
             languageId = languageId || "javascript";
@@ -92,7 +94,7 @@ define(function (require, exports, module) {
         
         
         // Helper functions for creating / closing a window with an inline editor
-        function createWindowWithInlineEditor(spec, testPath) {
+        function createWindowWithInlineEditor(spec) {
             var promise;
             
             if (!spec.testWindow) {
@@ -2121,14 +2123,12 @@ define(function (require, exports, module) {
             
             var self = this;
             
-            var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files");
-            
             var moveContent = ".testClass {\n" +
                               "    color: red;\n" +
                               "}";
             
             beforeEach(function () {
-                createWindowWithInlineEditor(self, testPath);
+                createWindowWithInlineEditor(self);
             });
             
             afterEach(function () {
@@ -2620,14 +2620,12 @@ define(function (require, exports, module) {
             
             var self = this;
             
-            var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files");
-            
             var content = ".testClass {\n" +
-                              "    color: red;\n" +
-                              "}";
+                          "    color: red;\n" +
+                          "}";
             
             beforeEach(function () {
-                createWindowWithInlineEditor(self, testPath);
+                createWindowWithInlineEditor(self);
             });
             
             afterEach(function () {

@@ -199,8 +199,6 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Commenta/De-commenta blocco",
     "CMD_LINE_UP"                         : "Sposta la riga in alto",
     "CMD_LINE_DOWN"                       : "Sposta la riga in basso",
-    "CMD_OPEN_LINE_ABOVE"                 : "Apri linea in alto",
-    "CMD_OPEN_LINE_BELOW"                 : "Apri linea in basso",
      
     // View menu commands
     "VIEW_MENU"                           : "Vista",
