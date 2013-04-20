@@ -400,12 +400,12 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            // Check to see if this is the closing of a tag (either the start or end) self closing tag
+            // Check to see if this is the closing of a start tag or a self closing tag
             if (ctx.token.string === ">" || ctx.token.string === "/>") {
                 return createTagInfo();
             }
             
-            // Check to see if this is the closing of a tag (either the start or end) closing tag
+            // Check to see if this is a closing tag
             if (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/") {
                 return createTagInfo(CLOSING_TAG, offset - 2, ctx.token.string.slice(2));
             }
