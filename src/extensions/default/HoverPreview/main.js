@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, PathUtils, CodeMirror */
+/*global define, brackets, $, PathUtils, CodeMirror, setTimeout, clearTimeout, Image */
 
 define(function (require, exports, module) {
     "use strict";
@@ -38,25 +38,67 @@ define(function (require, exports, module) {
     var defaultPrefs               = { enabled: true },
         enabled,                             // Only show preview if true
         prefs                      = null,   // Preferences
-        previewMark,                         // CodeMirror marker highlighting the preview text
-        $previewContainer,                   // Preview container
-        currentImagePreviewContent = "";     // Current image preview content, or "" if no content is showing.
+        $previewContainer;                   // Preview container
     
     // Constants
     var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
+        HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
         POINTER_LEFT_OFFSET         = 10,   // Half of the pointer width, used to find the center of the pointer
         POSITION_BELOW_OFFSET       = 16;   // Amount to adjust to top position when the preview bubble is below the text
     
+    /**
+     * There are three states for this var:
+     * 1. If null, there is no provider result for the given mouse position.
+     * 2. If non-null, and visible==true, there is a popover currently showing.
+     * 3. If non-null, but visible==false, there is a provider result but it has not been shown yet, either
+     * because we're waiting for HOVER_DELAY or waiting for the provider's waitUntil promise (or both); the
+     * combination of these two are tracked by readyToShow. The state changes to visible==true as soon as
+     * readyToShow resolves. If the mouse moves before that occurs, the popover will never become visible.
+     * 
+     * @type {{
+     *      visible: boolean,
+     *      editor: !Editor,
+     *      waitUntil: !$.Promise,          - allows provider to delay readyToShow longer than the HOVER_DELAY timeout
+     *      readyToShow: ?{ promise: !$.Promise, cancel: function():void },
+     *      start: !{line, ch},             - start of matched text range
+     *      end: !{line, ch},               - end of matched text range
+     *      content: !string,               - HTML content to display in popover
+     *      preLayoutCallback: ?function():void,  - called by showPreview() before positioning popover
+     *      xpos: number,                   - x pos of center of popover
+     *      ytop: number,                   - y pos of top of matching text (when popover placed above text, normally)
+     *      ybot: number,                   - y pos of bottom of matching text (when popover placed below text, avoiding window top edge)
+     *      marker: ?CodeMirror.TextMarker  - only set once visible==true
+     * }}
+     */
+    var popoverState = null;
+    
+    
+    
+    // Popover widget management ----------------------------------------------
+    
+    /**
+     * Cancels whatever popoverState was currently pending and sets it back to null. If the popover was visible,
+     * hides it; if the popover was invisible and still pending, rejects readyToShow so it will never be shown.
+     * (Any async work represented by waitUntil will continue, but its result will be ignored).
+     */
     function hidePreview() {
-        if (previewMark) {
-            previewMark.clear();
-            previewMark = null;
+        if (!popoverState) {
+            return;
         }
-        $previewContainer.empty();
-        $previewContainer.hide();
-        $previewContainer.removeClass("small-padding-bottom");
-        currentImagePreviewContent = "";
+        
+        if (popoverState.visible) {
+            popoverState.marker.clear();
+            
+            $previewContainer.empty();
+            $previewContainer.hide();
+            $previewContainer.removeClass("small-padding-bottom");
+            
+        } else {
+            popoverState.readyToShow.cancel();
+        }
+        
+        popoverState = null;
     }
     
     function positionPreview(xpos, ypos, ybot) {
@@ -80,11 +122,29 @@ define(function (require, exports, module) {
         }
     }
     
-    function showPreview(content, xpos, ypos, ybot) {
-        hidePreview();
-        $previewContainer.append(content);
+    /**
+     * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
+     * its matching text in the editor.
+     */
+    function showPreview() {
+        
+        var cm = popoverState.editor._codeMirror;
+        popoverState.marker = cm.markText(
+            popoverState.start,
+            popoverState.end,
+            {className: "hover-preview-highlight"}
+        );
+        
+        $previewContainer.append(popoverState.content);
         $previewContainer.show();
-        positionPreview(xpos, ypos, ybot);
+        
+        if (popoverState.preLayoutCallback) {
+            popoverState.preLayoutCallback();
+        }
+        
+        positionPreview(popoverState.xpos, popoverState.ytop, popoverState.ybot);
+        
+        popoverState.visible = true;
     }
     
     function divContainsMouse($div, event) {
@@ -95,6 +155,9 @@ define(function (require, exports, module) {
                 event.clientY >= offset.top &&
                 event.clientY <= offset.top + $div.height());
     }
+    
+    
+    // Color & gradient preview provider --------------------------------------
     
     function colorAndGradientPreviewProvider(editor, pos, token, line) {
         var cm = editor._codeMirror;
@@ -141,18 +204,43 @@ define(function (require, exports, module) {
                     xPos;
                 
                 xPos = (cm.charCoords(endPos).left - startCoords.left) / 2 + startCoords.left;
-                showPreview(preview, xPos, startCoords.top, startCoords.bottom);
-                previewMark = cm.markText(
-                    startPos,
-                    endPos,
-                    {className: "hover-preview-highlight"}
-                );
-                return true;
+                
+                return { start: startPos, end: endPos, content: preview, xpos: xPos, ytop: startCoords.top, ybot: startCoords.bottom };
             }
             match = colorRegEx.exec(line);
         }
         
-        return false;
+        return null;
+    }
+    
+    
+    // Image preview provider -------------------------------------------------
+    
+    /** Returns a promise resolved when the image is done preloading; rejected if unable to load */
+    function preloadImage(url) {
+        var result = new $.Deferred();
+        var image = new Image();
+        image.onload = function () {
+            result.resolve();
+        };
+        image.onerror = function () {
+            result.rejecct();
+        };
+        image.src = url;
+        return result.promise();
+    }
+    
+    /** Adjusts the popover layout & info display to reflect the image's size */
+    function layoutImagePreview() {
+        var img = $previewContainer.find(".image-preview img")[0];
+        
+        $previewContainer.find(".image-preview")
+            .append("<br/>"                                               +
+                    "<span class='img-size'>"                             +
+                            img.naturalWidth + " x " + img.naturalHeight  +
+                    "</span>"
+                );
+        $previewContainer.addClass("small-padding-bottom");
     }
     
     function imagePreviewProvider(editor, pos, token, line) {
@@ -197,49 +285,109 @@ define(function (require, exports, module) {
                     var imgPreview = "<div class='image-preview'>"          +
                                      "    <img src=\"" + imgPath + "\">"    +
                                      "</div>";
-                    if (imgPreview !== currentImagePreviewContent) {
-                        var coord = cm.charCoords(sPos);
-                        var xpos = (cm.charCoords(ePos).left - coord.left) / 2 + coord.left;
-                        var ypos = coord.top;
-                        var ybot = coord.bottom;
-                        showPreview(imgPreview, xpos, ypos, ybot);
-                        
-                        // Hide the preview container until the image is loaded.
-                        $previewContainer.hide();
-                        $previewContainer.find("img").on("load", function () {
-                            $previewContainer.find(".image-preview")
-                                .append("<br/>"                                                 +
-                                        "<span class='img-size'>"                               +
-                                                this.naturalWidth + " x " + this.naturalHeight  +
-                                        "</span>"
-                                    );
-                            $previewContainer.addClass("small-padding-bottom");
-                            $previewContainer.show();
-                            positionPreview(xpos, ypos, ybot);
-                        });
-                        previewMark = cm.markText(
-                            sPos,
-                            ePos,
-                            {className: "hover-preview-highlight"}
-                        );
-                        currentImagePreviewContent = imgPreview;
-                    }
-                    return true;
+                    var coord = cm.charCoords(sPos);
+                    var xpos = (cm.charCoords(ePos).left - coord.left) / 2 + coord.left;
+                    
+                    var popover = { start: sPos, end: ePos, content: imgPreview, waitUntil: preloadImage(imgPath), preLayoutCallback: layoutImagePreview, xpos: xpos, ytop: coord.top, ybot: coord.bottom };
+                    
+                    return popover;
                 }
             }
         }
         
+        return null;
+    }
+    
+
+    // Preview hide/show logic ------------------------------------------------
+    
+    /**
+     * Returns a 'ready for use' popover state object:
+     * { visible: false, editor, waitUntil, start, end, content, preLayoutCallback, xpos, ytop, ybot }
+     * Lacks only readyToShow (supplied by handleMouseMove()) and marker (supplied by showPreview()).
+     */
+    function queryPreviewProviders(editor, pos, token) {
+        
+        var line = editor.document.getLine(pos.line);
+        
+        // FUTURE: Support plugin providers. For now we just hard-code...
+        var popover = colorAndGradientPreviewProvider(editor, pos, token, line) ||
+                      imagePreviewProvider(editor, pos, token, line);
+        
+        if (popover) {
+            $.extend(popover, { visible: false, editor: editor });
+            if (!popover.waitUntil) {
+                popover.waitUntil = new $.Deferred().resolve();
+            }
+            return popover;
+        }
+        return null;
+    }
+    
+    /**
+     * Returns a wrapper promise that's resolved when the original promise is, but with
+     * a guaranteed minimum delay. If the original promise is rejected, rejects immediately.
+     * The returned cancel() method forces the wrapper promise to reject immediately (if not
+     * already resolved).
+     */
+    function minimumWait(msec, promise) {
+        var master = new $.Deferred();
+        var waitCount = 2;
+        
+        var timer = setTimeout(function () {
+            waitCount--;
+            if (waitCount === 0) {
+                master.resolve();
+            }
+        }, msec);
+        
+        promise.done(function () {
+            waitCount--;
+            if (waitCount === 0) {
+                master.resolve();
+            }
+        });
+        
+        function cancel() {
+            clearTimeout(timer);
+            master.reject();
+        }
+        promise.fail(function () {
+            cancel();
+        });
+        
+        return { promise: master.promise(), cancel: cancel };
+    }
+    
+    /**
+     * Returns a wrapper promise that's resolved/rejected when the original promise is, but can
+     * also be forced to reject immediately (unless the original promise already finished).
+     */
+    function cancelable(promise) {
+        var wrapper = new $.Deferred();
+        
+        function cancel() {
+            wrapper.reject();
+        }
+        promise.pipe(wrapper.resolve, wrapper.reject);  // ignored if we already rejected
+        
+        return { promise: wrapper.promise(), cancel: cancel };
+    }
+
+    
+    var lastPos;    // TODO: remove?
+    
+    /**
+     * Returns true if pos is contained within popover's start-end range (start inclusive, end exclusive)
+     */
+    function containsPos(popover, pos) {
+        if (popover.start.line <= pos.line && popover.end.line >= pos.line) {
+            return (popover.start.line < pos.line || popover.start.ch <= pos.ch) &&  // inclusive
+                   (popover.end.line > pos.line || popover.end.ch > pos.ch);         // exclusive
+        }
         return false;
     }
     
-    function queryPreviewProviders(editor, pos, token, line) {
-        
-        // FUTURE: Support plugin providers. For now we just hard-code...
-        if (!colorAndGradientPreviewProvider(editor, pos, token, line) &&
-                !imagePreviewProvider(editor, pos, token, line)) {
-            hidePreview();
-        }
-    }
     
     function handleMouseMove(event) {
         if (!enabled) {
@@ -276,16 +424,52 @@ define(function (require, exports, module) {
         }
         
         if (editor && editor._codeMirror) {
+            // Find char mouse is over
             var cm = editor._codeMirror;
             var pos = cm.coordsChar({left: event.clientX, top: event.clientY});
-            var token = cm.getTokenAt(pos);
-            var line = cm.getLine(pos.line);
+            if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
+                return;
+            }
+            lastPos = pos;
             
-            queryPreviewProviders(editor, pos, token, line);
+            var showImmediately = false;
+            
+            // Is there a popover already visible or pending?
+            if (popoverState) {
+                if (containsPos(popoverState, pos)) {
+                    // That one's still relevant - nothing more to do
+                    return;
+                } else {
+                    // That one doesn't cover this pos - hide it and query providers anew
+                    showImmediately = popoverState.visible;
+                    hidePreview();
+                }
+            }
+            
+            // Query providers for a new popoverState
+            var token = cm.getTokenAt(pos);
+            popoverState = queryPreviewProviders(editor, pos, token);
+            
+            if (popoverState) {
+                // We have a popover available - wait until we're ready to show it
+                if (showImmediately) {
+                    popoverState.readyToShow = cancelable(popoverState.waitUntil);
+                } else {
+                    popoverState.readyToShow = minimumWait(HOVER_DELAY, popoverState.waitUntil);
+                }
+                popoverState.readyToShow.promise.done(function () {
+                    // Finally ready to show (we'll never get here if mouse movement rendered this popover
+                    // inapplicable first - hidePopover() rejects readyToShow)
+                    showPreview();
+                });
+            }
+            
         } else {
+            // Mouse not over any Editor - immediately hide popover
             hidePreview();
         }
     }
+    
     
     // Menu command handlers
     function updateMenuItemCheckmark() {
@@ -297,6 +481,8 @@ define(function (require, exports, module) {
             enabled = _enabled;
             var editorHolder = $("#editor-holder")[0];
             if (enabled) {
+                // Note: listening to "scroll" also catches text edits, which bubble a scroll event up from the hidden text area. This means
+                // we auto-hide on text edit, which is probably actually a good thing.
                 editorHolder.addEventListener("mousemove", handleMouseMove, true);
                 editorHolder.addEventListener("scroll", hidePreview, true);
             } else {
