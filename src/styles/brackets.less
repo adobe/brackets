@@ -109,7 +109,7 @@ a, img {
 }
 
 #titlebar, .modal-bar {
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    box-shadow: 0 1px 1px 0 fadeout(@bc-black, 90%);
     
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -124,7 +124,6 @@ a, img {
     position: relative;
     background-color: @background-color-3;
     border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
-    box-sizing: border-box;
     color: @bc-grey;
     font-family: @fontstack-sans-serif;
     font-size: 0.9em;
@@ -133,6 +132,7 @@ a, img {
     height: 20px;
     overflow: hidden;
     padding: 3px 20px 3px 10px;
+    .sane-box-model;
 }
     
 #status-info {
@@ -205,7 +205,6 @@ a, img {
     position: relative;
     left: -1px;
     top: -2px;
-    -webkit-border-radius: 2px;
     border-radius: 2px;
     box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
 }
@@ -263,7 +262,7 @@ a, img {
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
         z-index: @z-index-brackets-results-panel;
-        .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
+        box-shadow: 0 -1px 3px 0 fadeout(@bc-black, 70%);
         .title {
             font-size: @label-font-size;
             font-weight: bold;

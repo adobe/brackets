@@ -113,7 +113,7 @@
     right: 0;
     width: @main-toolbar-width;
     height: 100%;
-    box-sizing: border-box;
+    .sane-box-model;
     
     background: @main-toolbar-background-color;
     padding: 5px 0px;
@@ -227,8 +227,8 @@
                 
         background-color: @bc-white;
         border: 1px solid #c8c8c8;
-        .border-radius(0 0 3px 3px);
-        .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
+        border-radius: 0 0 3px 3px;
+        box-shadow: 0 6px 18px 0 rgba(0, 0, 0, .2);
         
         // Menu items
         li {
@@ -243,7 +243,7 @@
                 color: @bc-black;
                 text-shadow: none;
                 white-space: nowrap;
-                .box-shadow(none);
+                box-shadow: none;
 
                 &:hover, &.highlight {
                     color: @bc-black;
@@ -302,7 +302,7 @@
 
 .codehint-menu {
     .dropdown-menu {
-        .box-shadow(none);
+        box-shadow: none;
         max-height: 160px;
         overflow-y: auto;
 
