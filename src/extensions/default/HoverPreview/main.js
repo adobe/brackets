@@ -35,12 +35,15 @@ define(function (require, exports, module) {
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings");
+   
+    var previewContainerHTML       = require("text!HoverPreviewTemplate.html");
     
-    var defaultPrefs                 = { enabled: true },
-        enabled,                               // Only show preview if true
-        prefs                        = null,   // Preferences
-        previewMark,                           // CodeMirror marker highlighting the preview text
-        $previewContainer,                     // Preview container
+    var defaultPrefs               = { enabled: true },
+        enabled,                             // Only show preview if true
+        prefs                      = null,   // Preferences
+        previewMark,                         // CodeMirror marker highlighting the preview text
+        $previewContainer,                   // Preview container
+        $previewContent,                     // Preview content holder
         currentImagePreviewContent   = "",     // Current image preview content, or "" if no content is showing.
         lastPreviewedColorOrGradient = "",     // Color/gradient value of last previewed.
         lastPreviewedImagePath       = "";     // Image path of last previewed.
@@ -48,7 +51,8 @@ define(function (require, exports, module) {
     // Constants
     var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
-        POINTER_LEFT_OFFSET         = 10,   // Half of the pointer width, used to find the center of the pointer
+        POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
+        POINTER_TOP_OFFSET          =  7,   // Pointer height, used to shift popover above pointer
         POSITION_BELOW_OFFSET       = 16;   // Amount to adjust to top position when the preview bubble is below the text
     
     function hidePreview() {
@@ -56,9 +60,8 @@ define(function (require, exports, module) {
             previewMark.clear();
             previewMark = null;
         }
-        $previewContainer.empty();
+        $previewContent.empty();
         $previewContainer.hide();
-        $previewContainer.removeClass("small-padding-bottom");
         currentImagePreviewContent = "";
     }
     
@@ -78,14 +81,14 @@ define(function (require, exports, module) {
             $previewContainer.addClass("preview-bubble-above");
             $previewContainer.offset({
                 left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
-                top: top
+                top: top - POINTER_TOP_OFFSET
             });
         }
     }
     
     function showPreview(content, xpos, ypos, ybot) {
         hidePreview();
-        $previewContainer.append(content);
+        $previewContent.append(content);
         $previewContainer.show();
         positionPreview(xpos, ypos, ybot);
     }
@@ -129,7 +132,7 @@ define(function (require, exports, module) {
         }
         
         // Check for color
-        var colorRegEx = /#[a-f0-9]{6}|#[a-f0-9]{3}|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgb\( ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|rgba\( ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|\baliceblue\b|\bantiquewhite\b|\baqua\b|\baquamarine\b|\bazure\b|\bbeige\b|\bbisque\b|\bblack\b|\bblanchedalmond\b|\bblue\b|\bblueviolet\b|\bbrown\b|\bburlywood\b|\bcadetblue\b|\bchartreuse\b|\bchocolate\b|\bcoral\b|\bcornflowerblue\b|\bcornsilk\b|\bcrimson\b|\bcyan\b|\bdarkblue\b|\bdarkcyan\b|\bdarkgoldenrod\b|\bdarkgray\b|\bdarkgreen\b|\bdarkgrey\b|\bdarkkhaki\b|\bdarkmagenta\b|\bdarkolivegreen\b|\bdarkorange\b|\bdarkorchid\b|\bdarkred\b|\bdarksalmon\b|\bdarkseagreen\b|\bdarkslateblue\b|\bdarkslategray\b|\bdarkslategrey\b|\bdarkturquoise\b|\bdarkviolet\b|\bdeeppink\b|\bdeepskyblue\b|\bdimgray\b|\bdimgrey\b|\bdodgerblue\b|\bfirebrick\b|\bfloralwhite\b|\bforestgreen\b|\bfuchsia\b|\bgainsboro\b|\bghostwhite\b|\bgold\b|\bgoldenrod\b|\bgray\b|\bgreen\b|\bgreenyellow\b|\bgrey\b|\bhoneydew\b|\bhotpink\b|\bindianred\b|\bindigo\b|\bivory\b|\bkhaki\b|\blavender\b|\blavenderblush\b|\blawngreen\b|\blemonchiffon\b|\blightblue\b|\blightcoral\b|\blightcyan\b|\blightgoldenrodyellow\b|\blightgray\b|\blightgreen\b|\blightgrey\b|\blightpink\b|\blightsalmon\b|\blightseagreen\b|\blightskyblue\b|\blightslategray\b|\blightslategrey\b|\blightsteelblue\b|\blightyellow\b|\blime\b|\blimegreen\b|\blinen\b|\bmagenta\b|\bmaroon\b|\bmediumaquamarine\b|\bmediumblue\b|\bmediumorchid\b|\bmediumpurple\b|\bmediumseagreen\b|\bmediumslateblue\b|\bmediumspringgreen\b|\bmediumturquoise\b|\bmediumvioletred\b|\bmidnightblue\b|\bmintcream\b|\bmistyrose\b|\bmoccasin\b|\bnavajowhite\b|\bnavy\b|\boldlace\b|\bolive\b|\bolivedrab\b|\borange\b|\borangered\b|\borchid\b|\bpalegoldenrod\b|\bpalegreen\b|\bpaleturquoise\b|\bpalevioletred\b|\bpapayawhip\b|\bpeachpuff\b|\bperu\b|\bpink\b|\bplum\b|\bpowderblue\b|\bpurple\b|\bred\b|\brosybrown\b|\broyalblue\b|\bsaddlebrown\b|\bsalmon\b|\bsandybrown\b|\bseagreen\b|\bseashell\b|\bsienna\b|\bsilver\b|\bskyblue\b|\bslateblue\b|\bslategray\b|\bslategrey\b|\bsnow\b|\bspringgreen\b|\bsteelblue\b|\btan\b|\bteal\b|\bthistle\b|\btomato\b|\bturquoise\b|\bviolet\b|\bwheat\b|\bwhite\b|\bwhitesmoke\b|\byellow\b|\byellowgreen\b/gi,
+        var colorRegEx = /#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgb\( ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|rgba\( ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|\baliceblue\b|\bantiquewhite\b|\baqua\b|\baquamarine\b|\bazure\b|\bbeige\b|\bbisque\b|\bblack\b|\bblanchedalmond\b|\bblue\b|\bblueviolet\b|\bbrown\b|\bburlywood\b|\bcadetblue\b|\bchartreuse\b|\bchocolate\b|\bcoral\b|\bcornflowerblue\b|\bcornsilk\b|\bcrimson\b|\bcyan\b|\bdarkblue\b|\bdarkcyan\b|\bdarkgoldenrod\b|\bdarkgray\b|\bdarkgreen\b|\bdarkgrey\b|\bdarkkhaki\b|\bdarkmagenta\b|\bdarkolivegreen\b|\bdarkorange\b|\bdarkorchid\b|\bdarkred\b|\bdarksalmon\b|\bdarkseagreen\b|\bdarkslateblue\b|\bdarkslategray\b|\bdarkslategrey\b|\bdarkturquoise\b|\bdarkviolet\b|\bdeeppink\b|\bdeepskyblue\b|\bdimgray\b|\bdimgrey\b|\bdodgerblue\b|\bfirebrick\b|\bfloralwhite\b|\bforestgreen\b|\bfuchsia\b|\bgainsboro\b|\bghostwhite\b|\bgold\b|\bgoldenrod\b|\bgray\b|\bgreen\b|\bgreenyellow\b|\bgrey\b|\bhoneydew\b|\bhotpink\b|\bindianred\b|\bindigo\b|\bivory\b|\bkhaki\b|\blavender\b|\blavenderblush\b|\blawngreen\b|\blemonchiffon\b|\blightblue\b|\blightcoral\b|\blightcyan\b|\blightgoldenrodyellow\b|\blightgray\b|\blightgreen\b|\blightgrey\b|\blightpink\b|\blightsalmon\b|\blightseagreen\b|\blightskyblue\b|\blightslategray\b|\blightslategrey\b|\blightsteelblue\b|\blightyellow\b|\blime\b|\blimegreen\b|\blinen\b|\bmagenta\b|\bmaroon\b|\bmediumaquamarine\b|\bmediumblue\b|\bmediumorchid\b|\bmediumpurple\b|\bmediumseagreen\b|\bmediumslateblue\b|\bmediumspringgreen\b|\bmediumturquoise\b|\bmediumvioletred\b|\bmidnightblue\b|\bmintcream\b|\bmistyrose\b|\bmoccasin\b|\bnavajowhite\b|\bnavy\b|\boldlace\b|\bolive\b|\bolivedrab\b|\borange\b|\borangered\b|\borchid\b|\bpalegoldenrod\b|\bpalegreen\b|\bpaleturquoise\b|\bpalevioletred\b|\bpapayawhip\b|\bpeachpuff\b|\bperu\b|\bpink\b|\bplum\b|\bpowderblue\b|\bpurple\b|\bred\b|\brosybrown\b|\broyalblue\b|\bsaddlebrown\b|\bsalmon\b|\bsandybrown\b|\bseagreen\b|\bseashell\b|\bsienna\b|\bsilver\b|\bskyblue\b|\bslateblue\b|\bslategray\b|\bslategrey\b|\bsnow\b|\bspringgreen\b|\bsteelblue\b|\btan\b|\bteal\b|\bthistle\b|\btomato\b|\bturquoise\b|\bviolet\b|\bwheat\b|\bwhite\b|\bwhitesmoke\b|\byellow\b|\byellowgreen\b/gi,
             colorMatch = colorRegEx.exec(line),
             match = gradientMatch || colorMatch;
 
@@ -215,13 +218,11 @@ define(function (require, exports, module) {
                         // Hide the preview container until the image is loaded.
                         $previewContainer.hide();
                         $previewContainer.find("img").on("load", function () {
-                            $previewContainer.find(".image-preview")
-                                .append("<br/>"                                                 +
-                                        "<span class='img-size'>"                               +
-                                                this.naturalWidth + " x " + this.naturalHeight  +
-                                        "</span>"
+                            $previewContent
+                                .append("<div class='img-size'>"                                            +
+                                            this.naturalWidth + " x " + this.naturalHeight + " pixels"  +
+                                        "</div>"
                                     );
-                            $previewContainer.addClass("small-padding-bottom");
                             $previewContainer.show();
                             positionPreview(xpos, ypos, ybot);
                         });
@@ -263,15 +264,15 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Check inlines first
+        // Check for inline Editor instances first
         var inlines = fullEditor.getInlineWidgets(),
             i,
             editor;
         
         for (i = 0; i < inlines.length; i++) {
-            var $inlineDiv = inlines[i].$editorsDiv;
+            var $inlineDiv = inlines[i].$editorsDiv;  // see MultiRangeInlineEditor
             
-            if (divContainsMouse($inlineDiv, event)) {
+            if ($inlineDiv && divContainsMouse($inlineDiv, event)) {
                 editor = inlines[i].editors[0];
                 break;
             }
@@ -332,7 +333,8 @@ define(function (require, exports, module) {
     }
         
     // Create the preview container
-    $previewContainer = $("<div id='hover-preview-container'>").appendTo($("body"));
+    $previewContainer = $(previewContainerHTML).appendTo($("body"));
+    $previewContent = $previewContainer.find(".preview-content");
     
     // Load our stylesheet
     ExtensionUtils.loadStyleSheet(module, "HoverPreview.css");

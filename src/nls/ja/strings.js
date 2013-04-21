@@ -178,6 +178,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
+	"CMD_EXTENSION_MANAGER": "!能=[6775081] Extension Manager\u2026_=!",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -223,15 +224,17 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
-	"CMD_ENABLE_HOVER_PREVIEW": "!能=[6774420] Enable Hover Preview_=!",
+	"CMD_ENABLE_HOVER_PREVIEW": "ホバープレビューを有効にする",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義に移動",
+	"CMD_JUMPTO_DEFINITION": "!能=[6780638] Jump to Definition_=!",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
+	"CMD_TOGGLE_QUICK_DOCS": "!能=[6780639] Quick Docs_=!",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
 	"CMD_NEXT_DOC": "次の文書",
@@ -318,8 +321,8 @@ define({
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
 	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
-	"INVALID_BRACKETS_VERSION": "!能=[6771123] The Brackets compatibility string {{0}} is invalid._=!",
-	"DISALLOWED_WORDS": "!能=[6771122] The words {{1}} are not allowed in the {{0}} field._=!",
+	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
+	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
@@ -333,6 +336,9 @@ define({
 	"UNSUPPORTED_PROTOCOL": "URL は http または https URL である必要があります。",
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
+	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the Brackets extension registry. Please try again later._=!",
+	"INSTALL_FROM_URL": "!能=[6777878] Install from URL\u2026_=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",
@@ -348,5 +354,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "16 進形式",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "詳細"
 });

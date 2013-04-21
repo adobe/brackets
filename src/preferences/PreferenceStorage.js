@@ -145,13 +145,13 @@ define(function (require, exports, module) {
             error = null;
         
         // validate all name/value pairs before committing
-        CollectionUtils.forEach(obj, function (value, key) {
+        CollectionUtils.some(obj, function (value, key) {
             try {
                 _validateJSONPair(key, value);
             } catch (err) {
                 // fail fast
                 error = err;
-                return false;
+                return true;
             }
         });
         

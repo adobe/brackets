@@ -403,7 +403,7 @@ define(function (require, exports, module) {
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                 ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
                 json_data : { data: treeDataProvider, correct_state: false },
-                core : { animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
+                core : { html_titles: true, animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
@@ -601,20 +601,24 @@ define(function (require, exports, module) {
     function _convertEntriesToJSON(entries) {
         var jsonEntryList = [],
             entry,
-            entryI;
+            entryI,
+            jsonEntry;
 
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
             if (shouldShow(entry)) {
-                var jsonEntry = {
+                jsonEntry = {
                     data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
                     metadata: { entry: entry }
                 };
+
                 if (entry.isDirectory) {
                     jsonEntry.children = [];
                     jsonEntry.state = "closed";
+                } else {
+                    jsonEntry.data = ViewUtils.getFileEntryDisplay(entry);
                 }
     
                 // For more info on jsTree's JSON format see: http://www.jstree.com/documentation/json_data
@@ -692,9 +696,11 @@ define(function (require, exports, module) {
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
-                        StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
-                            StringUtils.htmlEscape(dirEntry.fullPath),
-                            error.name)
+                        StringUtils.format(
+                            Strings.READ_DIRECTORY_ENTRIES_ERROR,
+                            StringUtils.breakableUrl(dirEntry.fullPath),
+                            error.name
+                        )
                     );
                 }
             }
@@ -835,7 +841,7 @@ define(function (require, exports, module) {
                         Strings.ERROR_LOADING_PROJECT,
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                            StringUtils.htmlEscape(rootPath),
+                            StringUtils.breakableUrl(rootPath),
                             error.name
                         )
                     ).done(function () {
@@ -1131,22 +1137,24 @@ define(function (require, exports, module) {
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.INVALID_FILENAME_TITLE,
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                StringUtils.htmlEscape(data.rslt.name))
+                            StringUtils.format(
+                                Strings.FILE_ALREADY_EXISTS,
+                                StringUtils.breakableUrl(data.rslt.name)
+                            )
                         );
                     } else {
                         var errString = error.name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
                                          StringUtils.format(Strings.GENERIC_ERROR, error.name);
 
-                        var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
-                                        StringUtils.htmlEscape(data.rslt.name),
-                                        errString);
-                      
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_CREATING_FILE_TITLE,
-                            errMsg
+                            StringUtils.format(
+                                Strings.ERROR_CREATING_FILE,
+                                StringUtils.breakableUrl(data.rslt.name),
+                                errString
+                            )
                         );
                     }
 
@@ -1271,7 +1279,7 @@ define(function (require, exports, module) {
                     Strings.ERROR_RENAMING_FILE_TITLE,
                     StringUtils.format(
                         Strings.ERROR_RENAMING_FILE,
-                        StringUtils.htmlEscape(newName),
+                        StringUtils.breakableUrl(newName),
                         err === brackets.fs.ERR_FILE_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
                                 FileUtils.getFileErrorString(err)
@@ -1303,7 +1311,7 @@ define(function (require, exports, module) {
                     }
                     
                     var _resetOldFilename = function () {
-                        _projectTree.jstree("set_text", selected, data.rslt.old_name);
+                        _projectTree.jstree("set_text", selected, ViewUtils.getFileEntryDisplay(entry));
                         _projectTree.jstree("sort", selected.parent());
                     };
                     
@@ -1321,6 +1329,7 @@ define(function (require, exports, module) {
                     
                     renameItem(oldName, newName, isFolder)
                         .done(function () {
+                            _projectTree.jstree("set_text", selected, ViewUtils.getFileEntryDisplay(entry));
                             
                             // If a folder was renamed, re-select it here, since openAndSelectDocument()
                             // changed the selection.
@@ -1338,6 +1347,9 @@ define(function (require, exports, module) {
                             _resetOldFilename();
                         });
                 });
+                
+                // since html_titles are enabled, we have to reset the text without markup
+                _projectTree.jstree("set_text", selected, entry.name);
                 _projectTree.jstree("rename");
             });
         // No fail handler: silently no-op if file doesn't exist in tree

@@ -193,7 +193,8 @@ define(function (require, exports, module) {
         doc.addRef();
         $(doc).on("change", this._handleHostDocumentChange);
         
-        window.setTimeout(this._sizeEditorToContent.bind(this), 0);
+        this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
+        
         this.colorEditor.focus();
     };
     
@@ -214,10 +215,6 @@ define(function (require, exports, module) {
         var doc = this.hostEditor.document;
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
-    };
-
-    InlineColorEditor.prototype._sizeEditorToContent = function () {
-        this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
     };
 
     /** Comparator to sort by which colors are used the most */

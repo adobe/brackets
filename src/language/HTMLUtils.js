@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     //constants
     var TAG_NAME = "tagName",
+        CLOSING_TAG = "closingTag",
         ATTR_NAME = "attr.name",
         ATTR_VALUE = "attr.value";
     
@@ -399,10 +400,14 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            // Check to see if this is the closing of a tag (either the start or end)
-            if (ctx.token.string === ">" || ctx.token.string === "/>" ||
-                    (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
+            // Check to see if this is the closing of a start tag or a self closing tag
+            if (ctx.token.string === ">" || ctx.token.string === "/>") {
                 return createTagInfo();
+            }
+            
+            // Check to see if this is a closing tag
+            if (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/") {
+                return createTagInfo(CLOSING_TAG, offset - 2, ctx.token.string.slice(2));
             }
             
             // Make sure the cursor is not after an equal sign or a quote before we report the context as a tag.
@@ -504,14 +509,15 @@ define(function (require, exports, module) {
     
     
     // Define public API
-    exports.TAG_NAME = TAG_NAME;
-    exports.ATTR_NAME = ATTR_NAME;
-    exports.ATTR_VALUE = ATTR_VALUE;
+    exports.TAG_NAME         = TAG_NAME;
+    exports.CLOSING_TAG      = CLOSING_TAG;
+    exports.ATTR_NAME        = ATTR_NAME;
+    exports.ATTR_VALUE       = ATTR_VALUE;
     
-    exports.getTagInfo = getTagInfo;
+    exports.getTagInfo       = getTagInfo;
     exports.getTagAttributes = getTagAttributes;
     //The createTagInfo is really only for the unit tests so they can make the same structure to 
     //compare results with
-    exports.createTagInfo = createTagInfo;
+    exports.createTagInfo   = createTagInfo;
     exports.findStyleBlocks = findStyleBlocks;
 });

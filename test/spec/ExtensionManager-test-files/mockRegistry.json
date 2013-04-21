@@ -6,14 +6,14 @@
       "description": "Launches the test runner (or re-runs tests) with a keypress",
       "version": "1.0.2",
       "author": {
-        "name": "Kevin Dangoor",
-        "email": "dangoor@adobe.com"
+        "name": "Someone Awesome",
+        "email": "awesome@somereallyfakeemailaddressthatdoesntexist.com"
       },
       "engines": {
         "brackets": ">0.20.0"
       }
     },
-    "owner": "github:dangoor",
+    "owner": "github:someoneawesome",
     "versions": [
       {
         "version": "1.0.2",
@@ -26,7 +26,7 @@
     "metadata": {
       "name": "long-desc-extension",
       "author": {
-        "name": "Narciso Jaramillo"
+        "name": "Really Great Guy"
       },
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quam purus, convallis ut fringilla nec, iaculis ac felis. Cras ac commodo dui. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In nibh eros, venenatis sed consectetur ut, rutrum ac dolor. Ut scelerisque egestas odio, sed dignissim ligula lobortis ac.",
       "keywords": [
@@ -35,11 +35,39 @@
       ],
       "version": "1.0.0"
     },
-    "owner": "github:njx",
+    "owner": "github:greatguy",
     "versions": [
       {
         "version": "1.0.0",
         "published": "2013-04-10T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-1": {
+    "metadata": {
+      "name": "mock-extension-1",
+      "description": "First mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-2": {
+    "metadata": {
+      "name": "mock-extension-2",
+      "description": "Second mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
       }
     ]
   },
@@ -50,7 +78,7 @@
       "description": "I'm totally <script>more malicious content<\/script> harmless.",
       "version": "1.0.0"
     },
-    "owner": "github:njx",
+    "owner": "github:someuser",
     "versions": [
       {
         "version": "1.0.0",
@@ -74,30 +102,12 @@
         "brackets": ">0.22.0"
       }
     },
-    "owner": "github:njx",
+    "owner": "github:anotheruser",
     "versions": [
       {
         "version": "1.0.0",
         "published": "2013-04-10T18:26:47.580Z",
         "brackets": ">0.22.0"
-      }
-    ]
-  },
-  "incompatible-version": {
-    "metadata": {
-      "name": "incompatible-version",
-      "title": "Incompatible Version",
-      "version": "1.0.0",
-      "engines": {
-        "brackets": "<0.22"
-      }
-    },
-    "owner": "github:njx",
-    "versions": [
-      {
-        "version": "1.0.0",
-        "published": "2013-04-10T18:27:31.215Z",
-        "brackets": "<0.22"
       }
     ]
   },
@@ -107,7 +117,7 @@
       "title": "Basic Valid Extension",
       "version": "3.0.0"
     },
-    "owner": "github:njx",
+    "owner": "github:someuser",
     "versions": [
       {
         "version": "2.0.0",
@@ -125,7 +135,7 @@
       "title": "Everyscrub",
       "version": "0.23.0"
     },
-    "owner": "github:jasonsanjose",
+    "owner": "github:anotherawesomeuser",
     "versions": [
       {
         "version": "0.23.0",
