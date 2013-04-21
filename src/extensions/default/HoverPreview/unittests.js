@@ -32,7 +32,7 @@ define(function (require, exports, module) {
 
     describe("Hover Preview", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        var testWindow, brackets, EditorManager, HoverPreview, editor;
+        var testWindow, brackets, CommandManager, Commands, EditorManager, HoverPreview, editor;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -42,6 +42,8 @@ define(function (require, exports, module) {
                         testWindow = w;
                         // Load module instances from brackets.test
                         brackets = testWindow.brackets;
+                        CommandManager = testWindow.brackets.test.CommandManager;
+                        Commands = testWindow.brackets.test.Commands;
                         EditorManager = brackets.test.EditorManager;
                         HoverPreview = brackets.test.extensions.HoverPreview;
                     });
@@ -218,7 +220,77 @@ define(function (require, exports, module) {
                 });
             });
         });
-            
+
+        describe("Hover preview positioning", function () {
+
+            function getBounds(object) {
+                return {
+                    left:   object.offset().left,
+                    top:    object.offset().top,
+                    right:  object.offset().left + object.width(),
+                    bottom: object.offset().top + object.height()
+                };
+            }
+
+            function boundsInsideWindow(object) {
+                var bounds = getBounds(object);
+                return bounds.left   >= 0                      &&
+                       bounds.right  <= $(testWindow).width()  &&
+                       bounds.top    >= 0                      &&
+                       bounds.bottom <= $(testWindow).height();
+            }
+
+            function toggleOption(commandID, text) {
+                runs(function () {
+                    var promise = CommandManager.execute(commandID);
+                    waitsForDone(promise, text);
+                });
+            }
+
+            it("popover is not clipped", function () {
+                var $popover  = testWindow.$("#hover-preview-container");
+                expect($popover.length).toEqual(1);
+
+                runs(function () {
+                    // Popover should be below item
+                    hoverOn(3, 5, false);
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+
+                    // Popover should above item
+                    hoverOn(20, 26, false);
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+                });
+
+                runs(function () {
+                    // Turn off word wrap for next tests
+                    toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
+                });
+
+                runs(function () {
+
+// Issue #3447 - fixes both of the following tests
+/*
+                    // Popover should be inside right edge
+                    hoverOn(196, 36, false);
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+*/
+
+/*
+                    // Popover should be inside left edge
+                    var scrollX = editor._codeMirror.defaultCharWidth()  * 120,
+                        scrollY = editor._codeMirror.defaultTextHeight() * 190;
+
+                    editor.setScrollPos(scrollX, scrollY);      // Scroll right
+                    hoverOn(197, 136, false);
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+*/
+
+                    // restore word wrap
+                    toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
+                });
+            });
+        });
+
         describe("Hover preview images", function () {
             it("Should show image preview for file path inside url()", function () {
                 runs(function () {
