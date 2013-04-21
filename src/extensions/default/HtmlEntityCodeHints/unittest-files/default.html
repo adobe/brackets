@@ -1,0 +1,30 @@
+<p>
+    <!-- Should show hints -->
+    Test&
+</p>
+
+<!-- Should show hints -->
+<p>
+    Test&#33; &
+</p>
+
+<!-- Should show hints when cursor inside Entity -->
+<p>
+    Test&acute;
+</p>
+
+<!-- Shouldn't show hints inside an opening tag-->
+<p&></p>
+
+<!-- Shouldn't show hints inside a closing tag-->
+<p></p&>
+
+<!-- Should show hints when semi-colon on the same line -->
+<p>
+    Test ;  &
+</p>
+
+<!-- Should show hints when cursor inside Entity -->
+<p>
+    Test&
+</p>
