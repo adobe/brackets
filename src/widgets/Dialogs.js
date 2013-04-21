@@ -35,7 +35,8 @@ define(function (require, exports, module) {
 
     var KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent"),
-        NativeApp         = require("utils/NativeApp");
+        NativeApp         = require("utils/NativeApp"),
+        CollectionUtils   = require("utils/CollectionUtils");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
@@ -51,6 +52,15 @@ define(function (require, exports, module) {
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
+    
+    /**
+     * @private
+     * @type {Array.<{$dlg: jQueryObject, autoDismiss: boolean}>}
+     * The stack of open dialogs, with the most recently open dialog last in the array.
+     * FUTURE: when we merge #3086 or something similar, we can just set `autoDismiss` in the
+     * dialog object.
+     */
+    var _dialogStack = [];
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -62,8 +72,19 @@ define(function (require, exports, module) {
         return dlg.find("[data-button-id='" + buttonId + "']");
     }
 
-    var _handleKeyDown = function (e, autoDismiss) {
-        var primaryBtn = this.find(".primary"),
+    /**
+     * Global key event handler for dialogs. We handle this centrally instead of just letting each dialog handle it
+     * because we want to ensure that when dialogs are nested, the most recent dialog wins.
+     */
+    function _handleDialogKeyDown(e) {
+        if (_dialogStack.length === 0) {
+            return;
+        }
+        
+        var dlgInfo = _dialogStack[_dialogStack.length - 1],
+            $dlg = dlgInfo.$dlg,
+            autoDismiss = dlgInfo.autoDismiss,
+            primaryBtn = $dlg.find(".primary"),
             buttonId = null,
             which = String.fromCharCode(e.which);
         
@@ -71,16 +92,18 @@ define(function (require, exports, module) {
         var inFormField = ($(e.target).filter(":input").length > 0),
             inTextArea = (e.target.tagName === "TEXTAREA");
         
-        if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
+        if (e.which === KeyEvent.DOM_VK_ESCAPE) {
+            buttonId = DIALOG_BTN_CANCEL;
+        } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
             primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button
-            this.find(".dialog-button:focus").click();
+            $dlg.find(".dialog-button:focus").click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
             if (e.metaKey && (which === "D")) {
-                if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
+                if (_hasButton($dlg, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
             // FIXME (issue #418) CMD+. Cancel swallowed by native shell
@@ -90,15 +113,15 @@ define(function (require, exports, module) {
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
             if (which === "N" && !inFormField) {
-                if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
+                if (_hasButton($dlg, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
             }
         }
         
         if (autoDismiss && buttonId) {
-            _dismissDialog(this, buttonId);
-        } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
+            _dismissDialog($dlg, buttonId);
+        } else if (!($.contains($dlg.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
             // TODO (issue #414): more robust handling of dialog scoped
@@ -106,7 +129,7 @@ define(function (require, exports, module) {
             e.stopPropagation();
             e.preventDefault();
         }
-    };
+    }
     
     /**
      * Like showModalDialog(), but takes a template as a parameter rather than assuming the template is embedded
@@ -154,10 +177,6 @@ define(function (require, exports, module) {
             }
         });
 
-        var handleKeyDown = function (e) {
-            _handleKeyDown.call($dlg, e, autoDismiss);
-        };
-
         // Pipe dialog-closing notification back to client code
         $dlg.one("hidden", function () {
             var buttonId = $dlg.data("buttonId");
@@ -175,9 +194,19 @@ define(function (require, exports, module) {
             // Remove the dialog instance from the DOM.
             $dlg.remove();
 
-            // Remove keydown event handler
-            window.document.body.removeEventListener("keydown", handleKeyDown, true);
-            KeyBindingManager.setEnabled(true);
+            // Remove the dialog from the dialog stack.
+            var index = CollectionUtils.indexOf(_dialogStack, function (item) {
+                return item.$dlg === $dlg;
+            });
+            if (index !== -1) {
+                _dialogStack.splice(index, 1);
+            }
+            if (_dialogStack.length === 0) {
+                // No more dialogs in the stack. Re-enable ordinary keybindings and turn off
+                // our global keydown capture listener.
+                KeyBindingManager.setEnabled(true);
+                window.document.body.removeEventListener("keydown", _handleDialogKeyDown, true);
+            }
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
@@ -186,9 +215,14 @@ define(function (require, exports, module) {
                 primaryBtn.focus();
             }
 
-            // Listen for dialog keyboard shortcuts
-            window.document.body.addEventListener("keydown", handleKeyDown, true);
-            KeyBindingManager.setEnabled(false);
+            // Add the dialog to the dialog stack.
+            if (_dialogStack.length === 0) {
+                // We're about to launch the first dialog in the stack. Turn off ordinary keybindings, and 
+                // attach the global dialog keydown capture listener.
+                KeyBindingManager.setEnabled(false);
+                window.document.body.addEventListener("keydown", _handleDialogKeyDown, true);
+            }
+            _dialogStack.push({ $dlg: $dlg, autoDismiss: autoDismiss });
         });
         
         // Click handler for buttons
@@ -202,7 +236,7 @@ define(function (require, exports, module) {
         $dlg.modal({
             backdrop: "static",
             show: true,
-            keyboard: autoDismiss
+            keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
         });
 
         return promise;
