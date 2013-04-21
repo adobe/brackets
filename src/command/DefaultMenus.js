@@ -98,6 +98,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT);
         menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.EDIT_WRAP_TAG);
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
 
         /*

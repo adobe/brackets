@@ -207,6 +207,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Toggle Block Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
+    "CMD_WRAP_TAG"                        : "Wrap Selection with Tag",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     
     // View menu commands

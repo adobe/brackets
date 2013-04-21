@@ -142,6 +142,9 @@
             "platform": "mac"
         }
     ],
+    "edit.wrapTag": [
+        "Alt-Shift-W"
+    ],
     "view.hideSidebar":  [
         "Ctrl-Shift-H"
     ],

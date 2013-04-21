@@ -42,8 +42,10 @@ define(function (require, exports, module) {
     /**
      * List of constants
      */
-    var DIRECTION_UP    = -1;
-    var DIRECTION_DOWN  = +1;
+    var DIRECTION_UP      = -1,
+        DIRECTION_DOWN    = +1,
+        DEFAULT_OPEN_TAG  = "<p>",
+        DEFAULT_CLOSE_TAG = "</p>";
     
     
     /**
@@ -553,6 +555,7 @@ define(function (require, exports, module) {
     /**
      * Duplicates the selected text, or current line if no selection. The cursor/selection is left
      * on the second copy.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
     function duplicateText(editor) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -578,10 +581,12 @@ define(function (require, exports, module) {
         var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
         doc.replaceRange(selectedText, sel.start);
     }
-
+    
+    
     /**
      * Deletes the current line if there is no selection or the lines for the selection
      * (removing the end of line too)
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
     function deleteCurrentLines(editor) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -611,11 +616,12 @@ define(function (require, exports, module) {
         doc.replaceRange("", from, to);
     }
     
+    
     /**
      * Moves the selected text, or current line if no selection. The cursor/selection 
      * moves with the line/lines.
-     * @param {Editor} editor - target editor
-     * @param {Number} direction - direction of the move (-1,+1) => (Up,Down)
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     * @param {number} direction Direction of the move (-1,+1) => (Up,Down)
      */
     function moveLine(editor, direction) {
         editor = editor || EditorManager.getFocusedEditor();
@@ -703,6 +709,7 @@ define(function (require, exports, module) {
     /**
      * Moves the selected text, or current line if no selection, one line up. The cursor/selection 
      * moves with the line/lines.
+     * @param {?Editor} editor Target editor
      */
     function moveLineUp(editor) {
         moveLine(editor, DIRECTION_UP);
@@ -711,11 +718,13 @@ define(function (require, exports, module) {
     /**
      * Moves the selected text, or current line if no selection, one line down. The cursor/selection 
      * moves with the line/lines.
+     * @param {?Editor} editor Target editor
      */
     function moveLineDown(editor) {
         moveLine(editor, DIRECTION_DOWN);
     }
-
+    
+    
     /**
      * Indent a line of text if no selection. Otherwise, indent all lines in selection.
      */
@@ -739,7 +748,12 @@ define(function (require, exports, module) {
         
         editor._codeMirror.execCommand("indentLess");
     }
-
+    
+    
+    /**
+     * Selects/extends the selection to select a complete line and keeps extending it to select following lines
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
     function selectLine(editor) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
@@ -757,7 +771,162 @@ define(function (require, exports, module) {
             editor.setSelection(from, to);
         }
     }
-
+    
+    
+    /**
+     * @private
+     * Wraps the selection with the default HTML Tags and creates a synchronization so that modifying the open tag,
+     * modifies the close tag until the cursor moves outside of the content of the open tag.
+     * @param {Editor} editor Target editor
+     */
+    function _doWrapSelectionWithTag(editor) {
+        var sel       = editor.getSelection(),
+            doc       = editor.document,
+            openFrom  = {line: sel.start.line, ch: sel.start.ch + 1},
+            openTo    = {line: sel.start.line, ch: sel.start.ch + DEFAULT_OPEN_TAG.length - 1},
+            closeCh   = sel.end.ch + (sel.end.line === sel.start.line ? DEFAULT_OPEN_TAG.length : 0),
+            closeFrom = {line: sel.end.line, ch: closeCh + 2},
+            closeTo   = {line: sel.end.line, ch: closeCh + DEFAULT_CLOSE_TAG.length - 1},
+            options   = {inclusiveLeft: true, inclusiveRight: true},
+            $doc      = $(doc),
+            $editor   = $(editor);
+        
+        // Let's start by adding the default open and close tags around the selection
+        doc.batchOperation(function () {
+            doc.replaceRange(DEFAULT_CLOSE_TAG, sel.end);
+            doc.replaceRange(DEFAULT_OPEN_TAG,  sel.start);
+        });
+        
+        // Select the content inside the open tag
+        editor.setSelection(openFrom, openTo);
+        
+        // Create text marks for the content of the open and close tags
+        var openTagMarker  = editor._codeMirror.markText(openFrom, openTo, options);
+        var closeTagMarker = editor._codeMirror.markText(closeFrom, closeTo, options);
+        
+        
+        /**
+         * Synchronize the content between the open and close tags
+         * @param {$.Event} event
+         * @param {Document} curDoc The document that changed, should be the current one
+         * @param {Object} change A linked list as described in the Document constructor
+         */
+        function syncTags(event, curDoc, change) {
+            var openTagPos  = openTagMarker.find();
+            var closeTagPos = closeTagMarker.find();
+            
+            // Just sync if it is not an undo/redo change and if we can find the open marker
+            if (openTagPos && change.origin !== "undo" && change.origin !== "redo") {
+                // Get the open tag: The content in the range until the first space
+                var openTagText = doc.getRange(openTagPos.from, openTagPos.to).split(" ")[0];
+                
+                // Replace the content of the close tag with the open tag. We do it in between
+                // listeners to avoid an infinite loop
+                $doc.off(".wrapSelection");
+                doc.replaceRange(openTagText, closeTagPos.from, closeTagPos.to, change.origin);
+                $doc.on("change.wrapSelection", syncTags);
+            }
+        }
+        
+        /**
+         * End the synchronization when the cursor moves outside the open marker
+         */
+        function endSync() {
+            var openTagPos = openTagMarker.find();
+            var cursorPos  = editor.getCursorPos();
+            
+            if (openTagPos && !editor.posWithinRange(cursorPos, openTagPos.from, openTagPos.to)) {
+                $doc.off(".wrapSelection");
+                $editor.off(".wrapSelection");
+                    
+                openTagMarker.clear();
+                closeTagMarker.clear();
+            }
+        }
+        
+        // Register the events
+        $doc.on("change.wrapSelection", syncTags);
+        $editor.on("cursorActivity.wrapSelection", endSync);
+    }
+    
+    /**
+     * @private
+     * Determines if the selection is outside a tag
+     * @param {Editor} editor Target editor
+     * @return {boolean} true if the selection is outside a tag
+     */
+    function _isOutsideTag(editor) {
+        var sel       = editor.getSelection(),
+            startCtx  = TokenUtils.getInitialContext(editor._codeMirror, sel.start),
+            endCtx    = TokenUtils.getInitialContext(editor._codeMirror, sel.end),
+            startExp  = /^</,
+            endExp    = />$/,
+            endResult = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, endCtx),
+            startTag  = startCtx.token.string.match(startExp),
+            endTag    = endResult && endCtx.token.string.match(endExp),
+            result    = true;
+        
+        // Search backwards from the start of the selection until we find the start or end of a tag
+        while (result && startCtx.token.className !== "tag" && (!startTag || !startCtx.token.string.match(endExp))) {
+            result   = TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, startCtx);
+            startTag = startCtx.token.string.match(startExp);
+        }
+        
+        // Search fowards from the end of the selection until we find the start or end of a tag
+        result = true;
+        while (result && endCtx.token.className !== "tag" && (!endCtx.token.string.match(startExp) || !endTag)) {
+            result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, endCtx);
+            endTag = endCtx.token.string.match(endExp);
+        }
+        
+        return !startTag && !endTag;
+    }
+    
+    /**
+     * @private
+     * Determines if the selection is inside a string
+     * @param {Editor} editor Target editor
+     * @return {boolean} true if the selection is inside a string
+     */
+    function _isInString(editor) {
+        var sel    = editor.getSelection(),
+            ctx    = TokenUtils.getInitialContext(editor._codeMirror, sel.start),
+            endExp = /"$|'$|\\$/,
+            result = true;
+        
+        var isString, endToken, atEnd;
+        
+        do {
+            isString = result && ctx.token.className === "string";
+            endToken = ctx.token.end - (ctx.token.string.match(endExp) ? 1 : 0);
+            atEnd    = ctx.pos.line === sel.end.line && endToken >= sel.end.ch;
+            result   = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
+        } while (isString && !atEnd);
+        
+        return isString;
+    }
+    
+    /**
+     * Wraps the selection with the default HTML Tags and creates a synchronization so that modifying the open tag,
+     * modifies the close tag until the cursor moves outside of the content of the open tag.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function wrapSelectionWithTag(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var languageId = editor.getLanguageForSelection().getId();
+        
+        if ((languageId === "html" || languageId === "xml") && _isOutsideTag(editor)) {
+            _doWrapSelectionWithTag(editor);
+        } else if (languageId === "javascript" && _isInString(editor)) {
+            _doWrapSelectionWithTag(editor);
+        }
+    }
+    
+    
     function handleUndoRedo(operation) {
         var editor = EditorManager.getFocusedEditor();
         var result = new $.Deferred();
@@ -789,8 +958,8 @@ define(function (require, exports, module) {
         // Do nothing. The shell will call the native handler for the command.
         return (new $.Deferred()).reject().promise();
     }
-	
-	function _handleSelectAll() {
+    
+    function _handleSelectAll() {
         var result = new $.Deferred(),
             editor = EditorManager.getFocusedEditor();
 
@@ -803,22 +972,24 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+    
         
     // Register commands
-    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
-    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
-    CommandManager.register(Strings.CMD_BLOCK_COMMENT,  Commands.EDIT_BLOCK_COMMENT,    blockComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
-    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
-    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
-    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
-    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
+    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,         indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,       unidentText);
+    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,   lineComment);
+    CommandManager.register(Strings.CMD_BLOCK_COMMENT,  Commands.EDIT_BLOCK_COMMENT,  blockComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,      duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,   deleteCurrentLines);
+    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,        moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,      moveLineDown);
+    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,    selectLine);
+    CommandManager.register(Strings.CMD_WRAP_TAG,       Commands.EDIT_WRAP_TAG,       wrapSelectionWithTag);
     
-    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             handleUndo);
-    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             handleRedo);
-    CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
-    CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
-    CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,       _handleSelectAll);
+    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,           handleUndo);
+    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,           handleRedo);
+    CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,            ignoreCommand);
+    CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,           ignoreCommand);
+    CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,          ignoreCommand);
+    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,     _handleSelectAll);
 });

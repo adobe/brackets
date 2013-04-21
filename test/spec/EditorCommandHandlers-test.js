@@ -2393,5 +2393,141 @@ define(function (require, exports, module) {
             });
         });
         
+        
+        describe("Wrap Selection with Tag", function () {
+            var htmlContent = "<html>\n" +
+                              "    <body>\n" +
+                              "        Hello World\n" +
+                              "        <p  class=\"brackets\">Text</p>\n" +
+                              "    </body>\n" +
+                              "</html>";
+            
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+            });
+            
+            
+            it("should wrap a selection with the default tags and select the content of the open tag", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                
+                expect(myDocument.getLine(2)).toEqual("        <p>Hello World</p>");
+                expectSelection({start: {line: 2, ch: 9}, end: {line: 2, ch: 10}});
+            });
+            
+            it("should synchronize the content of the tags", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                
+                myDocument.replaceRange("", {line: 2, ch: 9}, {line: 2, ch: 10});
+                expect(myDocument.getLine(2)).toEqual("        <>Hello World</>");
+                
+                myDocument.replaceRange("h1", {line: 2, ch: 9}, {line: 2, ch: 9});
+                expect(myDocument.getLine(2)).toEqual("        <h1>Hello World</h1>");
+                
+                myDocument.replaceRange("2", {line: 2, ch: 10}, {line: 2, ch: 11});
+                expect(myDocument.getLine(2)).toEqual("        <h2>Hello World</h2>");
+                
+                myDocument.replaceRange("3", {line: 2, ch: 11});
+                expect(myDocument.getLine(2)).toEqual("        <h23>Hello World</h23>");
+                
+                myDocument.replaceRange("", {line: 2, ch: 10}, {line: 2, ch: 12});
+                expect(myDocument.getLine(2)).toEqual("        <h>Hello World</h>");
+            });
+            
+            it("should NOT synchronize any content of the open tag after a space", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                
+                myDocument.replaceRange("h1 title=\"yay\"", {line: 2, ch: 9}, {line: 2, ch: 10});
+                expect(myDocument.getLine(2)).toEqual("        <h1 title=\"yay\">Hello World</h1>");
+            });
+            
+            it("should stop synchronizing after moving outside of the open tag", function () {
+                myEditor.setSelection({line: 2, ch: 8}, {line: 2, ch: 19});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                
+                myDocument.replaceRange("h1", {line: 2, ch: 9}, {line: 2, ch: 10});
+                expect(myDocument.getLine(2)).toEqual("        <h1>Hello World</h1>");
+                
+                myEditor.setCursorPos({line: 0, ch: 0});
+                
+                myDocument.replaceRange("h2", {line: 2, ch: 9}, {line: 2, ch: 11});
+                expect(myDocument.getLine(2)).toEqual("        <h2>Hello World</h1>");
+            });
+            
+            it("should do nothing when the start or end of the selection is inside a tag", function () {
+                var expectedText = "        <p  class=\"brackets\">Text</p>";
+                
+                myEditor.setSelection({line: 3, ch: 2}, {line: 3, ch: 10});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setSelection({line: 3, ch: 2}, {line: 3, ch: 20});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setSelection({line: 3, ch: 22}, {line: 3, ch: 37});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setSelection({line: 3, ch: 22}, {line: 4, ch: 2});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+                
+                myEditor.setCursorPos({line: 3, ch: 10});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual(expectedText);
+            });
+            
+            it("should wrap a selection with tags next to tags", function () {
+                myEditor.setSelection({line: 3, ch: 29}, {line: 3, ch: 33});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual("        <p  class=\"brackets\"><p>Text</p></p>");
+                
+                myEditor.setSelection({line: 3, ch: 8}, {line: 3, ch: 44});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(3)).toEqual("        <p><p  class=\"brackets\"><p>Text</p></p></p>");
+            });
+        });
+        
+        describe("Wrap Selection with Tag - in JavaScript", function () {
+            var jsContent = "var cnt  = \"Hello World\"\n" +
+                            "var temp = \"string in line 1\\\n" +
+                            "            string in line 2\\\n" +
+                            "            string in line 3\"\n" +
+                            "function foo() {\n" +
+                            "    bar();\n" +
+                            "}\n";
+            
+            beforeEach(function () {
+                setupFullEditor(jsContent, "javascript");
+            });
+            
+            it("should wrap a selection in inside one line strings", function () {
+                myEditor.setSelection({line: 0, ch: 12}, {line: 0, ch: 23});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(0)).toEqual("var cnt  = \"<p>Hello World</p>\"");
+            });
+            
+            it("should NOT wrap a selection when selecting the closing string quote", function () {
+                myEditor.setSelection({line: 0, ch: 12}, {line: 0, ch: 24});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(0)).toEqual("var cnt  = \"Hello World\"");
+            });
+            
+            it("should NOT wrap a selection when selecting multiple strings", function () {
+                myEditor.setSelection({line: 0, ch: 12}, {line: 2, ch: 8});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(0)).toEqual("var cnt  = \"Hello World\"");
+            });
+            
+            it("should wrap a mupltiple lines selection on a multiple lines string", function () {
+                myEditor.setSelection({line: 1, ch: 12}, {line: 3, ch: 28});
+                CommandManager.execute(Commands.EDIT_WRAP_TAG, myEditor);
+                expect(myDocument.getLine(1)).toEqual("var temp = \"<p>string in line 1\\");
+                expect(myDocument.getLine(3)).toEqual("            string in line 3</p>\"");
+            });
+        });
     });
 });
