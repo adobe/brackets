@@ -41,7 +41,8 @@ define(function (require, exports, module) {
         enabled,                             // Only show preview if true
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
-        $previewContent;                     // Preview content holder
+        $previewContent,                     // Preview content holder
+        lastPos;                             // Last line/ch pos processed by handleMouseMove
     
     // Constants
     var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
@@ -312,8 +313,6 @@ define(function (require, exports, module) {
     }
     
     
-    var lastPos;    // TODO: remove?
-    
     /**
      * Returns true if pos is contained within popover's start-end range (start inclusive, end exclusive)
      */
@@ -370,8 +369,9 @@ define(function (require, exports, module) {
             // Find char mouse is over
             var cm = editor._codeMirror;
             var pos = cm.coordsChar({left: event.clientX, top: event.clientY});
+            
             if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
-                return;
+                return;  // bail if mouse is on same char as last event
             }
             lastPos = pos;
             
