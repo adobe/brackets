@@ -137,6 +137,7 @@ define({
      */
 	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
+	"WORKING_FILES": "!能=[6780767] Working Files_=!",
 
     /**
      * Keyboard modifier names
@@ -323,7 +324,7 @@ define({
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
 	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
 	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
-	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
+	"API_NOT_COMPATIBLE": "!能=[6737427] The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder._=!",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
 	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
@@ -337,8 +338,18 @@ define({
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
-	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the Brackets extension registry. Please try again later._=!",
+	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the extension registry. Please try again later._=!",
 	"INSTALL_FROM_URL": "!能=[6777878] Install from URL\u2026_=!",
+	"EXTENSION_AUTHOR": "作成者",
+	"EXTENSION_DATE": "日付",
+	"EXTENSION_INCOMPATIBLE_NEWER": "!能=[6780760] This extension requires a newer version of {APP_NAME}._=!",
+	"EXTENSION_INCOMPATIBLE_OLDER": "!能=[6780761] This extension currently only works with older versions of {APP_NAME}._=!",
+	"EXTENSION_NO_DESCRIPTION": "説明なし",
+	"EXTENSION_KEYWORDS": "キーワード",
+	"EXTENSION_INSTALLED": "!能=[6780762] Installed_=!",
+	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
+	"EXTENSION_MORE_INFO_LINK": "!能=[6780764] More_=!",
+	"EXTENSION_FREE_ON_GITHUB": "!能=[6780759] Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub._=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",
