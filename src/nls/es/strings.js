@@ -135,8 +135,9 @@ define({
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING" : "Cargando\u2026",
-    "UNTITLED" : "Sin título",
+    "PROJECT_LOADING"   : "Cargando\u2026",
+    "UNTITLED"          : "Sin título",
+    "WORKING_FILES"     : "Área de trabajo",
     
     /**
      * Keyboard modifier names
@@ -178,6 +179,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_INSTALL_EXTENSION"               : "Instalar extensión\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Gestionar extensiones\u2026",
     "CMD_QUIT"                            : "Salir",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Salir",
@@ -223,14 +225,17 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
     "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
+    "CMD_ENABLE_HOVER_PREVIEW"            : "Habilitar previsualización con cursor",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a línea",
     "CMD_GOTO_DEFINITION"                 : "Ir a definición",
+    "CMD_JUMPTO_DEFINITION"               : "Saltar a definición",
     "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Documentación instantánea",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",
     "CMD_NEXT_DOC"                        : "Documento siguiente",
@@ -318,7 +323,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "El número de paquete de la versión ({0}) no es válido.",
     "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de Brackets {{0}} no es válido.",
     "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
-    "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de Brackets. Está en la carpeta de extensiones deshabilitadas.",
+    "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
     "ALREADY_INSTALLED"                    : "Ya hay instalada una extensión con el mismo nombre. La nueva extensión está en la carpeta de extensiones deshabilitadas.",
     "NO_DISABLED_DIRECTORY"                : "No se puede guardar la extensión en extensions/disabled porque la carpeta no existe.",
@@ -330,6 +335,20 @@ define({
     "MALFORMED_URL"                        : "La URL no es válida. Por favor, comprueba que la has escrito correctamente.",
     "UNSUPPORTED_PROTOCOL"                 : "La URL debe ser una dirección http o https.",
     "UNKNOWN_ERROR"                        : "Error interno desconocido.",
+    // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Gestor de extensiones",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "No se pudo acceder al registro de extensiones. Vuelve a intentarlo más tarde, por favor.",
+    "INSTALL_FROM_URL"                     : "Instalar desde URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Autor",
+    "EXTENSION_DATE"                       : "Fecha",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita una versión más actualizada de {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "En estos momentos esta extensión sólo funciona con versiones anteriores de {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
+    "EXTENSION_KEYWORDS"                   : "Palabras clave",
+    "EXTENSION_INSTALLED"                  : "Instalada",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
+    "EXTENSION_MORE_INFO_LINK"             : "Más",
+    "EXTENSION_FREE_ON_GITHUB"             : "¿Estás buscando interesantes novedades desarrolladas por la comunidad? Echa un vistazo a todas las extensiones gratis para Brackets en Github.",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "Errores de JSLint",
@@ -345,5 +364,8 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Formato Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Más"
 });
