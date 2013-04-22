@@ -102,30 +102,6 @@ define(function (require, exports, module) {
                 event.clientY <= offset.top + $div.height());
     }
 
-    // Heuristic to detect common cases of newer syntax color stops that Chrome 25
-    // does not yet support. This is supported in Chrome 26 which will be upgraded
-    // to soon, so this code is quick (to write) and dirty (inefficient to run).
-    function hasNewSyntaxColorStop(gradient) {
-        // Old school webkit gradients are supported and don't fit this heuristic
-        if (gradient.indexOf("-webkit-gradient") !== -1) {
-            return false;
-        }
-
-        // To make code easier to parse remove optional whitespace
-        // Whitespace around commas and opening parens is optional. Also before
-        // (but not after) closing parens. This is common with colors specified as
-        // functions such as rgb().
-        var s = gradient
-                    .trim()
-                    .replace(/\s*,\s*/g, ",")
-                    .replace(/\s*\(\s*/g, "(")
-                    .replace(/\s*\)/g, ")");
-
-        // Whitespace in first (optional) parameter is supported, but all subsequent
-        // (i.e. after first comma) whitespace is from a color stop (<color> <length>).
-        return s.match(/,\S+\s/);
-    }
-
     function colorAndGradientPreviewProvider(editor, pos, token, line) {
         var cm = editor._codeMirror;
         
@@ -146,10 +122,6 @@ define(function (require, exports, module) {
             } else if (gradientMatch[0].indexOf("to ") !== -1) {
                 // If the gradient match has "to " in it, it's most likely the new gradient
                 // syntax which is not supported until Chrome 26, so we can't yet preview it
-                gradientMatch = null;
-
-            } else if (hasNewSyntaxColorStop(gradientMatch[0])) {
-                // Ignore new gradient color stop syntax, for now
                 gradientMatch = null;
             }
         }
