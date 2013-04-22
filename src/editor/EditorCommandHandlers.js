@@ -717,6 +717,67 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Inserts a new and smart indented line above/below the selected text, or current line if no selection.
+     * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
+     * @param {Number} direction - direction where to place the new line (-1,+1) => (Up,Down)
+     */
+    function openLine(editor, direction) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var sel            = editor.getSelection(),
+            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
+            lastLine       = editor.getLastVisibleLine(),
+            cm             = editor._codeMirror,
+            doc            = editor.document,
+            line;
+        
+        // Insert the new line
+        switch (direction) {
+        case DIRECTION_UP:
+            line = sel.start.line;
+            break;
+        case DIRECTION_DOWN:
+            line = sel.end.line;
+            if (!(hasSelection && sel.end.ch === 0)) {
+                // If not linewise selection
+                line++;
+            }
+            break;
+        }
+        
+        if (line > lastLine && isInlineWidget) {
+            doc.replaceRange("\n", {line: line - 1, ch: doc.getLine(line - 1).length}, null, "+input");
+        } else {
+            doc.replaceRange("\n", {line: line, ch: 0}, null, "+input");
+        }
+        cm.indentLine(line, "smart", false);
+        editor.setSelection({line: line, ch: null});
+    }
+
+    /**
+     * Inserts a new and smart indented line above the selected text, or current line if no selection.
+     * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
+     */
+    function openLineAbove(editor) {
+        openLine(editor, DIRECTION_UP);
+    }
+
+    /**
+     * Inserts a new and smart indented line below the selected text, or current line if no selection.
+     * The cursor is moved in the new line.
+     * @param {Editor} editor - target editor
+     */
+    function openLineBelow(editor) {
+        openLine(editor, DIRECTION_DOWN);
+    }
+
+    /**
      * Indent a line of text if no selection. Otherwise, indent all lines in selection.
      */
     function indentText() {
@@ -805,20 +866,22 @@ define(function (require, exports, module) {
     }
         
     // Register commands
-    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
-    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
-    CommandManager.register(Strings.CMD_BLOCK_COMMENT,  Commands.EDIT_BLOCK_COMMENT,    blockComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
-    CommandManager.register(Strings.CMD_DELETE_LINES,   Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
-    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
-    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
-    CommandManager.register(Strings.CMD_SELECT_LINE,    Commands.EDIT_SELECT_LINE,      selectLine);
-    
-    CommandManager.register(Strings.CMD_UNDO,           Commands.EDIT_UNDO,             handleUndo);
-    CommandManager.register(Strings.CMD_REDO,           Commands.EDIT_REDO,             handleRedo);
-    CommandManager.register(Strings.CMD_CUT,            Commands.EDIT_CUT,              ignoreCommand);
-    CommandManager.register(Strings.CMD_COPY,           Commands.EDIT_COPY,             ignoreCommand);
-    CommandManager.register(Strings.CMD_PASTE,          Commands.EDIT_PASTE,            ignoreCommand);
-    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL,       _handleSelectAll);
+    CommandManager.register(Strings.CMD_INDENT,           Commands.EDIT_INDENT,           indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,         Commands.EDIT_UNINDENT,         unidentText);
+    CommandManager.register(Strings.CMD_COMMENT,          Commands.EDIT_LINE_COMMENT,     lineComment);
+    CommandManager.register(Strings.CMD_BLOCK_COMMENT,    Commands.EDIT_BLOCK_COMMENT,    blockComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,        Commands.EDIT_DUPLICATE,        duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,     Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
+    CommandManager.register(Strings.CMD_LINE_UP,          Commands.EDIT_LINE_UP,          moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,        Commands.EDIT_LINE_DOWN,        moveLineDown);
+    CommandManager.register(Strings.CMD_OPEN_LINE_ABOVE,  Commands.EDIT_OPEN_LINE_ABOVE,  openLineAbove);
+    CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,  Commands.EDIT_OPEN_LINE_BELOW,  openLineBelow);
+    CommandManager.register(Strings.CMD_SELECT_LINE,      Commands.EDIT_SELECT_LINE,      selectLine);
+
+    CommandManager.register(Strings.CMD_UNDO,             Commands.EDIT_UNDO,             handleUndo);
+    CommandManager.register(Strings.CMD_REDO,             Commands.EDIT_REDO,             handleRedo);
+    CommandManager.register(Strings.CMD_CUT,              Commands.EDIT_CUT,              ignoreCommand);
+    CommandManager.register(Strings.CMD_COPY,             Commands.EDIT_COPY,             ignoreCommand);
+    CommandManager.register(Strings.CMD_PASTE,            Commands.EDIT_PASTE,            ignoreCommand);
+    CommandManager.register(Strings.CMD_SELECT_ALL,       Commands.EDIT_SELECT_ALL,       _handleSelectAll);
 });
