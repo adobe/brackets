@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     // Brackets modules
     var AppInit             = brackets.getModule("utils/AppInit"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus"),
@@ -44,6 +45,7 @@ define(function (require, exports, module) {
         previewMark,                         // CodeMirror marker highlighting the preview text
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
+        currentDocument,                     // doc for change event
         currentImagePreviewContent   = "",   // Current image preview content, or "" if no content is showing.
         lastPreviewedColorOrGradient = "",   // Color/gradient value of last previewed.
         lastPreviewedImagePath       = "";   // Image path of last previewed.
@@ -305,6 +307,21 @@ define(function (require, exports, module) {
         return lastPreviewedImagePath;
     }
 
+    function onActiveEditorChange(event, current, previous) {
+        if (currentDocument) {
+            $(currentDocument).off("change", hidePreview);
+            currentDocument.releaseRef();
+        }
+
+        // Keep track of doc so ref count can be released and event listening stopped
+        currentDocument = current && current.document;
+
+        if (currentDocument) {
+            currentDocument.addRef();
+            $(currentDocument).on("change", hidePreview);
+        }
+    }
+
     // Menu command handlers
     function updateMenuItemCheckmark() {
         CommandManager.get(CMD_ENABLE_HOVER_PREVIEW).setChecked(enabled);
@@ -317,9 +334,21 @@ define(function (require, exports, module) {
             if (enabled) {
                 editorHolder.addEventListener("mousemove", handleMouseMove, true);
                 editorHolder.addEventListener("scroll", hidePreview, true);
+                $(DocumentManager).on("currentDocumentChange", hidePreview);
+
+                // Setup doc "change" listener
+                onActiveEditorChange(null, EditorManager.getCurrentFullEditor(), null);
+                $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
             } else {
                 editorHolder.removeEventListener("mousemove", handleMouseMove, true);
                 editorHolder.removeEventListener("scroll", hidePreview, true);
+                $(DocumentManager).off("currentDocumentChange", hidePreview);
+
+                // Cleanup doc "change" listener
+                onActiveEditorChange(null, null, null);
+                $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+
                 hidePreview();
             }
             prefs.setValue("enabled", enabled);
