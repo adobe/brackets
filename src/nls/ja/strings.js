@@ -231,8 +231,10 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義に移動",
+	"CMD_JUMPTO_DEFINITION": "!能=[6780638] Jump to Definition_=!",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
+	"CMD_TOGGLE_QUICK_DOCS": "!能=[6780639] Quick Docs_=!",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
 	"CMD_NEXT_DOC": "次の文書",
@@ -352,5 +354,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "16 進形式",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "詳細"
 });

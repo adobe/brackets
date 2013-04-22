@@ -22,19 +22,19 @@
  */
 
 .brackets-js-hints.priority-high {
-    color: rgb(0, 100, 0); /* green */
+    color: #486c00; /* green */
 }
 
 .brackets-js-hints.priority-medium {
-    color: rgb(125, 125, 0); /* yellow */
+    color: #0c50af; /* blue */
 }
 
 .brackets-js-hints.priority-low {
-    color: rgb(0, 0, 100); /* blue */
+    color: #6b24bd; /* violet */
 }
 
 .brackets-js-hints.priority-lowest {
-    color: rgb(0, 0, 0); /* black */
+    color: #444; /* dark grey */
 }
 
 .brackets-js-hints.variable-hint {
@@ -44,7 +44,7 @@
 }
 
 .brackets-js-hints.literal-hint {
-    color: rgb(50, 50, 50); /* dark grey */
+    color: #444; /* dark grey */
 }
 
 .brackets-js-hints.keyword-hint {
