@@ -43,10 +43,9 @@ define(function (require, exports, module) {
             doc,
             pos;
     
-        function openInlineAtPos(info, offset, expectInline) {
+        function queryInlineAtPos(info, offset, expectInline, expectedProperty) {
             var widget = null,
-                promise,
-                deferred = new $.Deferred();
+                promise;
             
             runs(function () {
                 // set cursor position in editor
@@ -55,6 +54,10 @@ define(function (require, exports, module) {
                 
                 // fetch inline editor
                 promise = main._inlineProvider(editor, pos);
+                
+                if (expectInline) {
+                    expect(promise).toBeTruthy();
+                }
                 
                 if (promise) {
                     promise.done(function (result) {
@@ -75,25 +78,12 @@ define(function (require, exports, module) {
                 if (promise) {
                     if (expectInline) {
                         expect(widget).not.toBeNull();
-                        expect(widget.$htmlContent.find(".css-prop-summary h1").text()).toBe("border");
-                        
-                        deferred.resolve(widget);
+                        expect(widget.$htmlContent.find(".css-prop-summary h1").text()).toBe(expectedProperty);
                     } else {
                         expect(widget).toBeNull();
-                        
-                        deferred.resolve();
                     }
-                } else {
-                    expect(expectInline).toBe(false);
-                    expect(editor.getInlineWidgets().length).toBe(0);
-                    
-                    deferred.resolve();
                 }
-                
-                deferred.reject();
             });
-            
-            return deferred.promise();
         }
 
         describe("InlineDocsProvider database", function () {
@@ -128,25 +118,25 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(editor);
             });
             
-            it("should open docs when the selection is on a CSS property name", function () {
+            it("should open docs when the selection is on a CSS property", function () {
                 /* css property */
-                openInlineAtPos(testCSSInfo, 1, true);
+                queryInlineAtPos(testCSSInfo, 1, true, "border");
                 
                 /* css value */
-                openInlineAtPos(testCSSInfo, 2, true);
+                queryInlineAtPos(testCSSInfo, 2, true, "border");
             });
             
             it("should not open docs when the selection is not on a CSS property name", function () {
                 /* css selector */
-                openInlineAtPos(testCSSInfo, 0, false);
+                queryInlineAtPos(testCSSInfo, 0, false);
                 
                 /* css comment */
-                openInlineAtPos(testCSSInfo, 5, false);
+                queryInlineAtPos(testCSSInfo, 5, false);
             });
             
             it("should not open docs for an invalid CSS property name", function () {
                 /* css invalid property */
-                openInlineAtPos(testCSSInfo, 3, false);
+                queryInlineAtPos(testCSSInfo, 3, false);
             });
             
         });
@@ -163,12 +153,12 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(editor);
             });
             
-            it("should open docs for CSS in a <style> block", function () {
-                openInlineAtPos(testHTMLInfo, 0, false);
+            it("should not open docs for CSS in a <style> block", function () {
+                queryInlineAtPos(testHTMLInfo, 0, false);
             });
             
             it("should not open docs for inline style attributes", function () {
-                openInlineAtPos(testHTMLInfo, 1, false);
+                queryInlineAtPos(testHTMLInfo, 1, false);
             });
             
         });
@@ -195,9 +185,10 @@ define(function (require, exports, module) {
 
             it("should process all anchor tags", function () {
                 var prop    = "my-css-prop",
+                    url     = "http://dev.brackets.io/wiki/css/properties/my-css-prop",
                     details = createCssPropDetails(
                         prop,
-                        "http://dev.brackets.io/wiki/css/properties/my-css-prop",
+                        url,
                         [["normal", description]]
                     ),
                     viewer = new InlineDocsViewer(prop, details),
@@ -209,9 +200,13 @@ define(function (require, exports, module) {
                     $a = $(anchor);
                     href = $a.attr("href");
                     
-                    if ($a.data("expected")) {
+                    if ($a.attr("data-expected")) {
                         // transform all URLs, see unittest-files/description.txt
-                        expect(href).toBe($a.data("expected"));
+                        expect(href).toBe($a.attr("data-expected"));
+                    } else {
+                        // accont for "read more" URL
+                        expect(href).toBe(url);
+                        expect($a.hasClass("more-info"));
                     }
                     
                     // all links should have a title
