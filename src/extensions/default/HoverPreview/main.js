@@ -28,7 +28,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var CommandManager      = brackets.getModule("command/CommandManager"),
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus"),
@@ -458,4 +459,14 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.getValue("enabled"));
+
+    AppInit.appReady(function () {
+        if (brackets.test) {
+            brackets.test.extensions.HoverPreview = module.exports;
+        }
+    });
+    
+    // For unit testing
+    exports._colorAndGradientPreviewProvider = colorAndGradientPreviewProvider;
+    exports._imagePreviewProvider            = imagePreviewProvider;
 });

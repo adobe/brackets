@@ -165,6 +165,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * determine if the cached hint information should be invalidated and re-calculated
+     *
+     * @param {Session} session - the active hinting session
+     * @return {boolean} - true if the hints should be recalculated
+     */
+    JSHints.prototype.needNewHints = function (session) {
+        var cursor  = session.getCursor(),
+            type    = session.getType();
+        
+        return !cachedHints ||
+                cachedLine !== cursor.line ||
+                type.property !== cachedType.property ||
+                type.context !== cachedType.context ||
+                type.showFunctionType !== cachedType.showFunctionType;
+    };
+    
+    /**
      * Determine whether hints are available for a given editor context
      * 
      * @param {Editor} editor - the current editor context
@@ -182,15 +199,7 @@ define(function (require, exports, module) {
                     type    = session.getType(),
                     query   = session.getQuery();
 
-                // Invalidate cached information if: 1) no scope exists; 2) the
-                // cursor has moved a line; 3) the scope is dirty; or 4) if the
-                // cursor has moved into a different scope. Cached information
-                // is also reset on editor change.
-                if (!cachedHints ||
-                        cachedLine !== cursor.line ||
-                        type.property !== cachedType.property ||
-                        type.context !== cachedType.context ||
-                        type.showFunctionType !== cachedType.showFunctionType) {
+                if (this.needNewHints(session)) {
                     //console.log("clear hints");
                     cachedLine = null;
                     cachedHints = null;
@@ -219,13 +228,9 @@ define(function (require, exports, module) {
 
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
-            if (!cachedHints ||
-                    type.property !== cachedType.property ||
-                    type.context !== cachedType.context ||
-                    type.showFunctionType !== cachedType.showFunctionType ||                                               query.length === 0) {
+            if (this.needNewHints(session)) {
                 var offset          = session.getOffset(),
-                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset),
-                    self            = this;
+                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset);
 
                 if (scopeResponse.hasOwnProperty("promise")) {
                     var $deferredHints = $.Deferred();
@@ -235,14 +240,11 @@ define(function (require, exports, module) {
                         matcher = new StringMatch.StringMatcher();
                         cachedHints = session.getHints(query, matcher);
 
-                        $(self).triggerHandler("resolvedResponse", [cachedHints, cachedType]);
-
                         if ($deferredHints.state() === "pending") {
                             query = session.getQuery();
                             var hintResponse    = getHintResponse(cachedHints, query, type);
 
                             $deferredHints.resolveWith(null, [hintResponse]);
-                            $(self).triggerHandler("hintResponse", [query]);
                         }
                     }).fail(function () {
                         if ($deferredHints.state() === "pending") {
@@ -250,7 +252,6 @@ define(function (require, exports, module) {
                         }
                     });
 
-                    $(this).triggerHandler("deferredResponse");
                     return $deferredHints;
                 } else {
                     cachedLine = cursor.line;
@@ -402,15 +403,11 @@ define(function (require, exports, module) {
                             if (resolvedPath) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
                                     .done(function () {
-                                        session.editor.setCursorPos(jumpResp.start);
-                                        session.editor.setSelection(jumpResp.start, jumpResp.end);
-                                        session.editor.centerOnCursor();
+                                        session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                                     });
                             }
                         } else {
-                            session.editor.setCursorPos(jumpResp.start);
-                            session.editor.setSelection(jumpResp.start, jumpResp.end);
-                            session.editor.centerOnCursor();
+                            session.editor.setSelection(jumpResp.start, jumpResp.end, true);
                         }
                     }
 
