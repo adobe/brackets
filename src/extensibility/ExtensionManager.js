@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets */
+/*global define, window, $, brackets, semver */
 /*unittests: ExtensionManager*/
 
 /**
@@ -41,6 +41,9 @@ define(function (require, exports, module) {
     var FileUtils        = require("file/FileUtils"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader  = require("utils/ExtensionLoader");
+    
+    // semver isn't a proper AMD module, so it will just load into the global namespace.
+    require("extensibility/node/node_modules/semver/semver");
     
     /**
      * Extension status constants.
@@ -85,7 +88,11 @@ define(function (require, exports, module) {
      */
     function getRegistry(forceDownload) {
         if (!_registry || forceDownload) {
-            return $.getJSON(brackets.config.extension_registry, {cache: false})
+            return $.ajax({
+                url: brackets.config.extension_registry,
+                dataType: "json",
+                cache: false
+            })
                 .done(function (data) {
                     _registry = data;
                 });
@@ -155,12 +162,45 @@ define(function (require, exports, module) {
         return (_extensions[id] && _extensions[id].status) || NOT_INSTALLED;
     }
     
+    /**
+     * Returns information about whether the given entry is compatible with the given Brackets API version.
+     * @param {Object} entry The registry entry to check.
+     * @param {string} apiVersion The Brackets API version to check against.
+     * @return {{isCompatible: boolean, requiresNewer}} Result contains an
+     *      "isCompatible" member saying whether it's compatible. If not compatible, then
+     *      "requiresNewer" says whether it requires an older or newer version of Brackets.
+     */
+    function getCompatibilityInfo(entry, apiVersion) {
+        var requiredVersion = entry.metadata.engines && entry.metadata.engines.brackets,
+            result = {};
+        result.isCompatible = !requiredVersion || semver.satisfies(apiVersion, requiredVersion);
+        if (!result.isCompatible) {
+            if (requiredVersion.charAt(0) === '<') {
+                result.requiresNewer = false;
+            } else if (requiredVersion.charAt(0) === '>') {
+                result.requiresNewer = true;
+            } else if (requiredVersion.charAt(0) === "~") {
+                var compareVersion = requiredVersion.slice(1);
+                // Need to add .0s to this style of range in order to compare (since valid version
+                // numbers must have major/minor/patch).
+                if (compareVersion.match(/^[0-9]+$/)) {
+                    compareVersion += ".0.0";
+                } else if (compareVersion.match(/^[0-9]+\.[0-9]+$/)) {
+                    compareVersion += ".0";
+                }
+                result.requiresNewer = semver.lt(apiVersion, compareVersion);
+            }
+        }
+        return result;
+    }
+    
     // Listen to extension load events
     $(ExtensionLoader).on("load", _handleExtensionLoad);
 
     // Public exports
     exports.getRegistry = getRegistry;
     exports.getStatus = getStatus;
+    exports.getCompatibilityInfo = getCompatibilityInfo;
     
     exports.NOT_INSTALLED = NOT_INSTALLED;
     exports.ENABLED = ENABLED;

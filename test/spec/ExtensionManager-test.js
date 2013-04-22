@@ -224,6 +224,37 @@ define(function (require, exports, module) {
                     expect(spy).toHaveBeenCalledWith(jasmine.any(Object), mockPath + "/mock-legacy-extension", ExtensionManager.ENABLED);
                 });
             });
+            
+            it("should calculate compatibility info correctly", function () {
+                function fakeEntry(version) {
+                    return { metadata: { engines: { brackets: version } } };
+                }
+                
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry(null), "1.0.0"))
+                    .toEqual({isCompatible: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry(">0.5.0"), "0.6.0"))
+                    .toEqual({isCompatible: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry(">0.6.0"), "0.6.0"))
+                    .toEqual({isCompatible: false, requiresNewer: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry(">0.7.0"), "0.6.0"))
+                    .toEqual({isCompatible: false, requiresNewer: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("<0.5.0"), "0.4.0"))
+                    .toEqual({isCompatible: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("<0.4.0"), "0.4.0"))
+                    .toEqual({isCompatible: false, requiresNewer: false});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("<0.3.0"), "0.4.0"))
+                    .toEqual({isCompatible: false, requiresNewer: false});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.2.0"))
+                    .toEqual({isCompatible: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.2.1"))
+                    .toEqual({isCompatible: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.3.0"))
+                    .toEqual({isCompatible: false, requiresNewer: false});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.3.1"))
+                    .toEqual({isCompatible: false, requiresNewer: false});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.1.0"))
+                    .toEqual({isCompatible: false, requiresNewer: true});
+            });
         });
         
         describe("ExtensionManagerView", function () {
@@ -231,14 +262,14 @@ define(function (require, exports, module) {
             
             // Sets up a real registry (with mock data).
             function setupRegistryWithMockLoad() {
-                // Prefetch the model so the view is constructed immediately. (mockjax appears to
-                // add a little asynchronicity even if it's returning data right away.)
-                runs(function () {
-                    waitsForDone(ExtensionManager.getRegistry());
-                });
+                var rendered = false;
                 runs(function () {
                     view = new ExtensionManagerView();
+                    $(view).on("render", function () {
+                        rendered = true;
+                    });
                 });
+                waitsFor(function () { return rendered; }, "view rendering");
             }
             
             // Sets up a mock registry (with no data).
