@@ -195,9 +195,10 @@ define(function (require, exports, module) {
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
+                var previewCSS = prefix + (colorValue || match[0]);
                 var preview = "<div class='color-swatch-bg'>"                           +
                               "    <div class='color-swatch' style='background:"        +
-                                        prefix + (colorValue || match[0]) + ";'>"       +
+                                        previewCSS + ";'>"       +
                               "    </div>"                                              +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
@@ -207,7 +208,7 @@ define(function (require, exports, module) {
                 
                 xPos = (cm.charCoords(endPos).left - startCoords.left) / 2 + startCoords.left;
                 
-                return { start: startPos, end: endPos, content: preview, xpos: xPos, ytop: startCoords.top, ybot: startCoords.bottom };
+                return { start: startPos, end: endPos, content: preview, xpos: xPos, ytop: startCoords.top, ybot: startCoords.bottom, _previewCSS: previewCSS };
             }
             match = colorRegEx.exec(line);
         }
@@ -278,7 +279,7 @@ define(function (require, exports, module) {
                         });
                     };
                     
-                    var popover = { start: sPos, end: ePos, content: imgPreview, onShow: showHandler, xpos: xpos, ytop: coord.top, ybot: coord.bottom };
+                    var popover = { start: sPos, end: ePos, content: imgPreview, onShow: showHandler, xpos: xpos, ytop: coord.top, ybot: coord.bottom, _imgPath: imgPath };
                     
                     return popover;
                 }
@@ -467,6 +468,10 @@ define(function (require, exports, module) {
     });
     
     // For unit testing
-    exports._colorAndGradientPreviewProvider = colorAndGradientPreviewProvider;
-    exports._imagePreviewProvider            = imagePreviewProvider;
+    exports._queryPreviewProviders  = queryPreviewProviders;
+    exports._forceShow              = function (popover) {
+        hidePreview();
+        popoverState = popover;
+        showPreview();
+    };
 });

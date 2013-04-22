@@ -63,42 +63,38 @@ define(function (require, exports, module) {
             }
         });
         
-        function hoverOn(lineNum, columnNum, isImage) {
+        function getPopoverAtPos(lineNum, columnNum) {
             var cm = editor._codeMirror,
                 pos = { line: lineNum, ch: columnNum },
-                token,
-                line;
+                token;
             
             editor.setCursorPos(pos);
             token = cm.getTokenAt(pos);
-            line = cm.getLine(pos.line);
-
-            if (isImage) {
-                HoverPreview._imagePreviewProvider(editor, pos, token, line);
-            } else {
-                HoverPreview._colorAndGradientPreviewProvider(editor, pos, token, line);
-            }
-        }
-        
-        function checkColorAtPos(curColor, line, ch) {
-            var colorInPreview;
             
-            hoverOn(line, ch, false);
-            colorInPreview = HoverPreview._getLastPreviewedColorOrGradient();
-            expect(colorInPreview).toBe(curColor);
+            return HoverPreview._queryPreviewProviders(editor, pos, token);
         }
         
-        function checkGradientAtPos(curGradient, line, ch) {
+        function expectNoPreviewAtPos(line, ch) {
+            var popoverInfo = getPopoverAtPos(line, ch);
+            expect(popoverInfo).toBeFalsy();
+        }
+        
+        function checkColorAtPos(expectedColor, line, ch) {
+            var popoverInfo = getPopoverAtPos(line, ch);
+            expect(popoverInfo._previewCSS).toBe(expectedColor);
+        }
+        
+        function checkGradientAtPos(expectedGradient, line, ch) {
             // Just call checkColorAtPos since both have the same function calls.
-            checkColorAtPos(curGradient, line, ch);
+            checkColorAtPos(expectedGradient, line, ch);
         }
         
-        function checkImagePathAtPos(curImagePath, line, ch) {
-            var imagePath;
+        function checkImagePathAtPos(expectedPathEnding, line, ch) {
+            var popoverInfo = getPopoverAtPos(line, ch),
+                imagePath = popoverInfo._imgPath;
             
-            hoverOn(line, ch, true);
-            imagePath = HoverPreview._getLastPreviewedImagePath();
-            expect(imagePath.indexOf(curImagePath)).toBeGreaterThan(-1);
+            // Just check end of path - local drive location prefix unimportant
+            expect(imagePath.substr(imagePath.length - expectedPathEnding.length)).toBe(expectedPathEnding);
         }
         
         describe("Hover preview colors", function () {
@@ -111,8 +107,8 @@ define(function (require, exports, module) {
 
             it("should NOT show preview of color on words start with #", function () {
                 runs(function () {
-                    checkColorAtPos("", 7, 7);    // cursor on #invalid_hex
-                    checkColorAtPos("", 8, 15);    // cursor on #web
+                    expectNoPreviewAtPos(7, 7);     // cursor on #invalid_hex
+                    expectNoPreviewAtPos(8, 15);    // cursor on #web
                 });
             });
 
@@ -137,9 +133,9 @@ define(function (require, exports, module) {
 
             it("should NOT show preview of unsupported rgb/rgba colors", function () {
                 runs(function () {
-                    checkColorAtPos("", 25, 14);    // cursor on rgb(300, 0, 0)
-                    checkColorAtPos("", 26, 15);    // cursor on rgb(0, 95.5, 0)
-                    checkColorAtPos("", 27, 15);    // cursor on rgba(-0, 0, 0, 0.5)
+                    expectNoPreviewAtPos(25, 14);    // cursor on rgb(300, 0, 0)
+                    expectNoPreviewAtPos(26, 15);    // cursor on rgb(0, 95.5, 0)
+                    expectNoPreviewAtPos(27, 15);    // cursor on rgba(-0, 0, 0, 0.5)
                 });
             });
 
@@ -153,10 +149,10 @@ define(function (require, exports, module) {
 
             it("should NOT show preview of unsupported hsl/hsla colors", function () {
                 runs(function () {
-                    checkColorAtPos("", 37, 24);    // cursor on hsl(390, 100%, 50%)
-                    checkColorAtPos("", 38, 25);    // cursor on hsla(90, 100%, 50%, 2)
-                    checkColorAtPos("", 39, 24);    // cursor on hsla(0, 200%, 50%, 0.5)
-                    checkColorAtPos("", 40, 25);    // cursor on hsla(0.0, 100%, 50%, .5)
+                    expectNoPreviewAtPos(37, 24);    // cursor on hsl(390, 100%, 50%)
+                    expectNoPreviewAtPos(38, 25);    // cursor on hsla(90, 100%, 50%, 2)
+                    expectNoPreviewAtPos(39, 24);    // cursor on hsla(0, 200%, 50%, 0.5)
+                    expectNoPreviewAtPos(40, 25);    // cursor on hsla(0.0, 100%, 50%, .5)
                 });
             });
 
@@ -175,11 +171,11 @@ define(function (require, exports, module) {
 
             it("should NOT show preview of colors with invalid names", function () {
                 runs(function () {
-                    checkColorAtPos("", 72, 15);    // cursor on redsox
-                    checkColorAtPos("", 73, 16);    // cursor on pinky
+                    expectNoPreviewAtPos(72, 15);    // cursor on redsox
+                    expectNoPreviewAtPos(73, 16);    // cursor on pinky
                     // issue #3445
-//                    checkColorAtPos("", 74, 16);    // cursor on blue in hyphenated word blue-chesse
-//                    checkColorAtPos("", 75, 18);    // cursor on white in hyphenated word @bc-white
+//                    expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-chesse
+//                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
                 });
             });
         });
@@ -187,28 +183,28 @@ define(function (require, exports, module) {
         describe("Hover preview gradients", function () {
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
-                    var expectedGradient1 = "linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
-                        expectedGradient2 = "linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%)";
+                    var expectedGradient1 = "-webkit-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
+                        expectedGradient2 = "-webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8));",
+                        expectedGradient3 = "-webkit-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%)";
                     checkGradientAtPos(expectedGradient1, 80, 36);   // -moz- prefix gets stripped
-                    checkGradientAtPos("-webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8));",
-                                                          81, 36);   // Old webkit syntax
-                    checkGradientAtPos(expectedGradient2, 82, 36);   // -webkit- prefix gets stripped
-                    checkGradientAtPos(expectedGradient2, 83, 36);   // -o- prefix gets stripped
-                    checkGradientAtPos(expectedGradient2, 84, 36);   // -ms- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 81, 36);   // Old webkit syntax
+                    checkGradientAtPos(expectedGradient3, 82, 36);   // -webkit- prefix gets stripped
+                    checkGradientAtPos(expectedGradient3, 83, 36);   // -o- prefix gets stripped
+                    checkGradientAtPos(expectedGradient3, 84, 36);   // -ms- prefix gets stripped
                 });
             });
             
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("linear-gradient(to right, #333, #CCC)",        98, 50);
-                    checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
-                    checkGradientAtPos("linear-gradient(to bottom right, #333, #CCC)", 100, 50);
-                    checkGradientAtPos("linear-gradient(135deg, #333, #CCC)",          101, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(to right, #333, #CCC)",        98, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC)",                  99, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(to bottom right, #333, #CCC)", 100, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(135deg, #333, #CCC)",          101, 50);
 
                     // multiple colors
-                    checkGradientAtPos("linear-gradient(#333, #CCC, #333)",             104, 50);
-                    checkGradientAtPos("linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
-                    checkGradientAtPos("linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC, #333)",             104, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
                 });
             });
 
@@ -217,16 +213,18 @@ define(function (require, exports, module) {
                     var expectedGradient1 = "-webkit-gradient(radial, center center, 0, center center, 141, from(black), to(white), color-stop(25%, blue), color-stop(40%, green), color-stop(60%, red), color-stop(80%, purple));",
                         expectedGradient2 = "radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%);";
                     checkGradientAtPos(expectedGradient1, 110, 93);   // old webkit syntax
-                    checkGradientAtPos("-webkit-" + expectedGradient2, 111, 36);   // Append -webkit- prefix
-                    checkGradientAtPos("-moz-" + expectedGradient2,    112, 36);   // Append -moz- prefix
-                    checkGradientAtPos("-ms-" + expectedGradient2,     113, 36);   // Append -ms- prefix
-                    checkGradientAtPos("-o-" + expectedGradient2,      114, 36);   // Append -0- prefix
+                    
+                    // TODO (#3535): Expect broken preview or no preview at all?
+//                    checkGradientAtPos("-webkit-" + expectedGradient2, 111, 36);   // Append -webkit- prefix
+//                    checkGradientAtPos("-moz-" + expectedGradient2,    112, 36);   // Append -moz- prefix - TODO: why?
+//                    checkGradientAtPos("-ms-" + expectedGradient2,     113, 36);   // Append -ms- prefix
+//                    checkGradientAtPos("-o-" + expectedGradient2,      114, 36);   // Append -0- prefix
                 });
             });
             
             xit("Should show radial gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("radial-gradient(yellow, green)", 118, 40);
+                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 40);
                 });
             });
 
@@ -248,7 +246,12 @@ define(function (require, exports, module) {
         });
 
         describe("Hover preview positioning", function () {
-
+            
+            function showPopoverAtPos(line, ch) {
+                var popoverInfo = getPopoverAtPos(line, ch);
+                HoverPreview._forceShow(popoverInfo);
+            }
+            
             function getBounds(object) {
                 return {
                     left:   object.offset().left,
@@ -276,14 +279,14 @@ define(function (require, exports, module) {
             it("popover is not clipped", function () {
                 var $popover  = testWindow.$("#hover-preview-container");
                 expect($popover.length).toEqual(1);
-
+                
                 runs(function () {
                     // Popover should be below item
-                    hoverOn(3, 12, false);
+                    showPopoverAtPos(3, 12);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
 
                     // Popover should above item
-                    hoverOn(20, 33, false);
+                    showPopoverAtPos(20, 33);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
                 });
 
@@ -297,7 +300,7 @@ define(function (require, exports, module) {
 // Issue #3447 - fixes both of the following tests
 /*
                     // Popover should be inside right edge
-                    hoverOn(81, 36, false);
+                    showPopoverAtPos(81, 36);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
 */
 
@@ -307,7 +310,7 @@ define(function (require, exports, module) {
                         scrollY = editor._codeMirror.defaultTextHeight() * 190;
 
                     editor.setScrollPos(scrollX, scrollY);      // Scroll right
-                    hoverOn(82, 136, false);
+                    showPopoverAtPos(82, 136);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
 */
 
