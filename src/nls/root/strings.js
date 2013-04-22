@@ -135,8 +135,9 @@ define({
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING" : "Loading\u2026",
-    "UNTITLED" : "Untitled",
+    "PROJECT_LOADING"   : "Loading\u2026",
+    "UNTITLED"          : "Untitled",
+    "WORKING_FILES"     : "Working Files",
 
     /**
      * Keyboard modifier names
@@ -231,8 +232,10 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Go to Definition",
+    "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
     "CMD_NEXT_DOC"                        : "Next Document",
@@ -321,7 +324,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
     "INVALID_BRACKETS_VERSION"             : "The Brackets compatibility string {{0}} is invalid.",
     "DISALLOWED_WORDS"                     : "The words {{1}} are not allowed in the {{0}} field.",
-    "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of Brackets. It's installed in your disabled extensions folder.",
+    "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
     "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
@@ -335,8 +338,18 @@ define({
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the Brackets extension registry. Please try again later.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the extension registry. Please try again later.",
     "INSTALL_FROM_URL"                     : "Install from URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Author",
+    "EXTENSION_DATE"                       : "Date",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_INSTALLED"                  : "Installed",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
+    "EXTENSION_MORE_INFO_LINK"             : "More",
+    "EXTENSION_FREE_ON_GITHUB"             : "Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub.",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",
@@ -352,5 +365,8 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Read more"
 });

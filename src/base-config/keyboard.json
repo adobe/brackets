@@ -222,6 +222,9 @@
     "navigate.toggleQuickEdit":  [
         "Ctrl-E"
     ],
+    "navigate.toggleQuickDocs":  [
+        "Ctrl-K"
+    ],
     "navigate.previousMatch":  [
         {
             "key": "Alt-Up",

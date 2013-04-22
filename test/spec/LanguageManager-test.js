@@ -99,7 +99,7 @@ define(function (require, exports, module) {
                     "id": "html",
                     "name": "HTML",
                     "mode": ["htmlmixed", "text/x-brackets-html"],
-                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht"],
+                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig"],
                     "blockComment": {prefix: "<!--", suffix: "-->"}
                 };
                 
