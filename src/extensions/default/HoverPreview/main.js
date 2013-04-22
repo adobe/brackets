@@ -44,9 +44,9 @@ define(function (require, exports, module) {
         previewMark,                         // CodeMirror marker highlighting the preview text
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
-        currentImagePreviewContent   = "",     // Current image preview content, or "" if no content is showing.
-        lastPreviewedColorOrGradient = "",     // Color/gradient value of last previewed.
-        lastPreviewedImagePath       = "";     // Image path of last previewed.
+        currentImagePreviewContent   = "",   // Current image preview content, or "" if no content is showing.
+        lastPreviewedColorOrGradient = "",   // Color/gradient value of last previewed.
+        lastPreviewedImagePath       = "";   // Image path of last previewed.
     
     // Constants
     var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
@@ -356,8 +356,8 @@ define(function (require, exports, module) {
     });
     
     // For unit testing
-    exports.colorAndGradientPreviewProvider = colorAndGradientPreviewProvider;
-    exports.imagePreviewProvider            = imagePreviewProvider;
-    exports.getLastPreviewedColorOrGradient = getLastPreviewedColorOrGradient;
-    exports.getLastPreviewedImagePath       = getLastPreviewedImagePath;
+    exports._colorAndGradientPreviewProvider = colorAndGradientPreviewProvider;
+    exports._imagePreviewProvider            = imagePreviewProvider;
+    exports._getLastPreviewedColorOrGradient = getLastPreviewedColorOrGradient;
+    exports._getLastPreviewedImagePath       = getLastPreviewedImagePath;
 });
