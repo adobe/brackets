@@ -137,6 +137,7 @@ define({
      */
 	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
+	"WORKING_FILES": "[6780767] !é=Working Files=!",
 
     /**
      * Keyboard modifier names
@@ -323,7 +324,7 @@ define({
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
 	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
-	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
+	"API_NOT_COMPATIBLE": "[6737427] !é=The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.=!",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
 	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
@@ -337,8 +338,18 @@ define({
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
-	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the Brackets extension registry. Please try again later.=!",
+	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the extension registry. Please try again later.=!",
 	"INSTALL_FROM_URL": "[6777878] !é=Install from URL\u2026=!",
+	"EXTENSION_AUTHOR": "Auteur",
+	"EXTENSION_DATE": "Date",
+	"EXTENSION_INCOMPATIBLE_NEWER": "[6780760] !é=This extension requires a newer version of {APP_NAME}.=!",
+	"EXTENSION_INCOMPATIBLE_OLDER": "[6780761] !é=This extension currently only works with older versions of {APP_NAME}.=!",
+	"EXTENSION_NO_DESCRIPTION": "Aucune description",
+	"EXTENSION_KEYWORDS": "Mots-clés",
+	"EXTENSION_INSTALLED": "[6780762] !é=Installed=!",
+	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
+	"EXTENSION_MORE_INFO_LINK": "[6780764] !é=More=!",
+	"EXTENSION_FREE_ON_GITHUB": "[6780759] !é=Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub.=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
