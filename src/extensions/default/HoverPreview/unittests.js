@@ -200,9 +200,10 @@ define(function (require, exports, module) {
             
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("linear-gradient(to right, #333, #CCC)",        98, 50);
+                    // Keyword "to" not supported until Brackets upgrades to Chrome 26
+                    //checkGradientAtPos("linear-gradient(to right, #333, #CCC)",        98, 50);
                     checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
-                    checkGradientAtPos("linear-gradient(to bottom right, #333, #CCC)", 100, 50);
+                    //checkGradientAtPos("linear-gradient(to bottom right, #333, #CCC)", 100, 50);
                     checkGradientAtPos("linear-gradient(135deg, #333, #CCC)",          101, 50);
 
                     // multiple colors
@@ -215,12 +216,12 @@ define(function (require, exports, module) {
             it("Should show radial gradient preview for those with vendor prefix syntax", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-gradient(radial, center center, 0, center center, 141, from(black), to(white), color-stop(25%, blue), color-stop(40%, green), color-stop(60%, red), color-stop(80%, purple));",
-                        expectedGradient2 = "radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%);";
+                        expectedGradient2 = "radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%)";
                     checkGradientAtPos(expectedGradient1, 110, 93);   // old webkit syntax
-                    checkGradientAtPos("-webkit-" + expectedGradient2, 111, 36);   // Append -webkit- prefix
-                    checkGradientAtPos("-moz-" + expectedGradient2,    112, 36);   // Append -moz- prefix
-                    checkGradientAtPos("-ms-" + expectedGradient2,     113, 36);   // Append -ms- prefix
-                    checkGradientAtPos("-o-" + expectedGradient2,      114, 36);   // Append -0- prefix
+                    checkGradientAtPos(expectedGradient2, 111, 36);   // -webkit- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 112, 36);   // -moz- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 113, 36);   // -ms- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 114, 36);   // -0- prefix gets stripped
                 });
             });
             

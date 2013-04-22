@@ -101,7 +101,7 @@ define(function (require, exports, module) {
                 event.clientY >= offset.top &&
                 event.clientY <= offset.top + $div.height());
     }
-    
+
     function colorAndGradientPreviewProvider(editor, pos, token, line) {
         var cm = editor._codeMirror;
         
@@ -113,22 +113,33 @@ define(function (require, exports, module) {
             prefix = "",
             colorValue;
         
-        // If the gradient match has "@" in it, it is most likely a less or sass variable. Ignore it since it won't
-        // be displayed correctly.
-        if (gradientMatch && gradientMatch[0].indexOf("@") !== -1) {
-            gradientMatch = null;
+        if (gradientMatch) {
+            if (gradientMatch[0].indexOf("@") !== -1) {
+                // If the gradient match has "@" in it, it is most likely a less or
+                // sass variable. Ignore it since it won't be displayed correctly.
+                gradientMatch = null;
+
+            } else if (gradientMatch[0].indexOf("to ") !== -1) {
+                // If the gradient match has "to " in it, it's most likely the new gradient
+                // syntax which is not supported until Chrome 26, so we can't yet preview it
+                gradientMatch = null;
+            }
         }
         
-        // If it was a linear-gradient or radial-gradient variant, prefix with "-webkit-" so it
-        // shows up correctly in Brackets.
+        // If it was a linear-gradient or radial-gradient variant, prefix with
+        // "-webkit-" so it shows up correctly in Brackets.
         if (gradientMatch && gradientMatch[0].indexOf("-webkit-gradient") !== 0) {
             prefix = "-webkit-";
         }
         
-        // For prefixed gradients, use the non-prefixed value as the color value. "-webkit-" will be added 
-        // before this value
-        if (gradientMatch && gradientMatch[2]) {
-            colorValue = gradientMatch[2];
+        // For prefixed gradients, use the non-prefixed value as the color value.
+        // "-webkit-" will be added before this value
+        if (gradientMatch) {
+            if (gradientMatch[2]) {
+                colorValue = gradientMatch[2];    // linear gradiant
+            } else if (gradientMatch[4]) {
+                colorValue = gradientMatch[4];    // radial gradiant
+            }
         }
         
         // Check for color
