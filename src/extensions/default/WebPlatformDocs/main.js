@@ -128,7 +128,9 @@ define(function (require, exports, module) {
         }
     }
     
-    
     // Register as inline docs provider
     EditorManager.registerInlineDocsProvider(inlineProvider);
+
+    exports._getCSSDocs      = getCSSDocs;
+    exports._inlineProvider  = inlineProvider;
 });
