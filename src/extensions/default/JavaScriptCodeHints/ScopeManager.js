@@ -39,6 +39,8 @@ define(function (require, exports, module) {
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
+        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
         HintUtils           = require("HintUtils");
     
     var ternEnvironment     = [],
@@ -50,8 +52,8 @@ define(function (require, exports, module) {
         ternPromise         = null,
         resolvedFiles       = {},       // file -> resolved file
         _ternWorker          = (function () {
-            var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1);
-            return new Worker(path + "tern-worker.js");
+            var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
+            return new Worker(path);
         }());
 
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
@@ -83,16 +85,20 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = module.uri.substring(0, module.uri.lastIndexOf("/") + 1) + "thirdparty/tern/defs/",
+        var path = ExtensionUtils.getModulePath(module, "thirdparty/tern/defs/"),
             files = builtinFiles,
             library;
 
         files.forEach(function (i) {
-            DocumentManager.getDocumentForPath(path + i).done(function (document) {
-                library = JSON.parse(document.getText());
-                builtinLibraryNames.push(library["!name"]);
-                ternEnvironment.push(library);
-            }).fail(function (error) {
+            NativeFileSystem.resolveNativeFileSystemPath(path + i, function (fileEntry) {
+                FileUtils.readAsText(fileEntry).done(function (text) {
+                    library = JSON.parse(text);
+                    builtinLibraryNames.push(library["!name"]);
+                    ternEnvironment.push(library);
+                }).fail(function (error) {
+                    console.log("failed to read tern config file " + i);
+                });
+            }, function (error) {
                 console.log("failed to read tern config file " + i);
             });
         });
@@ -172,21 +178,22 @@ define(function (require, exports, module) {
      * Add a pending request waiting for the tern-worker to complete.
      *
      * @param {string} file - the name of the file
+     * @param {number} offset - the offset into the file the request is for
      * @param {string} type - the type of request
-     * @param {jQuery.Deferred} deferredRequest - the $.Deferred object to save     
+     * @return {jQuery.Promise} - the promise for the request  
      */
     function addPendingRequest(file, offset, type) {
         var requests,
             key = file + "@" + offset,
             $deferredRequest;
-        if (Object.prototype.hasOwnProperty.call(pendingTernRequests, key)) {
+        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
             requests = pendingTernRequests[key];
         } else {
             requests = {};
             pendingTernRequests[key] = requests;
         }
 
-        if (Object.prototype.hasOwnProperty.call(requests, type)) {
+        if (CollectionUtils.hasProperty(requests, type)) {
             $deferredRequest = requests[type];
         } else {
             requests[type] = $deferredRequest = $.Deferred();
@@ -196,6 +203,10 @@ define(function (require, exports, module) {
     
     /**
      * Get a Promise for the completions from TernJS, for the file & offset passed in.
+     * @param {string} dir - the directory the file is in
+     * @param {string} file - the name of the file
+     * @param {number} offset - the offset in the file the hints should be calculate at
+     * @param {string} text - the text of the file
      * @return {jQuery.Promise} - a promise that will resolve to an array of completions when
      *      it is done
      */
@@ -214,7 +225,10 @@ define(function (require, exports, module) {
     /**
      * Get a Promise for all of the known properties from TernJS, for the directory and file.
      * The properties will be used as guesses in tern.
-     *
+     * @param {string} dir - the directory the file is in
+     * @param {string} file - the name of the file
+     * @param {number} offset - the offset in the file the hints should be calculate at
+     * @param {string} text - the text of the file
      * @return {jQuery.Promise} - a promise that will resolve to an array of properties when
      *      it is done
      */
@@ -232,6 +246,13 @@ define(function (require, exports, module) {
 
     /**
      * Get a Promise for the function type from TernJS.
+     * @param {string} dir - the directory the file is in
+     * @param {string} file - the name of the file
+     * @param {{line:number, ch:number}} pos - the line, column info for what we want the function type of. 
+     *      Unfortunately tern requires line/col for this request instead of offset, but we cache all the request
+     *      promises by file & offset, so we need the pos and offset for this method
+     * @param {number} offset - the offset in the file the hints should be calculate at
+     * @param {string} text - the text of the file
      * @return {jQuery.Promise} - a promise that will resolve to the function type of the function being called.
      */
     function getTernFunctionType(dir, file, pos, offset, text) {
@@ -256,6 +277,7 @@ define(function (require, exports, module) {
      * on some temporary context) should copy them first. See, e.g.,
      * Session.getHints().
      * 
+     * @param {Session} session - the active hinting session
      * @param {Document} document - the document for which scope info is 
      *      desired
      * @param {number} offset - the offset into the document at which scope
@@ -307,8 +329,9 @@ define(function (require, exports, module) {
     /**
      * Get any pending $.Deferred object waiting on the specified file and request type
      * @param {string} file - the file
+     * @param {number} offset - the offset in the file the request was at
      * @param {string} type - the type of request
-     * @param {jQuery.Deferred} - the $.Deferred for the request     
+     * @return {jQuery.Deferred} - the $.Deferred for the request     
      */
     function getPendingRequest(file, offset, type) {
         var key = file + "@" + offset;
