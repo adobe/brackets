@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
-indent: 4, maxerr: 50 */
+indent: 4, maxerr: 50, regexp: true */
 
 "use strict";
 
@@ -37,15 +37,17 @@ var unzip   = require("unzip"),
 
 
 var Errors = {
-    NOT_FOUND_ERR: "NOT_FOUND_ERR",                 // {0} is path where ZIP file was expected
-    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",           // {0} is path to ZIP file
-    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",   // {0} is JSON parse error, {1} is path to ZIP file
-    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",   // {0} is path to ZIP file
-    BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",           // {0} is the name
-    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",  // {0} is path to ZIP file
-    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",    // {0} is version string in JSON, {1} is path to ZIP file
-    MISSING_MAIN: "MISSING_MAIN",                    // {0} is path to ZIP file
-    MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON"     // {0} is path to ZIP file
+    NOT_FOUND_ERR: "NOT_FOUND_ERR",                       // {0} is path where ZIP file was expected
+    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",                 // {0} is path to ZIP file
+    INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",         // {0} is JSON parse error, {1} is path to ZIP file
+    MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",         // {0} is path to ZIP file
+    BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",                 // {0} is the name
+    MISSING_PACKAGE_VERSION: "MISSING_PACKAGE_VERSION",   // {0} is path to ZIP file
+    INVALID_VERSION_NUMBER: "INVALID_VERSION_NUMBER",     // {0} is version string in JSON, {1} is path to ZIP file
+    MISSING_MAIN: "MISSING_MAIN",                         // {0} is path to ZIP file
+    MISSING_PACKAGE_JSON: "MISSING_PACKAGE_JSON",         // {0} is path to ZIP file
+    INVALID_BRACKETS_VERSION: "INVALID_BRACKETS_VERSION", // {0} is the version string in JSON, {1} is the path to the zip file,
+    DISALLOWED_WORDS: "DISALLOWED_WORDS"                  // {0} is the field with the word, {1} is a string list of words that were in violation, {2} is the path to the zip file
 };
 
 /*
@@ -59,16 +61,85 @@ var ignoredPrefixes = {
 /**
  * Returns true if the name presented is acceptable as a package name. This enforces the
  * requirement as presented in the CommonJS spec: http://wiki.commonjs.org/wiki/Packages/1.0
+ * which states:
  *
- * @param {string} Name to test
+ * "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
+ *
+ * We add the additional requirement that the first character must be a letter or number
+ * (there's a security implication to allowing a name like "..", because the name is
+ * used in directory names).
+ *
+ * @param {string} name to test
  * @return {boolean} true if the name is valid
  */
 function validateName(name) {
-    // "This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters."
-    if (/^[a-z0-9._\-]+$/.exec(name)) {
+    if (/^[a-z0-9][a-z0-9._\-]*$/.exec(name)) {
         return true;
     }
     return false;
+}
+
+// Parses strings of the form "name <email> (url)" where email and url are optional
+var _personRegex = /^([^<\(]+)(?:\s+<([^>]+)>)?(?:\s+\(([^\)]+)\))?$/;
+
+/**
+ * Normalizes person fields from package.json.
+ *
+ * These fields can be an object with name, email and url properties or a
+ * string of the form "name <email> <url>". This does a tolerant parsing of
+ * the data to try to return an object with name and optional email and url.
+ * If the string does not match the format, the string is returned as the
+ * name on the resulting object.
+ *
+ * If an object other than a string is passed in, it's returned as is.
+ *
+ * @param <String|Object> obj to normalize
+ * @return {Object} person object with name and optional email and url
+ */
+function parsePersonString(obj) {
+    if (typeof (obj) === "string") {
+        var parts = _personRegex.exec(obj);
+        
+        // No regex match, so we just synthesize an object with an opaque name string
+        if (!parts) {
+            return {
+                name: obj
+            };
+        } else {
+            var result = {
+                name: parts[1]
+            };
+            if (parts[2]) {
+                result.email = parts[2];
+            }
+            if (parts[3]) {
+                result.url = parts[3];
+            }
+            return result;
+        }
+    } else {
+        // obj is not a string, so return as is
+        return obj;
+    }
+}
+
+/**
+ * Determines if any of the words in wordlist appear in str.
+ *
+ * @param {String[]} wordlist list of words to check
+ * @param {String} str to check for words
+ * @return {String[]} words that matched
+ */
+function containsWords(wordlist, str) {
+    var i;
+    var matches = [];
+    for (i = 0; i < wordlist.length; i++) {
+        var re = new RegExp("\\b" + wordlist[i] + "\\b", "i");
+        if (re.exec(str)) {
+            matches.push(wordlist[i]);
+        }
+    }
+    return matches;
 }
 
 /**
@@ -86,8 +157,8 @@ function validateName(name) {
  * The result will have a "metadata" property if the metadata was
  * read successfully from package.json in the zip file.
  *
- * @param {string} Absolute path to the package zip file
- * @param {{requirePackageJSON: ?boolean}} validation options
+ * @param {string} path Absolute path to the package zip file
+ * @param {{requirePackageJSON: ?boolean, disallowedWords: ?Array.<string>}} options for validation
  * @param {function} callback (err, result)
  */
 function validate(path, options, callback) {
@@ -184,6 +255,41 @@ function validate(path, options, callback) {
                             } else if (!semver.valid(metadata.version)) {
                                 errors.push([Errors.INVALID_VERSION_NUMBER, metadata.version, path]);
                             }
+                            
+                            // normalize the author
+                            if (metadata.author) {
+                                metadata.author = parsePersonString(metadata.author);
+                            }
+                            
+                            // contributors should be an array of people.
+                            // normalize each entry.
+                            if (metadata.contributors) {
+                                if (metadata.contributors.map) {
+                                    metadata.contributors = metadata.contributors.map(function (person) {
+                                        return parsePersonString(person);
+                                    });
+                                } else {
+                                    metadata.contributors = [
+                                        parsePersonString(metadata.contributors)
+                                    ];
+                                }
+                            }
+                            
+                            if (metadata.engines && metadata.engines.brackets) {
+                                var range = metadata.engines.brackets;
+                                if (!semver.validRange(range)) {
+                                    errors.push([Errors.INVALID_BRACKETS_VERSION, range, path]);
+                                }
+                            }
+                            
+                            if (options.disallowedWords) {
+                                ["title", "description", "name"].forEach(function (field) {
+                                    var words = containsWords(options.disallowedWords, metadata[field]);
+                                    if (words.length > 0) {
+                                        errors.push([Errors.DISALLOWED_WORDS, field, words.toString(), path]);
+                                    }
+                                });
+                            }
                         });
                 } else if (fileName === "main.js") {
                     foundMainIn = commonPrefix;
@@ -219,6 +325,9 @@ function validate(path, options, callback) {
             });
     });
 }
+
+// exported for unit testing
+exports._parsePersonString = parsePersonString;
 
 exports.errors = Errors;
 exports.validate = validate;

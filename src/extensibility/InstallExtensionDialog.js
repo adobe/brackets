@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         CommandManager         = require("command/CommandManager"),
         KeyEvent               = require("utils/KeyEvent"),
         Package                = require("extensibility/Package"),
-        InstallDialogTemplate  = require("text!extensibility/install-extension-dialog.html");
+        InstallDialogTemplate  = require("text!htmlContent/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
         STATE_START             = 1,
@@ -269,10 +269,12 @@ define(function (require, exports, module) {
 
     /**
      * Initialize and show the dialog.
+     * @param {string=} urlToInstall If specified, immediately starts installing the given file as if the user had
+     *     specified it.
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    InstallExtensionDialog.prototype.show = function () {
+    InstallExtensionDialog.prototype.show = function (urlToInstall) {
         if (this._state !== STATE_CLOSED) {
             // Somehow the dialog got invoked twice. Just ignore this.
             return this._dialogDeferred.promise();
@@ -301,6 +303,12 @@ define(function (require, exports, module) {
         $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
         
         this._enterState(STATE_START);
+        if (urlToInstall) {
+            // Act as if the user had manually entered the URL.
+            this.$url.val(urlToInstall);
+            this._enterState(STATE_VALID_URL);
+            this._enterState(STATE_INSTALLING);
+        }
 
         this._dialogDeferred = new $.Deferred();
         return this._dialogDeferred.promise();
@@ -336,12 +344,28 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    function _showDialog(installer) {
+    function showDialog() {
         var dlg = new InstallExtensionDialog(new InstallerFacade());
         return dlg.show();
     }
     
-    CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, _showDialog);
+    /**
+     * @private
+     * Show the installation dialog and automatically begin installing the given URL.
+     * @param {string=} urlToInstall If specified, immediately starts installing the given file as if the user had
+     *     specified it.
+     * @return {$.Promise} A promise object that will be resolved when the selected extension
+     *     has finished installing, or rejected if the dialog is cancelled.
+     */
+    function installUsingDialog(urlToInstall) {
+        var dlg = new InstallExtensionDialog(new InstallerFacade());
+        return dlg.show(urlToInstall);
+    }
+    
+    CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, showDialog);
+    
+    exports.showDialog = showDialog;
+    exports.installUsingDialog = installUsingDialog;
 
     // Exposed for unit testing only
     exports._Dialog = InstallExtensionDialog;

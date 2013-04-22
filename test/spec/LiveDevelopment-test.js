@@ -150,7 +150,9 @@ define(function (require, exports, module) {
             
             it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
                 var id  = Math.floor(Math.random() * 100000),
-                    url = LiveDevelopment.launcherUrl + "?id=" + id;
+                    url = LiveDevelopment.launcherUrl + "?id=" + id,
+                    connected = false,
+                    failed = false;
                 
                 runs(function () {
                     waitsForDone(
@@ -161,10 +163,28 @@ define(function (require, exports, module) {
                 });
                    
                 runs(function () {
-                    waitsForDone(Inspector.connectToURL(url), "Inspector.connectToURL", 10000);
+                    var retries = 0;
+                    function tryConnect() {
+                        if (retries < 10) {
+                            retries++;
+                            Inspector.connectToURL(url)
+                                .done(function () {
+                                    connected = true;
+                                })
+                                .fail(function () {
+                                    window.setTimeout(tryConnect, 500);
+                                });
+                        } else {
+                            failed = true;
+                        }
+                    }
+                    tryConnect();
                 });
                 
+                waitsFor(function () { return connected || failed; }, 10000);
+                
                 runs(function () {
+                    expect(failed).toBe(false);
                     expect(Inspector.connected()).toBeTruthy();
                 });
                 
@@ -705,6 +725,7 @@ define(function (require, exports, module) {
                     instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testDocument);
                     createIdToTagMap(instrumentedHtml);
                     testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
+                    testHTMLDoc.setInstrumentationEnabled(true);
                 });
             });
             

@@ -37,8 +37,9 @@ define(function RemoteAgent(require, exports, module) {
 
     var $exports = $(exports);
 
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
     var _load; // deferred load
     var _objectId; // the object id of the remote object
@@ -47,17 +48,16 @@ define(function RemoteAgent(require, exports, module) {
     // WebInspector Event: Page.loadEventFired
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/Agents/RemoteFunctions.js");
-        request.onload = function onLoad() {
-            var run = "window._LD=" + request.response + "(" + LiveDevelopment.config.experimental + ")";
-            Inspector.Runtime.evaluate(run, function onEvaluate(res) {
-                console.assert(!res.wasThrown, res.result.description);
-                _objectId = res.result.objectId;
+        var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ")";
+
+        Inspector.Runtime.evaluate(command, function onEvaluate(response) {
+            if (response.error || response.wasThrown) {
+                _load.reject(null, response.error);
+            } else {
+                _objectId = response.result.objectId;
                 _load.resolve();
-            });
-        };
-        request.send(null);
+            }
+        });
     }
 
     // WebInspector Event: DOM.attributeModified

@@ -1,0 +1,39 @@
+<tr>
+    <td>
+        <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
+        <span class="muted ext-version">{{metadata.version}}</span><br/>
+        <span class="muted ext-author">
+            by 
+            {{#metadata.author.name}}
+                {{metadata.author.name}} /
+            {{/metadata.author.name}}
+            <a href="{{ownerLink}}">{{formatUserId}}</a>
+        </span>
+        <span class="muted ext-date">on {{lastVersionDate}}</span>
+    </td>
+    <td class="ext-desc">
+        {{^isCompatible}}
+            <div class="alert-message warning">This extension is incompatible with this version of Brackets.</div>
+        {{/isCompatible}}
+        {{#metadata.description}}
+            {{metadata.description}}
+        {{/metadata.description}}
+        {{^metadata.description}}
+            <span class="muted"><em>No description</em></span>
+        {{/metadata.description}}
+        {{#metadata.keywords.length}}
+            <br/>
+            <span class="ext-keywords">Keywords:
+            {{#metadata.keywords}}
+                {{.}}
+            {{/metadata.keywords}}
+            </span>
+        {{/metadata.keywords.length}}
+    </td>
+    <td>
+        <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+            {{^isInstalled}}Install{{/isInstalled}}
+            {{#isInstalled}}Installed{{/isInstalled}}
+        </button>
+    </td>
+</tr>

@@ -46,7 +46,7 @@ define(function (require, exports, module) {
      * The encoded string
      */
     function _encodeValue(value) {
-        return (value.indexOf("#") === -1) ? value.replace("&", "&amp;") : value.replace("&", "&amp;").replace("#", "&#35;");
+        return value.replace("&", "&amp;").replace("#", "&#35;");
     }
     
     /**
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
      * The decoded string
      */
     function _decodeValue(value) {
-        return value.replace("&#35;", "#").replace("&amp;", "&").replace("&#59;", ";");
+        return value.replace("&amp;", "&").replace("&#35;", "#");
     }
     
     /**
@@ -89,14 +89,8 @@ define(function (require, exports, module) {
      */
     SpecialCharHints.prototype.hasHints = function (editor, implicitChar) {
         this.editor = editor;
-        
-        var query = this._getQuery();
 
-        if (implicitChar === null) {
-            return query !== null;
-        }
-        
-        return implicitChar === "&" || query !== null;
+        return this._getQuery() !== null;
     };
        
     /**
@@ -120,16 +114,19 @@ define(function (require, exports, module) {
         var query,
             result;
 
-        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
+        if (implicitChar === null || this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
             this.currentQuery = query = this._getQuery();
             result = $.map(specialChars, function (value, index) {
                 if (value.indexOf(query) === 0) {
                     var shownValue = _encodeValue(value);
-                    return shownValue  + "&#59; <span class='entity-display-character'>" + value + ";</span>";
+                    return shownValue  + "; <span class='entity-display-character'>" + value + ";</span>";
                 }
             }).sort(this._internalSort);
             
-            query = _encodeValue(query);
+            if (query !== null) {
+                query = _encodeValue(query);
+            }
+            
             return {
                 hints: result,
                 match: query,
@@ -157,7 +154,7 @@ define(function (require, exports, module) {
             var num1 = parseInt(a.slice(a.indexOf("#") + 1, a.length - 1), 10),
                 num2 = parseInt(b.slice(b.indexOf("#") + 1, b.length - 1), 10);
                     
-            return (num1 === num2) ? 0 : (num1 > num2) ? 1 : -1;
+            return (num1 - num2);
         }
                 
         return a.localeCompare(b);
@@ -171,32 +168,34 @@ define(function (require, exports, module) {
      */
     SpecialCharHints.prototype._getQuery = function () {
         var query,
-            lineContent,
+            lineContentBeforeCursor,
             startChar,
-            endChar;
+            endChar,
+            cursor = this.editor.getCursorPos();
         
-        query = "&";
+        if (HTMLUtils.getTagInfo(this.editor, cursor).tagName !== "") {
+            return null;
+        }
                 
-        lineContent = this.editor.document.getRange({
-            line: this.editor.getCursorPos().line,
+        lineContentBeforeCursor = this.editor.document.getRange({
+            line: cursor.line,
             ch: 0
-        }, this.editor.getCursorPos());
+        }, cursor);
         
-        startChar = lineContent.lastIndexOf("&");
-        endChar = lineContent.lastIndexOf(";");
+        startChar = lineContentBeforeCursor.lastIndexOf("&");
+        endChar = lineContentBeforeCursor.lastIndexOf(";");
         
-        if (endChar < startChar) {
-            query = this.editor.document.getRange({
-                line: this.editor.getCursorPos().line,
-                ch: startChar
-            }, this.editor.getCursorPos());
+        // If no startChar was found or the endChar is greater than the startChar then it is no entity
+        if (startChar === -1 || endChar > startChar) {
+            return null;
         }
-
-        if (startChar !== -1 && HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos()).tagName === "") {
-            return query;
-        }
-            
-        return null;
+        
+        query = this.editor.document.getRange({
+            line: cursor.line,
+            ch: startChar
+        }, cursor);
+        
+        return query;
     };
     
     /**
@@ -212,11 +211,20 @@ define(function (require, exports, module) {
     SpecialCharHints.prototype.insertHint = function (completion) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
-            cursor = this.editor.getCursorPos();
+            cursor = this.editor.getCursorPos(),
+            match,
+            matchSemicolonPos;
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - this.currentQuery.length;
+        match = this.editor.document.getLine(cursor.line).slice(cursor.ch);
+        matchSemicolonPos = match.indexOf(";");
         end.ch = start.ch + this.currentQuery.length;
+        
+        if (matchSemicolonPos !== -1 && /^(#*[0-9]+)|([a-zA-Z]+)$/.test(match.slice(0, matchSemicolonPos))) {
+            end.ch = this.editor.document.getLine(cursor.line).indexOf(";", start.ch) + 1;
+        }
+        
         completion = completion.slice(0, completion.indexOf(" "));
         completion = _decodeValue(completion);
         if (start.ch !== end.ch) {

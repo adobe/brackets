@@ -27,7 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var HintUtils       = require("HintUtils"),
+    var StringMatch     = brackets.getModule("utils/StringMatch"),
+        HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager");
 
     /**
@@ -40,23 +41,12 @@ define(function (require, exports, module) {
     function Session(editor) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
+        this.ternHints = [];
+        this.ternProperties = [];
+        this.fnType = null;
+        this.builtins = ScopeManager.getBuiltins();
+        this.builtins.push("requirejs.js");     // consider these globals as well.
     }
-
-    /**
-     * Update the scope information assocated with the current session
-     * 
-     * @param {Object} scopeInfo - scope information, including the scope and
-     *      lists of identifiers, globals, literals and properties, and a set
-     *      of associations
-     */
-    Session.prototype.setScopeInfo = function (scopeInfo) {
-        this.scope = scopeInfo.scope;
-        this.identifiers = scopeInfo.identifiers;
-        this.globals = scopeInfo.globals;
-        this.literals = scopeInfo.literals;
-        this.properties = scopeInfo.properties;
-        this.associations = scopeInfo.associations;
-    };
 
     /**
      * Get the name of the file associated with the current session
@@ -75,6 +65,17 @@ define(function (require, exports, module) {
      */
     Session.prototype.getCursor = function () {
         return this.editor.getCursorPos();
+    };
+
+    /**
+     * Get the text of a line.
+     *
+     * @param {number} line - the line number     
+     * @return {string} - the text of the line
+     */
+    Session.prototype.getLine = function (line) {
+        var doc = this.editor.document;
+        return doc.getLine(line);
     };
     
     /**
@@ -172,14 +173,16 @@ define(function (require, exports, module) {
             query   = "";
         
         if (token) {
-            if (token.string !== ".") {
+            // If the token string is not an identifier, then the query string
+            // is empty.
+            if (HintUtils.maybeIdentifier(token.string)) {
                 query = token.string.substring(0, token.string.length - (token.end - cursor.ch));
                 query = query.trim();
             }
         }
         return query;
     };
-    
+
     /**
      * Find the context of a property lookup. For example, for a lookup 
      * foo(bar, baz(quux)).prop, foo is the context.
@@ -217,20 +220,52 @@ define(function (require, exports, module) {
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
-     * @return {{property: boolean, context: string}} - a pair consisting
+     * @return {{property: boolean, 
+                 showFunctionType:boolean, 
+                 context: string,
+                 functionCallPos: {line:number, ch:number}}} - an Object consisting
      *      of a {boolean} "property" that indicates whether or not the type of
      *      the session is a property lookup, and a {string} "context" that
      *      indicates the object context (as described in getContext above) of
      *      the property lookup, or null if there is none. The context is
      *      always null for non-property lookups.
+     *      a {boolean} "showFunctionType" indicating if the function type should
+     *      be displayed instead of normal hints.  If "showFunctionType" is true, then
+     *      then "functionCallPos" will be an object with line & col information of the
+     *      function being called     
      */
     Session.prototype.getType = function () {
-        var propertyLookup  = false,
-            context         = null,
-            cursor          = this.getCursor(),
-            token           = this.getToken(cursor);
+        var propertyLookup   = false,
+            inFunctionCall   = false,
+            showFunctionType = false,
+            context          = null,
+            cursor           = this.getCursor(),
+            functionCallPos,
+            token            = this.getToken(cursor);
 
         if (token) {
+            if (token.state.lexical.info === "call") {
+                inFunctionCall = true;
+                if (this.getQuery().length > 0) {
+                    inFunctionCall = false;
+                    showFunctionType = false;
+                } else {
+                    showFunctionType = true;
+                    var col = token.state.lexical.column,
+                        line,
+                        e,
+                        found;
+                    for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
+                        if (this.getLine(line).charAt(col) === "(") {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        functionCallPos = {line: line, ch: col};
+                    }
+                }
+            }
             if (token.string === ".") {
                 propertyLookup = true;
                 context = this.getContext(cursor);
@@ -245,10 +280,14 @@ define(function (require, exports, module) {
                     context = this.getContext(cursor);
                 }
             }
+            if (propertyLookup) { showFunctionType = false; }
         }
-
+        
         return {
             property: propertyLookup,
+            inFunctionCall: inFunctionCall,
+            showFunctionType: showFunctionType,
+            functionCallPos: functionCallPos,
             context: context
         };
     };
@@ -256,309 +295,125 @@ define(function (require, exports, module) {
     /**
      * Get a list of hints for the current session using the current scope
      * information. 
-     * 
+     *
+     * @param {string} query - the query prefix
+     * @param {StringMatcher} matcher - the class to find query matches and sort the results
      * @return {Array.<Object>} - the sorted list of hints for the current 
      *      session.
      */
-    Session.prototype.getHints = function () {
-        
-        /*
-         * Comparator for sorting tokens according to minimum distance from
-         * a given position
-         * 
-         * @param {number} pos - the position to which a token's occurrences
-         *      are compared
-         * @param {Function} - the comparator function
-         */
-        function compareByPosition(pos) {
-            
-            /*
-             * Compute the minimum distance between a token, with which is 
-             * associated a sorted list of positions, and a given offset.
-             *
-             * @param {number} pos - the position to which a token's occurrences
-             *      are compared.
-             * @param {Object} token - a hint token, annotated with a list of
-             *      occurrence positions
-             * @return number - the least distance of an occurrence of token to
-             *      pos, or Infinity if there are no occurrences
-             */
-            function minDistToPos(pos, token) {
-                var arr     = token.positions,
-                    low     = 0,
-                    high    = arr.length,
-                    middle  = Math.floor(high / 2),
-                    dist;
+    Session.prototype.getHints = function (query, matcher) {
 
-                if (high === 0) {
-                    return Infinity;
-                } else {
-                    // binary search for the position
-                    while (low < middle && middle < high) {
-                        if (arr[middle] < pos) {
-                            low = middle;
-                            middle += Math.floor((high - middle) / 2);
-                        } else if (arr[middle] > pos) {
-                            high = middle;
-                            middle = low + Math.floor((middle - low) / 2);
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // the closest position is off by no more than one
-                    dist = Math.abs(arr[middle] - pos);
-                    if (middle > 0) {
-                        dist = Math.min(dist, Math.abs(arr[middle - 1] - pos));
-                    }
-                    if (middle + 1 < arr.length) {
-                        dist = Math.min(dist, Math.abs(arr[middle + 1] - pos));
-                    }
-                    return dist;
-                }
-            }
-
-            return function (a, b) {
-                
-                /*
-                 * Look up the cached minimum distance from an occurrence of
-                 * the token to the given position, calculating and storing it
-                 * if needed.
-                 * 
-                 * @param {Object} token - the token from which the minimum
-                 *      distance to position pos is required
-                 * @return {number} - the least distance of an occurrence of
-                 *      token to position pos
-                 */
-                function getDistToPos(token) {
-                    var dist;
-
-                    if (token.distToPos >= 0) {
-                        dist = token.distToPos;
-                    } else {
-                        dist = minDistToPos(pos, token);
-                        token.distToPos = dist;
-                    }
-                    return dist;
-                }
-
-                var aDist = getDistToPos(a),
-                    bDist = getDistToPos(b);
-
-                if (aDist === Infinity) {
-                    if (bDist === Infinity) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                } else {
-                    if (bDist === Infinity) {
-                        return -1;
-                    } else {
-                        return aDist - bDist;
-                    }
-                }
-            };
+        if (query === undefined) {
+            query = "";
         }
 
-        /*
-         * Comparator for sorting tokens lexicographically according to scope,
-         * assuming the scope level has already been annotated.
-         * 
-         * @param {Object} a - a token
-         * @param {Object} b - another token
-         * @param {number} - comparator value that indicates whether a is more
-         *      tightly scoped than b
-         */
-        function compareByScope(a, b) {
-            var adepth = a.level;
-            var bdepth = b.level;
-
-            if (adepth >= 0) {
-                if (bdepth >= 0) {
-                    return adepth - bdepth;
-                } else {
-                    return -1;
-                }
-            } else {
-                if (bdepth >= 0) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            }
-        }
-        
-        /*
-         * Comparator for sorting tokens by name
-         * 
-         * @param {Object} a - a token
-         * @param {Object} b - another token
-         * @return {number} - comparator value that indicates whether the name
-         *      of token a is lexicographically lower than the name of token b
-         */
-        function compareByName(a, b) {
-            if (a.value === b.value) {
-                return 0;
-            } else if (a.value < b.value) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
-        
-        /*
-         * Comparator for sorting tokens by path, such that a <= b if
-         * a.path === path
-         *
-         * @param {string} path - the target path name
-         * @return {Function} - the comparator function
-         */
-        function compareByPath(path) {
-            return function (a, b) {
-                if (a.path === path) {
-                    if (b.path === path) {
-                        return 0;
-                    } else {
-                        return -1;
-                    }
-                } else {
-                    if (b.path === path) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-        }
-        
-        /*
-         * Comparator for sorting properties w.r.t. an association object.
-         * 
-         * @param {Object} assoc - an association object
-         * @return {Function} - the comparator function
-         */
-        function compareByAssociation(assoc) {
-            return function (a, b) {
-                if (Object.prototype.hasOwnProperty.call(assoc, a.value)) {
-                    if (Object.prototype.hasOwnProperty.call(assoc, b.value)) {
-                        return assoc[a.value] - assoc[b.value];
-                    } else {
-                        return -1;
-                    }
-                } else {
-                    if (Object.prototype.hasOwnProperty.call(assoc, b.value)) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-        }
-
-        /*
-         * Forms the lexicographical composition of comparators, i.e., 
-         * "a lex(c1,c2) b" iff "a c1 b or (a = b and a c2 b)"
-         * 
-         * @param {Function} compare1 - a comparator
-         * @param {Function} compare2 - another comparator
-         * @return {Function} - the lexicographic composition of comparator1
-         *      and comparator2
-         */
-        function lexicographic(compare1, compare2) {
-            return function (a, b) {
-                var result = compare1(a, b);
-                if (result === 0) {
-                    return compare2(a, b);
-                } else {
-                    return result;
-                }
-            };
-        }
-
-        /*
-         * A comparator for identifiers: the lexicographic combination of
-         * scope, position and name.
-         * 
-         * @param {number} pos - the target position by which identifiers are
-         *      compared
-         * @return {Function} - the comparator function
-         */
-        function compareIdentifiers(pos) {
-            return lexicographic(compareByScope,
-                        lexicographic(compareByPosition(pos),
-                            compareByName));
-        }
-        
-        /*
-         * A comparator for properties: the lexicographic combination of
-         * association, path name, position, and name.
-         * 
-         * @param {Object} assoc - the association by which properties are
-         *      compared
-         * @param {string} path - the path name by which properties are
-         *      compared
-         * @param {number} pos - the target position by which properties are
-         *      compared
-         * @return {Function} - the comparator function
-         */
-        function compareProperties(assoc, path, pos) {
-            return lexicographic(compareByAssociation(assoc),
-                        lexicographic(compareByPath(path),
-                            lexicographic(compareByPosition(pos),
-                                compareByName)));
-        }
-        
-        /*
-         * Clone a list of hints. (Used so that later annotations are not 
-         * preserved when scope information changes.)
-         * 
-         * @param {Array.<Object>} hints - an array of hint tokens
-         * @return {Array.<Object>} - a new array of objects that are clones of
-         *      the objects in the input array
-         */
-        function copyHints(hints) {
-            function cloneToken(token) {
-                var copy = {},
-                    prop;
-                for (prop in token) {
-                    if (Object.prototype.hasOwnProperty.call(token, prop)) {
-                        copy[prop] = token[prop];
-                    }
-                }
-                return copy;
-            }
-            return hints.map(cloneToken);
-        }
-
-        var cursor = this.editor.getCursorPos(),
-            offset = this.editor.indexFromPos(cursor),
+        var MAX_DISPLAYED_HINTS = 500,
             type = this.getType(),
-            association,
+            builtins = this.builtins,
             hints;
 
-        if (type.property) {
-            hints = copyHints(this.properties);
-            if (type.context &&
-                    Object.prototype.hasOwnProperty.call(this.associations, type.context)) {
-                association = this.associations[type.context];
-                hints = HintUtils.annotateWithAssociation(hints, association);
-                hints.sort(compareProperties(association, this.path, offset));
-            } else {
-                hints.sort(compareProperties({}, this.path, offset));
-            }
-        } else {
-            hints = copyHints(this.identifiers);
-            hints = HintUtils.annotateWithScope(hints, this.scope);
-            hints = hints.concat(this.literals);
-            hints.sort(compareIdentifiers(offset));
-            hints = hints.concat(this.globals);
-            hints = hints.concat(HintUtils.LITERALS);
-            hints = hints.concat(HintUtils.KEYWORDS);
+        /**
+         *  Is the origin one of the builtin files.
+         *
+         * @param {string} origin
+         */
+        function isBuiltin(origin) {
+            return builtins.indexOf(origin) !== -1;
         }
 
+        /**
+         *  Filter an array hints using a given query and matcher.
+         *  The hints are returned in the format of the matcher.
+         *  The matcher returns the value in the "label" property,
+         *  the match score in "matchGoodness" property.
+         *
+         * @param {Array} hints - array of hints
+         * @param {StringMatcher} matcher
+         * @returns {Array} - array of matching hints.
+         */
+        function filterWithQueryAndMatcher(hints, matcher) {
+            var matchResults = $.map(hints, function (hint) {
+                var searchResult = matcher.match(hint.value, query);
+                if (searchResult) {
+                    searchResult.value = hint.value;
+                    searchResult.guess = hint.guess;
+                    if (hint.depth !== undefined) {
+                        searchResult.depth = hint.depth;
+                    }
+
+                    if (!type.property && !type.showFunctionType && hint.origin &&
+                            isBuiltin(hint.origin)) {
+                        searchResult.builtin = 1;
+                    } else {
+                        searchResult.builtin = 0;
+                    }
+                }
+
+                return searchResult;
+            });
+
+            return matchResults;
+        }
+
+        if (type.property) {
+            hints = this.ternHints || [];
+            hints = filterWithQueryAndMatcher(hints, matcher);
+
+            // If there are no hints then switch over to guesses.
+            if (hints.length === 0) {
+                hints = filterWithQueryAndMatcher(this.ternProperties, matcher);
+            }
+
+            StringMatch.multiFieldSort(hints, { matchGoodness: 0, value: 1 });
+        } else if (type.showFunctionType) {
+            hints = this.getFunctionTypeHint();
+        } else {     // identifiers, literals, and keywords
+            hints = this.ternHints || [];
+            hints = hints.concat(HintUtils.LITERALS);
+            hints = hints.concat(HintUtils.KEYWORDS);
+            hints = filterWithQueryAndMatcher(hints, matcher);
+            StringMatch.multiFieldSort(hints, { matchGoodness: 0, depth: 1, builtin: 2, value: 3 });
+        }
+
+        if (hints.length > MAX_DISPLAYED_HINTS) {
+            hints = hints.slice(0, MAX_DISPLAYED_HINTS);
+        }
         return hints;
     };
-
+    
+    Session.prototype.setTernHints = function (newHints) {
+        this.ternHints = newHints;
+    };
+    Session.prototype.setTernProperties = function (newProperties) {
+        this.ternProperties = newProperties;
+    };
+    Session.prototype.setFnType = function (newFnType) {
+        this.fnType = newFnType;
+    };
+    
+    /**
+     * Get the function type hint.  This will format the hint so
+     * that it has the called variable name instead of just "fn()".
+     */
+    Session.prototype.getFunctionTypeHint = function () {
+        var fnHint = this.fnType,
+            hints = [];
+        
+        if (fnHint && (fnHint.substring(0, 3) === "fn(")) {
+            var sessionType = this.getType(),
+                cursor = sessionType.functionCallPos,
+                token = cursor ? this.getToken(cursor) : undefined,
+                varName;
+            if (token) {
+                varName = token.string;
+                if (varName) {
+                    fnHint = varName + fnHint.substr(2);
+                }
+            }
+            hints[0] = {value: fnHint, positions: []};
+        }
+        return hints;
+    };
+    
     module.exports = Session;
 });

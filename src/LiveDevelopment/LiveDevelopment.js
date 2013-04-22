@@ -296,6 +296,12 @@ define(function LiveDevelopment(require, exports, module) {
             _liveDocument.close();
             _liveDocument = undefined;
         }
+        
+        if (_serverProvider) {
+            // Remove any "request" listeners that were added previously
+            $(_serverProvider).off(".livedev");
+        }
+        
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
                 liveDoc.close();
@@ -315,13 +321,43 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Open a live document
+    /**
+     * @private
+     * Open a live document
      * @param {Document} source document to open
-     * @return {jQuery.Promise} A promise that is resolved once the live
-     *      document is open, and is never explicitly rejected.
      */
     function _openDocument(doc, editor) {
+        _closeDocument();
+        _liveDocument = _createDocument(doc, editor);
         
+        // Enable instrumentation
+        if (_liveDocument && _liveDocument.setInstrumentationEnabled) {
+            var enableInstrumentation = false;
+            
+            if (_serverProvider && _serverProvider.setRequestFilterPaths) {
+                enableInstrumentation = true;
+                
+                _serverProvider.setRequestFilterPaths(
+                    ["/" + encodeURI(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))]
+                );
+                
+                // Send custom HTTP response for the current live document
+                $(_serverProvider).on("request.livedev", function (event, request) {
+                    // response can be null in which case the StaticServerDomain reverts to simple file serving.
+                    var response = _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
+                    request.send(response);
+                });
+            }
+                
+            _liveDocument.setInstrumentationEnabled(enableInstrumentation);
+        }
+    }
+    
+    /**
+     * @private
+     * Populate array of related documents reported by the browser agent(s)
+     */
+    function _getRelatedDocuments() {
         function createLiveStylesheet(url) {
             var stylesheetDeferred = $.Deferred();
                 
@@ -348,9 +384,6 @@ define(function LiveDevelopment(require, exports, module) {
             return stylesheetDeferred.promise();
         }
 
-        _closeDocument();
-        _liveDocument = _createDocument(doc, editor);
-
         // Gather related CSS documents.
         // FUTURE: Gather related JS documents as well.
         _relatedDocuments = [];
@@ -370,8 +403,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
-        var name, promises = [];
-        var agentsToLoad;
+        var name, promises = [], agentsToLoad, promise;
+
         if (exports.config.experimental) {
             // load all agents
             agentsToLoad = agents;
@@ -381,7 +414,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
         for (name in agentsToLoad) {
             if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
-                promises.push(agents[name].load());
+                promise = agents[name].load();
+
+                if (promise) {
+                    promises.push(promise);
+                }
+
                 _loadedAgentNames.push(name);
             }
         }
@@ -453,13 +491,12 @@ define(function LiveDevelopment(require, exports, module) {
             return;
         }
 
-        var editor = EditorManager.getCurrentFullEditor(),
-            status = STATUS_ACTIVE;
+        var status = STATUS_ACTIVE;
 
         // Note: the following promise is never explicitly rejected, so there
-        // is no failure handler. If _openDocument is changed so that rejection
+        // is no failure handler. If _getRelatedDocuments is changed so that rejection
         // is possible, failure should be managed accordingly.
-        _openDocument(doc, editor)
+        _getRelatedDocuments()
             .done(function () {
                 if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                     status = STATUS_OUT_OF_SYNC;
@@ -510,8 +547,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
-        $(Inspector.Inspector).off("detached", _onDetached);
-        $(Inspector.Page).off("frameNavigated.DOMAgent", _onFrameNavigated);
+        $(Inspector.Inspector).off("detached.livedev");
+        $(Inspector.Page).off("frameNavigated.livedev");
 
         unloadAgents();
         _closeDocument();
@@ -572,23 +609,7 @@ define(function LiveDevelopment(require, exports, module) {
         function doLaunchAfterServerReady() {
             _setStatus(STATUS_CONNECTING);
             
-            if (_serverProvider) {
-                // Install a request filter for the current document. In the future,
-                // we need to install filters for *all* files that need to be instrumented.
-                HTMLInstrumentation.scanDocument(doc);
-                _serverProvider.setRequestFilterPaths(
-                    ["/" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)]
-                );
-                
-                // Remove any "request" listeners that were added previously
-                $(_serverProvider).off(".livedev");
-                
-                $(_serverProvider).on("request.livedev", function (event, request) {
-                    var html = HTMLInstrumentation.generateInstrumentedHTML(doc);
-                    
-                    request.send({ body: html });
-                });
-            }
+            _openDocument(doc, EditorManager.getCurrentFullEditor());
 
             Inspector.connectToURL(launcherUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
@@ -669,7 +690,6 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (!doc || !doc.root) {
             showWrongDocError();
-
         } else {
             _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
             
@@ -799,22 +819,25 @@ define(function LiveDevelopment(require, exports, module) {
          * interstitial page has finished loading.
          */
         function onInterstitialPageLoad() {
+            // Page domain must be enabled first before loading other agents
+            Inspector.Page.enable().done(function () {
+                // Load the right document (some agents are waiting for the page's load event)
+                var doc = _getCurrentDocument();
+                if (doc) {
+                    Inspector.Page.navigate(doc.root.url);
+                } else {
+                    close();
+                }
+            });
+
             // Load agents
             _setStatus(STATUS_LOADING_AGENTS);
             var promises = loadAgents();
             $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
-            
-            // Load the right document (some agents are waiting for the page's load event)
-            var doc = _getCurrentDocument();
-            if (doc) {
-                Inspector.Page.navigate(doc.root.url);
-            } else {
-                close();
-            }
         }
         
-        $(Inspector.Inspector).on("detached", _onDetached);
-        $(Inspector.Page).on("frameNavigated.DOMAgent", _onFrameNavigated);
+        $(Inspector.Inspector).on("detached.livedev", _onDetached);
+        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
 		
         waitForInterstitialPageLoad()
             .fail(function () {
@@ -841,9 +864,9 @@ define(function LiveDevelopment(require, exports, module) {
         if (Inspector.connected()) {
             hideHighlight();
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
-                _closeDocument();
-                var editor = EditorManager.getCurrentFullEditor();
-                promise = _openDocument(doc, editor);
+                _openDocument(doc, EditorManager.getCurrentFullEditor());
+                
+                promise = _getRelatedDocuments();
             } else {
                 if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
                     promise = close().done(open);
@@ -867,11 +890,11 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentSaved(event, doc) {
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Unload and reload agents before reloading the page
+            reconnect();
+
             // Reload HTML page
             Inspector.Page.reload();
-
-            // Reload unsaved changes
-            reconnect();
         }
     }
 
@@ -895,15 +918,10 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * Determines whether we can serve local file.
-     *
-     * @param {String} localPath
-     * A local path to file being served.
-     *
-     * @return {Boolean}
-     * true for yes, otherwise false.
+     * @param {String} localPath A local path to file being served.
+     * @return {Boolean} true for yes, otherwise false.
      */
     UserServerProvider.prototype.canServe = function (localPath) {
-
         var baseUrl = ProjectManager.getBaseUrl();
         if (!baseUrl) {
             return false;
@@ -913,14 +931,12 @@ define(function LiveDevelopment(require, exports, module) {
             return false;
         }
 
-        return true;
+        return _isHtmlFileExt(localPath);
     };
 
     /**
      * Returns a base url for current project.
-     *
-     * @return {String}
-     * Base url for current project.
+     * @return {String}  Base url for current project.
      */
     UserServerProvider.prototype.getBaseUrl = function () {
         return ProjectManager.getBaseUrl();
@@ -948,6 +964,7 @@ define(function LiveDevelopment(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
+        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
 
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();

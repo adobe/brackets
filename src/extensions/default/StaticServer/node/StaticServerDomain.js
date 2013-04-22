@@ -21,8 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
-maxerr: 50, node: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true */
 /*global */
 
 (function () {
@@ -292,7 +291,10 @@ maxerr: 50, node: true */
     function _cmdSetRequestFilterPaths(root, paths) {
         var rootPath = normalizeRootPath(root),
             pathKey  = getPathKey(root),
-            rewritePaths = _rewritePaths[pathKey];
+            rewritePaths = {};
+
+        // reset list of filtered paths for each call to setRequestFilterPaths
+        _rewritePaths[pathKey] = rewritePaths;
         
         paths.forEach(function (path) {
             rewritePaths[path] = pathJoin(root, path);
