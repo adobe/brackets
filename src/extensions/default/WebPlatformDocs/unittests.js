@@ -153,8 +153,8 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(editor);
             });
             
-            it("should not open docs for CSS in a <style> block", function () {
-                queryInlineAtPos(testHTMLInfo, 0, false);
+            it("should open docs for CSS in a <style> block", function () {
+                queryInlineAtPos(testHTMLInfo, 0, true, "border");
             });
             
             it("should not open docs for inline style attributes", function () {
