@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -126,8 +126,7 @@ define(function (require, exports, module) {
                     // rgba with percentage values
                     checkColorAtPos("rgba(100%, 0%, 0%, 0.5)",  18, 32);
                     checkColorAtPos("rgba(80%, 50%, 50%, 1)",   20, 33);
-                    // This is not working yet
-                    //checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);
+                    //checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);  // TODO (#3454): not working yet
                 });
             });
 
@@ -196,10 +195,14 @@ define(function (require, exports, module) {
             
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("-webkit-linear-gradient(to right, #333, #CCC)",        98, 50);
                     checkGradientAtPos("-webkit-linear-gradient(#333, #CCC)",                  99, 50);
-                    checkGradientAtPos("-webkit-linear-gradient(to bottom right, #333, #CCC)", 100, 50);
                     checkGradientAtPos("-webkit-linear-gradient(135deg, #333, #CCC)",          101, 50);
+                    
+                    // TODO (#3458): Keyword "to" not supported until Brackets upgrades to Chrome 26
+                    //checkGradientAtPos("-webkit-linear-gradient(to right, #333, #CCC)",        98, 50);
+                    //checkGradientAtPos("-webkit-linear-gradient(to bottom right, #333, #CCC)", 100, 50);
+                    expectNoPreviewAtPos(98, 50);
+                    expectNoPreviewAtPos(100, 50);
 
                     // multiple colors
                     checkGradientAtPos("-webkit-linear-gradient(#333, #CCC, #333)",             104, 50);
@@ -211,41 +214,56 @@ define(function (require, exports, module) {
             it("Should show radial gradient preview for those with vendor prefix syntax", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-gradient(radial, center center, 0, center center, 141, from(black), to(white), color-stop(25%, blue), color-stop(40%, green), color-stop(60%, red), color-stop(80%, purple));",
-                        expectedGradient2 = "radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%);";
+                        expectedGradient2 = "-webkit-radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%)";
                     checkGradientAtPos(expectedGradient1, 110, 93);   // old webkit syntax
-                    
-                    // TODO (#3535): Expect broken preview or no preview at all?
-//                    checkGradientAtPos("-webkit-" + expectedGradient2, 111, 36);   // Append -webkit- prefix
-//                    checkGradientAtPos("-moz-" + expectedGradient2,    112, 36);   // Append -moz- prefix - TODO: why?
-//                    checkGradientAtPos("-ms-" + expectedGradient2,     113, 36);   // Append -ms- prefix
-//                    checkGradientAtPos("-o-" + expectedGradient2,      114, 36);   // Append -0- prefix
+                    checkGradientAtPos(expectedGradient2, 111, 36);   // -webkit- prefix preserved
+                    checkGradientAtPos(expectedGradient2, 112, 36);   // -moz- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 113, 36);   // -ms- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 114, 36);   // -0- prefix gets stripped
                 });
             });
             
-            xit("Should show radial gradient preview for those with w3c standard syntax (no prefix)", function () {
+            it("Should show radial gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 40);
+                    // TODO (#3458): support new W3C syntax
+//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 35);
+//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 40);
+                    
+                    // For now the color stops are just previewed in isolation
+                    expectNoPreviewAtPos(118, 35);
+                    checkColorAtPos("yellow", 118, 40);
                 });
             });
 
-            xit("Should show repeating linear gradient preview", function () {
+            it("Should show repeating linear gradient preview", function () {
                 runs(function () {
-                    checkGradientAtPos("radial-gradient(yellow, green)", 122, 50);
-                    checkGradientAtPos("radial-gradient(yellow, green)", 123, 50);
-                    checkGradientAtPos("radial-gradient(yellow, green)", 124, 50);
+                    // TODO (#3458): support repeat
+//                    checkGradientAtPos("repeating-linear-gradient(red, blue 20px, red 40px)", 122, 50);
+//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white 0px, blue 0px)", 123, 50);
+//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white .1px, blue .2px)", 124, 50);
+                    
+                    // For now the color stops are just previewed in isolation
+                    expectNoPreviewAtPos(122, 35);
+                    expectNoPreviewAtPos(123, 35);
+                    expectNoPreviewAtPos(124, 35);
+                    checkColorAtPos("red", 122, 50);
                 });
             });
 
-            xit("Should show repeating radial gradient preview", function () {
+            it("Should show repeating radial gradient preview", function () {
                 runs(function () {
-                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
-                    checkGradientAtPos("repeating-radial-gradient(red, blue 20px, red 40px)", 129, 40);
+                    // TODO (#3458): support repeat
+//                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
+//                    checkGradientAtPos("repeating-radial-gradient(red, blue 20px, red 40px)", 129, 40);
+                    
+                    expectNoPreviewAtPos(128, 40);
+                    expectNoPreviewAtPos(129, 40);
                 });
             });
             
         });
 
-        describe("Hover preview positioning", function () {
+        describe("Hover preview display", function () {
             
             function showPopoverAtPos(line, ch) {
                 var popoverInfo = getPopoverAtPos(line, ch);
@@ -276,7 +294,7 @@ define(function (require, exports, module) {
                 });
             }
 
-            it("popover is not clipped", function () {
+            it("popover is positioned within window bounds", function () {
                 var $popover  = testWindow.$("#hover-preview-container");
                 expect($popover.length).toEqual(1);
                 
@@ -318,6 +336,16 @@ define(function (require, exports, module) {
                     toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 });
             });
+            
+            it("highlight matched text when popover shown", function () {
+                showPopoverAtPos(4, 14);
+                var markers = editor._codeMirror.findMarksAt({line: 4, ch: 14});
+                expect(markers.length).toBe(1);
+                var range = markers[0].find();
+                expect(range.from.ch).toBe(11);
+                expect(range.to.ch).toBe(18);
+            });
+            
         });
 
         describe("Hover preview images", function () {
