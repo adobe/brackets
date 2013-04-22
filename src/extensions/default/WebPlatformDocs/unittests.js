@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                 queryInlineAtPos(testCSSInfo, 2, true, "border");
             });
             
-            it("should not open docs when the selection is not on a CSS property name", function () {
+            it("should not open docs when the selection is not on a CSS property", function () {
                 /* css selector */
                 queryInlineAtPos(testCSSInfo, 0, false);
                 
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
                 queryInlineAtPos(testCSSInfo, 5, false);
             });
             
-            it("should not open docs for an invalid CSS property name", function () {
+            it("should not open docs for an invalid CSS property", function () {
                 /* css invalid property */
                 queryInlineAtPos(testCSSInfo, 3, false);
             });
