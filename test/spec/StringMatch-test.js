@@ -550,6 +550,13 @@ define(function (require, exports, module) {
                 ])).toBe(true);
             });
             
+            it("should find the right trange", function () {
+                expect(goodRelativeOrdering("trange", [
+                    "src/document/TextRange.js",
+                    "src/extensions/default/JavaScriptQuickEdit/unittest-files/jquery-ui/demos/slider/range.html"
+                ])).toBe(true);
+            });
+            
             it("should prefer prefix matches", function () {
                 expect(goodRelativeOrdering("asc", [
                     "ASC.js",
