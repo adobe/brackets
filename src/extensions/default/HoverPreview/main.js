@@ -51,7 +51,8 @@ define(function (require, exports, module) {
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
         POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
         POINTER_TOP_OFFSET          =  7,   // Pointer height, used to shift popover above pointer
-        POSITION_BELOW_OFFSET       = 16;   // Amount to adjust to top position when the preview bubble is below the text
+        POSITION_BELOW_OFFSET       = 16,   // Amount to adjust to top position when the preview bubble is below the text
+        POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
     /**
      * There are three states for this var:
@@ -103,22 +104,29 @@ define(function (require, exports, module) {
         popoverState = null;
     }
     
-    function positionPreview(xpos, ytop, ybot) {
-        var top = ytop - $previewContainer.height() - POSITION_OFFSET;
+    function positionPreview(xpos, ypos, ybot) {
+        var previewWidth  = $previewContainer.width(),
+            top           = ypos - $previewContainer.height() - POSITION_OFFSET,
+            left          = xpos - previewWidth / 2 - POINTER_LEFT_OFFSET,
+            $editorHolder = $("#editor-holder"),
+            editorLeft    = $editorHolder.offset().left;
+
+        left = Math.max(left, editorLeft + POPOVER_HORZ_MARGIN);
+        left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
         
         if (top < 0) {
             $previewContainer.removeClass("preview-bubble-above");
             $previewContainer.addClass("preview-bubble-below");
             top = ybot + POSITION_BELOW_OFFSET;
             $previewContainer.offset({
-                left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
+                left: left,
                 top: top
             });
         } else {
             $previewContainer.removeClass("preview-bubble-below");
             $previewContainer.addClass("preview-bubble-above");
             $previewContainer.offset({
-                left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
+                left: left,
                 top: top - POINTER_TOP_OFFSET
             });
         }
