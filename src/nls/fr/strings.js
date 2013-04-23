@@ -179,7 +179,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "[6775081] !é=Extension Manager\u2026=!",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -234,10 +234,10 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Atteindre la définition",
-	"CMD_JUMPTO_DEFINITION": "[6780638] !é=Jump to Definition=!",
+	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
-	"CMD_TOGGLE_QUICK_DOCS": "[6780639] !é=Quick Docs=!",
+	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
 	"CMD_NEXT_DOC": "Document suivant",
@@ -341,7 +341,7 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
 	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the extension registry. Please try again later.=!",
-	"INSTALL_FROM_URL": "[6777878] !é=Install from URL\u2026=!",
+	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
 	"EXTENSION_AUTHOR": "Auteur",
 	"EXTENSION_DATE": "Date",
 	"EXTENSION_INCOMPATIBLE_NEWER": "[6780760] !é=This extension requires a newer version of {APP_NAME}.=!",
@@ -370,5 +370,5 @@ define({
 	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)",
     
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "[6780640] !é=Read more=!"
+	"DOCS_MORE_LINK": "En savoir plus"
 });
