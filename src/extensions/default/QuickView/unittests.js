@@ -30,9 +30,9 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils       = brackets.getModule("file/FileUtils");
 
-    describe("Hover Preview", function () {
+    describe("Quick View", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        var testWindow, brackets, CommandManager, Commands, EditorManager, HoverPreview, editor;
+        var testWindow, brackets, CommandManager, Commands, EditorManager, QuickView, editor;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
                         CommandManager = testWindow.brackets.test.CommandManager;
                         Commands = testWindow.brackets.test.Commands;
                         EditorManager = brackets.test.EditorManager;
-                        HoverPreview = brackets.test.extensions.HoverPreview;
+                        QuickView = brackets.test.extensions.QuickView;
                     });
                 });
                 
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             editor.setCursorPos(pos);
             token = cm.getTokenAt(pos);
             
-            return HoverPreview._queryPreviewProviders(editor, pos, token);
+            return QuickView._queryPreviewProviders(editor, pos, token);
         }
         
         function expectNoPreviewAtPos(line, ch) {
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
             expect(imagePath.substr(imagePath.length - expectedPathEnding.length)).toBe(expectedPathEnding);
         }
         
-        describe("Hover preview colors", function () {
+        describe("Quick view colors", function () {
             it("should show preview of hex colors either in 3 digit hex or or 6-digit hex", function () {
                 runs(function () {
                     checkColorAtPos("#369", 3, 12);
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
             });
         });
             
-        describe("Hover preview gradients", function () {
+        describe("Quick view gradients", function () {
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
@@ -263,11 +263,11 @@ define(function (require, exports, module) {
             
         });
 
-        describe("Hover preview display", function () {
+        describe("Quick view display", function () {
             
             function showPopoverAtPos(line, ch) {
                 var popoverInfo = getPopoverAtPos(line, ch);
-                HoverPreview._forceShow(popoverInfo);
+                QuickView._forceShow(popoverInfo);
             }
             
             function getBounds(object) {
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
             
         });
 
-        describe("Hover preview images", function () {
+        describe("Quick view images", function () {
             it("Should show image preview for file path inside url()", function () {
                 runs(function () {
                     checkImagePathAtPos("img/grabber_color-well.png", 133, 26);
