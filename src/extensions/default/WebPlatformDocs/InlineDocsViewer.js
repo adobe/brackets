@@ -81,8 +81,10 @@ define(function (require, exports, module) {
         
         this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
         this._handleLinkClick       = this._handleLinkClick.bind(this);
+        this._handleWheelScroll     = this._handleWheelScroll.bind(this);
         
         this.$wrapperDiv.on("click", "a", this._handleLinkClick);
+        this.$wrapperDiv.find(".scroller").on("mousewheel", this._handleWheelScroll);
     }
     
     InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
@@ -95,9 +97,32 @@ define(function (require, exports, module) {
     /** Clicking any link should open it in browser, not in Brackets shell */
     InlineDocsViewer.prototype._handleLinkClick = function (event) {
         event.preventDefault();
-        var url = $(event.target).attr("href");
+        var url = $(event.currentTarget).attr("href");
         if (url) {
             NativeApp.openURLInDefaultBrowser(url);
+        }
+    };
+    
+    
+    /** Don't allow scrollwheel/trackpad to bubble up to host editor - makes scrolling docs painful */
+    InlineDocsViewer.prototype._handleWheelScroll = function (event) {
+        var scrollingUp = (event.originalEvent.wheelDeltaY > 0),
+            scroller = event.currentTarget;
+        
+        // If content has no scrollbar, let host editor scroll normally
+        if (scroller.clientHeight >= scroller.scrollHeight) {
+            return;
+        }
+        
+        // We need to block the event from both the host CodeMirror code (by stopping bubbling) and the
+        // browser's native behavior (by preventing default). We preventDefault() *only* when the docs
+        // scroller is at its limit (when an ancestor would get scrolled instead); otherwise we'd block
+        // normal scrolling of the docs themselves.
+        event.stopPropagation();
+        if (scrollingUp && scroller.scrollTop === 0) {
+            event.preventDefault();
+        } else if (!scrollingUp && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight) {
+            event.preventDefault();
         }
     };
     
