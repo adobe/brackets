@@ -67,12 +67,14 @@ define(function (require, exports, module) {
     }
     
     function positionPreview(xpos, ypos, ybot) {
-        var top  = ypos - $previewContainer.height() - POSITION_OFFSET,
-            left = xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
-            $editorHolder = $("#editor-holder");
+        var previewWidth  = $previewContainer.width(),
+            top           = ypos - $previewContainer.height() - POSITION_OFFSET,
+            left          = xpos - previewWidth / 2 - POINTER_LEFT_OFFSET,
+            $editorHolder = $("#editor-holder"),
+            editorLeft    = $editorHolder.offset().left;
 
-        left = Math.max(left, $editorHolder.offset().left + POPOVER_HORZ_MARGIN);
-        left = Math.min(left, $editorHolder.offset().left + $editorHolder.width() - $previewContainer.width() - POPOVER_HORZ_MARGIN);
+        left = Math.max(left, editorLeft + POPOVER_HORZ_MARGIN);
+        left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
         
         if (top < 0) {
             $previewContainer.removeClass("preview-bubble-above");
