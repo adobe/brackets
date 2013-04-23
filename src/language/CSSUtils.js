@@ -357,7 +357,8 @@ define(function (require, exports, module) {
         }
 
         if (_isInPropName(ctx)) {
-            if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+            if (ctx.token.string.length > 0 &&
+                    (ctx.token.string === "{" || !ctx.token.string.match(/\S/))) {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                     testToken = editor._codeMirror.getTokenAt(testPos);
                 
