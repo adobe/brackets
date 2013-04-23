@@ -109,9 +109,16 @@ define(function (require, exports, module) {
         var scrollingUp = (event.originalEvent.wheelDeltaY > 0),
             scroller = event.currentTarget;
         
-        // The "bubbling" here is native behavior, not true DOM bubbling: if the docs scroller is at its
-        // limit, then the next closest parent gets scrolled instead. So we need to preventDefault() *only*
-        // in those cases (don't want to block normal scrolling of the docs themselves).
+        // If content has no scrollbar, let host editor scroll normally
+        if (scroller.clientHeight >= scroller.scrollHeight) {
+            return;
+        }
+        
+        // We need to block the event from both the host CodeMirror code (by stopping bubbling) and the
+        // browser's native behavior (by preventing default). We preventDefault() *only* when the docs
+        // scroller is at its limit (when an ancestor would get scrolled instead); otherwise we'd block
+        // normal scrolling of the docs themselves.
+        event.stopPropagation();
         if (scrollingUp && scroller.scrollTop === 0) {
             event.preventDefault();
         } else if (!scrollingUp && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight) {
