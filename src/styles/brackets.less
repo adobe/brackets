@@ -329,11 +329,16 @@ a, img {
     }
 }
 
+#toolbar-add-extension {
+    .sprite-icon-retina(0, 0, 18px, 12px, "images/add_extension_sprites.png", 38px, 12px, "images/add_extension_sprites@2x.png");
+    &:hover {
+        background-position: -20px 0;
+    }
+}
 
 /* Project panel */
 
-#project-header {
-    /* Fixed height blank space for now. The mockups have the window "stoplights" or a logo here. */
+#working-set-header {
     height: 19px;
     padding: 10px 0 9px 12px;
     background: #3C3F41;
@@ -341,6 +346,7 @@ a, img {
 }
 
 #sidebar {
+    position: relative;
     white-space: nowrap;
 }
 
@@ -351,12 +357,6 @@ a, img {
     z-index: @z-index-brackets-sidebar-resizer;
     opacity: 0;
     cursor: col-resize;
-} 
-
-#file-section {
-    .vbox;
-    .box-flex(1);
-    position: relative;
 }
     
 #project-files-header {

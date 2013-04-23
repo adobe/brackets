@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, PathUtils, Mustache, document */
+/*global define, window, $, brackets, PathUtils, Mustache, document */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
@@ -37,6 +37,8 @@ define(function (require, exports, module) {
         CommandManager         = require("command/CommandManager"),
         KeyEvent               = require("utils/KeyEvent"),
         Package                = require("extensibility/Package"),
+        NativeApp              = require("utils/NativeApp"),
+        AppInit                = require("utils/AppInit"),
         InstallDialogTemplate  = require("text!htmlContent/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
@@ -83,6 +85,9 @@ define(function (require, exports, module) {
     
     /** @type {jQuery} The span containing the installation message. */
     InstallExtensionDialog.prototype.$msg = null;
+    
+    /** @type {jQuery} The "Browse Extensions" button. */
+    InstallExtensionDialog.prototype.$browseExtensionsButton = null;
     
     /** @type {$.Deferred} A deferred that's resolved/rejected when the dialog is closed and
         something has/hasn't been installed successfully. */
@@ -296,10 +301,14 @@ define(function (require, exports, module) {
         this.$inputArea    = this.$dlg.find(".input-field");
         this.$msgArea      = this.$dlg.find(".message-field");
         this.$msg          = this.$msgArea.find(".message");
+        this.$browseExtensionsButton = this.$dlg.find(".browse-extensions");
 
         this.$okButton.on("click", this._handleOk.bind(this));
         this.$cancelButton.on("click", this._handleCancel.bind(this));
         this.$url.on("input", this._handleUrlInput.bind(this));
+        this.$browseExtensionsButton.on("click", function () {
+            NativeApp.openURLInDefaultBrowser(brackets.config.extension_wiki_url);
+        });
         $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
         
         this._enterState(STATE_START);
@@ -363,6 +372,10 @@ define(function (require, exports, module) {
     }
     
     CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, showDialog);
+    
+    AppInit.appReady(function () {
+        $("#toolbar-add-extension").click(showDialog);
+    });
     
     exports.showDialog = showDialog;
     exports.installUsingDialog = installUsingDialog;

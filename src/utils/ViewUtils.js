@@ -159,7 +159,7 @@ define(function (require, exports, module) {
      * div to align a single selected list item from a ul list element.
      *
      * Assumptions:
-     * - scrollElement is a child of the #file-section div
+     * - scrollerElement is a child of the #sidebar div
      * - ul list element fires a "selectionChanged" event after the
      *   selectedClassName is assigned to a new list item
      * 
