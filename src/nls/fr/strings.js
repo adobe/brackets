@@ -207,6 +207,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
+	"CMD_OPEN_LINE_ABOVE": "[6780963] !é=Open Line Above=!",
+	"CMD_OPEN_LINE_BELOW": "[6780964] !é=Open Line Below=!",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
     
     // View menu commands
