@@ -295,8 +295,6 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-
-// Issue #3447 - fixes both of the following tests
                     // Popover should be inside right edge
                     hoverOn(81, 36, false);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
