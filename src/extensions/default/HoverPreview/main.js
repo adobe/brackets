@@ -167,7 +167,7 @@ define(function (require, exports, module) {
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
         var gradientRegEx1 = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)/,
-            gradientRegEx2 = /(?:(?:-moz-|-ms-|-o-|-webkit-|)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/,
+            gradientRegEx2 = /(?:(?:-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/,
             
             gradientMatch = line.match(gradientRegEx1) || line.match(gradientRegEx2),
             prefix = "",
