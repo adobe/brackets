@@ -207,6 +207,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
+	"CMD_OPEN_LINE_ABOVE": "!能=[6780963] Open Line Above_=!",
+	"CMD_OPEN_LINE_BELOW": "!能=[6780964] Open Line Below_=!",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
     
     // View menu commands
