@@ -260,11 +260,12 @@ define(function (require, exports, module) {
             }
 
             function boundsInsideWindow(object) {
-                var bounds = getBounds(object);
-                return bounds.left   >= 0                      &&
-                       bounds.right  <= $(testWindow).width()  &&
-                       bounds.top    >= 0                      &&
-                       bounds.bottom <= $(testWindow).height();
+                var bounds = getBounds(object),
+                    editorBounds = getBounds(testWindow.$("#editor-holder"));
+                return bounds.left   >= editorBounds.left   &&
+                       bounds.right  <= editorBounds.right  &&
+                       bounds.top    >= editorBounds.top    &&
+                       bounds.bottom <= editorBounds.bottom;
             }
 
             function toggleOption(commandID, text) {
@@ -296,21 +297,17 @@ define(function (require, exports, module) {
                 runs(function () {
 
 // Issue #3447 - fixes both of the following tests
-/*
                     // Popover should be inside right edge
                     hoverOn(81, 36, false);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
-*/
 
-/*
                     // Popover should be inside left edge
-                    var scrollX = editor._codeMirror.defaultCharWidth()  * 120,
-                        scrollY = editor._codeMirror.defaultTextHeight() * 190;
+                    var scrollX = editor._codeMirror.defaultCharWidth()  * 80,
+                        scrollY = editor._codeMirror.defaultTextHeight() * 70;
 
                     editor.setScrollPos(scrollX, scrollY);      // Scroll right
                     hoverOn(82, 136, false);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
-*/
 
                     // restore word wrap
                     toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
