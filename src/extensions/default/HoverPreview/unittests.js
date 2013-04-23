@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -63,42 +63,38 @@ define(function (require, exports, module) {
             }
         });
         
-        function hoverOn(lineNum, columnNum, isImage) {
+        function getPopoverAtPos(lineNum, columnNum) {
             var cm = editor._codeMirror,
                 pos = { line: lineNum, ch: columnNum },
-                token,
-                line;
+                token;
             
             editor.setCursorPos(pos);
             token = cm.getTokenAt(pos);
-            line = cm.getLine(pos.line);
-
-            if (isImage) {
-                HoverPreview._imagePreviewProvider(editor, pos, token, line);
-            } else {
-                HoverPreview._colorAndGradientPreviewProvider(editor, pos, token, line);
-            }
-        }
-        
-        function checkColorAtPos(curColor, line, ch) {
-            var colorInPreview;
             
-            hoverOn(line, ch, false);
-            colorInPreview = HoverPreview._getLastPreviewedColorOrGradient();
-            expect(colorInPreview).toBe(curColor);
+            return HoverPreview._queryPreviewProviders(editor, pos, token);
         }
         
-        function checkGradientAtPos(curGradient, line, ch) {
+        function expectNoPreviewAtPos(line, ch) {
+            var popoverInfo = getPopoverAtPos(line, ch);
+            expect(popoverInfo).toBeFalsy();
+        }
+        
+        function checkColorAtPos(expectedColor, line, ch) {
+            var popoverInfo = getPopoverAtPos(line, ch);
+            expect(popoverInfo._previewCSS).toBe(expectedColor);
+        }
+        
+        function checkGradientAtPos(expectedGradient, line, ch) {
             // Just call checkColorAtPos since both have the same function calls.
-            checkColorAtPos(curGradient, line, ch);
+            checkColorAtPos(expectedGradient, line, ch);
         }
         
-        function checkImagePathAtPos(curImagePath, line, ch) {
-            var imagePath;
+        function checkImagePathAtPos(expectedPathEnding, line, ch) {
+            var popoverInfo = getPopoverAtPos(line, ch),
+                imagePath = popoverInfo._imgPath;
             
-            hoverOn(line, ch, true);
-            imagePath = HoverPreview._getLastPreviewedImagePath();
-            expect(imagePath.indexOf(curImagePath)).toBeGreaterThan(-1);
+            // Just check end of path - local drive location prefix unimportant
+            expect(imagePath.substr(imagePath.length - expectedPathEnding.length)).toBe(expectedPathEnding);
         }
         
         describe("Hover preview colors", function () {
@@ -111,8 +107,8 @@ define(function (require, exports, module) {
 
             it("should NOT show preview of color on words start with #", function () {
                 runs(function () {
-                    checkColorAtPos("", 7, 7);    // cursor on #invalid_hex
-                    checkColorAtPos("", 8, 15);    // cursor on #web
+                    expectNoPreviewAtPos(7, 7);     // cursor on #invalid_hex
+                    expectNoPreviewAtPos(8, 15);    // cursor on #web
                 });
             });
 
@@ -130,16 +126,15 @@ define(function (require, exports, module) {
                     // rgba with percentage values
                     checkColorAtPos("rgba(100%, 0%, 0%, 0.5)",  18, 32);
                     checkColorAtPos("rgba(80%, 50%, 50%, 1)",   20, 33);
-                    // This is not working yet
-                    //checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);
+                    //checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);  // TODO (#3454): not working yet
                 });
             });
 
             it("should NOT show preview of unsupported rgb/rgba colors", function () {
                 runs(function () {
-                    checkColorAtPos("", 25, 14);    // cursor on rgb(300, 0, 0)
-                    checkColorAtPos("", 26, 15);    // cursor on rgb(0, 95.5, 0)
-                    checkColorAtPos("", 27, 15);    // cursor on rgba(-0, 0, 0, 0.5)
+                    expectNoPreviewAtPos(25, 14);    // cursor on rgb(300, 0, 0)
+                    expectNoPreviewAtPos(26, 15);    // cursor on rgb(0, 95.5, 0)
+                    expectNoPreviewAtPos(27, 15);    // cursor on rgba(-0, 0, 0, 0.5)
                 });
             });
 
@@ -153,10 +148,10 @@ define(function (require, exports, module) {
 
             it("should NOT show preview of unsupported hsl/hsla colors", function () {
                 runs(function () {
-                    checkColorAtPos("", 37, 24);    // cursor on hsl(390, 100%, 50%)
-                    checkColorAtPos("", 38, 25);    // cursor on hsla(90, 100%, 50%, 2)
-                    checkColorAtPos("", 39, 24);    // cursor on hsla(0, 200%, 50%, 0.5)
-                    checkColorAtPos("", 40, 25);    // cursor on hsla(0.0, 100%, 50%, .5)
+                    expectNoPreviewAtPos(37, 24);    // cursor on hsl(390, 100%, 50%)
+                    expectNoPreviewAtPos(38, 25);    // cursor on hsla(90, 100%, 50%, 2)
+                    expectNoPreviewAtPos(39, 24);    // cursor on hsla(0, 200%, 50%, 0.5)
+                    expectNoPreviewAtPos(40, 25);    // cursor on hsla(0.0, 100%, 50%, .5)
                 });
             });
 
@@ -175,11 +170,11 @@ define(function (require, exports, module) {
 
             it("should NOT show preview of colors with invalid names", function () {
                 runs(function () {
-                    checkColorAtPos("", 72, 15);    // cursor on redsox
-                    checkColorAtPos("", 73, 16);    // cursor on pinky
+                    expectNoPreviewAtPos(72, 15);    // cursor on redsox
+                    expectNoPreviewAtPos(73, 16);    // cursor on pinky
                     // issue #3445
-//                    checkColorAtPos("", 74, 16);    // cursor on blue in hyphenated word blue-chesse
-//                    checkColorAtPos("", 75, 18);    // cursor on white in hyphenated word @bc-white
+//                    expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-chesse
+//                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
                 });
             });
         });
@@ -187,69 +182,94 @@ define(function (require, exports, module) {
         describe("Hover preview gradients", function () {
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
-                    var expectedGradient1 = "linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
-                        expectedGradient2 = "linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%)";
+                    var expectedGradient1 = "-webkit-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
+                        expectedGradient2 = "-webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8));",
+                        expectedGradient3 = "-webkit-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%)";
                     checkGradientAtPos(expectedGradient1, 80, 36);   // -moz- prefix gets stripped
-                    checkGradientAtPos("-webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8));",
-                                                          81, 36);   // Old webkit syntax
-                    checkGradientAtPos(expectedGradient2, 82, 36);   // -webkit- prefix gets stripped
-                    checkGradientAtPos(expectedGradient2, 83, 36);   // -o- prefix gets stripped
-                    checkGradientAtPos(expectedGradient2, 84, 36);   // -ms- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 81, 36);   // Old webkit syntax
+                    checkGradientAtPos(expectedGradient3, 82, 36);   // -webkit- prefix gets stripped
+                    checkGradientAtPos(expectedGradient3, 83, 36);   // -o- prefix gets stripped
+                    checkGradientAtPos(expectedGradient3, 84, 36);   // -ms- prefix gets stripped
                 });
             });
             
             it("Should show linear gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    // Keyword "to" not supported until Brackets upgrades to Chrome 26
-                    //checkGradientAtPos("linear-gradient(to right, #333, #CCC)",        98, 50);
-                    checkGradientAtPos("linear-gradient(#333, #CCC)",                  99, 50);
-                    //checkGradientAtPos("linear-gradient(to bottom right, #333, #CCC)", 100, 50);
-                    checkGradientAtPos("linear-gradient(135deg, #333, #CCC)",          101, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC)",                  99, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(135deg, #333, #CCC)",          101, 50);
+                    
+                    // TODO (#3458): Keyword "to" not supported until Brackets upgrades to Chrome 26
+                    //checkGradientAtPos("-webkit-linear-gradient(to right, #333, #CCC)",        98, 50);
+                    //checkGradientAtPos("-webkit-linear-gradient(to bottom right, #333, #CCC)", 100, 50);
+                    expectNoPreviewAtPos(98, 50);
+                    expectNoPreviewAtPos(100, 50);
 
                     // multiple colors
-                    checkGradientAtPos("linear-gradient(#333, #CCC, #333)",             104, 50);
-                    checkGradientAtPos("linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
-                    checkGradientAtPos("linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(#333, #CCC, #333)",             104, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(#333 0%, #CCC 33%, #333 100%)", 105, 50);
+                    checkGradientAtPos("-webkit-linear-gradient(yellow, blue 20%, #0f0)",       106, 50);
                 });
             });
 
             it("Should show radial gradient preview for those with vendor prefix syntax", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-gradient(radial, center center, 0, center center, 141, from(black), to(white), color-stop(25%, blue), color-stop(40%, green), color-stop(60%, red), color-stop(80%, purple));",
-                        expectedGradient2 = "radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%)";
+                        expectedGradient2 = "-webkit-radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%)";
                     checkGradientAtPos(expectedGradient1, 110, 93);   // old webkit syntax
-                    checkGradientAtPos(expectedGradient2, 111, 36);   // -webkit- prefix gets stripped
+                    checkGradientAtPos(expectedGradient2, 111, 36);   // -webkit- prefix preserved
                     checkGradientAtPos(expectedGradient2, 112, 36);   // -moz- prefix gets stripped
                     checkGradientAtPos(expectedGradient2, 113, 36);   // -ms- prefix gets stripped
                     checkGradientAtPos(expectedGradient2, 114, 36);   // -0- prefix gets stripped
                 });
             });
             
-            xit("Should show radial gradient preview for those with w3c standard syntax (no prefix)", function () {
+            it("Should show radial gradient preview for those with w3c standard syntax (no prefix)", function () {
                 runs(function () {
-                    checkGradientAtPos("radial-gradient(yellow, green)", 118, 40);
+                    // TODO (#3458): support new W3C syntax
+//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 35);
+//                    checkGradientAtPos("-webkit-radial-gradient(yellow, green)", 118, 40);
+                    
+                    // For now the color stops are just previewed in isolation
+                    expectNoPreviewAtPos(118, 35);
+                    checkColorAtPos("yellow", 118, 40);
                 });
             });
 
-            xit("Should show repeating linear gradient preview", function () {
+            it("Should show repeating linear gradient preview", function () {
                 runs(function () {
-                    checkGradientAtPos("radial-gradient(yellow, green)", 122, 50);
-                    checkGradientAtPos("radial-gradient(yellow, green)", 123, 50);
-                    checkGradientAtPos("radial-gradient(yellow, green)", 124, 50);
+                    // TODO (#3458): support repeat
+//                    checkGradientAtPos("repeating-linear-gradient(red, blue 20px, red 40px)", 122, 50);
+//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white 0px, blue 0px)", 123, 50);
+//                    checkGradientAtPos("repeating-linear-gradient(red 0px, white .1px, blue .2px)", 124, 50);
+                    
+                    // For now the color stops are just previewed in isolation
+                    expectNoPreviewAtPos(122, 35);
+                    expectNoPreviewAtPos(123, 35);
+                    expectNoPreviewAtPos(124, 35);
+                    checkColorAtPos("red", 122, 50);
                 });
             });
 
-            xit("Should show repeating radial gradient preview", function () {
+            it("Should show repeating radial gradient preview", function () {
                 runs(function () {
-                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
-                    checkGradientAtPos("repeating-radial-gradient(red, blue 20px, red 40px)", 129, 40);
+                    // TODO (#3458): support repeat
+//                    checkGradientAtPos("repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%)", 128, 40);
+//                    checkGradientAtPos("repeating-radial-gradient(red, blue 20px, red 40px)", 129, 40);
+                    
+                    expectNoPreviewAtPos(128, 40);
+                    expectNoPreviewAtPos(129, 40);
                 });
             });
             
         });
 
-        describe("Hover preview positioning", function () {
-
+        describe("Hover preview display", function () {
+            
+            function showPopoverAtPos(line, ch) {
+                var popoverInfo = getPopoverAtPos(line, ch);
+                HoverPreview._forceShow(popoverInfo);
+            }
+            
             function getBounds(object) {
                 return {
                     left:   object.offset().left,
@@ -275,17 +295,17 @@ define(function (require, exports, module) {
                 });
             }
 
-            it("popover is not clipped", function () {
+            it("popover is positioned within window bounds", function () {
                 var $popover  = testWindow.$("#hover-preview-container");
                 expect($popover.length).toEqual(1);
-
+                
                 runs(function () {
                     // Popover should be below item
-                    hoverOn(3, 12, false);
+                    showPopoverAtPos(3, 12);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
 
                     // Popover should above item
-                    hoverOn(20, 33, false);
+                    showPopoverAtPos(20, 33);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
                 });
 
@@ -296,7 +316,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Popover should be inside right edge
-                    hoverOn(81, 36, false);
+                    showPopoverAtPos(81, 36);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
 
                     // Popover should be inside left edge
@@ -304,13 +324,23 @@ define(function (require, exports, module) {
                         scrollY = editor._codeMirror.defaultTextHeight() * 70;
 
                     editor.setScrollPos(scrollX, scrollY);      // Scroll right
-                    hoverOn(82, 136, false);
+                    showPopoverAtPos(82, 136);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
 
                     // restore word wrap
                     toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 });
             });
+            
+            it("highlight matched text when popover shown", function () {
+                showPopoverAtPos(4, 14);
+                var markers = editor._codeMirror.findMarksAt({line: 4, ch: 14});
+                expect(markers.length).toBe(1);
+                var range = markers[0].find();
+                expect(range.from.ch).toBe(11);
+                expect(range.to.ch).toBe(18);
+            });
+            
         });
 
         describe("Hover preview images", function () {

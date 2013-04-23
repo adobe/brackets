@@ -767,6 +767,9 @@ define(function (require, exports, module) {
      *  fails to load.
      */
     function _loadProject(rootPath) {
+        if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
+            return (new $.Deferred()).resolve().promise();
+        }
         if (_projectRoot) {
             // close current project
             $(exports).triggerHandler("beforeProjectClose", _projectRoot);

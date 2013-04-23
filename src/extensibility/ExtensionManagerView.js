@@ -70,7 +70,7 @@ define(function (require, exports, module) {
             .on("click", "a", function (e) {
                 e.stopImmediatePropagation();
                 e.preventDefault();
-                NativeApp.openURLInDefaultBrowser($(e.target).attr("href"));
+                NativeApp.openURLInDefaultBrowser($(e.currentTarget).attr("href"));
             })
             // Handle install button clicks
             .on("click", "button.install", function (e) {
