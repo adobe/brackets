@@ -108,6 +108,9 @@ define(function (require, exports, module) {
         // Set height initially, and again whenever width might have changed (word wrap)
         this._sizeEditorToContent();
         $(window).on("resize", this._sizeEditorToContent);
+
+        // Set focus
+        this.$wrapperDiv.find(".scroller")[0].focus();
     };
     
     InlineDocsViewer.prototype.onClosed = function () {
