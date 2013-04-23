@@ -149,8 +149,8 @@ define(function (require, exports, module) {
 
         $(".clickable-link", $dlg).on("click", function _handleLink(e) {
             // Links use data-href (not href) attribute so Brackets itself doesn't redirect
-            if (e.target.dataset && e.target.dataset.href) {
-                NativeApp.openURLInDefaultBrowser(e.target.dataset.href);
+            if (e.currentTarget.dataset && e.currentTarget.dataset.href) {
+                NativeApp.openURLInDefaultBrowser(e.currentTarget.dataset.href);
             }
         });
 

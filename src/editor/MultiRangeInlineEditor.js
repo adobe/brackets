@@ -462,7 +462,7 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.refresh = function () {
         MultiRangeInlineEditor.prototype.parentClass.refresh.apply(this, arguments);
         this.sizeInlineWidgetToContents(true);
-        this.editors.forEach(function (editor, j, arr) {
+        this.editors.forEach(function (editor) {
             editor.refresh();
         });
     };

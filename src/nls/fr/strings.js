@@ -127,15 +127,17 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
-	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
+	"LANGUAGE_MESSAGE": "Langue :",
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
+	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     /**
      * ProjectManager
      */
 	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
+	"WORKING_FILES": "[6780767] !é=Working Files=!",
 
     /**
      * Keyboard modifier names
@@ -176,7 +178,8 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "Surlignage en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
-	"CMD_INSTALL_EXTENSION": "Installer l’extension...",
+	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -204,6 +207,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
+	"CMD_OPEN_LINE_ABOVE": "[6780963] !é=Open Line Above=!",
+	"CMD_OPEN_LINE_BELOW": "[6780964] !é=Open Line Below=!",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
     
     // View menu commands
@@ -215,21 +220,24 @@ define({
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
 	"CMD_SCROLL_LINE_UP": "Faire défiler d’une ligne vers le haut",
 	"CMD_SCROLL_LINE_DOWN": "Faire défiler d’une ligne vers le bas",
-	"CMD_TOGGLE_LINE_NUMBERS": "Afficher les numéros de ligne",
-	"CMD_TOGGLE_ACTIVE_LINE": "Afficher la ligne active",
-	"CMD_TOGGLE_WORD_WRAP": "Activer le retour à la ligne",
+	"CMD_TOGGLE_LINE_NUMBERS": "Numéros de ligne",
+	"CMD_TOGGLE_ACTIVE_LINE": "Surligner la ligne active",
+	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
+	"CMD_ENABLE_HOVER_PREVIEW": "Activer l’aperçu au survol",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
+	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
 	"CMD_NEXT_DOC": "Document suivant",
@@ -268,11 +276,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
-	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
-	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -306,12 +309,12 @@ define({
     
     // Extension Management strings
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
-	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
+	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
-	"INSTALLING_FROM": "Installation de l’extension depuis {0}...",
+	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie.",
 	"INSTALL_FAILED": "Echec de l’installation.",
-	"CANCELING_INSTALL": "Annulation en cours...",
+	"CANCELING_INSTALL": "Annulation en cours\u2026",
 	"CANCELING_HUNG": "L’annulation de l’installation prend beaucoup de temps. Il est possible qu’une erreur interne se soit produite.",
 	"INSTALL_CANCELED": "Installation annulée.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
@@ -321,7 +324,9 @@ define({
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
 	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
-	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
+	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
+	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
+	"API_NOT_COMPATIBLE": "[6737427] !é=The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.=!",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
 	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
@@ -334,6 +339,26 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
+	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the extension registry. Please try again later.=!",
+	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
+	"EXTENSION_AUTHOR": "Auteur",
+	"EXTENSION_DATE": "Date",
+	"EXTENSION_INCOMPATIBLE_NEWER": "[6780760] !é=This extension requires a newer version of {APP_NAME}.=!",
+	"EXTENSION_INCOMPATIBLE_OLDER": "[6780761] !é=This extension currently only works with older versions of {APP_NAME}.=!",
+	"EXTENSION_NO_DESCRIPTION": "Aucune description",
+	"EXTENSION_KEYWORDS": "Mots-clés",
+	"EXTENSION_INSTALLED": "[6780762] !é=Installed=!",
+	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
+	"EXTENSION_MORE_INFO_LINK": "[6780764] !é=More=!",
+	"EXTENSION_FREE_ON_GITHUB": "[6780759] !é=Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub.=!",
+    
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
+	"JSLINT_ERRORS_INFORMATION": "{0} erreurs JSLint",
+	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
+	"JSLINT_DISABLED": "JSLint est désactivé ou ne fonctionne pas pour le fichier en cours.",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
@@ -342,5 +367,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "Format Hex",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "Format HSLa",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} (utilisé {1} fois)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "En savoir plus"
 });

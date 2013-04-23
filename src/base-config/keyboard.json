@@ -130,6 +130,12 @@
             "platform": "mac"
         }
     ],
+    "edit.openLineAbove":  [
+        "Ctrl-Shift-Enter"
+    ],
+    "edit.openLineBelow":  [
+        "Ctrl-Enter"
+    ],
     "edit.lineComment":  [
         "Ctrl-/"
     ],
@@ -221,6 +227,9 @@
     ],
     "navigate.toggleQuickEdit":  [
         "Ctrl-E"
+    ],
+    "navigate.toggleQuickDocs":  [
+        "Ctrl-K"
     ],
     "navigate.previousMatch":  [
         {

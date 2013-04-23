@@ -29,11 +29,13 @@
 @label-font-size: 14px;  // labels on buttons, menubar, etc.
 @menu-item-font-size: 13px; // individual menu items
 
-/* CSS triangle */
-@triangle-size: 9px;
+/* CSS triangles */
+@sidebar-triangle-size: 12px;
+@inline-triangle-size: 9px;
 
-/* sidebar */
-@sidebar-width: 200px;
+/* Main layout */
+@sidebar-width: 200px;  // user resizable, however
+@main-toolbar-width: 30px;
 
 /* z-index */
 @z-index-cm-dialog-override: 11;
@@ -41,11 +43,11 @@
 @z-index-cm-max: @z-index-cm-dialog;
 
 @z-index-brackets-ui: @z-index-cm-max + 1;
-@z-index-brackets-selection-triangle: @z-index-brackets-ui;
 @z-index-brackets-results-panel: @z-index-brackets-ui;
+@z-index-brackets-selection-triangle: @z-index-brackets-ui + 1;
 @z-index-brackets-scroller-shadow: @z-index-brackets-selection-triangle + 1;
 @z-index-brackets-inline-editor-shadow: @z-index-brackets-ui;
-@z-index-brackets-toolbar: @z-index-brackets-scroller-shadow + 1;
+@z-index-brackets-toolbar: @z-index-brackets-ui;
 @z-index-brackets-max: @z-index-brackets-toolbar;
 
 @z-index-brackets-sidebar-resizer: @z-index-brackets-ui + 2;

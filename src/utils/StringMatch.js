@@ -761,11 +761,7 @@ define(function (require, exports, module) {
      * (This object's caches are all stored in "_" prefixed properties.)
      */
     function StringMatcher() {
-        // We keep track of the last query to know when we need to invalidate.
-        this._lastQuery = null;
-        
-        this._specialsCache = {};
-        this._noMatchCache = {};
+        this.reset();
     }
     
     /**
@@ -781,6 +777,17 @@ define(function (require, exports, module) {
      * @type {Object.<string, boolean>}
      */
     StringMatcher.prototype._noMatchCache = null;
+    
+    /**
+     * Clears the caches. Use this in the event that the caches may be invalid.
+     */
+    StringMatcher.prototype.reset = function () {
+        // We keep track of the last query to know when we need to invalidate.
+        this._lastQuery = null;
+        
+        this._specialsCache = {};
+        this._noMatchCache = {};
+    };
     
     /**
      * Performs a single match using the stringMatch function. See stringMatch for full documentation.
@@ -800,7 +807,7 @@ define(function (require, exports, module) {
         this._lastQuery = query;
         
         // Check for a known non-matching string.
-        if (this._noMatchCache.hasOwnProperty(str)) {
+        if (CollectionUtils.hasProperty(this._noMatchCache, str)) {
             return undefined;
         }
         

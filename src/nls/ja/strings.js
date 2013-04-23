@@ -127,15 +127,17 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "言語を切り替える",
-	"LANGUAGE_MESSAGE": "以下のリストから言語を選択してください :",
+	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
+	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
 
     /**
      * ProjectManager
      */
 	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
+	"WORKING_FILES": "!能=[6780767] Working Files_=!",
 
     /**
      * Keyboard modifier names
@@ -176,7 +178,8 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
-	"CMD_INSTALL_EXTENSION": "拡張機能をインストール...",
+	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -204,6 +207,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
+	"CMD_OPEN_LINE_ABOVE": "!能=[6780963] Open Line Above_=!",
+	"CMD_OPEN_LINE_BELOW": "!能=[6780964] Open Line Below_=!",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
     
     // View menu commands
@@ -215,21 +220,24 @@ define({
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
 	"CMD_SCROLL_LINE_UP": "1 行上にスクロール",
 	"CMD_SCROLL_LINE_DOWN": "1 行下にスクロール",
-	"CMD_TOGGLE_LINE_NUMBERS": "行番号を表示",
-	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行を表示",
-	"CMD_TOGGLE_WORD_WRAP": "文字列の折り返しを有効にする",
+	"CMD_TOGGLE_LINE_NUMBERS": "行番号",
+	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行をハイライト",
+	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
+	"CMD_ENABLE_HOVER_PREVIEW": "ホバープレビューを有効にする",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義に移動",
+	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
+	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
 	"CMD_NEXT_DOC": "次の文書",
@@ -268,11 +276,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"JSLINT_ERRORS": "JSLint エラー",
-	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
-	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
-	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
-	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
 	"SEARCH_RESULTS": "検索結果",
 	"OK": "OK",
 	"DONT_SAVE": "保存しない",
@@ -308,10 +311,10 @@ define({
 	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
 	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
 	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
-	"INSTALLING_FROM": "{0} から拡張機能をインストール...",
+	"INSTALLING_FROM": "{0} から拡張機能をインストールしています\u2026",
 	"INSTALL_SUCCEEDED": "インストールは成功しました。",
 	"INSTALL_FAILED": "インストールは失敗しました。",
-	"CANCELING_INSTALL": "キャンセル中...",
+	"CANCELING_INSTALL": "キャンセルしています\u2026",
 	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
 	"INSTALL_CANCELED": "インストールはキャンセルされました。",
     // These must match the error codes in ExtensionsDomain.Errors.* :
@@ -321,7 +324,9 @@ define({
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
 	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
-	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
+	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
+	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
+	"API_NOT_COMPATIBLE": "!能=[6737427] The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder._=!",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
 	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
@@ -334,6 +339,26 @@ define({
 	"UNSUPPORTED_PROTOCOL": "URL は http または https URL である必要があります。",
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
+	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the extension registry. Please try again later._=!",
+	"INSTALL_FROM_URL": "URL からインストール\u2026",
+	"EXTENSION_AUTHOR": "作成者",
+	"EXTENSION_DATE": "日付",
+	"EXTENSION_INCOMPATIBLE_NEWER": "!能=[6780760] This extension requires a newer version of {APP_NAME}._=!",
+	"EXTENSION_INCOMPATIBLE_OLDER": "!能=[6780761] This extension currently only works with older versions of {APP_NAME}._=!",
+	"EXTENSION_NO_DESCRIPTION": "説明なし",
+	"EXTENSION_KEYWORDS": "キーワード",
+	"EXTENSION_INSTALLED": "!能=[6780762] Installed_=!",
+	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
+	"EXTENSION_MORE_INFO_LINK": "!能=[6780764] More_=!",
+	"EXTENSION_FREE_ON_GITHUB": "!能=[6780759] Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub._=!",
+    
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "JSLint エラー",
+	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
+	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
+	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
+	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
@@ -342,5 +367,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "16 進形式",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "詳細"
 });

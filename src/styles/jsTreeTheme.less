@@ -57,21 +57,21 @@
     line-height: 10px;
     vertical-align: baseline;
     a {
-        color: #BBB;
+        color: @project-panel-text-1;
         font-size: 13px;
         cursor: default;
         
-        &.jstree-clicked {
-            color: #fff;
+        &.jstree-clicked, &.jstree-clicked .extension {
+            color: @project-panel-text-1;
         }
     }
-    .extension a {
-        color: #8e9a9d;
+    .extension {
+        color: @project-panel-text-2;
     }
     &.jstree-closed, &.jstree-open {
         margin-left: 10px;
         > a {
-            color: #fff;
+            color: @project-panel-text-2;
         }
     }
     &.jstree-leaf {
