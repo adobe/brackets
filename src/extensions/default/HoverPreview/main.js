@@ -107,9 +107,12 @@ define(function (require, exports, module) {
         
         lastPreviewedColorOrGradient = "";
 
-        // Check for gradient
-        var gradientRegEx = /-webkit-gradient\([^;]*;?|(-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient\([^;]*);?|(-moz-|-ms-|-o-|-webkit-)(radial-gradient\([^;]*);?/,
-            gradientMatch = line.match(gradientRegEx),
+        // Check for gradient. -webkit-gradient() can have parens in parameters
+        // nested 2 levels. Other gradients can only nest 1 level.
+        var gradientRegEx1 = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)/,
+            gradientRegEx2 = /(?:(?:-moz-|-ms-|-o-|-webkit-|)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/,
+            
+            gradientMatch = line.match(gradientRegEx1) || line.match(gradientRegEx2),
             prefix = "",
             colorValue;
         
@@ -126,19 +129,19 @@ define(function (require, exports, module) {
             }
         }
         
-        // If it was a linear-gradient or radial-gradient variant, prefix with
-        // "-webkit-" so it shows up correctly in Brackets.
-        if (gradientMatch && gradientMatch[0].indexOf("-webkit-gradient") !== 0) {
-            prefix = "-webkit-";
-        }
-        
-        // For prefixed gradients, use the non-prefixed value as the color value.
-        // "-webkit-" will be added before this value
         if (gradientMatch) {
-            if (gradientMatch[2]) {
-                colorValue = gradientMatch[2];    // linear gradiant
-            } else if (gradientMatch[4]) {
-                colorValue = gradientMatch[4];    // radial gradiant
+            // If it was a linear-gradient or radial-gradient variant, prefix with
+            // "-webkit-" so it shows up correctly in Brackets.
+            if (gradientMatch[0].indexOf("-webkit-gradient") !== 0) {
+                prefix = "-webkit-";
+            }
+            
+            // For prefixed gradients, use the non-prefixed value as the color value.
+            // "-webkit-" will be added before this value
+            if (gradientMatch[1]) {
+                colorValue = gradientMatch[1] + gradientMatch[3];    // linear gradiant
+            } else if (gradientMatch[2]) {
+                colorValue = gradientMatch[2] + gradientMatch[3];    // radial gradiant
             }
         }
         
