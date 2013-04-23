@@ -459,7 +459,7 @@ define(function (require, exports, module) {
                 $(DocumentManager).on("currentDocumentChange", hidePreview);
 
                 // Setup doc "change" listener
-                onActiveEditorChange(null, EditorManager.getCurrentFullEditor(), null);
+                onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
                 $(EditorManager).on("activeEditorChange", onActiveEditorChange);
 
             } else {
