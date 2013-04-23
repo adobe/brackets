@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        KeyEvent        = require("utils/KeyEvent");
+        KeyEvent        = require("utils/KeyEvent"),
+        NativeApp       = require("utils/NativeApp");
 
     describe("Install Extension Dialog", function () {
         var testWindow, dialog, fields, goodInstaller, badInstaller, InstallExtensionDialog, closed,
@@ -95,7 +96,8 @@ define(function (require, exports, module) {
                     $dlg: dialog.$dlg,
                     $okButton: dialog.$okButton,
                     $cancelButton: dialog.$cancelButton,
-                    $url: dialog.$url
+                    $url: dialog.$url,
+                    $browseExtensionsButton: dialog.$browseExtensionsButton
                 };
             });
             
@@ -557,6 +559,13 @@ define(function (require, exports, module) {
                     deferred.reject("CANCELED");
                     expect(fields.$okButton.attr("disabled")).toBeFalsy();
                 });
+            });
+            
+            it("should open the extension list wiki page when the user clicks on the Browse Extensions button", function () {
+                var NativeApp = testWindow.brackets.getModule("utils/NativeApp");
+                spyOn(NativeApp, "openURLInDefaultBrowser");
+                fields.$browseExtensionsButton.click();
+                expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/adobe/brackets/wiki/Brackets-Extensions");
             });
         });
         
