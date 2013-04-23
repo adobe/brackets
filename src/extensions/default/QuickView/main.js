@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         lastPos;                             // Last line/ch pos processed by handleMouseMove
     
     // Constants
-    var CMD_ENABLE_HOVER_PREVIEW    = "view.enableQuickView",
+    var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
         POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
     
     // Menu command handlers
     function updateMenuItemCheckmark() {
-        CommandManager.get(CMD_ENABLE_HOVER_PREVIEW).setChecked(enabled);
+        CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
     function setEnabled(_enabled) {
@@ -463,8 +463,8 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "QuickView.css");
     
     // Register command
-    CommandManager.register(Strings.CMD_ENABLE_HOVER_PREVIEW, CMD_ENABLE_HOVER_PREVIEW, toggleEnableQuickView);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_HOVER_PREVIEW);
+    CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
+    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW);
     
     // Init PreferenceStorage
     prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);

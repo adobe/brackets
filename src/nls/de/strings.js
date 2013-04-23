@@ -229,7 +229,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
-    "CMD_ENABLE_HOVER_PREVIEW"            : "Hover-Vorschau aktivieren",
+    "CMD_ENABLE_QUICK_VIEW"               : "Hover-Vorschau aktivieren",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
