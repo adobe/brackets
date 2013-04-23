@@ -137,7 +137,7 @@ define({
      */
 	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
-	"WORKING_FILES": "[6780767] !é=Working Files=!",
+	"WORKING_FILES": "Fichiers de travail",
 
     /**
      * Keyboard modifier names
@@ -207,8 +207,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
-	"CMD_OPEN_LINE_ABOVE": "[6780963] !é=Open Line Above=!",
-	"CMD_OPEN_LINE_BELOW": "[6780964] !é=Open Line Below=!",
+	"CMD_OPEN_LINE_ABOVE": "Ouvrir une ligne au-dessus",
+	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
     
     // View menu commands
@@ -326,7 +326,7 @@ define({
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
 	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
-	"API_NOT_COMPATIBLE": "[6737427] !é=The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.=!",
+	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
 	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
@@ -340,18 +340,18 @@ define({
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
-	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the extension registry. Please try again later.=!",
+	"EXTENSION_MANAGER_ERROR_LOAD": "Impossible d’accéder au registre de l’extension. Réessayez ultérieurement.",
 	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
 	"EXTENSION_AUTHOR": "Auteur",
 	"EXTENSION_DATE": "Date",
-	"EXTENSION_INCOMPATIBLE_NEWER": "[6780760] !é=This extension requires a newer version of {APP_NAME}.=!",
-	"EXTENSION_INCOMPATIBLE_OLDER": "[6780761] !é=This extension currently only works with older versions of {APP_NAME}.=!",
+	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
+	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
 	"EXTENSION_KEYWORDS": "Mots-clés",
-	"EXTENSION_INSTALLED": "[6780762] !é=Installed=!",
+	"EXTENSION_INSTALLED": "Installée",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
-	"EXTENSION_MORE_INFO_LINK": "[6780764] !é=More=!",
-	"EXTENSION_FREE_ON_GITHUB": "[6780759] !é=Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub.=!",
+	"EXTENSION_MORE_INFO_LINK": "Plus",
+	"EXTENSION_FREE_ON_GITHUB": "Vous recherchez des fonctionnalités intéressantes développées par la communauté ? Découvrez toutes les extensions gratuites de Brackets sur GitHub.",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
