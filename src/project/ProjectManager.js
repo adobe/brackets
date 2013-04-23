@@ -767,6 +767,9 @@ define(function (require, exports, module) {
      *  fails to load.
      */
     function _loadProject(rootPath) {
+        if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
+            return (new $.Deferred()).resolve().promise();
+        }
         if (_projectRoot) {
             // close current project
             $(exports).triggerHandler("beforeProjectClose", _projectRoot);
@@ -1306,17 +1309,15 @@ define(function (require, exports, module) {
         
                 _projectTree.one("rename.jstree", function (event, data) {
                     // Make sure the file was actually renamed
-                    if (data.rslt.old_name === data.rslt.new_name) {
-                        return;
-                    }
+                    var changed = (data.rslt.old_name !== data.rslt.new_name);
                     
                     var _resetOldFilename = function () {
                         _projectTree.jstree("set_text", selected, ViewUtils.getFileEntryDisplay(entry));
                         _projectTree.jstree("sort", selected.parent());
                     };
                     
-                    if (!_checkForValidFilename(data.rslt.new_name)) {
-                        // Invalid filename. Reset the old name and bail.
+                    if (!changed || !_checkForValidFilename(data.rslt.new_name)) {
+                        // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
                     }

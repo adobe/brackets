@@ -46,6 +46,7 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file",
+        $workingSetHeader,
         $openFilesContainer,
         $openFilesList;
     
@@ -82,8 +83,10 @@ define(function (require, exports, module) {
     function _redraw() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
+            $workingSetHeader.hide();
         } else {
             $openFilesContainer.show();
+            $workingSetHeader.show();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
@@ -555,6 +558,7 @@ define(function (require, exports, module) {
     function create(element) {
         // Init DOM element
         $openFilesContainer = element;
+        $workingSetHeader = $("#working-set-header");
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners

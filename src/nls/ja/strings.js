@@ -179,7 +179,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
-	"CMD_EXTENSION_MANAGER": "!能=[6775081] Extension Manager\u2026_=!",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -207,6 +207,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
+	"CMD_OPEN_LINE_ABOVE": "!能=[6780963] Open Line Above_=!",
+	"CMD_OPEN_LINE_BELOW": "!能=[6780964] Open Line Below_=!",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
     
     // View menu commands
@@ -232,10 +234,10 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義に移動",
-	"CMD_JUMPTO_DEFINITION": "!能=[6780638] Jump to Definition_=!",
+	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
-	"CMD_TOGGLE_QUICK_DOCS": "!能=[6780639] Quick Docs_=!",
+	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
 	"CMD_NEXT_DOC": "次の文書",
@@ -339,7 +341,7 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
 	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the extension registry. Please try again later._=!",
-	"INSTALL_FROM_URL": "!能=[6777878] Install from URL\u2026_=!",
+	"INSTALL_FROM_URL": "URL からインストール\u2026",
 	"EXTENSION_AUTHOR": "作成者",
 	"EXTENSION_DATE": "日付",
 	"EXTENSION_INCOMPATIBLE_NEWER": "!能=[6780760] This extension requires a newer version of {APP_NAME}._=!",
