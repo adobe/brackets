@@ -428,6 +428,9 @@ define(function (require, exports, module) {
     }
     
     function onActiveEditorChange(event, current, previous) {
+        // Hide preview when editor changes
+        hidePreview();
+
         if (currentDocument) {
             $(currentDocument).off("change", hidePreview);
             currentDocument.releaseRef();
@@ -456,7 +459,6 @@ define(function (require, exports, module) {
                 // we auto-hide on text edit, which is probably actually a good thing.
                 editorHolder.addEventListener("mousemove", handleMouseMove, true);
                 editorHolder.addEventListener("scroll", hidePreview, true);
-                $(DocumentManager).on("currentDocumentChange", hidePreview);
 
                 // Setup doc "change" listener
                 onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
@@ -465,7 +467,6 @@ define(function (require, exports, module) {
             } else {
                 editorHolder.removeEventListener("mousemove", handleMouseMove, true);
                 editorHolder.removeEventListener("scroll", hidePreview, true);
-                $(DocumentManager).off("currentDocumentChange", hidePreview);
 
                 // Cleanup doc "change" listener
                 onActiveEditorChange(null, null, null);
