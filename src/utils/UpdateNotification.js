@@ -209,7 +209,7 @@ define(function (require, exports, module) {
         $updateList.html(Mustache.render(UpdateListTemplate, templateVars));
         
         $dlg.on("click", "a", function (e) {
-            var url = $(e.target).attr("data-url");
+            var url = $(e.currentTarget).attr("data-url");
             
             if (url) {
                 // Make sure the URL has a domain that we know about
