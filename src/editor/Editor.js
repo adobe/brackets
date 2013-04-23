@@ -789,18 +789,26 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns true if pos is between start and end (inclusive at both ends)
+     * Returns true if pos is between start and end (INclusive at start; EXclusive at end by default,
+     * but overridable via the endInclusive flag).
      * @param {{line:number, ch:number}} pos
      * @param {{line:number, ch:number}} start
      * @param {{line:number, ch:number}} end
+     * @param {boolean} endInclusive
      *
      */
-    Editor.prototype.posWithinRange = function (pos, start, end) {
-        var startIndex = this.indexFromPos(start),
-            endIndex = this.indexFromPos(end),
-            posIndex = this.indexFromPos(pos);
-
-        return posIndex >= startIndex && posIndex <= endIndex;
+    Editor.prototype.posWithinRange = function (pos, start, end, endInclusive) {
+        if (start.line <= pos.line && end.line >= pos.line) {
+            if (endInclusive) {
+                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                       (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
+            } else {
+                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                       (end.line > pos.line   || end.ch > pos.ch);       // exclusive
+            }
+                   
+        }
+        return false;
     };
     
     /**
@@ -1336,7 +1344,7 @@ define(function (require, exports, module) {
         _setEditorOption(value, cmOption);
         _prefs.setValue(prefName, value);
     }
-		
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value

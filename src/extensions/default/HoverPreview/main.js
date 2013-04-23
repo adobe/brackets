@@ -338,18 +338,6 @@ define(function (require, exports, module) {
     }
     
     
-    /**
-     * Returns true if pos is contained within popover's start-end range (start inclusive, end exclusive)
-     */
-    function containsPos(popover, pos) {
-        if (popover.start.line <= pos.line && popover.end.line >= pos.line) {
-            return (popover.start.line < pos.line || popover.start.ch <= pos.ch) &&  // inclusive
-                   (popover.end.line > pos.line || popover.end.ch > pos.ch);         // exclusive
-        }
-        return false;
-    }
-    
-    
     function handleMouseMove(event) {
         if (!enabled) {
             return;
@@ -404,7 +392,7 @@ define(function (require, exports, module) {
             
             // Is there a popover already visible or pending?
             if (popoverState) {
-                if (containsPos(popoverState, pos)) {
+                if (editor.posWithinRange(pos, popoverState.start, popoverState.end)) {
                     // That one's still relevant - nothing more to do
                     return;
                 } else {

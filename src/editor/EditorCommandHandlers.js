@@ -326,7 +326,7 @@ define(function (require, exports, module) {
         // If we are in a selection starting and ending in invalid tokens and with no content (not considering spaces),
         // find if we are inside a block-comment.
         } else if (startCtx.token.className === null && endCtx.token.className === null &&
-                !editor.posWithinRange(ctx.pos, startCtx.pos, endCtx.pos)) {
+                !editor.posWithinRange(ctx.pos, startCtx.pos, endCtx.pos, true)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, startCtx);
             
             // We found a comment, find the start and end and check if the selection is inside the block-comment.
@@ -334,7 +334,7 @@ define(function (require, exports, module) {
                 prefixPos = _findCommentStart(startCtx, prefixExp);
                 suffixPos = _findCommentEnd(startCtx, suffixExp, suffix.length);
                 
-                if (prefixPos !== null && suffix !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos)) {
+                if (prefixPos !== null && suffix !== null && !editor.posWithinRange(sel.start, prefixPos, suffixPos, true)) {
                     canComment = true;
                 }
             } else {
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
         // Search if there is another comment in the selection. Do nothing if there is one.
         if (!canComment && !invalidComment && !lineUncomment && suffixPos) {
             var start = {line: suffixPos.line, ch: suffixPos.ch + suffix.length + 1};
-            if (editor.posWithinRange(start, sel.start, sel.end)) {
+            if (editor.posWithinRange(start, sel.start, sel.end, true)) {
                 // Start searching at the next token, if there is one.
                 result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) &&
                          _findNextBlockComment(ctx, sel.end, prefixExp);
