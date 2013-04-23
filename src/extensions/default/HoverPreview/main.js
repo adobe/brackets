@@ -44,7 +44,6 @@ define(function (require, exports, module) {
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
-        currentDocument,                     // doc for change event
         lastPos;                             // Last line/ch pos processed by handleMouseMove
     
     // Constants
@@ -431,17 +430,12 @@ define(function (require, exports, module) {
         // Hide preview when editor changes
         hidePreview();
 
-        if (currentDocument) {
-            $(currentDocument).off("change", hidePreview);
-            currentDocument.releaseRef();
+        if (previous && previous.document) {
+            $(previous.document).off("change", hidePreview);
         }
 
-        // Keep track of doc so ref count can be released and event listening stopped
-        currentDocument = current && current.document;
-
-        if (currentDocument) {
-            currentDocument.addRef();
-            $(currentDocument).on("change", hidePreview);
+        if (current && current.document) {
+            $(current.document).on("change", hidePreview);
         }
     }
 
