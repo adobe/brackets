@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, PathUtils, CodeMirror, setTimeout, clearTimeout */
+/*global define, brackets, $, window, PathUtils, CodeMirror */
 
 define(function (require, exports, module) {
     "use strict";
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
             $previewContainer.hide();
             
         } else {
-            clearTimeout(popoverState.hoverTimer);
+            window.clearTimeout(popoverState.hoverTimer);
         }
         
         popoverState = null;
@@ -207,10 +207,7 @@ define(function (require, exports, module) {
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
                 var previewCSS = prefix + (colorValue || match[0]);
-                var preview = "<div class='color-swatch-bg'>"                           +
-                              "    <div class='color-swatch' style='background:"        +
-                                        previewCSS + ";'>"       +
-                              "    </div>"                                              +
+                var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
                     endPos = {line: pos.line, ch: match.index + match[0].length},
@@ -219,7 +216,15 @@ define(function (require, exports, module) {
                 
                 xPos = (cm.charCoords(endPos).left - startCoords.left) / 2 + startCoords.left;
                 
-                return { start: startPos, end: endPos, content: preview, xpos: xPos, ytop: startCoords.top, ybot: startCoords.bottom, _previewCSS: previewCSS };
+                return {
+                    start: startPos,
+                    end: endPos,
+                    content: preview,
+                    xpos: xPos,
+                    ytop: startCoords.top,
+                    ybot: startCoords.bottom,
+                    _previewCSS: previewCSS
+                };
             }
             match = colorRegEx.exec(line);
         }
@@ -290,9 +295,16 @@ define(function (require, exports, module) {
                         });
                     };
                     
-                    var popover = { start: sPos, end: ePos, content: imgPreview, onShow: showHandler, xpos: xpos, ytop: coord.top, ybot: coord.bottom, _imgPath: imgPath };
-                    
-                    return popover;
+                    return {
+                        start: sPos,
+                        end: ePos,
+                        content: imgPreview,
+                        onShow: showHandler,
+                        xpos: xpos,
+                        ytop: coord.top,
+                        ybot: coord.bottom,
+                        _imgPath: imgPath
+                    };
                 }
             }
         }
@@ -411,7 +423,7 @@ define(function (require, exports, module) {
                 if (showImmediately) {
                     showPreview();
                 } else {
-                    popoverState.hoverTimer = setTimeout(function () {
+                    popoverState.hoverTimer = window.setTimeout(function () {
                         // Ready to show now (we'll never get here if mouse movement rendered this popover
                         // inapplicable first - hidePopover() cancels hoverTimer)
                         showPreview();
