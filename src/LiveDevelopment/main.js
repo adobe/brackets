@@ -75,6 +75,7 @@ define(function main(require, exports, module) {
 
     var _$btnGoLive; // reference to the GoLive button
     var _$btnHighlight; // reference to the HighlightButton
+    var _okToClick = true;
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
@@ -134,9 +135,19 @@ define(function main(require, exports, module) {
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
         _$btnGoLive = $("#toolbar-go-live");
+
         _$btnGoLive.click(function onGoLive() {
-            _handleGoLiveCommand();
+            if (_okToClick) {
+                _okToClick = false;
+                _handleGoLiveCommand();
+                // Handle another click 200 ms later to avoid a double-click 
+                // being handled as two single clicks.
+                window.setTimeout(function () {
+                    _okToClick = true;
+                }, 200);
+            }
         });
+
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
