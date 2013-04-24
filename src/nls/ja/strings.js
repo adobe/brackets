@@ -227,7 +227,6 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
-	"CMD_ENABLE_HOVER_PREVIEW": "ホバープレビューを有効にする",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -351,8 +350,11 @@ define({
 	"EXTENSION_INSTALLED": "インストール完了",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
 	"EXTENSION_MORE_INFO_LINK": "詳細",
-	"BROWSE_EXTENSIONS": "!能=[6781118] Browse Extensions_=!",
+	"BROWSE_EXTENSIONS": "拡張機能を探す",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "Hover についてのクイックビュー",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",
 	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",

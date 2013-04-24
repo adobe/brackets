@@ -1,4 +1,4 @@
-/* Sample CSS for testing the HoverPreview extension. */
+/* Sample CSS for testing the QuickView extension. */
 
 .hex_values {
     color: #369;
@@ -10,8 +10,8 @@
 }
 
 .rgb_rgba_values {
-    color: rgb(255,0,0);
-    color: rgb(100%, 0%, 0%);
+    color: rgb(255,0,0);            /* no whitespace */
+    color: rgb(100%,   0%,   0%);   /* extra whitespace */
     color: rgb(50%, 75%, 25%);
     color: rgba(255, 0, 0, 0.5);
     color: rgba(255, 0, 0, 1);
@@ -32,10 +32,10 @@
     color: hsl(0, 100%, 50%);
     color: hsla(0, 100%, 50%, 0.5);
     color: hsla(0, 100%, 50%, .5);
+    color: hsl(390, 100%, 50%);
 }
 
 .unsupported_hsl_hsla_values {
-    color: hsl(390, 100%, 50%);
     color: hsla(90, 100%, 50%, 2);
     color: hsla(0, 200%, 50%, 0.5);
     color: hsla(0.0, 100%, 50%, .5);
