@@ -142,7 +142,7 @@ define(function (require, exports, module) {
         popoverState.marker = cm.markText(
             popoverState.start,
             popoverState.end,
-            {className: "hover-preview-highlight"}
+            {className: "quick-view-highlight"}
         );
         
         $previewContent.append(popoverState.content);

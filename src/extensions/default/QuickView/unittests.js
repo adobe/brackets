@@ -296,7 +296,7 @@ define(function (require, exports, module) {
             }
 
             it("popover is positioned within window bounds", function () {
-                var $popover  = testWindow.$("#hover-preview-container");
+                var $popover  = testWindow.$("#quick-view-container");
                 expect($popover.length).toEqual(1);
                 
                 runs(function () {
