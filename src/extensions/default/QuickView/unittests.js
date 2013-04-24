@@ -183,13 +183,15 @@ define(function (require, exports, module) {
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
-                        expectedGradient2 = "-webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8));",
-                        expectedGradient3 = "-webkit-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%)";
+                        expectedGradient2 = "-webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8))",
+                        expectedGradient3 = "-webkit-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%)",
+                        expectedGradient4 = "-webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204)))";
                     checkGradientAtPos(expectedGradient1, 80, 36);   // -moz- prefix gets stripped
                     checkGradientAtPos(expectedGradient2, 81, 36);   // Old webkit syntax
                     checkGradientAtPos(expectedGradient3, 82, 36);   // -webkit- prefix gets stripped
                     checkGradientAtPos(expectedGradient3, 83, 36);   // -o- prefix gets stripped
                     checkGradientAtPos(expectedGradient3, 84, 36);   // -ms- prefix gets stripped
+                    checkGradientAtPos(expectedGradient4, 90, 36);   // test parameters with 2 levels of nested parens
                 });
             });
             
@@ -213,7 +215,7 @@ define(function (require, exports, module) {
 
             it("Should show radial gradient preview for those with vendor prefix syntax", function () {
                 runs(function () {
-                    var expectedGradient1 = "-webkit-gradient(radial, center center, 0, center center, 141, from(black), to(white), color-stop(25%, blue), color-stop(40%, green), color-stop(60%, red), color-stop(80%, purple));",
+                    var expectedGradient1 = "-webkit-gradient(radial, center center, 0, center center, 141, from(black), to(white), color-stop(25%, blue), color-stop(40%, green), color-stop(60%, red), color-stop(80%, purple))",
                         expectedGradient2 = "-webkit-radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%)";
                     checkGradientAtPos(expectedGradient1, 110, 93);   // old webkit syntax
                     checkGradientAtPos(expectedGradient2, 111, 36);   // -webkit- prefix preserved
@@ -261,6 +263,16 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("Should show comma-separated gradients", function () {
+                runs(function () {
+                    // line ending in comma
+                    checkGradientAtPos("-webkit-linear-gradient(63deg, #999 23%, transparent 23%)", 135,  50);
+                    
+                    // multiple gradients on a line
+                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 74%, #999 78%)", 136,  50);
+                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
+                });
+            });
         });
 
         describe("Quick view display", function () {
@@ -346,24 +358,24 @@ define(function (require, exports, module) {
         describe("Quick view images", function () {
             it("Should show image preview for file path inside url()", function () {
                 runs(function () {
-                    checkImagePathAtPos("img/grabber_color-well.png", 133, 26);
-                    checkImagePathAtPos("img/Color.png",              134, 26);
-                    checkImagePathAtPos("img/DancingPeaks.gif",       135, 26);
-                    checkImagePathAtPos("img/Example.svg",            136, 26);
+                    checkImagePathAtPos("img/grabber_color-well.png", 140, 26);
+                    checkImagePathAtPos("img/Color.png",              141, 26);
+                    checkImagePathAtPos("img/DancingPeaks.gif",       142, 26);
+                    checkImagePathAtPos("img/Example.svg",            143, 26);
                 });
             });
             
             it("Should show image preview for urls with http/https", function () {
                 runs(function () {
-                    checkImagePathAtPos("https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png", 138, 26);
+                    checkImagePathAtPos("https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png", 145, 26);
                 });
             });
             
             it("Should show image preview for file path inside single or double quotes", function () {
                 runs(function () {
-                    checkImagePathAtPos("img/med_hero.jpg",       140, 26);
-                    checkImagePathAtPos("img/Gradient.png",       141, 26);
-                    checkImagePathAtPos("Lake_mapourika_NZ.jpeg", 142, 26);
+                    checkImagePathAtPos("img/med_hero.jpg",       147, 26);
+                    checkImagePathAtPos("img/Gradient.png",       148, 26);
+                    checkImagePathAtPos("Lake_mapourika_NZ.jpeg", 149, 26);
                 });
                 
                 // This must be in the last spec in the suite.
