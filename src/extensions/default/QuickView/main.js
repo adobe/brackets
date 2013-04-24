@@ -460,6 +460,7 @@ define(function (require, exports, module) {
                 // we auto-hide on text edit, which is probably actually a good thing.
                 editorHolder.addEventListener("mousemove", handleMouseMove, true);
                 editorHolder.addEventListener("scroll", hidePreview, true);
+                window.addEventListener("resize", hidePreview, false);
 
                 // Setup doc "change" listener
                 onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
@@ -468,6 +469,7 @@ define(function (require, exports, module) {
             } else {
                 editorHolder.removeEventListener("mousemove", handleMouseMove, true);
                 editorHolder.removeEventListener("scroll", hidePreview, true);
+                window.removeEventListener("resize", hidePreview, false);
 
                 // Cleanup doc "change" listener
                 onActiveEditorChange(null, null, EditorManager.getActiveEditor());
