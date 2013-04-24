@@ -88,7 +88,7 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
 /* From css3please.com */
 .box_gradient {
     background-color: #333;
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#333), to(#CCC)); /* Chrome, Safari 4+ */
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204))); /* Chrome, Safari 4+ */
     background-image: -webkit-linear-gradient(top, #333, #CCC); /* Chrome 10-25, iOS 5+, Safari 5.1+ */
     background-image:    -moz-linear-gradient(top, #333, #CCC); /* Firefox 3.6-15 */
     background-image:      -o-linear-gradient(top, #333, #CCC); /* Opera 11.10-12.00 */
@@ -128,6 +128,13 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
 .repeating_linear_gradient {
     background-image: repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%);
     background-image: repeating-radial-gradient(red, blue 20px, red 40px);
+}
+
+/* lea.verou.me/css3patterns */
+.gradient_pattern {
+    background:
+        linear-gradient(63deg, #999 23%, transparent 23%) 7px 0,
+        linear-gradient(63deg, transparent 74%, #999 78%), linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%), #444;
 }
 
 .images {
