@@ -143,8 +143,8 @@ define({
      * Keyboard modifier names
      */
 
-    "KEYBOARD_CTRL"   : "Control",
-    "KEYBOARD_SHIFT"  : "Mayúsculas",
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "May",
     "KEYBOARD_SPACE"  : "Espacio",
     
     /**
@@ -207,6 +207,8 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Comentar/Descomentar bloque",
     "CMD_LINE_UP"                         : "Subir línea",
     "CMD_LINE_DOWN"                       : "Bajar línea",
+    "CMD_OPEN_LINE_ABOVE"                 : "Crear línea arriba",
+    "CMD_OPEN_LINE_BELOW"                 : "Crear línea abajo",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
      
     // View menu commands
@@ -225,17 +227,16 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
     "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
-    "CMD_ENABLE_HOVER_PREVIEW"            : "Habilitar previsualización con cursor",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
-    "CMD_GOTO_LINE"                       : "Ir a línea",
-    "CMD_GOTO_DEFINITION"                 : "Ir a definición",
-    "CMD_JUMPTO_DEFINITION"               : "Saltar a definición",
+    "CMD_GOTO_LINE"                       : "Ir a la línea",
+    "CMD_GOTO_DEFINITION"                 : "Ir a la definición",
+    "CMD_JUMPTO_DEFINITION"               : "Saltar a la definición",
     "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
-    "CMD_TOGGLE_QUICK_DOCS"               : "Documentación instantánea",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",
     "CMD_NEXT_DOC"                        : "Documento siguiente",
@@ -348,7 +349,11 @@ define({
     "EXTENSION_INSTALLED"                  : "Instalada",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
+    "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
     "EXTENSION_FREE_ON_GITHUB"             : "¿Estás buscando interesantes novedades desarrolladas por la comunidad? Echa un vistazo a todas las extensiones gratis para Brackets en Github.",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Vista rápida con cursor",
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "Errores de JSLint",
