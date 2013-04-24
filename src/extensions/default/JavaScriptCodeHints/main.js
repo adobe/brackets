@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         StringMatch     = brackets.getModule("utils/StringMatch"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
-        Session         = require("Session");
+        Session         = require("Session"),
+        Acorn           = require("thirdparty/acorn/acorn");
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
 
@@ -315,6 +316,40 @@ define(function (require, exports, module) {
             // function types show up as hints, so don't insert anything
             // if we were displaying a function type            
             return false;
+        }
+        
+        if (session.getType().property) {
+            // if we're inserting a property name, we need to make sure the 
+            // hint is a valid property name.  
+            // to check this, run the hint through Acorns tokenizer
+            // it should result in one token, and that token should either be 
+            // a 'name' or a 'keyword', as javascript allows keywords as property names
+            var tokenizer = Acorn.tokenize(completion);
+            var currentToken = tokenizer(),
+                invalidPropertyName = false;
+            
+            // the name is invalid if the hint is not a 'name' or 'keyword' token
+            if (currentToken.type !== Acorn.tokTypes.name && !currentToken.type.keyword) {
+                invalidPropertyName = true;
+            } else {
+                // check for a second token - if there is one (other than 'eof')
+                // then the hint isn't a valid property name either
+                currentToken = tokenizer();
+                if (currentToken.type !== Acorn.tokTypes.eof) {
+                    invalidPropertyName = true;
+                }
+            }
+            
+            if (invalidPropertyName) {
+                // need to walk back to the '.' and replace
+                // with '["<hint>"]
+                var dotCursor = session.findPreviousDot();
+                if (dotCursor) {
+                    completion = "[\"" + completion + "\"]";
+                    start.line = dotCursor.line;
+                    start.ch = dotCursor.ch - 1;
+                }
+            }
         }
         // Replace the current token with the completion
         session.editor.document.replaceRange(completion, start, end);

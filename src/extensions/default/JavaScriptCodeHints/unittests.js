@@ -665,6 +665,53 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should insert hint as [\"my-key\"] since 'my-key' is not a valid property name", function () {
+                var start = { line: 49, ch: 0 },
+                    middle = { line: 49, ch: 5 },
+                    end = { line: 49, ch: 13 };
+                
+                testDoc.replaceRange("arr.m", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "my-key");
+                runs(function () {
+                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(testDoc.getRange(start, end)).toEqual("arr[\"my-key\"]");
+                    expect(testDoc.getLine(end.line).length).toEqual(13);
+                });
+            });
+
+            it("should insert hint as [\"my-key\"] make sure this works if nothing is typed after the '.'", function () {
+                var start = { line: 49, ch: 0 },
+                    middle = { line: 49, ch: 4 },
+                    end = { line: 49, ch: 13 };
+                
+                testDoc.replaceRange("arr.", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "my-key");
+                runs(function () {
+                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(testDoc.getRange(start, end)).toEqual("arr[\"my-key\"]");
+                    expect(testDoc.getLine(end.line).length).toEqual(13);
+                });
+            });
+
+            it("should insert hint as '.for' since keywords can be used as property names", function () {
+                var start = { line: 49, ch: 0 },
+                    middle = { line: 49, ch: 5 },
+                    end = { line: 49, ch: 7 };
+                
+                testDoc.replaceRange("arr.f", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "for");
+                runs(function () {
+                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(testDoc.getRange(start, end)).toEqual("arr.for");
+                    expect(testDoc.getLine(end.line).length).toEqual(7);
+                });
+            });
         });
 
     });
