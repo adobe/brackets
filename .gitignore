@@ -1,7 +1,14 @@
 Thumbs.db
-node_modules
 src/brackets.css
 src/brackets.min.css
+
+# ignore jenkins build info
+/build.prop
+
+# ignore node_modules created by grunt, but not more deeply-nested node_modules
+/node_modules
+/npm-debug.log
+
 
 # ignore everything in the dev extension directory EXCEPT the README
 # (so that the directory is non-empty and can be in git)
@@ -15,3 +22,7 @@ src/extensions/disabled
 
 # unit test working directory
 test/temp
+test/results
+
+# Netbeans
+/nbproject

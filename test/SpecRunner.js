@@ -40,7 +40,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Utility dependency
-    var Global                  = require("utils/Global"),
+    var AppInit                 = require("utils/AppInit"),
+        Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
@@ -49,10 +50,12 @@ define(function (require, exports, module) {
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
+        NodeConnection          = require("utils/NodeConnection"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView;
 
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
+    
     
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
     // extensions need these to be required up front. We need a better solution for this eventually.
@@ -62,14 +65,23 @@ define(function (require, exports, module) {
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
     
-    var suite,
+    var selectedSuites,
         params = new UrlParams(),
         reporter,
+        _nodeConnectionDeferred = new $.Deferred(),
         reporterView;
     
+    /**
+     * @const
+     * Amount of time to wait before automatically rejecting the connection
+     * deferred. If we hit this timeout, we'll never have a node connection
+     * for the installer in this run of Brackets.
+     */
+    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
+
     params.parse();
     
-    function _loadExtensionTests(suite) {
+    function _loadExtensionTests() {
         // augment jasmine to identify extension unit tests
         var addSuite = jasmine.Runner.prototype.addSuite;
         jasmine.Runner.prototype.addSuite = function (suite) {
@@ -81,7 +93,7 @@ define(function (require, exports, module) {
             paths = ["default"];
         
         // load dev and user extensions only when running the extension test suite
-        if (suite === "ExtensionTestSuite") {
+        if (selectedSuites.indexOf("extension") >= 0) {
             paths.push("dev");
             paths.push(ExtensionLoader.getUserExtensionPath());
         }
@@ -115,7 +127,11 @@ define(function (require, exports, module) {
             window.location.reload(true);
         });
         
-        $("#" + suite).closest("li").toggleClass("active", true);
+        if (selectedSuites.length === 1) {
+            $("#" + (selectedSuites[0])).closest("li").toggleClass("active", true);
+        }
+        
+        AppInit._dispatchReady(AppInit.APP_READY);
         
         jasmine.getEnv().execute();
     }
@@ -153,49 +169,69 @@ define(function (require, exports, module) {
     }
     
     function init() {
-        suite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        // Start up the node connection, which is held in the
+        // _nodeConnectionDeferred module variable. (Use 
+        // _nodeConnectionDeferred.done() to access it.
+        
+        // This is in SpecRunner rather than SpecRunnerUtils because the hope
+        // is to hook up jasmine-node tests in this test runner.
+        
+        // TODO: duplicates code from StaticServer
+        // TODO: can this be done lazily?
+        
+        var connectionTimeout = setTimeout(function () {
+            console.error("[SpecRunner] Timed out while trying to connect to node");
+            _nodeConnectionDeferred.reject();
+        }, NODE_CONNECTION_TIMEOUT);
+        
+        var _nodeConnection = new NodeConnection();
+        _nodeConnection.connect(true).then(function () {
+            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
+            
+            _nodeConnection.loadDomains(domainPath, true)
+                .then(
+                    function () {
+                        clearTimeout(connectionTimeout);
+                        _nodeConnectionDeferred.resolve(_nodeConnection);
+                    },
+                    function () { // Failed to connect
+                        console.error("[SpecRunner] Failed to connect to node", arguments);
+                        clearTimeout(connectionTimeout);
+                        _nodeConnectionDeferred.reject();
+                    }
+                );
+        });
+
+        selectedSuites = (params.get("suite") || localStorage.getItem("SpecRunner.suite") || "unit").split(",");
         
         // Create a top-level filter to show/hide performance and extensions tests
-        var isPerfSuite = (suite === "PerformanceTestSuite"),
-            isExtSuite = (suite === "ExtensionTestSuite");
+        var runAll = (selectedSuites.indexOf("all") >= 0);
         
         var topLevelFilter = function (spec) {
-            var suite = spec.suite;
-            
-            // unit test suites have no category
-            if (!isPerfSuite && !isExtSuite) {
-                if (spec.category !== undefined) {
-                    // if an individualy spec has a category, filter it out
-                    return false;
-                }
-                
-                while (suite) {
-                    if (suite.category !== undefined) {
-                        // any suite in the hierarchy may specify a category
-                        return false;
+            // special case "all" suite to run unit, perf, extension, and integration tests
+            if (runAll) {
+                return true;
+            }
+
+            var currentSuite = spec.suite,
+                category = spec.category;
+
+            if (!category) {
+                // find the category from the closest suite
+                while (currentSuite) {
+                    if (currentSuite.category) {
+                        category = currentSuite.category;
+                        break;
                     }
-                    
-                    suite = suite.parentSuite;
+
+                    currentSuite = currentSuite.parentSuite;
                 }
-                
-                return true;
             }
             
-            var category = (isPerfSuite) ? "performance" : "extension";
-            
-            if (spec.category === category) {
-                return true;
-            }
-            
-            while (suite) {
-                if (suite.category === category) {
-                    return true;
-                }
-                
-                suite = suite.parentSuite;
-            }
-            
-            return false;
+            // if unit tests are selected, make sure there is no category in the heirarchy
+            // if not a unit test, make sure the category is selected
+            return (selectedSuites.indexOf("unit") >= 0 && category === undefined) ||
+                (selectedSuites.indexOf(category) >= 0);
         };
         
         /*
@@ -205,9 +241,9 @@ define(function (require, exports, module) {
          */
         
         // configure spawned test windows to load extensions
-        SpecRunnerUtils.setLoadExtensionsInTestWindow(isExtSuite);
+        SpecRunnerUtils.setLoadExtensionsInTestWindow(selectedSuites.indexOf("extension") >= 0);
         
-        _loadExtensionTests(suite).done(function () {
+        _loadExtensionTests(selectedSuites).done(function () {
             var jasmineEnv = jasmine.getEnv();
             
             // Initiailize unit test preferences for each spec
@@ -241,11 +277,25 @@ define(function (require, exports, module) {
             reporterView = new BootstrapReporterView(document, reporter);
             
             // remember the suite for the next unit test window launch
-            localStorage.setItem("SpecRunner.suite", suite);
+            localStorage.setItem("SpecRunner.suite", selectedSuites);
             
             $(window.document).ready(_documentReadyHandler);
         });
     }
+
+    /**
+     * Allows access to the deferred that manages the node connection for tests.
+     *
+     * @return {jQuery.Deferred} The deferred that manages the node connection
+     */
+    function getNodeConnectionDeferred() {
+        return _nodeConnectionDeferred;
+    }
+    
+    // this is used by SpecRunnerUtils
+    brackets.testing = {
+        getNodeConnectionDeferred: getNodeConnectionDeferred
+    };
 
     init();
 });

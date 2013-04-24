@@ -23,12 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window, PathUtils, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Global                  = require("utils/Global"),
+    var AppInit                 = require("utils/AppInit"),
+        Global                  = require("utils/Global"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -38,10 +39,12 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp"),
         StringUtils             = require("utils/StringUtils"),
-        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html");
+        AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
     var buildInfo;
-
+    
+	
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
@@ -58,9 +61,7 @@ define(function (require, exports, module) {
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
-            function (err) {
-                // Ignore errors
-            }
+            function (err) {} /* Ignore errors */
         );
     }
 
@@ -70,17 +71,66 @@ define(function (require, exports, module) {
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
             BUILD_INFO          : buildInfo || ""
         }, Strings);
+        
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
+        
+        // Get containers
+        var $dlg = $(".about-dialog.instance"),
+            $contributors = $dlg.find(".about-contributors"),
+            $spinner = $dlg.find(".spinner");
+        
+        $spinner.addClass("spin");
+        
+        // Get all the project contributors and add them to the dialog
+        $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
+            
+            // Populate the contributors data
+            var totalContributors = contributorsInfo.length;
+            var contributorsCount = 0;
+            
+            $contributors.html(Mustache.render(ContributorsTemplate, contributorsInfo));
+            
+            // This is used to create an opacity transition when each image is loaded
+            $contributors.find("img").one("load", function () {
+                $(this).css("opacity", 1);
+                
+                // Count the contributors loaded and hide the spinner once all are loaded
+                contributorsCount++;
+                if (contributorsCount >= totalContributors) {
+                    $spinner.removeClass("spin");
+                }
+            }).each(function () {
+                if (this.complete) {
+                    $(this).trigger("load");
+                }
+            });
+            
+            // Create a link for each contributor image to their github account
+            $contributors.on("click", "img", function (e) {
+                var url = $(e.target).data("url");
+                if (url) {
+                    // Make sure the URL has a domain that we know about
+                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                    }
+                }
+            });
+        }).fail(function () {
+            $spinner.removeClass("spin");
+            $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
+        });
     }
 
-    // Read "build number" SHAs off disk immediately at load time, instead
+    // Read "build number" SHAs off disk immediately at APP_READY, instead
     // of later, when they may have been updated to a different version
-    BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
-        // If we've successfully determined a "build number" via .git metadata, add it to dialog
-        sha = sha ? sha.substr(0, 9) : "";
-        if (branch || sha) {
-            buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
-        }
+    AppInit.appReady(function () {
+        BuildInfoUtils.getBracketsSHA().done(function (branch, sha, isRepo) {
+            // If we've successfully determined a "build number" via .git metadata, add it to dialog
+            sha = sha ? sha.substr(0, 9) : "";
+            if (branch || sha) {
+                buildInfo = StringUtils.format("({0} {1})", branch, sha).trim();
+            }
+        });
     });
 
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);

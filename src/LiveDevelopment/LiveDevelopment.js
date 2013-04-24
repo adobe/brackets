@@ -64,16 +64,19 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_ACTIVE         = exports.STATUS_ACTIVE         =  3;
     var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    =  4;
 
-    var Dialogs             = require("widgets/Dialogs"),
-        DocumentManager     = require("document/DocumentManager"),
-        EditorManager       = require("editor/EditorManager"),
-        FileUtils           = require("file/FileUtils"),
-        NativeFileError     = require("file/NativeFileError"),
-        NativeApp           = require("utils/NativeApp"),
-        PreferencesDialogs  = require("preferences/PreferencesDialogs"),
-        ProjectManager      = require("project/ProjectManager"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+    var Async                = require("utils/Async"),
+        Dialogs              = require("widgets/Dialogs"),
+        DocumentManager      = require("document/DocumentManager"),
+        EditorManager        = require("editor/EditorManager"),
+        FileUtils            = require("file/FileUtils"),
+        HTMLInstrumentation  = require("language/HTMLInstrumentation"),
+        LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
+        NativeFileError      = require("file/NativeFileError"),
+        NativeApp            = require("utils/NativeApp"),
+        PreferencesDialogs   = require("preferences/PreferencesDialogs"),
+        ProjectManager       = require("project/ProjectManager"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils");
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -96,7 +99,21 @@ define(function LiveDevelopment(require, exports, module) {
         "edit"      : require("LiveDevelopment/Agents/EditAgent")
     };
 
-    var launcherUrl = window.location.href.replace(/\/index.html.*/, "") + "/LiveDevelopment/launch.html";
+    // construct path to launch.html
+    // window location is can be one of the following:
+    // Installed:                /path/to/Brackets.app/Contents/www/index.html
+    // Installed, dev:           /path/to/Brackets.app/Contents/dev/src/index.html
+    // Installed, dev, test:     /path/to/Brackets.app/Contents/dev/test/SpecRunner.html
+    // Arbitrary git repo:       /path/to/brackets/src/index.html
+    // Arbitrary git repo, test: /path/to/brackets/test/SpecRunner.html
+    var launcherUrl = window.location.pathname;
+
+    // special case for test/SpecRunner.html since we can't tell how requirejs
+    // baseUrl is configured dynamically
+    launcherUrl = launcherUrl.replace("/test/SpecRunner.html", "/src/index.html");
+
+    launcherUrl = launcherUrl.substr(0, launcherUrl.lastIndexOf("/")) + "/LiveDevelopment/launch.html";
+    launcherUrl = window.location.origin + launcherUrl;
 
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().
@@ -114,8 +131,9 @@ define(function LiveDevelopment(require, exports, module) {
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
-    var _liveDocument; // the document open for live editing.
-    var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
+    var _liveDocument;        // the document open for live editing.
+    var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
+    var _serverProvider;      // current LiveDevServerProvider
 
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -125,7 +143,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a URL to a local full file path */
     function _urlToPath(url) {
         var path,
-            baseUrl = ProjectManager.getBaseUrl();
+            baseUrl = "";
+
+        if (_serverProvider) {
+            baseUrl = _serverProvider.getBaseUrl();
+        }
 
         if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
             // Use base url to translate to local file path.
@@ -145,7 +167,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Convert a local full file path to a URL */
     function _pathToUrl(path) {
         var url,
-            baseUrl = ProjectManager.getBaseUrl();
+            baseUrl = "";
+
+        if (_serverProvider) {
+            baseUrl = _serverProvider.getBaseUrl();
+        }
 
         // See if base url has been specified and path is within project
         if (baseUrl !== "" && ProjectManager.isWithinProject(path)) {
@@ -190,10 +216,9 @@ define(function LiveDevelopment(require, exports, module) {
         doc.url = parentUrl + encodeURI(matches[2]);
 
         // the root represents the document that should be displayed in the browser
-        // for live development (the file for HTML files, index.html for others)
+        // for live development (the file for HTML files)
         // TODO: Issue #2033 Improve how default page is determined
-        rootUrl = (_isHtmlFileExt(matches[3]) ? doc.url : parentUrl + "index.html");
-        doc.root = { url: rootUrl };
+        doc.root = { url: doc.url };
     }
 
     /** Get the current document from the document manager
@@ -211,14 +236,14 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} document
      */
     function _classForDocument(doc) {
-        switch (doc.extension) {
+        switch (doc.getLanguage().getId()) {
         case "css":
             return CSSDocument;
-        case "js":
+        case "javascript":
             return exports.config.experimental ? JSDocument : null;
         }
 
-        if (exports.config.experimental && _isHtmlFileExt(doc.extension)) {
+        if (_isHtmlFileExt(doc.extension)) {
             return HTMLDocument;
         }
 
@@ -271,6 +296,12 @@ define(function LiveDevelopment(require, exports, module) {
             _liveDocument.close();
             _liveDocument = undefined;
         }
+        
+        if (_serverProvider) {
+            // Remove any "request" listeners that were added previously
+            $(_serverProvider).off(".livedev");
+        }
+        
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
                 liveDoc.close();
@@ -290,22 +321,57 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    /** Open a live document
+    /**
+     * @private
+     * Open a live document
      * @param {Document} source document to open
      */
     function _openDocument(doc, editor) {
         _closeDocument();
         _liveDocument = _createDocument(doc, editor);
-
-        // Gather related CSS documents.
-        // FUTURE: Gather related JS documents as well.
-        _relatedDocuments = [];
-        agents.css.getStylesheetURLs().forEach(function (url) {
-            // FUTURE: when we get truly async file handling, we might need to prevent other
-            // stuff from happening while we wait to add these listeners
+        
+        // Enable instrumentation
+        if (_liveDocument && _liveDocument.setInstrumentationEnabled) {
+            var enableInstrumentation = false;
+            
+            if (_serverProvider && _serverProvider.setRequestFilterPaths) {
+                enableInstrumentation = true;
+                
+                _serverProvider.setRequestFilterPaths(
+                    ["/" + encodeURI(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))]
+                );
+                
+                // Send custom HTTP response for the current live document
+                $(_serverProvider).on("request.livedev", function (event, request) {
+                    // response can be null in which case the StaticServerDomain reverts to simple file serving.
+                    var response = _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
+                    request.send(response);
+                });
+            }
+                
+            _liveDocument.setInstrumentationEnabled(enableInstrumentation);
+        }
+    }
+    
+    /**
+     * @private
+     * Populate array of related documents reported by the browser agent(s)
+     */
+    function _getRelatedDocuments() {
+        function createLiveStylesheet(url) {
+            var stylesheetDeferred = $.Deferred();
+                
             DocumentManager.getDocumentForPath(_urlToPath(url))
+                .fail(function () {
+                    // A failure to open a related file is benign
+                    stylesheetDeferred.resolve();
+                })
                 .done(function (doc) {
-                    if (!_liveDocument || (doc !== _liveDocument.doc)) {
+                    // CSSAgent includes containing HTMLDocument in list returned
+                    // from getStyleSheetURLS() (which could be useful for collecting
+                    // embedded style sheets) but we need to filter doc out here.
+                    if ((_classForDocument(doc) === CSSDocument) &&
+                            (!_liveDocument || (doc !== _liveDocument.doc))) {
                         _setDocInfo(doc);
                         var liveDoc = _createDocument(doc);
                         if (liveDoc) {
@@ -313,8 +379,18 @@ define(function LiveDevelopment(require, exports, module) {
                             $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
                         }
                     }
+                    stylesheetDeferred.resolve();
                 });
-        });
+            return stylesheetDeferred.promise();
+        }
+
+        // Gather related CSS documents.
+        // FUTURE: Gather related JS documents as well.
+        _relatedDocuments = [];
+        
+        return Async.doInParallel(agents.css.getStylesheetURLs(),
+                                  createLiveStylesheet,
+                                  false); // don't fail fast
     }
 
     /** Unload the agents */
@@ -327,8 +403,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
-        var name, promises = [];
-        var agentsToLoad;
+        var name, promises = [], agentsToLoad, promise;
+
         if (exports.config.experimental) {
             // load all agents
             agentsToLoad = agents;
@@ -338,7 +414,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
         for (name in agentsToLoad) {
             if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
-                promises.push(agents[name].load());
+                promise = agents[name].load();
+
+                if (promise) {
+                    promises.push(promise);
+                }
+
                 _loadedAgentNames.push(name);
             }
         }
@@ -410,14 +491,18 @@ define(function LiveDevelopment(require, exports, module) {
             return;
         }
 
-        var editor = EditorManager.getCurrentFullEditor(),
-            status = STATUS_ACTIVE;
+        var status = STATUS_ACTIVE;
 
-        _openDocument(doc, editor);
-        if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-            status = STATUS_OUT_OF_SYNC;
-        }
-        _setStatus(status);
+        // Note: the following promise is never explicitly rejected, so there
+        // is no failure handler. If _getRelatedDocuments is changed so that rejection
+        // is possible, failure should be managed accordingly.
+        _getRelatedDocuments()
+            .done(function () {
+                if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                    status = STATUS_OUT_OF_SYNC;
+                }
+                _setStatus(status);
+            });
     }
 
     /** Triggered by Inspector.detached */
@@ -427,37 +512,54 @@ define(function LiveDevelopment(require, exports, module) {
         // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
     }
 
-    /** Triggered by Inspector.connect */
-    function _onConnect(event) {
-        $(Inspector.Inspector).on("detached", _onDetached);
-        
-        // Load agents
-        _setStatus(STATUS_LOADING_AGENTS);
-        var promises = loadAgents();
-        $.when.apply(undefined, promises).then(_onLoad, _onError);
-        
-        // Load the right document (some agents are waiting for the page's load event)
-        var doc = _getCurrentDocument();
-        if (doc) {
-            Inspector.Page.navigate(doc.root.url);
-        } else {
-            Inspector.Page.reload();
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
+        // res = {frame}
+        var url = res.frame.url,
+            baseUrl,
+            baseUrlRegExp;
+
+        // Only check domain of root frame (with undefined parentId)
+        if (res.frame.parentId) {
+            return;
+        }
+
+        // Any local file is OK
+        if (url.match(/^file:\/\//i) || !_serverProvider) {
+            return;
+        }
+
+        // Need base url to build reg exp
+        baseUrl = _serverProvider.getBaseUrl();
+        if (!baseUrl) {
+            return;
+        }
+
+        // Test that url is within site
+        baseUrlRegExp = new RegExp("^" + StringUtils.regexEscape(baseUrl), "i");
+        if (!url.match(baseUrlRegExp)) {
+            // No longer in site, so terminate live dev, but don't close browser window
+            Inspector.disconnect();
+            _setStatus(STATUS_INACTIVE);
+            _serverProvider = null;
         }
     }
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
-        $(Inspector.Inspector).off("detached", _onDetached);
+        $(Inspector.Inspector).off("detached.livedev");
+        $(Inspector.Page).off("frameNavigated.livedev");
+
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
     }
 
-    function _onReconnect() {
+    function reconnect() {
         unloadAgents();
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
-        $.when.apply(undefined, promises).then(_onLoad, _onError);
+        $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
     }
 
     /** Open the Connection and go live */
@@ -493,26 +595,23 @@ define(function LiveDevelopment(require, exports, module) {
                 });
         }
 
-        if (!doc || !doc.root) {
-            showWrongDocError();
-
-        } else {
-            if (!exports.config.experimental) {
-                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
-                    if (!ProjectManager.getBaseUrl()) {
-                        showNeedBaseUrlError();
-                        return promise;
-                    }
-                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
-                    showWrongDocError();
-                    return promise;
-                }
-            }
-
-            var url = doc.root.url;
-
+        function showLiveDevServerNotReadyError() {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                Strings.LIVE_DEV_SERVER_NOT_READY_MESSAGE
+            );
+            result.reject();
+        }
+        
+        // helper function that actually does the launch once we are sure we have
+        // a doc and the server for that doc is up and running.
+        function doLaunchAfterServerReady() {
             _setStatus(STATUS_CONNECTING);
-            Inspector.connectToURL(url).then(result.resolve, function onConnectFail(err) {
+            
+            _openDocument(doc, EditorManager.getCurrentFullEditor());
+
+            Inspector.connectToURL(launcherUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     result.reject(err);
                     return;
@@ -531,7 +630,7 @@ define(function LiveDevelopment(require, exports, module) {
                                 .done(function () {
                                     browserStarted = false;
                                     window.setTimeout(function () {
-                                        open().then(result.resolve, result.reject);
+                                        open().done(result.resolve).fail(result.reject);
                                     });
                                 })
                                 .fail(function (err) {
@@ -549,17 +648,9 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
 
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
-                    url = launcherUrl + "?" + encodeURIComponent(url);
-
-                    // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
-                    // is available, but the requested URL is not loaded in the browser. In that
-                    // case we want to launch the live browser (to open the url in a new tab)
-                    // without using the --remote-debugging-port flag. This works around issues
-                    // on Windows where Chrome can't be opened more than once with the
-                    // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        url,
-                        err !== NativeFileError.ERR_NOT_FOUND
+                        launcherUrl,
+                        true        // enable remote debugging
                     )
                         .done(function () {
                             browserStarted = true;
@@ -591,22 +682,71 @@ define(function LiveDevelopment(require, exports, module) {
                     
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(url).then(result.resolve, onConnectFail);
+                        Inspector.connectToURL(launcherUrl).done(result.resolve).fail(onConnectFail);
                     }, 500);
                 }
             });
+        }
+        
+        if (!doc || !doc.root) {
+            showWrongDocError();
+        } else {
+            _serverProvider = LiveDevServerManager.getProvider(doc.file.fullPath);
+            
+            if (!exports.config.experimental && !_serverProvider) {
+                if (FileUtils.isServerHtmlFileExt(doc.extension)) {
+                    showNeedBaseUrlError();
+                } else if (!FileUtils.isStaticHtmlFileExt(doc.extension)) {
+                    showWrongDocError();
+                } else {
+                    doLaunchAfterServerReady();   // fall-back to file://
+                }
+            } else {
+                var readyPromise = _serverProvider.readyToServe();
+                if (!readyPromise) {
+                    showLiveDevServerNotReadyError();
+                } else {
+                    readyPromise.then(
+                        doLaunchAfterServerReady,
+                        showLiveDevServerNotReadyError
+                    );
+                }
+            }
         }
 
         return promise;
     }
 
-    /** Close the Connection */
+    /**
+     * Close the connection and the associated window asynchronously
+     * 
+     * @return {jQuery.Promise} Resolves once the connection is closed
+     */
     function close() {
-        if (Inspector.connected()) {
-            Inspector.Runtime.evaluate("window.open('', '_self').close();");
+        var deferred = $.Deferred();
+            
+        /*
+         * Finish closing the live development connection, including setting
+         * the status accordingly.
+         */
+        function cleanup() {
+            _setStatus(STATUS_INACTIVE);
+            _serverProvider = null;
+            deferred.resolve();
         }
-        Inspector.disconnect();
-        _setStatus(STATUS_INACTIVE);
+        
+        if (Inspector.connected()) {
+            var timer = window.setTimeout(cleanup, 5000); // 5 seconds
+            Inspector.Runtime.evaluate("window.open('', '_self').close();", function (response) {
+                Inspector.disconnect();
+                window.clearTimeout(timer);
+                cleanup();
+            });
+        } else {
+            cleanup();
+        }
+        
+        return deferred.promise();
     }
     
     /** Enable highlighting */
@@ -631,11 +771,92 @@ define(function LiveDevelopment(require, exports, module) {
             agents.highlight.redraw();
         }
     }
+    
+    /** Triggered by Inspector.connect */
+    function _onConnect(event) {
+        
+        /* 
+         * Create a promise that resolves when the interstitial page has
+         * finished loading.
+         * 
+         * @return {jQuery.Promise}
+         */
+        function waitForInterstitialPageLoad() {
+            var deferred    = $.Deferred(),
+                keepPolling = true,
+                timer       = window.setTimeout(function () {
+                    keepPolling = false;
+                    deferred.reject();
+                }, 10000); // 10 seconds
+            
+            /* 
+             * Asynchronously check to see if the interstitial page has
+             * finished loading; if not, check again until timing out.
+             */
+            function pollInterstitialPage() {
+                if (keepPolling && Inspector.connected()) {
+                    Inspector.Runtime.evaluate("window.isBracketsLiveDevelopmentInterstitialPageLoaded", function (response) {
+                        var result = response.result;
+                        
+                        if (result.type === "boolean" && result.value) {
+                            window.clearTimeout(timer);
+                            deferred.resolve();
+                        } else {
+                            window.setTimeout(pollInterstitialPage, 100);
+                        }
+                    });
+                } else {
+                    deferred.reject();
+                }
+            }
+            
+            pollInterstitialPage();
+            return deferred.promise();
+        }
+        
+        /*
+         * Load agents and navigate to the target document once the 
+         * interstitial page has finished loading.
+         */
+        function onInterstitialPageLoad() {
+            // Page domain must be enabled first before loading other agents
+            Inspector.Page.enable().done(function () {
+                // Load the right document (some agents are waiting for the page's load event)
+                var doc = _getCurrentDocument();
+                if (doc) {
+                    Inspector.Page.navigate(doc.root.url);
+                } else {
+                    close();
+                }
+            });
+
+            // Load agents
+            _setStatus(STATUS_LOADING_AGENTS);
+            var promises = loadAgents();
+            $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
+        }
+        
+        $(Inspector.Inspector).on("detached.livedev", _onDetached);
+        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
+		
+        waitForInterstitialPageLoad()
+            .fail(function () {
+                close();
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                );
+            })
+            .done(onInterstitialPageLoad);
+    }
 
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
         var doc = _getCurrentDocument(),
-            status = STATUS_ACTIVE;
+            status = STATUS_ACTIVE,
+            promise;
+        
         if (!doc) {
             return;
         }
@@ -643,20 +864,25 @@ define(function LiveDevelopment(require, exports, module) {
         if (Inspector.connected()) {
             hideHighlight();
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
-                _closeDocument();
-                var editor = EditorManager.getCurrentFullEditor();
-                _openDocument(doc, editor);
+                _openDocument(doc, EditorManager.getCurrentFullEditor());
+                
+                promise = _getRelatedDocuments();
             } else {
                 if (exports.config.experimental || _isHtmlFileExt(doc.extension)) {
-                    close();
-                    window.setTimeout(open);
+                    promise = close().done(open);
+                } else {
+                    promise = $.Deferred().resolve();
                 }
             }
             
-            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
-                status = STATUS_OUT_OF_SYNC;
-            }
-            _setStatus(status);
+            promise
+                .fail(close)
+                .done(function () {
+                    if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
+                        status = STATUS_OUT_OF_SYNC;
+                    }
+                    _setStatus(status);
+                });
         }
     }
 
@@ -664,11 +890,11 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentSaved(event, doc) {
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Unload and reload agents before reloading the page
+            reconnect();
+
             // Reload HTML page
             Inspector.Page.reload();
-
-            // Reload unsaved changes
-            _onReconnect();
         }
     }
 
@@ -681,6 +907,54 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /**
+     * @constructor
+     *
+     * LiveDevServerProvider for user specified server as defined with Live Preview Base Url
+     * Project setting. In a clean installation of Brackets, this is the highest priority
+     * server provider, if defined.
+     */
+    function UserServerProvider() {}
+
+    /**
+     * Determines whether we can serve local file.
+     * @param {String} localPath A local path to file being served.
+     * @return {Boolean} true for yes, otherwise false.
+     */
+    UserServerProvider.prototype.canServe = function (localPath) {
+        var baseUrl = ProjectManager.getBaseUrl();
+        if (!baseUrl) {
+            return false;
+        }
+
+        if (!ProjectManager.isWithinProject(localPath)) {
+            return false;
+        }
+
+        return _isHtmlFileExt(localPath);
+    };
+
+    /**
+     * Returns a base url for current project.
+     * @return {String}  Base url for current project.
+     */
+    UserServerProvider.prototype.getBaseUrl = function () {
+        return ProjectManager.getBaseUrl();
+    };
+
+    /**
+     * # LiveDevServerProvider.readyToServe()
+     *
+     * Used to check if the server has finished launching after opening
+     * the project. User is required to make sure their external sever
+     * is ready, so indicate that we're always ready.
+     *
+     * @return {jQuery.Promise} Promise that is already resolved
+     */
+    UserServerProvider.prototype.readyToServe = function () {
+        return $.Deferred().resolve().promise();
+    };
+
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -690,16 +964,31 @@ define(function LiveDevelopment(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
+        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
+
+        // Register user defined server provider
+        var userServerProvider = new UserServerProvider();
+        LiveDevServerManager.registerProvider(userServerProvider, 99);
+
+        // Initialize exports.status
+        _setStatus(STATUS_INACTIVE);
+    }
+
+    function _setServerProvider(serverProvider) {
+        _serverProvider = serverProvider;
     }
 
     // For unit testing
     exports._pathToUrl          = _pathToUrl;
     exports._urlToPath          = _urlToPath;
+    exports._setServerProvider  = _setServerProvider;
+    exports.launcherUrl         = launcherUrl;
 
     // Export public functions
     exports.agents              = agents;
     exports.open                = open;
     exports.close               = close;
+    exports.reconnect           = reconnect;
     exports.enableAgent         = enableAgent;
     exports.disableAgent        = disableAgent;
     exports.getLiveDocForPath   = getLiveDocForPath;

@@ -250,6 +250,27 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Convert percentage values in an RGB color into normal RGB values in the range of 0 - 255.
+     * If the original color is already in non-percentage format, does nothing.
+     * @param {string} color The color to be converted to non-percentage RGB color string.
+     * @return {string} an RGB color string in the normal format using non-percentage values
+     */
+    ColorEditor.prototype._convertToNormalRGB = function (color) {
+        var matches = color.match(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/);
+        if (matches) {
+            var i, percentStr, value;
+            for (i = 0; i < 3; i++) {
+                percentStr = matches[i + 1];
+                value = Math.round(255 * Number(percentStr) / 100);
+                if (!isNaN(value)) {
+                    color = color.replace(percentStr + "%", value);
+                }
+            }
+        }
+        return color;
+    };
+    
+    /**
      * Normalize the given color string into the format used by tinycolor, by adding a space 
      * after commas.
      * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
@@ -515,11 +536,10 @@ define(function (require, exports, module) {
                 return false;
             }
         } else {
-            switch (event.keyCode) {
-            case KeyEvent.DOM_VK_LEFT:
-            case KeyEvent.DOM_VK_RIGHT:
-            case KeyEvent.DOM_VK_UP:
-            case KeyEvent.DOM_VK_DOWN:
+            if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
+                    event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                    event.keyCode === KeyEvent.DOM_VK_UP ||
+                    event.keyCode === KeyEvent.DOM_VK_DOWN) {
                 // Prevent arrow keys that weren't handled by a child control 
                 // from being handled by a parent, either through bubbling or 
                 // through default native behavior. There isn't a good general
@@ -549,14 +569,12 @@ define(function (require, exports, module) {
                     event.stopPropagation();
                     return false; // equivalent to event.preventDefault()
                 }
-                break;
             }
         }
     };
 
     ColorEditor.prototype._handleHslKeydown = function (event) {
-        switch (event.keyCode) {
-        case KeyEvent.DOM_VK_TAB:
+        if (event.keyCode === KeyEvent.DOM_VK_TAB) {
             // If we're the last focusable element (no color swatches), Tab wraps around to color square
             if (!event.shiftKey) {
                 if (this.$swatches.children().length === 0) {
@@ -564,7 +582,6 @@ define(function (require, exports, module) {
                     return false;
                 }
             }
-            break;
         }
     };
 

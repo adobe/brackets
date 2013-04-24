@@ -191,9 +191,9 @@ define(function (require, exports, module) {
                 this.handleClose();
             }
         } else {
-            $.each(this.hints, function (index, item) {
+            this.hints.some(function (item, index) {
                 if (index > self.maxResults) {
-                    return false;
+                    return true;
                 }
                 _addHint(item);
             });
@@ -205,24 +205,25 @@ define(function (require, exports, module) {
      * Computes top left location for hint list so that the list is not clipped by the window
      *
      * @private
-     * @return {Object.<left: number, top: number> }
+     * @return {{left: number, top: number}}
      */
     CodeHintList.prototype._calcHintListLocation = function () {
-        var cursor = this.editor._codeMirror.cursorCoords(),
-            posTop  = cursor.y,
-            posLeft = cursor.x,
-            $window = $(window),
-            $menuWindow = this.$hintMenu.children("ul");
+        var cursor      = this.editor._codeMirror.cursorCoords(),
+            posTop      = cursor.bottom,
+            posLeft     = cursor.left,
+            textHeight  = this.editor.getTextHeight(),
+            $window     = $(window),
+            $menuWindow = this.$hintMenu.children("ul"),
+            menuHeight  = $menuWindow.outerHeight();
 
         // TODO Ty: factor out menu repositioning logic so code hints and Context menus share code
         // adjust positioning so menu is not clipped off bottom or right
-        var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
+        var bottomOverhang = posTop + menuHeight - $window.height();
         if (bottomOverhang > 0) {
-            posTop -= (27 + $menuWindow.height());
+            posTop -= (textHeight + 2 + menuHeight);
         }
-        // todo: should be shifted by line height
-        posTop -= 15;   // shift top for hidden parent element
-        //posLeft += 5;
+
+        posTop -= 30;   // shift top for hidden parent element
 
         var rightOverhang = posLeft + $menuWindow.width() - $window.width();
         if (rightOverhang > 0) {
@@ -246,20 +247,31 @@ define(function (require, exports, module) {
             var len = Math.min(self.hints.length, self.maxResults),
                 pos;
 
-            // set the initial selection position if necessary
             if (self.selectedIndex < 0) {
-                pos = (distance > 0) ? len - 1 : 0;
-                self._setSelectedIndex(pos);
+                // set the initial selection
+                pos = (distance > 0) ? distance - 1 : len - 1;
+
             } else {
+                // adjust current selection
                 pos = self.selectedIndex;
+
+                // Don't "rotate" until all items have been shown
+                if (distance > 0) {
+                    if (pos === (len - 1)) {
+                        pos = 0;  // wrap
+                    } else {
+                        pos = Math.min(pos + distance, len - 1);
+                    }
+                } else {
+                    if (pos === 0) {
+                        pos = (len - 1);  // wrap
+                    } else {
+                        pos = Math.max(pos + distance, 0);
+                    }
+                }
             }
 
-            // rotate the selection
-            if (distance < 0) {
-                distance %= len;
-                distance += len;
-            }
-            self._setSelectedIndex((pos + distance) % len);
+            self._setSelectedIndex(pos);
         }
 
         // Calculate the number of items per scroll page.

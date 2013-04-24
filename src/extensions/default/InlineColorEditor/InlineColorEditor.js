@@ -34,6 +34,8 @@ define(function (require, exports, module) {
     /** @const @type {number} */
     var MAX_USED_COLORS = 7;
     
+    /** @type {number} Global var used to provide a unique ID for each color editor instance's _origin field. */
+    var lastOriginId = 1;
     
     /**
      * Inline widget containing a ColorEditor control
@@ -47,6 +49,7 @@ define(function (require, exports, module) {
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
+        this._origin = "*InlineColorEditor_" + (lastOriginId++);
 
         this._handleColorChange = this._handleColorChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
@@ -59,7 +62,7 @@ define(function (require, exports, module) {
      * rgb()/rgba() function format, or hsl()/hsla() function format.
      * @const @type {RegExp}
      */
-    InlineColorEditor.COLOR_REGEX = /#[a-f0-9]{6}|#[a-f0-9]{3}|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgb\( ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|rgba\( ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?(1|0|0?\.[0-9]{1,3}) ?\)/gi;
+    InlineColorEditor.COLOR_REGEX = /#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|\brgb\(\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*\)|\brgb\(\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*\)|\brgba\(\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\brgba\(\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\bhsl\(\s*([0-9]{1,3})\b\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*([0-9]{1,2}|100)\b%\s*\)|\bhsla\(\s*([0-9]{1,3})\b\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)/gi;
     
     InlineColorEditor.prototype = Object.create(InlineWidget.prototype);
     InlineColorEditor.prototype.constructor = InlineColorEditor;
@@ -89,6 +92,9 @@ define(function (require, exports, module) {
     
     /** @type {boolean} True while we're syncing a code editor change into the color picker */
     InlineColorEditor.prototype._isHostChange = null;
+    
+    /** @type {number} ID used to identify edits coming from this inline widget for undo batching */
+    InlineColorEditor.prototype._origin = null;
     
     
     /**
@@ -151,7 +157,7 @@ define(function (require, exports, module) {
             if (!this._isHostChange) {
                 // Replace old color in code with the picker's color, and select it
                 this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(colorString, range.start, range.end);
+                this.hostEditor.document.replaceRange(colorString, range.start, range.end, this._origin);
                 this._isOwnChange = false;
                 this.hostEditor.setSelection(range.start, {
                     line: range.start.line,
@@ -187,7 +193,8 @@ define(function (require, exports, module) {
         doc.addRef();
         $(doc).on("change", this._handleHostDocumentChange);
         
-        window.setTimeout(this._sizeEditorToContent.bind(this), 0);
+        this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
+        
         this.colorEditor.focus();
     };
     
@@ -208,10 +215,6 @@ define(function (require, exports, module) {
         var doc = this.hostEditor.document;
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
-    };
-
-    InlineColorEditor.prototype._sizeEditorToContent = function () {
-        this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
     };
 
     /** Comparator to sort by which colors are used the most */

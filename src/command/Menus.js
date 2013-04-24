@@ -29,14 +29,12 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Global                  = require("utils/Global"),
-        Commands                = require("command/Commands"),
-        KeyBindingManager       = require("command/KeyBindingManager"),
-        EditorManager           = require("editor/EditorManager"),
-        Strings                 = require("strings"),
-        StringUtils             = require("utils/StringUtils"),
-        CommandManager          = require("command/CommandManager"),
-        PopUpManager            = require("widgets/PopUpManager");
+    var Global              = require("utils/Global"),
+        Commands            = require("command/Commands"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
+        StringUtils         = require("utils/StringUtils"),
+        CommandManager      = require("command/CommandManager"),
+        PopUpManager        = require("widgets/PopUpManager");
 
     /**
      * Brackets Application Menu Constants
@@ -47,7 +45,6 @@ define(function (require, exports, module) {
         EDIT_MENU       : "edit-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
-        DEBUG_MENU      : "debug-menu",     // Note: not present in some configurations of Brackets (getMenu() will return null)
         HELP_MENU       : "help-menu"
     };
 
@@ -145,6 +142,19 @@ define(function (require, exports, module) {
      */
     function getContextMenu(id) {
         return contextMenuMap[id];
+    }
+
+    /**
+     * Check whether a ContextMenu exists for the given id. 
+     * @param {string} id
+     * @return {boolean}
+     */
+    function _isContextMenu(id) {
+        return !!getContextMenu(id);
+    }
+    
+    function _isHTMLMenu(id) {
+        return (brackets.inBrowser || _isContextMenu(id));
     }
 
     /**
@@ -251,6 +261,7 @@ define(function (require, exports, module) {
     function MenuItem(id, command) {
         this.id = id;
         this.isDivider = (command === DIVIDER);
+        this.isNative = false;
 
         if (!this.isDivider) {
             // Bind event handlers
@@ -388,7 +399,8 @@ define(function (require, exports, module) {
      * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
      */
     Menu.prototype.removeMenuItem = function (command) {
-        var menuItemID;
+        var menuItemID,
+            commandID;
 
         if (!command) {
             console.error("removeMenuItem(): missing required parameters: command");
@@ -402,13 +414,23 @@ define(function (require, exports, module) {
                 return;
             }
 
-            menuItemID = this._getMenuItemId(command);
+            commandID = command;
         } else {
-            menuItemID = this._getMenuItemId(command.getID());
+            commandID = command.getID();
         }
+        menuItemID = this._getMenuItemId(commandID);
 
-        // Targeting parent to get the menu item <a> and the <li> that contains it
-        $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        if (_isHTMLMenu(this.id)) {
+            // Targeting parent to get the menu item <a> and the <li> that contains it
+            $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        } else {
+            brackets.app.removeMenuItem(commandID, function (err) {
+                if (err) {
+                    console.error("removeMenuItem() -- command not found: " + commandID + " (error: " + err + ")");
+                }
+            });
+        }
+        
         delete menuItemMap[menuItemID];
     };
     
@@ -467,6 +489,7 @@ define(function (require, exports, module) {
             }
         } else {
             commandID = command.getID();
+            name = command.getName();
         }
 
         // Internal id is the a composite of the parent menu id and the command id.
@@ -482,21 +505,54 @@ define(function (require, exports, module) {
         menuItemMap[id] = menuItem;
 
         // create MenuItem DOM
-        if (name === DIVIDER) {
-            $menuItem = $("<li><hr class='divider' /></li>");
+        if (_isHTMLMenu(this.id)) {
+            if (name === DIVIDER) {
+                $menuItem = $("<li><hr class='divider' /></li>");
+            } else {
+                // Create the HTML Menu
+                $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
+    
+                $menuItem.on("click", function () {
+                    menuItem._command.execute();
+                });
+            }
+    
+            // Insert menu item
+            var $relativeElement = this._getRelativeMenuItem(relativeID, position);
+            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+                          $menuItem, position, $relativeElement);
         } else {
-            // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
-
-            $menuItem.on("click", function () {
-                menuItem._command.execute();
+            var bindings = KeyBindingManager.getKeyBindings(commandID),
+                binding,
+                bindingStr = "",
+                displayStr = "";
+            
+            if (bindings && bindings.length > 0) {
+                binding = bindings[bindings.length - 1];
+                bindingStr = binding.displayKey || binding.key;
+            }
+            
+            if (bindingStr.length > 0) {
+                displayStr = KeyBindingManager.formatKeyDescriptor(bindingStr);
+            }
+            
+            if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
+                if (!relativeID.hasOwnProperty("sectionMarker")) {
+                    console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                    return null;
+                }
+                
+                // For sections, pass in the marker for that section. 
+                relativeID = relativeID.sectionMarker;
+            }
+            
+            brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
+                if (err) {
+                    console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
+                }
             });
+            menuItem.isNative = true;
         }
-
-        // Insert menu item
-        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
-        _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
-                      $menuItem, position, $relativeElement);
 
         // Initialize MenuItem state
         if (!menuItem.isDivider) {
@@ -517,7 +573,7 @@ define(function (require, exports, module) {
             menuItem._enabledChanged();
             menuItem._nameChanged();
         }
-
+        
         return menuItem;
     };
 
@@ -610,13 +666,22 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem checked state with underlying Command checked state
      */
     MenuItem.prototype._checkedChanged = function () {
-        var checked = this._command.getChecked();
-        // Note, checked can also be undefined, so we explicitly check
-        // for truthiness and don't use toggleClass().
-        if (checked) {
-            $(_getHTMLMenuItem(this.id)).addClass("checked");
+        var checked = !!this._command.getChecked();
+        if (this.isNative) {
+            var enabled = !!this._command.getEnabled();
+            brackets.app.setMenuItemState(this._command.getID(), enabled, checked, function (err) {
+                if (err) {
+                    console.log("Error setting menu item state: " + err);
+                }
+            });
         } else {
-            $(_getHTMLMenuItem(this.id)).removeClass("checked");
+            // Note, checked can also be undefined, so we explicitly check
+            // for truthiness and don't use toggleClass().
+            if (checked) {
+                $(_getHTMLMenuItem(this.id)).addClass("checked");
+            } else {
+                $(_getHTMLMenuItem(this.id)).removeClass("checked");
+            }
         }
     };
 
@@ -624,14 +689,32 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem enabled state with underlying Command enabled state
      */
     MenuItem.prototype._enabledChanged = function () {
-        $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+        if (this.isNative) {
+            var enabled = !!this._command.getEnabled();
+            var checked = !!this._command.getChecked();
+            brackets.app.setMenuItemState(this._command.getID(), enabled, checked, function (err) {
+                if (err) {
+                    console.log("Error setting menu item state: " + err);
+                }
+            });
+        } else {
+            $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+        }
     };
 
     /**
      * Synchronizes MenuItem name with underlying Command name
      */
     MenuItem.prototype._nameChanged = function () {
-        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        if (this.isNative) {
+            brackets.app.setMenuTitle(this._command.getID(), this._command.getName(), function (err) {
+                if (err) {
+                    console.log("Error setting menu title: " + err);
+                }
+            });
+        } else {
+            $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        }
     };
     
     /**
@@ -639,7 +722,16 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM with a keyboard shortcut label
      */
     MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
-        _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        if (this.isNative) {
+            var shortcutKey = keyBinding.displayKey || keyBinding.key;
+            brackets.app.setMenuItemShortcut(this._command.getID(), shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+        }
     };
     
     /**
@@ -647,12 +739,20 @@ define(function (require, exports, module) {
      * Updates MenuItem DOM to remove keyboard shortcut label
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
-        var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
-        
-        if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
-            // check for any other bindings
-            if (_addExistingKeyBinding(this) === null) {
-                $shortcut.empty();
+        if (this.isNative) {
+            brackets.app.setMenuItemShortcut(this._command.getID(), "", "", function (err) {
+                if (err) {
+                    console.error("Error setting menu item shortcut: " + err);
+                }
+            });
+        } else {
+            var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
+            
+            if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
+                // check for any other bindings
+                if (_addExistingKeyBinding(this) === null) {
+                    $shortcut.empty();
+                }
             }
         }
     };
@@ -681,7 +781,7 @@ define(function (require, exports, module) {
      */
     function addMenu(name, id, position, relativeID) {
         name = StringUtils.htmlEscape(name);
-        var $menubar = $("#main-toolbar .nav"),
+        var $menubar = $("#titlebar .nav"),
             menu;
 
         if (!name || !id) {
@@ -697,6 +797,22 @@ define(function (require, exports, module) {
 
         menu = new Menu(id);
         menuMap[id] = menu;
+
+        if (!_isHTMLMenu(id)) {
+            brackets.app.addMenu(name, id, position, relativeID, function (err) {
+                if (err) {
+                    console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
+                } else {
+                    // Make sure name is up to date
+                    brackets.app.setMenuTitle(id, name, function (err) {
+                        if (err) {
+                            console.error("setMenuTitle() -- error: " + err);
+                        }
+                    });
+                }
+            });
+            return menu;
+        }
 
         var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
             $popUp = $("<ul class='dropdown-menu'></ul>"),
@@ -729,7 +845,6 @@ define(function (require, exports, module) {
      *
      * Events:
      *      beforeContextMenuOpen
-     *      contextMenuClose
      *
      */
     function ContextMenu(id) {
@@ -810,12 +925,10 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Closes the context menu and dispatches the "contextMenuClose" event.
+     * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
-
-        $(this).triggerHandler("contextMenuClose");
     };
 
     /**
@@ -867,245 +980,7 @@ define(function (require, exports, module) {
     //     NOT IMPLEMENTED
     // }
 
-
-    function init() {
-
-        /*
-         * File menu
-         */
-        var menu;
-        menu = addMenu(Strings.FILE_MENU, AppMenuBar.FILE_MENU);
-        menu.addMenuItem(Commands.FILE_NEW);
-        menu.addMenuItem(Commands.FILE_NEW_FOLDER);
-        menu.addMenuItem(Commands.FILE_OPEN);
-        menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
-        menu.addMenuItem(Commands.FILE_CLOSE);
-        menu.addMenuItem(Commands.FILE_CLOSE_ALL);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_SAVE);
-        menu.addMenuItem(Commands.FILE_SAVE_ALL);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
-        menu.addMenuItem(Commands.FILE_LIVE_HIGHLIGHT);
-        menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_QUIT);
-
-        /*
-         * Edit  menu
-         */
-        menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
-        menu.addMenuItem(Commands.EDIT_SELECT_ALL);
-        menu.addMenuItem(Commands.EDIT_SELECT_LINE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_FIND);
-        menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
-        menu.addMenuItem(Commands.EDIT_FIND_NEXT);
-
-        menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
-
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_REPLACE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_INDENT);
-        menu.addMenuItem(Commands.EDIT_UNINDENT);
-        menu.addMenuItem(Commands.EDIT_DUPLICATE);
-        menu.addMenuItem(Commands.EDIT_DELETE_LINES);
-        menu.addMenuItem(Commands.EDIT_LINE_UP);
-        menu.addMenuItem(Commands.EDIT_LINE_DOWN);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT);
-        menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
-
-        /*
-         * View menu
-         */
-        menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
-        menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE);
-        menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE);
-        menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_JSLINT);
-
-        /*
-         * Navigate menu
-         */
-        menu = addMenu(Strings.NAVIGATE_MENU, AppMenuBar.NAVIGATE_MENU);
-        menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN);
-        menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
-
-        menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
-        menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
-        menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
-
-        /*
-         * Debug menu
-         */
-        if (brackets.config.show_debug_menu) {
-            menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
-            menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
-            menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW);
-            menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
-            menu.addMenuDivider();
-            menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
-            menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
-        }
-
-        /*
-         * Help menu
-         */
-        menu = addMenu(Strings.HELP_MENU, AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
-
-        menu.addMenuDivider();
-        if (brackets.config.how_to_use_url) {
-            menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
-        }
-        if (brackets.config.forum_url) {
-            menu.addMenuItem(Commands.HELP_FORUM);
-        }
-        if (brackets.config.release_notes_url) {
-            menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
-        }
-        if (brackets.config.report_issue_url) {
-            menu.addMenuItem(Commands.HELP_REPORT_AN_ISSUE);
-        }
-
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
-
-
-        menu.addMenuDivider();
-        if (brackets.config.twitter_url) {
-            menu.addMenuItem(Commands.HELP_TWITTER);
-        }
-        menu.addMenuItem(Commands.HELP_ABOUT);
-
-
-        /*
-         * Context Menus
-         */
-        var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
-        project_cmenu.addMenuItem(Commands.FILE_NEW);
-        project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
-        project_cmenu.addMenuItem(Commands.FILE_RENAME);
-        project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
-
-        var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
-        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
-        working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
-        working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
-        working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
-
-        var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
-        editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
-
-        var inline_editor_cmenu = registerContextMenu(ContextMenuIds.INLINE_EDITOR_MENU);
-        inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-        inline_editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
-        inline_editor_cmenu.addMenuDivider();
-        inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
-        inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
-        
-        /**
-         * Context menu for code editors (both full-size and inline)
-         * Auto selects the word the user clicks if the click does not occur over
-         * an existing selection
-         */
-        $("#editor-holder").on("contextmenu", function (e) {
-            if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
-                return;
-            }
-            
-            // Note: on mousedown before this event, CodeMirror automatically checks mouse pos, and
-            // if not clicking on a selection moves the cursor to click location. When triggered
-            // from keyboard, no pre-processing occurs and the cursor/selection is left as is.
-            
-            var editor = EditorManager.getFocusedEditor(),
-                inlineWidget = EditorManager.getFocusedInlineWidget();
-            
-            if (editor) {
-                // If there's just an insertion point select the word token at the cursor pos so
-                // it's more clear what the context menu applies to.
-                if (!editor.hasSelection()) {
-                    editor.selectWordAt(editor.getCursorPos());
-                    
-                    // Prevent menu from overlapping text by moving it down a little
-                    // Temporarily backout this change for now to help mitigate issue #1111,
-                    // which only happens if mouse is not over context menu. Better fix
-                    // requires change to bootstrap, which is too risky for now.
-                    //e.pageY += 6;
-                }
-                
-                // Inline text editors have a different context menu (safe to assume it's not some other
-                // type of inline widget since we already know an Editor has focus)
-                if (inlineWidget) {
-                    inline_editor_cmenu.open(e);
-                } else {
-                    editor_cmenu.open(e);
-                }
-            }
-        });
-
-        /**
-         * Context menus for folder tree & working set list
-         */
-        $("#project-files-container").on("contextmenu", function (e) {
-            project_cmenu.open(e);
-        });
-
-        $("#open-files-container").on("contextmenu", function (e) {
-            working_set_cmenu.open(e);
-        });
-
-        // Prevent the browser context menu since Brackets creates a custom context menu
-        $(window).contextmenu(function (e) {
-            e.preventDefault();
-        });
-        
-        /*
-         * General menu event processing
-         */
-        // Prevent clicks on top level menus and menu items from taking focus
-        $(window.document).on("mousedown", ".dropdown", function (e) {
-            e.preventDefault();
-        });
-
-        // Switch menus when the mouse enters an adjacent menu
-        // Only open the menu if another one has already been opened
-        // by clicking
-        $(window.document).on("mouseenter", "#main-toolbar .dropdown", function (e) {
-            var open = $(this).siblings(".open");
-            if (open.length > 0) {
-                open.removeClass("open");
-                $(this).addClass("open");
-            }
-        });
-    }
-
     // Define public API
-    exports.init = init;
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;
     exports.MenuSection = MenuSection;

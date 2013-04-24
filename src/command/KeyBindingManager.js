@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true, boss: true */
 /*global define, $, brackets, window */
 
 /**
@@ -33,7 +33,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var CommandManager = require("command/CommandManager"),
+    var AppInit        = require("utils/AppInit"),
+        CommandManager = require("command/CommandManager"),
         KeyEvent       = require("utils/KeyEvent"),
         Strings        = require("strings");
 
@@ -270,7 +271,7 @@ define(function (require, exports, module) {
         var displayStr;
         
         if (brackets.platform === "mac") {
-            displayStr = descriptor.replace(/-/g, "");          // remove dashes
+            displayStr = descriptor.replace(/-(?!$)/g, "");     // remove dashes
             displayStr = displayStr.replace("Ctrl", "\u2303");  // Ctrl > control symbol
             displayStr = displayStr.replace("Cmd", "\u2318");   // Cmd > command symbol
             displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
@@ -279,7 +280,7 @@ define(function (require, exports, module) {
             displayStr = descriptor.replace("Ctrl", Strings.KEYBOARD_CTRL);   // Ctrl
             displayStr = displayStr.replace("Shift", Strings.KEYBOARD_SHIFT); // Shift > shift symbol
             displayStr = displayStr.replace("Space", Strings.KEYBOARD_SPACE); // Alt > option symbol
-            displayStr = displayStr.replace(/-/g, "+");
+            displayStr = displayStr.replace(/-(?!$)/g, "+");
         }
 
         return displayStr;
@@ -394,16 +395,14 @@ define(function (require, exports, module) {
             return null;
         }
         
-        // skip if the key is already assigned explicitly for this platform
+        // skip if the key is already assigned
         if (existing) {
-            if (!existing.explicitPlatform) {
-                // remove existing generic bindings, then re-map this binding
-                // to the new command
+            if (!existing.explicitPlatform && explicitPlatform) {
+                // remove the the generic binding to replace with this new platform-specific binding
                 removeBinding(normalized);
             } else {
-                // do not re-assign a platform-specific key binding
-                console.log("Cannot assign " + normalized + " to " + commandID +
-                            ". It is already assigned to " + _keyMap[normalized].commandID);
+                // do not re-assign a key binding
+                console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
                 return null;
             }
         }
@@ -496,7 +495,7 @@ define(function (require, exports, module) {
 
     // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
     /**
-     * Enable or disable key bindings. Clients such as dialogs may wish to disable 
+     * Enable or disable key bindings. Clients such as dialogs may wish to disable
      * global key bindings temporarily.
      *
      * @param {string} A key-description string.
@@ -508,8 +507,8 @@ define(function (require, exports, module) {
 
     /**
      * Add one or more key bindings to a particular Command.
-     * 
-     * @param {!string} commandID
+     *
+     * @param {!string | Command} command - A command ID or command object
      * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string}>)} keyBindings
      *     a single key binding or an array of keybindings. Example:
      *     "Shift-Cmd-F". Mac and Win key equivalents are automatically
@@ -521,14 +520,24 @@ define(function (require, exports, module) {
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
      *     Returns record(s) for valid key binding(s)
      */
-    function addBinding(commandID, keyBindings, platform) {
-        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
+    function addBinding(command, keyBindings, platform) {
+        var commandID           = "",
+            normalizedBindings  = [],
+            results;
+        
+        if (!command) {
+            console.error("addBinding(): missing required parameter: command");
             return;
         }
         
-        var normalizedBindings = [],
-            results;
-
+        if (!keyBindings) { return; }
+        
+        if (typeof (command) === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
+        
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
@@ -547,15 +556,29 @@ define(function (require, exports, module) {
         
         return results;
     }
-    
+
     /**
      * Retrieve key bindings currently associated with a command
      *
-     * @param {!string} command - A command ID
+     * @param {!string | Command} command - A command ID or command object
      * @return {!Array.<{{key: string, displayKey: string}}>} An array of associated key bindings.
      */
-    function getKeyBindings(commandID) {
-        var bindings = _commandMap[commandID];
+    function getKeyBindings(command) {
+        var bindings    = [],
+            commandID   = "";
+        
+        if (!command) {
+            console.error("getKeyBindings(): missing required parameter: command");
+            return [];
+        }
+        
+        if (typeof (command) === "string") {
+            commandID = command;
+        } else {
+            commandID = command.getID();
+        }
+        
+        bindings = _commandMap[commandID];
         return bindings || [];
     }
     
@@ -573,11 +596,8 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * Install keydown event listener.
-     */
-    function init() {
-        // init
+    AppInit.htmlReady(function () {
+        // Install keydown event listener.
         window.document.body.addEventListener(
             "keydown",
             function (event) {
@@ -589,9 +609,9 @@ define(function (require, exports, module) {
             true
         );
         
-        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac")
-            && (brackets.platform !== "win");
-    }
+        exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
+            (brackets.platform !== "win");
+    });
     
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
 
@@ -599,7 +619,6 @@ define(function (require, exports, module) {
     exports._reset = _reset;
 
     // Define public API
-    exports.init = init;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
@@ -609,9 +628,9 @@ define(function (require, exports, module) {
     exports.getKeyBindings = getKeyBindings;
     
     /**
-     * Use windows-specific bindings if no other are found (e.g. Linux). 
+     * Use windows-specific bindings if no other are found (e.g. Linux).
      * Core Brackets modules that use key bindings should always define at
-     * least a generic keybinding that is applied for all platforms. This 
+     * least a generic keybinding that is applied for all platforms. This
      * setting effectively creates a compatibility mode for third party
      * extensions that define explicit key bindings for Windows and Mac, but
      * not Linux.

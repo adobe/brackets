@@ -121,6 +121,7 @@ define(function (require, exports, module) {
          * @type {number}
          */
         ASYNC_TIMEOUT: 2000,
+        ASYNC_NETWORK_TIMEOUT: 20000,   // 20 seconds for reading files from network drive
         
         /**
          * Shows a modal dialog for selecting and opening files
@@ -228,10 +229,8 @@ define(function (require, exports, module) {
             case brackets.fs.ERR_CANT_READ:
                 error = NativeFileError.NOT_READABLE_ERR;
                 break;
-            // It might seem like you should use NativeFileError.ENCODING_ERR for this,
-            // but according to the spec that's for malformed URLs.
             case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                error = NativeFileError.SECURITY_ERR;
+                error = NativeFileError.NOT_READABLE_ERR;
                 break;
             case brackets.fs.ERR_CANT_WRITE:
                 error = NativeFileError.NO_MODIFICATION_ALLOWED_ERR;
@@ -944,66 +943,87 @@ define(function (require, exports, module) {
     /**
      * Read the next block of entries from this directory
      * @param {function(Array.<Entry>)} successCallback Callback function for successful operations
-     * @param {function(DOMError)=} errorCallback Callback function for error operations
+     * @param {function(DOMError, ?Array.<Entry>)=} errorCallback Callback function for error operations,
+     *      which may include an array of entries that could be read without error
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
-        var rootPath = this._directory.fullPath,
-            filesystem = this.filesystem;
+        if (!this._directory.fullPath) {
+            errorCallback(new NativeFileError(NativeFileError.PATH_EXISTS_ERR));
+            return;
+        }
         
-        brackets.fs.readdir(rootPath, function (err, filelist) {
-            if (!err) {
-                var entries = [];
-                var lastError = null;
-
-                // call success immediately if this directory has no files
-                if (filelist.length === 0) {
-                    successCallback(entries);
-                    return;
+        var rootPath = this._directory.fullPath,
+            filesystem = this.filesystem,
+            timeout = NativeFileSystem.ASYNC_TIMEOUT,
+            networkDetectionResult = new $.Deferred();
+        
+        if (brackets.fs.isNetworkDrive) {
+            brackets.fs.isNetworkDrive(rootPath, function (err, remote) {
+                if (!err && remote) {
+                    timeout = NativeFileSystem.ASYNC_NETWORK_TIMEOUT;
                 }
-
-                // stat() to determine type of each entry, then populare entries array with objects
-                var masterPromise = Async.doInParallel(filelist, function (filename, index) {
-                    
-                    var deferred = new $.Deferred();
-                    var itemFullPath = rootPath + filelist[index];
-                    
-                    brackets.fs.stat(itemFullPath, function (statErr, statData) {
-                        if (!statErr) {
-                            if (statData.isDirectory()) {
-                                entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath, filesystem);
-                            } else if (statData.isFile()) {
-                                entries[index] = new NativeFileSystem.FileEntry(itemFullPath, filesystem);
+                networkDetectionResult.resolve();
+            });
+        } else {
+            networkDetectionResult.resolve();
+        }
+        
+        networkDetectionResult.done(function () {
+            brackets.fs.readdir(rootPath, function (err, filelist) {
+                if (!err) {
+                    var entries = [];
+                    var lastError = null;
+    
+                    // call success immediately if this directory has no files
+                    if (filelist.length === 0) {
+                        successCallback(entries);
+                        return;
+                    }
+    
+                    // stat() to determine type of each entry, then populare entries array with objects
+                    var masterPromise = Async.doInParallel(filelist, function (filename, index) {
+                        
+                        var deferred = new $.Deferred();
+                        var itemFullPath = rootPath + filelist[index];
+                        
+                        brackets.fs.stat(itemFullPath, function (statErr, statData) {
+                            if (!statErr) {
+                                if (statData.isDirectory()) {
+                                    entries[index] = new NativeFileSystem.DirectoryEntry(itemFullPath, filesystem);
+                                } else if (statData.isFile()) {
+                                    entries[index] = new NativeFileSystem.FileEntry(itemFullPath, filesystem);
+                                } else {
+                                    entries[index] = null;  // neither a file nor a dir, so don't include it
+                                }
+                                deferred.resolve();
                             } else {
-                                entries[index] = null;  // neither a file nor a dir, so don't include it
+                                entries[index] = null;  // failed to stat this file, so don't include it
+                                lastError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(statErr));
+                                deferred.reject(lastError);
                             }
-                            deferred.resolve();
-                        } else {
-                            lastError = new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(statErr));
-                            deferred.reject(lastError);
-                        }
-                    });
+                        });
+                        
+                        return deferred.promise();
+                    }, false);
+    
+                    // We want the error callback to get called after some timeout (in case some deferreds don't return).
+                    // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
+                    var timeoutWrapper = Async.withTimeout(masterPromise, timeout);
                     
-                    return deferred.promise();
-                }, true);
-
-                // We want the error callback to get called after some timeout (in case some deferreds don't return).
-                // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
-                var timeoutWrapper = Async.withTimeout(masterPromise, NativeFileSystem.ASYNC_TIMEOUT);
-
-                // Add the callbacks to this top-level Promise, which wraps all the individual deferred objects
-                timeoutWrapper.then(
-                    function () { // success
-                        // The entries array may have null values if stat returned things that were
-                        // neither a file nor a dir. So, we need to clean those out.
-                        var cleanedEntries = [], i;
-                        for (i = 0; i < entries.length; i++) {
-                            if (entries[i]) {
-                                cleanedEntries.push(entries[i]);
+                    // The entries array may have null values if stat returned things that were
+                    // neither a file nor a dir. So, we need to clean those out.
+                    var cleanedEntries = [];
+    
+                    // Add the callbacks to this top-level Promise, which wraps all the individual deferred objects
+                    timeoutWrapper.always(function () { // always clean the successful entries 
+                        entries.forEach(function (entry) {
+                            if (entry) {
+                                cleanedEntries.push(entry);
                             }
-                        }
+                        });
+                    }).done(function () { // success
                         successCallback(cleanedEntries);
-                    },
-                    function (err) { // error
+                    }).fail(function (err) { // error
                         if (err === Async.ERROR_TIMEOUT) {
                             // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
                             // more fitting for a timeout.
@@ -1013,14 +1033,14 @@ define(function (require, exports, module) {
                         }
                         
                         if (errorCallback) {
-                            errorCallback(err);
+                            errorCallback(err, cleanedEntries);
                         }
-                    }
-                );
-
-            } else { // There was an error reading the initial directory.
-                errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
-            }
+                    });
+    
+                } else { // There was an error reading the initial directory.
+                    errorCallback(new NativeFileError(NativeFileSystem._fsErrorToDOMErrorName(err)));
+                }
+            });
         });
     };
 

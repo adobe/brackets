@@ -37,14 +37,20 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         StringUtils          = require("utils/StringUtils"),
         Global               = require("utils/Global"),
-        UpdateDialogTemplate = require("text!htmlContent/update-dialog.html");
+        UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
+        UpdateListTemplate   = require("text!htmlContent/update-list.html");
+    
+    var defaultPrefs = {lastNotifiedBuildNumber: 0};
+    
     
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
     
     // PreferenceStorage
-    var _prefs = PreferencesManager.getPreferenceStorage(module.id, {lastNotifiedBuildNumber: 0});
-        
+    var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    //TODO: Remove preferences migration code
+    PreferencesManager.handleClientIdChange(_prefs, module.id);
+    
     // This is the last version we notified the user about. If checkForUpdate()
     // is called with "false", only show the update notification dialog if there
     // is an update newer than this one. This value is saved in preferences.
@@ -198,35 +204,12 @@ define(function (require, exports, module) {
         // Populate the update data
         var $dlg = $(".update-dialog.instance");
         var $updateList = $dlg.find(".update-info");
+        var templateVars = $.extend(updates, Strings);
         
-        // TODO: Use a template instead of hand-rolling HTML code
-        updates.forEach(function (item, index) {
-            var $features = $("<ul>");
-            
-            item.newFeatures.forEach(function (feature, index) {
-                $features.append(
-                    "<li><b>" +
-                        StringUtils.htmlEscape(feature.name) +
-                        "</b> - " +
-                        StringUtils.htmlEscape(feature.description) +
-                        "</li>"
-                );
-            });
-            
-            var $item = $("<div>")
-                .append("<h3>" +
-                        StringUtils.htmlEscape(item.versionString) +
-                        " - " +
-                        StringUtils.htmlEscape(item.dateString) +
-                        " (<a href='#' data-url='" + item.releaseNotesURL + "'>" +
-                        Strings.RELEASE_NOTES +
-                        "</a>)</h3>")
-                .append($features)
-                .appendTo($updateList);
-        });
+        $updateList.html(Mustache.render(UpdateListTemplate, templateVars));
         
         $dlg.on("click", "a", function (e) {
-            var url = $(e.target).attr("data-url");
+            var url = $(e.currentTarget).attr("data-url");
             
             if (url) {
                 // Make sure the URL has a domain that we know about

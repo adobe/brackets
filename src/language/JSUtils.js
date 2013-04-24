@@ -58,7 +58,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Return an Array with names and offsets for all functions in the specified text
+     * Return an object mapping function name to offset info for all functions in the specified text.
+     * Offset info is an array, since multiple functions of the same name can exist.
      * @param {!string} text Document text
      * @return {Object.<string, Array.<{offsetStart: number, offsetEnd: number}>}
      */
@@ -258,13 +259,14 @@ define(function (require, exports, module) {
         // Filter for documents that contain the named function
         var result              = new $.Deferred(),
             matchedDocuments    = [],
-            rangeResults        = [],
-            functionsInDocument;
+            rangeResults        = [];
         
         docEntries.forEach(function (docEntry) {
-            functionsInDocument = docEntry.functions[functionName];
-            
-            if (functionsInDocument) {
+            // Need to call CollectionUtils.hasProperty here since docEntry.functions could
+            // have an entry for "hasOwnProperty", which results in an error if trying to
+            // invoke docEntry.functions.hasOwnProperty().
+            if (CollectionUtils.hasProperty(docEntry.functions, functionName)) {
+                var functionsInDocument = docEntry.functions[functionName];
                 matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
             }
         });
@@ -359,7 +361,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return all functions that have the specified name.
+     * Return all functions that have the specified name, searching across all the given files.
      *
      * @param {!String} functionName The name to match.
      * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.

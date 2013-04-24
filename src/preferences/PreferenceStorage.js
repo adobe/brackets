@@ -31,7 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PreferencesManager = require("preferences/PreferencesManager");
+    var PreferencesManager = require("preferences/PreferencesManager"),
+        CollectionUtils    = require("utils/CollectionUtils");
     
     /**
      * @private
@@ -144,13 +145,13 @@ define(function (require, exports, module) {
             error = null;
         
         // validate all name/value pairs before committing
-        $.each(obj, function (key, value) {
+        CollectionUtils.some(obj, function (value, key) {
             try {
                 _validateJSONPair(key, value);
             } catch (err) {
                 // fail fast
                 error = err;
-                return false;
+                return true;
             }
         });
         
@@ -162,13 +163,13 @@ define(function (require, exports, module) {
         
         // delete all exiting properties if not appending
         if (!append) {
-            $.each(this._json, function (key, value) {
+            CollectionUtils.forEach(this._json, function (value, key) {
                 delete self._json[key];
             });
         }
         
         // copy properties from incoming JSON object
-        $.each(obj, function (key, value) {
+        CollectionUtils.forEach(obj, function (value, key) {
             self._json[key] = value;
         });
         

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window  */
+/*global define, $, window, brackets  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -46,6 +46,7 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file",
+        $workingSetHeader,
         $openFilesContainer,
         $openFilesList;
     
@@ -82,8 +83,10 @@ define(function (require, exports, module) {
     function _redraw() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
+            $workingSetHeader.hide();
         } else {
             $openFilesContainer.show();
+            $workingSetHeader.show();
         }
         _adjustForScrollbars();
         _fireSelectionChanged();
@@ -255,8 +258,9 @@ define(function (require, exports, module) {
         }
         
         
-        // Only drag with the left mouse button, end the drop in other cases
-        if (event.which !== 1) {
+        // Only drag with the left mouse button, and control key is not down
+        // on Mac, end the drop in other cases
+        if (event.which !== 1 || (event.ctrlKey && brackets.platform === "mac")) {
             drop();
             return;
         }
@@ -351,7 +355,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
-        var $link = $("<a href='#'></a>").text(file.name);
+        var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
@@ -554,6 +558,7 @@ define(function (require, exports, module) {
     function create(element) {
         // Init DOM element
         $openFilesContainer = element;
+        $workingSetHeader = $("#working-set-header");
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners

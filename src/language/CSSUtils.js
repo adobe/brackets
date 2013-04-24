@@ -67,9 +67,7 @@ define(function (require, exports, module) {
         }
         
         lastToken = state.stack[state.stack.length - 1];
-        return (lastToken === "{") ||
-                (lastToken === "rule" &&
-                (ctx.token.className === "variable" || ctx.token.className === "tag"));
+        return (lastToken === "{" || lastToken === "rule");
     }
     
     /**
@@ -81,7 +79,7 @@ define(function (require, exports, module) {
     function _isInPropValue(ctx) {
         var state;
         if (!ctx || !ctx.token || !ctx.token.state || ctx.token.className === "comment" ||
-                ctx.token.className === "variable" || ctx.token.className === "tag") {
+                ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
             return false;
         }
 
@@ -90,7 +88,7 @@ define(function (require, exports, module) {
         if (!state.stack || state.stack.length < 2) {
             return false;
         }
-        return (state.stack[state.stack.length - 1] === "rule");
+        return (state.stack[state.stack.length - 1] === "propertyValue" && state.stack[state.stack.length - 2] === "rule");
     }
     
     /**
@@ -138,13 +136,14 @@ define(function (require, exports, module) {
         do {
             // If we get a property name or "{" or ";" before getting a colon, then we don't 
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.className === "variable" || ctxClone.token.string === "{" || ctxClone.token.string === ";") {
+            if (ctxClone.token.className === "property" || ctxClone.token.className === "property error" ||
+                    ctxClone.token.string === "{" || ctxClone.token.string === ";") {
                 return "";
             }
         } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
         
         if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
-                ctxClone.token.className === "variable") {
+                (ctxClone.token.className === "property" || ctxClone.token.className === "property error")) {
             return ctxClone.token.string;
         }
         
@@ -163,7 +162,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
                     ctx.token.string === ":" || ctx.token.string === "{" ||
                     ctx.token.string === ";") {
                 break;
@@ -216,7 +215,7 @@ define(function (require, exports, module) {
             }
             // If we're already in the next rule, then we don't want to add the last value
             // since it is the property name of the next rule.
-            if (ctx.token.className === "variable" || ctx.token.className === "tag" ||
+            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag" ||
                     ctx.token.string === ":") {
                 lastValue = "";
                 break;
@@ -358,16 +357,16 @@ define(function (require, exports, module) {
         }
 
         if (_isInPropName(ctx)) {
-            if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
+                propName = ctx.token.string;
+            } else {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                     testToken = editor._codeMirror.getTokenAt(testPos);
                 
-                if (testToken.className === "variable" || testToken.className === "tag") {
+                if (testToken.className === "property" || testToken.className === "property error" || testToken.className === "tag") {
                     propName = testToken.string;
                     offset = 0;
                 }
-            } else if (ctx.token.className === "variable" || ctx.token.className === "tag") {
-                propName = ctx.token.string;
             }
             
             // If we're in property name context but not in an existing property name, 
@@ -517,10 +516,10 @@ define(function (require, exports, module) {
             return true;
         }
 
-        function _parseSelector() {
+        function _parseSelector(start) {
             
             currentSelector = "";
-            selectorStartChar = stream.start;
+            selectorStartChar = start;
             selectorStartLine = line;
             
             // Everything until the next ',' or '{' is part of the current selector
@@ -549,15 +548,18 @@ define(function (require, exports, module) {
             }
             
             currentSelector = currentSelector.trim();
+            var startChar = (selectorGroupStartLine === -1) ? selectorStartChar : selectorStartChar + 1;
+            var selectorStart = (stream.string.indexOf(currentSelector, selectorStartChar) !== -1) ? stream.string.indexOf(currentSelector, selectorStartChar - currentSelector.length) : startChar;
+
             if (currentSelector !== "") {
                 selectors.push({selector: currentSelector,
                                 ruleStartLine: ruleStartLine,
                                 ruleStartChar: ruleStartChar,
                                 selectorStartLine: selectorStartLine,
-                                selectorStartChar: selectorStartChar,
+                                selectorStartChar: selectorStart,
                                 declListEndLine: -1,
                                 selectorEndLine: line,
-                                selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
+                                selectorEndChar: selectorStart + currentSelector.length,
                                 selectorGroupStartLine: selectorGroupStartLine,
                                 selectorGroupStartChar: selectorGroupStartChar
                                });
@@ -567,16 +569,15 @@ define(function (require, exports, module) {
         }
         
         function _parseSelectorList() {
-
-            selectorGroupStartLine = line;
+            selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
             selectorGroupStartChar = stream.start;
 
-            _parseSelector();
+            _parseSelector(stream.start);
             while (token === ",") {
                 if (!_nextTokenSkippingComments()) {
                     break;
                 }
-                _parseSelector();
+                _parseSelector(stream.start);
             }
         }
 
@@ -1028,7 +1029,7 @@ define(function (require, exports, module) {
     
     exports.getInfoAtPos = getInfoAtPos;
 
-    // The createInfo is reallyonly for the unit tests so they can make the same  
+    // The createInfo is really only for the unit tests so they can make the same  
     // structure to compare results with.
     exports.createInfo = createInfo;
 });

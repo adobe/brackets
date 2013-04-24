@@ -1,0 +1,2 @@
+.longLineClass { margin: 0 auto; padding: 2em; max-width: 800px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5em; color: #333333; background-color: #ffffff; -webkit-box-shadow: 0 0 12px rgba(0, 0, 0, 0.4); -moz-box-shadow: 0 0 12px rgba(0, 0, 0, 0.4); box-shadow: 0 0 12px rgba(0, 0, 0, 0.4); }
+.shortLineClass { color: red; }
