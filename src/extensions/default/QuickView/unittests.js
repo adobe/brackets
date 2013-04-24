@@ -365,6 +365,14 @@ define(function (require, exports, module) {
                     checkImagePathAtPos("img/Gradient.png",       141, 26);
                     checkImagePathAtPos("Lake_mapourika_NZ.jpeg", 142, 26);
                 });
+            });
+            
+            it("Should show image preview for subsequent images in a line", function () {
+                runs(function () {
+                    checkImagePathAtPos("img/Gradient.png",       146, 84);    // url("")
+                    checkImagePathAtPos("img/Gradient.png",       147, 84);    // url()
+                    checkImagePathAtPos("img/Gradient.png",       148, 84);    // ""
+                });
                 
                 // This must be in the last spec in the suite.
                 runs(function () {

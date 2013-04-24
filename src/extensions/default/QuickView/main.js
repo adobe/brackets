@@ -247,14 +247,21 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         
         // Check for image name
-        var urlRegEx = /url\(([^\)]*)\)/,
+        var urlRegEx = /url\(([^\)]*)\)/gi,
             tokenString,
-            urlMatch = line.match(urlRegEx);
-        
-        if (urlMatch && pos.ch >= urlMatch.index && pos.ch <= urlMatch.index + urlMatch[0].length) {
-            tokenString = urlMatch[1];
-        } else if (token.className === "string") {
+            urlMatch;
+
+        if (token.className === "string") {
             tokenString = token.string;
+        } else {
+            urlMatch = urlRegEx.exec(line);
+            while (urlMatch) {
+                if (pos.ch >= urlMatch.index && pos.ch <= urlMatch.index + urlMatch[0].length) {
+                    tokenString = urlMatch[1];
+                    break;
+                }
+                urlMatch = urlRegEx.exec(line);
+            }
         }
         
         if (tokenString) {
