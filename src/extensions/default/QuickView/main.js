@@ -169,55 +169,61 @@ define(function (require, exports, module) {
     
     
     // Color & gradient preview provider --------------------------------------
-    
+
     function colorAndGradientPreviewProvider(editor, pos, token, line) {
-        var cm = editor._codeMirror;
-        
+
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
-        var gradientRegEx1 = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)/,
-            gradientRegEx2 = /(?:(?:-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/,
-            
-            gradientMatch = line.match(gradientRegEx1) || line.match(gradientRegEx2),
-            prefix = "",
-            colorValue;
-        
-        if (gradientMatch) {
-            if (gradientMatch[0].indexOf("@") !== -1) {
-                // If the gradient match has "@" in it, it is most likely a less or
-                // sass variable. Ignore it since it won't be displayed correctly.
-                gradientMatch = null;
+        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|\s)(linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-)(radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi;
 
-            } else if (gradientMatch[0].indexOf("to ") !== -1) {
-                // If the gradient match has "to " in it, it's most likely the new gradient
-                // syntax which is not supported until Chrome 26, so we can't yet preview it
-                gradientMatch = null;
-            }
-        }
-        
-        if (gradientMatch) {
-            // If it was a linear-gradient or radial-gradient variant, prefix with
-            // "-webkit-" so it shows up correctly in Brackets.
-            if (gradientMatch[0].indexOf("-webkit-gradient") !== 0) {
-                prefix = "-webkit-";
-            }
+        function execGradientMatch(line) {
+            var gradientMatch = gradientRegEx.exec(line),
+                prefix = "",
+                colorValue;
             
-            // For prefixed gradients, use the non-prefixed value as the color value.
-            // "-webkit-" will be added before this value
-            if (gradientMatch[1]) {
-                colorValue = gradientMatch[1] + gradientMatch[3];    // linear gradiant
-            } else if (gradientMatch[2]) {
-                colorValue = gradientMatch[2] + gradientMatch[3];    // radial gradiant
+            if (gradientMatch) {
+                if (gradientMatch[0].indexOf("@") !== -1) {
+                    // If the gradient match has "@" in it, it is most likely a less or
+                    // sass variable. Ignore it since it won't be displayed correctly.
+                    gradientMatch = null;
+    
+                } else if (gradientMatch[0].indexOf("to ") !== -1) {
+                    // If the gradient match has "to " in it, it's most likely the new gradient
+                    // syntax which is not supported until Chrome 26, so we can't yet preview it
+                    gradientMatch = null;
+
+                } else {
+                    // If it was a linear-gradient or radial-gradient variant, prefix with
+                    // "-webkit-" so it shows up correctly in Brackets.
+                    if (gradientMatch[0].indexOf("-webkit-gradient") !== 0) {
+                        prefix = "-webkit-";
+                    }
+                    
+                    // For prefixed gradients, use the non-prefixed value as the color value.
+                    // "-webkit-" will be added before this value
+                    if (gradientMatch[1]) {
+                        colorValue = gradientMatch[1] + gradientMatch[3];    // linear gradiant
+                    } else if (gradientMatch[2]) {
+                        colorValue = gradientMatch[2] + gradientMatch[3];    // radial gradiant
+                    }
+                }
             }
+
+            return {
+                match:      gradientMatch,
+                prefix:     prefix,
+                colorValue: colorValue
+            };
         }
 
-        // Check for color
         var colorRegEx = /#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|\brgb\(\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*\)|\brgb\(\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*\)|\brgba\(\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\brgba\(\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\bhsl\(\s*([0-9]{1,3})\b\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*([0-9]{1,2}|100)\b%\s*\)|\bhsla\(\s*([0-9]{1,3})\b\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\baliceblue\b|\bantiquewhite\b|\baqua\b|\baquamarine\b|\bazure\b|\bbeige\b|\bbisque\b|\bblack\b|\bblanchedalmond\b|\bblue\b|\bblueviolet\b|\bbrown\b|\bburlywood\b|\bcadetblue\b|\bchartreuse\b|\bchocolate\b|\bcoral\b|\bcornflowerblue\b|\bcornsilk\b|\bcrimson\b|\bcyan\b|\bdarkblue\b|\bdarkcyan\b|\bdarkgoldenrod\b|\bdarkgray\b|\bdarkgreen\b|\bdarkgrey\b|\bdarkkhaki\b|\bdarkmagenta\b|\bdarkolivegreen\b|\bdarkorange\b|\bdarkorchid\b|\bdarkred\b|\bdarksalmon\b|\bdarkseagreen\b|\bdarkslateblue\b|\bdarkslategray\b|\bdarkslategrey\b|\bdarkturquoise\b|\bdarkviolet\b|\bdeeppink\b|\bdeepskyblue\b|\bdimgray\b|\bdimgrey\b|\bdodgerblue\b|\bfirebrick\b|\bfloralwhite\b|\bforestgreen\b|\bfuchsia\b|\bgainsboro\b|\bghostwhite\b|\bgold\b|\bgoldenrod\b|\bgray\b|\bgreen\b|\bgreenyellow\b|\bgrey\b|\bhoneydew\b|\bhotpink\b|\bindianred\b|\bindigo\b|\bivory\b|\bkhaki\b|\blavender\b|\blavenderblush\b|\blawngreen\b|\blemonchiffon\b|\blightblue\b|\blightcoral\b|\blightcyan\b|\blightgoldenrodyellow\b|\blightgray\b|\blightgreen\b|\blightgrey\b|\blightpink\b|\blightsalmon\b|\blightseagreen\b|\blightskyblue\b|\blightslategray\b|\blightslategrey\b|\blightsteelblue\b|\blightyellow\b|\blime\b|\blimegreen\b|\blinen\b|\bmagenta\b|\bmaroon\b|\bmediumaquamarine\b|\bmediumblue\b|\bmediumorchid\b|\bmediumpurple\b|\bmediumseagreen\b|\bmediumslateblue\b|\bmediumspringgreen\b|\bmediumturquoise\b|\bmediumvioletred\b|\bmidnightblue\b|\bmintcream\b|\bmistyrose\b|\bmoccasin\b|\bnavajowhite\b|\bnavy\b|\boldlace\b|\bolive\b|\bolivedrab\b|\borange\b|\borangered\b|\borchid\b|\bpalegoldenrod\b|\bpalegreen\b|\bpaleturquoise\b|\bpalevioletred\b|\bpapayawhip\b|\bpeachpuff\b|\bperu\b|\bpink\b|\bplum\b|\bpowderblue\b|\bpurple\b|\bred\b|\brosybrown\b|\broyalblue\b|\bsaddlebrown\b|\bsalmon\b|\bsandybrown\b|\bseagreen\b|\bseashell\b|\bsienna\b|\bsilver\b|\bskyblue\b|\bslateblue\b|\bslategray\b|\bslategrey\b|\bsnow\b|\bspringgreen\b|\bsteelblue\b|\btan\b|\bteal\b|\bthistle\b|\btomato\b|\bturquoise\b|\bviolet\b|\bwheat\b|\bwhite\b|\bwhitesmoke\b|\byellow\b|\byellowgreen\b/gi,
-            match = gradientMatch || colorRegEx.exec(line);
+            gradientMatch = execGradientMatch(line),
+            match = gradientMatch.match || colorRegEx.exec(line),
+            cm = editor._codeMirror;
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
-                var previewCSS = prefix + (colorValue || match[0]);
+                var previewCSS = gradientMatch.prefix + (gradientMatch.colorValue || match[0]);
                 var preview = "<div class='color-swatch' style='background:" + previewCSS + "'>" +
                               "</div>";
                 var startPos = {line: pos.line, ch: match.index},
@@ -237,7 +243,12 @@ define(function (require, exports, module) {
                     _previewCSS: previewCSS
                 };
             }
-            match = colorRegEx.exec(line);
+
+            // Get next match
+            if (gradientMatch.match) {
+                gradientMatch = execGradientMatch(line);
+            }
+            match = gradientMatch.match || colorRegEx.exec(line);
         }
         
         return null;

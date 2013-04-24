@@ -261,6 +261,16 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("Should show comma-separated gradients", function () {
+                runs(function () {
+                    // line ending in comma
+                    checkGradientAtPos("-webkit-linear-gradient(63deg, #999 23%, transparent 23%)", 135,  50);
+                    
+                    // multiple gradients on a line
+                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 74%, #999 78%)", 136,  50);
+                    checkGradientAtPos("-webkit-linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%)",   136, 100);
+                });
+            });
         });
 
         describe("Quick view display", function () {
@@ -346,24 +356,24 @@ define(function (require, exports, module) {
         describe("Quick view images", function () {
             it("Should show image preview for file path inside url()", function () {
                 runs(function () {
-                    checkImagePathAtPos("img/grabber_color-well.png", 133, 26);
-                    checkImagePathAtPos("img/Color.png",              134, 26);
-                    checkImagePathAtPos("img/DancingPeaks.gif",       135, 26);
-                    checkImagePathAtPos("img/Example.svg",            136, 26);
+                    checkImagePathAtPos("img/grabber_color-well.png", 140, 26);
+                    checkImagePathAtPos("img/Color.png",              141, 26);
+                    checkImagePathAtPos("img/DancingPeaks.gif",       142, 26);
+                    checkImagePathAtPos("img/Example.svg",            143, 26);
                 });
             });
             
             it("Should show image preview for urls with http/https", function () {
                 runs(function () {
-                    checkImagePathAtPos("https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png", 138, 26);
+                    checkImagePathAtPos("https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png", 145, 26);
                 });
             });
             
             it("Should show image preview for file path inside single or double quotes", function () {
                 runs(function () {
-                    checkImagePathAtPos("img/med_hero.jpg",       140, 26);
-                    checkImagePathAtPos("img/Gradient.png",       141, 26);
-                    checkImagePathAtPos("Lake_mapourika_NZ.jpeg", 142, 26);
+                    checkImagePathAtPos("img/med_hero.jpg",       147, 26);
+                    checkImagePathAtPos("img/Gradient.png",       148, 26);
+                    checkImagePathAtPos("Lake_mapourika_NZ.jpeg", 149, 26);
                 });
                 
                 // This must be in the last spec in the suite.

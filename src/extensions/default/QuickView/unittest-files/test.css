@@ -130,6 +130,13 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
     background-image: repeating-radial-gradient(red, blue 20px, red 40px);
 }
 
+/* lea.verou.me/css3patterns */
+.gradient_pattern {
+    background:
+        linear-gradient(63deg, #999 23%, transparent 23%) 7px 0,
+        linear-gradient(63deg, transparent 74%, #999 78%), linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%), #444;
+}
+
 .images {
     background: url(img/grabber_color-well.png);
     background: url("img/Color.png");
