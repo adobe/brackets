@@ -350,10 +350,10 @@ define({
 	"EXTENSION_INSTALLED": "Installée",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
-	"BROWSE_EXTENSIONS": "[6781118] !é=Browse Extensions=!",
+	"BROWSE_EXTENSIONS": "Parcourir les extensions",
     
     // extensions/default/QuickView 
-	"CMD_ENABLE_QUICK_VIEW": "[6781188] !é=Quick View on Hover=!",
+	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
 
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
