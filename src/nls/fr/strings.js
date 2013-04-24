@@ -227,7 +227,6 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
-	"CMD_ENABLE_QUICK_VIEW": "Activer l’aperçu au survol",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
@@ -353,6 +352,9 @@ define({
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "[6781118] !é=Browse Extensions=!",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "[6781188] !é=Quick View on Hover=!",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
 	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
