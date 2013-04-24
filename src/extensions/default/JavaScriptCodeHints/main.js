@@ -82,7 +82,7 @@ define(function (require, exports, module) {
                 var $hintObj    = $("<span>").addClass("brackets-js-hints");
 
                 // level indicates either variable scope or property confidence
-                if (!type.property && token.depth !== undefined) {
+                if (!type.property && !token.builtin && token.depth !== undefined) {
                     switch (token.depth) {
                     case 0:
                         $hintObj.addClass("priority-high");
