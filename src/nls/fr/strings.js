@@ -351,7 +351,7 @@ define({
 	"EXTENSION_INSTALLED": "Installée",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
-	"EXTENSION_FREE_ON_GITHUB": "Vous recherchez des fonctionnalités intéressantes développées par la communauté ? Découvrez toutes les extensions gratuites de Brackets sur GitHub.",
+	"BROWSE_EXTENSIONS": "[6781118] !é=Browse Extensions=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",

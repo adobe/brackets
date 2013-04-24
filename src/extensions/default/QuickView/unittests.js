@@ -114,9 +114,9 @@ define(function (require, exports, module) {
 
             it("should show preview of valid rgb/rgba colors", function () {
                 runs(function () {
-                    checkColorAtPos("rgb(255,0,0)",       12, 12);
-                    checkColorAtPos("rgb(100%, 0%, 0%)",  13, 17);
-                    checkColorAtPos("rgb(50%, 75%, 25%)", 14, 24);
+                    checkColorAtPos("rgb(255,0,0)",           12, 12);  // no whitespace
+                    checkColorAtPos("rgb(100%,   0%,   0%)",  13, 17);  // extra whitespace
+                    checkColorAtPos("rgb(50%, 75%, 25%)",     14, 24);
                     
                     // rgba with values of 0-255 
                     checkColorAtPos("rgba(255, 0, 0, 0.5)", 15, 23);
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                     // rgba with percentage values
                     checkColorAtPos("rgba(100%, 0%, 0%, 0.5)",  18, 32);
                     checkColorAtPos("rgba(80%, 50%, 50%, 1)",   20, 33);
-                    //checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);  // TODO (#3454): not working yet
+                    checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);
                 });
             });
 
@@ -143,12 +143,12 @@ define(function (require, exports, module) {
                     checkColorAtPos("hsl(0, 100%, 50%)",       31, 22);
                     checkColorAtPos("hsla(0, 100%, 50%, 0.5)", 32, 23);
                     checkColorAtPos("hsla(0, 100%, 50%, .5)",  33, 23);
+                    checkColorAtPos("hsl(390, 100%, 50%)",     34, 24);
                 });
             });
 
             it("should NOT show preview of unsupported hsl/hsla colors", function () {
                 runs(function () {
-                    expectNoPreviewAtPos(37, 24);    // cursor on hsl(390, 100%, 50%)
                     expectNoPreviewAtPos(38, 25);    // cursor on hsla(90, 100%, 50%, 2)
                     expectNoPreviewAtPos(39, 24);    // cursor on hsla(0, 200%, 50%, 0.5)
                     expectNoPreviewAtPos(40, 25);    // cursor on hsla(0.0, 100%, 50%, .5)
