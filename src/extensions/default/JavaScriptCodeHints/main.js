@@ -237,7 +237,9 @@ define(function (require, exports, module) {
                     scopeResponse.promise.done(function () {
                         cachedLine = cursor.line;
                         cachedType = session.getType();
-                        matcher = new StringMatch.StringMatcher();
+                        matcher = new StringMatch.StringMatcher({
+                            preferPrefixMatches: true
+                        });
                         cachedHints = session.getHints(query, matcher);
 
                         if ($deferredHints.state() === "pending") {
