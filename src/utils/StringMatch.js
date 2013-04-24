@@ -573,19 +573,18 @@ define(function (require, exports, module) {
                 
                 numConsecutive++;
                 
+                var boost = CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+                
                 // Consecutive matches that started on a special are a
                 // good indicator of intent, so we award an added bonus there.
                 if (currentRangeStartedOnSpecial) {
-                    newPoints += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
-                    if (DEBUG_SCORES) {
-                        scoreDebug.consecutive += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
-                    }
+                    boost = boost * 2;
                 }
                 
                 if (DEBUG_SCORES) {
-                    scoreDebug.consecutive += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+                    scoreDebug.consecutive += boost;
                 }
-                newPoints += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+                newPoints += boost;
             } else {
                 numConsecutive = 1;
             }
