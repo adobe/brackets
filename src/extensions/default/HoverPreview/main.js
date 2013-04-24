@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     // Brackets modules
     var AppInit             = brackets.getModule("utils/AppInit"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus"),
@@ -433,7 +434,19 @@ define(function (require, exports, module) {
         }
     }
     
-    
+    function onActiveEditorChange(event, current, previous) {
+        // Hide preview when editor changes
+        hidePreview();
+
+        if (previous && previous.document) {
+            $(previous.document).off("change", hidePreview);
+        }
+
+        if (current && current.document) {
+            $(current.document).on("change", hidePreview);
+        }
+    }
+
     // Menu command handlers
     function updateMenuItemCheckmark() {
         CommandManager.get(CMD_ENABLE_HOVER_PREVIEW).setChecked(enabled);
@@ -448,9 +461,19 @@ define(function (require, exports, module) {
                 // we auto-hide on text edit, which is probably actually a good thing.
                 editorHolder.addEventListener("mousemove", handleMouseMove, true);
                 editorHolder.addEventListener("scroll", hidePreview, true);
+
+                // Setup doc "change" listener
+                onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+                $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
             } else {
                 editorHolder.removeEventListener("mousemove", handleMouseMove, true);
                 editorHolder.removeEventListener("scroll", hidePreview, true);
+
+                // Cleanup doc "change" listener
+                onActiveEditorChange(null, null, EditorManager.getActiveEditor());
+                $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+
                 hidePreview();
             }
             prefs.setValue("enabled", enabled);
