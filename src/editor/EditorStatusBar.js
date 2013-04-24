@@ -98,12 +98,12 @@ define(function (require, exports, module) {
         
         // restore focus to the editor
         EditorManager.focusEditor();
-
+        
         if (!value || isNaN(value)) {
             return;
         }
         
-        value = Math.max(Math.min(value, 10), 1);
+        value = Math.max(Math.min(Math.floor(value), 10), 1);
         if (Editor.getUseTabChar()) {
             Editor.setTabSize(value);
         } else {
