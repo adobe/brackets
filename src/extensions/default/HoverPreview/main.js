@@ -463,7 +463,7 @@ define(function (require, exports, module) {
                 editorHolder.removeEventListener("scroll", hidePreview, true);
 
                 // Cleanup doc "change" listener
-                onActiveEditorChange(null, null, null);
+                onActiveEditorChange(null, null, EditorManager.getActiveEditor());
                 $(EditorManager).off("activeEditorChange", onActiveEditorChange);
 
                 hidePreview();
