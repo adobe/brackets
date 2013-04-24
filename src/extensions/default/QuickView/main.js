@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings");
    
-    var previewContainerHTML       = require("text!HoverPreviewTemplate.html");
+    var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
     var defaultPrefs               = { enabled: true },
         enabled,                             // Only show preview if true
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         lastPos;                             // Last line/ch pos processed by handleMouseMove
     
     // Constants
-    var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
+    var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
         POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
         popoverState.marker = cm.markText(
             popoverState.start,
             popoverState.end,
-            {className: "hover-preview-highlight"}
+            {className: "quick-view-highlight"}
         );
         
         $previewContent.append(popoverState.content);
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
 
     // Menu command handlers
     function updateMenuItemCheckmark() {
-        CommandManager.get(CMD_ENABLE_HOVER_PREVIEW).setChecked(enabled);
+        CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
     function setEnabled(_enabled) {
@@ -481,7 +481,7 @@ define(function (require, exports, module) {
         updateMenuItemCheckmark();
     }
     
-    function toggleEnableHoverPreview() {
+    function toggleEnableQuickView() {
         setEnabled(!enabled);
     }
         
@@ -490,11 +490,11 @@ define(function (require, exports, module) {
     $previewContent = $previewContainer.find(".preview-content");
     
     // Load our stylesheet
-    ExtensionUtils.loadStyleSheet(module, "HoverPreview.css");
+    ExtensionUtils.loadStyleSheet(module, "QuickView.css");
     
     // Register command
-    CommandManager.register(Strings.CMD_ENABLE_HOVER_PREVIEW, CMD_ENABLE_HOVER_PREVIEW, toggleEnableHoverPreview);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_HOVER_PREVIEW);
+    CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
+    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW);
     
     // Init PreferenceStorage
     prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
@@ -504,7 +504,7 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
         if (brackets.test) {
-            brackets.test.extensions.HoverPreview = module.exports;
+            brackets.test.extensions.QuickView = module.exports;
         }
     });
     
