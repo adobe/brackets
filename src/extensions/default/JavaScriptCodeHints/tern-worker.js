@@ -115,7 +115,7 @@ importScripts("thirdparty/requirejs/require.js");
         query.depths = true;
         query.guess = true;
         query.origins = true;
-        query.expandWordForward = true;
+        query.expandWordForward = false;
 
         var request = {query: query, files: [], offset: offset};
         request.files.push({type: "full", name: file, text: text});
