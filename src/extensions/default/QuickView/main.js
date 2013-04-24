@@ -30,13 +30,14 @@ define(function (require, exports, module) {
     // Brackets modules
     var AppInit             = brackets.getModule("utils/AppInit"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings");
    
-    var previewContainerHTML       = require("text!HoverPreviewTemplate.html");
+    var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
     var defaultPrefs               = { enabled: true },
         enabled,                             // Only show preview if true
@@ -46,12 +47,13 @@ define(function (require, exports, module) {
         lastPos;                             // Last line/ch pos processed by handleMouseMove
     
     // Constants
-    var CMD_ENABLE_HOVER_PREVIEW    = "view.enableHoverPreview",
+    var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
         POSITION_OFFSET             = 38,   // Distance between the bottom of the line and the bottom of the preview container
         POINTER_LEFT_OFFSET         = 17,   // Half of the pointer width, used to find the center of the pointer
         POINTER_TOP_OFFSET          =  7,   // Pointer height, used to shift popover above pointer
-        POSITION_BELOW_OFFSET       = 16;   // Amount to adjust to top position when the preview bubble is below the text
+        POSITION_BELOW_OFFSET       = 16,   // Amount to adjust to top position when the preview bubble is below the text
+        POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
     /**
      * There are three states for this var:
@@ -103,22 +105,29 @@ define(function (require, exports, module) {
         popoverState = null;
     }
     
-    function positionPreview(xpos, ytop, ybot) {
-        var top = ytop - $previewContainer.height() - POSITION_OFFSET;
+    function positionPreview(xpos, ypos, ybot) {
+        var previewWidth  = $previewContainer.width(),
+            top           = ypos - $previewContainer.height() - POSITION_OFFSET,
+            left          = xpos - previewWidth / 2 - POINTER_LEFT_OFFSET,
+            $editorHolder = $("#editor-holder"),
+            editorLeft    = $editorHolder.offset().left;
+
+        left = Math.max(left, editorLeft + POPOVER_HORZ_MARGIN);
+        left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
         
         if (top < 0) {
             $previewContainer.removeClass("preview-bubble-above");
             $previewContainer.addClass("preview-bubble-below");
             top = ybot + POSITION_BELOW_OFFSET;
             $previewContainer.offset({
-                left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
+                left: left,
                 top: top
             });
         } else {
             $previewContainer.removeClass("preview-bubble-below");
             $previewContainer.addClass("preview-bubble-above");
             $previewContainer.offset({
-                left: xpos - $previewContainer.width() / 2 - POINTER_LEFT_OFFSET,
+                left: left,
                 top: top - POINTER_TOP_OFFSET
             });
         }
@@ -134,7 +143,7 @@ define(function (require, exports, module) {
         popoverState.marker = cm.markText(
             popoverState.start,
             popoverState.end,
-            {className: "hover-preview-highlight"}
+            {className: "quick-view-highlight"}
         );
         
         $previewContent.append(popoverState.content);
@@ -201,11 +210,10 @@ define(function (require, exports, module) {
                 colorValue = gradientMatch[2] + gradientMatch[3];    // radial gradiant
             }
         }
-        
+
         // Check for color
-        var colorRegEx = /#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgb\( ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|rgba\( ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?\b([0-9]{1,2}%|100%) ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?(1|0|0?\.[0-9]{1,3}) ?\)|\baliceblue\b|\bantiquewhite\b|\baqua\b|\baquamarine\b|\bazure\b|\bbeige\b|\bbisque\b|\bblack\b|\bblanchedalmond\b|\bblue\b|\bblueviolet\b|\bbrown\b|\bburlywood\b|\bcadetblue\b|\bchartreuse\b|\bchocolate\b|\bcoral\b|\bcornflowerblue\b|\bcornsilk\b|\bcrimson\b|\bcyan\b|\bdarkblue\b|\bdarkcyan\b|\bdarkgoldenrod\b|\bdarkgray\b|\bdarkgreen\b|\bdarkgrey\b|\bdarkkhaki\b|\bdarkmagenta\b|\bdarkolivegreen\b|\bdarkorange\b|\bdarkorchid\b|\bdarkred\b|\bdarksalmon\b|\bdarkseagreen\b|\bdarkslateblue\b|\bdarkslategray\b|\bdarkslategrey\b|\bdarkturquoise\b|\bdarkviolet\b|\bdeeppink\b|\bdeepskyblue\b|\bdimgray\b|\bdimgrey\b|\bdodgerblue\b|\bfirebrick\b|\bfloralwhite\b|\bforestgreen\b|\bfuchsia\b|\bgainsboro\b|\bghostwhite\b|\bgold\b|\bgoldenrod\b|\bgray\b|\bgreen\b|\bgreenyellow\b|\bgrey\b|\bhoneydew\b|\bhotpink\b|\bindianred\b|\bindigo\b|\bivory\b|\bkhaki\b|\blavender\b|\blavenderblush\b|\blawngreen\b|\blemonchiffon\b|\blightblue\b|\blightcoral\b|\blightcyan\b|\blightgoldenrodyellow\b|\blightgray\b|\blightgreen\b|\blightgrey\b|\blightpink\b|\blightsalmon\b|\blightseagreen\b|\blightskyblue\b|\blightslategray\b|\blightslategrey\b|\blightsteelblue\b|\blightyellow\b|\blime\b|\blimegreen\b|\blinen\b|\bmagenta\b|\bmaroon\b|\bmediumaquamarine\b|\bmediumblue\b|\bmediumorchid\b|\bmediumpurple\b|\bmediumseagreen\b|\bmediumslateblue\b|\bmediumspringgreen\b|\bmediumturquoise\b|\bmediumvioletred\b|\bmidnightblue\b|\bmintcream\b|\bmistyrose\b|\bmoccasin\b|\bnavajowhite\b|\bnavy\b|\boldlace\b|\bolive\b|\bolivedrab\b|\borange\b|\borangered\b|\borchid\b|\bpalegoldenrod\b|\bpalegreen\b|\bpaleturquoise\b|\bpalevioletred\b|\bpapayawhip\b|\bpeachpuff\b|\bperu\b|\bpink\b|\bplum\b|\bpowderblue\b|\bpurple\b|\bred\b|\brosybrown\b|\broyalblue\b|\bsaddlebrown\b|\bsalmon\b|\bsandybrown\b|\bseagreen\b|\bseashell\b|\bsienna\b|\bsilver\b|\bskyblue\b|\bslateblue\b|\bslategray\b|\bslategrey\b|\bsnow\b|\bspringgreen\b|\bsteelblue\b|\btan\b|\bteal\b|\bthistle\b|\btomato\b|\bturquoise\b|\bviolet\b|\bwheat\b|\bwhite\b|\bwhitesmoke\b|\byellow\b|\byellowgreen\b/gi,
-            colorMatch = colorRegEx.exec(line),
-            match = gradientMatch || colorMatch;
+        var colorRegEx = /#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|\brgb\(\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*\)|\brgb\(\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*\)|\brgba\(\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\brgba\(\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*([0-9]{1,2}%|100%)\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\bhsl\(\s*([0-9]{1,3})\b\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*([0-9]{1,2}|100)\b%\s*\)|\bhsla\(\s*([0-9]{1,3})\b\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*([0-9]{1,2}|100)\b%\s*,\s*(1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\baliceblue\b|\bantiquewhite\b|\baqua\b|\baquamarine\b|\bazure\b|\bbeige\b|\bbisque\b|\bblack\b|\bblanchedalmond\b|\bblue\b|\bblueviolet\b|\bbrown\b|\bburlywood\b|\bcadetblue\b|\bchartreuse\b|\bchocolate\b|\bcoral\b|\bcornflowerblue\b|\bcornsilk\b|\bcrimson\b|\bcyan\b|\bdarkblue\b|\bdarkcyan\b|\bdarkgoldenrod\b|\bdarkgray\b|\bdarkgreen\b|\bdarkgrey\b|\bdarkkhaki\b|\bdarkmagenta\b|\bdarkolivegreen\b|\bdarkorange\b|\bdarkorchid\b|\bdarkred\b|\bdarksalmon\b|\bdarkseagreen\b|\bdarkslateblue\b|\bdarkslategray\b|\bdarkslategrey\b|\bdarkturquoise\b|\bdarkviolet\b|\bdeeppink\b|\bdeepskyblue\b|\bdimgray\b|\bdimgrey\b|\bdodgerblue\b|\bfirebrick\b|\bfloralwhite\b|\bforestgreen\b|\bfuchsia\b|\bgainsboro\b|\bghostwhite\b|\bgold\b|\bgoldenrod\b|\bgray\b|\bgreen\b|\bgreenyellow\b|\bgrey\b|\bhoneydew\b|\bhotpink\b|\bindianred\b|\bindigo\b|\bivory\b|\bkhaki\b|\blavender\b|\blavenderblush\b|\blawngreen\b|\blemonchiffon\b|\blightblue\b|\blightcoral\b|\blightcyan\b|\blightgoldenrodyellow\b|\blightgray\b|\blightgreen\b|\blightgrey\b|\blightpink\b|\blightsalmon\b|\blightseagreen\b|\blightskyblue\b|\blightslategray\b|\blightslategrey\b|\blightsteelblue\b|\blightyellow\b|\blime\b|\blimegreen\b|\blinen\b|\bmagenta\b|\bmaroon\b|\bmediumaquamarine\b|\bmediumblue\b|\bmediumorchid\b|\bmediumpurple\b|\bmediumseagreen\b|\bmediumslateblue\b|\bmediumspringgreen\b|\bmediumturquoise\b|\bmediumvioletred\b|\bmidnightblue\b|\bmintcream\b|\bmistyrose\b|\bmoccasin\b|\bnavajowhite\b|\bnavy\b|\boldlace\b|\bolive\b|\bolivedrab\b|\borange\b|\borangered\b|\borchid\b|\bpalegoldenrod\b|\bpalegreen\b|\bpaleturquoise\b|\bpalevioletred\b|\bpapayawhip\b|\bpeachpuff\b|\bperu\b|\bpink\b|\bplum\b|\bpowderblue\b|\bpurple\b|\bred\b|\brosybrown\b|\broyalblue\b|\bsaddlebrown\b|\bsalmon\b|\bsandybrown\b|\bseagreen\b|\bseashell\b|\bsienna\b|\bsilver\b|\bskyblue\b|\bslateblue\b|\bslategray\b|\bslategrey\b|\bsnow\b|\bspringgreen\b|\bsteelblue\b|\btan\b|\bteal\b|\bthistle\b|\btomato\b|\bturquoise\b|\bviolet\b|\bwheat\b|\bwhite\b|\bwhitesmoke\b|\byellow\b|\byellowgreen\b/gi,
+            match = gradientMatch || colorRegEx.exec(line);
 
         while (match) {
             if (pos.ch >= match.index && pos.ch <= match.index + match[0].length) {
@@ -428,10 +436,22 @@ define(function (require, exports, module) {
         }
     }
     
-    
+    function onActiveEditorChange(event, current, previous) {
+        // Hide preview when editor changes
+        hidePreview();
+
+        if (previous && previous.document) {
+            $(previous.document).off("change", hidePreview);
+        }
+
+        if (current && current.document) {
+            $(current.document).on("change", hidePreview);
+        }
+    }
+
     // Menu command handlers
     function updateMenuItemCheckmark() {
-        CommandManager.get(CMD_ENABLE_HOVER_PREVIEW).setChecked(enabled);
+        CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
     function setEnabled(_enabled) {
@@ -443,9 +463,19 @@ define(function (require, exports, module) {
                 // we auto-hide on text edit, which is probably actually a good thing.
                 editorHolder.addEventListener("mousemove", handleMouseMove, true);
                 editorHolder.addEventListener("scroll", hidePreview, true);
+
+                // Setup doc "change" listener
+                onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
+                $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+
             } else {
                 editorHolder.removeEventListener("mousemove", handleMouseMove, true);
                 editorHolder.removeEventListener("scroll", hidePreview, true);
+
+                // Cleanup doc "change" listener
+                onActiveEditorChange(null, null, EditorManager.getActiveEditor());
+                $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+
                 hidePreview();
             }
             prefs.setValue("enabled", enabled);
@@ -454,7 +484,7 @@ define(function (require, exports, module) {
         updateMenuItemCheckmark();
     }
     
-    function toggleEnableHoverPreview() {
+    function toggleEnableQuickView() {
         setEnabled(!enabled);
     }
         
@@ -463,11 +493,11 @@ define(function (require, exports, module) {
     $previewContent = $previewContainer.find(".preview-content");
     
     // Load our stylesheet
-    ExtensionUtils.loadStyleSheet(module, "HoverPreview.css");
+    ExtensionUtils.loadStyleSheet(module, "QuickView.css");
     
     // Register command
-    CommandManager.register(Strings.CMD_ENABLE_HOVER_PREVIEW, CMD_ENABLE_HOVER_PREVIEW, toggleEnableHoverPreview);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_HOVER_PREVIEW);
+    CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
+    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW);
     
     // Init PreferenceStorage
     prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
@@ -477,7 +507,7 @@ define(function (require, exports, module) {
 
     AppInit.appReady(function () {
         if (brackets.test) {
-            brackets.test.extensions.HoverPreview = module.exports;
+            brackets.test.extensions.QuickView = module.exports;
         }
     });
     

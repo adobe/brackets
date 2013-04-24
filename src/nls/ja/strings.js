@@ -137,7 +137,7 @@ define({
      */
 	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
-	"WORKING_FILES": "!能=[6780767] Working Files_=!",
+	"WORKING_FILES": "作業中ファイル",
 
     /**
      * Keyboard modifier names
@@ -207,8 +207,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-	"CMD_OPEN_LINE_ABOVE": "!能=[6780963] Open Line Above_=!",
-	"CMD_OPEN_LINE_BELOW": "!能=[6780964] Open Line Below_=!",
+	"CMD_OPEN_LINE_ABOVE": "上の行を開く",
+	"CMD_OPEN_LINE_BELOW": "下の行を開く",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
     
     // View menu commands
@@ -227,7 +227,7 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
-	"CMD_ENABLE_HOVER_PREVIEW": "ホバープレビューを有効にする",
+	"CMD_ENABLE_QUICK_VIEW": "ホバープレビューを有効にする",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
@@ -326,7 +326,7 @@ define({
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
 	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
 	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
-	"API_NOT_COMPATIBLE": "!能=[6737427] The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder._=!",
+	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
 	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
@@ -340,18 +340,18 @@ define({
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
-	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the extension registry. Please try again later._=!",
+	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
 	"INSTALL_FROM_URL": "URL からインストール\u2026",
 	"EXTENSION_AUTHOR": "作成者",
 	"EXTENSION_DATE": "日付",
-	"EXTENSION_INCOMPATIBLE_NEWER": "!能=[6780760] This extension requires a newer version of {APP_NAME}._=!",
-	"EXTENSION_INCOMPATIBLE_OLDER": "!能=[6780761] This extension currently only works with older versions of {APP_NAME}._=!",
+	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
+	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
 	"EXTENSION_NO_DESCRIPTION": "説明なし",
 	"EXTENSION_KEYWORDS": "キーワード",
-	"EXTENSION_INSTALLED": "!能=[6780762] Installed_=!",
+	"EXTENSION_INSTALLED": "インストール完了",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
-	"EXTENSION_MORE_INFO_LINK": "!能=[6780764] More_=!",
-	"EXTENSION_FREE_ON_GITHUB": "!能=[6780759] Looking for cool new community developed features? Check out all the free Brackets extensions on GitHub._=!",
+	"EXTENSION_MORE_INFO_LINK": "詳細",
+	"BROWSE_EXTENSIONS": "!能=[6781118] Browse Extensions_=!",
     
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",

@@ -353,6 +353,12 @@
 
 .modal-footer .btn.left {
     float: left;
+    
+    /* Transfer the margin to the right of each left-aligned button, so the left side lines up properly
+     * with the title.
+     */
+    margin-left: 0;
+    margin-right: 5px;
 }
 
 .modal-body ul {
@@ -454,9 +460,17 @@
     }
     input.url {
         display: inline;
-        margin: 10px;
-        width: 350px;
     }
+}
+
+.project-settings-dialog .modal-body input.url {
+    margin: 10px;
+    width: 400px;
+}
+
+.install-extension-dialog .modal-body input.url {
+    margin: 10px 0;
+    width: 550px;
 }
 
 /* Extension Manager dialog */

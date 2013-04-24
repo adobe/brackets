@@ -30,9 +30,9 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils       = brackets.getModule("file/FileUtils");
 
-    describe("Hover Preview", function () {
+    describe("Quick View", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
-        var testWindow, brackets, CommandManager, Commands, EditorManager, HoverPreview, editor;
+        var testWindow, brackets, CommandManager, Commands, EditorManager, QuickView, editor;
 
         beforeEach(function () {
             // Create a new window that will be shared by ALL tests in this spec.
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
                         CommandManager = testWindow.brackets.test.CommandManager;
                         Commands = testWindow.brackets.test.Commands;
                         EditorManager = brackets.test.EditorManager;
-                        HoverPreview = brackets.test.extensions.HoverPreview;
+                        QuickView = brackets.test.extensions.QuickView;
                     });
                 });
                 
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             editor.setCursorPos(pos);
             token = cm.getTokenAt(pos);
             
-            return HoverPreview._queryPreviewProviders(editor, pos, token);
+            return QuickView._queryPreviewProviders(editor, pos, token);
         }
         
         function expectNoPreviewAtPos(line, ch) {
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
             expect(imagePath.substr(imagePath.length - expectedPathEnding.length)).toBe(expectedPathEnding);
         }
         
-        describe("Hover preview colors", function () {
+        describe("Quick view colors", function () {
             it("should show preview of hex colors either in 3 digit hex or or 6-digit hex", function () {
                 runs(function () {
                     checkColorAtPos("#369", 3, 12);
@@ -114,9 +114,9 @@ define(function (require, exports, module) {
 
             it("should show preview of valid rgb/rgba colors", function () {
                 runs(function () {
-                    checkColorAtPos("rgb(255,0,0)",       12, 12);
-                    checkColorAtPos("rgb(100%, 0%, 0%)",  13, 17);
-                    checkColorAtPos("rgb(50%, 75%, 25%)", 14, 24);
+                    checkColorAtPos("rgb(255,0,0)",           12, 12);  // no whitespace
+                    checkColorAtPos("rgb(100%,   0%,   0%)",  13, 17);  // extra whitespace
+                    checkColorAtPos("rgb(50%, 75%, 25%)",     14, 24);
                     
                     // rgba with values of 0-255 
                     checkColorAtPos("rgba(255, 0, 0, 0.5)", 15, 23);
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                     // rgba with percentage values
                     checkColorAtPos("rgba(100%, 0%, 0%, 0.5)",  18, 32);
                     checkColorAtPos("rgba(80%, 50%, 50%, 1)",   20, 33);
-                    //checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);  // TODO (#3454): not working yet
+                    checkColorAtPos("rgba(50%, 75%, 25%, 1.0)", 21, 23);
                 });
             });
 
@@ -143,12 +143,12 @@ define(function (require, exports, module) {
                     checkColorAtPos("hsl(0, 100%, 50%)",       31, 22);
                     checkColorAtPos("hsla(0, 100%, 50%, 0.5)", 32, 23);
                     checkColorAtPos("hsla(0, 100%, 50%, .5)",  33, 23);
+                    checkColorAtPos("hsl(390, 100%, 50%)",     34, 24);
                 });
             });
 
             it("should NOT show preview of unsupported hsl/hsla colors", function () {
                 runs(function () {
-                    expectNoPreviewAtPos(37, 24);    // cursor on hsl(390, 100%, 50%)
                     expectNoPreviewAtPos(38, 25);    // cursor on hsla(90, 100%, 50%, 2)
                     expectNoPreviewAtPos(39, 24);    // cursor on hsla(0, 200%, 50%, 0.5)
                     expectNoPreviewAtPos(40, 25);    // cursor on hsla(0.0, 100%, 50%, .5)
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
             });
         });
             
-        describe("Hover preview gradients", function () {
+        describe("Quick view gradients", function () {
             it("Should show linear gradient preview for those with vendor prefix", function () {
                 runs(function () {
                     var expectedGradient1 = "-webkit-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%)",
@@ -263,11 +263,11 @@ define(function (require, exports, module) {
             
         });
 
-        describe("Hover preview display", function () {
+        describe("Quick view display", function () {
             
             function showPopoverAtPos(line, ch) {
                 var popoverInfo = getPopoverAtPos(line, ch);
-                HoverPreview._forceShow(popoverInfo);
+                QuickView._forceShow(popoverInfo);
             }
             
             function getBounds(object) {
@@ -280,11 +280,12 @@ define(function (require, exports, module) {
             }
 
             function boundsInsideWindow(object) {
-                var bounds = getBounds(object);
-                return bounds.left   >= 0                      &&
-                       bounds.right  <= $(testWindow).width()  &&
-                       bounds.top    >= 0                      &&
-                       bounds.bottom <= $(testWindow).height();
+                var bounds = getBounds(object),
+                    editorBounds = getBounds(testWindow.$("#editor-holder"));
+                return bounds.left   >= editorBounds.left   &&
+                       bounds.right  <= editorBounds.right  &&
+                       bounds.top    >= editorBounds.top    &&
+                       bounds.bottom <= editorBounds.bottom;
             }
 
             function toggleOption(commandID, text) {
@@ -295,7 +296,7 @@ define(function (require, exports, module) {
             }
 
             it("popover is positioned within window bounds", function () {
-                var $popover  = testWindow.$("#hover-preview-container");
+                var $popover  = testWindow.$("#quick-view-container");
                 expect($popover.length).toEqual(1);
                 
                 runs(function () {
@@ -314,23 +315,17 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-
-// Issue #3447 - fixes both of the following tests
-/*
                     // Popover should be inside right edge
                     showPopoverAtPos(81, 36);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
-*/
 
-/*
                     // Popover should be inside left edge
-                    var scrollX = editor._codeMirror.defaultCharWidth()  * 120,
-                        scrollY = editor._codeMirror.defaultTextHeight() * 190;
+                    var scrollX = editor._codeMirror.defaultCharWidth()  * 80,
+                        scrollY = editor._codeMirror.defaultTextHeight() * 70;
 
                     editor.setScrollPos(scrollX, scrollY);      // Scroll right
                     showPopoverAtPos(82, 136);
                     expect(boundsInsideWindow($popover)).toBeTruthy();
-*/
 
                     // restore word wrap
                     toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
@@ -348,7 +343,7 @@ define(function (require, exports, module) {
             
         });
 
-        describe("Hover preview images", function () {
+        describe("Quick view images", function () {
             it("Should show image preview for file path inside url()", function () {
                 runs(function () {
                     checkImagePathAtPos("img/grabber_color-well.png", 133, 26);
