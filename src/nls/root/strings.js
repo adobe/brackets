@@ -227,7 +227,6 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
-    "CMD_ENABLE_HOVER_PREVIEW"            : "Enable Hover Preview",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
@@ -353,6 +352,9 @@ define({
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Quick View on Hover",
+
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",
     "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
