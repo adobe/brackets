@@ -371,11 +371,16 @@ define(function (require, exports, module) {
             editor;
         
         for (i = 0; i < inlines.length; i++) {
-            var $inlineDiv = inlines[i].$editorsDiv;  // see MultiRangeInlineEditor
+            var $inlineDiv = inlines[i].$editorsDiv,  // see MultiRangeInlineEditor
+                $otherDiv  = inlines[i].$htmlContent;
             
             if ($inlineDiv && divContainsMouse($inlineDiv, event)) {
                 editor = inlines[i].editors[0];
                 break;
+            } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
+                // Mouse inside unsupported inline editor like Quick Docs or Color Editor
+                hidePreview();
+                return;
             }
         }
         
