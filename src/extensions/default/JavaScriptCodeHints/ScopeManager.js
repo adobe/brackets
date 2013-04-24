@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         CollectionUtils     = brackets.getModule("utils/CollectionUtils"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
+        FileIndexManager    = brackets.getModule("project/FileIndexManager"),
         HintUtils           = require("HintUtils");
     
     var ternEnvironment     = [],
@@ -401,26 +402,65 @@ define(function (require, exports, module) {
         }
 
         var name = request.file;
-        DocumentManager.getDocumentForPath(rootTernDir + name).done(function (document) {
-            resolvedFiles[name] = rootTernDir + name;
-            replyWith(name, document.getText());
-        })
-            .fail(function () {
-                if (projectRoot) {
-                    // Try relative to project root
-                    DocumentManager.getDocumentForPath(projectRoot + name).done(function (document) {
-                        resolvedFiles[name] = projectRoot + name;
-                        replyWith(name, document.getText());
-                    })
-                        .fail(function () {
+        
+        /**
+         * Helper function to get the text of a given document and send it to tern.
+         * If we successfully get the document from the DocumentManager then the text of 
+         * the document will be sent to the tern worker.
+         * The Promise for getDocumentForPath is returned so that custom fail functions can be
+         * used.
+         *
+         * @param {string} filePath - the path of the file to get the text of
+         * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentForPath 
+         */
+        function getDocText(filePath) {
+            return DocumentManager.getDocumentForPath(filePath).done(function (document) {
+                resolvedFiles[name] = filePath;
+                replyWith(name, document.getText());
+            });
+        }
+        
+        /**
+         * Helper function to find any files in the project that end with the
+         * name we are looking for.  This is so we can find requirejs modules 
+         * when the baseUrl is unknown, or when the project root is not the same
+         * as the script root (e.g. if you open the 'brackets' dir instead of 'brackets/src' dir).
+         */
+        function findNameInProject() {
+            // check for any files in project that end with the right path.
+            var fileName = HintUtils.splitPath(name).file;
+            FileIndexManager.getFilenameMatches("all", fileName)
+                .done(function (files) {
+                    var file;
+                    files = files.filter(function (file) {
+                        var pos = file.fullPath.length - name.length;
+                        return pos === file.fullPath.lastIndexOf(name);
+                    });
+                    
+                    if (files.length === 1) {
+                        file = files[0];
+                    }
+                    if (file) {
+                        getDocText(file.fullPath).fail(function () {
                             replyWith(name, "");
                         });
-                } else {
-                    // Need to send something back to tern - it will wait
-                    // until all the files have been retrieved before doing its calculations
+                    } else {
+                        replyWith(name, "");
+                    }
+                    
+                })
+                .fail(function () {
                     replyWith(name, "");
-                }
-            });
+                });
+        }
+        
+        getDocText(rootTernDir + name).fail(function () {
+            // check relative to project root
+            getDocText(projectRoot + name)
+                // last look for any files that end with the right path
+                // in the project
+                .fail(findNameInProject);
+        });
     }
     
     /**
