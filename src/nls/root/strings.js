@@ -353,7 +353,7 @@ define({
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     
     // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Enable Quick View",
+    "CMD_ENABLE_QUICK_VIEW"                : "Quick View on Hover",
 
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",
