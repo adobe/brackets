@@ -313,22 +313,24 @@ define(function (require, exports, module) {
                 var wholeStringSearch = StringMatch._wholeStringSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
                 
-                expect(wholeStringSearch("sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                var comparePath = path.toLowerCase();
+                
+                expect(wholeStringSearch("sdoc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(0),
                     new SpecialMatch(13),
                     new NormalMatch(14),
                     new SpecialMatch(21)
                 ]);
                 
-                expect(wholeStringSearch("doc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("doc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(13),
                     new NormalMatch(14),
                     new SpecialMatch(21)
                 ]);
                 
-                expect(wholeStringSearch("z", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(wholeStringSearch("z", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
                 
-                expect(wholeStringSearch("docdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("docdoc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(4),
                     new NormalMatch(5),
                     new NormalMatch(6),
@@ -338,7 +340,7 @@ define(function (require, exports, module) {
                 ]);
                 
                 // test for a suspected bug where specials are matched out of order.
-                expect(wholeStringSearch("hc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
+                expect(wholeStringSearch("hc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
             });
             
             it("should handle matches that don't fit at all in the final segment", function () {
@@ -347,7 +349,9 @@ define(function (require, exports, module) {
                 var wholeStringSearch = StringMatch._wholeStringSearch;
                 var sc = StringMatch._findSpecialCharacters(path);
                 
-                expect(wholeStringSearch("quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                var comparePath = path.toLowerCase();
+                
+                expect(wholeStringSearch("quick", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
                     new NormalMatch(24),
                     new NormalMatch(25),
@@ -355,7 +359,7 @@ define(function (require, exports, module) {
                     new NormalMatch(27)
                 ]);
                 
-                expect(wholeStringSearch("quickopen", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("quickopen", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
                     new NormalMatch(24),
                     new NormalMatch(25),
@@ -367,7 +371,7 @@ define(function (require, exports, module) {
                     new NormalMatch(39)
                 ]);
                                 
-                expect(wholeStringSearch("quickopenain", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
+                expect(wholeStringSearch("quickopenain", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
                     new NormalMatch(24),
                     new NormalMatch(25),
@@ -450,6 +454,70 @@ define(function (require, exports, module) {
                         { text: "ommand", matched: false, includesLastSegment: true },
                         { text: "H", matched: true, includesLastSegment: true },
                         { text: "andler.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+            });
+            
+            it("should optionally prefer prefix matches", function () {
+                expect(stringMatch("stringTimeRing", "str", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "stringTimeRing",
+                    stringRanges: [
+                        { text: "str", matched: true, includesLastSegment: true },
+                        { text: "ingTimeRing", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(stringMatch("stringTimeRing", "STR", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "stringTimeRing",
+                    stringRanges: [
+                        { text: "str", matched: true, includesLastSegment: true },
+                        { text: "ingTimeRing", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(stringMatch("STRINGTimeRing", "str", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "STRINGTimeRing",
+                    stringRanges: [
+                        { text: "STR", matched: true, includesLastSegment: true },
+                        { text: "INGTimeRing", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(stringMatch("src/foo/bar/src.js", "src", {
+                    preferPrefixMatches: true
+                })).toEqual({
+                    matchGoodness: -Number.MAX_VALUE,
+                    label: "src/foo/bar/src.js",
+                    stringRanges: [
+                        { text: "src", matched: true, includesLastSegment: true },
+                        { text: "/foo/bar/src.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+                expect(stringMatch("long", "longerQuery", {
+                    preferPrefixMatches: true
+                })).toEqual(null);
+            });
+            
+            it("should optionally allow single segment matches", function () {
+                expect(stringMatch("brackets/utils/brackets.js", "brackut", {
+                    singleSegmentSearch: true
+                })).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "brackets/utils/brackets.js",
+                    stringRanges: [
+                        { text: "brack", matched: true, includesLastSegment: true },
+                        { text: "ets/", matched: false, includesLastSegment: true },
+                        { text: "ut", matched: true, includesLastSegment: true },
+                        { text: "ils/brackets.js", matched: false, includesLastSegment: true }
                     ]
                 });
             });
@@ -682,6 +750,17 @@ define(function (require, exports, module) {
                 expect("foo").not.toBeInCache(matcher, "_specialsCache");
                 expect("foo").not.toBeInCache(matcher, "_noMatchCache");
             });
+            
+            it("should accept the prefixes option", function () {
+                var matcher = new StringMatch.StringMatcher({
+                    preferPrefixMatches: true
+                });
+                var result = matcher.match("stringTimeRing", "str");
+                expect(result.stringRanges[0]).toEqual(
+                    { text: "str", matched: true, includesLastSegment: true }
+                );
+            });
+                    
         });
     });
 });
