@@ -324,7 +324,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "Rozszerzenie nie jest kompatybilne z tą wersją Brackets. Rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
     "MISSING_MAIN"                         : "Pakiet nie zawiera pliku main.js.",
     "ALREADY_INSTALLED"                    : "Rozszerzenie z taką samą nazwą jest już zainstalowane. Nowe rozszerzenie zostanie zainstalowane w folderze rozszerzeń nieaktywnych.",
-    "NO_DISABLED_DIRECTORY"                : "Nie można zapisać rozszerzenia w extensions/disabled ponieważ folder ten nie istnieje.",
     "DOWNLOAD_ID_IN_USE"                   : "Błąd wewnętrzny: nazwa ściąganego pliku już istnieje.",
     "NO_SERVER_RESPONSE"                   : "Nie można połączyć z serwerem.",
     "BAD_HTTP_STATUS"                      : "Nie znaleziono pliku na serwerze (HTTP {0}).",

@@ -324,7 +324,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "这个扩展包不兼容当前的版本,将安装至Disabled扩展文件夹中.",
     "MISSING_MAIN"                         : "扩展包遗失main.js文件.",
     "ALREADY_INSTALLED"                    : "该扩展已经存在,将安装至Disabled扩展文件夹中.",
-    "NO_DISABLED_DIRECTORY"                : "由于扩展文件夹不存在\"extensions/disabled\",所以无法保存扩展至扩展文件夹.",
     "DOWNLOAD_ID_IN_USE"                   : "内部错误:该下载ID已被使用.",
     "DOWNLOAD_TARGET_EXISTS"               : "临时下载文件已存在: {0}.",
     "NO_SERVER_RESPONSE"                   : "无法连接到服务器.",

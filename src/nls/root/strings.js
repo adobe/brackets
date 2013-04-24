@@ -328,7 +328,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
-    "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
     "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
     "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
     "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
