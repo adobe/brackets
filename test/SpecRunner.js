@@ -204,11 +204,11 @@ define(function (require, exports, module) {
 
             // When all done, make it known on JUnitXmlReporter
             jasmine.JUnitXmlReporter.finished_at = (new Date()).getTime();
-        },
+        };
         
         jasmine.JUnitXmlReporter.prototype.writeFile = function (path, filename, text) {
             // do nothing
-        }
+        };
     }
     
     function init() {
