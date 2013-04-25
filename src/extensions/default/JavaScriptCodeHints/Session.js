@@ -21,13 +21,16 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
     var StringMatch     = brackets.getModule("utils/StringMatch"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
+        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
+        TokenUtils      = brackets.getModule("utils/TokenUtils"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager");
 
@@ -251,6 +254,16 @@ define(function (require, exports, module) {
      *      function being called     
      */
     Session.prototype.getType = function () {
+        function getLexicalInfo(token) {
+            if (token.state.lexical) {
+                // in a javascript file this is just in the state field
+                return token.state.lexical.info;
+            } else if (token.state.localState && token.state.localState.lexical) {
+                // inline javascript in an html file will have this in 
+                // the localState field
+                return token.state.localState.lexical.info;
+            }
+        }
         var propertyLookup   = false,
             inFunctionCall   = false,
             showFunctionType = false,
@@ -262,7 +275,7 @@ define(function (require, exports, module) {
         if (token) {
             // if this token is part of a function call, then the tokens lexical info
             // will be annotated with "call"
-            if (token.state.lexical.info === "call") {
+            if (getLexicalInfo(token) === "call") {
                 inFunctionCall = true;
                 if (this.getQuery().length > 0) {
                     inFunctionCall = false;
@@ -450,6 +463,82 @@ define(function (require, exports, module) {
             hints[0] = {value: fnHint, positions: []};
         }
         return hints;
+    };
+
+    /**
+     * Get the javascript text of the file open in the editor for this Session.
+     * For a javascript file, this is just the text of the file.  For an HTML file,
+     * this will be only the text in the <script> tags.  This is so that we can pass
+     * just the javascript text to tern, and avoid confusing it with HTML tags, since it
+     * only knows how to parse javascript.
+     * @return {string} - the "javascript" text that can be sent to Tern.
+     */
+    Session.prototype.getJavascriptText = function () {
+        if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
+            // HTML file - need to send back only the bodies of the
+            // <script> tags
+            var text = "",
+                offset = this.getOffset(),
+                ctx = TokenUtils.getInitialContext(this.editor._codeMirror, {line: 0, ch: 0 }),
+                tokenModeName,
+                inScriptBlock = false,
+                currentScriptBlock,
+                scriptBlocks = [],
+                cursor = this.getCursor(),
+                editor = this.editor;
+            
+            // Loop over the tokens in the html file, and extract the blocks
+            // that are the javascript code
+            while (TokenUtils.moveNextToken(ctx)) {
+                tokenModeName = TokenUtils.getModeAt(ctx.editor, ctx.pos).name;
+                if (inScriptBlock) {
+                    // Check for end of this <script> block
+                    if (tokenModeName !== "javascript") {
+                        if (!currentScriptBlock.end) {
+                            // Handle empty script blocks
+                            currentScriptBlock.end = currentScriptBlock.start;
+                        }
+                        currentScriptBlock.text = editor.document.getRange(currentScriptBlock.start, currentScriptBlock.end);
+                        inScriptBlock = false;
+                    } else {
+                        currentScriptBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };
+                    }
+                } else {
+                    // Check for start of a <script> block
+                    if (tokenModeName === "javascript") {
+                        currentScriptBlock = {
+                            start: { line: ctx.pos.line, ch: ctx.pos.ch }
+                        };
+                        scriptBlocks.push(currentScriptBlock);
+                        inScriptBlock = true;
+                    }
+                }
+            }
+            // Add all the javascript text
+            // For non-javascript blocks we replace everything except for newlines
+            // with whitespace.  This is so that the offset and cursor positions
+            // we get from the document still work.  
+            // Alternatively we could strip the non-javascript text, and modify the offset,
+            // and/or cursor, but then we have to remember how to reverse the translation
+            // to support jump-to-definition
+            var htmlStart = {line: 0, ch: 0};
+            scriptBlocks.forEach(function (scriptBlock) {
+                var start = scriptBlock.start,
+                    end = scriptBlock.end;
+                
+                // get the preceding html text, and replace it with whitespace
+                var htmlText = editor.document.getRange(htmlStart, start);
+                htmlText = htmlText.replace(/./g, " ");
+
+                htmlStart = end;
+                text += htmlText + scriptBlock.text;
+            });
+            
+            return text;
+        } else {
+            // Javascript file, just return the text
+            return this.editor.document.getText();
+        }
     };
     
     module.exports = Session;

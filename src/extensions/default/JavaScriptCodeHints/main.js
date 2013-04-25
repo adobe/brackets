@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Session         = require("Session");
@@ -236,6 +237,18 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @return {boolean} - true if the document is a html file
+     */
+    function isHTMLFile(document) {
+        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        return languageID === "html";
+    }
+    
+    function isInlineScript(editor) {
+        return editor.getModeForSelection() === "javascript";
+    }
+
+    /**
      * Determine whether hints are available for a given editor context
      * 
      * @param {Editor} editor - the current editor context
@@ -244,6 +257,12 @@ define(function (require, exports, module) {
      */
     JSHints.prototype.hasHints = function (editor, key) {
         if (session && HintUtils.hintableKey(key)) {
+            
+            if (isHTMLFile(session.editor.document)) {
+                if (!isInlineScript(session.editor)) {
+                    return false;
+                }
+            }
             var cursor  = session.getCursor(),
                 token   = session.getToken(cursor);
 
@@ -293,7 +312,7 @@ define(function (require, exports, module) {
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
                 var offset          = session.getOffset(),
-                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document, offset);
+                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
 
                 if (scopeResponse.hasOwnProperty("promise")) {
                     var $deferredHints = $.Deferred();
@@ -497,7 +516,7 @@ define(function (require, exports, module) {
         installEditorListeners(EditorManager.getActiveEditor());
 
         var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID], 0);
+        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID, "html"], 0);
 
         // for unit testing
         exports.getSession = getSession;
