@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, window, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
@@ -56,9 +56,18 @@ define(function (require, exports, module) {
     
     /**
      * @type {Object}
-     * The current registry as fetched by ExtensionManager.
+     * The current set of extensions managed by this model. The keys are the IDs of the 
+     * extensions, or, for legacy extensions with no ID, the full local path to the extension.
+     * Depending on whether a given extension is in the registry or not and whether it's locally 
+     * installed or not, each entry might or might not have the following contents:
+     *     metadata: the contents of the extension's package.json. Available for both local and registry extensions.
+     *     owner: the ID of the owner who uploaded the extension. Only available for extensions that are in the registry.
+     *     versions: the history of versions of the extension. Only available for extensions that are in the registry.
+     *     status: the current status of the extension. Only available for local extensions.
+     *     path: the full file path of the extension. Only available for local extensions.
+     *     installType: one of "default", "dev", "user", or "unknown". Only available for local extensions.
      */
-    Model.prototype.registry = null;
+    Model.prototype.extensions = null;
     
     /**
      * @type {Array.<Object>}
@@ -68,7 +77,7 @@ define(function (require, exports, module) {
     
     /**
      * @type {Object}
-     * The list of all ids from the registry, sorted with the current sort.
+     * The list of all ids from the extension list, sorted with the current sort.
      */
     Model.prototype._sortedFullSet = null;
     
@@ -80,30 +89,52 @@ define(function (require, exports, module) {
     Model.prototype._lastQuery = null;
     
     /**
-     * Initializes the model, fetching the main extension registry.
+     * @private
+     * Sets up the initial filtered set based on the sorted full set.
+     */
+    Model.prototype._setInitialFilter = function () {
+        // Initial filtered list is the same as the sorted list.
+        this.filterSet = this._sortedFullSet.slice(0);
+        $(this).triggerHandler("filterChange");
+    };
+    
+    /**
+     * Initializes the model from the remote extension registry.
      * @return {$.Promise} a promise that's resolved with the registry JSON data
      * or rejected if the server can't be reached.
      */
-    Model.prototype.initialize = function () {
+    Model.prototype.initializeFromRegistry = function () {
         var self = this;
         return ExtensionManager.getRegistry(true)
             .done(function (registry) {
-                self.registry = registry;
+                self.extensions = registry;
                 
                 // Sort the registry by last published date and store the sorted list of IDs.
                 self._sortedFullSet = registry_utils.sortRegistry(registry).map(function (entry) {
                     return entry.metadata.name;
                 });
-                
-                // Initial filtered list is the same as the sorted list.
-                self.filterSet = self._sortedFullSet.slice(0);
-                $(self).triggerHandler("filterChange");
+                self._setInitialFilter();
             });
     };
     
     /**
+     * Initializes the model from the set of locally installed extensions, sorted
+     * alphabetically by id (or name of the extension folder for legacy extensions).
+     */
+    Model.prototype.initializeFromInstalledExtensions = function () {
+        this.extensions = ExtensionManager.loadedExtensions;
+        this._sortedFullSet = Object.keys(this.extensions)
+            .map(function (key) {
+                var match = key.match(/\/([^\/]+)$/);
+                return (match && match[1]) || key;
+            })
+            .sort();
+        this._setInitialFilter();
+    };
+    
+    /**
      * @private
-     * Searches for the given query in the current registry list and updates the filter set,
+     * Searches for the given query in the current extension list and updates the filter set,
      * dispatching a filterChange event.
      * @param {string} query The string to search for.
      */
@@ -120,7 +151,7 @@ define(function (require, exports, module) {
         
         query = query.toLowerCase();
         initialList.forEach(function (id) {
-            var entry = self.registry[id];
+            var entry = self.extensions[id];
             if (entry && self._entryMatchesQuery(entry, query)) {
                 newFilterSet.push(id);
             }
@@ -133,8 +164,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Tests if the given entry matches the query. See `filterRegistry()` for criteria.
-     * @param {Object} entry The registry entry to test.
+     * Tests if the given entry matches the query.
+     * @param {Object} entry The extension entry to test.
      * @param {string} query The query to match against.
      * @return {boolean} Whether the query matches.
      */
@@ -176,7 +207,7 @@ define(function (require, exports, module) {
         // Show the busy spinner and access the registry.
         var $spinner = $("<div class='spinner large spin'/>")
             .appendTo(this.$el);
-        this.model.initialize().done(function (registry) {
+        this.model.initializeFromRegistry().done(function () {
             self._setupEventHandlers();
             self._render();
         }).fail(function () {
@@ -209,7 +240,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {function} The compiled template we use for rendering items in the registry list.
+     * @type {function} The compiled template we use for rendering items in the extension list.
      */
     ExtensionManagerView.prototype._itemTemplate = null;
     
@@ -222,7 +253,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Attaches our event handlers. We wait to do this until we've fully fetched the registry.
+     * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
      */
     ExtensionManagerView.prototype._setupEventHandlers = function () {
         var self = this;
@@ -234,13 +265,13 @@ define(function (require, exports, module) {
         
         // Listen for extension status changes.
         $(ExtensionManager).on("statusChange", function (e, id, status) {
-            // Re-render the registry item.
+            // Re-render the extension item.
             // FUTURE: later on, some of these views might be for installed extensions that aren't 
             // in the registry, e.g. legacy extensions or local dev extensions.
-            var registry = self.model.registry;
-            if (registry[id]) {
+            var extensions = self.model.extensions;
+            if (extensions[id]) {
                 var $oldItem = self._itemViews[id],
-                    $newItem = self._renderItem(registry[id]);
+                    $newItem = self._renderItem(extensions[id]);
                 if ($oldItem) {
                     $oldItem.replaceWith($newItem);
                     self._itemViews[id] = $newItem;
@@ -265,8 +296,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Renders the view for a single registry entry.
-     * @param {Object} entry The registry entry to render.
+     * Renders the view for a single extension entry.
+     * @param {Object} entry The extension entry to render.
      * @return {jQueryObject} The rendered node as a jQuery object.
      */
     ExtensionManagerView.prototype._renderItem = function (entry) {
@@ -295,7 +326,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Renders the registry entries in the model's current filter list.
+     * Renders the extension entries in the model's current filter list.
      */
     ExtensionManagerView.prototype._render = function () {
         var self = this,
@@ -304,7 +335,7 @@ define(function (require, exports, module) {
         this.model.filterSet.forEach(function (id) {
             var $item = self._itemViews[id];
             if (!$item) {
-                $item = self._renderItem(self.model.registry[id]);
+                $item = self._renderItem(self.model.extensions[id]);
                 self._itemViews[id] = $item;
             }
             $item.appendTo(self._$table);
@@ -318,7 +349,7 @@ define(function (require, exports, module) {
      * @param {string} id ID of the extension to install.
      */
     ExtensionManagerView.prototype._installUsingDialog = function (id) {
-        var entry = this.model.registry[id];
+        var entry = this.model.extensions[id];
         if (entry) {
             var url = ExtensionManager.getExtensionURL(id, entry.metadata.version);
             InstallExtensionDialog.installUsingDialog(url);

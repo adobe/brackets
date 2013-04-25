@@ -76,11 +76,14 @@ define(function (require, exports, module) {
             function mockLoadExtensions(names) {
                 var numLoaded = 0, numStatusChanges = 0;
                 runs(function () {
-                    $(ExtensionManager).on("statusChange.unit-test", function () {
+                    $(ExtensionManager).on("statusChange.mock-load", function () {
                         numStatusChanges++;
                     });
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    names = names || ["mock-extension-1", "mock-extension-2", "mock-legacy-extension"];
+                    spyOn(ExtensionLoader, "getUserExtensionPath").andCallFake(function () {
+                        return mockPath + "/user";
+                    });
+                    names = names || ["default/mock-extension-1", "dev/mock-extension-2", "user/mock-legacy-extension"];
                     names.forEach(function (name) {
                         numLoaded++;
                         $(ExtensionLoader).triggerHandler("load", mockPath + "/" + name);
@@ -89,6 +92,10 @@ define(function (require, exports, module) {
                 
                 // Make sure the ExtensionManager has finished reading all the package.jsons before continuing.
                 waitsFor(function () { return numStatusChanges === numLoaded; }, "ExtensionManager status changes");
+                
+                runs(function () {
+                    $(ExtensionManager).off(".mock-load");
+                });
             }
             
             it("should download the extension list from the registry", function () {
@@ -199,8 +206,19 @@ define(function (require, exports, module) {
                     Object.keys(mockRegistry).forEach(function (extId) {
                         var status = (extId === "mock-extension-1" || extId === "mock-extension-2") ?
                                 ExtensionManager.ENABLED : ExtensionManager.NOT_INSTALLED;
-                        expect(ExtensionManager.getStatus(extId)).toBe(status);
+                        expect(ExtensionManager.getStatus(extId)).toEqual(status);
                     });
+                });
+            });
+            
+            it("should determine the location type for installed extensions", function () {
+                mockLoadExtensions();
+                runs(function () {
+                    expect(ExtensionManager.getLocationType("mock-extension-1")).toEqual(ExtensionManager.LOCATION_DEFAULT);
+                    expect(ExtensionManager.getLocationType("mock-extension-2")).toEqual(ExtensionManager.LOCATION_DEV);
+                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
+                    expect(ExtensionManager.getLocationType(mockPath + "/user/mock-legacy-extension")).toEqual(ExtensionManager.LOCATION_USER);
+                    expect(ExtensionManager.getLocationType("test-quickly")).toEqual(ExtensionManager.LOCATION_UNKNOWN);
                 });
             });
             
@@ -208,7 +226,7 @@ define(function (require, exports, module) {
                 var spy = jasmine.createSpy();
                 runs(function () {
                     $(ExtensionManager).on("statusChange.unit-test", spy);
-                    mockLoadExtensions(["mock-extension-1"]);
+                    mockLoadExtensions(["default/mock-extension-1"]);
                 });
                 runs(function () {
                     expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-extension-1", ExtensionManager.ENABLED);
@@ -219,11 +237,11 @@ define(function (require, exports, module) {
                 var spy = jasmine.createSpy();
                 runs(function () {
                     $(ExtensionManager).on("statusChange.unit-test", spy);
-                    mockLoadExtensions(["mock-legacy-extension"]);
+                    mockLoadExtensions(["user/mock-legacy-extension"]);
                 });
                 runs(function () {
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), mockPath + "/mock-legacy-extension", ExtensionManager.ENABLED);
+                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), mockPath + "/user/mock-legacy-extension", ExtensionManager.ENABLED);
                 });
             });
             
@@ -265,56 +283,134 @@ define(function (require, exports, module) {
         });
 
         describe("ExtensionManagerView Model", function () {
-            var model;
+            describe("when initialized from registry", function () {
+                var model;
+                
+                beforeEach(function () {
+                    runs(function () {
+                        mockRegistry = JSON.parse(mockRegistryForSearch);
+                        model = new Model();
+                        waitsForDone(model.initializeFromRegistry(), "model initialization");
+                    });
+                });
+                
+                it("should start with the full set sorted in reverse publish date order", function () {
+                    expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
+                });
+                
+                it("should search case-insensitively for a keyword in the metadata for a given list of registry ids", function () {
+                    model.filter("uniq1");
+                    expect(model.filterSet).toEqual(["find-uniq1-in-name"]);
+                    model.filter("uniq2");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("uniq3");
+                    expect(model.filterSet).toEqual(["item-3"]);
+                    model.filter("uniq4");
+                    expect(model.filterSet).toEqual(["item-4"]);
+                    model.filter("uniq5");
+                    expect(model.filterSet).toEqual(["item-5"]);
+                    model.filter("uniq6");
+                    expect(model.filterSet).toEqual(["item-6"]);
+                    model.filter("uniqin1and5");
+                    expect(model.filterSet).toEqual(["item-5", "find-uniq1-in-name"]); // sorted in reverse publish date order
+                });
+                
+                it("should return correct results when subsequent queries are longer versions of previous queries", function () {
+                    model.filter("uniqin1and5");
+                    model.filter("uniqin1and5-2");
+                    expect(model.filterSet).toEqual(["item-5"]);
+                });
+                
+                it("should go back to the full sorted set when cleared", function () {
+                    model.filter("uniq1");
+                    model.filter("");
+                    expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
+                });
+                
+                it("should trigger filterChange when filtered", function () {
+                    var gotEvent = false;
+                    $(model).on("filterChange", function () {
+                        gotEvent = true;
+                    });
+                    model.filter("uniq1");
+                    expect(gotEvent).toBe(true);
+                });
+            });
             
-            beforeEach(function () {
-                runs(function () {
-                    mockRegistry = JSON.parse(mockRegistryForSearch);
+            describe("when initialized from local extension list", function () {
+                var model, origExtensions;
+                
+                beforeEach(function () {
+                    origExtensions = ExtensionManager.loadedExtensions;
+                    ExtensionManager.loadedExtensions = {
+                        "/path/to/extensions/user/legacy-extension": {
+                            status: ExtensionManager.ENABLED,
+                            path: "/path/to/extensions/user/legacy-extension",
+                            type: "user"
+                        },
+                        "registered-extension": {
+                            metadata: {
+                                name: "registered-extension",
+                                description: "An extension from the registry",
+                                version: "1.0.0"
+                            },
+                            owner: "github:someuser",
+                            versions: [
+                                {
+                                    version: "1.0.0",
+                                    published: "2013-04-10T18:26:20.553Z"
+                                }
+                            ],
+                            status: ExtensionManager.ENABLED,
+                            path: "/path/to/extensions/user/registered-extension",
+                            type: "user"
+                        },
+                        "unregistered-extension": {
+                            metadata: {
+                                name: "registered-extension",
+                                description: "An extension not from the registry",
+                                version: "1.0.0"
+                            },
+                            status: ExtensionManager.ENABLED,
+                            path: "/path/to/extensions/user/unregistered-extension",
+                            type: "user"
+                        },
+                        "default-extension": {
+                            metadata: {
+                                name: "default-extension",
+                                description: "An extension in the default folder",
+                                version: "1.0.0"
+                            },
+                            status: ExtensionManager.ENABLED,
+                            path: "/path/to/extensions/default/default-extension",
+                            type: "default"
+                        },
+                        "dev-extension": {
+                            metadata: {
+                                name: "dev-extension",
+                                description: "An extension in the dev folder",
+                                version: "1.0.0"
+                            },
+                            status: ExtensionManager.ENABLED,
+                            path: "/path/to/extensions/dev/dev-extension",
+                            type: "dev"
+                        }
+                    };
                     model = new Model();
-                    waitsForDone(model.initialize(), "model initialization");
+                    model.initializeFromInstalledExtensions();
                 });
-            });
-            
-            it("should start with the full set sorted in reverse publish date order", function () {
-                expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
-            });
-            
-            it("should search case-insensitively for a keyword in the metadata for a given list of registry ids", function () {
-                model.filter("uniq1");
-                expect(model.filterSet).toEqual(["find-uniq1-in-name"]);
-                model.filter("uniq2");
-                expect(model.filterSet).toEqual(["item-2"]);
-                model.filter("uniq3");
-                expect(model.filterSet).toEqual(["item-3"]);
-                model.filter("uniq4");
-                expect(model.filterSet).toEqual(["item-4"]);
-                model.filter("uniq5");
-                expect(model.filterSet).toEqual(["item-5"]);
-                model.filter("uniq6");
-                expect(model.filterSet).toEqual(["item-6"]);
-                model.filter("uniqin1and5");
-                expect(model.filterSet).toEqual(["item-5", "find-uniq1-in-name"]); // sorted in reverse publish date order
-            });
-            
-            it("should return correct results when subsequent queries are longer versions of previous queries", function () {
-                model.filter("uniqin1and5");
-                model.filter("uniqin1and5-2");
-                expect(model.filterSet).toEqual(["item-5"]);
-            });
-            
-            it("should go back to the full sorted set when cleared", function () {
-                model.filter("uniq1");
-                model.filter("");
-                expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
-            });
-            
-            it("should trigger filterChange when filtered", function () {
-                var gotEvent = false;
-                $(model).on("filterChange", function () {
-                    gotEvent = true;
+                
+                afterEach(function () {
+                    ExtensionManager.loadedExtensions = origExtensions;
                 });
-                model.filter("uniq1");
-                expect(gotEvent).toBe(true);
+                
+                it("should initialize itself from the local extension list", function () {
+                    expect(model.extensions).toEqual(ExtensionManager.loadedExtensions);
+                });
+                
+                it("should sort alphabetically on the extension id/folder name", function () {
+                    expect(model.filterSet).toEqual(["default-extension", "dev-extension", "legacy-extension", "registered-extension", "unregistered-extension"]);
+                });
             });
         });
         

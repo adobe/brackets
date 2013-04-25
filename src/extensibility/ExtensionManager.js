@@ -53,6 +53,14 @@ define(function (require, exports, module) {
         ENABLED       = "enabled";
     
     /**
+     * Extension location constants.
+     */
+    var LOCATION_DEFAULT = "default",
+        LOCATION_DEV     = "dev",
+        LOCATION_USER    = "user",
+        LOCATION_UNKNOWN = "unknown";
+    
+    /**
      * @private
      * @type {Object}
      * The current registry JSON downloaded from the server.
@@ -62,13 +70,13 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
-     * A list of local extensions. The keys are either ids (for extensions that have package metadata) or
+     * The set of locally loaded extensions. The keys are either ids (for extensions that have package metadata) or
      * local file paths (for legacy extensions with no package metadata). The fields of each record are:
      *     metadata: the package metadata loaded from the local package.json, or null if it's a legacy extension
      *     path: the local path to the extension folder on disk
      *     status: the current status, one of the status constants above
      */
-    var _extensions = {};
+    var loadedExtensions = {};
 
     /**
      * @private
@@ -76,7 +84,7 @@ define(function (require, exports, module) {
      */
     function _reset() {
         _registry = null;
-        _extensions = {};
+        loadedExtensions = {};
     }
 
     /**
@@ -134,9 +142,27 @@ define(function (require, exports, module) {
      */
     function _handleExtensionLoad(e, path) {
         function setData(id, metadata) {
-            _extensions[id] = {
+            var locationType,
+                userExtensionPath = ExtensionLoader.getUserExtensionPath();
+            if (path.indexOf(userExtensionPath) === 0) {
+                locationType = LOCATION_USER;
+            } else {
+                var segments = path.split("/"), parent;
+                if (segments.length > 2) {
+                    parent = segments[segments.length - 2];
+                }
+                if (parent === "dev") {
+                    locationType = LOCATION_DEV;
+                } else if (parent === "default") {
+                    locationType = LOCATION_DEFAULT;
+                } else {
+                    locationType = LOCATION_UNKNOWN;
+                }
+            }
+            loadedExtensions[id] = {
                 metadata: metadata,
                 path: path,
+                locationType: locationType,
                 status: ENABLED
             };
             $(exports).triggerHandler("statusChange", [id, ENABLED]);
@@ -160,7 +186,17 @@ define(function (require, exports, module) {
      * @return {string} The extension's status; one of the constants above
      */
     function getStatus(id) {
-        return (_extensions[id] && _extensions[id].status) || NOT_INSTALLED;
+        return (loadedExtensions[id] && loadedExtensions[id].status) || NOT_INSTALLED;
+    }
+    
+    /**
+     * Returns the install location of the given extension, or LOCATION_UNKNOWN if it's not installed or installed 
+     * in a strange location.
+     * @param {string} id The ID of the extension, or for legacy extensions, the local file path.
+     * @return {string} one of the LOCATION constants
+     */
+    function getLocationType(id) {
+        return (loadedExtensions[id] && loadedExtensions[id].locationType) || LOCATION_UNKNOWN;
     }
     
     /**
@@ -212,11 +248,18 @@ define(function (require, exports, module) {
     // Public exports
     exports.getRegistry = getRegistry;
     exports.getStatus = getStatus;
+    exports.getLocationType = getLocationType;
     exports.getCompatibilityInfo = getCompatibilityInfo;
     exports.getExtensionURL = getExtensionURL;
+    exports.loadedExtensions = loadedExtensions;
     
     exports.NOT_INSTALLED = NOT_INSTALLED;
     exports.ENABLED = ENABLED;
+    
+    exports.LOCATION_DEFAULT = LOCATION_DEFAULT;
+    exports.LOCATION_DEV = LOCATION_DEV;
+    exports.LOCATION_USER = LOCATION_USER;
+    exports.LOCATION_UNKNOWN = LOCATION_UNKNOWN;
 
     // For unit testing only
     exports._reset = _reset;
