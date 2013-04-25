@@ -4,6 +4,10 @@
 @heading-color: #454545;
 @link-color: #0083e8;
 
+/* Typography */
+ @font-weight-semibold: 500;
+
+
 /* Overall inline widget content container */
 .css-prop-defn {
     margin-left: 20px;
@@ -36,10 +40,12 @@
     code {
         font-family: SourceCodePro;
         font-size: 12px;
-        font-style: italic;
         color: @emphasized-text-color;
         background: none;   // revert Bootstrap's styling
         padding: 0;
+    }
+    b {
+        font-weight: @font-weight-semibold;
     }
 }
 
@@ -79,17 +85,17 @@
     
     dl {
         dt {
-            color: #454545;
+            color: @emphasized-text-color;
             font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 3px; // remove extra spacing between dt & dd
+            font-weight: @font-weight-semibold;
+            margin-bottom: 3px;
         }
         
         dd {
             // some styles must specifically by on <p> to override Bootstrap
             p, li, b {
                 font-size: 13px;
-                font-weight: 400;
+                font-style: normal;
                 line-height: 18px;
                 margin-bottom: 15px;
             }
@@ -141,7 +147,7 @@ a.more-info {
     box-shadow: inset 0 1px 0 white;  // white chisel along top edge
     
     font-size: 12px;
-    font-weight: 500;
+    font-weight: @font-weight-semibold;
     color: @heading-color;
     text-shadow: 0 1px 0 white;
     &:hover {
