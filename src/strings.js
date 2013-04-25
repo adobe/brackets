@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, window */
+/*global $, define, brackets, window */
 
 /**
  * This file provides the interface to user visible strings in Brackets. Code that needs
@@ -34,11 +34,13 @@ define(function (require, exports, module) {
     "use strict";
     
     var strings         = require("i18n!nls/strings"),
+        urls            = require("i18n!nls/urls"),
         Global          = require("utils/Global"),
         CollectionUtils = require("utils/CollectionUtils"),
         StringUtils     = require("utils/StringUtils");
 
-    var additionalGlobals = {},
+    // Add URLs as additional globals
+    var additionalGlobals = $.extend({}, urls),
         parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version);
     
     additionalGlobals.APP_NAME      = brackets.metadata.name || strings.APP_NAME;
