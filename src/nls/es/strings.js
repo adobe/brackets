@@ -232,7 +232,7 @@ define({
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a la línea",
-    "CMD_GOTO_DEFINITION"                 : "Ir a la definición",
+    "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
     "CMD_JUMPTO_DEFINITION"               : "Saltar a la definición",
     "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
@@ -292,7 +292,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Mucha gente (pero ahora mismo estamos teniendo problemas para cargar esos datos).",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
     "GET_IT_NOW"                           : "¡Consíguelo ahora!",
@@ -350,7 +350,6 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
-    "EXTENSION_FREE_ON_GITHUB"             : "¿Estás buscando interesantes novedades desarrolladas por la comunidad? Echa un vistazo a todas las extensiones gratis para Brackets en Github.",
     
     // extensions/default/QuickView 
     "CMD_ENABLE_QUICK_VIEW"                : "Vista rápida con cursor",
