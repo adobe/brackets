@@ -232,7 +232,7 @@ define({
     "NAVIGATE_MENU"                       : "Navigate",
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
-    "CMD_GOTO_DEFINITION"                 : "Go to Definition",
+    "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
     "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
