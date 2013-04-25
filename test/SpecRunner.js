@@ -170,7 +170,7 @@ define(function (require, exports, module) {
      * @param {!UnitTestReporter} reporter
      */
     function _runnerEndHandler(event, reporter) {
-        if (resultsPath.substr(-5) === ".json") {
+        if (resultsPath && resultsPath.substr(-5) === ".json") {
             writeResults(resultsPath, reporter.toJSON());
         }
 
