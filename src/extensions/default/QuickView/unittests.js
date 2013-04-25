@@ -381,9 +381,9 @@ define(function (require, exports, module) {
             
             it("Should show image preview for subsequent images in a line", function () {
                 runs(function () {
-                    checkImagePathAtPos("img/Gradient.png",       146, 84);    // url("")
-                    checkImagePathAtPos("img/Gradient.png",       147, 84);    // url()
-                    checkImagePathAtPos("img/Gradient.png",       148, 84);    // ""
+                    checkImagePathAtPos("img/Gradient.png",       153, 84);    // url("")
+                    checkImagePathAtPos("img/Gradient.png",       154, 84);    // url()
+                    checkImagePathAtPos("img/Gradient.png",       155, 84);    // ""
                 });
                 
                 // This must be in the last spec in the suite.
