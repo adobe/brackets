@@ -142,21 +142,6 @@ define(function (require, exports, module) {
         
         jasmine.getEnv().execute();
     }
-    
-    /**
-     * Listener for UnitTestReporter "runnerEnd" event. Attached only if
-     * "resultsPath" URL parameter exists. Does not overwrite existing file.
-     * 
-     * @param {!$.Event} event
-     * @param {!UnitTestReporter} reporter
-     */
-    function _runnerEndHandler(event, reporter) {
-        if (resultsPath.substr(-5) === ".json") {
-            writeResults(resultsPath, reporter.toJSON());
-        }
-
-        _writeResults.always(function () { window.close(); });
-    }
 
     function writeResults(path, text) {
         // check if the file already exists
@@ -176,25 +161,37 @@ define(function (require, exports, module) {
             }
         });
     }
+    
+    /**
+     * Listener for UnitTestReporter "runnerEnd" event. Attached only if
+     * "resultsPath" URL parameter exists. Does not overwrite existing file.
+     * 
+     * @param {!$.Event} event
+     * @param {!UnitTestReporter} reporter
+     */
+    function _runnerEndHandler(event, reporter) {
+        if (resultsPath.substr(-5) === ".json") {
+            writeResults(resultsPath, reporter.toJSON());
+        }
+
+        _writeResults.always(function () { window.close(); });
+    }
 
     /**
      * Patch JUnitXMLReporter to use brackets.fs and to consolidate all results
      * into a single file.
      */
     function _patchJUnitReporter() {
-        jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function(runner) {
+        jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
             var suites = runner.suites(),
-                output = '<?xml version="1.0" encoding="UTF-8" ?>';
+                output = '<?xml version="1.0" encoding="UTF-8" ?>',
+                i;
 
             output += "\n<testsuites>";
 
-            for (var i = 0; i < suites.length; i++) {
+            for (i = 0; i < suites.length; i++) {
                 var suite = suites[i];
-                // if we are consolidating, only write out top-level suites
-                if (suite.parentSuite) {
-                    continue;
-                }
-                else  {
+                if (!suite.parentSuite) {
                     output += this.getNestedOutput(suite);
                 }
             }
