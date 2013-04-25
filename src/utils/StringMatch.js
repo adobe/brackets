@@ -454,7 +454,7 @@ define(function (require, exports, module) {
         } else {
             // No match in the last segment, so we start over searching the whole
             // string
-            matchList = _generateMatchList(query, compareStr, specials, 0, lastSegmentStart);
+            matchList = _generateMatchList(query, compareStr, specials, 0);
         }
         
         return matchList;
@@ -649,7 +649,42 @@ define(function (require, exports, module) {
         }
         return result;
     }
-        
+    
+    /*
+     * If we short circuit normal matching to produce a prefix match,
+     * this function will generate the appropriate SearchResult.
+     * This function assumes that the prefix match check has already
+     * been performed.
+     *
+     * @param {string} str  The string with the prefix match for the query
+     * @param {string} query  The query that matched the beginning of str
+     * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} ranges has a matching range for beginning of str
+     *                      and a non-matching range for the end of the str
+     *                      the score is -Number.MAX_VALUE in all cases
+     */
+    function _prefixMatchResult(str, query) {
+        var result = new SearchResult(str);
+        result.matchGoodness = -Number.MAX_VALUE;
+        if (DEBUG_SCORES) {
+            result.scoreDebug = {
+                beginning: Number.MAX_VALUE
+            };
+        }
+        result.stringRanges = [{
+            text: str.substr(0, query.length),
+            matched: true,
+            includesLastSegment: true
+        }];
+        if (str.length > query.length) {
+            result.stringRanges.push({
+                text: str.substring(query.length),
+                matched: false,
+                includesLastSegment: true
+            });
+        }
+        return result;
+    }
+    
     /*
      * Match str against the query using the QuickOpen algorithm provided by
      * the functions above. The general idea is to prefer matches in the last
@@ -670,7 +705,7 @@ define(function (require, exports, module) {
      *                  preferPrefixMatches puts an exact case-insensitive prefix match ahead of all other matches,
      *                  even short-circuiting the match logic. This option implies singleSegmentSearch.
      *                  singleSegmentSearch does not treat segments of the string specially.
-     * @param {?Object} (optional) the specials data from findSpecialCharacters, if already known
+     * @param {?Object} special (optional) the specials data from findSpecialCharacters, if already known
      *                  This is generally just used by StringMatcher for optimization.
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
@@ -704,26 +739,7 @@ define(function (require, exports, module) {
         }
         
         if (options.preferPrefixMatches && compareStr.substr(0, query.length) === query) {
-            result = new SearchResult(str);
-            result.matchGoodness = -Number.MAX_VALUE;
-            if (DEBUG_SCORES) {
-                result.scoreDebug = {
-                    beginning: Number.MAX_VALUE
-                };
-            }
-            result.stringRanges = [{
-                text: str.substr(0, query.length),
-                matched: true,
-                includesLastSegment: true
-            }];
-            if (str.length > query.length) {
-                result.stringRanges.push({
-                    text: str.substring(query.length),
-                    matched: false,
-                    includesLastSegment: true
-                });
-            }
-            return result;
+            return _prefixMatchResult(str, query);
         }
         
         // Locate the special characters and then use orderedCompare to do the real
