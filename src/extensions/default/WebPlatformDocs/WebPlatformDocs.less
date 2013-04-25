@@ -87,7 +87,9 @@
         
         dd {
             // some styles must specifically by on <p> to override Bootstrap
-            p {
+            p, li, b {
+                font-size: 13px;
+                font-weight: 400;
                 line-height: 18px;
                 margin-bottom: 15px;
             }
@@ -143,7 +145,7 @@ a.more-info {
     color: @heading-color;
     text-shadow: 0 1px 0 white;
     &:hover {
-        background: #edf1f1;
+        background-color: #edf1f1;
         text-decoration: none;
     }
 }
