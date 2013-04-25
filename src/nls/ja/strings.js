@@ -232,7 +232,7 @@ define({
 	"NAVIGATE_MENU": "ナビゲート",
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
-	"CMD_GOTO_DEFINITION": "定義に移動",
+	"CMD_GOTO_DEFINITION": "!能=[6307096] Quick Find Definition_=!",
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
