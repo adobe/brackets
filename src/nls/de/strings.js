@@ -140,8 +140,9 @@ define({
      * ProjectManager
      */
 
-    "PROJECT_LOADING" : "Lädt\u2026",
-    "UNTITLED" : "Unbenannt",
+    "PROJECT_LOADING"   : "Lädt\u2026",
+    "UNTITLED"          : "Unbenannt",
+    "WORKING_FILES"     : "Arbeitsdateien",
 
     /**
      * Keyboard modifier names
@@ -211,6 +212,8 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Block (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
+    "CMD_OPEN_LINE_ABOVE"                 : "Zeile darüber öffnen",
+    "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
      
     // View menu commands
@@ -229,13 +232,12 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
-    "CMD_ENABLE_QUICK_VIEW"               : "Hover-Vorschau aktivieren",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
-    "CMD_GOTO_DEFINITION"                 : "Gehe zur Definition",
+    "CMD_GOTO_DEFINITION"                 : "Definition schnell finden",
     "CMD_JUMPTO_DEFINITION"               : "Springe zur Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
@@ -295,6 +297,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Gemacht mit \u2764 und JavaScript von:",
     "ABOUT_TEXT_LINE6"                     : "…vielen Leuten (…leider haben wir aber gerade Probleme, diese Daten zu laden).",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform-Dokumente und das grafische Logo von Web Platform sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
@@ -341,8 +344,22 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Brackets-Erweiterungen. Bitte später erneut probieren.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut probieren.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
+
+    "EXTENSION_AUTHOR"                     : "Autor",
+    "EXTENSION_DATE"                       : "Datum",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
+    "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
+    "EXTENSION_INSTALLED"                  : "Installiert",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
+    "EXTENSION_MORE_INFO_LINK"             : "Mehr",
+    "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
 
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint-Fehler",
