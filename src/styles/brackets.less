@@ -779,25 +779,32 @@ a, img {
 
 .smart_autocomplete_container {
     
-    border: 1px solid #999;
+    border: 1px solid rgba(0, 0, 0, 0.24);
     background-color: #FFFFFF;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    
+    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
+    width: 398px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
-    padding: 0px 8px 0px 0px;
+    padding: 0px;
     margin: 9px 0px 0px 0px;
 
     .quick-open-path {
+        color: #888;
         font-size: 11px;
-        color: gray;
+        letter-spacing: 0.03em;
+        line-height: 11px;
     }
 
     li {
-        color: black;
-        border-bottom: 1px solid;
+        color: #222;
+        line-height: 15px;
         list-style: none;
         cursor: default;
-        padding: 0px 2px 0px 4px;
+        padding: 5px 10px;
     }
 }
 
@@ -805,13 +812,9 @@ li.smart_autocomplete_highlight {
     background-color: #e0f0fa;
 }
 
-.quicksearch-pathmatch {
-    font-weight: bold;
-    color: #555;
-}
-
+.quicksearch-pathmatch,
 .quicksearch-namematch {
-    font-weight: bold;
+    font-weight: 500;
 }
 
 
