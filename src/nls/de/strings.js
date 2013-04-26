@@ -142,7 +142,7 @@ define({
 
     "PROJECT_LOADING"   : "Lädt\u2026",
     "UNTITLED"          : "Unbenannt",
-    "WORKING_FILES"     : "Arbeitsdateien",
+    "WORKING_FILES"     : "Offene Dateien",
 
     /**
      * Keyboard modifier names
