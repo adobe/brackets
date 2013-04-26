@@ -47,7 +47,7 @@ define(function (require, exports, module) {
     var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
 
     var session      = null,  // object that encapsulates the current session state
-        cachedCursor = null, // last cursor of the current hinting session
+        cachedCursor = null,  // last cursor of the current hinting session
         cachedHints  = null,  // sorted hints for the current hinting session
         cachedType   = null,  // describes the lookup type and the object context
         cachedToken  = null,  // the token used in the current hinting session
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
      *  Have conditions have changed enough to justify closing the hints popup?
      *
      * @param {Session} session - the active hinting session
-     * @return {Boolean} - true if the hints popup should be closed.
+     * @return {boolean} - true if the hints popup should be closed.
      */
     JSHints.prototype.shouldCloseHints = function (session) {
 
@@ -217,12 +217,6 @@ define(function (require, exports, module) {
         if (lastToken && lastToken.className === null) {
             lastToken = session.getNextTokenOnLine(cachedCursor);
         }
-
-//        if (token)
-//            console.log("token: " + token.className + " " + token.string);
-//
-//        if (lastToken)
-//            console.log("last : " + lastToken.className + " " + lastToken.string);
 
         // Both of the tokens should never be null (happens when token is off
         // the end of the line), so one is null then close the hints.
@@ -352,8 +346,7 @@ define(function (require, exports, module) {
             delimiter;
 
         if (token && token.string === ".") {
-            var nextCursor  = session.getNextCursorOnLine(cursor),
-                nextToken   = nextCursor ? session.getToken(nextCursor) : null;
+            var nextToken  = session.getNextTokenOnLine(cursor);
 
             if (nextToken && // don't replace delimiters, etc.
                     HintUtils.maybeIdentifier(nextToken.string) &&

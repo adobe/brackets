@@ -149,13 +149,14 @@ define(function (require, exports, module) {
             runs(function () { callback(hintList); });
         }
         /*
-         * Test if hints are close or not closed at a given position.
+         * Test if hints should be closed or not closed at a given position.
          *
          * @param {Object} provider - a CodeHintProvider object
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
-         * @param {line, ch} - new position to move to after hints are received.
-         * @param {Boolean} expectedValue - true if hints should close,
+         * @param {line: number, ch: number} newPos - new position to move to
+         * after hints are received.
+         * @param {boolean} expectedValue - true if hints should close,
          * false otherwise.
          */
         function expectCloseHints(provider, hintObj, newPos, expectedValue) {
