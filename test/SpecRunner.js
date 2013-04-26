@@ -182,6 +182,25 @@ define(function (require, exports, module) {
      * into a single file.
      */
     function _patchJUnitReporter() {
+        jasmine.JUnitXmlReporter.prototype.reportSpecResultsOriginal = jasmine.JUnitXmlReporter.prototype.reportSpecResults;
+        jasmine.JUnitXmlReporter.prototype.getNestedOutputOriginal = jasmine.JUnitXmlReporter.prototype.getNestedOutput;
+
+        jasmine.JUnitXmlReporter.prototype.reportSpecResults = function (spec) {
+            if (spec.results().skipped) {
+                return;
+            }
+
+            this.reportSpecResultsOriginal(spec);
+        }
+
+        jasmine.JUnitXmlReporter.prototype.getNestedOutput = function (suite) {
+            if (suite.results().totalCount === 0) {
+                return "";
+            }
+
+            return this.getNestedOutputOriginal(suite);
+        }
+
         jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
             var suites = runner.suites(),
                 output = '<?xml version="1.0" encoding="UTF-8" ?>',
