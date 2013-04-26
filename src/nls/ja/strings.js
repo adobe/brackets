@@ -354,7 +354,7 @@ define({
 	"BROWSE_EXTENSIONS": "拡張機能を探す",
     
     // extensions/default/QuickView 
-	"CMD_ENABLE_QUICK_VIEW": "Hover についてのクイックビュー",
+	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
 
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",
