@@ -33,18 +33,18 @@ define(function (require, exports, module) {
     
     require("thirdparty/jquery.mockjax.js");
     
-    var ExtensionManager       = require("extensibility/ExtensionManager"),
-        ExtensionManagerView   = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        Model                  = require("extensibility/ExtensionManagerView").Model,
-        InstallExtensionDialog = require("extensibility/InstallExtensionDialog"),
-        ExtensionLoader        = require("utils/ExtensionLoader"),
-        NativeFileSystem       = require("file/NativeFileSystem").NativeFileSystem,
-        NativeFileError        = require("file/NativeFileError"),
-        SpecRunnerUtils        = require("spec/SpecRunnerUtils"),
-        CollectionUtils        = require("utils/CollectionUtils"),
-        NativeApp              = require("utils/NativeApp"),
-        mockRegistryText       = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
-        mockRegistryForSearch  = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
+    var ExtensionManager          = require("extensibility/ExtensionManager"),
+        ExtensionManagerView      = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+        ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel,
+        InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
+        ExtensionLoader           = require("utils/ExtensionLoader"),
+        NativeFileSystem          = require("file/NativeFileSystem").NativeFileSystem,
+        NativeFileError           = require("file/NativeFileError"),
+        SpecRunnerUtils           = require("spec/SpecRunnerUtils"),
+        CollectionUtils           = require("utils/CollectionUtils"),
+        NativeApp                 = require("utils/NativeApp"),
+        mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
+        mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockRegistry;
     
     describe("ExtensionManager", function () {
@@ -289,8 +289,8 @@ define(function (require, exports, module) {
                 beforeEach(function () {
                     runs(function () {
                         mockRegistry = JSON.parse(mockRegistryForSearch);
-                        model = new Model();
-                        waitsForDone(model.initializeFromRegistry(), "model initialization");
+                        model = new ExtensionManagerViewModel();
+                        waitsForDone(model.initialize(ExtensionManagerViewModel.EXTENSIONS_REGISTRY), "model initialization");
                     });
                 });
                 
@@ -341,63 +341,65 @@ define(function (require, exports, module) {
                 var model, origExtensions;
                 
                 beforeEach(function () {
-                    origExtensions = ExtensionManager.loadedExtensions;
-                    ExtensionManager.loadedExtensions = {
-                        "/path/to/extensions/user/legacy-extension": {
-                            status: ExtensionManager.ENABLED,
-                            path: "/path/to/extensions/user/legacy-extension",
-                            type: "user"
-                        },
-                        "registered-extension": {
-                            metadata: {
-                                name: "registered-extension",
-                                description: "An extension from the registry",
-                                version: "1.0.0"
+                    runs(function () {
+                        origExtensions = ExtensionManager.loadedExtensions;
+                        ExtensionManager.loadedExtensions = {
+                            "/path/to/extensions/user/legacy-extension": {
+                                status: ExtensionManager.ENABLED,
+                                path: "/path/to/extensions/user/legacy-extension",
+                                type: "user"
                             },
-                            owner: "github:someuser",
-                            versions: [
-                                {
-                                    version: "1.0.0",
-                                    published: "2013-04-10T18:26:20.553Z"
-                                }
-                            ],
-                            status: ExtensionManager.ENABLED,
-                            path: "/path/to/extensions/user/registered-extension",
-                            type: "user"
-                        },
-                        "unregistered-extension": {
-                            metadata: {
-                                name: "registered-extension",
-                                description: "An extension not from the registry",
-                                version: "1.0.0"
+                            "registered-extension": {
+                                metadata: {
+                                    name: "registered-extension",
+                                    description: "An extension from the registry",
+                                    version: "1.0.0"
+                                },
+                                owner: "github:someuser",
+                                versions: [
+                                    {
+                                        version: "1.0.0",
+                                        published: "2013-04-10T18:26:20.553Z"
+                                    }
+                                ],
+                                status: ExtensionManager.ENABLED,
+                                path: "/path/to/extensions/user/registered-extension",
+                                type: "user"
                             },
-                            status: ExtensionManager.ENABLED,
-                            path: "/path/to/extensions/user/unregistered-extension",
-                            type: "user"
-                        },
-                        "default-extension": {
-                            metadata: {
-                                name: "default-extension",
-                                description: "An extension in the default folder",
-                                version: "1.0.0"
+                            "unregistered-extension": {
+                                metadata: {
+                                    name: "registered-extension",
+                                    description: "An extension not from the registry",
+                                    version: "1.0.0"
+                                },
+                                status: ExtensionManager.ENABLED,
+                                path: "/path/to/extensions/user/unregistered-extension",
+                                type: "user"
                             },
-                            status: ExtensionManager.ENABLED,
-                            path: "/path/to/extensions/default/default-extension",
-                            type: "default"
-                        },
-                        "dev-extension": {
-                            metadata: {
-                                name: "dev-extension",
-                                description: "An extension in the dev folder",
-                                version: "1.0.0"
+                            "default-extension": {
+                                metadata: {
+                                    name: "default-extension",
+                                    description: "An extension in the default folder",
+                                    version: "1.0.0"
+                                },
+                                status: ExtensionManager.ENABLED,
+                                path: "/path/to/extensions/default/default-extension",
+                                type: "default"
                             },
-                            status: ExtensionManager.ENABLED,
-                            path: "/path/to/extensions/dev/dev-extension",
-                            type: "dev"
-                        }
-                    };
-                    model = new Model();
-                    model.initializeFromInstalledExtensions();
+                            "dev-extension": {
+                                metadata: {
+                                    name: "dev-extension",
+                                    description: "An extension in the dev folder",
+                                    version: "1.0.0"
+                                },
+                                status: ExtensionManager.ENABLED,
+                                path: "/path/to/extensions/dev/dev-extension",
+                                type: "dev"
+                            }
+                        };
+                        model = new ExtensionManagerViewModel();
+                        waitsForDone(model.initialize(ExtensionManagerViewModel.EXTENSIONS_LOCAL));
+                    });
                 });
                 
                 afterEach(function () {
