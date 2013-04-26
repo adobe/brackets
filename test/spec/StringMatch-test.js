@@ -473,7 +473,7 @@ define(function (require, exports, module) {
                 expect(goodRelativeOrdering("quick", [
                     "src/search/QuickOpen.js",
                     "test/spec/QuickOpen-test.js",
-                    "samples/root/Getting Started/screenshots/brackets-quick-edit.png",
+                    "samples/root/Getting Started/screenshots/quick-edit.png",
                     "src/extensions/default/QuickOpenCSS/main.js"
                 ])).toBe(true);
             });
@@ -545,8 +545,32 @@ define(function (require, exports, module) {
             
             it("should find the right jsu", function () {
                 expect(goodRelativeOrdering("jsu", [
-                    "src/language/JSLintUtils.js",
-                    "src/language/JSUtil.js"
+                    "src/language/JSUtil.js",
+                    "src/language/JSLintUtils.js"
+                ])).toBe(true);
+            });
+            
+            it("should find the right trange", function () {
+                expect(goodRelativeOrdering("trange", [
+                    "src/document/TextRange.js",
+                    "src/extensions/default/JavaScriptQuickEdit/unittest-files/jquery-ui/demos/slider/range.html"
+                ])).toBe(true);
+            });
+            
+            it("should prefer prefix matches", function () {
+                expect(goodRelativeOrdering("asc", [
+                    "ASC.js",
+                    "ActionScriptCompiler.js"
+                ])).toBe(true);
+                expect(goodRelativeOrdering("st", [
+                    "str",
+                    "String",
+                    "stringMatch",
+                    "StringMatcher",
+                    "screenTop",
+                    "scrollTo",
+                    "setTimeout",
+                    "switch"
                 ])).toBe(true);
             });
         });
@@ -594,7 +618,7 @@ define(function (require, exports, module) {
         });
         
         describe("StringMatcher", function () {
-            it("should manage its caches properly", function () {
+            beforeEach(function () {
                 this.addMatchers({
                     toBeInCache: function (matcher, cacheName) {
                         var value = matcher[cacheName][this.actual];
@@ -607,7 +631,9 @@ define(function (require, exports, module) {
                         return value !== undefined;
                     }
                 });
-                
+            });
+            
+            it("should manage its caches properly", function () {
                 var matcher = new StringMatch.StringMatcher();
                 expect(matcher._noMatchCache).toEqual({});
                 expect(matcher._specialsCache).toEqual({});
@@ -641,6 +667,20 @@ define(function (require, exports, module) {
                 // Array.prototype has length
                 var lengthResult = matcher.match("length", "l");
                 expect(lengthResult).toBeTruthy();
+                
+                // Object.prototype has hasOwnProperty
+                var hasOwnPropertyResult = matcher.match("hasOwnProperty", "h");
+                expect(hasOwnPropertyResult).toBeTruthy();
+            });
+            
+            it("can reset the caches", function () {
+                var matcher = new StringMatch.StringMatcher();
+                matcher.match("foo", "spec/live");
+                expect("foo").toBeInCache(matcher, "_specialsCache");
+                expect("foo").toBeInCache(matcher, "_noMatchCache");
+                matcher.reset();
+                expect("foo").not.toBeInCache(matcher, "_specialsCache");
+                expect("foo").not.toBeInCache(matcher, "_noMatchCache");
             });
         });
     });

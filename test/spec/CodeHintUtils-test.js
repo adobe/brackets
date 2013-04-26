@@ -244,7 +244,7 @@ define(function (require, exports, module) {
                     "</body></ht", "ml>");
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo());
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.CLOSING_TAG, 2, "html"));
             });
             
             it("should not find attributes in an empty editor", function () {

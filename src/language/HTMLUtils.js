@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     //constants
     var TAG_NAME = "tagName",
+        CLOSING_TAG = "closingTag",
         ATTR_NAME = "attr.name",
         ATTR_VALUE = "attr.value";
     
@@ -72,8 +73,10 @@ define(function (require, exports, module) {
         }
         
         if (foundEqualSign) {
-            var spaceIndex = attrValue.indexOf(" ");
-            attrValue = attrValue.substring(0, (spaceIndex > offset) ? spaceIndex : offset);
+            var spaceIndex = attrValue.indexOf(" "),
+                bracketIndex = attrValue.indexOf(">"),
+                upToIndex = (spaceIndex !== -1 && spaceIndex < bracketIndex) ? spaceIndex : bracketIndex;
+            attrValue = attrValue.substring(0, (upToIndex > offset) ? upToIndex : offset);
         } else if (offset > 0 && (startChar === "'" || startChar === '"')) {
             //The att value is getting edit in progress. There is possible extra
             //stuff in this token state since the quote isn't closed, so we assume
@@ -89,6 +92,12 @@ define(function (require, exports, module) {
             offset--;
         } else {
             startChar = "";
+            // Make attr value empty and set offset to zero if it has the ">" 
+            // which is the closing of the tag.
+            if (endChar === ">") {
+                attrValue = "";
+                offset = 0;
+            }
         }
         
         return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: false};
@@ -391,10 +400,14 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            // Check to see if this is the closing of a tag (either the start or end)
-            if (ctx.token.string === ">" || ctx.token.string === "/>" ||
-                    (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
+            // Check to see if this is the closing of a start tag or a self closing tag
+            if (ctx.token.string === ">" || ctx.token.string === "/>") {
                 return createTagInfo();
+            }
+            
+            // Check to see if this is a closing tag
+            if (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/") {
+                return createTagInfo(CLOSING_TAG, offset - 2, ctx.token.string.slice(2));
             }
             
             // Make sure the cursor is not after an equal sign or a quote before we report the context as a tag.
@@ -496,14 +509,15 @@ define(function (require, exports, module) {
     
     
     // Define public API
-    exports.TAG_NAME = TAG_NAME;
-    exports.ATTR_NAME = ATTR_NAME;
-    exports.ATTR_VALUE = ATTR_VALUE;
+    exports.TAG_NAME         = TAG_NAME;
+    exports.CLOSING_TAG      = CLOSING_TAG;
+    exports.ATTR_NAME        = ATTR_NAME;
+    exports.ATTR_VALUE       = ATTR_VALUE;
     
-    exports.getTagInfo = getTagInfo;
+    exports.getTagInfo       = getTagInfo;
     exports.getTagAttributes = getTagAttributes;
     //The createTagInfo is really only for the unit tests so they can make the same structure to 
     //compare results with
-    exports.createTagInfo = createTagInfo;
+    exports.createTagInfo   = createTagInfo;
     exports.findStyleBlocks = findStyleBlocks;
 });

@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     }
 
     function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
+        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getSpaceUnits();
     }
     
     function _updateIndentSize() {
@@ -98,15 +98,16 @@ define(function (require, exports, module) {
         
         // restore focus to the editor
         EditorManager.focusEditor();
-
+        
         if (!value || isNaN(value)) {
             return;
         }
         
+        value = Math.max(Math.min(Math.floor(value), 10), 1);
         if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
+            Editor.setTabSize(value);
         } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
+            Editor.setSpaceUnits(value);
         }
 
         // update indicator

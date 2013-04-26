@@ -24,7 +24,7 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     require("spec/CodeHint-test");
     require("spec/CodeHintUtils-test");
@@ -38,9 +38,12 @@ define(function (require, exports, module) {
     require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
     require("spec/ExtensionInstallation-test");
+//  Commented out until we get back to work on the registry
+//  require("spec/ExtensionManager-test");
     require("spec/ExtensionUtils-test");
     require("spec/FileIndexManager-test");
     require("spec/FindReplace-test");
+    require("spec/HTMLInstrumentation-test");
     require("spec/InlineEditorProviders-test");
     require("spec/InstallExtensionDialog-test");
     require("spec/KeyBindingManager-test");
@@ -57,6 +60,7 @@ define(function (require, exports, module) {
     require("spec/QuickOpen-test");
     require("spec/StringMatch-test");
     require("spec/UpdateNotification-test");
+    require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");
 });

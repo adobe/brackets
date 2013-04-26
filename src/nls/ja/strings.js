@@ -74,7 +74,7 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
-	"LIVE_DEV_LOADING_ERROR_MESSAGE": "!能=[6742878] Unable to load Live Development page_=!",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブ開発ページを読み込めません。",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開いてください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
@@ -127,15 +127,17 @@ define({
     
     // Switch language
 	"LANGUAGE_TITLE": "言語を切り替える",
-	"LANGUAGE_MESSAGE": "以下のリストから言語を選択してください :",
+	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
+	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
 
     /**
      * ProjectManager
      */
 	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
+	"WORKING_FILES": "作業中ファイル",
 
     /**
      * Keyboard modifier names
@@ -176,7 +178,8 @@ define({
 	"CMD_LIVE_HIGHLIGHT": "ライブハイライト",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
-	"CMD_INSTALL_EXTENSION": "!能=[6737430] Install Extension..._=!",
+	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -204,7 +207,9 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
-	"CMD_TOGGLE_CLOSE_BRACKETS": "!能=[6734352] Auto Close Braces_=!",
+	"CMD_OPEN_LINE_ABOVE": "上の行を開く",
+	"CMD_OPEN_LINE_BELOW": "下の行を開く",
+	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
     
     // View menu commands
 	"VIEW_MENU": "表示",
@@ -213,8 +218,11 @@ define({
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
-	"CMD_SCROLL_LINE_UP": "!能=[6735595] Scroll Line Up_=!",
-	"CMD_SCROLL_LINE_DOWN": "!能=[6735594] Scroll Line Down_=!",
+	"CMD_SCROLL_LINE_UP": "1 行上にスクロール",
+	"CMD_SCROLL_LINE_DOWN": "1 行下にスクロール",
+	"CMD_TOGGLE_LINE_NUMBERS": "行番号",
+	"CMD_TOGGLE_ACTIVE_LINE": "アクティブな行をハイライト",
+	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
@@ -224,9 +232,11 @@ define({
 	"NAVIGATE_MENU": "ナビゲート",
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
-	"CMD_GOTO_DEFINITION": "定義に移動",
+	"CMD_GOTO_DEFINITION": "定義をクイック検索",
+	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
+	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
 	"CMD_NEXT_DOC": "次の文書",
@@ -265,11 +275,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"JSLINT_ERRORS": "JSLint エラー",
-	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
-	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
-	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
-	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
 	"SEARCH_RESULTS": "検索結果",
 	"OK": "OK",
 	"DONT_SAVE": "保存しない",
@@ -288,6 +293,7 @@ define({
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
@@ -302,33 +308,60 @@ define({
 	"BASEURL_ERROR_UNKOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
     // Extension Management strings
-	"INSTALL_EXTENSION_TITLE": "!能=[6737439] Install Extension_=!",
-	"INSTALL_EXTENSION_LABEL": "!能=[6737438] Extension URL_=!",
-	"INSTALL_EXTENSION_HINT": "!能=[6737437] URL of the extension's ZIP package_=!",
-	"INSTALLING_FROM": "!能=[6737435] Installing extension from {0}..._=!",
-	"INSTALL_SUCCEEDED": "!能=[6737441] Installation successful!_=!",
-	"INSTALL_FAILED": "!能=[6737440] Installation failed._=!",
-	"INSTALL_CANCELLED": "!能=[6737436] Installation cancelled._=!",
+	"INSTALL_EXTENSION_TITLE": "拡張機能をインストール",
+	"INSTALL_EXTENSION_LABEL": "拡張機能の URL",
+	"INSTALL_EXTENSION_HINT": "拡張機能 zip ファイルまたは GitHub レポジトリの URL",
+	"INSTALLING_FROM": "{0} から拡張機能をインストールしています\u2026",
+	"INSTALL_SUCCEEDED": "インストールは成功しました。",
+	"INSTALL_FAILED": "インストールは失敗しました。",
+	"CANCELING_INSTALL": "キャンセルしています\u2026",
+	"CANCELING_HUNG": "インストールのキャンセルに時間がかかっています。内部エラーが発生した可能性があります。",
+	"INSTALL_CANCELED": "インストールはキャンセルされました。",
     // These must match the error codes in ExtensionsDomain.Errors.* :
-	"INVALID_ZIP_FILE": "!能=[6737444] {0} is not a valid zipped package._=!",
-	"INVALID_PACKAGE_JSON": "!能=[6737442] Package.json file is not valid (error was: {0})._=!",
-	"MISSING_PACKAGE_NAME": "!能=[6737447] Missing package name in {0}._=!",
-	"BAD_PACKAGE_NAME": "!能=[6737429] {0} is an invalid package name._=!",
-	"MISSING_PACKAGE_VERSION": "!能=[6737448] Missing package version in {0}._=!",
-	"INVALID_VERSION_NUMBER": "!能=[6737443] Package version ({0}) is not a valid version number._=!",
-	"API_NOT_COMPATIBLE": "!能=[6737427] The extension was installed into your disabled extensions directory because it is not compatible with this version of Brackets._=!",
-	"MISSING_MAIN": "!能=[6737446] Package has no main.js file._=!",
-	"ALREADY_INSTALLED": "!能=[6737426] The extension was installed into your disabled extensions directory because it was previously installed._=!",
-	"NO_DISABLED_DIRECTORY": "!能=[6737449] Cannot save extension to extensions/disabled because the folder does not exist._=!",
-	"DOWNLOAD_ID_IN_USE": "!能=[6737431] Internal error: download ID already in use._=!",
-	"DOWNLOAD_TARGET_EXISTS": "!能=[6737432] Temp download file already exists: {0}._=!",
-	"NO_SERVER_RESPONSE": "!能=[6737450] Cannot connect to server._=!",
-	"BAD_HTTP_STATUS": "!能=[6737428] File not found on server (HTTP {0})._=!",
-	"ERROR_LOADING": "!能=[6737433] The extension encountered an error while starting up._=!",
-	"MALFORMED_URL": "!能=[6737445] Malformed URL._=!",
-	"UNSUPPORTED_PROTOCOL": "!能=[6737452] URL has an unsupported protocol._=!",
-	"UNKNOWN_ERROR": "!能=[6737451] Unknown internal error._=!",
+	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
+	"INVALID_PACKAGE_JSON": "package.json ファイルは有効ではありません (エラーは {0} です)。",
+	"MISSING_PACKAGE_NAME": "package.json ファイルはパッケージ名を指定していません。",
+	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
+	"MISSING_PACKAGE_VERSION": "package.json ファイルはパッケージバージョンを指定していません。",
+	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
+	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
+	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
+	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
+	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
+	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
+	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
+	"DOWNLOAD_ID_IN_USE": "内部エラー : ダウンロード ID は既に使用されています。",
+	"NO_SERVER_RESPONSE": "サーバーに接続できません。",
+	"BAD_HTTP_STATUS": "ファイルがサーバー (HTTP {0}) に見つかりません。",
+	"CANNOT_WRITE_TEMP": "一時ダウンロードファイルを保存できません。",
+	"ERROR_LOADING": "拡張機能の起動時にエラーが発生しました。",
+	"MALFORMED_URL": "URL が無効です。正しく入力されているか確認してください。",
+	"UNSUPPORTED_PROTOCOL": "URL は http または https URL である必要があります。",
+	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
+	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
+	"INSTALL_FROM_URL": "URL からインストール\u2026",
+	"EXTENSION_AUTHOR": "作成者",
+	"EXTENSION_DATE": "日付",
+	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
+	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
+	"EXTENSION_NO_DESCRIPTION": "説明なし",
+	"EXTENSION_KEYWORDS": "キーワード",
+	"EXTENSION_INSTALLED": "インストール完了",
+	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
+	"EXTENSION_MORE_INFO_LINK": "詳細",
+	"BROWSE_EXTENSIONS": "拡張機能を探す",
+    
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "Hover についてのクイックビュー",
+
+    // extensions/default/JSLint
+	"JSLINT_ERRORS": "JSLint エラー",
+	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
+	"JSLINT_ERRORS_INFORMATION": "{0} 個の JSLint エラーがあります",
+	"JSLINT_NO_ERRORS": "JSLint エラーはありません - Good job!",
+	"JSLINT_DISABLED": "JSLint は無効か、現在のファイルには実行されません",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
@@ -337,5 +370,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "16 進形式",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "詳細"
 });

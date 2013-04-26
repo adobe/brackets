@@ -781,7 +781,7 @@ define(function (require, exports, module) {
      */
     function addMenu(name, id, position, relativeID) {
         name = StringUtils.htmlEscape(name);
-        var $menubar = $("#main-toolbar .nav"),
+        var $menubar = $("#titlebar .nav"),
             menu;
 
         if (!name || !id) {

@@ -357,7 +357,9 @@ define(function (require, exports, module) {
         }
 
         if (_isInPropName(ctx)) {
-            if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+            if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
+                propName = ctx.token.string;
+            } else {
                 var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                     testToken = editor._codeMirror.getTokenAt(testPos);
                 
@@ -365,8 +367,6 @@ define(function (require, exports, module) {
                     propName = testToken.string;
                     offset = 0;
                 }
-            } else if (ctx.token.className === "property" || ctx.token.className === "property error" || ctx.token.className === "tag") {
-                propName = ctx.token.string;
             }
             
             // If we're in property name context but not in an existing property name, 

@@ -1,0 +1,157 @@
+/* Sample CSS for testing the QuickView extension. */
+
+.hex_values {
+    color: #369;
+    color: #2491F5;
+}
+
+#invalid_hex_values {
+    color: #web;
+}
+
+.rgb_rgba_values {
+    color: rgb(255,0,0);            /* no whitespace */
+    color: rgb(100%,   0%,   0%);   /* extra whitespace */
+    color: rgb(50%, 75%, 25%);
+    color: rgba(255, 0, 0, 0.5);
+    color: rgba(255, 0, 0, 1);
+    color: rgba(255, 0, 0, .5);
+    color: rgba(100%, 0%, 0%, 0.5);
+    color: rgba(50%,75%,25%, 0.5);
+    color: rgba(80%, 50%, 50%, 1);
+    color: rgba(50%, 75%, 25%, 1.0);
+}
+
+.unsupported_rgb_rgba_values {
+    color: rgb(300, 0, 0);
+    color: rgb(0, 95.5, 0);
+    color: rgba(-0, 0, 0, 0.5);
+}
+
+.hsl_hsla_values {
+    color: hsl(0, 100%, 50%);
+    color: hsla(0, 100%, 50%, 0.5);
+    color: hsla(0, 100%, 50%, .5);
+    color: hsl(390, 100%, 50%);
+}
+
+.unsupported_hsl_hsla_values {
+    color: hsla(90, 100%, 50%, 2);
+    color: hsla(0, 200%, 50%, 0.5);
+    color: hsla(0.0, 100%, 50%, .5);
+}
+
+.color_names {
+    color: aliceblue;
+    color: blanchedalmond;
+    color: blue;
+    color: blueviolet;
+    color: brown;
+    color: darkgoldenrod;
+    color: darkgray;
+    color: firebrick;
+    color: floralwhite;
+    color: honeydew;
+    color: hotpink;
+    color: khaki;
+    color: lavenderblush;
+    color: lightgreen;
+    color: lightsalmon;
+    color: lightseagreen;
+    color: olive;
+    color: salmon;
+    color: sandybrown;
+    color: seagreen;
+    color: teal;
+    color: thistle;
+    color: tomato;
+    color: turquoise;
+    color: whitesmoke;
+}
+
+.invalid_color_names {
+    color: redsox;
+    color: pinky;
+    color: blue-cheese;
+    color: @bc-white;
+}
+
+.gradients {
+    
+background: -moz-linear-gradient(top,  #d2dfed 0%, #c8d7eb 26%, #bed0ea 51%, #a6c0e3 51%, #afc7e8 62%, #bad0ef 75%, #99b5db 88%, #799bc8 100%); /* FF3.6+ */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d2dfed), color-stop(26%,#c8d7eb), color-stop(51%,#bed0ea), color-stop(51%,#a6c0e3), color-stop(62%,#afc7e8), color-stop(75%,#bad0ef), color-stop(88%,#99b5db), color-stop(100%,#799bc8)); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3 51%,#afc7e8 62%,#bad0ef 75%,#99b5db 88%,#799bc8 100%); /* IE10+ */
+}
+
+/* From css3please.com */
+.box_gradient {
+    background-color: #333;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204))); /* Chrome, Safari 4+ */
+    background-image: -webkit-linear-gradient(top, #333, #CCC); /* Chrome 10-25, iOS 5+, Safari 5.1+ */
+    background-image:    -moz-linear-gradient(top, #333, #CCC); /* Firefox 3.6-15 */
+    background-image:      -o-linear-gradient(top, #333, #CCC); /* Opera 11.10-12.00 */
+    background-image:         linear-gradient(to bottom, #333, #CCC); /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
+}
+
+/* other forms supported by spec */
+.box_gradient1 { background-image: linear-gradient(to right, #333, #CCC); }
+.box_gradient2 { background-image: linear-gradient(#333, #CCC); }
+.box_gradient3 { background-image: linear-gradient(to bottom right, #333, #CCC); }
+.box_gradient4 { background-image: linear-gradient(135deg, #333, #CCC); }
+
+/* multiple colors */
+.box_gradient5 { background-image: linear-gradient(#333, #CCC, #333); }
+.box_gradient6 { background-image: linear-gradient(#333 0%, #CCC 33%, #333 100%); }
+.box_gradient7 { background-image: linear-gradient(yellow, blue 20%, #0f0); }
+
+/* www.impressivewebs.com */
+.radial_gradient { 
+    background-image: -webkit-gradient(radial, center center, 0, center center, 141, from(black), to(white), color-stop(25%, blue), color-stop(40%, green), color-stop(60%, red), color-stop(80%, purple));
+    background-image: -webkit-radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%);
+    background-image: -moz-radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%);  
+    background-image: -ms-radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%); /* IE10+ */  
+    background-image: -o-radial-gradient(center center, circle contain, black 0%, blue 25%, green 40%, red 60%, purple 80%, white 100%); /* Opera (13?) */
+}
+
+.new_radial_gradient {
+    background-image: radial-gradient(yellow, green); 
+}
+
+.repeating_linear_gradient {
+    background-image: repeating-linear-gradient(red, blue 20px, red 40px);
+    background-image: repeating-linear-gradient(red 0px, white 0px, blue 0px);
+    background-image: repeating-linear-gradient(red 0px, white .1px, blue .2px);
+}
+
+.repeating_linear_gradient {
+    background-image: repeating-radial-gradient(circle closest-side at 20px 30px, red, yellow, green 100%, yellow 150%, red 200%);
+    background-image: repeating-radial-gradient(red, blue 20px, red 40px);
+}
+
+/* lea.verou.me/css3patterns */
+.gradient_pattern {
+    background:
+        linear-gradient(63deg, #999 23%, transparent 23%) 7px 0,
+        linear-gradient(63deg, transparent 74%, #999 78%), linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%), #444;
+}
+
+.images {
+    background: url(img/grabber_color-well.png);
+    background: url("img/Color.png");
+    background: url(img/DancingPeaks.gif);
+    background: url('img/Example.svg');
+
+    background: "https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png";
+    
+    background: "img/med_hero.jpg";
+    background: 'img/Gradient.png';
+    background: 'img/Lake_mapourika_NZ.jpeg';
+}
+
+.foo {
+    background: -webkit-image-set(url("img/Lake_mapourika_NZ.jpeg") 1x, url("img/Gradient.png") 2x);
+    background: -webkit-image-set(url(img/Lake_mapourika_NZ.jpeg) 1x,   url(img/Gradient.png) 2x);
+    background: -webkit-image-set("img/Lake_mapourika_NZ.jpeg" 1x,      "img/Gradient.png" 2x);
+}

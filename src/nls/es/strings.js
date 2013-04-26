@@ -74,6 +74,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en Desarrollo en Vivo",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Desarrollo en Vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para Desarrollo en Vivo",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML para poder iniciar el modo de Desarrollo en Vivo.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Desarrollo en Vivo con archivos de servidor.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Desarrollo en Vivo. Vuelve a intentarlo, por favor.",
@@ -96,6 +97,7 @@ define({
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Utiliza /re/ para búsquedas con expresiones regulares",
+    "FIND_RESULT_COUNT"                 : "{0} resultados",
     "WITH"                              : "Con",
     "BUTTON_YES"                        : "Sí",
     "BUTTON_NO"                         : "No",
@@ -125,22 +127,24 @@ define({
     
     // Switch language
     "LANGUAGE_TITLE"                    : "Cambiar idioma",
-    "LANGUAGE_MESSAGE"                  : "Por favor, elige el idioma deseado de la siguiente lista:",
+    "LANGUAGE_MESSAGE"                  : "Idioma:",
     "LANGUAGE_SUBMIT"                   : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancelar",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "Idioma predeterminado",
 
     /**
      * ProjectManager
      */
-
-    "UNTITLED" : "Sin título",
+    "PROJECT_LOADING"   : "Cargando\u2026",
+    "UNTITLED"          : "Sin título",
+    "WORKING_FILES"     : "Área de trabajo",
     
     /**
      * Keyboard modifier names
      */
 
-    "KEYBOARD_CTRL"   : "Control",
-    "KEYBOARD_SHIFT"  : "Mayúsculas",
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "May",
     "KEYBOARD_SPACE"  : "Espacio",
     
     /**
@@ -174,6 +178,8 @@ define({
     "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
+    "CMD_INSTALL_EXTENSION"               : "Instalar extensión\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Gestionar extensiones\u2026",
     "CMD_QUIT"                            : "Salir",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Salir",
@@ -201,6 +207,9 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Comentar/Descomentar bloque",
     "CMD_LINE_UP"                         : "Subir línea",
     "CMD_LINE_DOWN"                       : "Bajar línea",
+    "CMD_OPEN_LINE_ABOVE"                 : "Crear línea arriba",
+    "CMD_OPEN_LINE_BELOW"                 : "Crear línea abajo",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
      
     // View menu commands
     "VIEW_MENU"                           : "Visualización",
@@ -209,6 +218,11 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamaño de fuente",
     "CMD_DECREASE_FONT_SIZE"              : "Disminuir tamaño de fuente",
     "CMD_RESTORE_FONT_SIZE"               : "Restablecer tamaño de fuente",
+    "CMD_SCROLL_LINE_UP"                  : "Desplazar hacia arriba",
+    "CMD_SCROLL_LINE_DOWN"                : "Desplazar hacia abajo",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Mostrar números de línea",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Resaltar línea actual",
+    "CMD_TOGGLE_WORD_WRAP"                : "Habilitar ajuste de línea",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
@@ -217,10 +231,12 @@ define({
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
-    "CMD_GOTO_LINE"                       : "Ir a línea",
-    "CMD_GOTO_DEFINITION"                 : "Ir a definición",
+    "CMD_GOTO_LINE"                       : "Ir a la línea",
+    "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
+    "CMD_JUMPTO_DEFINITION"               : "Saltar a la definición",
     "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",
     "CMD_NEXT_DOC"                        : "Documento siguiente",
@@ -258,11 +274,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
-    "JSLINT_ERRORS"                        : "Errores de JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
-    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
-    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
     "SEARCH_RESULTS"                       : "Resultados de búsqueda",
     "OK"                                   : "Aceptar",
     "DONT_SAVE"                            : "No guardar",
@@ -272,12 +283,16 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar los cambios del editor",
     "CLOSE_DONT_SAVE"                      : "Cerrar (No guardar)",
     "RELAUNCH_CHROME"                      : "Reiniciar Chrome",
-    "ABOUT"                                : "Acerca de...",
+    "INSTALL"                              : "Instalar",
+    "ABOUT"                                : "Acerca de\u2026",
     "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
+    "ABOUT_TEXT_LINE6"                     : "Mucha gente (pero ahora mismo estamos teniendo problemas para cargar esos datos).",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
@@ -291,6 +306,62 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Error desconocido analizando la URL base",
     
+    // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "Instalar extensión",
+    "INSTALL_EXTENSION_LABEL"              : "URL de la extensión",
+    "INSTALL_EXTENSION_HINT"               : "URL del archivo zip de la extensión o del repositorio de Github",
+    "INSTALLING_FROM"                      : "Instalando extensión desde {0}\u2026",
+    "INSTALL_SUCCEEDED"                    : "¡Instalación completada!",
+    "INSTALL_FAILED"                       : "Error en la instalación.",
+    "CANCELING_INSTALL"                    : "Cancelando\u2026",
+    "CANCELING_HUNG"                       : "La instalación está tardando demasiado; cancelando. Puede que se haya producido un error interno.",
+    "INSTALL_CANCELED"                     : "Instalación cancelada.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "El contenido descargado no es un archivo zip válido.",
+    "INVALID_PACKAGE_JSON"                 : "El archivo package.json no es válido (error: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "El archivo package.json no especifica un nombre de paquete.",
+    "BAD_PACKAGE_NAME"                     : "{0} no es un nombre de paquete válido.",
+    "MISSING_PACKAGE_VERSION"              : "El archivo package.json no especifica la versión del paquete.",
+    "INVALID_VERSION_NUMBER"               : "El número de paquete de la versión ({0}) no es válido.",
+    "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de Brackets {{0}} no es válido.",
+    "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
+    "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
+    "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
+    "ALREADY_INSTALLED"                    : "Ya hay instalada una extensión con el mismo nombre. La nueva extensión está en la carpeta de extensiones deshabilitadas.",
+    "NO_DISABLED_DIRECTORY"                : "No se puede guardar la extensión en extensions/disabled porque la carpeta no existe.",
+    "DOWNLOAD_ID_IN_USE"                   : "Error interno: el ID de descarga ya está siendo utilizado.",
+    "NO_SERVER_RESPONSE"                   : "No se puede conectar con el servidor.",
+    "BAD_HTTP_STATUS"                      : "Archivo no encontrado en el servidor (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "No se pudo guardar la descarga en un archivo temporal.",
+    "ERROR_LOADING"                        : "La extensión ha encontrado un error al arrancar.",
+    "MALFORMED_URL"                        : "La URL no es válida. Por favor, comprueba que la has escrito correctamente.",
+    "UNSUPPORTED_PROTOCOL"                 : "La URL debe ser una dirección http o https.",
+    "UNKNOWN_ERROR"                        : "Error interno desconocido.",
+    // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Gestor de extensiones",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "No se pudo acceder al registro de extensiones. Vuelve a intentarlo más tarde, por favor.",
+    "INSTALL_FROM_URL"                     : "Instalar desde URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Autor",
+    "EXTENSION_DATE"                       : "Fecha",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita una versión más actualizada de {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "En estos momentos esta extensión sólo funciona con versiones anteriores de {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
+    "EXTENSION_KEYWORDS"                   : "Palabras clave",
+    "EXTENSION_INSTALLED"                  : "Instalada",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
+    "EXTENSION_MORE_INFO_LINK"             : "Más",
+    "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Vista rápida con cursor",
+    
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "Errores de JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
+    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
+    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Color original",
@@ -298,5 +369,8 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Formato Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Más"
 });

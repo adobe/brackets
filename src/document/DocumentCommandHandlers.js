@@ -61,6 +61,8 @@ define(function (require, exports, module) {
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
+    /** @type {string} String template for window title. Use emdash on mac only. */
+    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
@@ -68,32 +70,45 @@ define(function (require, exports, module) {
     var _lastToolbarHeight = null;
     
     function updateTitle() {
-        var currentDoc = DocumentManager.getCurrentDocument();
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            windowTitle = brackets.config.app_title;
+
+        if (brackets.inBrowser) {
+            if (currentDoc) {
+                _$title.text(_currentTitlePath);
+                _$title.attr("title", currentDoc.file.fullPath);
+                // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+            } else {
+                _$title.text("");
+                _$title.attr("title", "");
+                _$dirtydot.css("visibility", "hidden");
+            }
+        
+            // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
+            // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
+            // fixed width set on it (see the "#titlebar" CSS rule for details).
+            _$titleWrapper.css("width", "");
+            var newWidth = _$title.width();
+            _$titleWrapper.css("width", newWidth);
+            
+            // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
+            // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
+            var newToolbarHeight = _$titleContainerToolbar.height();
+            if (_lastToolbarHeight !== newToolbarHeight) {
+                _lastToolbarHeight = newToolbarHeight;
+                EditorManager.resizeEditor();
+            }
+        }
+
+        // build shell/browser window title, e.g. "• file.html — Brackets"
         if (currentDoc) {
-            _$title.text(_currentTitlePath);
-            _$title.attr("title", currentDoc.file.fullPath);
-            // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-            _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
-        } else {
-            _$title.text("");
-            _$title.attr("title", "");
-            _$dirtydot.css("visibility", "hidden");
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+            windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
         }
-        
-        // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
-        // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-        // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
-        _$titleWrapper.css("width", "");
-        var newWidth = _$title.width();
-        _$titleWrapper.css("width", newWidth);
-        
-        // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
-        // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
-        var newToolbarHeight = _$titleContainerToolbar.height();
-        if (_lastToolbarHeight !== newToolbarHeight) {
-            _lastToolbarHeight = newToolbarHeight;
-            EditorManager.resizeEditor();
-        }
+
+        // update shell/browser window title
+        window.document.title = windowTitle;
     }
     
     function updateDocumentTitle() {
@@ -372,7 +387,7 @@ define(function (require, exports, module) {
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 FileUtils.getFileErrorString(name)
             )
         );
@@ -561,7 +576,10 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                StringUtils.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
+                StringUtils.format(
+                    Strings.SAVE_CLOSE_MESSAGE,
+                    StringUtils.breakableUrl(filename)
+                )
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -645,7 +663,7 @@ define(function (require, exports, module) {
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
                 message += "<li><span class='dialog-filename'>" +
-                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
+                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
                     "</span></li>";
             });
             message += "</ul>";
@@ -722,7 +740,7 @@ define(function (require, exports, module) {
                 }
             });
     }
-	
+    
     /**
      * @private
      * Implementation for abortQuit callback to reset quit sequence settings
@@ -824,7 +842,7 @@ define(function (require, exports, module) {
     
     // Init DOM elements
     AppInit.htmlReady(function () {
-        var $titleContainerToolbar = $("#main-toolbar");
+        var $titleContainerToolbar = $("#titlebar");
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
