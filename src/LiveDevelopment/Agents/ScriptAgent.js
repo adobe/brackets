@@ -87,11 +87,17 @@ define(function ScriptAgent(require, exports, module) {
         // res = {scriptId, url, startLine, startColumn, endLine, endColumn, isContentScript, sourceMapURL}
         _idToScript[res.scriptId] = res;
         _urlToScript[res.url] = res;
+        if (res.url) {
+            console.log("Script parsed", res.scriptId, res.url);
+        }
     }
 
     // WebInspector Event: Debugger.scriptFailedToParse
     function _onScriptFailedToParse(event, res) {
         // res = {url, scriptSource, startLine, errorLine, errorMessage}
+        if (res.url) {
+            console.log("Script failed to parse", res.url);
+        }
     }
 
     // WebInspector Event: Debugger.paused

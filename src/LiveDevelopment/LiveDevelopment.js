@@ -125,7 +125,8 @@ define(function LiveDevelopment(require, exports, module) {
         "network"   : true,
         "dom"       : true,
         "css"       : true,
-        "highlight" : true
+        "highlight" : true,
+        "script"    : true
     };
 
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
@@ -240,7 +241,7 @@ define(function LiveDevelopment(require, exports, module) {
         case "css":
             return CSSDocument;
         case "javascript":
-            return exports.config.experimental ? JSDocument : null;
+            return JSDocument;
         }
 
         if (_isHtmlFileExt(doc.extension)) {
