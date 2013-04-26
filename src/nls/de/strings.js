@@ -344,7 +344,7 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut probieren.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut versuchen.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
 
     "EXTENSION_AUTHOR"                     : "Autor",
