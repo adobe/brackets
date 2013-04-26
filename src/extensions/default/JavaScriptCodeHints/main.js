@@ -199,6 +199,7 @@ define(function (require, exports, module) {
      * @return {Boolean} - true if the hints popup should be closed.
      */
     JSHints.prototype.shouldCloseHints = function (session) {
+
         // close if the token className has changed then close the hints.
         var cursor = session.getCursor(),
             token = session.getToken(cursor),
@@ -226,12 +227,18 @@ define(function (require, exports, module) {
         // Both of the tokens should never be null (happens when token is off
         // the end of the line), so one is null then close the hints.
         if (!lastToken || !token ||
-                token.className !== lastToken.className ||
-                token.string !== lastToken.string) {
+                token.className !== lastToken.className) {
             return true;
         }
 
-        return false;
+        // Test if one token string is a prefix of the other.
+        // If one is a prefix of the other then consider it the
+        // same token and don't close the hints.
+        if (token.string.length >= lastToken.string.length) {
+            return token.string.indexOf(lastToken.string) !== 0;
+        } else {
+            return lastToken.string.indexOf(token.string) !== 0;
+        }
     };
 
     /**
