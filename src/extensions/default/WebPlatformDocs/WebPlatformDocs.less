@@ -1,12 +1,16 @@
 /* Colors */
-@body-text-color: #808080;
-@emphasized-text-color: #535353;
-@heading-color: #4d4d4d;
-@link-color: #57a6e5;
+@body-text-color: #666;
+@emphasized-text-color: #454545;
+@heading-color: #454545;
+@link-color: #0083e8;
+
+/* Typography */
+ @font-weight-semibold: 500;
+
 
 /* Overall inline widget content container */
 .css-prop-defn {
-    margin-left: 30px;
+    margin-left: 20px;
     
     color: @body-text-color;
     
@@ -25,8 +29,9 @@
     h1 {
         color: @heading-color;
         font-size: 16px;
+        font-weight: @font-weight-semibold;
         line-height: normal;
-        margin: 11px 0 3px 0;
+        margin: 15px 0 9px 0;
     }
     
     a {
@@ -39,6 +44,9 @@
         background: none;   // revert Bootstrap's styling
         padding: 0;
     }
+    b {
+        font-weight: @font-weight-semibold;
+    }
 }
 
 /* Left-hand column */
@@ -47,8 +55,8 @@
     width: 30%;
     
     p {
-        margin-right: 20px;
-        line-height: 15px;
+        margin-right: 18px;
+        line-height: 18px;
     }
 }
 
@@ -64,7 +72,7 @@
         max-height: 300px;
         overflow-y: auto;
         
-        margin: 10px (@scrollbar-wid + 4px) 0 0;
+        margin: 20px (@scrollbar-wid + 4px) 0 0;
         
         &:focus {
             outline: none;
@@ -73,22 +81,26 @@
     
     // Spacing between columns
     box-sizing: border-box;
-    padding-left: 10px;
+    padding-left: 20px;
     
     dl {
         dt {
+            color: @emphasized-text-color;
             font-size: 13px;
-            margin-bottom: -1px; // remove extra spacing between dt & dd
+            font-weight: @font-weight-semibold;
+            margin-bottom: 3px;
         }
         
         dd {
-            // some styles must specifically by on <p> to override Bootstrap
-            p {
-                font-style: italic;
-                line-height: 15px;
+            // some styles must specifically be on <p> to override Bootstrap
+            p, li, b {
+                font-size: 13px;
+                font-style: normal;
+                line-height: 18px;
+                margin-bottom: 15px;
             }
-            line-height: 15px;
-            margin-left: 22px;
+            line-height: 18px;
+            margin-left: 20px;
             margin-right: 0px;
             margin-bottom: -2px; // remove extra spacing between dt-dd pairs
             padding-bottom: 0px;
@@ -129,15 +141,17 @@ a.more-info {
     background-size: 15px 15px;
     background-position: 8px 4px;
     
-    border: 1px solid #a3a3a3;
-    border-radius: 4px 4px 0 0;
+    border: 1px solid #9c9e9e;
+    border-radius: 3px 3px 0 0;
     border-bottom: none;
     box-shadow: inset 0 1px 0 white;  // white chisel along top edge
     
     font-size: 12px;
+    font-weight: @font-weight-semibold;
     color: @heading-color;
     text-shadow: 0 1px 0 white;
     &:hover {
-        color: black;
+        background-color: #edf1f1;
+        text-decoration: none;
     }
 }
