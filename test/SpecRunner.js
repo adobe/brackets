@@ -191,7 +191,7 @@ define(function (require, exports, module) {
             }
 
             this.reportSpecResultsOriginal(spec);
-        }
+        };
 
         jasmine.JUnitXmlReporter.prototype.getNestedOutput = function (suite) {
             if (suite.results().totalCount === 0) {
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
             }
 
             return this.getNestedOutputOriginal(suite);
-        }
+        };
 
         jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
             var suites = runner.suites(),
