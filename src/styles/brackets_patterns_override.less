@@ -348,6 +348,9 @@
 }
 
 .modal-footer {
+    background-color: #dfe2e2;
+    border-top: 1px solid rgba(0,0,0,0.15);
+    box-shadow: none;
     white-space: nowrap;
 }
 
@@ -566,5 +569,76 @@
         -ms-user-select: text;
         -o-user-select: text;
         user-select: text;
+    }
+}
+
+
+/* Buttons */
+
+// Base .btn styles
+.btn {
+    // Button Base
+    background-image: none;
+
+    background-color: #e5e9e9;
+    text-shadow: 0 1px 0 #fff;
+    color: #454545;
+    font-weight: 500;
+    line-height: normal;
+    border: 1px solid #9c9e9e;
+    .border-radius(3px);
+    box-shadow: inset 0 1px 0 #fff;
+
+    &:hover {
+        background-color: #edf1f1;
+        color: #454545;
+    }
+
+    // Focus state for keyboard and accessibility
+    &:focus {
+        box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        outline: none;
+    }
+
+    // Primary Button Type
+    &.primary {
+        background-image: none;
+        background-color: #288edf;
+        border: 1px solid  #0055ad;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.36);
+        color: #fff;
+        text-shadow: 0 -1px 0 rgba(0,0,0,0.36);
+        &.active,
+        &:active {
+            background-image: none;
+            background-color: #0380e8;
+            box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+        }    
+   
+        &:focus {
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
+            outline: none;
+        }        
+    }
+    
+    // Active and Disabled states
+    &.active,
+    &:active {
+        background-image: none;
+        background-color: #d3d7d7;
+        box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+    }    
+    
+    &.disabled, &[disabled] {
+        .opacity(30);
+    }
+
+    // Button Sizes
+    &.large {
+        font-size: @basefont + 1px;
+        .border-radius(3px);
+    }
+    &.small {
+        font-size: @basefont - 1px;
     }
 }
