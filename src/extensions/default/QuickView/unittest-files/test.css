@@ -140,18 +140,18 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
 .images {
     background: url(img/grabber_color-well.png);
     background: url("img/Color.png");
-    background: url(img/DancingPeaks.gif);
-    background: url('img/Example.svg');
+    background: url(img/throbber.gif);
+    background: url('img/update_large_icon.svg');
 
     background: "https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png";
     
     background: "img/med_hero.jpg";
     background: 'img/Gradient.png';
-    background: 'img/Lake_mapourika_NZ.jpeg';
+    background: 'img/specials.jpeg';
 }
 
 .foo {
-    background: -webkit-image-set(url("img/Lake_mapourika_NZ.jpeg") 1x, url("img/Gradient.png") 2x);
-    background: -webkit-image-set(url(img/Lake_mapourika_NZ.jpeg) 1x,   url(img/Gradient.png) 2x);
-    background: -webkit-image-set("img/Lake_mapourika_NZ.jpeg" 1x,      "img/Gradient.png" 2x);
+    background: -webkit-image-set(url("img/specials.jpeg") 1x, url("img/Gradient.png") 2x);
+    background: -webkit-image-set(url(img/specials.jpeg) 1x,   url(img/Gradient.png) 2x);
+    background: -webkit-image-set("img/specials.jpeg" 1x,      "img/Gradient.png" 2x);
 }
