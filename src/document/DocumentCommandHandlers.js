@@ -244,16 +244,37 @@ define(function (require, exports, module) {
 
     /**
      * Opens the given file and makes it the current document. Does NOT add it to the working set.
-     * @param {!{fullPath:string}} Params for FILE_OPEN command
+     * @param {!{fullPath:string}} Params for FILE_OPEN command;
+     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
      */
     function handleFileOpen(commandData) {
         var fullPath = null;
+        var lineNumber = null;
+        var columnNumber = null;
         if (commandData) {
             fullPath = commandData.fullPath;
+            if (fullPath) {
+              // If the path has a trailing :lineNumber and :columnNumber, strip 
+              // these off and assign to the lineNumber and columnNumber vars.
+              fullPath = fullPath.replace(/(.+?):([0-9]+)(:([0-9]+))?$/, "$1");
+              if (RegExp.$2) lineNumber = Math.floor(RegExp.$2);
+              if (RegExp.$4) columnNumber = Math.floor(RegExp.$4);
+            }
         }
-        
+
         return _doOpenWithOptionalPath(fullPath)
-            .always(EditorManager.focusEditor);
+            .always(function () {
+                // If a line and column number were given, position the editor accordingly.
+                if (lineNumber) {
+                  if (!columnNumber) {
+                    columnNumber = 1;
+                  }
+                  EditorManager.getCurrentFullEditor().setCursorPos(lineNumber, columnNumber, true);
+                }
+                
+                // Give the editor focus
+                EditorManager.focusEditor();
+            });
     }
 
     /**
