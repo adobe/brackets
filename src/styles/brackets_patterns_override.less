@@ -642,3 +642,35 @@
         font-size: @basefont - 1px;
     }
 }
+
+// BASELINE STYLES
+// ---------------
+
+table {
+    th {
+        font-weight: 500;
+    }
+    td {
+        border-top: 1px solid transparent;
+    }
+    tbody th {
+        border-top: 1px solid transparent);
+    }
+}
+
+
+// ZEBRA-STRIPING
+// --------------
+
+.zebra-striped {
+    tbody {
+        tr:nth-child(odd) td,
+        tr:nth-child(odd) th {
+            background-color: #e6e9e9; // TopCoat palette
+        }
+        tr:hover td,
+        tr:hover th {
+            background-color: #e0f0fa; // TopCoat palette
+        }
+    }
+}
