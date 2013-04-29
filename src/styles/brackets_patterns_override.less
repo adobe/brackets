@@ -590,7 +590,7 @@ input {
         background-color: #fff;
         color: #000;
         text-shadow: none;
-        border: 1px solid #0940fd;
+        border: 1px solid @tc-gray-component-focused-border;
         box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px #6fb5f1;
     }
 }
@@ -618,7 +618,7 @@ input {
 
     // Focus state for keyboard and accessibility
     &:focus {
-        border: 1px solid #0940fd;
+        border: 1px solid @tc-gray-component-focused-border;
         box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
         outline: none;
     }
@@ -639,7 +639,7 @@ input {
         }    
    
         &:focus {
-            border: 1px solid #0940fd;
+            border: 1px solid @tc-gray-component-focused-border;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
             outline: none;
         }        
