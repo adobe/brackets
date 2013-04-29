@@ -73,6 +73,21 @@ define(function (require, exports, module) {
      * @return {Array} Array of tag info, or null if no tags were found
      */
     function scanDocument(doc) {
+        if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
+            $(doc).on("change.htmlInstrumentation", function (document) {
+                // Clear cached values on doc change
+                _cachedValues[doc.file.fullPath] = null;
+            });
+            
+            $(doc).one("deleted", function (document) {
+                delete _cachedValues[doc.file.fullPath];
+                document.off(".htmlInstrumentation");
+            });
+            
+            // Assign to cache, but don't set a value yet
+            _cachedValues[doc.file.fullPath] = null;
+        }
+        
         if (_cachedValues[doc.file.fullPath]) {
             var cachedValue = _cachedValues[doc.file.fullPath];
             
