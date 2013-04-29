@@ -107,7 +107,24 @@ define(function (require, exports, module) {
             return cm.getTokenAt(this.getCursor());
         }
     };
-    
+
+    /**
+     * Get the token after the one at the given cursor position
+     *
+     * @param {{line: number, ch: number}} cursor - cursor position before
+     *      which a token should be retrieved
+     * @return {Object} - the CodeMirror token after the one at the given
+     *      cursor position
+     */
+    Session.prototype.getNextTokenOnLine = function (cursor) {
+        cursor = this.getNextCursorOnLine(cursor);
+        if (cursor) {
+            return this.getToken(cursor);
+        }
+
+        return null;
+    };
+
     /**
      * Get the next cursor position on the line, or null if there isn't one.
      * 
@@ -115,9 +132,8 @@ define(function (require, exports, module) {
      *      immediately following the current cursor position, or null if
      *      none exists.
      */
-    Session.prototype.getNextCursorOnLine = function () {
-        var cursor  = this.getCursor(),
-            doc     = this.editor.document,
+    Session.prototype.getNextCursorOnLine = function (cursor) {
+        var doc     = this.editor.document,
             line    = doc.getLine(cursor.line);
 
         if (cursor.ch < line.length) {
