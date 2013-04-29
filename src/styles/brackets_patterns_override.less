@@ -572,6 +572,28 @@
     }
 }
 
+/* Input */
+input {
+    background-color: #fff;
+    border: 1px solid #9c9e9e;
+    .border-radius(3px);
+    @shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12);
+
+    // Placeholder text gets special styles; can't be bundled together though for some reason
+    &::-webkit-input-placeholder {
+        color: #888;
+    }
+    // Focus states (we use .focused since IE8 and down doesn't support :focus)
+    &:focus,
+    &.focused {
+        outline: 0;
+        background-color: #fff;
+        color: #000;
+        text-shadow: none;
+        border: 1px solid #0940fd;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px #6fb5f1;
+    }
+}
 
 /* Buttons */
 
@@ -596,6 +618,7 @@
 
     // Focus state for keyboard and accessibility
     &:focus {
+        border: 1px solid #0940fd;
         box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
         outline: none;
     }
@@ -616,6 +639,7 @@
         }    
    
         &:focus {
+            border: 1px solid #0940fd;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
             outline: none;
         }        

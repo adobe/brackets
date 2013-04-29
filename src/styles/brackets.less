@@ -109,7 +109,8 @@ a, img {
 }
 
 #titlebar, .modal-bar {
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    border-bottom: 1px solid @tc-gray-panel-border;
+    box-shadow: @tc-small-shadow-bottom;
     
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -462,6 +463,7 @@ a, img {
 }
 
 #editor-holder .scroller-shadow {
+    display: none; // let larz know if we need scroller shadow
     width: 100%;
 }
 
@@ -718,8 +720,8 @@ a, img {
     
     font-family: @fontstack-sans-serif;
     font-size: 13px;
-    color: @content-color;
-    background: #eee;
+    color: @tc-text;
+    background: @tc-gray-panel;
     padding: 5px 4px 4px 14px;
     overflow: hidden;
     
@@ -731,14 +733,12 @@ a, img {
 
 .modal-bar input {
     font-family: @fontstack-sans-serif;
-    border: 1px solid @content-color-weaker;
     outline: none;
-    background: @background-color-3;
     width: 20em;
     margin: .3em .3em;
-    color: inherit;
     &.no-results {
-        background-color: mix(@background-color-3, #FF0000, 70%);
+        border: 1px solid #bc0023;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
     }
 }
 
@@ -779,23 +779,28 @@ a, img {
 
 .smart_autocomplete_container {
     
-    border: 1px solid rgba(0, 0, 0, 0.24);
-    background-color: #FFFFFF;
+    // the borders show up even if the container is empty, must set height to zero using JS.
+    border: 1px solid @tc-gray-panel-border;
+    
+    background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: @tc-normal-shadow-bottom;
+    
+    // so that border won't show when height is 0.
+    box-sizing: border-box; 
     
     // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 398px !important;  
+    width: 400px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
     padding: 0px;
-    margin: 9px 0px 0px 0px;
+    margin: 9px 0 0;
 
     .quick-open-path {
-        color: #888;
+        color: #666;
         font-size: 11px;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.04em;
         line-height: 11px;
     }
 
@@ -804,12 +809,16 @@ a, img {
         line-height: 15px;
         list-style: none;
         cursor: default;
-        padding: 5px 10px;
+        padding: 6px 10px;
     }
-}
-
-li.smart_autocomplete_highlight {
-    background-color: #e0f0fa;
+    
+    li:nth-child(odd) {
+        background-color: #e6e9e9;
+    }
+    
+    li.smart_autocomplete_highlight {
+        background-color: @tc-hover-highlight;
+    }
 }
 
 .quicksearch-pathmatch,
