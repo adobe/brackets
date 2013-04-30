@@ -20365,7 +20365,7 @@ define('LiveDevelopment/Inspector/Inspector',['require','exports','module'],func
         _connectDeferred = deferred;
         var promise = getAvailableSockets();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.state() === "rejected") {
+            if (deferred.isRejected()) {
                 return;
             }
             var i, page;
@@ -58619,7 +58619,7 @@ define('LiveDevelopment/Inspector/Inspector',['require','exports','module'],func
         _connectDeferred = deferred;
         var promise = getAvailableSockets();
         promise.done(function onGetAvailableSockets(response) {
-            if (deferred.state() === "rejected") {
+            if (deferred.isRejected()) {
                 return;
             }
             var i, page;
