@@ -397,6 +397,9 @@ define(function (require, exports, module) {
             ScopeManager.handleEditorChange(editor.document);
             session = new Session(editor);
             cachedHints = null;
+
+            // prime pump for hints so the first user request is fast
+            ScopeManager.requestHints(session, session.editor.document, 0);
         }
 
         /*
