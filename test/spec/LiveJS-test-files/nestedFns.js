@@ -1,4 +1,4 @@
-// before
+// test_before
 var someVar = 1;
 
 {{0}}function callMe(arg) {
@@ -23,60 +23,40 @@ someVar = 2;
 }{{5}}
 
 someVar = 3;
-// after
+// test_after
 var someVar = 1;
 
 function callMe(arg) {
-    return (
-        (window.__bkld_fndefs && window.__bkld_fndefs[0]) ?
-            (typeof window.__bkld_fndefs[0] === 'function' ? 
-                window.__bkld_fndefs[0] :
-                eval('window.__bkld_fndefs[0] = ' + window.__bkld_fndefs[0])) :
-            function () { 
-                console.log('Called me ' + arg);
+    // id = 0
+    // before body
+    console.log('Called me ' + arg);
                 
-                // Simple nested
-                function nested1() {
-                    return (
-                        (window.__bkld_fndefs && window.__bkld_fndefs[1]) ?
-                            (typeof window.__bkld_fndefs[1] === 'function' ? 
-                                window.__bkld_fndefs[1] :
-                                eval('window.__bkld_fndefs[1] = ' + window.__bkld_fndefs[1])) :
-                            function () { 
-                                console.log("nested1");
-                            }
-                    ).apply(this, arguments);
-                }
-            }
-    ).apply(this, arguments);
+    // Simple nested
+    function nested1() {
+        // id = 1
+        // before body
+        console.log("nested1");
+        // after body
+    }
+    // after body
 }
 
 // a comment
 someVar = 2;
 
 function callAnother() {
-    return (
-        (window.__bkld_fndefs && window.__bkld_fndefs[2]) ?
-            (typeof window.__bkld_fndefs[2] === 'function' ? 
-                window.__bkld_fndefs[2] :
-                eval('window.__bkld_fndefs[2] = ' + window.__bkld_fndefs[2])) :
-            function () {
-                console.log('Called another');
+    // id = 2
+    // before body
+    console.log('Called another');
 
-                // Nested as callback
-                callWithCallback(function (cbArg) {
-                    return (
-                        (window.__bkld_fndefs && window.__bkld_fndefs[3]) ?
-                            (typeof window.__bkld_fndefs[3] === 'function' ? 
-                                window.__bkld_fndefs[3] :
-                                eval('window.__bkld_fndefs[3] = ' + window.__bkld_fndefs[3])) :
-                            function () { 
-                                console.log("callback " + cbArg);
-                            }
-                    ).apply(this, arguments);
-                });
-            }
-    ).apply(this, arguments);
+    // Nested as callback
+    callWithCallback(function (cbArg) {
+        // id = 3
+        // before body
+        console.log("callback " + cbArg);
+        // after body
+    });
+    // after body
 }
 
 someVar = 3;

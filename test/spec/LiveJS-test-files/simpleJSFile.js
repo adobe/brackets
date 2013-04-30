@@ -1,4 +1,4 @@
-// before
+// test_before
 var someVar = 1;
 
 {{0}}function callMe(arg) {
@@ -13,34 +13,24 @@ someVar = 2;
 }{{3}}
 
 someVar = 3;
-// after
+// test_after
 var someVar = 1;
 
 function callMe(arg) {
-    return (
-        (window.__bkld_fndefs && window.__bkld_fndefs[0]) ?
-            (typeof window.__bkld_fndefs[0] === 'function' ? 
-                window.__bkld_fndefs[0] :
-                eval('window.__bkld_fndefs[0] = ' + window.__bkld_fndefs[0])) :
-            function () { 
-                console.log('Called me ' + arg);
-            }
-    ).apply(this, arguments);
+    // id = 0
+    // before body
+    console.log('Called me ' + arg);
+    // after body
 }
 
 // a comment
 someVar = 2;
 
 function callAnother() {
-    return (
-        (window.__bkld_fndefs && window.__bkld_fndefs[1]) ?
-            (typeof window.__bkld_fndefs[1] === 'function' ? 
-                window.__bkld_fndefs[1] :
-                eval('window.__bkld_fndefs[1] = ' + window.__bkld_fndefs[1])) :
-            function () { 
-                console.log('Called another');
-            }
-    ).apply(this, arguments);
+    // id = 1
+    // before body
+    console.log('Called another');
+    // after body
 }
 
 someVar = 3;

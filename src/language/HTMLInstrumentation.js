@@ -43,7 +43,8 @@ define(function (require, exports, module) {
     "use strict";
 
     var DocumentManager = require("document/DocumentManager"),
-        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers");
+        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers"),
+        MarkedTextTracker = require("utils/MarkedTextTracker");
     
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and tags. Timestamp is the document timestamp,
@@ -135,9 +136,9 @@ define(function (require, exports, module) {
                 if (_isEmptyTag(payload)) {
                     tags.push({
                         name:   payload.nodeName,
-                        tagID:  tagID++,
-                        offset: payload.sourceOffset,
-                        length: payload.sourceLength
+                        data:   tagID++,
+                        start:  payload.sourceOffset,
+                        end:    payload.sourceOffset + payload.sourceLength
                     });
                 } else if (payload.closing) {
                     // Closing tag
@@ -155,9 +156,9 @@ define(function (require, exports, module) {
                     if (startTag) {
                         tags.push({
                             name:   startTag.nodeName,
-                            tagID:  tagID++,
-                            offset: startTag.sourceOffset,
-                            length: payload.sourceLength + payload.sourceOffset - startTag.sourceOffset
+                            data:   tagID++,
+                            start:  startTag.sourceOffset,
+                            end:    payload.sourceOffset + payload.sourceLength
                         });
                     } else {
                         console.error("Unmatched end tag: " + payload.nodeName);
@@ -174,19 +175,19 @@ define(function (require, exports, module) {
             tag = tagStack.pop();
             // Push the unclosed tag with the "unclosed" length. 
             tags.push({
-                name:   tag.nodeName,
-                tagID:  tagID++,
-                offset: tag.sourceOffset,
-                length: tag.unclosedLength || tag.sourceLength
+                name:  tag.nodeName,
+                data:  tagID++,
+                start: tag.sourceOffset,
+                end:   tag.sourceOffset + (tag.unclosedLength || tag.sourceLength)
             });
         }
         
         // Sort by initial offset
         tags.sort(function (a, b) {
-            if (a.offset < b.offset) {
+            if (a.start < b.start) {
                 return -1;
             }
-            if (a.offset === b.offset) {
+            if (a.start === b.start) {
                 return 0;
             }
             return 1;
@@ -217,10 +218,10 @@ define(function (require, exports, module) {
         // end of the open tag
         var i, insertCount = 0;
         tags.forEach(function (tag) {
-            var attrText = " data-brackets-id='" + tag.tagID + "'";
+            var attrText = " data-brackets-id='" + tag.data + "'";
 
             // Insert the attribute as the first attribute in the tag.
-            var insertIndex = tag.offset + tag.name.length + 1 + insertCount;
+            var insertIndex = tag.start + tag.name.length + 1 + insertCount;
             gen = gen.substr(0, insertIndex) + attrText + gen.substr(insertIndex);
             insertCount += attrText.length;
         });
@@ -240,9 +241,7 @@ define(function (require, exports, module) {
      * @return none
      */
     function _markText(editor) {
-        var cache = _cachedValues[editor.document.file.fullPath];
-        
-        var cm = editor._codeMirror,
+        var cache = _cachedValues[editor.document.file.fullPath],
             tags = cache && cache.tags;
         
         if (!tags) {
@@ -250,24 +249,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Remove existing marks
-        var marks = cm.getAllMarks();
-        cm.operation(function () {
-            marks.forEach(function (mark) {
-                if (mark.hasOwnProperty("tagID")) {
-                    mark.clear();
-                }
-            });
-        });
-                
-        // Mark
-        tags.forEach(function (tag) {
-            var startPos = cm.posFromIndex(tag.offset),
-                endPos = cm.posFromIndex(tag.offset + tag.length),
-                mark = cm.markText(startPos, endPos);
-            
-            mark.tagID = tag.tagID;
-        });
+        MarkedTextTracker.markText(editor, tags, "htmlTagID");
     }
     
     /**
@@ -282,36 +264,12 @@ define(function (require, exports, module) {
      * @return {number} tagID at the specified position, or -1 if there is no tag
      */
     function _getTagIDAtDocumentPos(editor, pos) {
-        var i,
-            cm = editor._codeMirror,
-            marks = cm.findMarksAt(pos),
-            match;
-        
-        var _distance = function (mark) {
-            var markerLoc = mark.find();
-            if (markerLoc) {
-                var markPos = markerLoc.from;
-                return (cm.indexFromPos(pos) - cm.indexFromPos(markPos));
-            } else {
-                return Number.MAX_VALUE;
-            }
-        };
-        
-        for (i = 0; i < marks.length; i++) {
-            if (!match) {
-                match = marks[i];
-            } else {
-                if (_distance(marks[i]) < _distance(match)) {
-                    match = marks[i];
-                }
-            }
+        var result = MarkedTextTracker.getDataAtDocumentPos(editor, pos, "htmlTagID");
+        if (result === null) {
+            return -1;
+        } else {
+            return result;
         }
-        
-        if (match) {
-            return match.tagID;
-        }
-        
-        return -1;
     }
     
     $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);

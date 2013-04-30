@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone */
+/*global define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, Mustache */
 /*unittests: LiveJS */
 
 define(function (require, exports, module) {
@@ -37,6 +37,8 @@ define(function (require, exports, module) {
     describe("LiveJS", function () {
         
         describe("Instrumentation", function () {
+            var origTemplate,
+                unitTestFnTemplate = Mustache.compile("// id = {{id}}\n// before body\n{{{body}}}\n// after body\n");
             
             beforeEach(function () {
                 this.addMatchers({
@@ -50,6 +52,12 @@ define(function (require, exports, module) {
                     }
                 });
                 LiveJS._resetId();
+                origTemplate = LiveJS._getFunctionTemplate();
+                LiveJS._setFunctionTemplate(unitTestFnTemplate);
+            });
+            
+            afterEach(function () {
+                LiveJS._setFunctionTemplate(origTemplate);
             });
             
             function testInstrument(instrFn, filename) {
@@ -63,14 +71,14 @@ define(function (require, exports, module) {
                     );
                 });
                 runs(function () {
-                    var match = testContent.match(/^\/\/ before\n((?:.|\n)+)\n\/\/ after\n((?:.|\n)+)$/),
+                    var match = testContent.match(/^\/\/ test_before\n((?:.|\n)+)\n\/\/ test_after\n((?:.|\n)+)$/),
                         sourceWithOffsets = SpecRunnerUtils.parseOffsetsFromText(match[1]),
-                        idMap = {},
-                        result = instrFn(sourceWithOffsets.text, idMap);
+                        rangeList = [],
+                        result = instrFn(sourceWithOffsets.text, rangeList, null);
                     expect(result).toEqualIgnoringWhitespace(match[2]);
-                    Object.keys(idMap).forEach(function (key) {
-                        expect(idMap[key].start).toEqual(sourceWithOffsets.offsets[key * 2]);
-                        expect(idMap[key].end).toEqual(sourceWithOffsets.offsets[(key * 2) + 1]);
+                    rangeList.forEach(function (item) {
+                        expect(item.start).toEqual(sourceWithOffsets.offsets[item.data * 2]);
+                        expect(item.end).toEqual(sourceWithOffsets.offsets[(item.data * 2) + 1]);
                     });
                 });
             }

@@ -1,9 +1,5 @@
-return (
-    (window.__bkld_fndefs && window.__bkld_fndefs[{{id}}]) ?
-        (typeof window.__bkld_fndefs[{{id}}] === 'function' ? 
-            window.__bkld_fndefs[{{id}}] :
-            eval('window.__bkld_fndefs[{{id}}] = ' + window.__bkld_fndefs[{{id}}])) :
-        function () {
+    var __bkld_def = (window.__bkld_fndefs && window.__bkld_fndefs[{{id}}]), __bkld_defStr = "window.__bkld_fndefs[{{id}}]";
+    return (__bkld_def ? (typeof __bkld_def === 'function' ? __bkld_def : eval(__bkld_defStr + ' = ' + __bkld_def)) :
+            function () { 
             {{{body}}}
-        }
-).apply(this, arguments);
+        }).apply(this, arguments);
