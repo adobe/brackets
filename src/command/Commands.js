@@ -44,8 +44,11 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
+    exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
+    exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
+    exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
@@ -70,13 +73,20 @@ define(function (require, exports, module) {
     exports.EDIT_BLOCK_COMMENT          = "edit.blockComment";
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";
+    exports.EDIT_OPEN_LINE_ABOVE        = "edit.openLineAbove";
+    exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";
+    exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
 
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
-    exports.TOGGLE_JSLINT               = "debug.jslint";
+    exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";
+    exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";
+    exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";
+    exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";
+    exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";
     exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded";
     exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";
     exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";
@@ -91,21 +101,18 @@ define(function (require, exports, module) {
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
+    exports.TOGGLE_QUICK_DOCS           = "navigate.toggleQuickDocs";
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
 
-    // Debug
-    exports.DEBUG_REFRESH_WINDOW        = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
-    exports.DEBUG_SHOW_DEVELOPER_TOOLS  = "debug.showDeveloperTools";
-    exports.DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests";
-    exports.DEBUG_SHOW_PERF_DATA        = "debug.showPerfData";
-    exports.DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow";
-    exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
-
     // Help
-    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
     exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";
+    exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";
     exports.HELP_FORUM                  = "help.forum";
+    exports.HELP_RELEASE_NOTES          = "help.releaseNotes";
+    exports.HELP_REPORT_AN_ISSUE        = "help.reportAnIssue";
+    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
+    exports.HELP_TWITTER                = "help.twitter";
     exports.HELP_ABOUT                  = "help.about";
 
     // File shell callbacks

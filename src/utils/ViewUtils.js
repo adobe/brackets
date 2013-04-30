@@ -159,7 +159,7 @@ define(function (require, exports, module) {
      * div to align a single selected list item from a ul list element.
      *
      * Assumptions:
-     * - scrollElement is a child of the #file-section div
+     * - scrollerElement is a child of the #sidebar div
      * - ul list element fires a "selectionChanged" event after the
      *   selectedClassName is assigned to a new list item
      * 
@@ -302,12 +302,18 @@ define(function (require, exports, module) {
             elementOffset = $element.offset();
 
         // scroll minimum amount
-        if (elementOffset.top + $element.height() >= (viewOffset.top + $view.height())) {
+        var delta = (elementOffset.top + $element.height()) - (viewOffset.top + $view.height());
+        
+        if (delta > 0) {
             // below viewport
-            element.scrollIntoView(false);
-        } else if (elementOffset.top <= viewOffset.top) {
-            // above viewport
-            element.scrollIntoView(true);
+            $view.scrollTop($view.scrollTop() + delta);
+        } else {
+            delta = viewOffset.top - elementOffset.top;
+            
+            if (delta > 0) {
+                // above viewport
+                $view.scrollTop($view.scrollTop() - delta);
+            }
         }
 
         if (scrollHorizontal) {
@@ -319,6 +325,22 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * HTML formats a file entry name  for display in the sidebar.
+     * @param {!FileEntry} entry File entry to display
+     * @return {string} HTML formatted string
+     */
+    function getFileEntryDisplay(entry) {
+        var name = entry.name,
+            i = name.lastIndexOf(".");
+        
+        if (i >= 0) {
+            name = name.substring(0, i) + "<span class='extension'>" + name.substring(i) + "</span>";
+        }
+        
+        return name;
+    }
+    
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
 
@@ -328,4 +350,5 @@ define(function (require, exports, module) {
     exports.removeScrollerShadow    = removeScrollerShadow;
     exports.sidebarList             = sidebarList;
     exports.scrollElementIntoView   = scrollElementIntoView;
+    exports.getFileEntryDisplay     = getFileEntryDisplay;
 });

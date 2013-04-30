@@ -57,6 +57,9 @@ html, body {
     
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
+    
+    /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
+    -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -89,18 +92,27 @@ a, img {
     .sidebar {
         height: 100%;
         .vbox;
-        width: @sidebar-width;
-        float: left;
+        width: @sidebar-width;  // changed dynamically via Resizer
+        position: absolute;
+        left: 0;
+        top: 0;
     }
 
     .content {
         height: 100%;
-        position: relative;
+        position: absolute;
+        padding: 0;
+        top: 0;
+        left: @sidebar-width;  // changed dynamically via Resizer
+        right: @main-toolbar-width;
     }
 }
 
-.toolbar {
-    /* make sure the shadow goes above other items */
+#titlebar, .modal-bar {
+    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    
+    // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
+    position: relative;
     z-index: @z-index-brackets-toolbar;
 }
 
@@ -134,7 +146,7 @@ a, img {
         margin-right: 20px;
     }
 }
-    
+
 #status-indicators {
     position: absolute;
     right: 4px;
@@ -142,23 +154,11 @@ a, img {
     white-space: nowrap;
     
     &>div {
-        display: inline;
+        display: inline-block;
         margin-left: 20px;
-        
-        &#busy-indicator {
-            display: inline-block;
-            vertical-align: middle;
-            margin-top: -2px;
-            width: 12px;
-            height: 12px;
-            background: url("images/small_spinner.svg") no-repeat;
-            visibility: hidden;
-        
-            &.spin {
-                -webkit-animation: rotating 1.5s linear infinite;
-                visibility: visible;
-            }
-        }        
+    }
+    &>.spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
+        margin-left: 5px;
     }
 }
 
@@ -182,10 +182,6 @@ a, img {
 
 #indent-type, #indent-width-label {
     margin-right: 2px;
-}
-
-#indent-type, #indent-width-label {
-    cursor: pointer;
 }
 
 #indent-width-label {
@@ -298,8 +294,7 @@ a, img {
 }
 
 #update-notification {
-    padding-right: 5px;
-    margin-bottom: -1px;
+    margin: 10px 0 5px;
     .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");
     &:hover {
         .sprite-swap(0,14px);
@@ -307,56 +302,53 @@ a, img {
     display:none;
 }
 
-.jslint-disabled {
-    font-size: 1em;
-    color: @bc-grey;
-}
-
-.jslint-errors {
-    font-size: 1em;
-    color: @bc-red;
-}
-
-.jslint-valid {
-    font-size: 1em;
-    color: lighten(@bc-yellow, @bc-color-step-size*2);
-}
-
 #toolbar-go-live {
-    padding-right: 8px;
-    
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .sprite-icon(0,0, 22px,11px, "images/live_development_sprites.svg");
+    .sprite-icon(0,0, 22px,16px, "images/live_development_sprites.svg");
     &:hover {
-        .sprite-swap(0,11px);
+        .sprite-swap(0,16px);
     }
     // 'Connected' state
     &.success {
-        .sprite-swap(0,22px);
+        .sprite-swap(0,32px);
     }
     &.success:hover {
-        .sprite-swap(0,33px);
+        .sprite-swap(0,48px);
     }
     // 'Connection in progress' state
     &.info {
-        .sprite-swap(0,44px);
+        .sprite-swap(0,64px);
     }
     // 'Out-of-sync' state
     &.out-of-sync {
-        .sprite-swap(0,55px);
+        .sprite-swap(0,80px);
     }
     &.out-of-sync:hover {
-        .sprite-swap(0,66px);
+        .sprite-swap(0,96px);
     }
 }
 
+#toolbar-add-extension {
+    .sprite-icon-retina(-2px, 0, 20px, 12px, "images/add_extension_sprites.png", 38px, 12px, "images/add_extension_sprites@2x.png");
+    margin-left: 1px !important;
+    &:hover {
+        background-position: -18px 0;
+    }
+}
 
 /* Project panel */
 
-#project-header {
-    /* Fixed height blank space for now. The mockups have the window "stoplights" or a logo here. */
-    height: 29px;
+#working-set-header {
+    height: 19px;
+    padding: 10px 0 9px 12px;
+    background: #3C3F41;
+    color: @project-panel-text-2;
+}
+
+#sidebar {
+    position: relative;
+    white-space: nowrap;
 }
 
 #sidebar-resizer {
@@ -366,29 +358,18 @@ a, img {
     z-index: @z-index-brackets-sidebar-resizer;
     opacity: 0;
     cursor: col-resize;
-} 
-
-#file-section {
-    .vbox;
-    .box-flex(1);
-    margin: 5px 0px 0px 0px;
-    position: relative;
+}
     
-    .project-file-header-area {
-        padding: 6px 6px 2px 10px;
-        font-size: 13px;
-        color: #929292;
-    }
-
-    .file-list-divider {
-        border-bottom: 1px solid #9a9a9a;  
-        box-shadow: 0px 1px #eeeeee;
-    }
+#project-files-header {
+    border-top: 1px solid #56595a;
+    padding: 8px 0 9px 12px;
+    font-size: 13px;
+    color: @project-panel-text-2;
 }
 
 #open-files-container {
     .box-flex(0);
-    margin: 0 0 22px 0;
+    background: #3C3F41;
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
@@ -396,34 +377,38 @@ a, img {
     ul {
         list-style-type: none;
         margin: 0;
+        padding-bottom: 23px;
     }
         
     li {
-        white-space: nowrap;
         position: relative; // so that children can be positioned absolute
         line-height: 18px;
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
+        
+        &.selected .extension {
+            color: #fff;
+        }
     }
             
     a {
-        color: #BBB;
+        color: #fff;
         
         font-size: 13px;
         text-decoration: none;
         
         display: block;
         height: 16px;
-        line-height: 16px;
+        line-height: 15px;
         margin-left: 18px;
-        padding: 3px (@triangle-size * 2) 3px 0;
+        padding: 3px (@sidebar-triangle-size * 2) 3px 0;
         
         cursor: default;
     }
     
-    .selected a {
-        color: #fff;
+    .extension {
+        color: #8e9a9d;
     }
 }
 
@@ -435,7 +420,7 @@ a, img {
 
 .sidebar-selection-triangle {
     background: url("images/active_back.png");
-    width: 10px;
+    width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
 
@@ -445,18 +430,18 @@ a, img {
 .sidebar-selection-triangle.triangle-visible:before {
     content: "";
     
-    border-top: @triangle-size solid transparent;
-    border-bottom: @triangle-size solid transparent; 
-    border-right: @triangle-size solid @background-color-3;
+    border-top: @sidebar-triangle-size solid transparent;
+    border-bottom: (@sidebar-triangle-size - 1) solid transparent; 
+    border-left: @sidebar-triangle-size solid #2D2E30;
     
     display: block;
     position: absolute;
-    top: 2px;
-    right: 0;
+    top: -1px;
+    right: -9px;
     width: 0;
     height: 0;
     
-    .scale-x(0.9, right, top);
+    .scale-x(0.8, right, top);
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -468,7 +453,7 @@ a, img {
     .box-flex(1);
     
     .jstree-brackets li > a {
-        padding-right: @triangle-size * 2;
+        padding-right: @sidebar-triangle-size * 2;
     }
     
     ul {
@@ -500,7 +485,7 @@ a, img {
 }
 
 
-@sprite-size-18: 4px;
+@jstree-sprite-size: 18px;  // this is hardcoded in jsTree's JS code
 
 /** Classes for icons from jsTreeSprites.svg 
 */
@@ -509,27 +494,12 @@ a, img {
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @sprite-size-18;
-    height: @sprite-size-18;
+    width: @jstree-sprite-size;
+    height: @jstree-sprite-size;
 }
 
-.disclosure-arrow-opened {
-    .jstree-sprite;
-    display: inline-block;
-    background-position: -@sprite-size-18 0px;
-}
-
-.disclosure-arrow-closed {
-    .jstree-sprite;
-    display: inline-block;
-    background-position: 0px 0px;
-}
-ins.jstree-icon {
-    left: -12px !important;
-}
 /** Classes for icons from bracketSprites.png 
 */
-
 .bracket-sprite {
     background-image: url("images/close_btn.svg");
     background-repeat: no-repeat;
@@ -541,7 +511,7 @@ ins.jstree-icon {
 
 
 .file-status-icon {
-    margin: 3px 0 0 8px;
+    margin: 2px 0 0 8px;
     .bracket-sprite;
     display: inline-block;
     position: absolute;
@@ -568,7 +538,14 @@ ins.jstree-icon {
 /* Styles for inline editors */
 .inline-widget {
     background-color:   @inline-background-color-1;
+    min-width: 250px;
+    cursor: default;
     
+    .CodeMirror {
+        /* remove CodeMirror default height: 300px */
+        height: auto;
+    }
+        
     .inline-editor-header {
         padding: 10px 10px 0px 10px;
         
@@ -615,9 +592,11 @@ ins.jstree-icon {
     }
     
     .CodeMirror-scroll {
-        /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
-        overflow-x: hidden;
         background-color: transparent;
+        
+        .CodeMirror-linenumbers {
+            background-color: @inline-background-color-1;
+        }
     }
 }
 
@@ -625,12 +604,13 @@ ins.jstree-icon {
 .related-container {
     @top-margin: 12px;
     
-    /*width: 0;*/
+    float: right;
+    position: relative;
+    min-height: 100%;
     font-family: @fontstack-sans-serif;
-    position: fixed;
     width: 250px;
+    max-width: 50%;
     overflow: hidden;
-    /*-webkit-transition: width 0.15s ease-out;*/
     background: @inline-background-color-2;
     
     .selection {
@@ -654,10 +634,10 @@ ins.jstree-icon {
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @triangle-size solid @inline-background-color-3;
-        border-bottom: @triangle-size solid @inline-background-color-3;
-        border-left: @triangle-size solid @inline-background-color-1;
-        margin-top: -@triangle-size;
+        border-top: @inline-triangle-size solid @inline-background-color-3;
+        border-bottom: @inline-triangle-size solid @inline-background-color-3;
+        border-left: @inline-triangle-size solid @inline-background-color-1;
+        margin-top: -@inline-triangle-size;
         top: 50%;
         .scale-x(0.9, left, top);
     }
@@ -708,28 +688,48 @@ ins.jstree-icon {
     .code-font();
 }
 
-
-/* Find & Replace search bars - temporary UI, to be replaced with a richer search feature later */
-
-.CodeMirror-dialog {
-    position: relative;
-    z-index: @z-index-cm-dialog-override;
+.platform-mac .dummy-text {
+    .code-font-mac();
 }
 
-.CodeMirror-dialog > div {
+/* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
+
+#search-results .disclosure-triangle {
+    .jstree-sprite;
+    display: inline-block;
+    &.expanded {
+        // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
+        // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
+        background-position: -(@jstree-sprite-size*1 - 2px) -(@jstree-sprite-size*1 - 1px);
+    }
+    &.collapsed {
+        background-position: -(@jstree-sprite-size*0 - 2px) -@jstree-sprite-size*1;
+    }
+}
+
+#search-results td {
+    vertical-align: baseline;
+}
+
+/* Modal bar for Find/Quick Open */
+
+.modal-bar {
+    text-align: left;
+    
     font-family: @fontstack-sans-serif;
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    background: @background-color-2;
+    font-size: 13px;
     color: @content-color;
-    border-bottom: 1px solid @bc-gray;
-    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
-    z-index: 1;
-    padding: .5em .8em;
+    background: #eee;
+    padding: 5px 4px 4px 14px;
     overflow: hidden;
+    
+    body.in-browser & {
+        // Separator line between us and the HTML menu/titlebar above
+        border-top: 1px solid darken(@background-color-3, @bc-color-step-size);
+    }
 }
 
-.CodeMirror-dialog input {
+.modal-bar input {
     font-family: @fontstack-sans-serif;
     border: 1px solid @content-color-weaker;
     outline: none;
@@ -742,8 +742,36 @@ ins.jstree-icon {
     }
 }
 
+.modal-bar .message {
+    display: inline-block;
+}
+.modal-bar .error {
+    display: none;
+    
+    .alert-message {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+}
+
+// Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
+// blended on TOP of the selection color. The "current" search result is indicated by selection,
+// so we want the selection visible underneath the highlight. To do this, the highlight must be
+// transparent; it has to look good atop both the selection color AND the regular text bg color.
 .CodeMirror-searching {
-    background-color: inherit;
+    // Highlight color, overlaid on top of the .find-highlighting color
+    background-color: rgba(244, 237, 98, 0.7);
+}
+.CodeMirror.find-highlighting div.CodeMirror-selected,
+.CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
+    // Selection color while highlighting shown - ALWAYS has the .CodeMirror-searching color
+    // blended atop it.
+    // Note: the 2nd selector reflecting CM nesting is needed to override the similar rules in
+    // brackets_codemirror_override.less (see the note about #324).
+    background: rgb(255, 108, 0);
+}
+#find-counter {
+    font-weight: bold;
 }
 
 
@@ -764,12 +792,11 @@ ins.jstree-icon {
         color: gray;
     }
 
-
     li {
         color: black;
         border-bottom: 1px solid;
         list-style: none;
-        cursor: pointer;
+        cursor: default;
         padding: 0px 2px 0px 4px;
     }
 }
@@ -785,4 +812,30 @@ li.smart_autocomplete_highlight {
 
 .quicksearch-namematch {
     font-weight: bold;
+}
+
+
+/* Spinner */
+
+.spinner {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -2px;
+    width: 12px;
+    height: 12px;
+    background: url("images/small_spinner.svg") no-repeat;
+    visibility: hidden;
+
+    &.spin {
+        -webkit-animation: rotating 1.5s linear infinite;
+        visibility: visible;
+    }
+    
+    &.large {
+        width: 36px;
+        height: 36px;
+        margin-top: 0;
+        background: url("images/spinner2x.png") 50% no-repeat;
+        background-size: 100%;
+    }
 }

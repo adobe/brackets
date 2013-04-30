@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global define, brackets, window */
 
 /**
  * This file provides the interface to user visible strings in Brackets. Code that needs
@@ -33,23 +33,28 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var strings     = require("i18n!nls/strings"),
-        Global      = require("utils/Global"),
-        StringUtils = require("utils/StringUtils");
+    var strings         = require("i18n!nls/strings"),
+        Global          = require("utils/Global"),
+        CollectionUtils = require("utils/CollectionUtils"),
+        StringUtils     = require("utils/StringUtils");
 
     var additionalGlobals = {},
         parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version);
     
     additionalGlobals.APP_NAME      = brackets.metadata.name || strings.APP_NAME;
     additionalGlobals.APP_TITLE     = brackets.config.app_title || strings.APP_NAME;
+    additionalGlobals.TWITTER_NAME  = brackets.config.twitter_name;
     additionalGlobals.VERSION       = brackets.metadata.version;
     additionalGlobals.VERSION_MAJOR = parsedVersion[1];
     additionalGlobals.VERSION_MINOR = parsedVersion[2];
     additionalGlobals.VERSION_PATCH = parsedVersion[3];
+
+    var isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
+    additionalGlobals.BUILD_TYPE    = (isDevBuild ? strings.DEVELOPMENT_BUILD : strings.EXPERIMENTAL_BUILD);
     
     // Insert application strings
-    Object.keys(strings).forEach(function (key) {
-        Object.keys(additionalGlobals).forEach(function (name) {
+    CollectionUtils.forEach(strings, function (value, key) {
+        CollectionUtils.forEach(additionalGlobals, function (item, name) {
             strings[key] = strings[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
         });
     });

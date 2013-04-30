@@ -118,6 +118,16 @@ define(function (require, exports, module) {
             return textOrLines.substr(0, offset).split("\n").length - 1;
         }
     }
+    
+    /**
+     * Returns true if the given string ends with the given suffix.
+     *
+     * @param {string} str
+     * @param {string} suffix
+     */
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
 
     function urlSort(a, b) {
         var a2, b2;
@@ -142,13 +152,16 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return a path or URL string that can be broken near path separators.
+     * Return an escaped path or URL string that can be broken near path separators.
      * @param {string} url the path or URL to format
      * @return {string} the formatted path or URL
      */
     function breakableUrl(url) {
+        // This is for displaying in UI, so always want it escaped
+        var escUrl = htmlEscape(url);
+
         // Inject zero-width space character (U+200B) near path separators (/) to allow line breaking there
-        return url.replace(
+        return escUrl.replace(
             new RegExp(regexEscape("/"), "g"),
             "/" + "&#8203;"
         );
@@ -163,4 +176,5 @@ define(function (require, exports, module) {
     exports.offsetToLineNum = offsetToLineNum;
     exports.urlSort         = urlSort;
     exports.breakableUrl    = breakableUrl;
+    exports.endsWith        = endsWith;
 });

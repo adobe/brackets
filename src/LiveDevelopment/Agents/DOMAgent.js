@@ -188,7 +188,8 @@ define(function DOMAgent(require, exports, module) {
             }
         };
         request.onerror = function onError() {
-            _load.reject("Could not load source file at " + exports.url);
+            var msg = "Could not load source file at " + exports.url;
+            _load.reject(msg, { message: msg });
         };
         request.send(null);
     }
@@ -208,7 +209,9 @@ define(function DOMAgent(require, exports, module) {
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
-        exports.url = _cleanURL(res.frame.url);
+        if (!res.frame.parentId) {
+            exports.url = _cleanURL(res.frame.url);
+        }
     }
 
      // WebInspector Event: DOM.documentUpdated
@@ -290,6 +293,9 @@ define(function DOMAgent(require, exports, module) {
                 if (n.location > node.location) {
                     n.location += delta;
                 }
+                if (n.closeLocation !== undefined && n.closeLocation > node.location) {
+                    n.closeLocation += delta;
+                }
             });
         }
     }
@@ -306,8 +312,6 @@ define(function DOMAgent(require, exports, module) {
             .on("childNodeCountUpdated.DOMAgent", _onChildNodeCountUpdated)
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
-        Inspector.Page.enable();
-        Inspector.Page.reload();
         return _load.promise();
     }
 

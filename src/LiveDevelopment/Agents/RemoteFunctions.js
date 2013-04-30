@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, document */
+/*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $, window, document, navigator */
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This
@@ -32,6 +32,22 @@
  */
 function RemoteFunctions(experimental) {
     "use strict";
+
+    var lastKeepAliveTime = Date.now();
+    
+    var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight",
+        KEEP_ALIVE_TIMEOUT  = 3000;   // Keep alive timeout value, in milliseconds
+    
+    // determine whether an event should be processed for Live Development
+    function _validEvent(event) {
+        if (navigator.platform.substr(0, 3) === "Mac") {
+            // Mac
+            return event.metaKey;
+        } else {
+            // Windows
+            return event.ctrlKey;
+        }
+    }
 
     // determine the color for a type
     function _typeColor(type, highlight) {
@@ -49,12 +65,12 @@ function RemoteFunctions(experimental) {
 
     // compute the screen offset of an element
     function _screenOffset(element, key) {
-        var value = 0;
-        while (element) {
-            value += element[key];
-            element = element.offsetParent;
+        var bounds = element.getBoundingClientRect();
+        if (key === "offsetLeft") {
+            return bounds.left + window.pageXOffset;
+        } else {
+            return bounds.top + window.pageYOffset;
         }
-        return value;
     }
 
     // set an event on a element
@@ -190,7 +206,7 @@ function RemoteFunctions(experimental) {
         this.color = color;
         this.trigger = !!trigger;
         this.elements = [];
-        this.orgColors = [];
+        this.selector = "";
     }
 
     Highlight.prototype = {
@@ -204,7 +220,84 @@ function RemoteFunctions(experimental) {
             return false;
         },
 
-        add: function (element) {
+        _makeHighlightDiv: function (element, doAnimation) {
+            var elementBounds = element.getBoundingClientRect(),
+                highlight = window.document.createElement("div"),
+                styles = window.getComputedStyle(element);
+            
+            // Don't highlight elements with 0 width & height
+            if (elementBounds.width === 0 && elementBounds.height === 0) {
+                return;
+            }
+            
+            highlight.className = HIGHLIGHT_CLASSNAME;
+            
+            var stylesToSet = {
+                "left": _screenOffset(element, "offsetLeft") + "px",
+                "top": _screenOffset(element, "offsetTop") + "px",
+                "width": elementBounds.width + "px",
+                "height": elementBounds.height + "px",
+                "z-index": 2000000,
+                "margin": 0,
+                "padding": 0,
+                "position": "absolute",
+                "pointer-events": "none",
+                "border-top-left-radius": styles.borderTopLeftRadius,
+                "border-top-right-radius": styles.borderTopRightRadius,
+                "border-bottom-left-radius": styles.borderBottomLeftRadius,
+                "border-bottom-right-radius": styles.borderBottomRightRadius,
+                "border-style": "solid",
+                "border-width": "1px",
+                "border-color": "rgb(94,167,255)",
+                "box-sizing": "border-box"
+            };
+            
+            var animateStartValues = {
+                "opacity": 0,
+                "background": "rgba(94,167,255, 0.5)",
+                "box-shadow": "0 0 6px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,1)"
+            };
+            
+            var animateEndValues = {
+                "opacity": 1,
+                "background": "rgba(94,167,255, 0.1)",
+                "box-shadow": "0 0 1px 0 rgba(94,167,255, 0), inset 0 0 4px 1px rgba(255,255,255,0.8)"
+            };
+            
+            var transitionValues = {
+                "-webkit-transition-property": "opacity, box-shadow, background",
+                "-webkit-transition-duration": "0.3s, 0.4s, 0.4s",
+                "transition-property": "opacity, box-shadow, background",
+                "transition-duration": "0.3s, 0.4s, 0.4s"
+            };
+            
+            function _setStyleValues(styleValues, obj) {
+                var prop;
+                
+                for (prop in styleValues) {
+                    obj.setProperty(prop, styleValues[prop]);
+                }
+            }
+
+            _setStyleValues(stylesToSet, highlight.style);
+            _setStyleValues(
+                doAnimation ? animateStartValues : animateEndValues,
+                highlight.style
+            );
+            
+            
+            if (doAnimation) {
+                _setStyleValues(transitionValues, highlight.style);
+                
+                window.setTimeout(function () {
+                    _setStyleValues(animateEndValues, highlight.style);
+                }, 0);
+            }
+        
+            window.document.body.appendChild(highlight);
+        },
+        
+        add: function (element, doAnimation) {
             if (this._elementExists(element) || element === document) {
                 return;
             }
@@ -212,19 +305,42 @@ function RemoteFunctions(experimental) {
                 _trigger(element, "highlight", 1);
             }
             this.elements.push(element);
-            this.orgColors.push(element.style.getPropertyValue("background-color"));
-            element.style.setProperty("background-color", this.color);
+            
+            this._makeHighlightDiv(element, doAnimation);
         },
 
         clear: function () {
-            var i;
-            for (i in this.elements) {
-                var e = this.elements[i];
-                e.style.setProperty("background-color", this.orgColors[i]);
-                _trigger(e, "highlight", 0, true);
+            var i, highlights = window.document.querySelectorAll("." + HIGHLIGHT_CLASSNAME),
+                body = window.document.body;
+        
+            for (i = 0; i < highlights.length; i++) {
+                body.removeChild(highlights[i]);
             }
+
+            if (this.trigger) {
+                for (i = 0; i < this.elements.length; i++) {
+                    _trigger(this.elements[i], "highlight", 0);
+                }
+            }
+            
             this.elements = [];
-            this.orgColors = [];
+        },
+        
+        redraw: function () {
+            var i, highlighted;
+            
+            // When redrawing a selector-based highlight, run a new selector
+            // query to ensure we have the latest set of elements to highlight.
+            if (this.selector) {
+                highlighted = window.document.querySelectorAll(this.selector);
+            } else {
+                highlighted = this.elements.slice(0);
+            }
+            
+            this.clear();
+            for (i = 0; i < highlighted.length; i++) {
+                this.add(highlighted[i], false);
+            }
         }
     };
 
@@ -249,17 +365,15 @@ function RemoteFunctions(experimental) {
     /** Event Handlers ***********************************************************/
 
     function onMouseOver(event) {
-        if (!event.metaKey) {
-            return;
+        if (_validEvent(event)) {
+            _localHighlight.add(event.target, true);
         }
-        _localHighlight.add(event.target);
     }
 
     function onMouseOut(event) {
-        if (!event.metaKey) {
-            return;
+        if (_validEvent(event)) {
+            _localHighlight.clear();
         }
-        _localHighlight.clear();
     }
 
     function onMouseMove(event) {
@@ -268,20 +382,19 @@ function RemoteFunctions(experimental) {
     }
 
     function onClick(event) {
-        if (!event.metaKey) {
-            return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.altKey) {
-            _toggleEditor(event.target);
-        } else {
-            _toggleMenu(event.target);
+        if (_validEvent(event)) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.altKey) {
+                _toggleEditor(event.target);
+            } else {
+                _toggleMenu(event.target);
+            }
         }
     }
 
     function onKeyUp(event) {
-        if (_setup && !event.metaKey) {
+        if (_setup && !_validEvent(event)) {
             document.removeEventListener("keyup", onKeyUp);
             document.removeEventListener("mouseover", onMouseOver);
             document.removeEventListener("mouseout", onMouseOut);
@@ -294,7 +407,7 @@ function RemoteFunctions(experimental) {
     }
 
     function onKeyDown(event) {
-        if (!_setup && event.metaKey) {
+        if (!_setup && _validEvent(event)) {
             document.addEventListener("keyup", onKeyUp);
             document.addEventListener("mouseover", onMouseOver);
             document.addEventListener("mouseout", onMouseOut);
@@ -305,9 +418,15 @@ function RemoteFunctions(experimental) {
         }
     }
 
-
     /** Public Commands **********************************************************/
 
+    // keep alive. Called once a second when a Live Development connection is active.
+    // If several seconds have passed without this method being called, we can assume
+    // that the connection has been severed and we should remove all our code/hooks.
+    function keepAlive() {
+        lastKeepAliveTime = Date.now();
+    }
+    
     // show goto
     function showGoto(targets) {
         if (!_currentMenu) {
@@ -325,6 +444,7 @@ function RemoteFunctions(experimental) {
     function hideHighlight() {
         if (_remoteHighlight) {
             _remoteHighlight.clear();
+            _remoteHighlight = null;
         }
     }
 
@@ -336,7 +456,7 @@ function RemoteFunctions(experimental) {
         if (clear) {
             _remoteHighlight.clear();
         }
-        _remoteHighlight.add(node);
+        _remoteHighlight.add(node, true);
     }
 
     // highlight a rule
@@ -346,17 +466,59 @@ function RemoteFunctions(experimental) {
         for (i = 0; i < nodes.length; i++) {
             highlight(nodes[i]);
         }
+        _remoteHighlight.selector = rule;
+    }
+    
+    // redraw active highlights
+    function redrawHighlights() {
+        if (_remoteHighlight) {
+            _remoteHighlight.redraw();
+        }
     }
 
     // init
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
+    
+    window.addEventListener("resize", redrawHighlights);
+    // Add a capture-phase scroll listener to update highlights when
+    // any element scrolls.
+    
+    function _scrollHandler(e) {
+        // Document scrolls can be updated immediately. Any other scrolls
+        // need to be updated on a timer to ensure the layout is correct.
+        if (e.target === document) {
+            redrawHighlights();
+        } else {
+            if (_remoteHighlight || _localHighlight) {
+                window.setTimeout(redrawHighlights, 0);
+            }
+        }
+    }
+    
+    window.addEventListener("scroll", _scrollHandler, true);
+    
+    var aliveTest = window.setInterval(function () {
+        if (Date.now() > lastKeepAliveTime + KEEP_ALIVE_TIMEOUT) {
+            // Remove highlights
+            hideHighlight();
+            
+            // Remove listeners
+            window.removeEventListener("resize", redrawHighlights);
+            window.removeEventListener("scroll", _scrollHandler, true);
+            
+            // Clear this interval
+            window.clearInterval(aliveTest);
+        }
+    }, 1000);
 
     return {
+        "keepAlive": keepAlive,
         "showGoto": showGoto,
         "hideHighlight": hideHighlight,
         "highlight": highlight,
-        "highlightRule": highlightRule
+        "highlightRule": highlightRule,
+        "redrawHighlights": redrawHighlights
     };
 }

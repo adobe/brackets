@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var CollectionUtils = require("utils/CollectionUtils");
+    
     /**
      * Convert between URL querystring and name/value pairs. Decodes and encodes URL parameters.
      */
@@ -41,7 +43,7 @@ define(function (require, exports, module) {
      */
     UrlParams.prototype.parse = function (url) {
         if (url) {
-            url = url.substring(indexOf("?") + 1);
+            url = url.substring(url.indexOf("?") + 1);
         } else {
             url = window.document.location.search.substring(1);
         }
@@ -80,8 +82,8 @@ define(function (require, exports, module) {
         var strs = [],
             self = this;
         
-        Object.keys(self._store).forEach(function (key) {
-            strs.push(encodeURIComponent(key) + "=" + encodeURIComponent(self._store[key]));
+        CollectionUtils.forEach(self._store, function (value, key) {
+            strs.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
         });
         
         return strs.join("&");

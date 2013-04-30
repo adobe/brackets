@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
@@ -44,7 +45,7 @@ define(function (require, exports, module) {
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @return {$.Promise} a jQuery promise that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileError if
+     *  file's text content plus its timestamp, or rejected with a NativeFileError if
      *  the file can not be read.
      */
     function readAsText(fileEntry) {
@@ -88,7 +89,7 @@ define(function (require, exports, module) {
      * @param {!FileEntry} fileEntry
      * @param {!string} text
      * @return {$.Promise} a jQuery promise that will be resolved when
-     * file writing completes, or rejected with a FileError.
+     * file writing completes, or rejected with a NativeFileError.
      */
     function writeText(fileEntry, text) {
         var result = new $.Deferred();
@@ -156,32 +157,32 @@ define(function (require, exports, module) {
         return text.replace(findAnyEol, eolStr);
     }
 
-    function getFileErrorString(code) {
+    function getFileErrorString(name) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
         var result;
 
-        if (code === FileError.NOT_FOUND_ERR) {
+        if (name === NativeFileError.NOT_FOUND_ERR) {
             result = Strings.NOT_FOUND_ERR;
-        } else if (code === FileError.NOT_READABLE_ERR) {
+        } else if (name === NativeFileError.NOT_READABLE_ERR) {
             result = Strings.NOT_READABLE_ERR;
-        } else if (code === FileError.NO_MODIFICATION_ALLOWED_ERR) {
+        } else if (name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else {
-            result = StringUtils.format(Strings.GENERIC_ERROR, code);
+            result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
 
         return result;
     }
     
-    function showFileOpenError(code, path) {
+    function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
-                StringUtils.htmlEscape(path),
-                getFileErrorString(code)
+                StringUtils.breakableUrl(path),
+                getFileErrorString(name)
             )
         );
     }
@@ -247,16 +248,32 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Checks wheter a path is affected by a rename operation.
+     * A path is affected if the object being renamed is a file and the given path refers
+     * to that file or if the object being renamed is a directory and a prefix of the path.
+     * Always checking for prefixes can create conflicts:
+     * renaming file "foo" should not affect file "foobar/baz" even though "foo" is a prefix of "foobar".
+     * @param {!string} path The path potentially affected
+     * @param {!string} oldName An object's name before renaming
+     * @param {!string} newName An object's name after renaming
+     * @param {?boolean} isFolder Whether the renamed object is a folder or not
+     */
+    function isAffectedWhenRenaming(path, oldName, newName, isFolder) {
+        isFolder = isFolder || oldName.slice(-1) === "/";
+        return (isFolder && path.indexOf(oldName) === 0) || (!isFolder && path === oldName);
+    }
+    
+    /**
      * Update a file entry path after a file/folder name change.
      * @param {FileEntry} entry The FileEntry or DirectoryEntry to update
      * @param {string} oldName The full path of the old name
      * @param {string} newName The full path of the new name
      * @return {boolean} Returns true if the file entry was updated
      */
-    function updateFileEntryPath(entry, oldName, newName) {
-        if (entry.fullPath.indexOf(oldName) === 0) {
-            var fullPath = entry.fullPath.replace(oldName, newName);
-            
+    function updateFileEntryPath(entry, oldName, newName, isFolder) {
+        if (isAffectedWhenRenaming(entry.fullPath, oldName, newName, isFolder)) {
+            var oldFullPath = entry.fullPath;
+            var fullPath = oldFullPath.replace(oldName, newName);
             entry.fullPath = fullPath;
             
             // TODO: Should this be a method on Entry instead?
@@ -276,40 +293,46 @@ define(function (require, exports, module) {
         return false;
     }
 
+    /**
+     * Returns the file extension for a file name
+     * @param {string} fileName file name with extension or just a file extension
+     * @return {string} File extension if found, otherwise return the original file name
+     */
+    function _getFileExtension(fileName) {
+        var i = fileName.lastIndexOf("."),
+            ext = (i === -1 || i >= fileName.length - 1) ? fileName : fileName.substr(i + 1);
+
+        return ext;
+    }
+    
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
-        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "shtm", "shtml"];
+        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(fileExt) {
         if (!fileExt) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_staticHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} file name with extension or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(fileExt) {
         if (!fileExt) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_serverHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(_getFileExtension(fileExt).toLowerCase()) !== -1);
     }
 
     // Define public API
@@ -326,6 +349,7 @@ define(function (require, exports, module) {
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
+    exports.isAffectedWhenRenaming         = isAffectedWhenRenaming;
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;

@@ -74,8 +74,10 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Laden der Live-Vorschau nicht möglich",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei, um die Live-Vorschau zu starten.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben..",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Ein Fehler ist beim Starten des HTTP-Servers oder der Live-Vorschau-Dateien aufgetreten. Bitte versuchen Sie es später erneut.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Weitere Informationen finden Sie unter dem Thema <a class=\"clickable-link\" data-href=\"{0}\">Fehlerbehebung bei Verbindungs-Fehlern der Live-Entwicklung</a>.",
@@ -90,15 +92,16 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}."
-                                                + "<br /><br />"
-                                                + "Welche Version wollen Sie weiter verwenden?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}."
-                                                + "<br /><br />"
-                                                + "Wollen Sie die Änderungen beibehalten?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}." +
+                                                "<br /><br />" +
+                                                "Welche Version wollen Sie weiter verwenden?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}." +
+                                                "<br /><br />" +
+                                                "Wollen Sie die Änderungen beibehalten?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
+    "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
     "WITH"                              : "Mit",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
@@ -111,14 +114,16 @@ define({
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
     
-    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "für \"{4}\" {5} - {0} {1} in {2} {3}",
+    "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
     "FIND_IN_FILES_FILE"                : "Datei",
     "FIND_IN_FILES_FILES"               : "Dateien",
     "FIND_IN_FILES_MATCH"               : "Treffer",
     "FIND_IN_FILES_MATCHES"             : "Treffer",
     "FIND_IN_FILES_MORE_THAN"           : "Mehr als ",
     "FIND_IN_FILES_MAX"                 : " (die ersten {0} Treffer werden angezeigt)",
-    "FIND_IN_FILES_FILE_PATH"           : "Datei: <b>{0}</b>",
+    "FIND_IN_FILES_FILE_PATH"           : "Datei: <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_LINE"                : "Zeile:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
@@ -126,14 +131,16 @@ define({
     
     // Switch language
     "LANGUAGE_TITLE"                    : "Sprache wechseln",
-    "LANGUAGE_MESSAGE"                  : "Bitte wählen Sie die gewünschte Sprache aus der folgenden Liste aus:",
+    "LANGUAGE_MESSAGE"                  : "Sprache:",
     "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
 
     /**
      * ProjectManager
      */
 
+    "PROJECT_LOADING" : "Lädt\u2026",
     "UNTITLED" : "Unbenannt",
 
     /**
@@ -172,16 +179,27 @@ define({
     "CMD_FILE_SAVE"                       : "Speichern",
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
-    "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_LIVE_HIGHLIGHT"                  : "Live-Highlight",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
+    "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
+    "CMD_INSTALL_EXTENSION"               : "Erweiterung installieren\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Erweiterungs-Verwaltung\u2026",
     "CMD_QUIT"                            : "Beenden",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Beenden",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Bearbeiten",
+    "CMD_UNDO"                            : "Rückgängig",
+    "CMD_REDO"                            : "Wiederholen",
+    "CMD_CUT"                             : "Ausschneiden",
+    "CMD_COPY"                            : "Kopieren",
+    "CMD_PASTE"                           : "Einfügen",
     "CMD_SELECT_ALL"                      : "Alles auswählen",
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
     "CMD_FIND"                            : "Suchen",
     "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
+    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
     "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
     "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
     "CMD_REPLACE"                         : "Ersetzen",
@@ -190,8 +208,10 @@ define({
     "CMD_DUPLICATE"                       : "Duplizieren",
     "CMD_DELETE_LINES"                    : "Zeile löschen",
     "CMD_COMMENT"                         : "Zeile (aus-)kommentieren",
+    "CMD_BLOCK_COMMENT"                   : "Block (aus-)kommentieren",
     "CMD_LINE_UP"                         : "Zeile nach oben verschieben",
     "CMD_LINE_DOWN"                       : "Zeile nach unten verschieben",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
      
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -200,17 +220,26 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Schriftart vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schriftart verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftart zurücksetzen",
+    "CMD_SCROLL_LINE_UP"                  : "Zeile hoch scrollen",
+    "CMD_SCROLL_LINE_DOWN"                : "Zeile runter scrollen",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Zeilennummern anzeigen",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Aktive Zeile hervorheben",
+    "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
+    "CMD_ENABLE_QUICK_VIEW"               : "Hover-Vorschau aktivieren",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
-    "CMD_GOTO_LINE"                       : "Gehe zu Zeile",
-    "CMD_GOTO_DEFINITION"                 : "Gehe zu Definition",
+    "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
+    "CMD_GOTO_DEFINITION"                 : "Gehe zur Definition",
+    "CMD_JUMPTO_DEFINITION"               : "Springe zur Definition",
+    "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
@@ -225,14 +254,21 @@ define({
     "CMD_JSLINT"                          : "JSLint aktivieren",
     "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
-    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
+    "CMD_ENABLE_NODE_DEBUGGER"            : "Node-Debugger aktivieren",
+    "CMD_LOG_NODE_STATE"                  : "Node-Status in Konsole anzeigen",
+    "CMD_RESTART_NODE"                    : "Node neu starten",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
-    "CMD_ABOUT"                           : "Über {APP_TITLE}",
+    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
+    "CMD_HOW_TO_USE_BRACKETS"             : "So verwendet man {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
+    "CMD_RELEASE_NOTES"                   : "Versionshinweise",
+    "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
+    "CMD_ABOUT"                           : "Über {APP_TITLE}",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
@@ -240,11 +276,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
-    "JSLINT_ERRORS"                        : "JSLint-Fehler",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
-    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
-    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
+    "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
     "SEARCH_RESULTS"                       : "Suchergebnisse",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nicht speichern",
@@ -254,23 +286,80 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
+    "INSTALL"                              : "Installieren",
     "ABOUT"                                : "Über",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} experimenteller Build {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE5"                     : "Gemacht mit \u2764 und JavaScript von:",
+    "ABOUT_TEXT_LINE6"                     : "…vielen Leuten (…leider haben wir aber gerade Probleme, diese Daten zu laden).",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
     "GET_IT_NOW"                           : "Jetzt updaten!",
-    "PROJECT_SETTINGS_TOOLTIP"             : "Einstellungen für dieses Projekt",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(leer lassen für Datei-URL)",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(um einen lokalen Server zu verwenden, URL angeben)",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Das Protokoll {0} wird von der Live-Vorschau nicht unterstützt &ndash; bitte http: oder https: verwenden.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+
+    // Extension Management strings
+    "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
+    "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
+    "INSTALL_EXTENSION_HINT"               : "URL der Erweiterungs-ZIP-Datei oder GitHub-Repo",
+    "INSTALLING_FROM"                      : "Erweiterung installieren von {0}\u2026",
+    "INSTALL_SUCCEEDED"                    : "Installation abgeschlossen!",
+    "INSTALL_FAILED"                       : "Installation fehlgeschlagen.",
+    "CANCELING_INSTALL"                    : "Abgebrochen\u2026",
+    "CANCELING_HUNG"                       : "Das Abbrechen der Installation nimmt bereits einige Minuten in Anspruch. Ein interner Fehler könnte aufgetreten sein.",
+    "INSTALL_CANCELED"                     : "Installation abgebrochen.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "Der heruntergeladene Inhalt ist keine gültige ZIP-Datei.",
+    "INVALID_PACKAGE_JSON"                 : "Die JSON-Paketdatei ist ungültig (Fehler: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "Die JSON-Paketdatei hat kein definierten Paketnamen.",
+    "BAD_PACKAGE_NAME"                     : "{0} ist ein ungültiger Paketname.",
+    "MISSING_PACKAGE_VERSION"              : "Die JSON-Paketdatei hat keine definierte Paketversion.",
+    "INVALID_VERSION_NUMBER"               : "Die Paket-Versionsnummer ({0}) ist ungültig.",
+    "INVALID_BRACKETS_VERSION"             : "Die Brackets-Kompatibilitäts-Zeichenkette {{0}} ist ungültig.",
+    "DISALLOWED_WORDS"                     : "Die Wörter {{1}} sind im Feld {{0}} nicht erlaubt.",
+    "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
+    "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
+    "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
+    "NO_DISABLED_DIRECTORY"                : "Die Erweiterung konnte nicht gespeichert werden, weil der Ordner für deaktivierte Erweiterungen nicht existiert.",
+    "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
+    "NO_SERVER_RESPONSE"                   : "Verbindung konnte nicht hergestellt werden.",
+    "BAD_HTTP_STATUS"                      : "Die Datei wurde auf dem Server nicht gefunden (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Konnte den Download nicht in einer temporären Datei speichern.",
+    "ERROR_LOADING"                        : "Beim Starten der Erweiterung ist ein Fehler aufgetreten.",
+    "MALFORMED_URL"                        : "Die URL ist ungültig. Bitte prüfen Sie, ob es sich um eine gültige URL handelt.",
+    "UNSUPPORTED_PROTOCOL"                 : "Bitte geben Sie eine http- oder https-URL an.",
+    "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
+    // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Brackets-Erweiterungen. Bitte später erneut probieren.",
+    "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
+
+    // extensions/default/JSLint
+    "JSLINT_ERRORS"                        : "JSLint-Fehler",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
+    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
+
+    // extensions/default/InlineColorEditor
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original-Farbe",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa-Format",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex-Format",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)",
+
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Weiterlesen"
 });

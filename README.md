@@ -1,38 +1,42 @@
-Welcome to Brackets!
+Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
-This is a very early version of Brackets, a code editor for HTML, CSS 
+Installers for the latest build can be [downloaded here](http://download.brackets.io/).
+
+This is an early version of Brackets, a code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
 
 What makes Brackets different from other web code editors?
+
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
 environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
 context-specific code and tools inline.
 * **Brackets is in sync with your browser.** With Live Development, Brackets
-works directly with your browser to push code edits instantly, set breakpoints, 
-and jump back and forth between your real source code and the browser view.
+works directly with your browser to push code edits instantly and jump
+back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
 and JavaScript, you can help build the best code editor for the web.
 
 You can see some 
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
-on the wiki.
+on the wiki and [intro videos](http://www.youtube.com/user/CodeBrackets) on the Brackets YouTube channel.
 
-Brackets is *very* early in development, so many of the features you would
+Brackets is early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be
 incomplete or not as useful as you'd want. But if you like the direction
-it's going, please contribute!
+it's going, the [CONTRIBUTING.md](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) 
+file contains some useful links to help you get started. Please contribute!    
 
 The text editor inside Brackets is based on 
 [CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
-taking our pull requests :) See 
+taking our pull requests, implementing feature requests and fixing bugs! See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
-for info on upcoming things we're planning to contribute to CodeMirror.
+for info on how we're using CodeMirror.
 
 How to run Brackets
 -------------------
 
-**Brackets isn't ready for general use yet.** It's still *very* early in
+**Brackets isn't ready for general use yet.** It's still early in
 development, is missing a lot of basic editor features, and *probably*
 has bugs. That said, we've actually been using Brackets to develop Brackets
 for awhile now, so what's there is reasonably stable.
@@ -43,14 +47,14 @@ application in a thin native shell, so that it can access your local files.
 The native shell for Brackets lives in a separate repo, 
 [adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
 
-The Brackets native shell currently runs on Mac and Windows. Since it's based on 
-CEF/Chromium, it could be ported to Linux relatively easily, but that work hasn't 
-been done yet. Stay tuned.
+The Brackets native shell currently runs on Mac and Windows.
+The community has started working on a Linux port, and is making great progress;
+if you're interested, check out the
+[Linux Version](https://github.com/adobe/brackets/wiki/Linux-Version) wiki page.
 
-You can download "stable" builds of Brackets from the **Download Packages** section of the 
-[downloads page](http://github.com/adobe/brackets/downloads)--make sure you download one
-of the .dmg/.msi installers in that section (the "Download as zip/tar.gz" buttons at the 
-top will **not** work). If you want to pull the repo directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
+You can download stable builds of Brackets from 
+[download.brackets.io](http://download.brackets.io). If you want to pull the repo 
+directly via git, see [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets)
 for instructions on how to get everything. 
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
@@ -74,9 +78,9 @@ Brackets bugs are tracked in [the Brackets github issue tracker](https://github.
 When filing a new bug, please remember to include:
 
 * Brackets version/sprint number (or commit SHA if you're pulling directly from the repo)
-* platform/OS version
-* repro steps, actual and expected results
-* link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
+* Platform/OS version
+* Steps to reproduce problem with actual and expected results
+* Link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
   if that's convenient)       
        
 More details on how to file an issue can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
