@@ -29,10 +29,11 @@
 TODO:
 - handle @import
   - need to update CSSUtils
-- handle quotes inside url()
-- handle url without url() ?
-  - both with and without quotes
 - unit tests
+  - any to move from HTMLCodeHints ?
+- handle quotes
+  - inside url()
+  - raw quotes (i.e. without url()) ?
 
 */
 
@@ -51,9 +52,9 @@ define(function (require, exports, module) {
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
 
-        CSSProperties       = require("text!CSSProperties.json"),
-        HTMLAttributes      = require("text!HtmlAttributes.json"),
+        Data                = require("text!data.json"),
 
+        data,
         htmlAttrs;
     
     /**
@@ -583,7 +584,8 @@ define(function (require, exports, module) {
     };
 
     AppInit.appReady(function () {
-        htmlAttrs       = JSON.parse(HTMLAttributes);
+        data            = JSON.parse(Data);
+        htmlAttrs       = data.htmlAttrs;
 
         var urlHints = new UrlCodeHints();
         CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
