@@ -1,0 +1,9 @@
+return (
+    (window.__bkld_fndefs && window.__bkld_fndefs[{{id}}]) ?
+        (typeof window.__bkld_fndefs[{{id}}] === 'function' ? 
+            window.__bkld_fndefs[{{id}}] :
+            eval('window.__bkld_fndefs[{{id}}] = ' + window.__bkld_fndefs[{{id}}])) :
+        function () {
+            {{{body}}}
+        }
+).apply(this, arguments);

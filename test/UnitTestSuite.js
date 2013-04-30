@@ -49,6 +49,7 @@ define(function (require, exports, module) {
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
+    require("spec/LiveJS-test");
     require("spec/LowLevelFileIO-test");
     require("spec/Menu-test");
     require("spec/MultiRangeInlineEditor-test");
