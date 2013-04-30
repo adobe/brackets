@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         KeyBindingManager  = brackets.getModule("command/KeyBindingManager"),
         Menus              = brackets.getModule("command/Menus"),
         Strings            = brackets.getModule("strings"),
+        StringUtils        = brackets.getModule("utils/StringUtils"),
         PerfUtils          = brackets.getModule("utils/PerfUtils"),
         ProjectManager     = brackets.getModule("project/ProjectManager"),
         NativeApp          = brackets.getModule("utils/NativeApp"),
@@ -226,12 +227,22 @@ define(function (require, exports, module) {
                         .val(val)
                         .appendTo($select);
                 }
+                
+                // returns the localized label for the given locale
+                // or the locale, if nothing found
+                function getLocalizedLabel(locale) {
+                    
+                    var key = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
+                        i18n = Strings[key];
+                    
+                    return i18n === undefined ? locale : StringUtils.format(Strings.LOCALE_LABEL, locale, i18n);
+                }
 
                 // add system default
                 addLocale(Strings.LANGUAGE_SYSTEM_DEFAULT, null);
                 
                 // add english
-                addLocale("en", "en");
+                addLocale(getLocalizedLabel("en"), "en");
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
@@ -246,7 +257,7 @@ define(function (require, exports, module) {
                                 label += match[2].toUpperCase();
                             }
                             
-                            addLocale(label, language);
+                            addLocale(getLocalizedLabel(label), language);
                         }
                     }
                 });

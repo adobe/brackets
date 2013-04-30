@@ -25,6 +25,12 @@
 /*global define */
 
 define({
+    
+    /**
+     * Locales
+     */
+    "LOCALE_LABEL"                      : "{0} ({1})",
+    
     /**
      * Errors
      */
