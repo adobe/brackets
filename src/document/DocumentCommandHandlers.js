@@ -254,11 +254,15 @@ define(function (require, exports, module) {
         if (commandData) {
             fullPath = commandData.fullPath;
             if (fullPath) {
-              // If the path has a trailing :lineNumber and :columnNumber, strip 
-              // these off and assign to the lineNumber and columnNumber vars.
-              fullPath = fullPath.replace(/(.+?):([0-9]+)(:([0-9]+))?$/, "$1");
-              if (RegExp.$2) lineNumber = Math.floor(RegExp.$2);
-              if (RegExp.$4) columnNumber = Math.floor(RegExp.$4);
+                // If the path has a trailing :lineNumber and :columnNumber, strip 
+                // these off and assign to the lineNumber and columnNumber vars.
+                fullPath = fullPath.replace(/(.+?):([0-9]+)(:([0-9]+))?$/, "$1");
+                if (RegExp.$2) {
+                    lineNumber = Math.floor(RegExp.$2);
+                }
+                if (RegExp.$4) {
+                    columnNumber = Math.floor(RegExp.$4);
+                }
             }
         }
 
@@ -266,10 +270,10 @@ define(function (require, exports, module) {
             .always(function () {
                 // If a line and column number were given, position the editor accordingly.
                 if (lineNumber) {
-                  if (!columnNumber) {
-                    columnNumber = 1;
-                  }
-                  EditorManager.getCurrentFullEditor().setCursorPos(lineNumber, columnNumber, true);
+                    if (!columnNumber) {
+                        columnNumber = 0;
+                    }
+                    EditorManager.getCurrentFullEditor().setCursorPos(lineNumber, columnNumber, true);
                 }
                 
                 // Give the editor focus
