@@ -843,13 +843,8 @@ define(function (require, exports, module) {
     function handleShowInOS() {
         var entry = ProjectManager.getSidebarSelectedItem();
         if (entry) {
-            var path = entry.fullPath;
-            if (entry.isFile) {  // if file, we want its containing folder
-                var lastSlash = entry.fullPath.lastIndexOf("/");
-                path = path.substring(0, lastSlash + 1);
-            }
-            brackets.app.showOSFolder(path, function errback(err) {
-                console.error(err);
+            brackets.app.showOSFolder(entry.fullPath, function (err) {
+                console.error("Error showing '" + entry.fullPath + "' in OS folder:", err);
             });
         }
     }
