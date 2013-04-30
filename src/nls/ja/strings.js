@@ -137,6 +137,7 @@ define({
      */
 	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
+	"WORKING_FILES": "作業中ファイル",
 
     /**
      * Keyboard modifier names
@@ -156,7 +157,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
 	"STATUSBAR_SPACES": "スペース",
 	"STATUSBAR_TAB_SIZE": "タブ幅",
-	"STATUSBAR_LINE_COUNT": "{0} 行",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "!能=[6788843] {0} Line_=!",
+	"STATUSBAR_LINE_COUNT_PLURAL": "{0} 行",
 
     /**
      * Command Name Constants
@@ -178,7 +180,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",
 	"CMD_INSTALL_EXTENSION": "拡張機能をインストール\u2026",
-	"CMD_EXTENSION_MANAGER": "!能=[6775081] Extension Manager\u2026_=!",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "終了する",
     // Used in native File menu on Windows
 	"CMD_EXIT": "終了",
@@ -206,6 +208,8 @@ define({
 	"CMD_BLOCK_COMMENT": "ブロックコメントの切り替え",
 	"CMD_LINE_UP": "行を上に移動",
 	"CMD_LINE_DOWN": "行を下に移動",
+	"CMD_OPEN_LINE_ABOVE": "上の行を開く",
+	"CMD_OPEN_LINE_BELOW": "下の行を開く",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
     
     // View menu commands
@@ -224,15 +228,16 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
-	"CMD_ENABLE_HOVER_PREVIEW": "ホバープレビューを有効にする",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
-	"CMD_GOTO_DEFINITION": "定義に移動",
+	"CMD_GOTO_DEFINITION": "定義をクイック検索",
+	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
+	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
 	"CMD_NEXT_DOC": "次の文書",
@@ -289,6 +294,7 @@ define({
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
@@ -321,7 +327,7 @@ define({
 	"INVALID_VERSION_NUMBER": "パッケージバージョン番号 ({0}) は無効です。",
 	"INVALID_BRACKETS_VERSION": "Brackets 互換文字列 {{0}} は無効です。",
 	"DISALLOWED_WORDS": "{{1}} は {{0}} フィールドでは使用できません。",
-	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの Brackets と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
+	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
 	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
@@ -335,9 +341,22 @@ define({
 	"UNKNOWN_ERROR": "不明な内部エラー。",
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
-	"EXTENSION_MANAGER_ERROR_LOAD": "!能=[6775082] Unable to access the Brackets extension registry. Please try again later._=!",
-	"INSTALL_FROM_URL": "!能=[6777878] Install from URL\u2026_=!",
+	"EXTENSION_MANAGER_ERROR_LOAD": "拡張機能レジストリにアクセスできません。後でもう一度試してください。",
+	"INSTALL_FROM_URL": "URL からインストール\u2026",
+	"EXTENSION_AUTHOR": "作成者",
+	"EXTENSION_DATE": "日付",
+	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
+	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
+	"EXTENSION_NO_DESCRIPTION": "説明なし",
+	"EXTENSION_KEYWORDS": "キーワード",
+	"EXTENSION_INSTALLED": "インストール完了",
+	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
+	"EXTENSION_MORE_INFO_LINK": "詳細",
+	"BROWSE_EXTENSIONS": "拡張機能を探す",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",
 	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",
@@ -352,5 +371,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "16 進形式",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "詳細"
 });

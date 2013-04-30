@@ -148,6 +148,23 @@ define(function (require, exports, module) {
 
             runs(function () { callback(hintList); });
         }
+        /*
+         * Test if hints should be closed or not closed at a given position.
+         *
+         * @param {Object} provider - a CodeHintProvider object
+         * @param {Object + jQuery.Deferred} hintObj - a hint response object,
+         *      possibly deferred
+         * @param {line: number, ch: number} newPos - new position to move to
+         * after hints are received.
+         * @param {boolean} expectedValue - true if hints should close,
+         * false otherwise.
+         */
+        function expectCloseHints(provider, hintObj, newPos, expectedValue) {
+            _waitForHints(hintObj, function (hintList) {
+                testEditor.setCursorPos(newPos);
+                expect(provider.shouldCloseHints(JSCodeHints.getSession())).toBe(expectedValue);
+            });
+        }
 
         /*
          * Expect a given list of hints to be absent from a given hint
@@ -443,7 +460,56 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["case", "function", "var"]);
             });
-            
+
+            it("should close hints when move over '.' ", function () {
+                testEditor.setCursorPos({ line: 17, ch: 11 });
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 10 }, true);
+            });
+
+            it("should close hints only when move off the end of a property ", function () {
+                testEditor.setCursorPos({ line: 17, ch: 11 });
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 12 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 13 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 14 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 15 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 16 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 17 }, true);
+            });
+
+            it("should close hints only when move off the beginning of an identifier ", function () {
+                testEditor.setCursorPos({ line: 17, ch: 10 });
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 9 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 8 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 17, ch: 7 }, true);
+            });
+
+            it("should close hints only when move off the beginning of a keyword ", function () {
+                testEditor.setCursorPos({ line: 24, ch: 7 });
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                hintsPresent(hintObj, ["var"]);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 24, ch: 6 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 24, ch: 5 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 24, ch: 4 }, false);
+                expectCloseHints(JSCodeHints.jsHintProvider, hintObj,
+                    { line: 24, ch: 3 }, true);
+            });
+
             it("should NOT list implicit hints on left-brace", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 expectNoHints(JSCodeHints.jsHintProvider, "{");
@@ -507,7 +573,7 @@ define(function (require, exports, module) {
 
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "A2"); // hint 2 is "A2"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "A2");
                 runs(function () {
                     //expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, end)).toEqual("A2");
@@ -522,7 +588,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["A1", "A2", "A3"]);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "A1"); // hint 1 is "A1"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "A1");
                 runs(function () {
                     //expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(before, end)).toEqual("A1");
@@ -537,7 +603,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
@@ -554,7 +620,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.prop", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
@@ -571,7 +637,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.pro", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, end)).toEqual("A1.propA");
@@ -587,7 +653,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("A1.propB", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, end)).toEqual("A1.propA");
@@ -604,7 +670,7 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("(A1.prop)", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA"); // hint 0 is "propA"
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);

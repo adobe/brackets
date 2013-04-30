@@ -183,6 +183,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_INSTALL_EXTENSION"               : "Erweiterung installieren\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Erweiterungs-Verwaltung\u2026",
     "CMD_QUIT"                            : "Beenden",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Beenden",
@@ -228,14 +229,17 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
+    "CMD_ENABLE_QUICK_VIEW"               : "Hover-Vorschau aktivieren",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Gehe zur Definition",
+    "CMD_JUMPTO_DEFINITION"               : "Springe zur Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
@@ -336,6 +340,9 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "Bitte geben Sie eine http- oder https-URL an.",
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Brackets-Erweiterungen. Bitte später erneut probieren.",
+    "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
 
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint-Fehler",
@@ -351,5 +358,8 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex-Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)",
+
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Weiterlesen"
 });

@@ -252,8 +252,20 @@ define(function (require, exports, module) {
             });
 
 
-            it("should open a type selector", function () {
+            it("should open a type selector on opening tag", function () {
                 initInlineTest("test1.html", 0);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+                });
+            });
+            
+            it("should open a type selector on closing tag", function () {
+                initInlineTest("test1.html", 9);
                 
                 runs(function () {
                     var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];

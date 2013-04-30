@@ -102,7 +102,7 @@ define(function (require, exports, module) {
      */
     function splitPath(path) {
         var index   = path.lastIndexOf("/"),
-            dir     = path.substring(0, index),
+            dir     = (index === -1) ? "" : path.substring(0, index),
             file    = path.substring(index + 1, path.length);
         
         return {dir: dir, file: file };
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
         KEYWORDS        = annotateKeywords(KEYWORD_TOKENS);
     
     var LITERAL_NAMES   = [
-        "true", "false", "null", "undefined"
+        "true", "false", "null"
     ],
         LITERAL_TOKENS  = LITERAL_NAMES.map(function (t) {
             return makeToken(t, []);

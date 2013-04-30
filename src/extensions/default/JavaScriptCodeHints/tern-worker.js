@@ -46,6 +46,9 @@ importScripts("thirdparty/requirejs/require.js");
     
     /**
      * Provide the contents of the requested file to tern
+     * @param {string} name - the name of the file
+     * @param {Function} next - the function to call with the text of the file
+     *  once it has been read in.
      */
     function getFile(name, next) {
         // save the callback
@@ -73,6 +76,11 @@ importScripts("thirdparty/requirejs/require.js");
     
     /**
      * Create a new tern server.
+     *
+     * @param {Object} env - an Object with the environment, as read in from
+     *  the json files in thirdparty/tern/defs
+     * @param {string} dir - the current directory
+     * @param {Array.<string>} files - a list of filenames tern should be aware of
      */
     function initTernServer(env, dir, files) {
         var ternOptions = {
@@ -89,6 +97,14 @@ importScripts("thirdparty/requirejs/require.js");
         
     }
 
+    /**
+     * Build an object that can be used as a request to tern
+     * @param {string} dir - the current directory
+     * @param {string} file - the filename the request is in
+     * @param {string} query - the type of request being made
+     * @param {number} offset - the offset in the file the request is at
+     * @param {string} text - the text of the file
+     */
     function buildRequest(dir, file, query, offset, text) {
         query = {type: query};
         query.start = offset;
@@ -99,7 +115,7 @@ importScripts("thirdparty/requirejs/require.js");
         query.depths = true;
         query.guess = true;
         query.origins = true;
-        query.expandWordForward = true;
+        query.expandWordForward = false;
 
         var request = {query: query, files: [], offset: offset};
         request.files.push({type: "full", name: file, text: text});

@@ -137,6 +137,7 @@ define({
      */
 	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
+	"WORKING_FILES": "Fichiers de travail",
 
     /**
      * Keyboard modifier names
@@ -156,7 +157,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT": "{0} lignes",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "[6788843] !é={0} Line=!",
+	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
 
     /**
      * Command Name Constants
@@ -178,7 +180,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "[6775081] !é=Extension Manager\u2026=!",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -206,6 +208,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
+	"CMD_OPEN_LINE_ABOVE": "Ouvrir une ligne au-dessus",
+	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
     
     // View menu commands
@@ -224,15 +228,16 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
-	"CMD_ENABLE_HOVER_PREVIEW": "Activer l’aperçu au survol",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
-	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
+	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
+	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
 	"CMD_NEXT_DOC": "Document suivant",
@@ -289,6 +294,7 @@ define({
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo graphique Web Platform sont mis à disposition sous licence Creative Commons Attribution, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported.</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
@@ -321,7 +327,7 @@ define({
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
 	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
 	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
-	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
+	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
 	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
@@ -335,9 +341,22 @@ define({
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
 	"EXTENSION_MANAGER_TITLE": "Extension Manager",
-	"EXTENSION_MANAGER_ERROR_LOAD": "[6775082] !é=Unable to access the Brackets extension registry. Please try again later.=!",
-	"INSTALL_FROM_URL": "[6777878] !é=Install from URL\u2026=!",
+	"EXTENSION_MANAGER_ERROR_LOAD": "Impossible d’accéder au registre de l’extension. Réessayez ultérieurement.",
+	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
+	"EXTENSION_AUTHOR": "Auteur",
+	"EXTENSION_DATE": "Date",
+	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
+	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
+	"EXTENSION_NO_DESCRIPTION": "Aucune description",
+	"EXTENSION_KEYWORDS": "Mots-clés",
+	"EXTENSION_INSTALLED": "Installée",
+	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
+	"EXTENSION_MORE_INFO_LINK": "Plus",
+	"BROWSE_EXTENSIONS": "Parcourir les extensions",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
 	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
@@ -352,5 +371,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "Format Hex",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "Format HSLa",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} (utilisé {1} fois)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "En savoir plus"
 });

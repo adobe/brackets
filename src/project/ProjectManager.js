@@ -125,7 +125,7 @@ define(function (require, exports, module) {
      * @ see getBaseUrl(), setBaseUrl()
      */
     var _projectBaseUrl = "";
-
+    
     /**
      * @private
      * @type {PreferenceStorage}
@@ -403,7 +403,7 @@ define(function (require, exports, module) {
                 plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                 ui : { select_limit: 1, select_multiple_modifier: "", select_range_modifier: "" },
                 json_data : { data: treeDataProvider, correct_state: false },
-                core : { animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
+                core : { html_titles: true, animation: 0, strings : { loading : Strings.PROJECT_LOADING, new_node : "New node" } },
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
@@ -601,20 +601,24 @@ define(function (require, exports, module) {
     function _convertEntriesToJSON(entries) {
         var jsonEntryList = [],
             entry,
-            entryI;
+            entryI,
+            jsonEntry;
 
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
             if (shouldShow(entry)) {
-                var jsonEntry = {
+                jsonEntry = {
                     data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
                     metadata: { entry: entry }
                 };
+
                 if (entry.isDirectory) {
                     jsonEntry.children = [];
                     jsonEntry.state = "closed";
+                } else {
+                    jsonEntry.data = ViewUtils.getFileEntryDisplay(entry);
                 }
     
                 // For more info on jsTree's JSON format see: http://www.jstree.com/documentation/json_data
@@ -763,6 +767,9 @@ define(function (require, exports, module) {
      *  fails to load.
      */
     function _loadProject(rootPath) {
+        if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
+            return (new $.Deferred()).resolve().promise();
+        }
         if (_projectRoot) {
             // close current project
             $(exports).triggerHandler("beforeProjectClose", _projectRoot);
@@ -1298,21 +1305,24 @@ define(function (require, exports, module) {
         // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
         showInTree(entry)
             .done(function (selected) {
+                // Don't try to rename again if we are already renaming
+                if (_isInRename(selected)) {
+                    return;
+                }
+                
                 var isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
         
                 _projectTree.one("rename.jstree", function (event, data) {
                     // Make sure the file was actually renamed
-                    if (data.rslt.old_name === data.rslt.new_name) {
-                        return;
-                    }
+                    var changed = (data.rslt.old_name !== data.rslt.new_name);
                     
                     var _resetOldFilename = function () {
-                        _projectTree.jstree("set_text", selected, data.rslt.old_name);
+                        _projectTree.jstree("set_text", selected, ViewUtils.getFileEntryDisplay(entry));
                         _projectTree.jstree("sort", selected.parent());
                     };
                     
-                    if (!_checkForValidFilename(data.rslt.new_name)) {
-                        // Invalid filename. Reset the old name and bail.
+                    if (!changed || !_checkForValidFilename(data.rslt.new_name)) {
+                        // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
                     }
@@ -1325,6 +1335,7 @@ define(function (require, exports, module) {
                     
                     renameItem(oldName, newName, isFolder)
                         .done(function () {
+                            _projectTree.jstree("set_text", selected, ViewUtils.getFileEntryDisplay(entry));
                             
                             // If a folder was renamed, re-select it here, since openAndSelectDocument()
                             // changed the selection.
@@ -1342,6 +1353,9 @@ define(function (require, exports, module) {
                             _resetOldFilename();
                         });
                 });
+                
+                // since html_titles are enabled, we have to reset the text without markup
+                _projectTree.jstree("set_text", selected, entry.name);
                 _projectTree.jstree("rename");
             });
         // No fail handler: silently no-op if file doesn't exist in tree

@@ -11,8 +11,8 @@ If you need some inspiration for a **starter bug**, we have some for you either 
 
 ## Getting Started
 
-Before you start coding, post to the [brackets-dev Google group](http://groups.google.com/group/brackets-dev) or the [#brackets IRC channel on freenode](http://freenode.net) about what you're thinking of working on, so you can get early feedback. 
-This also provides you with an opportunity to find out what others including the core team are working on.      
+**Before you start coding**, post to the [brackets-dev Google group](http://groups.google.com/group/brackets-dev) or the [#brackets IRC channel on freenode](http://freenode.net) about what you're thinking of working on, so you can get early feedback. 
+If you wouldn't chat about your idea that's cool too, but we may have to reject your pull request. This also provides you with an opportunity to find out what others including the core team are working on.      
 
 
 Brackets is developed using Agile development methodologies, features are tracked as user stories on the [public Brackets backlog](http://bit.ly/BracketsBacklog). You may _vote_ on existing stories or find stories to work on with others.
