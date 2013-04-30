@@ -157,7 +157,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
     "STATUSBAR_SPACES"                      : "Spaces",
     "STATUSBAR_TAB_SIZE"                    : "Tab Size",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Line",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Lines",
 
     /**
      * Command Name Constants
