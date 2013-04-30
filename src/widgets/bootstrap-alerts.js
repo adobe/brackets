@@ -1,8 +1,8 @@
 /* ==========================================================
- * bootstrap-alerts.js v1.4.0
+ * bootstrap-alert.js v2.3.1
  * http://twitter.github.com/bootstrap/javascript.html#alerts
  * ==========================================================
- * Copyright 2011 Twitter, Inc.
+ * Copyright 2012 Twitter, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,107 +18,82 @@
  * ========================================================== */
 
 
-!function( $ ){
+!function ($) {
 
-  "use strict"
+  "use strict"; // jshint ;_;
 
-  /* CSS TRANSITION SUPPORT (https://gist.github.com/373874)
-   * ======================================================= */
-
-   var transitionEnd
-
-   $(document).ready(function () {
-
-     $.support.transition = (function () {
-       var thisBody = document.body || document.documentElement
-         , thisStyle = thisBody.style
-         , support = thisStyle.transition !== undefined || thisStyle.WebkitTransition !== undefined || thisStyle.MozTransition !== undefined || thisStyle.MsTransition !== undefined || thisStyle.OTransition !== undefined
-       return support
-     })()
-
-     // set CSS transition event type
-     if ( $.support.transition ) {
-       transitionEnd = "TransitionEnd"
-       if ( $.browser.webkit ) {
-        transitionEnd = "webkitTransitionEnd"
-       } else if ( $.browser.mozilla ) {
-        transitionEnd = "transitionend"
-       } else if ( $.browser.opera ) {
-        transitionEnd = "oTransitionEnd"
-       }
-     }
-
-   })
 
  /* ALERT CLASS DEFINITION
   * ====================== */
 
-  var Alert = function ( content, options ) {
-    if (options == 'close') return this.close.call(content)
-    this.settings = $.extend({}, $.fn.alert.defaults, options)
-    this.$element = $(content)
-      .delegate(this.settings.selector, 'click', this.close)
-  }
-
-  Alert.prototype = {
-
-    close: function (e) {
-      var $element = $(this)
-        , className = 'alert-message'
-
-      $element = $element.hasClass(className) ? $element : $element.parent()
-
-      e && e.preventDefault()
-      $element.removeClass('in')
-
-      function removeElement () {
-        $element.remove()
+  var dismiss = '[data-dismiss="alert"]'
+    , Alert = function (el) {
+        $(el).on('click', dismiss, this.close)
       }
 
-      $.support.transition && $element.hasClass('fade') ?
-        $element.bind(transitionEnd, removeElement) :
-        removeElement()
+  Alert.prototype.close = function (e) {
+    var $this = $(this)
+      , selector = $this.attr('data-target')
+      , $parent
+
+    if (!selector) {
+      selector = $this.attr('href')
+      selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') //strip for ie7
     }
 
+    $parent = $(selector)
+
+    e && e.preventDefault()
+
+    $parent.length || ($parent = $this.hasClass('alert') ? $this : $this.parent())
+
+    $parent.trigger(e = $.Event('close'))
+
+    if (e.isDefaultPrevented()) return
+
+    $parent.removeClass('in')
+
+    function removeElement() {
+      $parent
+        .trigger('closed')
+        .remove()
+    }
+
+    $.support.transition && $parent.hasClass('fade') ?
+      $parent.on($.support.transition.end, removeElement) :
+      removeElement()
   }
 
 
  /* ALERT PLUGIN DEFINITION
   * ======================= */
 
-  $.fn.alert = function ( options ) {
+  var old = $.fn.alert
 
-    if ( options === true ) {
-      return this.data('alert')
-    }
-
+  $.fn.alert = function (option) {
     return this.each(function () {
       var $this = $(this)
-        , data
-
-      if ( typeof options == 'string' ) {
-
-        data = $this.data('alert')
-
-        if (typeof data == 'object') {
-          return data[options].call( $this )
-        }
-
-      }
-
-      $(this).data('alert', new Alert( this, options ))
-
+        , data = $this.data('alert')
+      if (!data) $this.data('alert', (data = new Alert(this)))
+      if (typeof option == 'string') data[option].call($this)
     })
   }
 
-  $.fn.alert.defaults = {
-    selector: '.close'
+  $.fn.alert.Constructor = Alert
+
+
+ /* ALERT NO CONFLICT
+  * ================= */
+
+  $.fn.alert.noConflict = function () {
+    $.fn.alert = old
+    return this
   }
 
-  $(document).ready(function () {
-    new Alert($('body'), {
-      selector: '.alert-message[data-alert] .close'
-    })
-  })
 
-}( window.jQuery || window.ender );
+ /* ALERT DATA-API
+  * ============== */
+
+  $(document).on('click.alert.data-api', dismiss, Alert.prototype.close)
+
+}(window.jQuery);
