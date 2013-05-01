@@ -920,6 +920,7 @@ define(function (require, exports, module) {
         }
 
         // open the context menu at final location
+        $menuWindow.dropdown("toggle");
         $menuAnchor.addClass("open")
                    .css({"left": posLeft, "top": posTop});
     };
@@ -928,7 +929,7 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
-        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
+        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open").find("ul").dropdown("toggle");
     };
 
     /**
