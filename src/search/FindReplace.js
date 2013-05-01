@@ -221,7 +221,11 @@ define(function (require, exports, module) {
                 var foundAny = findNext(editor, rev);
                 
                 if (modalBar) {
-                    getDialogTextField().toggleClass("no-results", !foundAny);
+                    if (!foundAny) {
+                        getDialogTextField().addClass("no-results");
+                    } else {
+                        getDialogTextField().removeClass("no-results");
+                    }
                 }
             });
             isFindFirst = false;

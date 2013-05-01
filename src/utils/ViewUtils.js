@@ -202,8 +202,12 @@ define(function (require, exports, module) {
             
             $selectionTriangle.css("top", triangleTop);
             $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
-            $selectionTriangle.toggleClass("triangle-visible", showTriangle);
-            
+            if (showTriangle) {
+                $selectionTriangle.addClass("triangle-visible");
+            } else {
+                $selectionTriangle.removeClass("triangle-visible");
+            }
+                
             var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
                 triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
             

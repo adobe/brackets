@@ -321,9 +321,16 @@ define(function (require, exports, module) {
 
         // Set icon's class
         if ($fileStatusIcon) {
-            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
+            if (isDirty) {
+                $fileStatusIcon.addClass("dirty");
+            } else {
+                $fileStatusIcon.removeClass("dirty");
+            }
+            if (canClose) {
+                $fileStatusIcon.addClass("can-close");
+            } else {
+                $fileStatusIcon.removeClass("can-close");
+            }
         }
     }
     
@@ -336,8 +343,11 @@ define(function (require, exports, module) {
     function _updateListItemSelection(listItem, selectedDoc) {
         var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
         
-        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
+        if (shouldBeSelected) {
+            $(listItem).addClass("selected");
+        } else {
+            $(listItem).removeClass("selected");
+        }
     }
 
     function isOpenAndDirty(file) {

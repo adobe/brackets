@@ -208,14 +208,14 @@ define(function (require, exports, module) {
         var $previousItem = (this._selectedRangeIndex >= 0) ? this._ranges[this._selectedRangeIndex].$listItem : null;
         
         if ($previousItem) {
-            $previousItem.toggleClass("selected", false);
+            $previousItem.removeClass("selected");
         }
         
         this._selectedRangeIndex = newIndex;
         
         var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
-        this._ranges[this._selectedRangeIndex].$listItem.toggleClass("selected", true);
+        this._ranges[this._selectedRangeIndex].$listItem.addClass("selected");
 
         // Remove previous editors
         this.editors.forEach(function (editor) {

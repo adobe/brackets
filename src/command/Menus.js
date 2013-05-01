@@ -698,7 +698,11 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+            if (this._command.getEnabled()) {
+                $(_getHTMLMenuItem(this.id)).removeClass("disabled");
+            } else {
+                $(_getHTMLMenuItem(this.id)).addClass("disabled");
+            }
         }
     };
 
