@@ -504,7 +504,6 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    spyOn(editor.document, "getText").andCallThrough();
                     instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
                     elementCount = getIdToTagMap(instrumentedHTML, elementIds);
                 });
