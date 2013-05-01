@@ -284,9 +284,7 @@ define(function (require, exports, module) {
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
 
-        // only handles "url()" (i.e. not new) value
-        // TODO: handle "@import url();"
-        if ((this.info.context !== CSSUtils.PROP_VALUE) || this.info.isNewItem) {
+        if ((this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) || this.info.isNewItem) {
             return false;
         }
 
@@ -395,20 +393,22 @@ define(function (require, exports, module) {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
             var context = this.info.context;
-            if (context !== CSSUtils.PROP_VALUE) {
+            if (context !== CSSUtils.PROP_VALUE && context !== CSSUtils.IMPORT_URL) {
                 return null;
             }
 
             // Cursor is in an existing property value or partially typed value
             if (!this.info.isNewItem && this.info.index !== -1) {
-                query.queryStr = this.info.values[this.info.index].trim();
-                query.queryStr = query.queryStr.substr(0, this.info.offset);
 
-                // bit of a hack for now...
-                if (query.queryStr === "(" && this.info.index === 1 &&
-                        this.info.values[0].toLowerCase() === "url") {
-                    query.queryStr = "";
+                // Collect value up to (item) index/(char) offset
+                var i, val = "";
+                for (i = 0; i < this.info.index; i++) {
+                    val += this.info.values[i];
                 }
+                val += this.info.values[this.info.index].substr(0, this.info.offset);
+
+                // Strip "url(" to get query string
+                query.queryStr = val.replace(/^url\(/i, "");
             }
 
         } else {
@@ -480,7 +480,7 @@ define(function (require, exports, module) {
             start = {line: -1, ch: -1},
             end = {line: -1, ch: -1};
 
-        if (this.info.context !== CSSUtils.PROP_VALUE) {
+        if (this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) {
             return false;
         }
 
