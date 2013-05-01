@@ -414,11 +414,13 @@ define(function (require, exports, module) {
             offset = 0;
         }
         
-        // Get value after cursor
+        // Get value after cursor up until closing paren or newline
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
-        if (TokenUtils.moveNextToken(forwardCtx)) {
-            propValues[0] += forwardCtx.token.string;
-        }
+        do {
+            if (TokenUtils.moveNextToken(forwardCtx)) {
+                propValues[0] += forwardCtx.token.string;
+            }
+        } while (forwardCtx.token.string !== ")" && forwardCtx.token.string !== "");
         
         return createInfo(IMPORT_URL, offset, "", index, propValues, false);
     }
