@@ -56,19 +56,19 @@ define(function (require, exports, module) {
         }
             
         it("should show hints when in Text in paragraph", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 2, ch: 9});
+            testEditorAndDoc.editor.setCursorPos({line: 7, ch: 17});
 
             expectHints(hintProvider);
         });
         
         it("should show hints when another entity is in the same line", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 7, ch: 15});
+            testEditorAndDoc.editor.setCursorPos({line: 12, ch: 23});
 
             expectHints(hintProvider);
         });
         
         it("should show hints when cursor inside entity", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 12, ch: 11});
+            testEditorAndDoc.editor.setCursorPos({line: 17, ch: 19});
 
             var hints = expectHints(hintProvider);
             expect(hints).toEqual(["&amp;acirc; <span class='entity-display-character'>&acirc;</span>",
@@ -76,19 +76,47 @@ define(function (require, exports, module) {
         });
         
         it("shouldn't show hints when inside an opening tag", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 16, ch: 3});
+            testEditorAndDoc.editor.setCursorPos({line: 21, ch: 11});
 
             expectNoHints(hintProvider);
         });
         
         it("shouldn't show hints when inside a closing tag", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 19, ch: 7});
+            testEditorAndDoc.editor.setCursorPos({line: 24, ch: 15});
 
             expectNoHints(hintProvider);
         });
         
         it("should show hints when semi-colon on the same line", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 23, ch: 13});
+            testEditorAndDoc.editor.setCursorPos({line: 28, ch: 21});
+
+            expectHints(hintProvider);
+        });
+        
+        it("shouldn't show hints in attribute name", function () {
+            testEditorAndDoc.editor.setCursorPos({line: 32, ch: 12});
+
+            expectNoHints(hintProvider);
+        });
+        
+        it("shouldn't show hints in attribute value", function () {
+            testEditorAndDoc.editor.setCursorPos({line: 35, ch: 19});
+
+            expectNoHints(hintProvider);
+        });
+        
+        it("shouldn't show hints in url", function () {
+            testEditorAndDoc.editor.setCursorPos({line: 38, ch: 78});
+
+            expectNoHints(hintProvider);
+        });
+        
+        it("should show multiple hints in the same line", function () {
+            testEditorAndDoc.editor.setCursorPos({line: 41, ch: 17});
+
+            expectHints(hintProvider);
+            
+            testEditorAndDoc.editor.setCursorPos({line: 41, ch: 29});
 
             expectHints(hintProvider);
         });
@@ -99,19 +127,19 @@ define(function (require, exports, module) {
             });
             
             it("should replace entity with hint if inside entity", function () {
-                testEditorAndDoc.editor.setCursorPos({line: 12, ch: 11});
+                testEditorAndDoc.editor.setCursorPos({line: 17, ch: 19});
 
                 var hints = expectHints(hintProvider);
                 hintProvider.insertHint(hints[0]);
-                expect(testEditorAndDoc.editor.document.getRange({line: 12, ch: 8}, {line: 12, ch: 15})).toEqual("&acirc;");
+                expect(testEditorAndDoc.editor.document.getRange({line: 17, ch: 16}, {line: 17, ch: 23})).toEqual("&acirc;");
             });
             
             it("should place cursor at the end of the replaced entity", function () {
-                testEditorAndDoc.editor.setCursorPos({line: 12, ch: 11});
+                testEditorAndDoc.editor.setCursorPos({line: 17, ch: 19});
 
                 var hints = expectHints(hintProvider);
                 hintProvider.insertHint(hints[0]);
-                expect(testEditorAndDoc.editor.getCursorPos()).toEqual({line: 12, ch: 15});
+                expect(testEditorAndDoc.editor.getCursorPos()).toEqual({line: 17, ch: 23});
             });
         });
     });
