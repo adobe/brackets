@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, Mustache */
 
 /**
  * JSDocument manages a single JavaScript source document
@@ -46,56 +46,127 @@ define(function JSDocumentModule(require, exports, module) {
     "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
     var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
     var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var DocumentManager = require("document/DocumentManager");
+    var EditorManager = require("editor/EditorManager");
+    var JSInstrumentation = require("language/JSInstrumentation");
+    var MarkedTextTracker = require("utils/MarkedTextTracker");
+    
+    var functionUpdateTemplate = Mustache.compile(require("text!language/js-function-update.txt"));
+    
+    var RANGE_MARK_TYPE = "jsFunctionID";
 
     /** Constructor
      *
      * @param {Document} the source document
      */
     var JSDocument = function JSDocument(doc, editor) {
-        if (!editor) {
-            return;
-        }
         this.doc = doc;
-        this.editor = editor;
+        this._instrumentationEnabled = false;
+        this._instrumentedText = null;
+
         this.onHighlight = this.onHighlight.bind(this);
+        this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(HighlightAgent).on("highlight", this.onHighlight);
-        $(this.editor).on("change", this.onChange);
-        $(this.editor).on("cursorActivity", this.onCursorActivity);
-        this.onCursorActivity();
+        this.onDocumentSaved = this.onDocumentSaved.bind(this);
+
+        $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
+        this.onActiveEditorChange(null, editor);
+
+        if (LiveDevelopment.config.experimental) {
+            $(HighlightAgent).on("highlight", this.onHighlight);
+        }
+    };
+    
+    /**
+     * Instrument the current document and cache the instrumented text.
+     */
+    JSDocument.prototype._reinstrument = function () {
+        var ranges = [];
+        this._instrumentedText = JSInstrumentation.instrument(this.doc.getText(), ranges);
+        if (this.editor) {
+            MarkedTextTracker.markText(this.editor, ranges, RANGE_MARK_TYPE);
+        }
+    };
+
+    /**
+     * Enable instrumented HTML
+     * @param enabled {boolean} 
+     */
+    JSDocument.prototype.setInstrumentationEnabled = function setInstrumentationEnabled(enabled) {
+        if (enabled && !this._instrumentationEnabled) {
+            this._reinstrument();
+        }
+        
+        this._instrumentationEnabled = enabled;
+    };
+    
+    /**
+     * Returns a JSON object with HTTP response overrides
+     * @returns {{body: string}}
+     */
+    JSDocument.prototype.getResponseData = function getResponseData(enabled) {
+        var body = (this._instrumentationEnabled) ? this._instrumentedText : this.doc.getText();
+        return {
+            body: body
+        };
     };
 
     /** Close the document */
     JSDocument.prototype.close = function close() {
-        if (!this.editor) {
-            return;
+        $(EditorManager).off("activeEditorChange", this.onActiveEditorChange);
+
+        if (this.editor) {
+            $(this.editor).off("change", this.onChange);
+            $(DocumentManager).off("documentSaved", this.onDocumentSaved);
         }
-        $(HighlightAgent).off("highlight", this.onHighlight);
-        $(this.editor).off("change", this.onChange);
-        $(this.editor).off("cursorActivity", this.onCursorActivity);
-        this.onHighlight();
+        
+        if (LiveDevelopment.config.experimental) {
+            $(HighlightAgent).off("highlight", this.onHighlight);
+            this.onHighlight();
+        }
     };
 
-    JSDocument.prototype.script = function script() {
-        return ScriptAgent.scriptForURL(this.doc.url);
-    };
+//    JSDocument.prototype.script = function script() {
+//        return ScriptAgent.scriptForURL(this.doc.url);
+//    };
 
 
     /** Event Handlers *******************************************************/
 
-    /** Triggered on cursor activity by the editor */
-    JSDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+    /** Triggered when the current editor changes. */
+    JSDocument.prototype.onActiveEditorChange = function (event, editor) {
+        if (this.editor) {
+            $(this.editor).off("change", this.onChange);
+            $(DocumentManager).off("documentSaved", this.onDocumentSaved);
+        }
+        if (editor && (editor.document === this.doc)) {
+            this.editor = editor;
+            $(this.editor).on("change", this.onChange);
+            $(DocumentManager).on("documentSaved", this.onDocumentSaved);
+            this._reinstrument();
+        }
     };
-
+    
     /** Triggered on change by the editor */
     JSDocument.prototype.onChange = function onChange(event, editor, change) {
-        var src = this.doc.getText();
-        Inspector.Debugger.setScriptSource(this.script().scriptId, src, function onSetScriptSource(res) {
-            Inspector.Runtime.evaluate("if($)$(\"canvas\").each(function(i,e){if(e.rerender)e.rerender()})");
-        }.bind(this));
+        var range = MarkedTextTracker.getRangeAtDocumentPos(editor, editor.getCursorPos(), RANGE_MARK_TYPE);
+        if (range) {
+            var fnSrc = editor._codeMirror.getRange(range.start, range.end),
+                fnBody = JSInstrumentation.getFunctionBody(fnSrc);
+            Inspector.Runtime.evaluate(functionUpdateTemplate({
+                id: range.data,
+                escapedBody: JSInstrumentation.escapeJS(fnBody)
+            }));
+        }
+        
+// Old way
+//        var src = this.doc.getText();
+//        Inspector.Debugger.setScriptSource(this.script().scriptId, src, function onSetScriptSource(res) {
+//            Inspector.Runtime.evaluate("if($)$(\"canvas\").each(function(i,e){if(e.rerender)e.rerender()})");
+//        }.bind(this));
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
@@ -121,6 +192,13 @@ define(function JSDocumentModule(require, exports, module) {
                 codeMirror.addLineClass(line, "wrap", "highlight");
                 this._highlight.push(line);
             }
+        }
+    };
+
+    /** Triggered when a document is saved */
+    JSDocument.prototype.onDocumentSaved = function onDocumentSaved(event, doc) {
+        if (doc === this.doc) {
+            this._reinstrument();
         }
     };
 

@@ -264,11 +264,11 @@ define(function (require, exports, module) {
      * @return {number} tagID at the specified position, or -1 if there is no tag
      */
     function _getTagIDAtDocumentPos(editor, pos) {
-        var result = MarkedTextTracker.getDataAtDocumentPos(editor, pos, "htmlTagID");
+        var result = MarkedTextTracker.getRangeAtDocumentPos(editor, pos, "htmlTagID");
         if (result === null) {
             return -1;
         } else {
-            return result;
+            return result.data;
         }
     }
     

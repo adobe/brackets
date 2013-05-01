@@ -138,7 +138,7 @@
         
         function rewrite(req, res, next) {
             var location = {pathname: parse(req).pathname},
-                hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
+                hasListener = _rewritePaths[pathKey] && (_rewritePaths[pathKey][location.pathname] || _rewritePaths[pathKey]["*"]),
                 timeoutId;
             
             // ignore most HTTP methods and files that we're not watching
@@ -283,6 +283,7 @@
     /**
      * @private
      * Defines a set of paths from a server's root path to watch and fire "request" events for.
+     * If one of the paths is "*", then all paths are requested.
      *
      * @param {string} path The absolute path whose server we should watch
      * @param {Array.<string>} paths An array of root-relative paths to watch.
@@ -297,7 +298,11 @@
         _rewritePaths[pathKey] = rewritePaths;
         
         paths.forEach(function (path) {
-            rewritePaths[path] = pathJoin(root, path);
+            if (path === "*") {
+                rewritePaths["*"] = true;
+            } else {
+                rewritePaths[path] = pathJoin(root, path);
+            }
         });
     }
     

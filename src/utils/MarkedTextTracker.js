@@ -73,16 +73,18 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Get the data from the marked range of the given type surrounding the specified position. 
+     * Get the marked range of the given type surrounding the specified position. 
      * Returns null if there is no marked range of that type surrounding the location.
      * The markText() function must be called before calling this function.
      *
      * @param {Editor} editor The editor to scan. 
      * @param {{line: number, ch: number}} pos The position to find the range for.
      * @param {string} type The type of range to search for, as passed into markText().
-     * @return {number} tagID at the specified position, or null if there is no tag
+     * @return {{start: {line: number, ch: number}, end: {line: number, ch: number}, data: object}}
+     *     The CodeMirror-style offsets to the current start and end of the marked range, along with the
+     *     data originally passed into markText() for this range.
      */
-    function getDataAtDocumentPos(editor, pos, type) {
+    function getRangeAtDocumentPos(editor, pos, type) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
@@ -111,12 +113,19 @@ define(function (require, exports, module) {
         }
         
         if (match) {
-            return match[type];
+            var loc = match.find();
+            if (loc) {
+                return {
+                    start: loc.from,
+                    end: loc.to,
+                    data: match[type]
+                };
+            }
         }
         
         return null;
     }
     
     exports.markText = markText;
-    exports.getDataAtDocumentPos = getDataAtDocumentPos;
+    exports.getRangeAtDocumentPos = getRangeAtDocumentPos;
 });

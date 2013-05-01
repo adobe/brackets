@@ -84,7 +84,8 @@ define(function LiveDevelopment(require, exports, module) {
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils");
+        StringUtils          = require("utils/StringUtils"),
+        CollectionUtils      = require("utils/CollectionUtils");
 
     // Inspector
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
@@ -249,7 +250,7 @@ define(function LiveDevelopment(require, exports, module) {
         case "css":
             return CSSDocument;
         case "javascript":
-            return exports.config.experimental ? JSDocument : null;
+            return JSDocument;
         }
 
         if (_isHtmlFileExt(doc.extension)) {
@@ -329,7 +330,20 @@ define(function LiveDevelopment(require, exports, module) {
     function _createDocument(doc, editor) {
         var DocClass = _classForDocument(doc);
         if (DocClass) {
-            return new DocClass(doc, editor);
+            var liveDoc = new DocClass(doc, editor);
+
+            // Enable instrumentation
+            if (liveDoc.setInstrumentationEnabled) {
+                var enableInstrumentation = false;
+                
+                if (_serverProvider && _serverProvider.setRequestFilterPaths) {
+                    enableInstrumentation = true;
+                }
+                    
+                liveDoc.setInstrumentationEnabled(enableInstrumentation);
+            }
+            
+            return liveDoc;
         } else {
             return null;
         }
@@ -343,28 +357,6 @@ define(function LiveDevelopment(require, exports, module) {
     function _openDocument(doc, editor) {
         _closeDocument();
         _liveDocument = _createDocument(doc, editor);
-        
-        // Enable instrumentation
-        if (_liveDocument && _liveDocument.setInstrumentationEnabled) {
-            var enableInstrumentation = false;
-            
-            if (_serverProvider && _serverProvider.setRequestFilterPaths) {
-                enableInstrumentation = true;
-                
-                _serverProvider.setRequestFilterPaths(
-                    ["/" + encodeURI(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))]
-                );
-                
-                // Send custom HTTP response for the current live document
-                $(_serverProvider).on("request.livedev", function (event, request) {
-                    // response can be null in which case the StaticServerDomain reverts to simple file serving.
-                    var response = _liveDocument.getResponseData ? _liveDocument.getResponseData() : null;
-                    request.send(response);
-                });
-            }
-                
-            _liveDocument.setInstrumentationEnabled(enableInstrumentation);
-        }
     }
     
     /**
@@ -399,9 +391,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         // Gather related CSS documents.
-        // FUTURE: Gather related JS documents as well.
-        _relatedDocuments = [];
-        
         return Async.doInParallel(agents.css.getStylesheetURLs(),
                                   createLiveStylesheet,
                                   false); // don't fail fast
@@ -638,6 +627,52 @@ define(function LiveDevelopment(require, exports, module) {
             _setStatus(STATUS_CONNECTING);
             
             _openDocument(doc, EditorManager.getCurrentFullEditor());
+        
+            _relatedDocuments = [];
+            if (_serverProvider && _serverProvider.setRequestFilterPaths) {
+                _serverProvider.setRequestFilterPaths(["*"]);
+                
+                // Send custom HTTP response for the current main live document and any JS document
+                $(_serverProvider).on("request.livedev", function (event, request) {
+                    var deferred = new $.Deferred(),
+                        requestPath = ProjectManager.getProjectRoot().fullPath + request.location.pathname;
+                    
+                    if (requestPath === _liveDocument.doc.file.fullPath) {
+                        deferred.resolve(_liveDocument);
+                    } else {
+                        var index = CollectionUtils.indexOf(_relatedDocuments, function (relatedDoc) {
+                            return requestPath === relatedDoc.doc.file.fullPath;
+                        });
+                        if (index !== -1) {
+                            deferred.resolve(_relatedDocuments[index]);
+                        } else {
+                            DocumentManager.getDocumentForPath(requestPath)
+                                .done(function (openedDoc) {
+                                    var newLiveDoc = _createDocument(openedDoc);
+                                    if (newLiveDoc) {
+                                        _relatedDocuments.push(newLiveDoc);
+                                        deferred.resolve(newLiveDoc);
+                                    } else {
+                                        deferred.reject();
+                                    }
+                                })
+                                .fail(function () {
+                                    deferred.reject();
+                                });
+                        }
+                    }
+                    
+                    // response can be null in which case the StaticServerDomain reverts to simple file serving.
+                    deferred
+                        .done(function (liveDoc) {
+                            var response = (liveDoc && liveDoc.getResponseData) ? liveDoc.getResponseData() : null;
+                            request.send(response);
+                        })
+                        .fail(function () {
+                            request.send(null);
+                        });
+                });
+            }
 
             Inspector.connectToURL(launcherUrl).done(result.resolve).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {

@@ -1,0 +1,2 @@
+window.__bkld_fndefs = window.__bkld_fndefs || {},
+window.__bkld_fndefs[{{id}}] = 'function() { {{{escapedBody}}} }'

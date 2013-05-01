@@ -24,13 +24,13 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global define, $, Mustache */
-/*unittests: LiveJS */
+/*unittests: JSInstrumentation */
 
 define(function (require, exports, module) {
     "use strict";
     
     var acorn = require("extensions/default/JavaScriptCodeHints/thirdparty/acorn/acorn"),
-        functionInstrText = require("text!LiveDevelopment/Documents/js-function-instr.txt"),
+        functionInstrText = require("text!language/js-function-instr.txt"),
         functionInstrTemplate = Mustache.compile(functionInstrText);
     
     var _nextId = 0;
@@ -189,9 +189,14 @@ define(function (require, exports, module) {
      *     Ranges are not guaranteed to be sorted.
      * @param {Object=} root If specified, an already-parsed root node within the given source. If not specified, will
      *     parse the entire given src (and expect that it contains exactly one function).
+     * @param {boolean=} resetId If false, will not reset the starting function ID to 0. Default true.
      * @return {string} The instrumented function.
      */
-    function instrumentFunction(src, rangeList, root) {
+    function instrumentFunction(src, rangeList, root, resetId) {
+        if (resetId !== false) {
+            _nextId = 0;
+        }
+
         root = root || acorn.parse(src, {locations: true});
 
         var functionNode = findFirst(root, ["FunctionDeclaration", "FunctionExpression"]),
@@ -204,7 +209,7 @@ define(function (require, exports, module) {
         if (functionBodyNode.body && Array.isArray(functionBodyNode.body) && functionBodyNode.body.length) {
             functionBodyStart = functionBodyNode.body[0].loc.start;
             functionBodyEnd = functionBodyNode.body[functionBodyNode.body.length - 1].loc.end;
-            functionBody = instrument(src, rangeList, functionBodyNode.body);
+            functionBody = instrument(src, rangeList, functionBodyNode.body, false);
         } else {
             // empty body, assume we have to bump in from the outer body boundaries for the braces
             functionBodyStart = functionBodyNode.loc.start + 1;
@@ -226,6 +231,7 @@ define(function (require, exports, module) {
             getSourceFromRange(src, functionBodyEnd, root.loc.end);
     }
     
+    // *** TODO: different files should have different IDs (disambiguate with prefix)
     /**
      * Instruments the functions in a JS file.
      * @param {string} src The source of the file.
@@ -235,11 +241,16 @@ define(function (require, exports, module) {
      *     Ranges are not guaranteed to be sorted.
      * @param {Object|Array=} root If specified, an already-parsed root node or array of nodes within the given
      *     source. If not specified, will parse the entire given src.
+     * @param {boolean=} resetId If false, will not reset the starting function ID to 0. Default true.
      * @return {string} The instrumented source.
      */
     
     //var _indent = 0;
-    function instrument(src, rangeList, root) {
+    function instrument(src, rangeList, root, resetId) {
+        if (resetId !== false) {
+            _nextId = 0;
+        }
+        
         root = root || acorn.parse(src, {locations: true});
         
         // Confusing: source positions in acorn are line/column with a 1-based line, whereas positions
@@ -263,7 +274,7 @@ define(function (require, exports, module) {
                 });
             } else if (node.type === "FunctionDeclaration" || node.type === "FunctionExpression") {
                 instrumented += getSourceFromRange(src, srcPos, node.loc.start) +
-                    instrumentFunction(src, rangeList, node);
+                    instrumentFunction(src, rangeList, node, false);
                 srcPos = node.loc.end;
             } else {
                 walk(getChildNodes(node));
@@ -289,11 +300,35 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
-     * Resets the next function ID counter. For unit testing only.
+     * Escapes the given JavaScript source so that it can be stored in a string which is later eval'ed.
+     * @param {string} src The source to escape.
+     * @return {string} The escaped source.
      */
-    function _resetId() {
-        _nextId = 0;
+    function escapeJS(src) {
+        return src
+            .replace(/\\/g, "\\\\")
+            .replace(/"/g, "\\\"")
+            .replace(/'/g, "\\'")
+            .replace(/\n/g, "\\n");
+    }
+    
+    /**
+     * Given the source of a function, returns the function's body.
+     * @param {string} src The function source.
+     * @param {string} The body of the function.
+     */
+    function getFunctionBody(src) {
+        var root = acorn.parse(src, {locations: true}),
+            fn = findFirst(root, ["FunctionDeclaration", "FunctionExpression"]);
+        // The "body" child of the function is a block statement; the actual statements within the block are
+        // in fn.body.body.
+        if (fn && fn.body && fn.body.body) {
+            var statements = fn.body.body;
+            if (Array.isArray(statements) && statements.length) {
+                return getSourceFromRange(src, statements[0].loc.start, statements[statements.length - 1].loc.end);
+            }
+        }
+        return "";
     }
     
     /**
@@ -316,11 +351,12 @@ define(function (require, exports, module) {
     
     exports.instrumentFunction = instrumentFunction;
     exports.instrument = instrument;
+    exports.escapeJS = escapeJS;
+    exports.getFunctionBody = getFunctionBody;
     
     // for unit testing
     exports.findFirst = findFirst;
     exports.getSourceFromRange = getSourceFromRange;
-    exports._resetId = _resetId;
     exports._getFunctionTemplate = _getFunctionTemplate;
     exports._setFunctionTemplate = _setFunctionTemplate;
 });

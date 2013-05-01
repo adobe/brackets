@@ -9,6 +9,7 @@ var someVar = 1;
 someVar = 2;
 
 {{2}}function callAnother() {
+    var letsHaveAnotherStatement = 1;
     console.log('Called another');
 }{{3}}
 
@@ -29,6 +30,7 @@ someVar = 2;
 function callAnother() {
     // id = 1
     // before body
+    var letsHaveAnotherStatement = 1;
     console.log('Called another');
     // after body
 }

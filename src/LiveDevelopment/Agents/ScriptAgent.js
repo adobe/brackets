@@ -116,6 +116,14 @@ define(function ScriptAgent(require, exports, module) {
         }
 
     }
+    
+    /** Return the URLs of all the scripts that have been loaded */
+    function getScriptURLs() {
+        if (_urlToScript) {
+            return Object.keys(_urlToScript);
+        }
+        return [];
+    }
 
     /** Initialize the agent */
     function load() {
@@ -151,6 +159,7 @@ define(function ScriptAgent(require, exports, module) {
     // Export public functions
     exports.scriptWithId = scriptWithId;
     exports.scriptForURL = scriptForURL;
+    exports.getScriptURLs = getScriptURLs;
     exports.load = load;
     exports.unload = unload;
 });
