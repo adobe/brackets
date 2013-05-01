@@ -929,7 +929,7 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
-        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open").find("ul").dropdown("toggle");
+        $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open").dropdown("toggle");
     };
 
     /**
