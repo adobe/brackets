@@ -182,7 +182,7 @@ define(function (require, exports, module) {
                 cmenu.close();
 
                 // verify all dropdowns are closed
-                $menus = testWindow.$(".dropdown.open");
+                $menus = testWindow.$(".dropdown.open");console.log(testWindow.$(".dropdown.open"));
                 expect($menus.length).toBe(0);
             });
 
