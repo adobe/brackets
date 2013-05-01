@@ -26,7 +26,7 @@
 /*unittests: FindReplace*/
 
 
-/*
+/**
  * Adds Find and Replace commands
  *
  * Originally based on the code in CodeMirror2/lib/util/search.js.
@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
-        ModalBar            = require("widgets/ModalBar").ModalBar;
+        ModalBar            = require("widgets/ModalBar").ModalBar,
+        ScrollTrackMarkers  = require("search/ScrollTrackMarkers");
     
     var modalBar,
         isFindFirst = false;
@@ -120,7 +121,7 @@ define(function (require, exports, module) {
             });
         });
         state.marked.length = 0;
-        $("#pfpf").empty();
+        ScrollTrackMarkers.clear(cm);
     }
 
     function clearSearch(cm) {
@@ -157,16 +158,6 @@ define(function (require, exports, module) {
     
 
     
-    var scrollHt;
-    var scrollOffset;
-    var sbHt;
-    
-    // other TODOs:
-    //  - quick go-to-def for items of the form Modile.foo by reading imports to find Module's path
-    //      (or failing that, making inferences for blah.foo by finding a module that "blah" is a case-insensitive prefix of,
-    //       e.g. editor, doc, document)
-    //  - JsDoc popup based on same principles
-    
     function toggleHighlighting(editor, enabled) {
         if (enabled) {
             if ($(editor.getRootElement()).hasClass("find-highlighting")) {
@@ -175,39 +166,18 @@ define(function (require, exports, module) {
             
             // Temporarily change selection color to improve highlighting - see LESS code for details
             $(editor.getRootElement()).addClass("find-highlighting");
-            
-            // TODO: inline editor case must work differently...
-            // TODO: what if no v scrollbar?
-            // TODO: what if window resized while Find is active?
-            var $sb = $(".CodeMirror-vscrollbar", editor.getRootElement());
-            var $overlay = $("<div id='pfpf' style='position:absolute;bottom:0px;top:0px;right:0px;width:16px;z-index:7;pointer-events:none'></div>");
-            $sb.parent().append($overlay);
-            
-            scrollHt = $sb[0].scrollHeight;
-            sbHt = $sb[0].offsetHeight;
-            
-            scrollOffset = 17;
-            sbHt -= scrollOffset * 2;
-            
         } else {
             $(editor.getRootElement()).removeClass("find-highlighting");
-            
-            $("#pfpf").remove();
         }
+        
+        ScrollTrackMarkers.setVisible(editor, enabled);
     }
     
     function addHighlight(editor, state, cursor) {
         var cm = editor._codeMirror;
         state.marked.push(cm.markText(cursor.from(), cursor.to(), { className: "CodeMirror-searching" }));
         
-        var pos = Math.round(cursor.from().line / editor.lineCount() * sbHt) + scrollOffset;
-        // TODO: pos -= tickmarkHt/2;
-        
-//        var style = "height:3px;background-color:#eddd23;";
-//        var style = "height:1px;background-color:#eddd23;border:1px solid #d4c620";
-        var style = "height:1px;background-color:#eddd23;border-top:1px solid #e0d123;border-bottom:1px solid #d4c620;opacity:0.85";
-        
-        $("#pfpf").append("<div style='position:absolute;top:" + pos + "px;width:16px;pointer-events:auto;cursor:pointer;" + style + "'></div>");
+        ScrollTrackMarkers.addTickmark(editor, cursor.from());
     }
 
     /**

@@ -774,6 +774,29 @@ a, img {
     font-weight: bold;
 }
 
+.tickmark-track {
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    right: 0;
+    width: 16px;
+    z-index: @z-index-cm-max;
+    pointer-events: none;
+    
+    .tickmark {
+        position: absolute;
+        width: 16px;
+        pointer-events: auto;
+        cursor: pointer;
+        
+        height: 1px;
+        background-color: #eddd23;
+        border-top: 1px solid #e0d123;
+        border-bottom: 1px solid #d4c620;
+        opacity: 0.85;  // allow thumb to show through
+    }
+}
+
 
 /* Quick Open search bar & dropdown */
 
