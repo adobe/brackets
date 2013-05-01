@@ -53,7 +53,6 @@ define(function (require, exports, module) {
         cachedToken  = null,  // the token used in the current hinting session
         matcher      = null;  // string matcher for hints
 
-
     /**
      *  Get the value of current session.
      *  Used for unit testing.
@@ -392,14 +391,17 @@ define(function (require, exports, module) {
          * information, and reject any pending deferred requests.
          * 
          * @param {Editor} editor - editor context to be initialized.
+         * @param {boolean} primePump - true if the pump should be primed.
          */
-        function initializeSession(editor) {
+        function initializeSession(editor, primePump) {
             ScopeManager.handleEditorChange(editor.document);
             session = new Session(editor);
             cachedHints = null;
 
             // prime pump for hints so the first user request is fast
-            ScopeManager.requestHints(session, session.editor.document, 0);
+            if (primePump) {
+                ScopeManager.requestHints(session, session.editor.document, 0);
+            }
         }
 
         /*
@@ -415,7 +417,7 @@ define(function (require, exports, module) {
             cachedType = null;
 
             if (editor && editor.getLanguageForSelection().getId() === HintUtils.LANGUAGE_ID) {
-                initializeSession(editor);
+                initializeSession(editor, true);
                 $(editor)
                     .on(HintUtils.eventName("change"), function () {
                         ScopeManager.handleFileChange(editor.document);
