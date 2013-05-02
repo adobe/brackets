@@ -128,13 +128,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Sprache wechseln",
-    "LANGUAGE_MESSAGE"                  : "Sprache:",
-    "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
-    "LANGUAGE_CANCEL"                   : "Abbrechen",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
 
     /**
      * ProjectManager
@@ -229,15 +222,13 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
-    "CMD_ENABLE_HOVER_PREVIEW"            : "Hover-Vorschau aktivieren",
+    "CMD_ENABLE_QUICK_VIEW"               : "Hover-Vorschau aktivieren",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Gehe zur Definition",
-    "CMD_JUMPTO_DEFINITION"               : "Springe zur Definition",
-    "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
@@ -245,20 +236,6 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
-    
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} neu laden",
-    "CMD_SHOW_DEV_TOOLS"                  : "Entwicklungswerkzeuge zeigen",
-    "CMD_RUN_UNIT_TESTS"                  : "Tests durchführen",
-    "CMD_JSLINT"                          : "JSLint aktivieren",
-    "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
-    "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Node-Debugger aktivieren",
-    "CMD_LOG_NODE_STATE"                  : "Node-Status in Konsole anzeigen",
-    "CMD_RESTART_NODE"                    : "Node neu starten",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -267,6 +244,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
     "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
 
@@ -343,14 +321,26 @@ define({
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Brackets-Erweiterungen. Bitte später erneut probieren.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
-
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "JSLint-Fehler",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
-    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
-    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
-
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
+    "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
+    "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
+    "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
+    "CMD_SHOW_PERF_DATA"                        : "Performance-Analyse",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
+    "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
+    "CMD_RESTART_NODE"                          : "Node neu starten",
+    
+    "LANGUAGE_TITLE"                            : "Sprache wechseln",
+    "LANGUAGE_MESSAGE"                          : "Sprache:",
+    "LANGUAGE_SUBMIT"                           : "{APP_NAME} neu starten",
+    "LANGUAGE_CANCEL"                           : "Abbrechen",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original-Farbe",
@@ -359,6 +349,18 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "JSLint aktivieren",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Gehe zu erstem JSLint-Fehler",
+    "JSLINT_ERRORS"                             : "JSLint-Fehler",
+    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint-Fehler",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                          : "Keine JSLint-Fehler – gute Arbeit!",
+    "JSLINT_DISABLED"                           : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"

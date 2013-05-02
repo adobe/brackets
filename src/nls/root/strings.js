@@ -150,7 +150,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
     "STATUSBAR_SPACES"                      : "Spaces",
     "STATUSBAR_TAB_SIZE"                    : "Tab Size",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Line",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -220,13 +221,12 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatic Sort",
-    "CMD_ENABLE_HOVER_PREVIEW"            : "Enable Hover Preview",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
-    "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
+    "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
@@ -272,6 +272,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
@@ -360,7 +361,7 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
     
     // extensions/default/JavaScriptCodeHints
-    "CMD_GOTO_DEFINITION"                       : "Go to Definition",
+    "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "Enable JSLint",
@@ -370,6 +371,9 @@ define({
     "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint Errors",
     "JSLINT_NO_ERRORS"                          : "No JSLint errors - good job!",
     "JSLINT_DISABLED"                           : "JSLint disabled or not working for the current file",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Read more"

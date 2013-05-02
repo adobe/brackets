@@ -56,7 +56,6 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     
-    
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
     // extensions need these to be required up front. We need a better solution for this eventually.
     require("utils/ExtensionUtils");
@@ -64,12 +63,18 @@ define(function (require, exports, module) {
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
+
+    // Load JUnitXMLReporter
+    require("test/thirdparty/jasmine-reporters/jasmine.junit_reporter");
     
     var selectedSuites,
-        params = new UrlParams(),
+        params                  = new UrlParams(),
         reporter,
         _nodeConnectionDeferred = new $.Deferred(),
-        reporterView;
+        reporterView,
+        _writeResults           = new $.Deferred(),
+        _writeResultsPromise    = _writeResults.promise(),
+        resultsPath;
     
     /**
      * @const
@@ -79,7 +84,9 @@ define(function (require, exports, module) {
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
+    // parse URL parameters
     params.parse();
+    resultsPath = params.get("resultsPath");
     
     function _loadExtensionTests() {
         // augment jasmine to identify extension unit tests
@@ -135,37 +142,70 @@ define(function (require, exports, module) {
         
         jasmine.getEnv().execute();
     }
-    
-    /**
-     * Listener for UnitTestReporter "runnerEnd" event. Attached only if
-     * "resultsPath" URL parameter exists. Does not overwrite existing file.
-     * Writes UnitTestReporter spec results as formatted JSON.
-     * @param {!$.Event} event
-     * @param {!UnitTestReporter} reporter
-     */
-    function _runnerEndHandler(event, reporter) {
-        var resultsPath = params.get("resultsPath"),
-            json = reporter.toJSON(),
-            deferred = new $.Deferred();
-        
+
+    function writeResults(path, text) {
         // check if the file already exists
-        brackets.fs.stat(resultsPath, function (err, stat) {
+        brackets.fs.stat(path, function (err, stat) {
             if (err === brackets.fs.ERR_NOT_FOUND) {
-                // file not found, write the new file with JSON content
-                brackets.fs.writeFile(resultsPath, json, NativeFileSystem._FSEncodings.UTF8, function (err) {
+                // file not found, write the new file with xml content
+                brackets.fs.writeFile(path, text, NativeFileSystem._FSEncodings.UTF8, function (err) {
                     if (err) {
-                        deferred.reject();
+                        _writeResults.reject();
                     } else {
-                        deferred.resolve();
+                        _writeResults.resolve();
                     }
                 });
             } else {
                 // file exists, do not overwrite
-                deferred.reject();
+                _writeResults.reject();
             }
         });
+    }
+    
+    /**
+     * Listener for UnitTestReporter "runnerEnd" event. Attached only if
+     * "resultsPath" URL parameter exists. Does not overwrite existing file.
+     * 
+     * @param {!$.Event} event
+     * @param {!UnitTestReporter} reporter
+     */
+    function _runnerEndHandler(event, reporter) {
+        if (resultsPath && resultsPath.substr(-5) === ".json") {
+            writeResults(resultsPath, reporter.toJSON());
+        }
+
+        _writeResults.always(function () { window.close(); });
+    }
+
+    /**
+     * Patch JUnitXMLReporter to use brackets.fs and to consolidate all results
+     * into a single file.
+     */
+    function _patchJUnitReporter() {
+        jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
+            var suites = runner.suites(),
+                output = '<?xml version="1.0" encoding="UTF-8" ?>',
+                i;
+
+            output += "\n<testsuites>";
+
+            for (i = 0; i < suites.length; i++) {
+                var suite = suites[i];
+                if (!suite.parentSuite) {
+                    output += this.getNestedOutput(suite);
+                }
+            }
+
+            output += "\n</testsuites>";
+            writeResults(resultsPath, output);
+
+            // When all done, make it known on JUnitXmlReporter
+            jasmine.JUnitXmlReporter.finished_at = (new Date()).getTime();
+        };
         
-        deferred.always(function () { window.close(); });
+        jasmine.JUnitXmlReporter.prototype.writeFile = function (path, filename, text) {
+            // do nothing
+        };
     }
     
     function init() {
@@ -263,9 +303,17 @@ define(function (require, exports, module) {
             // spec and performance data.
             reporter = new UnitTestReporter(jasmineEnv, topLevelFilter, params.get("spec"));
             
-            // Optionally emit JSON for automated runs
-            if (params.get("resultsPath")) {
+            // Optionally emit JUnit XML file for automated runs
+            if (resultsPath) {
+                if (resultsPath.substr(-4) === ".xml") {
+                    _patchJUnitReporter();
+                    jasmineEnv.addReporter(new jasmine.JUnitXmlReporter(null, true, false));
+                }
+
+                // Close the window
                 $(reporter).on("runnerEnd", _runnerEndHandler);
+            } else {
+                _writeResults.resolve();
             }
             
             jasmineEnv.addReporter(reporter);

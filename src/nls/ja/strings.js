@@ -157,7 +157,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
 	"STATUSBAR_SPACES": "スペース",
 	"STATUSBAR_TAB_SIZE": "タブ幅",
-	"STATUSBAR_LINE_COUNT": "{0} 行",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} 行",
+	"STATUSBAR_LINE_COUNT_PLURAL": "{0} 行",
 
     /**
      * Command Name Constants
@@ -227,13 +228,12 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
-	"CMD_ENABLE_HOVER_PREVIEW": "ホバープレビューを有効にする",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "ナビゲート",
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
-	"CMD_GOTO_DEFINITION": "定義に移動",
+	"CMD_GOTO_DEFINITION": "定義をクイック検索",
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_JSLINT_FIRST_ERROR": "最初の JSLint エラーに移動",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
@@ -294,6 +294,7 @@ define({
 	"ABOUT_TEXT_LINE4": "ドキュメントとソースコードは <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a> から入手できます。",
 	"ABOUT_TEXT_LINE5": "\u2764 および JavaScript を使用して次の人によって作成されました :",
 	"ABOUT_TEXT_LINE6": "多くの人々 (ただし、人物データの読み込みに問題が発生しています)。",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "{APP_NAME} の新しいビルドを利用できます。詳細はここをクリックしてください。",
 	"UPDATE_AVAILABLE_TITLE": "利用可能なアップデートがあります",
 	"UPDATE_MESSAGE": "{APP_NAME} の新しいビルドが利用できます。新機能の一部を以下にご紹介します :",
@@ -351,8 +352,11 @@ define({
 	"EXTENSION_INSTALLED": "インストール完了",
 	"EXTENSION_SEARCH_PLACEHOLDER": "検索",
 	"EXTENSION_MORE_INFO_LINK": "詳細",
-	"EXTENSION_FREE_ON_GITHUB": "コミュニティ発の優れた新機能をお探しですか？ GitHub には Brackets の無料の拡張機能が揃っています。",
+	"BROWSE_EXTENSIONS": "拡張機能を探す",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "JSLint エラー",
 	"JSLINT_ERROR_INFORMATION": "1 個の JSLint エラーがあります",

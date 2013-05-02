@@ -1,4 +1,4 @@
-/* Sample CSS for testing the HoverPreview extension. */
+/* Sample CSS for testing the QuickView extension. */
 
 .hex_values {
     color: #369;
@@ -10,8 +10,8 @@
 }
 
 .rgb_rgba_values {
-    color: rgb(255,0,0);
-    color: rgb(100%, 0%, 0%);
+    color: rgb(255,0,0);            /* no whitespace */
+    color: rgb(100%,   0%,   0%);   /* extra whitespace */
     color: rgb(50%, 75%, 25%);
     color: rgba(255, 0, 0, 0.5);
     color: rgba(255, 0, 0, 1);
@@ -32,10 +32,10 @@
     color: hsl(0, 100%, 50%);
     color: hsla(0, 100%, 50%, 0.5);
     color: hsla(0, 100%, 50%, .5);
+    color: hsl(390, 100%, 50%);
 }
 
 .unsupported_hsl_hsla_values {
-    color: hsl(390, 100%, 50%);
     color: hsla(90, 100%, 50%, 2);
     color: hsla(0, 200%, 50%, 0.5);
     color: hsla(0.0, 100%, 50%, .5);
@@ -88,7 +88,7 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
 /* From css3please.com */
 .box_gradient {
     background-color: #333;
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#333), to(#CCC)); /* Chrome, Safari 4+ */
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204))); /* Chrome, Safari 4+ */
     background-image: -webkit-linear-gradient(top, #333, #CCC); /* Chrome 10-25, iOS 5+, Safari 5.1+ */
     background-image:    -moz-linear-gradient(top, #333, #CCC); /* Firefox 3.6-15 */
     background-image:      -o-linear-gradient(top, #333, #CCC); /* Opera 11.10-12.00 */
@@ -130,16 +130,28 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
     background-image: repeating-radial-gradient(red, blue 20px, red 40px);
 }
 
+/* lea.verou.me/css3patterns */
+.gradient_pattern {
+    background:
+        linear-gradient(63deg, #999 23%, transparent 23%) 7px 0,
+        linear-gradient(63deg, transparent 74%, #999 78%), linear-gradient(63deg, transparent 0%, #999 38%, #999 58%, transparent 100%), #444;
+}
+
 .images {
     background: url(img/grabber_color-well.png);
     background: url("img/Color.png");
-    background: url(img/DancingPeaks.gif);
-    background: url('img/Example.svg');
+    background: url(img/throbber.gif);
+    background: url('img/update_large_icon.svg');
 
     background: "https://raw.github.com/gruehle/HoverPreview/master/screenshots/Image.png";
     
     background: "img/med_hero.jpg";
     background: 'img/Gradient.png';
-    background: 'img/Lake_mapourika_NZ.jpeg';
+    background: 'img/specials.jpeg';
 }
-    
+
+.foo {
+    background: -webkit-image-set(url("img/specials.jpeg") 1x, url("img/Gradient.png") 2x);
+    background: -webkit-image-set(url(img/specials.jpeg) 1x,   url(img/Gradient.png) 2x);
+    background: -webkit-image-set("img/specials.jpeg" 1x,      "img/Gradient.png" 2x);
+}

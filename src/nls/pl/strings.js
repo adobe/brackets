@@ -125,12 +125,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Błąd pobierania wersji.",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Wystąpił problem podczas pobierania informacji o najnowszej wersji aplikacji. Upewnij się, że jeste podłączony do Internetu i spróbuj ponownie.",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Zmień Język",
-    "LANGUAGE_MESSAGE"                  : "Wybierz język z poniższej listy:",
-    "LANGUAGE_SUBMIT"                   : "Zrestartuj {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Anuluj",
-
     /**
      * ProjectManager
      */
@@ -228,7 +222,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Szybkie Otwarcie",
     "CMD_GOTO_LINE"                       : "Skocz do Linii",
     "CMD_GOTO_DEFINITION"                 : "Skocz do Definicji",
-    "CMD_JSLINT_FIRST_ERROR"              : "Skocz do Pierwszego Błędu JSLint",
     "CMD_TOGGLE_QUICK_EDIT"               : "Szybka Edycja",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Poprzedni Wynik",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Następny Wynik",
@@ -236,20 +229,6 @@ define({
     "CMD_PREV_DOC"                        : "Poprzedni Dokument",
     "CMD_SHOW_IN_TREE"                    : "Pokaż w Drzewie Pliku",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debuguj",
-    "CMD_REFRESH_WINDOW"                  : "Przeładuj {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Pokaż Narzędzia Developera",
-    "CMD_RUN_UNIT_TESTS"                  : "Uruchom Test",
-    "CMD_JSLINT"                          : "Włącz JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Pokaż Informacje o Wydajności",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nowe Okno {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Pokaż Folder Rozszerzeń",
-    "CMD_SWITCH_LANGUAGE"                 : "Zmień Język",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Włącz Debugger Node",
-    "CMD_LOG_NODE_STATE"                  : "Loguj Stan Node do Konsoli",
-    "CMD_RESTART_NODE"                    : "Zrestartuj Node",
-
     // Help menu commands
     "HELP_MENU"                           : "Pomoc",
     "CMD_CHECK_FOR_UPDATE"                : "Sprawdź dostępność aktualizacji",
@@ -257,6 +236,7 @@ define({
     "CMD_FORUM"                           : "Forum {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Informacje o wydaniu",
     "CMD_REPORT_AN_ISSUE"                 : "Zgłoś Problem",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Pokaż Folder Rozszerzeń",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitterze",
     "CMD_ABOUT"                           : "O programie {APP_TITLE}",
 
@@ -268,11 +248,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "build eksperymentalny",
     "DEVELOPMENT_BUILD"                    : "build rozwojowy",
-    "JSLINT_ERRORS"                        : "Błędy JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Błąd JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Błędy(ów) JSLint",
-    "JSLINT_NO_ERRORS"                     : "Dobra robota! Brak błędów JSLint",
-    "JSLINT_DISABLED"                      : "JSLint wyłączony lub nie działa dla aktualnego pliku",
     "SEARCH_RESULTS"                       : "Wyniki Wyszukiwania",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nie Zapisuj",
@@ -335,6 +310,24 @@ define({
     "UNKNOWN_ERROR"                        : "Nieznany błąd wewnętrzny.",
     // For NOT_FOUND_ERR, see generic strings above
     
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debuguj",
+    "CMD_SHOW_DEV_TOOLS"                        : "Pokaż Narzędzia Developera",
+    "CMD_REFRESH_WINDOW"                        : "Przeładuj {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nowe Okno {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Zmień Język",
+    "CMD_RUN_UNIT_TESTS"                        : "Uruchom Test",
+    "CMD_SHOW_PERF_DATA"                        : "Pokaż Informacje o Wydajności",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Włącz Debugger Node",
+    "CMD_LOG_NODE_STATE"                        : "Loguj Stan Node do Konsoli",
+    "CMD_RESTART_NODE"                          : "Zrestartuj Node",
+    
+    "LANGUAGE_TITLE"                            : "Zmień Język",
+    "LANGUAGE_MESSAGE"                          : "Wybierz język z poniższej listy:",
+    "LANGUAGE_SUBMIT"                           : "Zrestartuj {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Anuluj",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktualny Kolor",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Kolor Oryginalny",
@@ -342,5 +335,14 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Format Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Format HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Użyto {1} raz)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Użyto {1} razy)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Użyto {1} razy)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Włącz JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Skocz do Pierwszego Błędu JSLint",
+    "JSLINT_ERRORS"                             : "Błędy JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "1 Błąd JSLint",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} Błędy(ów) JSLint",
+    "JSLINT_NO_ERRORS"                          : "Dobra robota! Brak błędów JSLint",
+    "JSLINT_DISABLED"                           : "JSLint wyłączony lub nie działa dla aktualnego pliku"
 });

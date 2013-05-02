@@ -124,26 +124,20 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Cambiar idioma",
-    "LANGUAGE_MESSAGE"                  : "Idioma:",
-    "LANGUAGE_SUBMIT"                   : "Reiniciar {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancelar",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Idioma predeterminado",
 
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING" : "Cargando\u2026",
-    "UNTITLED" : "Sin título",
+    "PROJECT_LOADING"   : "Cargando\u2026",
+    "UNTITLED"          : "Sin título",
+    "WORKING_FILES"     : "Área de trabajo",
     
     /**
      * Keyboard modifier names
      */
 
-    "KEYBOARD_CTRL"   : "Control",
-    "KEYBOARD_SHIFT"  : "Mayúsculas",
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "May",
     "KEYBOARD_SPACE"  : "Espacio",
     
     /**
@@ -178,6 +172,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_INSTALL_EXTENSION"               : "Instalar extensión\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Gestionar extensiones\u2026",
     "CMD_QUIT"                            : "Salir",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Salir",
@@ -205,6 +200,8 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Comentar/Descomentar bloque",
     "CMD_LINE_UP"                         : "Subir línea",
     "CMD_LINE_DOWN"                       : "Bajar línea",
+    "CMD_OPEN_LINE_ABOVE"                 : "Crear línea arriba",
+    "CMD_OPEN_LINE_BELOW"                 : "Crear línea abajo",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
      
     // View menu commands
@@ -227,29 +224,15 @@ define({
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
-    "CMD_GOTO_LINE"                       : "Ir a línea",
-    "CMD_GOTO_DEFINITION"                 : "Ir a definición",
-    "CMD_JSLINT_FIRST_ERROR"              : "Ir al primer error de JSLint",
+    "CMD_GOTO_LINE"                       : "Ir a la línea",
+    "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",
     "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
-    
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Desarrollo",
-    "CMD_REFRESH_WINDOW"                  : "Reiniciar {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Mostrar herramientas para desarrolladores",
-    "CMD_RUN_UNIT_TESTS"                  : "Ejecutar tests",
-    "CMD_JSLINT"                          : "Habilitar JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Mostrar información de rendimiento",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nueva ventana de {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
-    "CMD_SWITCH_LANGUAGE"                 : "Cambiar idioma",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Habilitar depuración de Node",
-    "CMD_LOG_NODE_STATE"                  : "Mostrar estado de Node en Consola",
-    "CMD_RESTART_NODE"                    : "Reiniciar Node",
     
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
@@ -258,9 +241,11 @@ define({
     "CMD_FORUM"                           : "Foro de {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Notas de la versión",
     "CMD_REPORT_AN_ISSUE"                 : "Informar de un error",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
-
+    
+    
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Cerrar ventana",
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
@@ -286,6 +271,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Hecho con \u2764 y JavaScript por:",
     "ABOUT_TEXT_LINE6"                     : "Mucha gente (pero ahora mismo estamos teniendo problemas para cargar esos datos).",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "El contenido de Web Platform Docs y el logo de Web Platform están disponibles bajo una Licencia de Reconocimiento de Creative Commons, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualización disponible",
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
@@ -318,7 +304,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "El número de paquete de la versión ({0}) no es válido.",
     "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de Brackets {{0}} no es válido.",
     "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
-    "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de Brackets. Está en la carpeta de extensiones deshabilitadas.",
+    "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
     "ALREADY_INSTALLED"                    : "Ya hay instalada una extensión con el mismo nombre. La nueva extensión está en la carpeta de extensiones deshabilitadas.",
     "NO_DISABLED_DIRECTORY"                : "No se puede guardar la extensión en extensions/disabled porque la carpeta no existe.",
@@ -330,13 +316,39 @@ define({
     "MALFORMED_URL"                        : "La URL no es válida. Por favor, comprueba que la has escrito correctamente.",
     "UNSUPPORTED_PROTOCOL"                 : "La URL debe ser una dirección http o https.",
     "UNKNOWN_ERROR"                        : "Error interno desconocido.",
+    // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Gestor de extensiones",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "No se pudo acceder al registro de extensiones. Vuelve a intentarlo más tarde, por favor.",
+    "INSTALL_FROM_URL"                     : "Instalar desde URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Autor",
+    "EXTENSION_DATE"                       : "Fecha",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita una versión más actualizada de {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "En estos momentos esta extensión sólo funciona con versiones anteriores de {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
+    "EXTENSION_KEYWORDS"                   : "Palabras clave",
+    "EXTENSION_INSTALLED"                  : "Instalada",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
+    "EXTENSION_MORE_INFO_LINK"             : "Más",
+    "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
     
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "Errores de JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Error de JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Errores de JSLint",
-    "JSLINT_NO_ERRORS"                     : "No hay errores de JSLint. ¡Buen trabajo!",
-    "JSLINT_DISABLED"                      : "JSLint está deshabilitado o no soporta el archivo actual",
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Desarrollo",
+    "CMD_SHOW_DEV_TOOLS"                        : "Mostrar herramientas para desarrolladores",
+    "CMD_REFRESH_WINDOW"                        : "Reiniciar {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nueva ventana de {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Cambiar idioma",
+    "CMD_RUN_UNIT_TESTS"                        : "Ejecutar tests",
+    "CMD_SHOW_PERF_DATA"                        : "Mostrar información de rendimiento",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Habilitar depuración de Node",
+    "CMD_LOG_NODE_STATE"                        : "Mostrar estado de Node en Consola",
+    "CMD_RESTART_NODE"                          : "Reiniciar Node",
+    
+    "LANGUAGE_TITLE"                            : "Cambiar idioma",
+    "LANGUAGE_MESSAGE"                          : "Idioma:",
+    "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Cancelar",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminado",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
@@ -345,5 +357,23 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Formato Hex",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Saltar a la definición",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Habilitar JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Ir al primer error de JSLint",
+    "JSLINT_ERRORS"                             : "Errores de JSLint",
+    "JSLINT_ERROR_INFORMATION"                  : "1 Error de JSLint",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} Errores de JSLint",
+    "JSLINT_NO_ERRORS"                          : "No hay errores de JSLint. ¡Buen trabajo!",
+    "JSLINT_DISABLED"                           : "JSLint está deshabilitado o no soporta el archivo actual",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida con cursor",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Más"
 });

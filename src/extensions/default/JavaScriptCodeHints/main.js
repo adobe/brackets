@@ -46,11 +46,22 @@ define(function (require, exports, module) {
 
     var JUMPTO_DEFINITION = "navigate.jumptoDefinition";
 
-    var session     = null,  // object that encapsulates the current session state
-        cachedHints = null,  // sorted hints for the current hinting session
-        cachedType  = null,  // describes the lookup type and the object context
-        cachedLine  = null,  // the line number for the cached scope
-        matcher     = null;  // string matcher for hints
+    var session      = null,  // object that encapsulates the current session state
+        cachedCursor = null,  // last cursor of the current hinting session
+        cachedHints  = null,  // sorted hints for the current hinting session
+        cachedType   = null,  // describes the lookup type and the object context
+        cachedToken  = null,  // the token used in the current hinting session
+        matcher      = null;  // string matcher for hints
+
+
+    /**
+     *  Get the value of current session.
+     *  Used for unit testing.
+     * @returns {Session} - the current session.
+     */
+    function getSession() {
+        return session;
+    }
 
     /**
      * Creates a hint response object. Filters the hint list using the query
@@ -82,7 +93,7 @@ define(function (require, exports, module) {
                 var $hintObj    = $("<span>").addClass("brackets-js-hints");
 
                 // level indicates either variable scope or property confidence
-                if (!type.property && token.depth !== undefined) {
+                if (!type.property && !token.builtin && token.depth !== undefined) {
                     switch (token.depth) {
                     case 0:
                         $hintObj.addClass("priority-high");
@@ -173,14 +184,57 @@ define(function (require, exports, module) {
     JSHints.prototype.needNewHints = function (session) {
         var cursor  = session.getCursor(),
             type    = session.getType();
-        
+
         return !cachedHints ||
-                cachedLine !== cursor.line ||
+                cachedCursor.line !== cursor.line ||
                 type.property !== cachedType.property ||
                 type.context !== cachedType.context ||
                 type.showFunctionType !== cachedType.showFunctionType;
     };
-    
+
+    /**
+     *  Have conditions have changed enough to justify closing the hints popup?
+     *
+     * @param {Session} session - the active hinting session
+     * @return {boolean} - true if the hints popup should be closed.
+     */
+    JSHints.prototype.shouldCloseHints = function (session) {
+
+        // close if the token className has changed then close the hints.
+        var cursor = session.getCursor(),
+            token = session.getToken(cursor),
+            lastToken = cachedToken;
+
+        // if the line has changed, then close the hints
+        if (!cachedCursor || cursor.line !== cachedCursor.line) {
+            return true;
+        }
+
+        if (token.className === null) {
+            token = session.getNextTokenOnLine(cursor);
+        }
+
+        if (lastToken && lastToken.className === null) {
+            lastToken = session.getNextTokenOnLine(cachedCursor);
+        }
+
+        // Both of the tokens should never be null (happens when token is off
+        // the end of the line), so one is null then close the hints.
+        if (!lastToken || !token ||
+                token.className !== lastToken.className) {
+            return true;
+        }
+
+        // Test if one token string is a prefix of the other.
+        // If one is a prefix of the other then consider it the
+        // same token and don't close the hints.
+        if (token.string.length >= lastToken.string.length) {
+            return token.string.indexOf(lastToken.string) !== 0;
+        } else {
+            return lastToken.string.indexOf(token.string) !== 0;
+        }
+    };
+
     /**
      * Determine whether hints are available for a given editor context
      * 
@@ -200,9 +254,9 @@ define(function (require, exports, module) {
                     query   = session.getQuery();
 
                 if (this.needNewHints(session)) {
-                    //console.log("clear hints");
-                    cachedLine = null;
+                    cachedCursor = null;
                     cachedHints = null;
+                    cachedToken = null;
                     matcher = null;
                 }
                 return true;
@@ -226,6 +280,15 @@ define(function (require, exports, module) {
             var type    = session.getType(),
                 query   = session.getQuery();
 
+            // If the hint context is changed and the hints are open, then
+            // close the hints by returning null;
+            if (CodeHintManager.isOpen() && this.shouldCloseHints(session)) {
+                return null;
+            }
+
+            cachedCursor = cursor;
+            cachedToken = token;
+
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
@@ -235,8 +298,8 @@ define(function (require, exports, module) {
                 if (scopeResponse.hasOwnProperty("promise")) {
                     var $deferredHints = $.Deferred();
                     scopeResponse.promise.done(function () {
-                        cachedLine = cursor.line;
                         cachedType = session.getType();
+
                         matcher = new StringMatch.StringMatcher();
                         cachedHints = session.getHints(query, matcher);
 
@@ -253,8 +316,6 @@ define(function (require, exports, module) {
                     });
 
                     return $deferredHints;
-                } else {
-                    cachedLine = cursor.line;
                 }
             }
 
@@ -285,8 +346,7 @@ define(function (require, exports, module) {
             delimiter;
 
         if (token && token.string === ".") {
-            var nextCursor  = session.getNextCursorOnLine(),
-                nextToken   = nextCursor ? session.getToken(nextCursor) : null;
+            var nextToken  = session.getNextTokenOnLine(cursor);
 
             if (nextToken && // don't replace delimiters, etc.
                     HintUtils.maybeIdentifier(nextToken.string) &&
@@ -347,7 +407,7 @@ define(function (require, exports, module) {
          */
         function installEditorListeners(editor) {
             // always clean up cached scope and hint info
-            cachedLine = null;
+            cachedCursor = null;
             cachedHints = null;
             cachedType = null;
 
@@ -423,7 +483,7 @@ define(function (require, exports, module) {
         // Add the menu item
         var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
         if (menu) {
-            menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.BEFORE, Commands.NAVIGATE_GOTO_DEFINITION);
+            menu.addMenuItem(JUMPTO_DEFINITION, KeyboardPrefs.jumptoDefinition, Menus.AFTER, Commands.NAVIGATE_GOTO_DEFINITION);
         }
         
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
@@ -440,6 +500,7 @@ define(function (require, exports, module) {
         CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID], 0);
 
         // for unit testing
+        exports.getSession = getSession;
         exports.jsHintProvider = jsHints;
         exports.initializeSession = initializeSession;
         exports.handleJumpToDefinition = handleJumpToDefinition;

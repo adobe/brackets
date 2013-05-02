@@ -157,7 +157,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT": "{0} lignes",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
+	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
 
     /**
      * Command Name Constants
@@ -227,13 +228,12 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
-	"CMD_ENABLE_HOVER_PREVIEW": "Activer l’aperçu au survol",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
-	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
@@ -294,6 +294,7 @@ define({
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo graphique Web Platform sont mis à disposition sous licence Creative Commons Attribution, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported.</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
@@ -351,8 +352,11 @@ define({
 	"EXTENSION_INSTALLED": "Installée",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
-	"EXTENSION_FREE_ON_GITHUB": "Vous recherchez des fonctionnalités intéressantes développées par la communauté ? Découvrez toutes les extensions gratuites de Brackets sur GitHub.",
+	"BROWSE_EXTENSIONS": "Parcourir les extensions",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
 	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
