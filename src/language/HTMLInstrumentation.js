@@ -92,8 +92,6 @@ define(function (require, exports, module) {
                 _cachedValues[doc.file.fullPath] = null;
             });
             
-            $(doc).one("deleted.htmlInstrumentation", _removeDocFromCache);
-            
             // Assign to cache, but don't set a value yet
             _cachedValues[doc.file.fullPath] = null;
         }
