@@ -152,7 +152,7 @@ define(function (require, exports, module) {
             dir     = split.dir,
             file    = split.file;
         
-        var ternPromise = getJumptoDef(dir, file, offset, document.getText());
+        var ternPromise = getJumptoDef(dir, file, offset, session.getJavascriptText());
         
         return {promise: ternPromise};
     }

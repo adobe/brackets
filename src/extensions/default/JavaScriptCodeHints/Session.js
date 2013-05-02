@@ -254,14 +254,14 @@ define(function (require, exports, module) {
      *      function being called     
      */
     Session.prototype.getType = function () {
-        function getLexicalInfo(token) {
+        function getLexicalState(token) {
             if (token.state.lexical) {
                 // in a javascript file this is just in the state field
-                return token.state.lexical.info;
+                return token.state.lexical;
             } else if (token.state.localState && token.state.localState.lexical) {
                 // inline javascript in an html file will have this in 
                 // the localState field
-                return token.state.localState.lexical.info;
+                return token.state.localState.lexical;
             }
         }
         var propertyLookup   = false,
@@ -270,12 +270,14 @@ define(function (require, exports, module) {
             context          = null,
             cursor           = this.getCursor(),
             functionCallPos,
-            token            = this.getToken(cursor);
+            token            = this.getToken(cursor),
+            lexical;
 
         if (token) {
             // if this token is part of a function call, then the tokens lexical info
             // will be annotated with "call"
-            if (getLexicalInfo(token) === "call") {
+            lexical = getLexicalState(token);
+            if (lexical.info === "call") {
                 inFunctionCall = true;
                 if (this.getQuery().length > 0) {
                     inFunctionCall = false;
@@ -292,7 +294,7 @@ define(function (require, exports, module) {
                     // and it will prevent us from walking back thousands of lines if something went wrong.
                     // there is nothing magical about 9 lines, and it can be adjusted if it doesn't seem to be
                     // working well
-                    var col = token.state.lexical.column,
+                    var col = lexical.column,
                         line,
                         e,
                         found;

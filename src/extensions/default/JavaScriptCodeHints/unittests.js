@@ -37,8 +37,11 @@ define(function (require, exports, module) {
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/test/file1.js",
+        testHtmlPath    = extensionPath + "/test/index.html",
         testDoc         = null,
-        testEditor;
+        testHtmlDoc     = null,
+        testEditor,
+        testHtmlEditor;
 
     /**
      * Returns an Editor suitable for use in isolation, given a Document. (Unlike
@@ -76,7 +79,7 @@ define(function (require, exports, module) {
             if (key === undefined) {
                 key = null;
             }
-            
+
             expect(provider.hasHints(testEditor, key)).toBe(true);
             return provider.getHints(null);
         }
@@ -317,6 +320,19 @@ define(function (require, exports, module) {
             
         }
         
+        /**
+         * Should be called at the beginning of any tests for hints in an html file.
+         * Start a test int he index.html test file, instead
+         * of the file1.js file.
+         * This switches the document and editor to point to the html file
+         * and re-inits the hinting session with the html editor
+         */
+        function startHtmlTest() {
+            testEditor = testHtmlEditor;
+            testDoc = testHtmlDoc;
+            JSCodeHints.initializeSession(testEditor);
+        }
+        
         describe("JavaScript Code Hinting", function () {
    
             beforeEach(function () {
@@ -324,14 +340,18 @@ define(function (require, exports, module) {
                 DocumentManager.getDocumentForPath(testPath).done(function (doc) {
                     testDoc = doc;
                 });
+                DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
+                    testHtmlDoc = doc;
+                });
                 
                 waitsFor(function () {
-                    return testDoc !== null;
+                    return testDoc !== null && testHtmlDoc !== null;
                 }, "Unable to open test document", 10000);
                 
                 // create Editor instance (containing a CodeMirror instance)
                 runs(function () {
                     testEditor = createMockEditor(testDoc);
+                    testHtmlEditor = createMockEditor(testHtmlDoc);
                     JSCodeHints.initializeSession(testEditor);
                 });
             });
@@ -728,6 +748,43 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 3, ch: 6});
+                });
+            });
+
+            it("basic codehints in html file", function () {
+                var start = { line: 30, ch: 9 },
+                    end   = { line: 30, ch: 11 };
+                
+                startHtmlTest();
+                
+                testDoc.replaceRange("x.", start, start);
+                testEditor.setCursorPos(end);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentOrdered(hintObj, ["charAt", "charCodeAt", "concat", "indexOf"]);
+                });
+            });
+
+            it("function type hint in html file", function () {
+                var start = { line: 29, ch: 12 };
+                
+                startHtmlTest();
+                
+                testEditor.setCursorPos(start);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentExact(hintObj, ["foo(a: number) -> string"]);
+                });
+            });
+
+            it("jump-to-def in html file", function () {
+                var start = { line: 29, ch: 10 };
+                
+                startHtmlTest();
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 18, ch: 20});
                 });
             });
 
