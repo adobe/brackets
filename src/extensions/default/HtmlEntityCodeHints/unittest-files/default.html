@@ -40,5 +40,15 @@
         
         <!-- Should show multiple hints in same line -->
         <p>This &amp; that &amp; the other</p>
+    
+        <!-- Shouldn't show hints when entity on the same line-->
+        <p>
+            &acute; test  <
+        </p>
+    
+        <!-- Should sort &#xxxx hints numerically not alphabetically -->
+        <p>
+            &#
+        </p>
     </body>
 </html>
