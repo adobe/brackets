@@ -55,6 +55,8 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils");
     
 
+    var cursorPosRegExp = new RegExp(":([^,]+)?(,(.+)?)?");
+    
     /** @type Array.<QuickOpenPlugin> */
     var plugins = [];
 
@@ -249,23 +251,29 @@ define(function (require, exports, module) {
      * is followed by a colon. Callers should explicitly test result with isNaN()
      * 
      * @param {string} query string to extract line number from
-     * @returns {{query: string, currentFile: boolean, line: number, ch: number}} A cursorPos object with
+     * @returns {{query: string, local: boolean, line: number, ch: number}} A cursorPos object with
      *      the extracted line and column numbers, and two additional fields; query with the original position 
-     *      string and currentFile indicating if the cursor position should be applied to the current file
+     *      string and local indicating if the cursor position should be applied to the current file
      */
     function extractCursorPos(query) {
-        var regInfo = query.match(/:(\d+)?(,(\d+)?)?/),
+        var regInfo     = query.match(cursorPosRegExp),
             result;
         
-        if (regInfo && query.length > 1) {
-            result = {
-                query: regInfo[0],
-                currentFile: query.indexOf(":") === 0,
-                line: regInfo[1] - 1 || 0,
-                ch: regInfo[3] - 1 || 0
-            };
+        if (query.length <= 1 ||
+                !regInfo ||
+                (regInfo[1] && isNaN(regInfo[1])) ||
+                (regInfo[3] && isNaN(regInfo[3]))) {
+            
+            return;
         }
-
+            
+        result = {
+            query:  regInfo[0],
+            local:  query.indexOf(":") === 0,
+            line:   regInfo[1] - 1 || 0,
+            ch:     regInfo[3] - 1 || 0
+        };
+        
         return result;
     }
     
@@ -540,7 +548,7 @@ define(function (require, exports, module) {
         }
         
         var cursorPos = extractCursorPos(query);
-        if (cursorPos && !cursorPos.currentFile && cursorPos.query !== "") {
+        if (cursorPos && !cursorPos.local && cursorPos.query !== "") {
             query = query.replace(cursorPos.query, "");
         }
 
@@ -587,9 +595,9 @@ define(function (require, exports, module) {
         
         // "Go to line" mode is special-cased
         var cursorPos = extractCursorPos(query);
-        if (cursorPos && cursorPos.currentFile) {
+        if (cursorPos && cursorPos.local) {
             var from = {line: cursorPos.line, ch: cursorPos.ch};
-            var to = {line: cursorPos.line, ch: 99999};
+            var to = {line: cursorPos.line};
             
             EditorManager.getCurrentFullEditor().setSelection(from, to, true);
         }
