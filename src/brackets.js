@@ -259,7 +259,7 @@ define(function (require, exports, module) {
         $("body").addClass("platform-" + brackets.platform);
         
         // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
-        if (brackets.inBrowser) {
+        if (brackets.inBrowser || !brackets.app.addMenu) {
             $("body").addClass("in-browser");
         } else {
             $("body").addClass("in-appshell");

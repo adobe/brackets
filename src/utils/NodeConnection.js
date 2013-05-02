@@ -65,6 +65,11 @@ define(function (require, exports, module) {
      */
     function attemptSingleConnect() {
         var deferred = $.Deferred();
+        
+        if (!brackets.app.getNodeState) {
+            return deferred.reject().promise();
+        }
+        
         var port = null;
         var ws = null;
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);

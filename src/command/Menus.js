@@ -154,7 +154,7 @@ define(function (require, exports, module) {
     }
     
     function _isHTMLMenu(id) {
-        return (brackets.inBrowser || _isContextMenu(id));
+        return (!brackets.app.addMenu || brackets.inBrowser || _isContextMenu(id));
     }
 
     /**
