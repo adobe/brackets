@@ -137,7 +137,7 @@ define(function (require, exports, module) {
     function _handleNewBracketsWindow() {
         window.open(window.location.href);
     }
-
+    
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         NativeFileSystem.requestNativeFileSystem(stringsPath, function (fs) {
