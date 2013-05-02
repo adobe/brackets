@@ -27,25 +27,6 @@
 define({
     
     /**
-     * Locales
-     */
-    "LOCALE_DE"                         : "Deutsch",
-    "LOCALE_EN"                         : "Englisch",
-    "LOCALE_FR"                         : "Französisch",
-    "LOCALE_CS"                         : "Tschechisch",
-    "LOCALE_ES"                         : "Spanisch",
-    "LOCALE_IT"                         : "Italienisch",
-    "LOCALE_JA"                         : "Japanisch",
-    "LOCALE_NB"                         : "Norwegisch",
-    "LOCALE_PL"                         : "Polnisch",
-    "LOCALE_PT_BR"                      : "Portugiesisch, Brasilien",
-    "LOCALE_PT_PT"                      : "Portugiesisch",
-    "LOCALE_RU"                         : "Russisch",
-    "LOCALE_SV"                         : "Schwedisch",
-    "LOCALE_TR"                         : "Türkisch",
-    "LOCALE_ZH_CN"                      : "Chinesisch, vereinfacht",
-    
-    /**
      * Errors
      */
 
@@ -155,6 +136,25 @@ define({
     "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                         : "Deutsch",
+    "LOCALE_EN"                         : "Englisch",
+    "LOCALE_FR"                         : "Französisch",
+    "LOCALE_CS"                         : "Tschechisch",
+    "LOCALE_ES"                         : "Spanisch",
+    "LOCALE_IT"                         : "Italienisch",
+    "LOCALE_JA"                         : "Japanisch",
+    "LOCALE_NB"                         : "Norwegisch",
+    "LOCALE_PL"                         : "Polnisch",
+    "LOCALE_PT_BR"                      : "Portugiesisch, Brasilien",
+    "LOCALE_PT_PT"                      : "Portugiesisch",
+    "LOCALE_RU"                         : "Russisch",
+    "LOCALE_SV"                         : "Schwedisch",
+    "LOCALE_TR"                         : "Türkisch",
+    "LOCALE_ZH_CN"                      : "Chinesisch, vereinfacht",
 
     /**
      * ProjectManager

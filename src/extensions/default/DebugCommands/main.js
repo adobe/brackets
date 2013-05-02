@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         KeyBindingManager  = brackets.getModule("command/KeyBindingManager"),
         Menus              = brackets.getModule("command/Menus"),
         Strings            = brackets.getModule("strings"),
-        StringUtils        = brackets.getModule("utils/StringUtils"),
         PerfUtils          = brackets.getModule("utils/PerfUtils"),
         ProjectManager     = brackets.getModule("project/ProjectManager"),
         NativeApp          = brackets.getModule("utils/NativeApp"),
@@ -235,7 +234,7 @@ define(function (require, exports, module) {
                     var key = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
                         i18n = Strings[key];
                     
-                    return i18n === undefined ? locale : StringUtils.format(Strings.LOCALE_LABEL, locale, i18n);
+                    return i18n === undefined ? locale : i18n;
                 }
 
                 // add system default
