@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";
     exports.FILE_RENAME                 = "file.rename";
     exports.FILE_INSTALL_EXTENSION      = "file.installExtension";
+    exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
@@ -72,6 +73,8 @@ define(function (require, exports, module) {
     exports.EDIT_BLOCK_COMMENT          = "edit.blockComment";
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";
+    exports.EDIT_OPEN_LINE_ABOVE        = "edit.openLineAbove";
+    exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
 
     // VIEW
@@ -97,6 +100,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
     exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
+    exports.TOGGLE_QUICK_DOCS           = "navigate.toggleQuickDocs";
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
 

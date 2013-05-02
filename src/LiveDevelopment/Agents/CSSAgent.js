@@ -53,13 +53,15 @@ define(function CSSAgent(require, exports, module) {
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
         _urlToStyle = {};
-        Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
-            var i, header;
-            for (i in res.headers) {
-                header = res.headers[i];
-                _urlToStyle[_canonicalize(header.sourceURL)] = header;
-            }
-            _load.resolve();
+        Inspector.CSS.enable().done(function () {
+            Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
+                var i, header;
+                for (i in res.headers) {
+                    header = res.headers[i];
+                    _urlToStyle[_canonicalize(header.sourceURL)] = header;
+                }
+                _load.resolve();
+            });
         });
     }
 
@@ -67,7 +69,11 @@ define(function CSSAgent(require, exports, module) {
      * @param {string} url
      */
     function styleForURL(url) {
-        return _urlToStyle[_canonicalize(url)];
+        if (_urlToStyle) {
+            return _urlToStyle[_canonicalize(url)];
+        }
+        
+        return null;
     }
 
     /** Get a list of all loaded stylesheet files by URL */

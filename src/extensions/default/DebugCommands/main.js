@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
         NativeApp              = brackets.getModule("utils/NativeApp"),
         CollectionUtils        = brackets.getModule("utils/CollectionUtils"),
+        StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
         NodeDebugUtils         = require("NodeDebugUtils"),
@@ -118,7 +119,7 @@ define(function (require, exports, module) {
         var perfData = PerfUtils.getData();
         CollectionUtils.forEach(perfData, function (value, testName) {
             templateVars.perfData.push({
-                testName: testName,
+                testName: StringUtils.breakableUrl(testName),
                 value:    getValue(value)
             });
         });

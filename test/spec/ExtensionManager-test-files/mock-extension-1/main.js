@@ -1,0 +1,1 @@
+// Dummy main.js file

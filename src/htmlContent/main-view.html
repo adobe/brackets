@@ -38,31 +38,26 @@
 
 -->
 
-<!-- Main UI -->
+    <!-- Main UI: horizontal set of sidebar, main content vertical stack, and vertical toolbar -->
     <div class="main-view">
-        <div id="sidebar" class="sidebar quiet-scrollbars horz-resizable right-resizer collapsible" data-minsize="0" data-forcemargin=".content">
-            <!-- Left-hand 'Project panel' -->
-            <div id="projects" class="panel">
-                <div id="project-header"></div>
-                <div id="file-section">
-                    <div id="open-files-container">
-                        <!-- This will contain a dynamically generated <ul> at runtime -->
-                        <ul>
-                        </ul>
-                    </div>
-                
-                    <div id="project-files-header" class="project-file-header-area">
-                        <span id="project-title" class="title"></span>
-                    </div>
-                    <div id="project-files-container">
-                    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
-                    </div>
-                </div>
+        <div id="sidebar" class="sidebar panel quiet-scrollbars horz-resizable right-resizer collapsible" data-minsize="0" data-forceleft=".content">
+            <div id="working-set-header">{{WORKING_FILES}}</div>
+            <div id="open-files-container">
+                <!-- This will contain runtime-generated <li>'s for each file in the working set -->
+                <ul>
+                </ul>
+            </div>
+        
+            <div id="project-files-header">
+                <span id="project-title" class="title"></span>
+            </div>
+            <div id="project-files-container">
+                <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
             </div>
         </div>
         
         <!--
-            Right-hand content: vertical stack of toolbar, editor, bottom panels, status bar
+            Vertical stack of titlebar (in-browser), editor, bottom panels, status bar
                 (status bar is injected later - see StatusBar.init()).
             Note: all children must be in a vertical stack with heights explicitly set in a fixed
                 unit such as px (not percent/em/auto). If you change the height later, you must
@@ -70,18 +65,11 @@
                 not get set correctly.
          -->
         <div class="content">
-            <!-- Toolbar containing menus, filename, and icons -->
-            <div id="main-toolbar" class="toolbar no-focus">
+            <!-- Horizontal titlebar containing menus & filename when inBrowser -->
+            <div id="titlebar" class="toolbar no-focus">
                 <!-- Menu bar -->
                 <ul class="nav" data-dropdown="dropdown">
                 </ul>
-                
-                <!-- Toolbar -->
-                <div class="buttons">
-                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>
-                    
-                    <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
-                </div>
                 
                 <!-- Filename label -->
                 <div class="title-wrapper">
@@ -89,6 +77,7 @@
                 </div>
             </div>
             
+            <!-- Editors are programmatically created inside here -->
             <div id="editor-holder">
                 <div id="not-editor">
                 </div>
@@ -105,6 +94,16 @@
             
         </div>
 
+        <!-- Vertical toolbar docked to right -->
+        <div id="main-toolbar" class="toolbar no-focus">
+            <!-- Top-aligned buttons -->
+            <div class="buttons">
+                <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
+                <a href="#" id="toolbar-add-extension" title="{{INSTALL_EXTENSION_TITLE}}"></a>
+                <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>
+            </div>
+        </div>
+        
         <!-- Hack to ensure that the code editor's web font is loaded early. -->
         <!-- For more info, see note in brackets.less for class .dummy-text, or issue 76 -->
         <div class="dummy-text">x</div>

@@ -31,10 +31,6 @@
  *
  */
 
-.project-panel-background {
-    background: #3C3F41 url("images/propertiespanel_back.png") repeat-x 0 0;
-}
-
 .panel {
     .vbox;
     .box-flex(1);
@@ -42,7 +38,7 @@
     padding: 0;
     margin: 0;
 
-    .project-panel-background;
+    background: @project-panel-base-color url("images/propertiespanel_back.png") repeat-x 0 0;
     color: #bbb;
     letter-spacing: .01em;
     text-shadow: 0px 1px 2px rgba(0,0,0,.5);
@@ -57,6 +53,8 @@
 .simple-toolbar-layout.toolbar {
     .hbox;
     .box-align(center);
+    overflow: hidden;
+    
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
            directly on a flexing box in Chrome currently. */
@@ -68,7 +66,7 @@
     }
 }
 
-/* Editor toolbar layout
+/* Horizontal titlebar/menubar (in-browser only)
 
    CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
    This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
@@ -82,9 +80,14 @@
     - the window resizes (handled by general listener in EditorManager)
     - title content changes (the same JS code that sets .title-wrapper's fixed width is expected to handle this)
 */
-#main-toolbar.toolbar {
+#titlebar {
+    // Visible only in-browser
+    body.in-appshell & {
+        display: none;
+    }
+    
     text-align: center;
-    .nav {
+    .nav {  // menubar
         float: left;
         text-align: left;
     }
@@ -97,9 +100,36 @@
         display: block;  // must be a block for the fixed width applied by JS to be respected
         // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
     }
+}
+
+/* Vertical icon toolbar on right */
+#main-toolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: @main-toolbar-width;
+    height: 100%;
+    box-sizing: border-box;
+    
+    background: @main-toolbar-background-color;
+    padding: 5px 0px;
+    
+    // Ensure icons are vertically stacked & horizontally centered
+    .vbox;
+    .box-flex(1);
+    text-align: center;
+    
     .buttons {
-        float: right;
-        text-align: left;
+        text-align: center;
+        margin: 0;
+        
+        > a {
+            margin: 5px 0px 5px 0px;
+            padding: 0 !important;
+            position: static !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
     }
 }
 
@@ -113,8 +143,7 @@
     background-color: @bc-white;
     color: @bc-black;
     
-    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    position: relative;  // needed for abs-positioned elements in toolbar (e.g. right-aligned "X")
     
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -140,15 +169,6 @@
     .buttons {
         margin: @toolbar-top-gap-px 0 0 4px;
         
-        .experimental-label {
-            color: #a0a0a0;
-            font-size: 15px;
-            line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
-            font-weight: normal;
-            font-style: italic;
-            padding-right: 22px;
-        }
-
         span, a {
             cursor: default;
         }
@@ -328,11 +348,20 @@
 }
 
 .modal-footer {
+    background-color: #dfe2e2;
+    border-top: 1px solid rgba(0,0,0,0.15);
+    box-shadow: none;
     white-space: nowrap;
 }
 
 .modal-footer .btn.left {
     float: left;
+    
+    /* Transfer the margin to the right of each left-aligned button, so the left side lines up properly
+     * with the title.
+     */
+    margin-left: 0;
+    margin-right: 5px;
 }
 
 .modal-body ul {
@@ -434,8 +463,59 @@
     }
     input.url {
         display: inline;
-        margin: 10px;
-        width: 400px;
+    }
+}
+
+.project-settings-dialog .modal-body input.url {
+    margin: 10px;
+    width: 400px;
+}
+
+.install-extension-dialog .modal-body input.url {
+    margin: 10px 0;
+    width: 550px;
+}
+
+/* Extension Manager dialog */
+.extension-manager-dialog {
+    top: 50%;
+    left: 50%;
+    margin-top: -325px;
+    margin-left: -350px;
+    
+    .modal-body {
+        width: 700px;
+        height: 500px;
+        text-align: center;
+        overflow-y: scroll;
+        
+        .extension-list {
+            .ext-name {
+                font-weight: bold;
+            }
+            .ext-desc {
+                width: 60%;
+            }
+            .ext-version,
+            .ext-date,
+            .ext-author {
+                font-size: 0.8em;
+            }
+            .spinner {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin-top: -18px;
+                margin-left: -18px;
+            }
+            .load-error {
+                display: inline-block;
+                margin-top: 240px;
+            }
+            .install {
+                width: 90px;
+            }
+        }
     }
 }
 
@@ -481,7 +561,7 @@
         font-size: 14px;
         line-height: 17px;
         
-        // Enable text selection, since URLs aren't clickable
+        // Enable text selection
         cursor: auto;
         -webkit-user-select: text;
         -khtml-user-select: text;
@@ -489,5 +569,76 @@
         -ms-user-select: text;
         -o-user-select: text;
         user-select: text;
+    }
+}
+
+
+/* Buttons */
+
+// Base .btn styles
+.btn {
+    // Button Base
+    background-image: none;
+
+    background-color: #e5e9e9;
+    text-shadow: 0 1px 0 #fff;
+    color: #454545;
+    font-weight: 500;
+    line-height: normal;
+    border: 1px solid #9c9e9e;
+    .border-radius(3px);
+    box-shadow: inset 0 1px 0 #fff;
+
+    &:hover {
+        background-color: #edf1f1;
+        color: #454545;
+    }
+
+    // Focus state for keyboard and accessibility
+    &:focus {
+        box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        outline: none;
+    }
+
+    // Primary Button Type
+    &.primary {
+        background-image: none;
+        background-color: #288edf;
+        border: 1px solid  #0055ad;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.36);
+        color: #fff;
+        text-shadow: 0 -1px 0 rgba(0,0,0,0.36);
+        &.active,
+        &:active {
+            background-image: none;
+            background-color: #0380e8;
+            box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+        }    
+   
+        &:focus {
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
+            outline: none;
+        }        
+    }
+    
+    // Active and Disabled states
+    &.active,
+    &:active {
+        background-image: none;
+        background-color: #d3d7d7;
+        box-shadow: inset 0 1px 0 rgba(0,0,0,0.12);
+    }    
+    
+    &.disabled, &[disabled] {
+        .opacity(30);
+    }
+
+    // Button Sizes
+    &.large {
+        font-size: @basefont + 1px;
+        .border-radius(3px);
+    }
+    &.small {
+        font-size: @basefont - 1px;
     }
 }

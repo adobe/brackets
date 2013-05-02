@@ -340,7 +340,7 @@ define(function (require, exports, module) {
         if (sessionEditor) {
             if (sessionEditor === editor &&
                     (hintList.isOpen() ||
-                     (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
+                     (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
             } else {
                 // the editor has changed
@@ -397,12 +397,11 @@ define(function (require, exports, module) {
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageID(language.getId());
         
-        $.each(enabledProviders, function (index, item) {
+        enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {
                 sessionProvider = item.provider;
-                return false;
+                return true;
             }
-            return true;
         });
 
         // If a provider is found, initialize the hint list and update it
@@ -504,6 +503,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Test if a hint popup is open.
+     *
+     * @returns {boolean} - true if the hints are open, false otherwise.
+     */
+    function isOpen() {
+        return (hintList && hintList.isOpen());
+    }
+
+    /**
      * Expose CodeHintList for unit testing
      */
     function _getCodeHintList() {
@@ -512,6 +520,7 @@ define(function (require, exports, module) {
     exports._getCodeHintList        = _getCodeHintList;
     
     // Define public API
+    exports.isOpen                  = isOpen;
     exports.handleKeyEvent          = handleKeyEvent;
     exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;

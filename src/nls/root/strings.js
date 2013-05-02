@@ -125,11 +125,19 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
     
+    // Switch language
+    "LANGUAGE_TITLE"                    : "Switch Language",
+    "LANGUAGE_MESSAGE"                  : "Language:",
+    "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
+    "LANGUAGE_CANCEL"                   : "Cancel",
+    "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
+
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING" : "Loading\u2026",
-    "UNTITLED" : "Untitled",
+    "PROJECT_LOADING"   : "Loading\u2026",
+    "UNTITLED"          : "Untitled",
+    "WORKING_FILES"     : "Working Files",
 
     /**
      * Keyboard modifier names
@@ -149,7 +157,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
     "STATUSBAR_SPACES"                      : "Spaces",
     "STATUSBAR_TAB_SIZE"                    : "Tab Size",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Line",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -171,6 +180,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
     "CMD_QUIT"                            : "Quit",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Exit",
@@ -198,6 +208,8 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Toggle Block Comment",
     "CMD_LINE_UP"                         : "Move Line Up",
     "CMD_LINE_DOWN"                       : "Move Line Down",
+    "CMD_OPEN_LINE_ABOVE"                 : "Open Line Above",
+    "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     
     // View menu commands
@@ -221,9 +233,11 @@ define({
     "NAVIGATE_MENU"                       : "Navigate",
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
-    "CMD_GOTO_DEFINITION"                 : "Go to Definition",
+    "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
+    "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
     "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
     "CMD_NEXT_DOC"                        : "Next Document",
@@ -280,6 +294,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
@@ -310,7 +325,9 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
     "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
     "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
-    "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of Brackets. It's installed in your disabled extensions folder.",
+    "INVALID_BRACKETS_VERSION"             : "The Brackets compatibility string {{0}} is invalid.",
+    "DISALLOWED_WORDS"                     : "The words {{1}} are not allowed in the {{0}} field.",
+    "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
     "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
@@ -323,14 +340,23 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
     "UNKNOWN_ERROR"                        : "Unknown internal error.",
     // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the extension registry. Please try again later.",
+    "INSTALL_FROM_URL"                     : "Install from URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Author",
+    "EXTENSION_DATE"                       : "Date",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_INSTALLED"                  : "Installed",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
+    "EXTENSION_MORE_INFO_LINK"             : "More",
+    "BROWSE_EXTENSIONS"                    : "Browse Extensions",
     
-    
-    // extensions/default/DebugComments - Switch language
-    "LANGUAGE_TITLE"                       : "Switch Language",
-    "LANGUAGE_MESSAGE"                     : "Language:",
-    "LANGUAGE_SUBMIT"                      : "Reload {APP_NAME}",
-    "LANGUAGE_SYSTEM_DEFAULT"              : "System Default",
-    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Quick View on Hover",
+
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint Errors",
     "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
@@ -345,5 +371,8 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Read more"
 });
