@@ -298,7 +298,7 @@ define(function (require, exports, module) {
                 propertyLookup = true;
                 context = this.getContext(cursor);
             } else {
-                if (token.className === "property") {
+                if (token.type === "property") {
                     propertyLookup = true;
                 }
 

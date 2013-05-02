@@ -210,18 +210,18 @@ define(function (require, exports, module) {
             return true;
         }
 
-        if (token.className === null) {
+        if (token.type === null) {
             token = session.getNextTokenOnLine(cursor);
         }
 
-        if (lastToken && lastToken.className === null) {
+        if (lastToken && lastToken.type === null) {
             lastToken = session.getNextTokenOnLine(cachedCursor);
         }
 
         // Both of the tokens should never be null (happens when token is off
         // the end of the line), so one is null then close the hints.
         if (!lastToken || !token ||
-                token.className !== lastToken.className) {
+                token.type !== lastToken.type) {
             return true;
         }
 
