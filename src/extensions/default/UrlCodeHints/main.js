@@ -24,20 +24,6 @@
 /*global define, brackets, $, window */
 
 
-/*
-
-TODO:
-- handle @import
-  - need to update CSSUtils
-- unit tests
-  - any to move from HTMLCodeHints ?
-- handle quotes
-  - inside url()
-  - raw quotes (i.e. without url()) ?
-
-*/
-
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -407,8 +393,18 @@ define(function (require, exports, module) {
                 }
                 val += this.info.values[this.info.index].substr(0, this.info.offset);
 
-                // Strip "url(" to get query string
-                query.queryStr = val.replace(/^url\(/i, "");
+                // Strip "url("
+                val = val.replace(/^url\(/i, "");
+
+                // Keep track of opening quote and strip it
+                if (val.match(/^["']/)) {
+                    this.info.openingQuote = val[0];
+                    val = val.substring(1);
+                } else {
+                    this.info.openingQuote = null;
+                }
+
+                query.queryStr = val;
             }
 
         } else {
@@ -421,6 +417,7 @@ define(function (require, exports, module) {
             hints = hintsAndSortFunc.hints;
             sortFunc = hintsAndSortFunc.sortFunc;
         }
+        this.info.filter = filter;
 
         if (hints instanceof Array && hints.length) {
             // Array was returned
@@ -477,8 +474,14 @@ define(function (require, exports, module) {
 
     UrlCodeHints.prototype.insertCssHint = function (completion) {
         var cursor = this.editor.getCursorPos(),
-            start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1};
+            start  = { line: cursor.line, ch: cursor.ch },
+            end    = { line: cursor.line, ch: cursor.ch };
+
+        var hasClosingQuote = false,
+            hasClosingParen = false,
+            closingOffset   = -1,
+            insertText      = completion,
+            moveLen         = 0;
 
         if (this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) {
             return false;
@@ -490,33 +493,57 @@ define(function (require, exports, module) {
             this.closeOnSelect = true;
         }
 
-        start.line = end.line = cursor.line;
-        end.ch = cursor.ch;
-
-        if (this.info.index === 1 && this.info.values[0].toLowerCase() === "url(") {
-            start.ch = cursor.ch - this.info.offset;
-        } else {
-            start.ch = cursor.ch;
+        // Look for optional closing quote
+        if (this.info.openingQuote) {
+            closingOffset = this.info.values[this.info.index].indexOf(this.info.openingQuote, this.info.offset);
+            hasClosingQuote = (closingOffset !== -1);
         }
 
-        var hasClosingParen = (this.info.values[this.info.index][this.info.offset] === ")");
+        // Look for closing paren
+        if (hasClosingQuote) {
+            hasClosingParen = (this.info.values[this.info.index].indexOf(")", closingOffset) !== -1);
+        } else {
+            closingOffset = (this.info.values[this.info.index].indexOf(")", this.info.offset));
+            hasClosingParen = (closingOffset !== -1);
+        }
+
+        // Adjust insert char positions to replace existing value, if there is a closing paren
+        if (closingOffset !== -1) {
+            end.ch += (closingOffset - this.info.offset);
+        }
+        if (this.info.filter.length > 0) {
+            start.ch -= this.info.filter.length;
+        }
+
+        // Append matching quotes, parens
+        if (this.info.openingQuote && !hasClosingQuote) {
+            insertText += this.info.openingQuote;
+        }
+        if (!hasClosingParen) {
+            insertText += ")";
+        }
 
         // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
         // directly to replace the range instead of using the Document, as we should. The
         // reason is due to a flaw in our current document synchronization architecture when
         // inline editors are open.
-        var insertText = completion;
-        if (!hasClosingParen) {
-            insertText += ")";
-        }
         this.editor._codeMirror.replaceRange(insertText, start, end);
 
+        // Adjust cursor position
         if (this.closeOnSelect) {
-            // If there is an existing closing paren, move the cursor to the right of it
-            if (hasClosingParen) {
-                this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
+            // If there is existing closing quote and/or paren, move the cursor past them
+            moveLen = (hasClosingQuote ? 1 : 0) + (hasClosingParen ? 1 : 0);
+            if (moveLen > 0) {
+                this.editor.setCursorPos(start.line, start.ch + completion.length + moveLen);
             }
             return false;
+
+        } else {
+            // If closing quote and/or paren are added, move the cursor to where it would have been
+            moveLen = ((this.info.openingQuote && !hasClosingQuote) ? 1 : 0) + (!hasClosingParen ? 1 : 0);
+            if (moveLen > 0) {
+                this.editor.setCursorPos(start.line, start.ch + completion.length);
+            }
         }
 
         return true;
