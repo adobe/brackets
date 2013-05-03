@@ -159,6 +159,9 @@ define(function JSDocumentModule(require, exports, module) {
     };
     
     /** Triggered on change by the editor */
+    // TODO: this is really fragile. As Peter F suggested, maybe we should make
+    // it more manual. Highlight stuff that hasn't been pushed to the browser yet,
+    // and give the user simple ways to push it (add function, eval in existing closure).
     JSDocument.prototype.onChange = function onChange(event, editor, change) {
         var self = this;
         
