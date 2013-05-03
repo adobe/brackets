@@ -236,6 +236,28 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @return {{line:number, ch:number}} - the line, col info for where the previous "."
+     *      in a property lookup occurred, or undefined if no previous "." was found.
+     */
+    Session.prototype.findPreviousDot = function () {
+        var cursor = this.getCursor(),
+            token = this.getToken(cursor);
+        
+        // If the cursor is right after the dot, then the current token will be "."
+        if (token && token.string === ".") {
+            return cursor;
+        } else {
+            // If something has been typed like 'foo.b' then we have to look back 2 tokens
+            // to get past the 'b' token
+            token = this._getPreviousToken(cursor);
+            if (token && token.string === ".") {
+                return cursor;
+            }
+        }
+        return undefined;
+    };
+    
+    /**
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
@@ -309,19 +331,12 @@ define(function (require, exports, module) {
                     }
                 }
             }
-            if (token.string === ".") {
+            if (token.className === "property") {
+                propertyLookup = true;
+            }
+            if (this.findPreviousDot()) {
                 propertyLookup = true;
                 context = this.getContext(cursor);
-            } else {
-                if (token.className === "property") {
-                    propertyLookup = true;
-                }
-
-                token = this._getPreviousToken(cursor);
-                if (token && token.string === ".") {
-                    propertyLookup = true;
-                    context = this.getContext(cursor);
-                }
             }
             if (propertyLookup) { showFunctionType = false; }
         }
