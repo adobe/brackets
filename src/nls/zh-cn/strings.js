@@ -338,6 +338,7 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} 次)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} 次)",
     
+    // extensions/default/JSLint
     "CMD_JSLINT"                                : "启用JSLint",
     "CMD_JSLINT_FIRST_ERROR"                    : "转到第一个JSLint错误",
     "JSLINT_ERRORS"                             : "JSLint错误",
