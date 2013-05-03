@@ -204,6 +204,10 @@ define(function (require, exports, module) {
             return null;
         }
 
+        // TODO: For some reason, the with() trick doesn't work if it's wrapped around a function defined as
+        // "function foo() { ... }"--it only works with "var foo = function () { ... }". (Also, because of
+        // the way I'm doing things, that actually has to be "var foo = function foo() { ... }" for it to
+        // work, currently.)
         var functionNode = findFirst(root, ["FunctionDeclaration", "FunctionExpression"]),
             functionBodyNode = functionNode.body,
             id = nextId++,
