@@ -41,6 +41,7 @@ define(function (require, exports, module) {
 
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
+        NodeExtensions      = require("extensibility/NodeExtensions"),
         ExtensionData       = require("extensibility/ExtensionData"),
         Async               = require("utils/Async"),
         AppInit             = require("utils/AppInit");
@@ -82,7 +83,7 @@ define(function (require, exports, module) {
 
     function _hackifyExtension(name, baseUrl, extensionRequire, mainModule) {
         // old fashioned extension
-        if (!mainModule || !mainModule.registering) {
+        if (!mainModule || !mainModule.init) {
             return;
         }
         AppInit.appReady(function () {
@@ -92,6 +93,7 @@ define(function (require, exports, module) {
                     var services = ExtensionData.getServiceRegistry(metadata.name);
                     services.metadata = metadata;
                     mainModule.init(services);
+                    NodeExtensions.loadNodeExtension(name, baseUrl);
                 },
                 function (err) {
                     console.error("[Extension] is missing package.json " + baseUrl, err);

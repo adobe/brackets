@@ -27,8 +27,10 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
+var fs            = require("fs"),
+    ExtensionData = require("../ExtensionData");
+
 var DOMAIN_NAME = "extensionData",
-    registry    = {},
     _emitEvent  = null;
 
 function _createFunction(obj) {
@@ -43,32 +45,21 @@ function _createFunction(obj) {
     };
 }
 
-function _upgradeData(data) {
-    Object.keys(data).forEach(function (key) {
-        if (key.substr(0, 1) === "_") {
-            return;
-        }
-        var obj = data[key];
-        if (obj.hasOwnProperty("__function")) {
-            data[key] = _createFunction(obj);
-        } else {
-            _upgradeData(obj);
-        }
-    });
-}
-
 function _cmdInitialize(data) {
-    console.log("initializing ExtensionData");
-    _upgradeData(data);
-    registry = data;
-    registry.log("All systems go!");
+    ExtensionData._brackets._initialize(data, _createFunction);
 }
 
-function _cmdLoadNodeMain() {
+function _cmdLoadExtension(name, baseUrl) {
+    var nodeMainPath = baseUrl + "/node-main";
+    if (fs.existsSync(nodeMainPath + ".js")) {
+        var nodeMain = require(nodeMainPath);
+        if (nodeMain.init) {
+            nodeMain.init(ExtensionData.getServiceRegistry(name));
+        }
+    }
 }
 
 function init(domainManager) {
-    console.log("Setting up ExtensionData Domain");
     _emitEvent = domainManager.emitEvent;
     if (!domainManager.hasDomain(DOMAIN_NAME)) {
         domainManager.registerDomain(DOMAIN_NAME, {major: 0, minor: 1});
@@ -96,6 +87,22 @@ function init(domainManager) {
             name: "args",
             type: "array",
             description: "Function arguments"
+        }]
+    );
+    domainManager.registerCommand(
+        DOMAIN_NAME,
+        "loadExtension",
+        _cmdLoadExtension,
+        false,
+        "Loads an extension's node side",
+        [{
+            name: "name",
+            type: "string",
+            description: "name of the extension"
+        }, {
+            name: "baseUrl",
+            type: "string",
+            description: "path of the extension"
         }]
     );
 }

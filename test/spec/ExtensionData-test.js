@@ -124,5 +124,19 @@ define(function (require, exports, module) {
             var reparsed = JSON.parse(result);
             expect(reparsed.foo.__function).toEqual("foo");
         });
+        
+        it("should initialize the registry from JSON data", function () {
+            services.addFunction("foo", function () { });
+            var result = JSON.stringify(ExtensionData.ServiceRegistry.prototype);
+            var reparsed = JSON.parse(result);
+            delete ExtensionData.ServiceRegistry.prototype.foo;
+            services._initialize(reparsed, function (obj) {
+                return true;
+            });
+            expect(services.foo).toBeDefined();
+            // test to make sure that addFunction still works as well
+            services.addFunction("bar", function () { });
+            expect(services.bar).toBeDefined();
+        });
     });
 });
