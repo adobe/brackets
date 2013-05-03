@@ -411,7 +411,11 @@ define(function (require, exports, module) {
             }
         }
         // Replace the current token with the completion
-        session.editor.document.replaceRange(completion, start, end);
+        // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
+        // directly to replace the range instead of using the Document, as we should. The
+        // reason is due to a flaw in our current document synchronization architecture when
+        // inline editors are open.
+        session.editor._codeMirror.replaceRange(completion, start, end);
 
         // Return false to indicate that another hinting session is not needed
         return false;
