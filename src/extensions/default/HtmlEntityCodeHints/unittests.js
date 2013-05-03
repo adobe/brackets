@@ -121,27 +121,16 @@ define(function (require, exports, module) {
             expectHints(hintProvider);
         });
         
-        //Test for issue #3339
-        it("should show HTML hints after HTML Entity on same line", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 45, ch: 24});
-
-            expectNoHints(hintProvider);
-        
-            testEditorAndDoc.editor.setCursorPos({line: 45, ch: 27});
-
-            expectNoHints(hintProvider);
-        });
-        
         it("should sort &#xxxx hints numerically not alphabetically", function () {
-            testEditorAndDoc.editor.setCursorPos({line: 50, ch: 14});
+            testEditorAndDoc.editor.setCursorPos({line: 45, ch: 14});
 
             var hints = expectHints(hintProvider);
             hintProvider.insertHint(hints[0]);
-            expect(testEditorAndDoc.editor.document.getRange({line: 50, ch: 12}, {line: 50, ch: 17})).toEqual("&#33;");
+            expect(testEditorAndDoc.editor.document.getRange({line: 45, ch: 12}, {line: 45, ch: 17})).toEqual("&#33;");
             
-            testEditorAndDoc.editor.setCursorPos({line: 50, ch: 14});
+            testEditorAndDoc.editor.setCursorPos({line: 45, ch: 14});
             hintProvider.insertHint(hints[23]);
-            expect(testEditorAndDoc.editor.document.getRange({line: 50, ch: 12}, {line: 50, ch: 18})).toEqual("&#123;");
+            expect(testEditorAndDoc.editor.document.getRange({line: 45, ch: 12}, {line: 45, ch: 18})).toEqual("&#123;");
         });
         
         describe("Inserting Tests", function () {
