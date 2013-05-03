@@ -69,7 +69,6 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileUtils            = require("file/FileUtils"),
-        HTMLInstrumentation  = require("language/HTMLInstrumentation"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NativeFileError      = require("file/NativeFileError"),
         NativeApp            = require("utils/NativeApp"),
