@@ -51,6 +51,8 @@ define(function (require, exports, module) {
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
+    
+    var keydownListeners = [];
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -177,6 +179,11 @@ define(function (require, exports, module) {
 
             // Remove keydown event handler
             window.document.body.removeEventListener("keydown", handleKeyDown, true);
+            keydownListeners.pop();
+            if (keydownListeners.length > 0) {
+                var previousListener = keydownListeners[keydownListeners.length - 1];
+                window.document.body.addEventListener("keydown", previousListener, true);
+            }
             KeyBindingManager.setEnabled(true);
         }).one("shown", function () {
             // Set focus to the default button
@@ -187,6 +194,12 @@ define(function (require, exports, module) {
             }
 
             // Listen for dialog keyboard shortcuts
+            // if there is already a listener, remove it before adding the current listener
+            if (keydownListeners.length > 0) {
+                var previousListener = keydownListeners[keydownListeners.length - 1];
+                window.document.body.removeEventListener("keydown", previousListener, true);
+            }
+            keydownListeners.push(handleKeyDown);
             window.document.body.addEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(false);
         });
