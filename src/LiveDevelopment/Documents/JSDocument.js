@@ -54,7 +54,8 @@ define(function JSDocumentModule(require, exports, module) {
     var JSInstrumentation = require("language/JSInstrumentation");
     var MarkedTextTracker = require("utils/MarkedTextTracker");
     
-    var functionUpdateTemplate = Mustache.compile(require("text!language/js-function-update.txt"));
+    var functionUpdateTemplate = Mustache.compile(require("text!language/js-function-update.txt")),
+        functionAddTemplate = Mustache.compile(require("text!language/js-function-add.txt"));
     
     var RANGE_MARK_TYPE = "jsFunctionID";
 
@@ -66,6 +67,7 @@ define(function JSDocumentModule(require, exports, module) {
         this.doc = doc;
         this._instrumentationEnabled = false;
         this._instrumentedText = null;
+        this._nextFunctionId = 0;
 
         this.onHighlight = this.onHighlight.bind(this);
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
@@ -84,10 +86,16 @@ define(function JSDocumentModule(require, exports, module) {
      * Instrument the current document and cache the instrumented text.
      */
     JSDocument.prototype._reinstrument = function () {
-        var ranges = [];
-        this._instrumentedText = JSInstrumentation.instrument(this.doc.getText(), ranges);
-        if (this.editor) {
-            MarkedTextTracker.markText(this.editor, ranges, RANGE_MARK_TYPE);
+        var ranges = [],
+            result = JSInstrumentation.instrument(this.doc.getText(), ranges);
+        // If we couldn't instrument it because it was invalid, just keep whatever we had
+        // before.
+        if (result) {
+            this._instrumentedText = result.instrumented;
+            this._nextFunctionId = result.nextId;
+            if (this.editor) {
+                MarkedTextTracker.markText(this.editor, ranges, RANGE_MARK_TYPE);
+            }
         }
     };
 
@@ -108,7 +116,7 @@ define(function JSDocumentModule(require, exports, module) {
      * @returns {{body: string}}
      */
     JSDocument.prototype.getResponseData = function getResponseData(enabled) {
-        var body = (this._instrumentationEnabled) ? this._instrumentedText : this.doc.getText();
+        var body = (this._instrumentationEnabled && this._instrumentedText) ? this._instrumentedText : this.doc.getText();
         return {
             body: body
         };
@@ -152,16 +160,100 @@ define(function JSDocumentModule(require, exports, module) {
     
     /** Triggered on change by the editor */
     JSDocument.prototype.onChange = function onChange(event, editor, change) {
-        var range = MarkedTextTracker.getRangeAtDocumentPos(editor, editor.getCursorPos(), RANGE_MARK_TYPE);
-        if (range) {
-            var fnSrc = editor._codeMirror.getRange(range.start, range.end),
-                fnBody = JSInstrumentation.getFunctionBody(fnSrc);
-            Inspector.Runtime.evaluate(functionUpdateTemplate({
-                id: range.data,
-                escapedBody: JSInstrumentation.escapeJS(fnBody)
-            }));
+        var self = this;
+        
+        function offsetPos(outerPos, innerPos) {
+            return {
+                line: outerPos.line + innerPos.line,
+                ch: (innerPos.line === 0 ? outerPos.ch + innerPos.ch : innerPos.ch)
+            };
         }
         
+        if (this._instrumentationEnabled) {
+            if (!this._instrumentedText) {
+                // The script must have been invalid the first time we loaded, so just instrument it and
+                // push it.
+                this._reinstrument();
+                if (this._instrumentedText) {
+                    Inspector.Runtime.evaluate(this._instrumentedText);
+                }
+            } else {
+                // Update all surrounding functions with their new definitions. (We can't just do the outermost one
+                // because existing instances of inner functions need to be updated as well.)
+                // TODO: not correct to use cursor pos, should look at the change record to figure out what to invalidate
+                var ranges = MarkedTextTracker.getRangesAtDocumentPos(editor, editor.getCursorPos(), RANGE_MARK_TYPE);
+                ranges.forEach(function (range) {
+                    var fnSrc = editor._codeMirror.getRange(range.start, range.end),
+                        fnBody = JSInstrumentation.getFunctionBody(fnSrc);
+                    if (fnBody) {
+                        // We have to pass the whole function to `instrument` in order for it to parse correctly (otherwise
+                        // return statements will break the parse). But we pass a flag telling it not to actually instrument
+                        // the outermost function.
+                        // TODO: this reinstrumentation will only be correct if all the newly reinstrumented IDs
+                        // happen to line up with the existing IDs. It will fail if you add new functions in the middle,
+                        // remove functions, etc.
+                        var subRanges = [],
+                            subInstrResult = JSInstrumentation.instrumentFunction(fnSrc, subRanges, null, null, range.data, true);
+                        if (subInstrResult) {
+                            var changedFunction = functionUpdateTemplate({
+                                id: range.data,
+                                escapedBody: JSInstrumentation.escapeJS(subInstrResult.instrumented)
+                            });
+                            console.log(">>> CHANGED FUNCTION\n" + changedFunction);
+                            Inspector.Runtime.evaluate(changedFunction);
+    
+                            // If new (unmarked) functions were added within this function, add them to the closure
+                            // context for that function, so they'll be picked up by existing inner closures next time they 
+                            // run.
+                            // We detect these by reinstrumenting the updated function in order to find the offsets of
+                            // all functions, and then seeing which ones are already marked. (We ignore the actual
+                            // IDs at this step since we're going to reinstrument the new functions separately anyway.)
+                            // TODO: removed functions; adding/removing vars; new imperative code
+                            
+                            subRanges.forEach(function (subRange) {
+                                // TODO: skip further-nested subranges.
+                                // Subranges are relative to the original range, so we need to fix up the offsets when looking up marks.
+                                var subRangeStart = offsetPos(range.start, subRange.start),
+                                    subRangeEnd = offsetPos(range.start, subRange.end),
+                                    childRanges = [],
+                                    checkPos = {line: subRangeStart.line, ch: subRangeStart.ch + 1}, // offset by 1 so we're inside the range
+                                    surroundingRanges = MarkedTextTracker.getRangesAtDocumentPos(editor, checkPos, RANGE_MARK_TYPE);
+                                // If the innermost range is the same as our current range, then this must be a new uninstrumented function.
+                                // Instrument it and add it to the current range's scope.
+                                if (surroundingRanges.length &&
+                                        surroundingRanges[0].start.line === range.start.line &&
+                                        surroundingRanges[0].start.ch === range.start.ch) {
+                                    var newFunctionInstr = JSInstrumentation.instrumentFunction(
+                                        editor._codeMirror.getRange(subRangeStart, subRangeEnd),
+                                        childRanges,
+                                        null,
+                                        range.data, // parent id is the surrounding range
+                                        self._nextFunctionId
+                                    );
+                                    
+                                    // Mark the newly instrumented function in the editor.
+                                    MarkedTextTracker.markText(editor, childRanges, RANGE_MARK_TYPE, false);
+                                    
+                                    // Push the new function definition to the browser in the correct scope.
+                                    // TODO: is it possible for name to be null? Seems like it would be a syntax error, since
+                                    // function expressions shouldn't be legal at the top level here.
+                                    var addedFunction = functionAddTemplate({
+                                        name: newFunctionInstr.name,
+                                        parentId: range.data,
+                                        escapedDef: JSInstrumentation.escapeJS(newFunctionInstr.instrumented)
+                                    });
+                                    console.log(">>> ADDED FUNCTION\n" + addedFunction);
+                                    Inspector.Runtime.evaluate(addedFunction);
+                                    
+                                    self._nextFunctionId = newFunctionInstr.nextId;
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
 // Old way
 //        var src = this.doc.getText();
 //        Inspector.Debugger.setScriptSource(this.script().scriptId, src, function onSetScriptSource(res) {

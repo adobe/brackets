@@ -1,2 +1,2 @@
 window.__bkld_fndefs = window.__bkld_fndefs || {},
-window.__bkld_fndefs[{{id}}] = 'function() { {{{escapedBody}}} }'
+window.__bkld_fndefs[{{id}}] = '(function() { with (__bkld_scope_{{id}}) { {{{escapedBody}}} } {{#vars}} __bkld_scope_{{id}}.{{.}} = {{.}}; {{/vars}} })'

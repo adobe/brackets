@@ -14,11 +14,14 @@ someVar = 2;
 }{{3}}
 
 someVar = 3;
-// test_after
+// test_after nextId=2
 var someVar = 1;
 
 function callMe(arg) {
     // id = 0
+    // hasParentId = false
+    // parentId = 
+    // vars = 
     // before body
     console.log('Called me ' + arg);
     // after body
@@ -29,6 +32,9 @@ someVar = 2;
 
 function callAnother() {
     // id = 1
+    // hasParentId = false
+    // parentId = 
+    // vars = letsHaveAnotherStatement 
     // before body
     var letsHaveAnotherStatement = 1;
     console.log('Called another');

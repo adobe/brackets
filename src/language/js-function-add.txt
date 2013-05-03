@@ -1,0 +1,3 @@
+window.__bkld_ctxt = window.__bkld_ctxt || {};
+window.__bkld_ctxt[{{parentId}}] = window.__bkld_ctxt[{{parentId}}] || {};
+window.__bkld_ctxt[{{parentId}}]['{{name}}'] = '{{{escapedDef}}}';

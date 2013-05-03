@@ -23,17 +23,23 @@ someVar = 2;
 }{{5}}
 
 someVar = 3;
-// test_after
+// test_after nextId=4
 var someVar = 1;
 
 function callMe(arg) {
     // id = 0
+    // hasParentId = false
+    // parentId = 
+    // vars = nested1
     // before body
     console.log('Called me ' + arg);
                 
     // Simple nested
     function nested1() {
         // id = 1
+        // hasParentId = true
+        // parentId = 0
+        // vars = 
         // before body
         console.log("nested1");
         // after body
@@ -46,12 +52,18 @@ someVar = 2;
 
 function callAnother() {
     // id = 2
+    // hasParentId = false
+    // parentId = 
+    // vars = 
     // before body
     console.log('Called another');
 
     // Nested as callback
     callWithCallback(function (cbArg) {
         // id = 3
+        // hasParentId = true
+        // parentId = 2
+        // vars = 
         // before body
         console.log("callback " + cbArg);
         // after body

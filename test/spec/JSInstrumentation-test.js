@@ -42,8 +42,6 @@ define(function (require, exports, module) {
                     function collapseWhitespace(str) {
                         return str.replace(/(\n|\s)+/g, " ");
                     }
-                    console.log("actual: " + collapseWhitespace(this.actual));
-                    console.log("expected: " + collapseWhitespace(expected));
                     return collapseWhitespace(this.actual) === collapseWhitespace(expected);
                 }
             });
@@ -51,7 +49,13 @@ define(function (require, exports, module) {
         
         describe("Instrumentation", function () {
             var origTemplate,
-                unitTestFnTemplate = Mustache.compile("// id = {{id}}\n// before body\n{{{body}}}\n// after body\n");
+                unitTestFnTemplate = Mustache.compile("// id = {{id}}\n" +
+                                                      "// hasParentId = {{hasParentId}}\n" +
+                                                      "// parentId = {{parentId}}\n" +
+                                                      "// vars = {{#vars}}{{.}} {{/vars}}\n" +
+                                                      "// before body\n" +
+                                                      "{{{body}}}\n" +
+                                                      "// after body\n");
             
             beforeEach(function () {
                 origTemplate = JSInstrumentation._getFunctionTemplate();
@@ -62,7 +66,7 @@ define(function (require, exports, module) {
                 JSInstrumentation._setFunctionTemplate(origTemplate);
             });
             
-            function testInstrument(instrFn, filename) {
+            function testInstrument(instrFn, filename, fnName, skipOuter) {
                 var testContent;
                 runs(function () {
                     waitsForDone(
@@ -73,15 +77,23 @@ define(function (require, exports, module) {
                     );
                 });
                 runs(function () {
-                    var match = testContent.match(/^\/\/ test_before\n((?:.|\n)+)\n\/\/ test_after\n((?:.|\n)+)$/),
+                    var match = testContent.match(/^\/\/ test_before\n((?:.|\n)+)\n\/\/ test_after nextId=([0-9]+)\n((?:.|\n)+)$/),
                         sourceWithOffsets = SpecRunnerUtils.parseOffsetsFromText(match[1]),
                         rangeList = [],
-                        result = instrFn(sourceWithOffsets.text, rangeList, null);
-                    expect(result).toEqualIgnoringWhitespace(match[2]);
-                    rangeList.forEach(function (item) {
-                        expect(item.start).toEqual(sourceWithOffsets.offsets[item.data * 2]);
-                        expect(item.end).toEqual(sourceWithOffsets.offsets[(item.data * 2) + 1]);
-                    });
+                        result = instrFn(sourceWithOffsets.text, rangeList, null, null, null, skipOuter);
+                    if (match[3] === "null") {
+                        expect(result).toBeNull();
+                    } else {
+                        expect(result.instrumented).toEqualIgnoringWhitespace(match[3]);
+                        rangeList.forEach(function (item) {
+                            expect(item.start).toEqual(sourceWithOffsets.offsets[item.data * 2]);
+                            expect(item.end).toEqual(sourceWithOffsets.offsets[(item.data * 2) + 1]);
+                        });
+                        expect(result.nextId).toEqual(Number(match[2]));
+                    }
+                    if (fnName) {
+                        expect(result.name).toEqual(fnName);
+                    }
                 });
             }
             
@@ -109,7 +121,11 @@ define(function (require, exports, module) {
             });
             
             it("should instrument a top-level JS function for replacement using a template", function () {
-                testInstrument(JSInstrumentation.instrumentFunction, "simpleTopLevelFn");
+                testInstrument(JSInstrumentation.instrumentFunction, "simpleTopLevelFn", "callMe");
+            });
+            
+            it("should return only the instrumented body if skipOuter is true", function () {
+                testInstrument(JSInstrumentation.instrumentFunction, "oneNestedFnBodyOnly", "callMe", true);
             });
             
             it("should instrument a JS file with multiple top-level functions, leaving non-functions untouched", function () {
@@ -118,6 +134,14 @@ define(function (require, exports, module) {
     
             it("should instrument a JS file with nested functions in depth-first order", function () {
                 testInstrument(JSInstrumentation.instrument, "nestedFns");
+            });
+
+            it("should properly find variables and function declarations in various scopes", function () {
+                testInstrument(JSInstrumentation.instrument, "varDecls");
+            });
+            
+            it("should return null if source is invalid", function () {
+                testInstrument(JSInstrumentation.instrument, "invalid");
             });
         });
         
@@ -129,8 +153,13 @@ define(function (require, exports, module) {
             });
             
             it("should extract the body from the function's source", function () {
-                var src = "function foo(arg1, arg2) {console.log('this is the body'); console.log('another statement');}";
-                expect(JSInstrumentation.getFunctionBody(src)).toEqualIgnoringWhitespace("console.log('this is the body'); console.log('another statement');");
+                var src = "function foo(arg1, arg2) {console.log('this is the body');console.log('another statement');}";
+                expect(JSInstrumentation.getFunctionBody(src)).toEqualIgnoringWhitespace("console.log('this is the body');console.log('another statement');");
+            });
+            
+            it("should return null if the function source isn't valid", function () {
+                var src = "function foo(arg1, arg2) { function bar ( }";
+                expect(JSInstrumentation.getFunctionBody(src)).toBeNull();
             });
         });
     });

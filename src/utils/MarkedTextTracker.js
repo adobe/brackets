@@ -47,20 +47,23 @@ define(function (require, exports, module) {
      *     with the mark.
      * @param {string} type A string identifying the type of marked range; should be unique for a given caller. Must
      *     conform to identifier syntax since this will be used as a property name.
+     * @param {boolean=} clearMarks Whether to clear existing marks. Default true.
      * @return none
      */
-    function markText(editor, ranges, type) {
+    function markText(editor, ranges, type, clearMarks) {
         var cm = editor._codeMirror;
-        
-        // Remove existing marks
-        var marks = cm.getAllMarks();
-        cm.operation(function () {
-            marks.forEach(function (mark) {
-                if (mark.hasOwnProperty(type)) {
-                    mark.clear();
-                }
+
+        if (clearMarks !== false) {
+            // Remove existing marks
+            var marks = cm.getAllMarks();
+            cm.operation(function () {
+                marks.forEach(function (mark) {
+                    if (mark.hasOwnProperty(type)) {
+                        mark.clear();
+                    }
+                });
             });
-        });
+        }
                 
         // Mark
         ranges.forEach(function (range) {
@@ -73,59 +76,45 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Get the marked range of the given type surrounding the specified position. 
-     * Returns null if there is no marked range of that type surrounding the location.
+     * Returns an array of ranges of the given type surrounding the specified position, sorted
+     * by nesting (innermost range first).
+     * Returns an empty array if there is no marked range of that type surrounding the location.
      * The markText() function must be called before calling this function.
      *
      * @param {Editor} editor The editor to scan. 
      * @param {{line: number, ch: number}} pos The position to find the range for.
      * @param {string} type The type of range to search for, as passed into markText().
-     * @return {{start: {line: number, ch: number}, end: {line: number, ch: number}, data: object}}
+     * @return {Array.<{start: {line: number, ch: number}, end: {line: number, ch: number}, data: object}>}
      *     The CodeMirror-style offsets to the current start and end of the marked range, along with the
-     *     data originally passed into markText() for this range.
+     *     data originally passed into markText() for this range. Empty if there are no such ranges.
      */
-    function getRangeAtDocumentPos(editor, pos, type) {
+    function getRangesAtDocumentPos(editor, pos, type) {
         var i,
             cm = editor._codeMirror,
             marks = cm.findMarksAt(pos),
-            match;
-        
-        var _distance = function (mark) {
-            var markerLoc = mark.find();
-            if (markerLoc) {
-                var markPos = markerLoc.from;
-                return (cm.indexFromPos(pos) - cm.indexFromPos(markPos));
-            } else {
-                return Number.MAX_VALUE;
-            }
-        };
+            ranges = [];
         
         for (i = 0; i < marks.length; i++) {
             if (marks[i].hasOwnProperty(type)) {
-                if (!match) {
-                    match = marks[i];
-                } else {
-                    if (_distance(marks[i]) < _distance(match)) {
-                        match = marks[i];
-                    }
+                var loc = marks[i].find();
+                if (loc) {
+                    ranges.push({
+                        start: loc.from,
+                        end: loc.to,
+                        data: marks[i][type]
+                    });
                 }
             }
         }
         
-        if (match) {
-            var loc = match.find();
-            if (loc) {
-                return {
-                    start: loc.from,
-                    end: loc.to,
-                    data: match[type]
-                };
-            }
-        }
+        ranges.sort(function (range1, range2) {
+            // Ranges that start later are the most nested, and we want them to sort first.
+            return cm.indexFromPos(range2.start) - cm.indexFromPos(range1.start);
+        });
         
-        return null;
+        return ranges;
     }
     
     exports.markText = markText;
-    exports.getRangeAtDocumentPos = getRangeAtDocumentPos;
+    exports.getRangesAtDocumentPos = getRangesAtDocumentPos;
 });

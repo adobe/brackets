@@ -33,8 +33,6 @@ define(function (require, exports, module) {
         functionInstrText = require("text!language/js-function-instr.txt"),
         functionInstrTemplate = Mustache.compile(functionInstrText);
     
-    var _nextId = 0;
-    
     /**
      * Given a node, returns an array of all the children of the node that can (recursively) contain function
      * definitions, in source order. Different node types have different properties that refer to their children, 
@@ -189,49 +187,75 @@ define(function (require, exports, module) {
      *     Ranges are not guaranteed to be sorted.
      * @param {Object=} root If specified, an already-parsed root node within the given source. If not specified, will
      *     parse the entire given src (and expect that it contains exactly one function).
-     * @param {boolean=} resetId If false, will not reset the starting function ID to 0. Default true.
-     * @return {string} The instrumented function.
+     * @param {number=} parentId The id of the parent closure, or null if we're at the top level or if skipOuter is true.
+     * @param {number=} nextId If specified, will start assigning function IDs from the given ID. If unspecified,
+     *     will start at 0.
+     * @param {boolean=} skipOuter If true, will not instrument the outermost function, and will only return the
+     *     instrumented body. In this case, parentId can be null. Default false.
+     * @return {{instrumented: string, name: string, nextId: number}} Object containing the instrumented source, the name
+     *     of the instrumented function, and the next unused function ID, or null if there was a parse error.
      */
-    function instrumentFunction(src, rangeList, root, resetId) {
-        if (resetId !== false) {
-            _nextId = 0;
-        }
+    function instrumentFunction(src, rangeList, root, parentId, nextId, skipOuter) {
+        nextId = nextId || 0;
 
-        root = root || acorn.parse(src, {locations: true});
+        try {
+            root = root || acorn.parse(src, {locations: true});
+        } catch (e) {
+            return null;
+        }
 
         var functionNode = findFirst(root, ["FunctionDeclaration", "FunctionExpression"]),
             functionBodyNode = functionNode.body,
-            id = _nextId++,
+            id = nextId++,
             functionBody = "",
             functionBodyStart,
-            functionBodyEnd;
+            functionBodyEnd,
+            subInstrResult,
+            instrumented,
+            vars = [];
         // functionBodyNode should be a BlockStatement whose body is the actual list of statements.
         if (functionBodyNode.body && Array.isArray(functionBodyNode.body) && functionBodyNode.body.length) {
             functionBodyStart = functionBodyNode.body[0].loc.start;
             functionBodyEnd = functionBodyNode.body[functionBodyNode.body.length - 1].loc.end;
-            functionBody = instrument(src, rangeList, functionBodyNode.body, false);
+            subInstrResult = instrument(src, rangeList, functionBodyNode.body, id, nextId, vars);
+            functionBody = subInstrResult.instrumented;
+            nextId = subInstrResult.nextId;
         } else {
             // empty body, assume we have to bump in from the outer body boundaries for the braces
-            functionBodyStart = functionBodyNode.loc.start + 1;
-            functionBodyEnd = functionBodyNode.loc.end - 1;
+            // TODO: might have to move across lines?
+            functionBodyStart = {line: functionBodyNode.loc.start.line, column: functionBodyNode.loc.start.column + 1};
+            functionBodyEnd = {line: functionBodyNode.loc.end.line, column: functionBodyNode.loc.end.column - 1};
         }
-        rangeList.push({
-            start: {
-                line: root.loc.start.line - 1,
-                ch: root.loc.start.column
-            },
-            end: {
-                line: root.loc.end.line - 1,
-                ch: root.loc.end.column
-            },
-            data: id
-        });
-        return getSourceFromRange(src, root.loc.start, functionBodyStart) +
-            functionInstrTemplate({ id: id, body: functionBody }) +
-            getSourceFromRange(src, functionBodyEnd, root.loc.end);
+        
+        if (skipOuter) {
+            instrumented = functionBody;
+        } else {
+            instrumented = getSourceFromRange(src, root.loc.start, functionBodyStart) +
+                functionInstrTemplate({ id: id, hasParentId: (parentId != null), parentId: parentId, vars: vars, body: functionBody }) +
+                getSourceFromRange(src, functionBodyEnd, root.loc.end);
+            rangeList.push({
+                start: {
+                    line: root.loc.start.line - 1,
+                    ch: root.loc.start.column
+                },
+                end: {
+                    line: root.loc.end.line - 1,
+                    ch: root.loc.end.column
+                },
+                data: id
+            });
+        }
+        return {
+            instrumented: instrumented,
+            name: (functionNode.type === "FunctionDeclaration" ? functionNode.id.name : null),
+            nextId: nextId
+        };
     }
     
     // *** TODO: different files should have different IDs (disambiguate with prefix)
+    // *** TODO: if parse fails, shouldn't try to instrument?
+    // *** TODO: need a way to keep id stability--if a function was already marked in the editor, keep its current id
+    //     (probably means that we need a way to preserve ranges even if the editor is closed/reopened)
     /**
      * Instruments the functions in a JS file.
      * @param {string} src The source of the file.
@@ -239,19 +263,25 @@ define(function (require, exports, module) {
      *     An array to be filled in with offsets of each function in the *original* src string, with "data"
      *     being a unique id for each function. (line/ch are 0-based as in CodeMirror, not as in Acorn.)
      *     Ranges are not guaranteed to be sorted.
+     * @param {number=} parentId The id of the parent closure, or null if we're at the top level.
      * @param {Object|Array=} root If specified, an already-parsed root node or array of nodes within the given
      *     source. If not specified, will parse the entire given src.
-     * @param {boolean=} resetId If false, will not reset the starting function ID to 0. Default true.
-     * @return {string} The instrumented source.
+     * @param {number=} nextId If specified, will start assigning function IDs from the given ID. If unspecified,
+     *     will start at 0.
+     * @param {Array.<string>=} vars If specified, will be filled in with a list of variables and functions declared in this scope.
+     * @return {{instrumented: string, nextId: number}} Object containing the instrumented source and the next unused
+     *     function ID, or null if there was a parse error.
      */
     
     //var _indent = 0;
-    function instrument(src, rangeList, root, resetId) {
-        if (resetId !== false) {
-            _nextId = 0;
-        }
+    function instrument(src, rangeList, root, parentId, nextId, vars) {
+        nextId = nextId || 0;
         
-        root = root || acorn.parse(src, {locations: true});
+        try {
+            root = root || acorn.parse(src, {locations: true});
+        } catch (e) {
+            return null;
+        }
         
         // Confusing: source positions in acorn are line/column with a 1-based line, whereas positions
         // we want to output are CodeMirror-style (line/ch with a 0-based line). Need to keep straight
@@ -268,13 +298,20 @@ define(function (require, exports, module) {
         function walk(node) {
             //console.log(new Array(_indent).join("  ") + (Array.isArray(node) ? "[list]" : node.type) + " >");
             //_indent++;
+            var instrResult;
+            
+            if (vars && (node.type === "VariableDeclarator" || node.type === "FunctionDeclaration")) {
+                vars.push(node.id.name);
+            }
+            
             if (Array.isArray(node)) {
                 node.forEach(function (child) {
                     walk(child);
                 });
             } else if (node.type === "FunctionDeclaration" || node.type === "FunctionExpression") {
-                instrumented += getSourceFromRange(src, srcPos, node.loc.start) +
-                    instrumentFunction(src, rangeList, node, false);
+                instrResult = instrumentFunction(src, rangeList, node, parentId, nextId);
+                instrumented += getSourceFromRange(src, srcPos, node.loc.start) + instrResult.instrumented;
+                nextId = instrResult.nextId;
                 srcPos = node.loc.end;
             } else {
                 walk(getChildNodes(node));
@@ -296,7 +333,10 @@ define(function (require, exports, module) {
         if (end) {
             instrumented += getSourceFromRange(src, srcPos, end);
         }
-        return instrumented;
+        return {
+            instrumented: instrumented,
+            nextId: nextId
+        };
     }
     
     /**
@@ -315,11 +355,18 @@ define(function (require, exports, module) {
     /**
      * Given the source of a function, returns the function's body.
      * @param {string} src The function source.
-     * @param {string} The body of the function.
+     * @param {string} The source of the body of the function, or null if the function is invalid.
      */
     function getFunctionBody(src) {
-        var root = acorn.parse(src, {locations: true}),
-            fn = findFirst(root, ["FunctionDeclaration", "FunctionExpression"]);
+        // TODO: doesn't work for function expressions
+        var root;
+        try {
+            root = acorn.parse(src, {locations: true});
+        } catch (e) {
+            return null;
+        }
+        
+        var fn = findFirst(root, ["FunctionDeclaration", "FunctionExpression"]);
         // The "body" child of the function is a block statement; the actual statements within the block are
         // in fn.body.body.
         if (fn && fn.body && fn.body.body) {

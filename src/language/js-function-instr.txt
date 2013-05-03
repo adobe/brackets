@@ -1,5 +1,43 @@
-var __bkld_def = (window.__bkld_fndefs && window.__bkld_fndefs[{{id}}]), __bkld_defStr = "window.__bkld_fndefs[{{id}}]";
-return (__bkld_def ? (typeof __bkld_def === 'function' ? __bkld_def : eval(__bkld_defStr + ' = ' + __bkld_def)) :
-    function () { 
-        {{{body}}}
+var __bkld_fndef_{{id}} = (window.__bkld_fndefs && window.__bkld_fndefs[{{id}}]),
+    __bkld_scope_{{id}} = {};
+
+// Function for updating this scope (called by child scopes)
+function __bkld_update_scope_{{id}}() {
+    console.log("updating scope {{id}}");
+    var __bkld_ctxt_{{id}} = (window.__bkld_ctxt && window.__bkld_ctxt[{{id}}]);
+    if (__bkld_ctxt_{{id}}) {
+        Object.keys(__bkld_ctxt_{{id}}).forEach(function (__key) {
+            console.log("updating " + __key);
+            // TODO: can we avoid doing this each time?
+            //if (__bkld_scope_{{id}}[__key] === undefined) {
+                var __newDef;
+                with (__bkld_scope_{{id}}) {
+                    __newDef = eval("(" + __bkld_ctxt_{{id}}[__key] + ")");
+                }
+                __bkld_scope_{{id}}[__key] = __newDef;    
+            //}
+        });
+    }
+    {{#hasParentId}}
+    __bkld_update_scope_{{parentId}}();
+    {{/hasParentId}}
+}
+
+{{#hasParentId}}
+// Update parent scopes recursively each time we re-enter this scope
+__bkld_update_scope_{{parentId}}();
+{{/hasParentId}}
+
+// FUTURE: cache the compiled function instead of evaling each time
+return (__bkld_fndef_{{id}} ? eval(__bkld_fndef_{{id}}) :
+    function () {
+        try {
+            with (__bkld_scope_{{id}}) {
+                {{{body}}}
+            }
+        } finally {
+            {{#vars}}
+            __bkld_scope_{{id}}.{{.}} = {{.}};
+            {{/vars}}
+        }
     }).apply(this, arguments);
