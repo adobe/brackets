@@ -44,9 +44,17 @@ define(function (require, exports, module) {
         this.ternHints = [];
         this.ternProperties = [];
         this.fnType = null;
-        this.builtins = ScopeManager.getBuiltins();
-        this.builtins.push("requirejs.js");     // consider these globals as well.
+        this.builtins = null;
     }
+
+    Session.prototype._getBuiltins = function () {
+        if (!this.builtins) {
+            this.builtins = ScopeManager.getBuiltins();
+            this.builtins.push("requirejs.js");     // consider these globals as well.
+        }
+
+        return this.builtins;
+    };
 
     /**
      * Get the name of the file associated with the current session
@@ -319,7 +327,9 @@ define(function (require, exports, module) {
             if (token.className === "property") {
                 propertyLookup = true;
             }
-            if (this.findPreviousDot()) {
+
+            cursor = this.findPreviousDot();
+            if (cursor) {
                 propertyLookup = true;
                 context = this.getContext(cursor);
             }
@@ -352,7 +362,7 @@ define(function (require, exports, module) {
 
         var MAX_DISPLAYED_HINTS = 500,
             type = this.getType(),
-            builtins = this.builtins,
+            builtins = this._getBuiltins(),
             hints;
 
         /**
@@ -430,6 +440,7 @@ define(function (require, exports, module) {
         if (hints.length > MAX_DISPLAYED_HINTS) {
             hints = hints.slice(0, MAX_DISPLAYED_HINTS);
         }
+
         return hints;
     };
     

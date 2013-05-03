@@ -331,7 +331,7 @@ define(function (require, exports, module) {
     /**
      * Inserts the hint selected by the user into the current editor.
      * 
-     * @param {jQuery.Object} hint - hint object to insert into current editor
+     * @param {jQuery.Object} $hintObj - hint object to insert into current editor
      * @return {boolean} - should a new hinting session be requested 
      *      immediately after insertion?
      */
@@ -421,8 +421,7 @@ define(function (require, exports, module) {
         return false;
     };
 
-
-    // load the extension
+     // load the extension
     AppInit.appReady(function () {
 
         /*
@@ -433,14 +432,9 @@ define(function (require, exports, module) {
          * @param {boolean} primePump - true if the pump should be primed.
          */
         function initializeSession(editor, primePump) {
-            ScopeManager.handleEditorChange(editor.document);
             session = new Session(editor);
+            ScopeManager.handleEditorChange(session, editor.document, primePump);
             cachedHints = null;
-
-            // prime pump for hints so the first user request is fast
-            if (primePump) {
-                ScopeManager.requestHints(session, session.editor.document, 0);
-            }
         }
 
         /*
