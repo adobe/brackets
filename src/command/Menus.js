@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         KeyBindingManager   = require("command/KeyBindingManager"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
-        PopUpManager        = require("widgets/PopUpManager");
+        PopUpManager        = require("widgets/PopUpManager"),
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * Brackets Application Menu Constants
@@ -698,11 +699,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            if (this._command.getEnabled()) {
-                $(_getHTMLMenuItem(this.id)).removeClass("disabled");
-            } else {
-                $(_getHTMLMenuItem(this.id)).addClass("disabled");
-            }
+            ViewUtils.toggleClass($(_getHTMLMenuItem(this.id)), "disabled", this._command.getEnabled());
         }
     };
 

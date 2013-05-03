@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
-        ModalBar            = require("widgets/ModalBar").ModalBar;
+        ModalBar            = require("widgets/ModalBar").ModalBar,
+        ViewUtils           = require("utils/ViewUtils");
     
     var modalBar,
         isFindFirst = false;
@@ -221,11 +222,7 @@ define(function (require, exports, module) {
                 var foundAny = findNext(editor, rev);
                 
                 if (modalBar) {
-                    if (!foundAny) {
-                        getDialogTextField().addClass("no-results");
-                    } else {
-                        getDialogTextField().removeClass("no-results");
-                    }
+                    ViewUtils.toggleClass(getDialogTextField(), "no-results", !foundAny);
                 }
             });
             isFindFirst = false;

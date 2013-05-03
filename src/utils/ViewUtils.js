@@ -154,6 +154,20 @@ define(function (require, exports, module) {
         $displayElement.off("contentChanged.scroller-shadow");
     }
     
+    /**
+     * Utility function to replace jQuery.toggleClass when used with the second argument, which needs to be a true boolean for jQuery
+     * @param {!jQueryObject} $DomElement The jQueryObject to toggle the Class on
+     * @param {!string} className Class name or names (separated by spaces) to toggle
+     * @param {!boolean} switcher A truthy value to add the class and a falsy value to remove the class
+     */
+    function toggleClass($DomElement, className, switcher) {
+        if (switcher) {
+            $DomElement.addClass(className);
+        } else {
+            $DomElement.removeClass(className);
+        }
+    }
+    
     /** 
      * Within a scrolling DOMElement, creates and positions a styled selection
      * div to align a single selected list item from a ul list element.
@@ -202,11 +216,7 @@ define(function (require, exports, module) {
             
             $selectionTriangle.css("top", triangleTop);
             $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
-            if (showTriangle) {
-                $selectionTriangle.addClass("triangle-visible");
-            } else {
-                $selectionTriangle.removeClass("triangle-visible");
-            }
+            toggleClass($selectionTriangle, "triangle-visible", showTriangle);
                 
             var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
                 triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
@@ -355,4 +365,5 @@ define(function (require, exports, module) {
     exports.sidebarList             = sidebarList;
     exports.scrollElementIntoView   = scrollElementIntoView;
     exports.getFileEntryDisplay     = getFileEntryDisplay;
+    exports.toggleClass             = toggleClass;
 });
