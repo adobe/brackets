@@ -481,41 +481,10 @@ define(function (require, exports, module) {
             // <script> tags
             var text = "",
                 offset = this.getOffset(),
-                ctx = TokenUtils.getInitialContext(this.editor._codeMirror, {line: 0, ch: 0 }),
-                tokenModeName,
-                inScriptBlock = false,
-                currentScriptBlock,
-                scriptBlocks = [],
                 cursor = this.getCursor(),
-                editor = this.editor;
+                editor = this.editor,
+                scriptBlocks = HTMLUtils.findBlocks(editor, "javascript");
             
-            // Loop over the tokens in the html file, and extract the blocks
-            // that are the javascript code
-            while (TokenUtils.moveNextToken(ctx)) {
-                tokenModeName = TokenUtils.getModeAt(ctx.editor, ctx.pos).name;
-                if (inScriptBlock) {
-                    // Check for end of this <script> block
-                    if (tokenModeName !== "javascript") {
-                        if (!currentScriptBlock.end) {
-                            // Handle empty script blocks
-                            currentScriptBlock.end = currentScriptBlock.start;
-                        }
-                        currentScriptBlock.text = editor.document.getRange(currentScriptBlock.start, currentScriptBlock.end);
-                        inScriptBlock = false;
-                    } else {
-                        currentScriptBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };
-                    }
-                } else {
-                    // Check for start of a <script> block
-                    if (tokenModeName === "javascript") {
-                        currentScriptBlock = {
-                            start: { line: ctx.pos.line, ch: ctx.pos.ch }
-                        };
-                        scriptBlocks.push(currentScriptBlock);
-                        inScriptBlock = true;
-                    }
-                }
-            }
             // Add all the javascript text
             // For non-javascript blocks we replace everything except for newlines
             // with whitespace.  This is so that the offset and cursor positions

@@ -465,6 +465,54 @@ define(function (require, exports, module) {
     }
     
     
+
+    /**
+     * Returns an Array of info about all blocks whose token mode name matches that passed in,
+     * in the given Editor's HTML document (assumes the Editor contains HTML text).
+     * @param {!Editor} editor - the editor containing the HTML text
+     * @param {string} modeName - the mode name of the tokens to look for
+     * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, text:string}>}
+     */
+    function findBlocks(editor, modeName) {
+        // Start scanning from beginning of file
+        var ctx = TokenUtils.getInitialContext(editor._codeMirror, {line: 0, ch: 0}),
+            blocks = [],
+            currentBlock = null,
+            inBlock = false,
+            outerMode = editor._codeMirror.getMode(),
+            tokenModeName;
+        
+        while (TokenUtils.moveNextToken(ctx)) {
+            tokenModeName = CodeMirror.innerMode(outerMode, ctx.token.state).mode.name;
+            if (inBlock) {
+                if (!currentBlock.end) {
+                    // Handle empty blocks
+                    currentBlock.end = currentBlock.start;
+                }
+                // Check for end of this block
+                if (tokenModeName !== modeName) {
+                    // currentStyleBlock.end is already set to pos of the last CSS token by now
+                    currentBlock.text = editor.document.getRange(currentBlock.start, currentBlock.end);
+                    inBlock = false;
+                } else {
+                    currentBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };
+                }
+            } else {
+                // Check for start of a block
+                if (tokenModeName === modeName) {
+                    currentBlock = {
+                        start: { line: ctx.pos.line, ch: ctx.pos.ch }
+                    };
+                    blocks.push(currentBlock);
+                    inBlock = true;
+                }
+                // else, random token: ignore
+            }
+        }
+        
+        return blocks;
+    }
+
     /**
      * Returns an Array of info about all <style> blocks in the given Editor's HTML document (assumes
      * the Editor contains HTML text).
@@ -472,39 +520,7 @@ define(function (require, exports, module) {
      * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, text:string}>}
      */
     function findStyleBlocks(editor) {
-        // Start scanning from beginning of file
-        var ctx = TokenUtils.getInitialContext(editor._codeMirror, {line: 0, ch: 0}),
-            styleBlocks = [],
-            currentStyleBlock = null,
-            inStyleBlock = false,
-            outerMode = editor._codeMirror.getMode(),
-            tokenModeName;
-        
-        while (TokenUtils.moveNextToken(ctx)) {
-            tokenModeName = CodeMirror.innerMode(outerMode, ctx.token.state).mode.name;
-            if (inStyleBlock) {
-                // Check for end of this <style> block
-                if (tokenModeName !== "css") {
-                    // currentStyleBlock.end is already set to pos of the last CSS token by now
-                    currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
-                    inStyleBlock = false;
-                } else {
-                    currentStyleBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };
-                }
-            } else {
-                // Check for start of a <style> block
-                if (tokenModeName === "css") {
-                    currentStyleBlock = {
-                        start: { line: ctx.pos.line, ch: ctx.pos.ch }
-                    };
-                    styleBlocks.push(currentStyleBlock);
-                    inStyleBlock = true;
-                }
-                // else, random token in non-CSS content: ignore
-            }
-        }
-        
-        return styleBlocks;
+        return findBlocks(editor, "css");
     }
     
     
@@ -520,4 +536,5 @@ define(function (require, exports, module) {
     //compare results with
     exports.createTagInfo   = createTagInfo;
     exports.findStyleBlocks = findStyleBlocks;
+    exports.findBlocks      = findBlocks;
 });
