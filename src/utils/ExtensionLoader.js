@@ -42,7 +42,8 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         ExtensionData       = require("extensibility/ExtensionData"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        AppInit             = require("utils/AppInit");
     
     var _init       = false,
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
@@ -81,21 +82,21 @@ define(function (require, exports, module) {
 
     function _hackifyExtension(name, baseUrl, extensionRequire, mainModule) {
         // old fashioned extension
-        if (!mainModule.registering) {
+        if (!mainModule || !mainModule.registering) {
             return;
         }
-        extensionRequire(["text!" + baseUrl + "/package.json"],
-            function (metadataText) {
-                var metadata = JSON.parse(metadataText);
-                var extensionRegister = function (registrationName, identifier, data) {
-                    metadata.extensionName = name;
-                    ExtensionData.register(name, registrationName, identifier, data);
-                };
-                mainModule.registering(extensionRegister, metadata);
-            },
-            function (err) {
-                console.error("[Extension] is missing package.json " + baseUrl, err);
-            });
+        AppInit.appReady(function () {
+            extensionRequire(["text!" + baseUrl + "/package.json"],
+                function (metadataText) {
+                    var metadata = JSON.parse(metadataText);
+                    var services = ExtensionData.getServiceRegistry(metadata.name);
+                    services.metadata = metadata;
+                    mainModule.init(services);
+                },
+                function (err) {
+                    console.error("[Extension] is missing package.json " + baseUrl, err);
+                });
+        });
         
     }
     /**

@@ -64,6 +64,9 @@ function _cmdInitialize(data) {
     registry.log("All systems go!");
 }
 
+function _cmdLoadNodeMain() {
+}
+
 function init(domainManager) {
     console.log("Setting up ExtensionData Domain");
     _emitEvent = domainManager.emitEvent;

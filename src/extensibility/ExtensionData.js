@@ -26,7 +26,6 @@
 /*global define, $, CodeMirror, brackets, window, setTimeout, clearTimeout */
 
 
-define(function (require, exports, module) {
     "use strict";
     
     var AppInit = require("utils/AppInit"),
@@ -233,7 +232,17 @@ define(function (require, exports, module) {
         });
     });
 
-     
+    var registries = {};
+    
+    function getServiceRegistry(name) {
+        if (registries.hasOwnProperty(name)) {
+            return registries[name];
+        }
+        var services = new ServiceRegistry(name);
+        registries[name] = services;
+        return services;
+    }
+    
     exports._brackets = builtInServices;
     exports.ServiceRegistry = ServiceRegistry;
-});
+    exports.getServiceRegistry = getServiceRegistry;
