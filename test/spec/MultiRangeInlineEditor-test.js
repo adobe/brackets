@@ -82,7 +82,8 @@ define(function (require, exports, module) {
         });
 
         it("should contain a rule list widget displaying info for each rule", function () {
-            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n"),
+                inlineDocName = inlineDoc.file.name;
             
             var mockRanges = [
                 {
@@ -103,8 +104,8 @@ define(function (require, exports, module) {
             inlineEditor.load(hostEditor);
             
             var $ruleListItems = $(inlineEditor.htmlContent).find("li");
-            expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js : 1");
-            expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js : 2");
+            expect($($ruleListItems.get(0)).text()).toBe("div " + inlineDocName + " : 1");
+            expect($($ruleListItems.get(1)).text()).toBe(".foo " + inlineDocName + " : 2");
         });
 
         it("should change selection to the next rule", function () {
