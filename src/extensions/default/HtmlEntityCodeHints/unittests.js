@@ -122,7 +122,7 @@ define(function (require, exports, module) {
         });
         
         //Test for issue #3339
-        it("shouldn't show hints when entity on the same line", function () {
+        it("should show HTML hints after HTML Entity on same line", function () {
             testEditorAndDoc.editor.setCursorPos({line: 45, ch: 24});
 
             expectNoHints(hintProvider);
@@ -140,16 +140,8 @@ define(function (require, exports, module) {
             expect(testEditorAndDoc.editor.document.getRange({line: 50, ch: 12}, {line: 50, ch: 17})).toEqual("&#33;");
             
             testEditorAndDoc.editor.setCursorPos({line: 50, ch: 14});
-            hintProvider.insertHint(hints[1]);
-            expect(testEditorAndDoc.editor.document.getRange({line: 50, ch: 12}, {line: 50, ch: 17})).toEqual("&#35;");
-            
-            testEditorAndDoc.editor.setCursorPos({line: 50, ch: 14});
-            hintProvider.insertHint(hints[2]);
-            expect(testEditorAndDoc.editor.document.getRange({line: 50, ch: 12}, {line: 50, ch: 17})).toEqual("&#36;");
-            
-            testEditorAndDoc.editor.setCursorPos({line: 50, ch: 14});
-            hintProvider.insertHint(hints[3]);
-            expect(testEditorAndDoc.editor.document.getRange({line: 50, ch: 12}, {line: 50, ch: 17})).toEqual("&#37;");
+            hintProvider.insertHint(hints[23]);
+            expect(testEditorAndDoc.editor.document.getRange({line: 50, ch: 12}, {line: 50, ch: 18})).toEqual("&#123;");
         });
         
         describe("Inserting Tests", function () {
