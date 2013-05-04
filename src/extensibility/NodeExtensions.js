@@ -34,17 +34,38 @@ var AppInit = require("utils/AppInit"),
     ExtensionData = require("extensibility/ExtensionData");
 
 var _nodeConnectionDeferred = new $.Deferred(),
+    _nodeConnection = null,
     NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
 function loadNodeExtension(name, baseUrl) {
-    _nodeConnectionDeferred.done(function (nodeConnection) {
-        nodeConnection.domains.extensionData.loadExtension(name, baseUrl);
+    _nodeConnectionDeferred.done(function () {
+        if (_nodeConnection && _nodeConnection.connected()) {
+            _nodeConnection.domains.extensionData.loadExtension(name, baseUrl);
+        } else {
+            console.error("Tried to load node extension", name, "but node is not connected");
+        }
     });
 }
 
-function _callFunctionFromNode(e, name, args) {
+ExtensionData._ServiceRegistryBase.prototype._addRemoteFunction = function (name, options) {
+    this.addFunction(name, function () {
+        if (_nodeConnection && _nodeConnection.connected()) {
+            var args = [];
+            var i;
+            for (i = 0; i < arguments.length; i++) {
+                args.push(arguments[i]);
+            }
+            _nodeConnection.domains.extensionData.callFunction(this.extension, name, args);
+        } else {
+            console.error("Tried to call node function", name, "but node is not connected");
+        }
+    }, options, true);
+};
+
+function _callFunctionFromNode(e, extension, name, args) {
     var segments = name.split(".");
-    var current = ExtensionData.ServiceRegistry.prototype;
+    var services = ExtensionData.getServiceRegistry(extension);
+    var current = services;
     var i;
     for (i = 0; i < segments.length; i++) {
         current = current[segments[i]];
@@ -53,7 +74,11 @@ function _callFunctionFromNode(e, name, args) {
             return;
         }
     }
-    current.apply(ExtensionData.ServiceRegistry.prototype, args);
+    current.apply({
+        extension: extension,
+        registry: services,
+        name: name
+    }, args);
 }
 
 AppInit.appReady(function () {
@@ -65,7 +90,7 @@ AppInit.appReady(function () {
         _nodeConnectionDeferred.reject();
     }, NODE_CONNECTION_TIMEOUT);
     
-    var _nodeConnection = new NodeConnection();
+    _nodeConnection = new NodeConnection();
     _nodeConnection.connect(true).then(function () {
         var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/ExtensionDataDomain";
         

@@ -27,9 +27,12 @@
 
 "use strict";
 
+console.log("Start of ExtensionData");
 var currentRegistry = null;
 
-var NODE = typeof window === "undefined";
+var NODE           = typeof window === "undefined",
+    _setupComplete = false,
+    builtInServices;
 
 function ServiceRegistry(extension) {
     this.extension = extension;
@@ -131,7 +134,8 @@ ServiceRegistryBase.prototype = {
         
         return current;
     },
-    addFunction: function (name, fn, options) {
+    addFunction: function (name, fn, options, _noNotification) {
+        options = options || {};
         this._definitions.push(name);
         var dot = name.lastIndexOf(".");
         var target;
@@ -144,10 +148,20 @@ ServiceRegistryBase.prototype = {
             }, arguments);
         };
         wrapped.toJSON = function () {
-            return {
+            var simplified = {
                 "__function": name,
                 options: options
             };
+            if (options.runLocal) {
+                var functionStr = fn.toString(),
+                    argsStart   = functionStr.indexOf("(") + 1,
+                    argsEnd     = functionStr.indexOf(")"),
+                    bodyStart   = functionStr.indexOf("{") + 1,
+                    bodyEnd     = functionStr.lastIndexOf("}");
+                simplified.args = functionStr.substring(argsStart, argsEnd);
+                simplified.body = functionStr.substring(bodyStart, bodyEnd);
+            }
+            return simplified;
         };
         
         if (dot > -1) {
@@ -165,6 +179,14 @@ ServiceRegistryBase.prototype = {
                 enumerable: true
             });
         }
+        if (_setupComplete && !_noNotification) {
+            console.log("Notifying addFunction for ", this.extension, name);
+//            if (NODE) {
+//                builtInServices.channels.brackets.serviceRegistry.node.addFunction.publish(this.extension, name, options);
+//            } else {
+//                builtInServices.channels.brackets.serviceRegistry.addFunction.publish(this.extension, name, options);
+//            }
+        }
     },
     removeAll: function () {
         var extension = this.extension;
@@ -172,6 +194,14 @@ ServiceRegistryBase.prototype = {
             _removeDefinition(extension, name);
         });
         this._definitions = [];
+    },
+    getObject: function (name) {
+        var segments = name.split(".");
+        var current = this;
+        segments.forEach(function (segment) {
+            current = current[segment];
+        });
+        return current;
     },
     _initialize: function (data, functionLoader) {
         Object.keys(ServiceRegistry.prototype).forEach(function (key) {
@@ -183,7 +213,7 @@ ServiceRegistryBase.prototype = {
 
 ServiceRegistry.prototype = new ServiceRegistryBase();
 
-var builtInServices = new ServiceRegistry("brackets");
+builtInServices = new ServiceRegistry("brackets");
 
 builtInServices.addFunction("channels.add", function (name, options) {
     var registry = this.registry;
@@ -192,16 +222,18 @@ builtInServices.addFunction("channels.add", function (name, options) {
     var subscriberCount = 0;
     registry.addFunction("channels." + name + ".subscribe", function (fn) {
         this.registry.addFunction("channels." + name + ".subscribers." + subscriberCount++, fn);
+    }, {
+        runLocal: true
     });
     
     registry.addFunction("channels." + name + ".publish", function (message) {
-        Object.keys(subscribers).forEach(function (key) {
+        Object.keys(this.registry.getObject("channels." + name + ".subscribers")).forEach(function (key) {
             if (key.substr(0, 1) === "_") {
                 return;
             }
             subscribers[key](message);
         });
-    });
+    }.bind(this));
 });
 
 builtInServices.addFunction("log", function (message) {
@@ -219,6 +251,36 @@ function getServiceRegistry(name) {
     return services;
 }
 
+var topLevelEvent;
+
+function _addObjectFromRemote(extension, name) {
+    getServiceRegistry(extension).addObject(name);
+}
+
+function _addFunctionFromRemote(extension, name, options) {
+    var services = getServiceRegistry(extension);
+    services._addRemoteFunction(name, options);
+}
+
+if (!NODE) {
+    builtInServices.channels.add("brackets.serviceRegistry.addObject");
+    builtInServices.channels.add("brackets.serviceRegistry.addFunction");
+    builtInServices.channels.add("brackets.serviceRegistry.node.addObject");
+    builtInServices.channels.add("brackets.serviceRegistry.node.addFunction");
+    
+    builtInServices.channels.brackets.serviceRegistry.node.addObject.subscribe(_addObjectFromRemote);
+    builtInServices.channels.brackets.serviceRegistry.node.addFunction.subscribe(_addFunctionFromRemote);
+}
+
+exports._getCurrentRegistry = function () {
+    return currentRegistry;
+};
+
+_setupComplete = true;
+
 exports._brackets = builtInServices;
 exports.ServiceRegistry = ServiceRegistry;
+exports._ServiceRegistryBase = ServiceRegistryBase;
+exports._addObjectFromRemote = _addObjectFromRemote;
+exports._addFunctionFromRemote = _addFunctionFromRemote;
 exports.getServiceRegistry = getServiceRegistry;

@@ -23,7 +23,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
-indent: 4, maxerr: 50 */
+indent: 4, maxerr: 50, evil: true */
 
 "use strict";
 
@@ -34,6 +34,18 @@ var DOMAIN_NAME = "extensionData",
     _emitEvent  = null;
 
 function _createFunction(obj) {
+    if (obj.options.runLocal) {
+        console.log("local: ", obj.__function, obj.args, obj.body);
+        var localFn = new Function(obj.args, obj.body);
+        return function () {
+            var registry = ExtensionData._getCurrentRegistry();
+            localFn.apply({
+                extension: registry.extension,
+                registry: registry,
+                name: obj.__function
+            }, arguments);
+        };
+    }
     return function () {
         var args = [];
         var i;
@@ -41,12 +53,30 @@ function _createFunction(obj) {
             args.push(arguments[i]);
         }
         
-        _emitEvent(DOMAIN_NAME, "callFunction", [obj.__function, args]);
+        var extension = ExtensionData._getCurrentRegistry();
+        console.log("Calling ", obj.__function, " with this ", extension);
+        _emitEvent(DOMAIN_NAME, "callFunction", [extension, obj.__function, args]);
     };
 }
 
+console.log("Setting up remote function 2");
+
+ExtensionData._ServiceRegistryBase.prototype._addRemoteFunction = function (name, options) {
+    var extension = this.extension;
+    this.addFunction(name, function () {
+        var args = [];
+        var i;
+        for (i = 0; i < arguments.length; i++) {
+            args.push(arguments[i]);
+        }
+        _emitEvent(DOMAIN_NAME, "callFunction", [extension, name, args]);
+    }.bind(this), options, true);
+};
+
 function _cmdInitialize(data) {
     ExtensionData._brackets._initialize(data, _createFunction);
+    ExtensionData._brackets.channels.brackets.serviceRegistry.addObject.subscribe(ExtensionData._addObjectFromRemote);
+    ExtensionData._brackets.channels.brackets.serviceRegistry.addFunction.subscribe(ExtensionData._addFunctionFromRemote);
 }
 
 function _cmdLoadExtension(name, baseUrl) {
@@ -59,7 +89,24 @@ function _cmdLoadExtension(name, baseUrl) {
     }
 }
 
+function _cmdCallFunction(extension, name, args) {
+    var services = ExtensionData.getServiceRegistry(extension);
+    var segments = name.split(".");
+    var current = services;
+    segments.forEach(function (segment) {
+        current = current[segment];
+    });
+    return current.apply({
+        extension: extension,
+        registry: services,
+        name: name
+    }, args);
+}
+
+console.log("Got farther along");
+
 function init(domainManager) {
+    console.log("Domain init");
     _emitEvent = domainManager.emitEvent;
     if (!domainManager.hasDomain(DOMAIN_NAME)) {
         domainManager.registerDomain(DOMAIN_NAME, {major: 0, minor: 1});
@@ -80,6 +127,10 @@ function init(domainManager) {
         DOMAIN_NAME,
         "callFunction",
         [{
+            name: "extension",
+            type: "string",
+            description: "name of the extension making the call"
+        }, {
             name: "name",
             type: "string",
             description: "dotted name of function to call"
@@ -103,6 +154,26 @@ function init(domainManager) {
             name: "baseUrl",
             type: "string",
             description: "path of the extension"
+        }]
+    );
+    domainManager.registerCommand(
+        DOMAIN_NAME,
+        "callFunction",
+        _cmdCallFunction,
+        false,
+        "Remote function call",
+        [{
+            name: "extension",
+            type: "string",
+            description: "name of extension making the call"
+        }, {
+            name: "name",
+            type: "string",
+            description: "name of the function to call"
+        }, {
+            name: "args",
+            type: "array",
+            description: "array of arguments for the call"
         }]
     );
 }
