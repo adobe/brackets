@@ -358,7 +358,13 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
+
+    /**
+     *  Unit names
+     */
     
+    "UNIT_PIXELS"                          : "pixels",
+
     // extensions/default/QuickView 
     "CMD_ENABLE_QUICK_VIEW"                : "Quick View on Hover",
 
