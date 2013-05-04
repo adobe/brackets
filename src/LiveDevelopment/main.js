@@ -150,7 +150,7 @@ define(function main(require, exports, module) {
         
         // Configure the twipsy
         var options = {
-            placement: "below",
+            placement: "left",
             trigger: "manual",
             autoHideDelay: 5000,
             title: function () {
