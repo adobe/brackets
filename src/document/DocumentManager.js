@@ -814,6 +814,14 @@ define(function (require, exports, module) {
      * given new text; if text == "", then the entire range is effectively deleted. If 'end' is omitted,
      * then the new text is inserted at that point and all existing text is preserved. Line endings will
      * be rewritten to match the document's current line-ending style.
+     * 
+     * IMPORTANT NOTE: Because of #1688, do not use this in cases where you might be
+     * operating on a linked document (like the main document for an inline editor) 
+     * during an outer CodeMirror operation (like a key event that's handled by the
+     * editor itself). A common case of this is code hints in inline editors. In
+     * such cases, use `editor._codeMirror.replaceRange()` instead. This should be
+     * fixed when we migrate to use CodeMirror's native document-linking functionality.
+     *
      * @param {!string} text  Text to insert or replace the range with
      * @param {!{line:number, ch:number}} start  Start of range, inclusive (if 'to' specified) or insertion point (if not)
      * @param {?{line:number, ch:number}} end  End of range, exclusive; optional

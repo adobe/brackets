@@ -495,5 +495,40 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        describe("HTML Instrumentation in dirty files", function () {
+                
+            beforeEach(function () {
+                init(this, WellFormedFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                    expect(editor).toBeTruthy();
+
+                    instrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document);
+                    elementCount = getIdToTagMap(instrumentedHTML, elementIds);
+                });
+            });
+    
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+                instrumentedHTML = "";
+                elementCount = 0;
+                elementIds = {};
+            });
+            
+            it("should re-instrument after document is dirtied", function () {
+                runs(function () {
+                    var pos = {line: 15, ch: 0};
+                    editor.document.replaceRange("<div>New Content</div>", pos);
+                    
+                    var newInstrumentedHTML = HTMLInstrumentation.generateInstrumentedHTML(editor.document),
+                        newElementIds = {},
+                        newElementCount = getIdToTagMap(newInstrumentedHTML, newElementIds);
+                    
+                    expect(newElementCount).toBe(elementCount + 1);
+                });
+            });
+        });
     });
 });

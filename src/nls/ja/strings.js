@@ -157,7 +157,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "タブ幅を変更",
 	"STATUSBAR_SPACES": "スペース",
 	"STATUSBAR_TAB_SIZE": "タブ幅",
-	"STATUSBAR_LINE_COUNT": "{0} 行",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} 行",
+	"STATUSBAR_LINE_COUNT_PLURAL": "{0} 行",
 
     /**
      * Command Name Constants
