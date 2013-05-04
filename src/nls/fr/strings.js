@@ -87,6 +87,11 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Aperçu en direct : cliquez ici pour déconnecter (enregistrez le fichier pour lancer la mise à jour).",
+
+	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "[6857369] !é=Live Preview was cancelled because the browser's developer tools were opened=!",
+	"LIVE_DEV_DETACHED_TARGET_CLOSED": "[6857370] !é=Live Preview was cancelled because the page was closed in the browser=!",
+	"LIVE_DEV_NAVIGATED_AWAY": "[6857371] !é=Live Preview was cancelled because the browser navigated to a page that is not part of the current project=!",
+	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "[6857368] !é=Live Preview was cancelled for an unknown reason ({0})=!",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
