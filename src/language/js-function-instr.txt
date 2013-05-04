@@ -33,6 +33,8 @@ return (__bkld_fndef_{{id}} ? eval(__bkld_fndef_{{id}}) :
     function () {
         try {
             with (__bkld_scope_{{id}}) {
+                // BUG: function decls get hoisted outside the with
+                // (would need to fix in update template as well)
                 {{{body}}}
             }
         } finally {
