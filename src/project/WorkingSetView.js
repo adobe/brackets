@@ -555,6 +555,10 @@ define(function (require, exports, module) {
         _rebuildWorkingSet();
     }
     
+    function refresh() {
+        _redraw();
+    }
+    
     function create(element) {
         // Init DOM element
         $openFilesContainer = element;
@@ -603,4 +607,5 @@ define(function (require, exports, module) {
     }
     
     exports.create = create;
+    exports.refresh = refresh;
 });

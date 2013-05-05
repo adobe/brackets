@@ -112,6 +112,7 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelExpanded", function (evt, width) {
+            WorkingSetView.refresh();
             $sidebar.find(".sidebar-selection").width(width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
