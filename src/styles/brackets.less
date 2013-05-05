@@ -164,11 +164,11 @@ a, img {
 
 @-webkit-keyframes rotating {
     0% {
-        -webkit-transform: rotate(0deg);
+        background-position: 0px 0px;
     }
     
     100% {
-        -webkit-transform: rotate(360deg);
+        background-position: -144px 0px;
     }
 }
 
@@ -823,11 +823,11 @@ li.smart_autocomplete_highlight {
     margin-top: -2px;
     width: 12px;
     height: 12px;
-    background: url("images/small_spinner.svg") no-repeat;
+    background: url("images/spinner_small_sprites12.png") no-repeat;
     visibility: hidden;
 
     &.spin {
-        -webkit-animation: rotating 1.5s linear infinite;
+        -webkit-animation: rotating 1.5s steps(12) infinite;
         visibility: visible;
     }
     
