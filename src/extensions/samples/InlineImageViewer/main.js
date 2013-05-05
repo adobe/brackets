@@ -51,7 +51,7 @@ define(function (require, exports, module) {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1});
         }
         
-        if (token.type === "string") {
+        if (token.className === "string") {
             var string = token.string;
             
             // Strip quotes

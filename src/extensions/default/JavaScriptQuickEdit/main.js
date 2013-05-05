@@ -52,9 +52,9 @@ define(function (require, exports, module) {
         }
         
         // Return valid function expressions only (function call or reference)
-        if (!((token.type === "variable") ||
-              (token.type === "variable-2") ||
-              (token.type === "property"))) {
+        if (!((token.className === "variable") ||
+              (token.className === "variable-2") ||
+              (token.className === "property"))) {
             return null;
         }
         

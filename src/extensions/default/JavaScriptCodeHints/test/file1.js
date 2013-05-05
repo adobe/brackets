@@ -43,3 +43,7 @@ require(["MyModule"], function (myModule) {
 
 funB();
 var x = A1;
+
+var arr = [];
+arr["my-key"] = 1;
+arr["for"] = 10;
