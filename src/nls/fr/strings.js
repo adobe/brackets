@@ -157,7 +157,7 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "[6788843] !é={0} Line=!",
 	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
 
     /**

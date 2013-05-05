@@ -1125,14 +1125,9 @@ define(function (require, exports, module) {
                     if (isFolder) {
                         _projectTree.jstree("sort", data.rslt.obj.parent());
                     }
-                    
+
                     _projectTree.jstree("select_node", data.rslt.obj, true);
-                    
-                    //If the new item is a file, generate the file display entry.
-                    if (!isFolder) {
-                        _projectTree.jstree("set_text", data.rslt.obj, ViewUtils.getFileEntryDisplay(entry));
-                    }
-                   
+
                     // Notify listeners that the project model has changed
                     $(exports).triggerHandler("projectFilesChange");
                     

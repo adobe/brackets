@@ -91,32 +91,23 @@ define(function (require, exports, module) {
 
     
     /**
-     * Insertion position constants
-     * Used by addMenu(), addMenuItem(), and addSubMenu() to
-     * specify the relative position of a newly created menu object
-     * @enum {string}
-     */
-    var BEFORE           = "before",
-        AFTER            = "after",
-        FIRST            = "first",
-        LAST             = "last",
-        FIRST_IN_SECTION = "firstInSection",
-        LAST_IN_SECTION  = "lastInSection";
+      * Insertion position constants
+      * Used by addMenu(), addMenuItem(), and addSubMenu() to
+      * specify the relative position of a newly created menu object
+      * @enum {string}
+      */
+    var BEFORE =            "before";
+    var AFTER =             "after";
+    var FIRST =             "first";
+    var LAST =              "last";
+    var FIRST_IN_SECTION =  "firstInSection";
+    var LAST_IN_SECTION =   "lastInSection";
 
     /**
-     * Other constants
-     */
+      * Other constants
+      */
     var DIVIDER = "---";
-    
-    /**
-     * Error Codes from Brackets Shell
-     * @enum {number}
-     */
-    var NO_ERROR           = 0,
-        ERR_UNKNOWN        = 1,
-        ERR_INVALID_PARAMS = 2,
-        ERR_NOT_FOUND      = 3;
-    
+
     /**
      * Maps menuID's to Menu objects
      * @type {Object.<string, Menu>}
@@ -471,8 +462,7 @@ define(function (require, exports, module) {
      * @return {MenuItem} the newly created MenuItem
      */
     Menu.prototype.addMenuItem = function (command, keyBindings, position, relativeID) {
-        var menuID = this.id,
-            id,
+        var id,
             $menuItem,
             $link,
             menuItem,
@@ -557,17 +547,8 @@ define(function (require, exports, module) {
             }
             
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
-                switch (err) {
-                case NO_ERROR:
-                    break;
-                case ERR_INVALID_PARAMS:
-                    console.error("addMenuItem(): Invalid Parameters when adding the command " + commandID);
-                    break;
-                case ERR_NOT_FOUND:
-                    console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID + " not found in the Menu " + menuID);
-                    break;
-                default:
-                    console.error("addMenuItem(); Unknown Error (" + err + ") when adding the command " + commandID);
+                if (err) {
+                    console.error("addMenuItem() -- error: " + err + " when adding command: " + commandID);
                 }
             });
             menuItem.isNative = true;
@@ -819,26 +800,15 @@ define(function (require, exports, module) {
 
         if (!_isHTMLMenu(id)) {
             brackets.app.addMenu(name, id, position, relativeID, function (err) {
-                switch (err) {
-                case NO_ERROR:
+                if (err) {
+                    console.error("addMenu() -- error: " + err + " when adding menu with ID: " + id);
+                } else {
                     // Make sure name is up to date
                     brackets.app.setMenuTitle(id, name, function (err) {
                         if (err) {
                             console.error("setMenuTitle() -- error: " + err);
                         }
                     });
-                    break;
-                case ERR_UNKNOWN:
-                    console.error("addMenu(): Unknown Error when adding the menu " + id);
-                    break;
-                case ERR_INVALID_PARAMS:
-                    console.error("addMenu(): Invalid Parameters when adding the menu " + id);
-                    break;
-                case ERR_NOT_FOUND:
-                    console.error("addMenu(): Menu with command " + relativeID + " could not be found when adding the menu " + id);
-                    break;
-                default:
-                    console.error("addMenu(): Unknown Error (" + err + ") when adding the menu " + id);
                 }
             });
             return menu;

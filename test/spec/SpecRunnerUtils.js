@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
-            filename    = options.filename || "_unitTestDummyFile_" + Date.now() + "." + language._fileExtensions[0],
+            filename    = options.filename || "_unitTestDummyFile_." + language._fileExtensions[0],
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
