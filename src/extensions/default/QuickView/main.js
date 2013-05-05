@@ -265,7 +265,7 @@ define(function (require, exports, module) {
             tokenString,
             urlMatch;
 
-        if (token.className === "string") {
+        if (token.type === "string") {
             tokenString = token.string;
         } else {
             urlMatch = urlRegEx.exec(line);

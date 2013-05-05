@@ -128,25 +128,25 @@ define(function (require, exports, module) {
             forwardCtx  = $.extend({}, backwardCtx);
         
         if (editor.getModeForSelection() === "html") {
-            if (backwardCtx.token && backwardCtx.token.className !== "tag") {
-                while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.className !== "tag") {
-                    if (backwardCtx.token.className === "error" && backwardCtx.token.string.indexOf("<") === 0) {
+            if (backwardCtx.token && backwardCtx.token.type !== "tag") {
+                while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.type !== "tag") {
+                    if (backwardCtx.token.type === "error" && backwardCtx.token.string.indexOf("<") === 0) {
                         break;
                     }
-                    if (backwardCtx.token.className === "attribute") {
+                    if (backwardCtx.token.type === "attribute") {
                         attrs.push(backwardCtx.token.string);
                     }
                 }
                 
-                while (TokenUtils.moveNextToken(forwardCtx) && forwardCtx.token.className !== "tag") {
-                    if (forwardCtx.token.className === "attribute") {
+                while (TokenUtils.moveNextToken(forwardCtx) && forwardCtx.token.type !== "tag") {
+                    if (forwardCtx.token.type === "attribute") {
                         // If the current tag is not closed, codemirror may return the next opening
                         // tag as an attribute. Stop the search loop in that case.
                         if (forwardCtx.token.string.indexOf("<") === 0) {
                             break;
                         }
                         attrs.push(forwardCtx.token.string);
-                    } else if (forwardCtx.token.className === "error") {
+                    } else if (forwardCtx.token.type === "error") {
                         if (forwardCtx.token.string.indexOf("<") === 0 || forwardCtx.token.string.indexOf(">") === 0) {
                             break;
                         }
@@ -208,7 +208,7 @@ define(function (require, exports, module) {
             hasEndQuote = attrInfo.hasEndQuote,
             strLength = ctx.token.string.length;
         
-        if ((ctx.token.className === "string" || ctx.token.className === "error") &&
+        if ((ctx.token.type === "string" || ctx.token.type === "error") &&
                 ctx.pos.ch === ctx.token.end && strLength > 1) {
             var firstChar = ctx.token.string[0],
                 lastChar = ctx.token.string[strLength - 1];
@@ -227,7 +227,7 @@ define(function (require, exports, module) {
         }
         
         //Move to the prev token, and check if it's an attribute
-        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.className !== "attribute") {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.type !== "attribute") {
             return createTagInfo();
         }
         
@@ -248,7 +248,7 @@ define(function (require, exports, module) {
     function _getTagInfoStartingFromAttrName(ctx, isPriorAttr) {
         //Verify We're in the attribute name, move forward and try to extract the rest of
         //the info. If the user it typing the attr the rest might not be here
-        if (isPriorAttr === false && ctx.token.className !== "attribute") {
+        if (isPriorAttr === false && ctx.token.type !== "attribute") {
             return createTagInfo();
         }
         
@@ -261,8 +261,8 @@ define(function (require, exports, module) {
             // an undefined token class, then we've already scanned past our original cursor location. 
             // So just return an empty tag info.
             if (isPriorAttr &&
-                    (!ctx.token.className ||
-                    (ctx.token.className !== "attribute" && ctx.token.string.indexOf("<") !== -1))) {
+                    (!ctx.token.type ||
+                    (ctx.token.type !== "attribute" && ctx.token.string.indexOf("<") !== -1))) {
                 return createTagInfo();
             }
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
@@ -328,12 +328,12 @@ define(function (require, exports, module) {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
 
-                if (ctx.token.className === "tag" || ctx.token.className === "error") {
+                if (ctx.token.type === "tag" || ctx.token.type === "error") {
                     // Check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
                     }
-                } else if (ctx.token.className === "attribute") {
+                } else if (ctx.token.type === "attribute") {
                     // Check to see if the user is going to add a new attr before an existing one
                     return _getTagInfoStartingFromAttrName(ctx, false);
                 } else if (ctx.token.string === "=") {
@@ -359,17 +359,17 @@ define(function (require, exports, module) {
                     return createTagInfo();
                 }
 
-                if (ctx.token.className === "comment") {
+                if (ctx.token.type === "comment") {
                     return createTagInfo();
-                } else if (ctx.token.className !== "tag" && ctx.token.string !== "=") {
+                } else if (ctx.token.type !== "tag" && ctx.token.string !== "=") {
                     // If it wasn't the tag name, assume it was an attr value
                     // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
 
                     // Check to see if this is the closing of a tag (either the start or end)
                     // or a comment tag.
-                    if (ctx.token.className === "comment" ||
-                            (ctx.token.className === "tag" &&
+                    if (ctx.token.type === "comment" ||
+                            (ctx.token.type === "tag" &&
                             (ctx.token.string === ">" || ctx.token.string === "/>" ||
                                 (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")))) {
                         return createTagInfo();
@@ -394,7 +394,7 @@ define(function (require, exports, module) {
             }
         }
         
-        if (ctx.token.className === "tag" || ctx.token.className === "error") {
+        if (ctx.token.type === "tag" || ctx.token.type === "error") {
             // Check if the user just typed a white space after "<" that made an existing tag invalid.
             if (ctx.token.string.match(/^<\s+/) && offset !== 1) {
                 return createTagInfo();
@@ -426,7 +426,7 @@ define(function (require, exports, module) {
         if (ctx.token.string === "=") {
             // We could be between the attr and the value
             // Step back and check
-            if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.className !== "attribute") {
+            if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.type !== "attribute") {
                 return createTagInfo();
             }
             
@@ -435,7 +435,7 @@ define(function (require, exports, module) {
             offset = 0;
         }
         
-        if (ctx.token.className === "attribute") {
+        if (ctx.token.type === "attribute") {
             tagInfo = _getTagInfoStartingFromAttrName(ctx, false);
             
             // If we're in attr value, then we may need to calculate the correct offset
