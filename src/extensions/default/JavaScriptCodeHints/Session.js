@@ -316,7 +316,7 @@ define(function (require, exports, module) {
                     }
                 }
             }
-            if (token.type === "property") {
+            if (token.className === "property") {
                 propertyLookup = true;
             }
             if (this.findPreviousDot()) {

@@ -72,7 +72,7 @@ define(function (require, exports, module) {
      * @return {boolean} - could the token be hintable?
      */
     function hintable(token) {
-        switch (token.type) {
+        switch (token.className) {
         case "comment":
         case "number":
         case "regexp":
