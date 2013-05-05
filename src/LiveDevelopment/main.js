@@ -48,8 +48,7 @@ define(function main(require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         Strings             = require("strings"),
-        ExtensionUtils      = require("utils/ExtensionUtils"),
-        StringUtils         = require("utils/StringUtils");
+        ExtensionUtils      = require("utils/ExtensionUtils");
 
     var prefs;
     var params = new UrlParams();
@@ -132,48 +131,17 @@ define(function main(require, exports, module) {
         }
     }
 
-    /** Called on status change */
-    function _showStatusChangeReason(reason) {
-        // Destroy the previous twipsy (options are not updated otherwise)    
-        _$btnGoLive.twipsy("hide").removeData("twipsy");
-        
-        // If there was no reason or the action was an explicit request by the user, don't show a twipsy
-        if (!reason || reason === "explicit_close") {
-            return;
-        }
-
-        // Translate the reason
-        var translatedReason = Strings["LIVE_DEV_" + reason.toUpperCase()];
-        if (!translatedReason) {
-            translatedReason = StringUtils.format(Strings.LIVE_DEV_CLOSED_UNKNOWN_REASON, reason);
-        }
-        
-        // Configure the twipsy
-        var options = {
-            placement: "left",
-            trigger: "manual",
-            autoHideDelay: 5000,
-            title: function () {
-                return translatedReason;
-            }
-        };
-
-        // Show the twipsy with the explanation
-        _$btnGoLive.twipsy(options).twipsy("show");
-    }
-    
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
         _$btnGoLive = $("#toolbar-go-live");
         _$btnGoLive.click(function onGoLive() {
             _handleGoLiveCommand();
         });
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status, reason) {
+        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
-            _showStatusChangeReason(reason);
             if (config.autoconnect) {
                 window.sessionStorage.setItem("live.enabled", status === 3);
             }

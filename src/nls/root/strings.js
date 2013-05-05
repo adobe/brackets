@@ -87,11 +87,6 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
-
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was cancelled because the browser's developer tools were opened",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was cancelled because the page was closed in the browser",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview was cancelled because the browser navigated to a page that is not part of the current project",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview was cancelled for an unknown reason ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
