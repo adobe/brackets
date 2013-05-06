@@ -35,7 +35,6 @@ var DOMAIN_NAME = "extensionData",
 
 function _createFunction(obj) {
     if (obj.options.runLocal) {
-        console.log("local: ", obj.__function, obj.args, obj.body);
         var localFn = new Function(obj.args, obj.body);
         return function () {
             var registry = ExtensionData._getCurrentRegistry();
@@ -47,44 +46,38 @@ function _createFunction(obj) {
         };
     }
     return function () {
-        var args = [];
-        var i;
-        for (i = 0; i < arguments.length; i++) {
-            args.push(arguments[i]);
-        }
+        var registry = ExtensionData._getCurrentRegistry();
+        var args = ExtensionData.convertArgumentsToArray(arguments, registry._addCallback.bind(registry));
         
         var extension = ExtensionData._getCurrentRegistry();
-        console.log("Calling ", obj.__function, " with this ", extension);
         _emitEvent(DOMAIN_NAME, "callFunction", [extension, obj.__function, args]);
     };
 }
 
-console.log("Setting up remote function 2");
-
-ExtensionData._ServiceRegistryBase.prototype._addRemoteFunction = function (name, options) {
-    var extension = this.extension;
-    this.addFunction(name, function () {
-        var args = [];
-        var i;
-        for (i = 0; i < arguments.length; i++) {
-            args.push(arguments[i]);
-        }
+function createWrapper(name, options) {
+    return function () {
+        var args = ExtensionData.convertArgumentsToArray(arguments);
+        
+        var extension = ExtensionData._getCurrentRegistry();
         _emitEvent(DOMAIN_NAME, "callFunction", [extension, name, args]);
-    }.bind(this), options, true);
-};
-
-function _cmdInitialize(data) {
-    ExtensionData._brackets._initialize(data, _createFunction);
-    ExtensionData._brackets.channels.brackets.serviceRegistry.addObject.subscribe(ExtensionData._addObjectFromRemote);
-    ExtensionData._brackets.channels.brackets.serviceRegistry.addFunction.subscribe(ExtensionData._addFunctionFromRemote);
+    };
 }
 
-function _cmdLoadExtension(name, baseUrl) {
+function _cmdInitialize(registryID, data) {
+    ExtensionData._brackets._initialize(registryID, JSON.parse(data), _createFunction, createWrapper);
+}
+
+function _cmdLoadExtension(name, baseUrl, callback) {
     var nodeMainPath = baseUrl + "/node-main";
     if (fs.existsSync(nodeMainPath + ".js")) {
         var nodeMain = require(nodeMainPath);
         if (nodeMain.init) {
-            nodeMain.init(ExtensionData.getServiceRegistry(name));
+            var promise = nodeMain.init(ExtensionData.getServiceRegistry(name));
+            if (promise) {
+                promise.done(callback);
+            } else {
+                callback();
+            }
         }
     }
 }
@@ -103,10 +96,7 @@ function _cmdCallFunction(extension, name, args) {
     }, args);
 }
 
-console.log("Got farther along");
-
 function init(domainManager) {
-    console.log("Domain init");
     _emitEvent = domainManager.emitEvent;
     if (!domainManager.hasDomain(DOMAIN_NAME)) {
         domainManager.registerDomain(DOMAIN_NAME, {major: 0, minor: 1});
@@ -118,6 +108,10 @@ function init(domainManager) {
         false,
         "Initializes the extension data.",
         [{
+            name: "registryID",
+            type: "int",
+            description: "ID for this registry"
+        }, {
             name: "data",
             type: "Object",
             description: "all the info"
@@ -144,7 +138,7 @@ function init(domainManager) {
         DOMAIN_NAME,
         "loadExtension",
         _cmdLoadExtension,
-        false,
+        true,
         "Loads an extension's node side",
         [{
             name: "name",
@@ -154,7 +148,11 @@ function init(domainManager) {
             name: "baseUrl",
             type: "string",
             description: "path of the extension"
-        }]
+        }],
+        {
+            type: "boolean",
+            description: "returns true when ready"
+        }
     );
     domainManager.registerCommand(
         DOMAIN_NAME,

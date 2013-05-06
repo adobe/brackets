@@ -51,6 +51,8 @@ define(function (require, exports, module) {
         contexts    = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
     
+    ExtensionData._brackets._initializeMaster();
+    
     // The native directory path ends with either "test" or "src". We need "src" to
     // load the text and i18n modules.
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
@@ -93,7 +95,7 @@ define(function (require, exports, module) {
                     var services = ExtensionData.getServiceRegistry(metadata.name);
                     services.metadata = metadata;
                     mainModule.init(services);
-                    NodeExtensions.loadNodeExtension(name, baseUrl);
+                    NodeExtensions.loadNodeExtension(name, baseUrl, mainModule, services);
                 },
                 function (err) {
                     console.error("[Extension] is missing package.json " + baseUrl, err);

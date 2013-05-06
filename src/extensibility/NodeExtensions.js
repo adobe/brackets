@@ -37,29 +37,30 @@ var _nodeConnectionDeferred = new $.Deferred(),
     _nodeConnection = null,
     NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
-function loadNodeExtension(name, baseUrl) {
+function loadNodeExtension(name, baseUrl, mainModule, services) {
     _nodeConnectionDeferred.done(function () {
         if (_nodeConnection && _nodeConnection.connected()) {
-            _nodeConnection.domains.extensionData.loadExtension(name, baseUrl);
+            _nodeConnection.domains.extensionData.loadExtension(name, baseUrl).done(function () {
+                if (mainModule.nodeReady) {
+                    mainModule.nodeReady(services);
+                }
+            });
+            
         } else {
             console.error("Tried to load node extension", name, "but node is not connected");
         }
     });
 }
 
-ExtensionData._ServiceRegistryBase.prototype._addRemoteFunction = function (name, options) {
-    this.addFunction(name, function () {
+var callNodeFunction = function (name, options) {
+    return function () {
         if (_nodeConnection && _nodeConnection.connected()) {
-            var args = [];
-            var i;
-            for (i = 0; i < arguments.length; i++) {
-                args.push(arguments[i]);
-            }
+            var args = ExtensionData.convertArgumentsToArray(arguments);
             _nodeConnection.domains.extensionData.callFunction(this.extension, name, args);
         } else {
             console.error("Tried to call node function", name, "but node is not connected");
         }
-    }, options, true);
+    };
 };
 
 function _callFunctionFromNode(e, extension, name, args) {
@@ -72,6 +73,11 @@ function _callFunctionFromNode(e, extension, name, args) {
         if (!current) {
             console.error("Unknown function called from node: ", name);
             return;
+        }
+    }
+    for (i = 0; i < args.length; i++) {
+        if (typeof args[i] === "object" && args[i].__function) {
+            args[i] = callNodeFunction(args.__function);
         }
     }
     current.apply({
@@ -99,7 +105,8 @@ AppInit.appReady(function () {
                 function () {
                     if (_nodeConnection.connected()) {
                         $(_nodeConnection).on("extensionData.callFunction", _callFunctionFromNode);
-                        _nodeConnection.domains.extensionData.initialize(ExtensionData.ServiceRegistry.prototype);
+                        var remoteConfig = ExtensionData._brackets._getRemoteRegistryConfig(callNodeFunction);
+                        _nodeConnection.domains.extensionData.initialize(remoteConfig.registryID, remoteConfig.data);
                     }
                     clearTimeout(connectionTimeout);
                     _nodeConnectionDeferred.resolve(_nodeConnection);
