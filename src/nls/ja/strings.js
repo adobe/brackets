@@ -292,7 +292,6 @@ define({
 	"RELAUNCH_CHROME": "Chrome を再起動",
 	"INSTALL": "インストール",
 	"ABOUT": "このソフトウェアについて",
-	"APP_NAME": "Brackets",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "注意 - サードパーティソフトウェアに関する契約条件は <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_jp/\">http://www.adobe.com/go/thirdparty_jp/</a> を参照してください。またリンク先の内容を本契約条件の一部と見なします。",

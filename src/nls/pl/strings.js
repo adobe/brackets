@@ -284,7 +284,6 @@ define({
     "RELAUNCH_CHROME"                      : "Przeładuj Chrome",
     "INSTALL"                              : "Zainstaluj",
     "ABOUT"                                : "O programie",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Zamknij",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Adnotacje dotyczące warunków używania aplikacji firm trzecich znajdują się tutaj: <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> i zostały załączone jako odnośnik.",

@@ -284,7 +284,6 @@ define({
     "RELAUNCH_CHROME"                      : "重新运行Chrome",
     "INSTALL"                              : "安装",
     "ABOUT"                                : "关于",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "关闭",
     "ABOUT_TEXT_LINE1"                     : "冲刺 {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "关于第三方软件的条款,条例,声明 <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/ </a> 以此作为参考.",
