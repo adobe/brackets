@@ -30,10 +30,12 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        KeyEvent        = require("utils/KeyEvent");
+        KeyEvent        = require("utils/KeyEvent"),
+        NativeApp       = require("utils/NativeApp");
 
     describe("Install Extension Dialog", function () {
-        var testWindow;
+        var testWindow, dialog, fields, goodInstaller, badInstaller, InstallExtensionDialog, closed,
+            url = "http://brackets.io/extensions/myextension.zip";
         
         beforeEach(function () {
             if (!testWindow) {
@@ -43,14 +45,45 @@ define(function (require, exports, module) {
             }
         });
 
-        describe("tests", function () {
-            var dialog,
-                fields,
-                goodInstaller,
-                badInstaller,
-                InstallExtensionDialog,
-                closed,
-                url = "http://brackets.io/extensions/myextension.zip";
+        afterEach(function () {
+            runs(function () {
+                if (dialog) {
+                    dialog._close();
+                } else {
+                    closed = true;
+                }
+            });
+            waitsFor(function () { return closed; }, "dialog closing");
+            runs(function () {
+                fields = null;
+                closed = false;
+                dialog = null;
+            });
+        });
+        
+        function makeInstaller(succeed, deferred) {
+            var installer = {
+                install: function () {
+                    if (!deferred) {
+                        deferred = new $.Deferred();
+                        if (succeed) {
+                            deferred.resolve();
+                        } else {
+                            deferred.reject();
+                        }
+                    }
+                    return deferred.promise();
+                },
+                cancel: function () {
+                }
+            };
+            spyOn(installer, "install").andCallThrough();
+            spyOn(installer, "cancel");
+            dialog._installer = installer;
+            return installer;
+        }
+        
+        describe("when user-initiated", function () {
     
             beforeEach(function () {
                 closed = false;
@@ -63,42 +96,10 @@ define(function (require, exports, module) {
                     $dlg: dialog.$dlg,
                     $okButton: dialog.$okButton,
                     $cancelButton: dialog.$cancelButton,
-                    $url: dialog.$url
+                    $url: dialog.$url,
+                    $browseExtensionsButton: dialog.$browseExtensionsButton
                 };
             });
-            
-            afterEach(function () {
-                runs(function () {
-                    dialog._close();
-                });
-                waitsFor(function () { return closed; }, "dialog closing");
-                runs(function () {
-                    fields = null;
-                    closed = false;
-                });
-            });
-            
-            function makeInstaller(succeed, deferred) {
-                var installer = {
-                    install: function () {
-                        if (!deferred) {
-                            deferred = new $.Deferred();
-                            if (succeed) {
-                                deferred.resolve();
-                            } else {
-                                deferred.reject();
-                            }
-                        }
-                        return deferred.promise();
-                    },
-                    cancel: function () {
-                    }
-                };
-                spyOn(installer, "install").andCallThrough();
-                spyOn(installer, "cancel");
-                dialog._installer = installer;
-                return installer;
-            }
             
             function setUrl() {
                 fields.$url
@@ -558,15 +559,46 @@ define(function (require, exports, module) {
                     deferred.reject("CANCELED");
                     expect(fields.$okButton.attr("disabled")).toBeFalsy();
                 });
-                
-                // This must be in the last spec in the suite.
-                runs(function () {
-                    this.after(function () {
-                        SpecRunnerUtils.closeTestWindow();
-                    });
-                });
             });
             
+            it("should open the extension list wiki page when the user clicks on the Browse Extensions button", function () {
+                var NativeApp = testWindow.brackets.getModule("utils/NativeApp");
+                spyOn(NativeApp, "openURLInDefaultBrowser");
+                fields.$browseExtensionsButton.click();
+                expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/adobe/brackets/wiki/Brackets-Extensions");
+            });
+        });
+        
+        describe("when initiated from Extension Manager", function () {
+            var url = "https://my.repository.io/my-extension.zip", installer;
+            beforeEach(function () {
+                closed = false;
+            });
+        
+            it("should immediately start installing from the given url, and in the correct UI state", function () {
+                var deferred = new $.Deferred();
+                dialog = new testWindow.brackets.test.InstallExtensionDialog._Dialog();
+                installer = makeInstaller(null, deferred);
+                dialog.show(url)
+                    .always(function () {
+                        closed = true;
+                    });
+                fields = {
+                    $dlg: dialog.$dlg,
+                    $okButton: dialog.$okButton,
+                    $cancelButton: dialog.$cancelButton,
+                    $url: dialog.$url
+                };
+                expect(installer.install).toHaveBeenCalledWith(url);
+                expect(fields.$okButton.attr("disabled")).toBeTruthy();
+                expect(fields.$url.is(":visible")).toBeFalsy();
+                deferred.resolve();
+            });
+        });
+        
+        // THIS MUST BE THE LAST SPEC IN THE SUITE
+        it("should close the test window", function () {
+            SpecRunnerUtils.closeTestWindow();
         });
     });
 });

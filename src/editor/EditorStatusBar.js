@@ -54,7 +54,8 @@ define(function (require, exports, module) {
     }
     
     function _updateFileInfo(editor) {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
+        var lines = editor.lineCount();
+        $fileInfo.text(StringUtils.format(lines > 1 ? Strings.STATUSBAR_LINE_COUNT_PLURAL : Strings.STATUSBAR_LINE_COUNT_SINGULAR, lines));
     }
     
     function _updateIndentType() {
@@ -98,12 +99,12 @@ define(function (require, exports, module) {
         
         // restore focus to the editor
         EditorManager.focusEditor();
-
+        
         if (!value || isNaN(value)) {
             return;
         }
         
-        value = Math.max(Math.min(value, 10), 1);
+        value = Math.max(Math.min(Math.floor(value), 10), 1);
         if (Editor.getUseTabChar()) {
             Editor.setTabSize(value);
         } else {

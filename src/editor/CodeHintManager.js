@@ -341,7 +341,7 @@ define(function (require, exports, module) {
         if (sessionEditor) {
             if (sessionEditor === editor &&
                     (hintList.isOpen() ||
-                     (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
+                     (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
             } else {
                 // the editor has changed
@@ -504,6 +504,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Test if a hint popup is open.
+     *
+     * @returns {boolean} - true if the hints are open, false otherwise.
+     */
+    function isOpen() {
+        return (hintList && hintList.isOpen());
+    }
+
+    /**
      * Expose CodeHintList for unit testing
      */
     function _getCodeHintList() {
@@ -531,9 +540,10 @@ define(function (require, exports, module) {
     $(EditorManager).on("activeEditorChange", activeEditorChangeHandler);
     
     exports._getCodeHintList        = _getCodeHintList;
-    exports._handleKeyEvent          = handleKeyEvent;
-    exports._handleChange            = handleChange;
     
     // Define public API
+    exports.isOpen                  = isOpen;
+    exports.handleKeyEvent          = handleKeyEvent;
+    exports.handleChange            = handleChange;
     exports.registerHintProvider    = registerHintProvider;
 });

@@ -38,6 +38,8 @@ define(function (require, exports, module) {
     require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
     require("spec/ExtensionInstallation-test");
+//  Commented out until we get back to work on the registry
+//  require("spec/ExtensionManager-test");
     require("spec/ExtensionUtils-test");
     require("spec/FileIndexManager-test");
     require("spec/FindReplace-test");

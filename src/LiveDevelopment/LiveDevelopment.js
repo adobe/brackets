@@ -42,7 +42,9 @@
  * # STATUS
  *
  * Status updates are dispatched as `statusChange` jQuery events. The status
- * codes are:
+ * is passed as the first parameter and the reason for the change as the second
+ * parameter. Currently only the "Inactive" status supports the reason parameter.
+ * The status codes are:
  *
  * -1: Error
  *  0: Inactive
@@ -50,6 +52,13 @@
  *  2: Loading agents
  *  3: Active
  *  4: Out of sync
+ *
+ * The reason codes are:
+ * - null (Unknown reason)
+ * - "explicit_close" (LiveDevelopment.close() was called)
+ * - "navigated_away" (The browser changed to a location outside of the project)
+ * - "detached_target_closed" (The tab or window was closed)
+ * - "detached_replaced_with_devtools" (The developer tools were opened in the browser)
  */
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
@@ -69,7 +78,6 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileUtils            = require("file/FileUtils"),
-        HTMLInstrumentation  = require("language/HTMLInstrumentation"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NativeFileError      = require("file/NativeFileError"),
         NativeApp            = require("utils/NativeApp"),
@@ -134,7 +142,8 @@ define(function LiveDevelopment(require, exports, module) {
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _serverProvider;      // current LiveDevServerProvider
-
+    var _closeReason;         // reason why live preview was closed
+    
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
                 (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
@@ -331,7 +340,7 @@ define(function LiveDevelopment(require, exports, module) {
         _liveDocument = _createDocument(doc, editor);
         
         // Enable instrumentation
-        if (_liveDocument.setInstrumentationEnabled) {
+        if (_liveDocument && _liveDocument.setInstrumentationEnabled) {
             var enableInstrumentation = false;
             
             if (_serverProvider && _serverProvider.setRequestFilterPaths) {
@@ -403,8 +412,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
-        var name, promises = [];
-        var agentsToLoad;
+        var name, promises = [], agentsToLoad, promise;
+
         if (exports.config.experimental) {
             // load all agents
             agentsToLoad = agents;
@@ -414,7 +423,12 @@ define(function LiveDevelopment(require, exports, module) {
         }
         for (name in agentsToLoad) {
             if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
-                promises.push(agents[name].load());
+                promise = agents[name].load();
+
+                if (promise) {
+                    promises.push(promise);
+                }
+
                 _loadedAgentNames.push(name);
             }
         }
@@ -447,8 +461,14 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {integer} new status
      */
     function _setStatus(status) {
+        // Don't send a notification when the status didn't actually change
+        if (status === exports.status) {
+            return;
+        }
+        
         exports.status = status;
-        $(exports).triggerHandler("statusChange", status);
+        var reason = status === STATUS_INACTIVE ? _closeReason : null;
+        $(exports).triggerHandler("statusChange", [status, reason]);
     }
 
     /** Triggered by Inspector.error */
@@ -500,13 +520,6 @@ define(function LiveDevelopment(require, exports, module) {
             });
     }
 
-    /** Triggered by Inspector.detached */
-    function _onDetached(event, res) {
-        // res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
-        // Sample list taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
-        // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
-    }
-
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
@@ -535,6 +548,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (!url.match(baseUrlRegExp)) {
             // No longer in site, so terminate live dev, but don't close browser window
             Inspector.disconnect();
+            _closeReason = "navigated_away";
             _setStatus(STATUS_INACTIVE);
             _serverProvider = null;
         }
@@ -542,18 +556,30 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.disconnect */
     function _onDisconnect(event) {
-        $(Inspector.Inspector).off("detached", _onDetached);
-        $(Inspector.Page).off("frameNavigated.DOMAgent", _onFrameNavigated);
+        $(Inspector.Inspector).off("detached.livedev");
+        $(Inspector.Page).off("frameNavigated.livedev");
 
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
     }
 
+    function _onDetached(event, res) {
+        // If there already is a reason for closing the session, do not overwrite it
+        if (!_closeReason) {
+            // Get the explanation from res.reason, e.g. "replaced_with_devtools", "target_closed", "canceled_by_user"
+            // Examples taken from https://chromiumcodereview.appspot.com/10947037/patch/12001/13004
+            // However, the link refers to the Chrome Extension API, it may not apply 100% to the Inspector API
+            // Prefix with "detached_" to create a quasi-namespace for Chrome's reasons
+            _closeReason = "detached_" + res.reason;
+        }
+    }
+
     function reconnect() {
         unloadAgents();
-        var promises = loadAgents();
+        
         _setStatus(STATUS_LOADING_AGENTS);
+        var promises = loadAgents();
         $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
     }
 
@@ -564,6 +590,8 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = _getCurrentDocument();
         var browserStarted = false;
         var retryCount = 0;
+
+        _closeReason = null;
 
         function showWrongDocError() {
             Dialogs.showModalDialog(
@@ -718,6 +746,8 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {jQuery.Promise} Resolves once the connection is closed
      */
     function close() {
+        _closeReason = "explicit_close";
+
         var deferred = $.Deferred();
             
         /*
@@ -814,22 +844,24 @@ define(function LiveDevelopment(require, exports, module) {
          * interstitial page has finished loading.
          */
         function onInterstitialPageLoad() {
+            // Page domain must be enabled first before loading other agents
+            Inspector.Page.enable().done(function () {
+                // Load the right document (some agents are waiting for the page's load event)
+                var doc = _getCurrentDocument();
+                if (doc) {
+                    Inspector.Page.navigate(doc.root.url);
+                } else {
+                    close();
+                }
+            });
+
             // Load agents
             _setStatus(STATUS_LOADING_AGENTS);
             var promises = loadAgents();
             $.when.apply(undefined, promises).done(_onLoad).fail(_onError);
-            
-            // Load the right document (some agents are waiting for the page's load event)
-            var doc = _getCurrentDocument();
-            if (doc) {
-                Inspector.Page.navigate(doc.root.url);
-            } else {
-                close();
-            }
         }
         
-        $(Inspector.Inspector).on("detached", _onDetached);
-        $(Inspector.Page).on("frameNavigated.DOMAgent", _onFrameNavigated);
+        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
 		
         waitForInterstitialPageLoad()
             .fail(function () {
@@ -882,11 +914,11 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentSaved(event, doc) {
         if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument &&
                 agents.network && agents.network.wasURLRequested(doc.url)) {
+            // Unload and reload agents before reloading the page
+            reconnect();
+
             // Reload HTML page
             Inspector.Page.reload();
-
-            // Reload unsaved changes
-            reconnect();
         }
     }
 
@@ -923,7 +955,7 @@ define(function LiveDevelopment(require, exports, module) {
             return false;
         }
 
-        return true;
+        return _isHtmlFileExt(localPath);
     };
 
     /**
@@ -953,9 +985,11 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector).on("connect", _onConnect)
             .on("disconnect", _onDisconnect)
             .on("error", _onError);
+        $(Inspector.Inspector).on("detached", _onDetached);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
+        $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
 
         // Register user defined server provider
         var userServerProvider = new UserServerProvider();

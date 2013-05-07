@@ -119,9 +119,9 @@ define(function (require, exports, module) {
     var SPECIAL_POINTS = 35;
     var MATCH_POINTS = 10;
     var LAST_SEGMENT_BOOST = 1;
-    var BEGINNING_OF_NAME_POINTS = 25;
+    var BEGINNING_OF_NAME_POINTS = 10;
     var DEDUCTION_FOR_LENGTH = 0.2;
-    var CONSECUTIVE_MATCHES_POINTS = 10;
+    var CONSECUTIVE_MATCHES_POINTS = 7;
     var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
     
     // Used in match lists to designate matches of "special" characters (see
@@ -562,16 +562,29 @@ define(function (require, exports, module) {
             // handles the initial value of lastMatchIndex which is used for
             // constructing ranges but we don't yet have a true match.
             if (score > 0 && lastMatchIndex + 1 === c) {
+                // Continue boosting for each additional match at the beginning
+                // of the name
+                if (c - numConsecutive === lastSegmentStart) {
+                    if (DEBUG_SCORES) {
+                        scoreDebug.beginning += BEGINNING_OF_NAME_POINTS;
+                    }
+                    newPoints += BEGINNING_OF_NAME_POINTS;
+                }
+                
+                numConsecutive++;
+                
+                var boost = CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+                
                 // Consecutive matches that started on a special are a
                 // good indicator of intent, so we award an added bonus there.
                 if (currentRangeStartedOnSpecial) {
-                    numConsecutive++;
+                    boost = boost * 2;
                 }
                 
                 if (DEBUG_SCORES) {
-                    scoreDebug.consecutive += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+                    scoreDebug.consecutive += boost;
                 }
-                newPoints += CONSECUTIVE_MATCHES_POINTS * numConsecutive;
+                newPoints += boost;
             } else {
                 numConsecutive = 1;
             }
@@ -807,7 +820,7 @@ define(function (require, exports, module) {
         this._lastQuery = query;
         
         // Check for a known non-matching string.
-        if (this._noMatchCache.hasOwnProperty(str)) {
+        if (CollectionUtils.hasProperty(this._noMatchCache, str)) {
             return undefined;
         }
         

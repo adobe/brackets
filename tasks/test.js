@@ -38,7 +38,7 @@ module.exports = function (grunt) {
             cmd             = common.resolve(grunt.option("shell") || grunt.config("shell." + platform)),
             spec            = grunt.option("spec") || "all",
             suite           = grunt.option("suite") || "all",
-            results         = grunt.option("results") || process.cwd() + "/results.json",
+            results         = grunt.option("results") || process.cwd() + "/results.xml",
             resultsPath     = common.resolve(results),
             specRunnerPath  = common.resolve("test/SpecRunner.html"),
             args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";

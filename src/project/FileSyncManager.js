@@ -215,7 +215,7 @@ define(function (require, exports, module) {
             Strings.ERROR_RELOADING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
-                StringUtils.htmlEscape(doc.file.fullPath),
+                StringUtils.breakableUrl(doc.file.fullPath),
                 FileUtils.getFileErrorString(error.name)
             )
         );
@@ -264,7 +264,9 @@ define(function (require, exports, module) {
                 dialogId = Dialogs.DIALOG_ID_EXT_CHANGED;
                 message = StringUtils.format(
                     Strings.EXT_MODIFIED_MESSAGE,
-                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
+                    StringUtils.breakableUrl(
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                    )
                 );
                 
             } else {
@@ -272,7 +274,9 @@ define(function (require, exports, module) {
                 dialogId = Dialogs.DIALOG_ID_EXT_DELETED;
                 message = StringUtils.format(
                     Strings.EXT_DELETED_MESSAGE,
-                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
+                    StringUtils.breakableUrl(
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                    )
                 );
             }
             

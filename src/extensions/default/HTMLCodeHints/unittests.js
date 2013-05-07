@@ -153,6 +153,14 @@ define(function (require, exports, module) {
                 hintList = expectHints(HTMLCodeHints.tagHintProvider);
                 verifyTagHints(hintList);
             });
+            
+            //Test for issue #3339
+            it("should show HTML hints after HTML Entity on same line", function () {
+                testDocument.replaceRange("&nbsp; Test <  ", { line: 8, ch: 0 });
+                testEditor.setCursorPos({ line: 8, ch: 13 });   // cursor between < and some trailing whitespaces
+                var hintList = expectHints(HTMLCodeHints.tagHintProvider);
+                verifyTagHints(hintList);
+            });
         });
         
         describe("Attribute name hint provider", function () {

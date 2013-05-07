@@ -99,7 +99,7 @@ define(function (require, exports, module) {
                     "id": "html",
                     "name": "HTML",
                     "mode": ["htmlmixed", "text/x-brackets-html"],
-                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht"],
+                    "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars"],
                     "blockComment": {prefix: "<!--", suffix: "-->"}
                 };
                 
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
                     language = lang;
                 });
                 
-                expect(promise.isResolved()).toBeTruthy();
+                expect(promise.state() === "resolved").toBeTruthy();
                 
                 validateLanguage(def, language);
             });

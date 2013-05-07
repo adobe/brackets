@@ -11,10 +11,10 @@
 
     <!-- Project tree: dark background -->
     <use xlink:href="#arrow-r-shadow" />
-    <use xlink:href="#arrow-r" fill="#878787" />
+    <use xlink:href="#arrow-r" fill="#6E6F70" />
     
     <use xlink:href="#arrow-d-shadow" />
-    <use xlink:href="#arrow-d" fill="#fff" />
+    <use xlink:href="#arrow-d" fill="#6E6F70" />
     
     <!-- Elsewhere: light background -->
     <use xlink:href="#arrow-r-shadow" y="14" />

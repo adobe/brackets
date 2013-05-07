@@ -545,8 +545,32 @@ define(function (require, exports, module) {
             
             it("should find the right jsu", function () {
                 expect(goodRelativeOrdering("jsu", [
-                    "src/language/JSLintUtils.js",
-                    "src/language/JSUtil.js"
+                    "src/language/JSUtil.js",
+                    "src/language/JSLintUtils.js"
+                ])).toBe(true);
+            });
+            
+            it("should find the right trange", function () {
+                expect(goodRelativeOrdering("trange", [
+                    "src/document/TextRange.js",
+                    "src/extensions/default/JavaScriptQuickEdit/unittest-files/jquery-ui/demos/slider/range.html"
+                ])).toBe(true);
+            });
+            
+            it("should prefer prefix matches", function () {
+                expect(goodRelativeOrdering("asc", [
+                    "ASC.js",
+                    "ActionScriptCompiler.js"
+                ])).toBe(true);
+                expect(goodRelativeOrdering("st", [
+                    "str",
+                    "String",
+                    "stringMatch",
+                    "StringMatcher",
+                    "screenTop",
+                    "scrollTo",
+                    "setTimeout",
+                    "switch"
                 ])).toBe(true);
             });
         });

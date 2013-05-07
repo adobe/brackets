@@ -19,7 +19,7 @@ and JavaScript, you can help build the best code editor for the web.
 
 You can see some 
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
-on the wiki.
+on the wiki and [intro videos](http://www.youtube.com/user/CodeBrackets) on the Brackets YouTube channel.
 
 Brackets is early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be

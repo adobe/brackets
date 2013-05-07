@@ -387,7 +387,7 @@ define(function (require, exports, module) {
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 FileUtils.getFileErrorString(name)
             )
         );
@@ -576,7 +576,10 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                StringUtils.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
+                StringUtils.format(
+                    Strings.SAVE_CLOSE_MESSAGE,
+                    StringUtils.breakableUrl(filename)
+                )
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -660,7 +663,7 @@ define(function (require, exports, module) {
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
                 message += "<li><span class='dialog-filename'>" +
-                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
+                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
                     "</span></li>";
             });
             message += "</ul>";
