@@ -456,7 +456,12 @@ define(function (require, exports, module) {
                 cursor = sessionType.functionCallPos,
                 token = cursor ? this.getToken(cursor) : undefined,
                 varName;
-            if (token) {
+            if (token &&
+                    // only change the 'fn' when the token looks like a function
+                    // name, and isn't some other kind of expression
+                    (token.type === "variable" ||
+                     token.type === "variable-2" ||
+                     token.type === "property")) {
                 varName = token.string;
                 if (varName) {
                     fnHint = varName + fnHint.substr(2);
