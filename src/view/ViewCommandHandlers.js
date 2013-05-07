@@ -166,7 +166,8 @@ define(function (require, exports, module) {
         var fsStr   = fsNew + fsUnits;
         var lhStr   = lhNew + lhUnits;
 
-        // Don't let the font size get too small or too large.
+        // Don't let the font size get too small or too large. The minimum font size is 1px or 0.1em
+        // and the maximum font size is 72px or 7.2em depending on the unit used
         if (fsNew < MIN_FONT_SIZE * delta || fsNew > MAX_FONT_SIZE * delta) {
             return false;
         }
