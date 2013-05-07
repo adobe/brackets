@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Editor          = require("editor/Editor").Editor,
         KeyEvent        = require("utils/KeyEvent"),
         EditorManager,      // loaded from brackets.test
-        CodeHintManager;
+        CodeHintManager = require("editor/CodeHintManager");
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
         testWindow,
@@ -81,7 +81,6 @@ define(function (require, exports, module) {
                 //testWindow.brackets.app.showDeveloperTools();
     
                 // Load module instances from brackets.test
-                CodeHintManager     = testWindow.brackets.test.CodeHintManager;
                 EditorManager       = testWindow.brackets.test.EditorManager;
             });
         });
@@ -116,7 +115,7 @@ define(function (require, exports, module) {
 
                     // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
                     // here, but it does not yet support modifer keys
-                    CodeHintManager._handleKeyEvent(editor, e);
+                    CodeHintManager.handleKeyEvent(editor, e);
 
                     var codeHintList = CodeHintManager._getCodeHintList();
                     expect(codeHintList).toBeTruthy();
@@ -131,7 +130,7 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
-                    CodeHintManager._handleKeyEvent(editor, e);
+                    CodeHintManager.handleKeyEvent(editor, e);
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
@@ -159,7 +158,7 @@ define(function (require, exports, module) {
 
                     // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
                     // here, but it does not yet support modifer keys
-                    CodeHintManager._handleKeyEvent(editor, e);
+                    CodeHintManager.handleKeyEvent(editor, e);
 
                     // verify list is open
                     var codeHintList = CodeHintManager._getCodeHintList();
