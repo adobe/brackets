@@ -134,10 +134,13 @@ define(function (require, exports, module) {
         _nodeConnectionDeferred
             .done(function (nodeConnection) {
                 if (nodeConnection.connected()) {
-                    var destinationDirectory = ExtensionLoader.getUserExtensionPath();
-                    var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
+                    var destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
+                        disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
+                        systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
+                    
                     nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
                         disabledDirectory: disabledDirectory,
+                        systemDirectory: systemDirectory,
                         apiVersion: brackets.metadata.apiVersion,
                         nameHint: nameHint
                     })

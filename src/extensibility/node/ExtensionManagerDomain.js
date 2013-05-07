@@ -174,7 +174,7 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * @param {function} callback (err, result)
  */
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
-    if (!options || !options.disabledDirectory || !options.apiVersion) {
+    if (!options || !options.disabledDirectory || !options.apiVersion || !options.systemDirectory) {
         callback(new Error(Errors.MISSING_REQUIRED_OPTIONS), null);
         return;
     }
@@ -197,7 +197,8 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
             extensionName = path.basename(packagePath, ".zip");
         }
         validationResult.name = extensionName;
-        var installDirectory = path.join(destinationDirectory, extensionName);
+        var installDirectory = path.join(destinationDirectory, extensionName),
+            systemInstallDirectory = path.join(options.systemDirectory, extensionName);
         
         if (validationResult.metadata && validationResult.metadata.engines &&
                 validationResult.metadata.engines.brackets) {
@@ -213,7 +214,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         
         // If the extension is already there, at this point we will not overwrite
         // a running extension. Instead, we unzip into the disabled directory.
-        if (fs.existsSync(installDirectory)) {
+        if (fs.existsSync(installDirectory) || fs.existsSync(systemInstallDirectory)) {
             validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
             installDirectory = path.join(options.disabledDirectory, extensionName);
             _removeAndInstall(packagePath, installDirectory, validationResult, callback);
@@ -386,7 +387,7 @@ function init(domainManager) {
             description: "absolute filesystem path where this extension should be installed"
         }, {
             name: "options",
-            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}",
+            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemDirectory: !string}",
             description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
         [{
