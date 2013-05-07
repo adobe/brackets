@@ -330,7 +330,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
     "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
-    "NO_DISABLED_DIRECTORY"                : "Die Erweiterung konnte nicht gespeichert werden, weil der Ordner für deaktivierte Erweiterungen nicht existiert.",
     "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
     "NO_SERVER_RESPONSE"                   : "Verbindung konnte nicht hergestellt werden.",
     "BAD_HTTP_STATUS"                      : "Die Datei wurde auf dem Server nicht gefunden (HTTP {0}).",
