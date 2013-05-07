@@ -34,7 +34,10 @@ define(function (require, exports, module) {
         KeyBindingManager   = require("command/KeyBindingManager"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
-        PopUpManager        = require("widgets/PopUpManager");
+        PopUpManager        = require("widgets/PopUpManager"),
+        ExtensionData       = require("extensibility/ExtensionData"),
+        builtInServices     = ExtensionData._brackets;
+
 
     /**
      * Brackets Application Menu Constants
@@ -103,6 +106,18 @@ define(function (require, exports, module) {
     var FIRST_IN_SECTION =  "firstInSection";
     var LAST_IN_SECTION =   "lastInSection";
 
+    var dashChar = /-([a-z])/;
+    
+    function generateFriendlyId(id) {
+        var friendlyId = id;
+        var nextCharMatch = dashChar.exec(id);
+        while (nextCharMatch !== null) {
+            friendlyId = friendlyId.replace(dashChar, nextCharMatch[1].toUpperCase());
+            nextCharMatch = dashChar.exec(friendlyId);
+        }
+        return friendlyId;
+    }
+    
     /**
       * Other constants
       */
@@ -797,6 +812,10 @@ define(function (require, exports, module) {
 
         menu = new Menu(id);
         menuMap[id] = menu;
+        
+        builtInServices.addFunction("menus." + generateFriendlyId(id) + ".addItem", function (id) {
+            menu.addMenuItem(id);
+        });
 
         if (!_isHTMLMenu(id)) {
             brackets.app.addMenu(name, id, position, relativeID, function (err) {
@@ -930,7 +949,7 @@ define(function (require, exports, module) {
     ContextMenu.prototype.close = function () {
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
-
+    
     /**
      * Registers new context menu with Brackets. 
 
@@ -967,9 +986,12 @@ define(function (require, exports, module) {
             console.log("Context Menu added with same name and id of existing Context Menu: " + id);
             return null;
         }
-
+        
         var cmenu = new ContextMenu(id);
         contextMenuMap[id] = cmenu;
+        builtInServices.addFunction("menus.context." + generateFriendlyId(id) + ".addItem", function (id) {
+            cmenu.addMenuItem(id);
+        });
         return cmenu;
     }
 

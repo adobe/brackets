@@ -35,6 +35,9 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var ExtensionData = require("extensibility/ExtensionData"),
+        builtInServices = ExtensionData._brackets;
+    
     /**
      * Map of all registered global commands
      * @type Object.<commandID: string, Command>
@@ -239,6 +242,11 @@ define(function (require, exports, module) {
             return (new $.Deferred()).reject().promise();
         }
     }
+    
+    builtInServices.addFunction("commands.add", function (name, id, fn) {
+        console.log("Added command via new API", name);
+        register(name, id, fn);
+    });
 
     // Define public API
     exports.register        = register;

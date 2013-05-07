@@ -77,7 +77,11 @@ function _callFunctionFromNode(e, extension, name, args) {
     }
     for (i = 0; i < args.length; i++) {
         if (typeof args[i] === "object" && args[i].__function) {
-            args[i] = callNodeFunction(args.__function);
+            args[i] = callNodeFunction(args.__function).bind({
+                registry: services,
+                extension: extension,
+                name: name
+            });
         }
     }
     current.apply({

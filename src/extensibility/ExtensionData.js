@@ -139,6 +139,7 @@ function _addObjectFromRemote(extension, name, registryID) {
 function _addFunctionFromRemote(extension, name, options, registryID) {
     var services = getServiceRegistry(extension);
     if (services._registryID !== registryID) {
+        console.log("AFFR", extension, name, registryID);
         services.addFunction(name, services._remoteFunctionWrappers[registryID](name, options),
             options, true);
     }
