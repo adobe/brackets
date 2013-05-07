@@ -220,7 +220,7 @@ define(function (require, exports, module) {
         function execColorMatch(line) {
             var colorMatch;
 
-            function hypenOnMatchBoundary(match, line) {
+            function hyphenOnMatchBoundary(match, line) {
                 var beforeIndex, afterIndex;
                 if (match) {
                     beforeIndex = match.index - 1;
@@ -240,7 +240,7 @@ define(function (require, exports, module) {
             // Hyphens do not count as a regex word boundary (\b), so check for those here
             do {
                 colorMatch = colorRegEx.exec(line);
-            } while (colorMatch && hypenOnMatchBoundary(colorMatch, line));
+            } while (colorMatch && hyphenOnMatchBoundary(colorMatch, line));
 
             return colorMatch;
         }
