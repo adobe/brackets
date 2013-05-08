@@ -88,10 +88,10 @@ define({
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "ライブプレビューの接続を切断します",
 	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "ライブプレビュー : クリックして切断 (ファイルを保存して更新)",
 
-	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "!能=[6857369] Live Preview was cancelled because the browser's developer tools were opened_=!",
-	"LIVE_DEV_DETACHED_TARGET_CLOSED": "!能=[6857370] Live Preview was cancelled because the page was closed in the browser_=!",
-	"LIVE_DEV_NAVIGATED_AWAY": "!能=[6857371] Live Preview was cancelled because the browser navigated to a page that is not part of the current project_=!",
-	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "!能=[6857368] Live Preview was cancelled for an unknown reason ({0})_=!",
+	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "ブラウザーの開発ツールが開いているため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_DETACHED_TARGET_CLOSED": "ブラウザーでページが閉じられたため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_NAVIGATED_AWAY": "ブラウザーで現在のプロジェクトに含まれないページに移動したため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "不明な原因 ({0}) によってライブプレビューはキャンセルされました",
     
 	"SAVE_CLOSE_TITLE": "変更を保存",
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
@@ -334,7 +334,6 @@ define({
 	"API_NOT_COMPATIBLE": "拡張機能はこのバージョンの {APP_NAME} と互換性がありません。無効な拡張機能フォルダーにインストールされます。",
 	"MISSING_MAIN": "パッケージに main.js ファイルが含まれていません。",
 	"ALREADY_INSTALLED": "同じ名前の拡張機能が既にインストールされています。新しい拡張機能は無効な拡張機能フォルダーにインストールされます。",
-	"NO_DISABLED_DIRECTORY": "フォルダーが存在しないため、拡張機能を extensions/disabled に保存できません。",
 	"DOWNLOAD_ID_IN_USE": "内部エラー : ダウンロード ID は既に使用されています。",
 	"NO_SERVER_RESPONSE": "サーバーに接続できません。",
 	"BAD_HTTP_STATUS": "ファイルがサーバー (HTTP {0}) に見つかりません。",
