@@ -88,6 +88,11 @@ define({
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live-Vorschau: Klicken, um Verbindung zu trennen (Zum Aktualisieren Datei speichern)",
     
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Die Live-Vorschau wurde abgebrochen, weil die Entwickler-Tools des Browsers geöffnet wurden",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Die Live-Vorschau wurde abgebrochen, die Seite im Browser geschlossen wurde",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Die Live-Vorschau wurde abgebrochen, weil der Browser eine Seite geladen hat, die nicht Teil des aktuellen Projekts ist",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Die Live-Vorschau wurde aus einem unbekannten Grund abgebrochen ({0})",
+    
     "SAVE_CLOSE_TITLE"                  : "Änderungen speichern",
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
@@ -162,7 +167,8 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klicken, um die Schrittweite von Tabs zu ändern",
     "STATUSBAR_SPACES"                      : "Leerzeichen",
     "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Zeilen",
+    "STATUSBAR_LINE_COUNT_SINGULAR"         : "{0} Zeile",
+    "STATUSBAR_LINE_COUNT_PLURAL"           : "{0} Zeilen",
 
     /**
      * Command Name Constants
@@ -344,8 +350,21 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut versuchen.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut probieren.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
+    "EXTENSION_AUTHOR"                     : "Autor",
+    "EXTENSION_DATE"                       : "Datum",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
+    "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
+    "EXTENSION_INSTALLED"                  : "Installiert",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
+    "EXTENSION_MORE_INFO_LINK"             : "Mehr",
+    "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
 
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
