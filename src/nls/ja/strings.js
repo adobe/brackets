@@ -88,10 +88,10 @@ define({
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "ライブプレビューの接続を切断します",
 	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "ライブプレビュー : クリックして切断 (ファイルを保存して更新)",
 
-	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "!能=[6857369] Live Preview was cancelled because the browser's developer tools were opened_=!",
-	"LIVE_DEV_DETACHED_TARGET_CLOSED": "!能=[6857370] Live Preview was cancelled because the page was closed in the browser_=!",
-	"LIVE_DEV_NAVIGATED_AWAY": "!能=[6857371] Live Preview was cancelled because the browser navigated to a page that is not part of the current project_=!",
-	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "!能=[6857368] Live Preview was cancelled for an unknown reason ({0})_=!",
+	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "ブラウザーの開発ツールが開いているため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_DETACHED_TARGET_CLOSED": "ブラウザーでページが閉じられたため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_NAVIGATED_AWAY": "ブラウザーで現在のプロジェクトに含まれないページに移動したため、ライブプレビューはキャンセルされました",
+	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "不明な原因 ({0}) によってライブプレビューはキャンセルされました",
     
 	"SAVE_CLOSE_TITLE": "変更を保存",
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
