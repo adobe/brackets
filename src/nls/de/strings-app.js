@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  * 
@@ -26,5 +27,5 @@
 
 define({
     // product-specific strings
-    "APP_NAME"                             : "Brackets",
+    "APP_NAME"                             : "Brackets"
 });

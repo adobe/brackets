@@ -26,5 +26,5 @@
 
 define({
     // product-specific strings
-    "APP_NAME"                             : "Brackets",
+    "APP_NAME"                             : "Brackets"
 });
