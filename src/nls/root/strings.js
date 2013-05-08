@@ -87,6 +87,11 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
+
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was cancelled because the browser's developer tools were opened",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was cancelled because the page was closed in the browser",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview was cancelled because the browser navigated to a page that is not part of the current project",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview was cancelled for an unknown reason ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
@@ -330,7 +335,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
-    "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
     "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
     "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
     "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",

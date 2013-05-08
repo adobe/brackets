@@ -263,7 +263,7 @@ define(function (require, exports, module) {
      */
     function cancelDownload(downloadId) {
         // TODO: if we're still waiting on the NodeConnection, how do we cancel?
-        console.assert(_nodeConnectionDeferred.isResolved());
+        console.assert(_nodeConnectionDeferred.state() === "resolved");
         _nodeConnectionDeferred.done(function (connection) {
             connection.domains.extensionManager.abortDownload(downloadId);
         });

@@ -62,7 +62,7 @@ define(function (require, exports, module) {
             waitsFor(
                 function () {
                     return connectDeferred &&
-                        connectDeferred.isResolved() &&
+                        connectDeferred.state() === "resolved" &&
                         connection.connected();
                 },
                 "The NodeConnection should connect",
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
             });
             waitsFor(
                 function () {
-                    return loadDeferred && loadDeferred.isResolved();
+                    return loadDeferred && loadDeferred.state() === "resolved";
                 },
                 "The load should complete",
                 CONNECTION_TIMEOUT
@@ -127,15 +127,13 @@ define(function (require, exports, module) {
                 );
                 waitsFor(
                     function () {
-                        return loadDeferred &&
-                            (loadDeferred.isRejected() ||
-                                loadDeferred.isResolved());
+                        return loadDeferred && loadDeferred.state() !== "pending";
                     },
                     CONNECTION_TIMEOUT
                 );
                 runs(
                     function () {
-                        expect(loadDeferred.isRejected()).toBe(true);
+                        expect(loadDeferred.state() === "rejected").toBe(true);
                         expect(connection.connected()).toBe(true);
                         expect(connection._port).toBe(port);
                     }
@@ -157,7 +155,7 @@ define(function (require, exports, module) {
             waitsFor(
                 function () {
                     return commandDeferred &&
-                        commandDeferred.isResolved() &&
+                        commandDeferred.state() === "resolved" &&
                         result;
                 },
                 CONNECTION_TIMEOUT
@@ -182,7 +180,7 @@ define(function (require, exports, module) {
             waitsFor(
                 function () {
                     return commandDeferred &&
-                        commandDeferred.isResolved() &&
+                        commandDeferred.state() === "resolved" &&
                         result;
                 },
                 CONNECTION_TIMEOUT
@@ -230,7 +228,7 @@ define(function (require, exports, module) {
             waitsFor(
                 function () {
                     return commandDeferred &&
-                        commandDeferred.isRejected() &&
+                        commandDeferred.state() === "rejected" &&
                         result;
                 },
                 CONNECTION_TIMEOUT
@@ -249,7 +247,7 @@ define(function (require, exports, module) {
             waitsFor(
                 function () {
                     return commandDeferred &&
-                        commandDeferred.isResolved() &&
+                        commandDeferred.state() === "resolved" &&
                         result;
                 },
                 CONNECTION_TIMEOUT
@@ -276,7 +274,7 @@ define(function (require, exports, module) {
             waitsFor(
                 function () {
                     return commandDeferred &&
-                        commandDeferred.isResolved() &&
+                        commandDeferred.state() === "resolved" &&
                         result;
                 },
                 CONNECTION_TIMEOUT
