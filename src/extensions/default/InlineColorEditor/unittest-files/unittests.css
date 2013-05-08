@@ -49,3 +49,7 @@
 .hsla-leading-period {
     background: hsla(180, 50%, 50%, .5);
 }
+
+.color-name-rule {
+    background: blue;
+}
