@@ -170,11 +170,12 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * 
  * @param {string} Absolute path to the package zip file
  * @param {string} the destination directory
- * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string}} additional settings to control the installation
+ * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, 
+ *      systemExtensionDirectory: !string}} additional settings to control the installation
  * @param {function} callback (err, result)
  */
 function _cmdInstall(packagePath, destinationDirectory, options, callback) {
-    if (!options || !options.disabledDirectory || !options.apiVersion || !options.systemDirectory) {
+    if (!options || !options.disabledDirectory || !options.apiVersion || !options.systemExtensionDirectory) {
         callback(new Error(Errors.MISSING_REQUIRED_OPTIONS), null);
         return;
     }
@@ -198,7 +199,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         }
         validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName),
-            systemInstallDirectory = path.join(options.systemDirectory, extensionName);
+            systemInstallDirectory = path.join(options.systemExtensionDirectory, extensionName);
         
         if (validationResult.metadata && validationResult.metadata.engines &&
                 validationResult.metadata.engines.brackets) {
@@ -387,7 +388,7 @@ function init(domainManager) {
             description: "absolute filesystem path where this extension should be installed"
         }, {
             name: "options",
-            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemDirectory: !string}",
+            type: "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemExtensionDirectory: !string}",
             description: "installation options: disabledDirectory should be set so that extensions can be installed disabled."
         }],
         [{

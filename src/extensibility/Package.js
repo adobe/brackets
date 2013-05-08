@@ -140,7 +140,7 @@ define(function (require, exports, module) {
                     
                     nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
                         disabledDirectory: disabledDirectory,
-                        systemDirectory: systemDirectory,
+                        systemExtensionDirectory: systemDirectory,
                         apiVersion: brackets.metadata.apiVersion,
                         nameHint: nameHint
                     })
