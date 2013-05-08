@@ -62,7 +62,7 @@ define(function (require, exports, module) {
     /**
      * @const
      * @private
-     * The proportion between the font-size and the line-height in pixels
+     * The ratio of line-height to font-size when they use the same units
      * @type {float}
      */
     var LINE_HEIGHT = 1.25;
