@@ -325,7 +325,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "Doplněk není kompatibilní s touto verzi Brackets. Naleznete jej ve složce disabled extensions.",
     "MISSING_MAIN"                         : "Balíček neobsahuje soubor main.js.",
     "ALREADY_INSTALLED"                    : "Doplněk s tímto jménem je již nainstalován. Nový doplněk je nainstalován ve složce disabled extensions.",
-    "NO_DISABLED_DIRECTORY"                : "Nelze uložit doplněk do extensions/disabled protože složka neexistuje.",
     "DOWNLOAD_ID_IN_USE"                   : "Interní chyba: ID stahování se již používá.",
     "NO_SERVER_RESPONSE"                   : "Nelze se přípojit na server.",
     "BAD_HTTP_STATUS"                      : "Soubor nebyl nalezen (HTTP {0}).",
