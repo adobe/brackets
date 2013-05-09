@@ -48,11 +48,15 @@ define(function (require, exports, module) {
         mockRegistry;
     
     describe("ExtensionManager", function () {
-        var mockId, mockSettings;
+        var mockId, mockSettings, origRegistryURL, origExtensionUrl;
         
         beforeEach(function () {
             // Return a canned registry when requested. Individual tests can override this
             // at any point before the request is actually made.
+            origRegistryURL = brackets.config.extension_registry;
+            origExtensionUrl = brackets.config.extension_url;
+            brackets.config.extension_registry = "http://fake-registry.com/registry.json";
+            brackets.config.extension_url = "http://fake-repository.com/{0}/{0}-{1}.zip";
             mockRegistry = JSON.parse(mockRegistryText);
             mockSettings = {
                 url: brackets.config.extension_registry,
@@ -70,6 +74,8 @@ define(function (require, exports, module) {
             $.mockjaxClear(mockId);
             ExtensionManager._reset();
             $(ExtensionManager).off(".unit-test");
+            brackets.config.extension_registry = origRegistryURL;
+            brackets.config.extension_url = origExtensionUrl;
         });
         
         describe("ExtensionManager", function () {
@@ -278,7 +284,7 @@ define(function (require, exports, module) {
             
             it("should return the correct download URL for an extension", function () {
                 expect(ExtensionManager.getExtensionURL("my-cool-extension", "1.2.3"))
-                    .toBe("https://s3.amazonaws.com/repository.brackets.io/my-cool-extension/my-cool-extension-1.2.3.zip");
+                    .toBe("http://fake-repository.com/my-cool-extension/my-cool-extension-1.2.3.zip");
             });
         });
 
@@ -442,7 +448,7 @@ define(function (require, exports, module) {
             
             function mockInstallExtension(url) {
                 // Pretend that the extension was installed.
-                var id = url.match(/repository\.brackets\.io\/([^\/]+)/)[1];
+                var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
                 mockInstalledExtensions[id] = true;
                 $(ExtensionManager).triggerHandler("statusChange", [id, ExtensionManager.ENABLED]);
             }
@@ -521,24 +527,23 @@ define(function (require, exports, module) {
                 });
             });
             
-            // TODO: reinstate actual repository URLs
-//            it("should show disabled install buttons for items that are already installed", function () {
-//                runs(function () {
-//                    mockInstallExtension("[repository-url]/mock-extension-1/mock-extension-1-1.0.0.zip");
-//                    mockInstallExtension("[repository-url]/mock-extension-2/mock-extension-2-1.0.0.zip");
-//                    setupRegistryWithMockLoad();
-//                });
-//                runs(function () {
-//                    CollectionUtils.forEach(mockRegistry, function (item) {
-//                        var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
-//                        if (item.metadata.name === "mock-extension-1" || item.metadata.name === "mock-extension-2") {
-//                            expect($button.attr("disabled")).toBeTruthy();
-//                        } else {
-//                            expect($button.attr("disabled")).toBeFalsy();
-//                        }
-//                    });
-//                });
-//            });
+            it("should show disabled install buttons for items that are already installed", function () {
+                runs(function () {
+                    mockInstallExtension("http://fake-repository.com/mock-extension-1/mock-extension-1-1.0.0.zip");
+                    mockInstallExtension("http://fake-repository.com/mock-extension-2/mock-extension-2-1.0.0.zip");
+                    setupRegistryWithMockLoad();
+                });
+                runs(function () {
+                    CollectionUtils.forEach(mockRegistry, function (item) {
+                        var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
+                        if (item.metadata.name === "mock-extension-1" || item.metadata.name === "mock-extension-2") {
+                            expect($button.attr("disabled")).toBeTruthy();
+                        } else {
+                            expect($button.attr("disabled")).toBeFalsy();
+                        }
+                    });
+                });
+            });
 
             it("should show disabled install buttons for items that have incompatible versions", function () {
                 runs(function () {
@@ -570,35 +575,34 @@ define(function (require, exports, module) {
                 });
             });
             
-            // TODO: reinstate repository URL
-//            it("should bring up the install dialog and install an item when install button is clicked", function () {
-//                runs(function () {
-//                    mockRegistry = {
-//                        "basic-valid-extension": {
-//                            "metadata": {
-//                                "name": "basic-valid-extension",
-//                                "title": "Basic Valid Extension",
-//                                "version": "1.0.0"
-//                            },
-//                            "owner": "github:someuser",
-//                            "versions": [
-//                                {
-//                                    "version": "1.0.0",
-//                                    "published": "2013-04-10T18:28:20.530Z"
-//                                }
-//                            ]
-//                        }
-//                    };
-//                    setupRegistryWithMockLoad();
-//                });
-//                runs(function () {
-//                    var $button = $("button.install[data-extension-id=basic-valid-extension]", view.$el);
-//                    expect($button.length).toBe(1);
-//                    $button.click();
-//                    expect(InstallExtensionDialog.installUsingDialog)
-//                        .toHaveBeenCalledWith("[repository_url]/basic-valid-extension/basic-valid-extension-1.0.0.zip");
-//                });
-//            });
+            it("should bring up the install dialog and install an item when install button is clicked", function () {
+                runs(function () {
+                    mockRegistry = {
+                        "basic-valid-extension": {
+                            "metadata": {
+                                "name": "basic-valid-extension",
+                                "title": "Basic Valid Extension",
+                                "version": "1.0.0"
+                            },
+                            "owner": "github:someuser",
+                            "versions": [
+                                {
+                                    "version": "1.0.0",
+                                    "published": "2013-04-10T18:28:20.530Z"
+                                }
+                            ]
+                        }
+                    };
+                    setupRegistryWithMockLoad();
+                });
+                runs(function () {
+                    var $button = $("button.install[data-extension-id=basic-valid-extension]", view.$el);
+                    expect($button.length).toBe(1);
+                    $button.click();
+                    expect(InstallExtensionDialog.installUsingDialog)
+                        .toHaveBeenCalledWith("http://fake-repository.com/basic-valid-extension/basic-valid-extension-1.0.0.zip");
+                });
+            });
             
             it("should disable the install button for an item immediately after installing it", function () {
                 runs(function () {
