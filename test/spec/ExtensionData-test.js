@@ -34,6 +34,87 @@ define(function (require, exports, module) {
             var services, services2;
             
             beforeEach(function () {
+                var root = ExtensionData.createRootObject();
+                services = ExtensionData.getServices("test", root);
+                services2 = ExtensionData.getServices("test2", root);
+            });
+            
+            it("should allow object addition", function () {
+                expect(services.foo).toBeUndefined();
+                services.addObject("foo");
+                expect(services.foo).toBeDefined();
+                services.addObject("bar.baz");
+                expect(services.bar.baz).toBeDefined();
+                services.addObject("foo.bar");
+                services.addObject("foo.baz");
+                expect(services.foo.bar).toBeDefined();
+                expect(services.foo.baz).toBeDefined();
+                
+                expect(services2.foo).toBeDefined();
+            });
+            
+            it("should allow function addition", function () {
+                // this line makes sure that cleanup has been done after the last test
+                expect(services.foo).toBeUndefined();
+                
+                var extension = "test";
+                var called = false;
+                services.addFunction("doFoo", function () {
+                    expect(this._extension.name).toEqual(extension);
+//                    expect(this._name).toEqual("doFoo");
+                    called = true;
+                });
+                services.doFoo();
+                expect(called).toBe(true);
+                
+                extension = "test2";
+                services2.doFoo();
+            });
+            
+            it("should allow nested function addition", function () {
+                var extension = "test";
+                var called = false;
+                services.addFunction("nested.doFoo", function () {
+                    expect(this._extension.name).toEqual(extension);
+//                    expect(this.name).toEqual("nested.doFoo");
+                    called = true;
+                });
+                services.nested.doFoo();
+                expect(called).toBe(true);
+                
+                extension = "test2";
+                services2.nested.doFoo();
+            });
+            
+            it("should be able to remove added items", function () {
+                services.addObject("newObject");
+                expect(services.newObject).toBeDefined();
+                services._removeAll();
+                expect(services.newObject).toBeUndefined();
+            });
+            
+            it("provides the ability to register things", function () {
+                services.addRegistry("brackets.users", {
+                    type: "list"
+                });
+                services2.brackets.users("Smart Person");
+                services2.brackets.users("Good-Looking Person");
+                services2.brackets.users("Clever Person");
+                var result = services.brackets.users.getAll();
+                expect(result.length).toBe(3);
+                
+                services2.removeAll();
+                result = services.brackets.users.getAll();
+                expect(result.length).toBe(0);
+            });
+        });
+    });
+    
+    describe("Extension Data Old", function () {
+        describe("Simple", function () {
+            var services, services2;
+            
+            beforeEach(function () {
                 services = new ExtensionData.ServiceRegistry("test");
                 if (services._registryID === undefined) {
                     services._initializeMaster();

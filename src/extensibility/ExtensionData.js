@@ -45,6 +45,240 @@ function convertArgumentsToArray(a, functionConverter) {
     return args;
 }
 
+function ExtensionData(name) {
+    this.name = name;
+    this.definitions = [];
+    this.registrations = [];
+}
+
+function createAPIObject(obj, extension) {
+    return Object.create(obj, {
+        _extension: {
+            value: extension,
+            enumerable: false,
+            configurable: false
+        }
+    });
+}
+
+function RegistryBase() {
+    Object.defineProperties(this, {
+        _addChild: {
+            value: function (name) {
+                var child = this[name];
+                if (child) {
+                    return child;
+                }
+                child = Object.create(new RegistryBase());
+                child._inUseBy[this._extension.name] = true;
+                Object.defineProperty(Object.getPrototypeOf(this), name, {
+                    get: function () {
+                        return createAPIObject(child, this._extension);
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                return createAPIObject(child, this._extension);
+            },
+            enumerable: false,
+            configurable: false
+        },
+        _inUseBy: {
+            value: {},
+            enumerable: false,
+            configurable: false
+        }
+    });
+}
+
+function createListRegistry(name) {
+    var registered = [];
+    var register = function (obj) {
+        this._extension.registrations.push(name);
+        registered.push({
+            extension: this._extension.name,
+            obj: obj
+        });
+    };
+    
+    register.getAll = function () {
+        return registered.map(function (item) {
+            return item.obj;
+        });
+    };
+    
+    register.remove = function (extension) {
+        registered = registered.filter(function (item) {
+            return item.extension !== extension;
+        });
+    };
+    return register;
+}
+
+
+function createRootObject() {
+    var root = Object.create(new RegistryBase(), {
+        addObject: {
+            value: function (name) {
+                this._extension.definitions.push(name);
+                var segments = name.split(".");
+                var current = this;
+                segments.forEach(function (segment) {
+                    current = current._addChild(segment);
+                }.bind(this));
+//                if (_setupComplete && !_noNotification) {
+//                    this.channels.brackets.serviceRegistry.addObject.publish(this.extension, name, this._registryID);
+//                }
+                return current;
+            },
+            enumerable: false,
+            configurable: false
+        },
+        addFunction: {
+            value: function (name, fn, options) {
+                options = options || {};
+                this._extension.definitions.push(name);
+                var target = this;
+                
+//                var wrapped = function () {
+//                    return fn.apply({
+//                        extension: currentRegistry.extension,
+//                        registry: currentRegistry,
+//                        name: name
+//                    }, arguments);
+//                };
+//                wrapped.toJSON = function () {
+//                    var simplified = {
+//                        "__function": name,
+//                        options: options
+//                    };
+//                    if (options.runLocal) {
+//                        var functionStr = fn.toString(),
+//                            argsStart   = functionStr.indexOf("(") + 1,
+//                            argsEnd     = functionStr.indexOf(")"),
+//                            bodyStart   = functionStr.indexOf("{") + 1,
+//                            bodyEnd     = functionStr.lastIndexOf("}");
+//                        simplified.args = functionStr.substring(argsStart, argsEnd);
+//                        simplified.body = functionStr.substring(bodyStart, bodyEnd);
+//                    }
+//                    return simplified;
+//                };
+                
+                var dot = name.lastIndexOf(".");
+                var fnName = name;
+                if (dot > -1) {
+                    fnName = name.substring(dot + 1);
+                    var containerName = name.substring(0, dot);
+                    target = this.addObject(containerName, true);
+                }
+                
+                Object.defineProperty(Object.getPrototypeOf(target), fnName, {
+                    get: function () {
+                        return fn.bind(this);
+                    },
+                    configurable: true,
+                    enumerable: true
+                });
+//                if (_setupComplete && !_noNotification) {
+//                    this.channels.brackets.serviceRegistry.addFunction.publish(this.extension, name, options, this._registryID);
+//                }
+                return target[fnName];
+            },
+            enumerable: false,
+            configurable: false
+        },
+        _removeAll: {
+            value: function () {
+                var extension = this._extension;
+                extension.definitions.forEach(function (name) {
+                    this._removeDefinition(extension, name);
+                }.bind(this));
+//                this._registries.forEach(function (name) {
+//                    var r = this.getObject(name);
+//                    if (r) {
+//                        r.remove(extension);
+//                    }
+//                }.bind(this));
+                extension.definitions = [];
+                extension.registrations = [];
+            },
+            configurable: false,
+            enumerable: false
+        },
+        _removeDefinition: {
+            value: function (extension, name) {
+                var extensionName = extension.name;
+                name = "ServiceRegistry." + name;
+                var segments = name.split(".");
+                var proto = Object.getPrototypeOf(this);
+                var objects = [proto];
+                var current = proto;
+                var i, segment;
+                
+                for (i = 1; i < segments.length; i++) {
+                    segment = segments[i];
+                    if (current.hasOwnProperty(segment)) {
+                        current = current[segment];
+                        objects.push(current);
+                    } else {
+                        break;
+                    }
+                }
+                
+                // We may have already removed some items
+                segments.splice(i, segments.length - i);
+                
+                for (i = segments.length - 1; i > 0; i--) {
+                    segment = segments[i];
+                    var container = objects[i - 1];
+                    var obj = container[segment];
+                    if (obj._inUseBy) {
+                        delete obj._inUseBy[extensionName];
+                        if (Object.keys(obj._inUseBy).length === 0) {
+                            delete container[segment];
+                        }
+                    } else {
+                        delete container[segment];
+                    }
+                }
+            },
+            configurable: false,
+            enumerable: false
+        },
+        addRegistry: {
+            value: function (name, options) {
+                var listRegistry = createListRegistry();
+                var wrapped = this.addFunction(name, listRegistry);
+                
+                wrapped.getAll = listRegistry.getAll;
+                wrapped.remove = listRegistry.remove;
+                return wrapped;
+            },
+            enumerable: false,
+            configurable: false
+        }
+    });
+    return root;
+}
+
+var extensions = {};
+
+var registryRoot = null;
+
+function getServices(extension, rootObject) {
+    if (!rootObject) {
+        rootObject = registryRoot;
+    }
+    if (!extensions.hasOwnProperty(extension)) {
+        extensions[extension] = new ExtensionData(extension);
+    }
+    var extensionData = extensions[extension];
+    return createAPIObject(rootObject, extensionData);
+}
+
+var registries = {};
+
+
 function ServiceRegistry(extension) {
     this.extension = extension;
     this._definitions = [];
@@ -118,14 +352,14 @@ function _createListRegistry() {
     return register;
 }
 
-var registries = {};
+var registriesOld = {};
 
 function getServiceRegistry(name) {
-    if (registries.hasOwnProperty(name)) {
-        return registries[name];
+    if (registriesOld.hasOwnProperty(name)) {
+        return registriesOld[name];
     }
     var services = new ServiceRegistry(name);
-    registries[name] = services;
+    registriesOld[name] = services;
     return services;
 }
 
@@ -392,3 +626,7 @@ exports._addObjectFromRemote = _addObjectFromRemote;
 exports._addFunctionFromRemote = _addFunctionFromRemote;
 exports.getServiceRegistry = getServiceRegistry;
 exports.convertArgumentsToArray = convertArgumentsToArray;
+
+
+exports.createRootObject = createRootObject;
+exports.getServices = getServices;
