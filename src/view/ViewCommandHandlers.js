@@ -65,7 +65,7 @@ define(function (require, exports, module) {
      * The ratio of line-height to font-size when they use the same units
      * @type {float}
      */
-    var LINE_HEIGHT = 1.25;
+    var LINE_HEIGHT = 1.3;
     
     /**
      * @private
