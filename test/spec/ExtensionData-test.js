@@ -31,10 +31,11 @@ define(function (require, exports, module) {
     
     describe("Extension Data", function () {
         describe("Simple", function () {
-            var services, services2;
+            var services, services2, builtins;
             
             beforeEach(function () {
                 var root = ExtensionData.createRootObject();
+                builtins = ExtensionData._getBuiltinServices(root);
                 services = ExtensionData.getServices("test", root);
                 services2 = ExtensionData.getServices("test2", root);
             });
@@ -60,7 +61,7 @@ define(function (require, exports, module) {
                 var extension = "test";
                 var called = false;
                 services.addFunction("doFoo", function () {
-                    expect(this._extension.name).toEqual(extension);
+                    expect(this.__meta.extension.name).toEqual(extension);
 //                    expect(this._name).toEqual("doFoo");
                     called = true;
                 });
@@ -75,7 +76,7 @@ define(function (require, exports, module) {
                 var extension = "test";
                 var called = false;
                 services.addFunction("nested.doFoo", function () {
-                    expect(this._extension.name).toEqual(extension);
+                    expect(this.__meta.extension.name).toEqual(extension);
 //                    expect(this.name).toEqual("nested.doFoo");
                     called = true;
                 });
@@ -89,7 +90,7 @@ define(function (require, exports, module) {
             it("should be able to remove added items", function () {
                 services.addObject("newObject");
                 expect(services.newObject).toBeDefined();
-                services._removeAll();
+                services.__removeAll();
                 expect(services.newObject).toBeUndefined();
             });
             
@@ -97,15 +98,127 @@ define(function (require, exports, module) {
                 services.addRegistry("brackets.users", {
                     type: "list"
                 });
-                services2.brackets.users("Smart Person");
-                services2.brackets.users("Good-Looking Person");
-                services2.brackets.users("Clever Person");
+                services2.brackets.users.register("Smart Person");
+                services2.brackets.users.register("Good-Looking Person");
+                services2.brackets.users.register("Clever Person");
                 var result = services.brackets.users.getAll();
                 expect(result.length).toBe(3);
                 
-                services2.removeAll();
+                services2.__removeAll();
                 result = services.brackets.users.getAll();
                 expect(result.length).toBe(0);
+            });
+            
+            it("supports pubsub out of the box", function () {
+                expect(services.channels).toBeDefined();
+                services.channels.add("test.message");
+                expect(services.channels.test.message).toBeDefined();
+                
+                var info = null;
+                services2.channels.test.message.subscribe(function (msg) {
+                    info = msg;
+                });
+                
+                services.channels.test.message.publish("hi");
+                expect(info).toEqual("hi");
+                
+                info = null;
+                services2.__removeAll();
+                var subscribers = services.channels.test.message.getAll();
+                expect(subscribers.length).toBe(0);
+                services.channels.test.message.publish("second message");
+                expect(info).toBeNull();
+            });
+            it("allows the registry to be JSONified", function () {
+                services.addFunction("foo", function () {
+                });
+                services.addObject("bar.baz");
+                var result = JSON.stringify(services);
+                var reparsed = JSON.parse(result);
+                expect(reparsed.foo.__function).toEqual("foo");
+            });
+        });
+        
+        describe("Remote", function () {
+            var builtins, localServices, remoteServices, remoteFunctionCalled, preInitResult, callbackCalled;
+
+            function generateRemoteCallback(name) {
+                return function () {
+                    callbackCalled = name;
+                    var args = ExtensionData.convertArgumentsToArray(arguments);
+                    args = JSON.parse(JSON.stringify(args));
+                    remoteServices.getObject(name).apply(remoteServices, args);
+                };
+            }
+            
+            function remoteFunctionDefiner(fnName, options) {
+                var remote = function () {
+                    remoteFunctionCalled = fnName;
+                    var args = ExtensionData.convertArgumentsToArray(arguments, this.__meta.root.__addCallback.bind(this.__meta.root));
+                    args = JSON.parse(JSON.stringify(args));
+                    
+                    var i;
+                    for (i = 0; i < args.length; i++) {
+                        if (args[i].hasOwnProperty("__function")) {
+                            var name = args[i].__function;
+                            args[i] = generateRemoteCallback(name);
+                        }
+                    }
+                    localServices.getObject(fnName).apply(this, args);
+                };
+                return remote;
+            }
+            
+            function remoteCallbackWrapper(obj) {
+                return function () {
+                    
+                };
+            }
+            
+            beforeEach(function () {
+                remoteFunctionCalled = null;
+                preInitResult = null;
+                callbackCalled = null;
+                var root = ExtensionData.createRootObject();
+                builtins = ExtensionData._getBuiltinServices(root);
+                localServices = ExtensionData.getServices("test", root);
+                builtins.__initializeMaster();
+                localServices.addFunction("preInitFunction", function (value) {
+                    preInitResult = value;
+                });
+                
+                var remoteRoot = ExtensionData.createRootObject();
+                var remoteBuiltins = ExtensionData._getBuiltinServices(remoteRoot);
+                var remoteConfig = localServices.__getRemoteRegistryConfig(remoteCallbackWrapper);
+                var data = JSON.parse(remoteConfig.data);
+                remoteBuiltins.__initialize(remoteConfig.registryID, data, remoteFunctionDefiner);
+                remoteServices = ExtensionData.getServices("remote", remoteRoot);
+            });
+            
+            afterEach(function () {
+                localServices.__removeAll();
+            });
+            
+            it("should be able to make a remote function call", function () {
+                expect(remoteServices.preInitFunction).toBeDefined();
+                remoteServices.preInitFunction("testvalue");
+                expect(remoteFunctionCalled).toEqual("preInitFunction");
+                expect(preInitResult).toEqual("testvalue");
+            });
+            
+            it("should handle remote callbacks", function () {
+                var givenID   = null,
+                    givenName = null;
+                    
+                var addObjectListener = function (extension, name, registryID) {
+                    givenID = registryID;
+                    givenName = name;
+                };
+                remoteServices.channels.brackets.serviceRegistry.addObject.subscribe(addObjectListener);
+                localServices.addObject("foo.bar");
+                expect(callbackCalled).toEqual("__callbacks." + (remoteServices.__registryInfo.nextCallbackID - 1));
+                expect(givenID).toEqual(localServices.__registryInfo.id);
+                expect(givenName).toEqual("foo.bar");
             });
         });
     });
