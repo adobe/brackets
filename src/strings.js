@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var strings         = require("i18n!nls/strings"),
-        stringsApp     = require("i18n!nls/strings-app"),
+        stringsApp      = require("i18n!nls/strings-app"),
         Global          = require("utils/Global"),
         CollectionUtils = require("utils/CollectionUtils"),
         StringUtils     = require("utils/StringUtils");
