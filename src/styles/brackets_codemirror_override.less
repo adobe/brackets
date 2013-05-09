@@ -102,11 +102,11 @@
     
     .CodeMirror-gutters {
         background-color: @background-color-3;
-        border-right: none;
+        border-color: @background-color-3; /* maintain line gutter border-right to avoid repaint performance issues */
     }
     .CodeMirror-linenumber {
         color: @accent-comment;
-        min-width: 2.5em;
+        /*min-width: 30px*/
         /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
         padding: 0 3px 0 10px;  /* left padding for project panel selection triangle */
     }
@@ -155,7 +155,7 @@
     }
     
     .CodeMirror-scroll {
-        outline: none;
+        /*outline: none;*/
     }
     
     .CodeMirror-sizer {
