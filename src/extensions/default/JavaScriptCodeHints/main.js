@@ -311,8 +311,7 @@ define(function (require, exports, module) {
             // Compute fresh hints if none exist, or if the session
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
-                var offset          = session.getOffset(),
-                    scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
+                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
 
                 if (scopeResponse.hasOwnProperty("promise")) {
                     var $deferredHints = $.Deferred();
