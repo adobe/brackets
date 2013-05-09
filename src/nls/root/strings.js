@@ -326,7 +326,7 @@ define({
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(to use a local server, specify url)",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "To use a local server, enter a url like http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "The {0} protocol isn't supported by Live Preview&mdash;please use http: or https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
