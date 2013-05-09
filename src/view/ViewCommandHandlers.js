@@ -63,9 +63,10 @@ define(function (require, exports, module) {
      * @const
      * @private
      * The ratio of line-height to font-size when they use the same units
+     * On Mac, there's a 1 px problem (#3478) with 1.25, so nudge it up.
      * @type {float}
      */
-    var LINE_HEIGHT = 1.25;
+    var LINE_HEIGHT = 1.26;
     
     /**
      * @private
@@ -161,7 +162,13 @@ define(function (require, exports, module) {
         var lhOld   = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
         
         var fsNew   = fsOld + (delta * adjustment);
-        var lhNew   = (fsUnits === lhUnits) ? fsNew * LINE_HEIGHT : lhOld;
+        var lhNew   = lhOld;
+        if (fsUnits === lhUnits) {
+            lhNew = fsNew * LINE_HEIGHT;
+            if (lhUnits === "px") {
+                lhNew = Math.ceil(lhNew);
+            }
+        }
         
         var fsStr   = fsNew + fsUnits;
         var lhStr   = lhNew + lhUnits;
