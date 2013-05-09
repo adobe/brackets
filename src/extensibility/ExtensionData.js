@@ -236,7 +236,7 @@ function createRootObject() {
             configurable: false
         },
         addFunction: {
-            value: function (name, fn, options) {
+            value: function (name, fn, options, _noNotification) {
                 options = options || {};
                 this.__meta.extension.definitions.push(name);
                 
@@ -255,9 +255,9 @@ function createRootObject() {
                     configurable: true,
                     enumerable: !options.hidden
                 });
-//                if (_setupComplete && !_noNotification) {
-//                    this.channels.brackets.serviceRegistry.addFunction.publish(this.extension, name, options, this._registryID);
-//                }
+                if (this.__registryInfo && !_noNotification) {
+                    this.channels.brackets.serviceRegistry.addFunction.publish(this.extension, name, options, this.__registryInfo.id);
+                }
                 return info.container[info.name];
             },
             enumerable: false,
@@ -368,6 +368,14 @@ function createRootObject() {
                     nextCallbackID: 0,
                     remoteFunctionWrappers: {}
                 };
+                this.addFunction("log", function (message) {
+                    console.log(message);
+                });
+                
+                this.channels.add("brackets.serviceRegistry.addObject");
+                this.channels.add("brackets.serviceRegistry.addFunction");
+                this.channels.brackets.serviceRegistry.addObject.subscribe(addObjectFromRemote.bind(this));
+                this.channels.brackets.serviceRegistry.addFunction.subscribe(addFunctionFromRemote.bind(this));
                 Object.defineProperties(Object.getPrototypeOf(this), {
                     __registryInfo: {
                         value: registryInfo,
@@ -388,14 +396,6 @@ function createRootObject() {
                     }
                 });
                 
-                this.addFunction("log", function (message) {
-                    console.log(message);
-                });
-                
-                this.channels.add("brackets.serviceRegistry.addObject");
-                this.channels.add("brackets.serviceRegistry.addFunction");
-                this.channels.brackets.serviceRegistry.addObject.subscribe(addObjectFromRemote.bind(this));
-                this.channels.brackets.serviceRegistry.addFunction.subscribe(addFunctionFromRemote.bind(this));
             },
             enumerable: false,
             configurable: false
@@ -423,7 +423,7 @@ function createRootObject() {
                 
                 var addData = function (name, data) {
                     if (data.__function) {
-                        this.addFunction(name, masterRemoteWrapper.call(this, data.__function, data.__options), true);
+                        this.addFunction(name, masterRemoteWrapper.call(this, data.__function, data.__options), data.options, true);
                         return;
                     }
                     
