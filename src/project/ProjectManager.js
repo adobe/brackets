@@ -753,6 +753,10 @@ define(function (require, exports, module) {
      * first launch. 
      */
     function getInitialProjectPath() {
+        if (brackets.inBrowser) {
+            // !!DROPBOX
+            return "/";
+        }
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
     }
     
@@ -788,7 +792,7 @@ define(function (require, exports, module) {
         _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
 
         // Populate file tree as long as we aren't running in the browser
-        if (!brackets.inBrowser) {
+        if (1 /* !brackets.inBrowser */) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function (fs) {

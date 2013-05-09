@@ -64,6 +64,10 @@ define(function (require, exports, module) {
      * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
      */
     function getUserExtensionPath() {
+        if (brackets.inBrowser) {
+            return "";
+        }
+        
         return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
     }
     
@@ -260,6 +264,35 @@ define(function (require, exports, module) {
         if (_init) {
             // Only init once. Return a resolved promise.
             return new $.Deferred().resolve().promise();
+        }
+        
+        if (brackets.inBrowser) {
+            var basePath = "/extensions/default/",
+                defaultExtensions = [
+                    "CSSCodeHints",
+                    //"DebugCommands",
+                    "HTMLCodeHints",
+                    "HtmlEntityCodeHints",
+                    "InlineColorEditor",
+                    //"JavaScriptCodeHints",
+                    "JavaScriptQuickEdit",
+                    "JSLint",
+                    "LESSSupport",
+                    "QuickOpenCSS",
+                    "QuickOpenHTML",
+                    "QuickOpenJavaScript",
+                    "QuickView",
+                    "RecentProjects",
+                    //"StaticServer",
+                    "WebPlatformDocs"
+                ];
+            
+            return Async.doInParallel(defaultExtensions, function (item) {
+                var extConfig = {
+                    baseUrl: basePath + item
+                };
+                return loadExtension(item, extConfig, "main");
+            });
         }
         
         if (!paths) {

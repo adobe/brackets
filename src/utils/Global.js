@@ -34,6 +34,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var DropboxIntegration = require("file/DropboxIntegration");
+    
     var configJSON = require("text!config.json");
     
     // Define core brackets namespace if it isn't already defined
@@ -97,6 +99,11 @@ define(function (require, exports, module) {
     // Create empty app namespace if running in-browser
     if (!global.brackets.app) {
         global.brackets.app = {};
+    }
+    
+    // !!DROPBOX
+    if (!global.brackets.fs) {
+        DropboxIntegration.init();
     }
     
     // Loading extensions requires creating new require.js contexts, which

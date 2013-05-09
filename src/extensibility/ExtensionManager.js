@@ -109,6 +109,9 @@ define(function (require, exports, module) {
      *     or rejected if there is no package.json or the contents are not valid JSON.
      */
     function _loadPackageJson(folder) {
+        if (brackets.inBrowser) {
+            return new $.Deferred().reject().promise();
+        }
         var result = new $.Deferred();
         FileUtils.readAsText(new NativeFileSystem.FileEntry(folder + "/package.json"))
             .done(function (text) {
