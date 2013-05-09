@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -136,6 +137,25 @@ define({
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "Tchèque",
+	"LOCALE_DE": "Allemand",
+	"LOCALE_EN": "Anglais",
+	"LOCALE_ES": "Espagnol",
+	"LOCALE_FR": "Français",
+	"LOCALE_IT": "Italien",
+	"LOCALE_JA": "Japonais",
+	"LOCALE_NB": "Norvégien",
+	"LOCALE_PL": "Polonais",
+	"LOCALE_PT_BR": "[6862304] !é=Portuguese, Brazil=!",
+	"LOCALE_PT_PT": "Portuguais",
+	"LOCALE_RU": "Russe",
+	"LOCALE_SV": "Suédois",
+	"LOCALE_TR": "Turc",
+	"LOCALE_ZH_CN": "[6862309] !é=Chinese, simplified=!",
 
     /**
      * ProjectManager

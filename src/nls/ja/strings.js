@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -136,6 +137,25 @@ define({
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
 	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "チェコ語",
+	"LOCALE_DE": "ドイツ語",
+	"LOCALE_EN": "英語",
+	"LOCALE_ES": "スペイン語",
+	"LOCALE_FR": "フランス語",
+	"LOCALE_IT": "イタリア語",
+	"LOCALE_JA": "日本語",
+	"LOCALE_NB": "ノルウェー語",
+	"LOCALE_PL": "ポーランド語",
+	"LOCALE_PT_BR": "!能=[6862304] Portuguese, Brazil_=!",
+	"LOCALE_PT_PT": "ポルトガル語",
+	"LOCALE_RU": "ロシア語",
+	"LOCALE_SV": "スウェーデン語",
+	"LOCALE_TR": "トルコ語",
+	"LOCALE_ZH_CN": "!能=[6862309] Chinese, simplified_=!",
 
     /**
      * ProjectManager
