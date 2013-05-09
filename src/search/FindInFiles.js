@@ -458,7 +458,17 @@ define(function (require, exports, module) {
         }
     }
     
+    function _beforeProjectCloseHandler(event, projectRoot) {
+        var $searchResultsDiv = $("#search-results");
+        if ($searchResultsDiv.is(":visible")) {
+            // Hide the search results
+            $searchResultsDiv.hide();
+            EditorManager.resizeEditor();
+        }
+    }
+    
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(ProjectManager).on("beforeProjectClose", _beforeProjectCloseHandler);
     
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, doFindInSubtree);
