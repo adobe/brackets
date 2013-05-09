@@ -285,7 +285,6 @@ define({
     "RELAUNCH_CHROME"                      : "Restartovat Chrome",
     "INSTALL"                              : "Install",
     "ABOUT"                                : "O aplikaci",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Zavřít",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> a začleněny prostřednictvím odkazu zde.",

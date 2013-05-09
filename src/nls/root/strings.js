@@ -312,7 +312,6 @@ define({
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
     "INSTALL"                              : "Install",
     "ABOUT"                                : "About",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
