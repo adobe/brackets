@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -128,6 +129,25 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                         : "Deutsch",
+    "LOCALE_EN"                         : "Englisch",
+    "LOCALE_FR"                         : "Französisch",
+    "LOCALE_CS"                         : "Tschechisch",
+    "LOCALE_ES"                         : "Spanisch",
+    "LOCALE_IT"                         : "Italienisch",
+    "LOCALE_JA"                         : "Japanisch",
+    "LOCALE_NB"                         : "Norwegisch",
+    "LOCALE_PL"                         : "Polnisch",
+    "LOCALE_PT_BR"                      : "Portugiesisch, Brasilien",
+    "LOCALE_PT_PT"                      : "Portugiesisch",
+    "LOCALE_RU"                         : "Russisch",
+    "LOCALE_SV"                         : "Schwedisch",
+    "LOCALE_TR"                         : "Türkisch",
+    "LOCALE_ZH_CN"                      : "Chinesisch, vereinfacht",
 
     /**
      * ProjectManager
@@ -266,7 +286,6 @@ define({
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
     "INSTALL"                              : "Installieren",
     "ABOUT"                                : "Über",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
@@ -308,7 +327,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "Die Erweiterung ist nicht mit der aktuellen Version von Brackets kompatibel. Die Erweiterung wurde in den Ordner für die deaktivierten Erweiterungen installiert.",
     "MISSING_MAIN"                         : "Das Paket hat keine main.js-Datei.",
     "ALREADY_INSTALLED"                    : "Eine Erweiterung mit dem gleichen Namen wurde bereits installiert. Die neue Erweiterung wurde in den Ordner für deaktivierte Erweiterungen installiert.",
-    "NO_DISABLED_DIRECTORY"                : "Die Erweiterung konnte nicht gespeichert werden, weil der Ordner für deaktivierte Erweiterungen nicht existiert.",
     "DOWNLOAD_ID_IN_USE"                   : "Interner Fehler: Download-ID wird schon verwendet.",
     "NO_SERVER_RESPONSE"                   : "Verbindung konnte nicht hergestellt werden.",
     "BAD_HTTP_STATUS"                      : "Die Datei wurde auf dem Server nicht gefunden (HTTP {0}).",
