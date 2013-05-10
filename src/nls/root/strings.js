@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -136,6 +137,25 @@ define({
     "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_CS"                         : "Czech",
+    "LOCALE_DE"                         : "German",
+    "LOCALE_EN"                         : "English",
+    "LOCALE_ES"                         : "Spanish",
+    "LOCALE_FR"                         : "French",
+    "LOCALE_IT"                         : "Italian",
+    "LOCALE_JA"                         : "Japanese",
+    "LOCALE_NB"                         : "Norwegian",
+    "LOCALE_PL"                         : "Polish",
+    "LOCALE_PT_BR"                      : "Portuguese, Brazil",
+    "LOCALE_PT_PT"                      : "Portuguese",
+    "LOCALE_RU"                         : "Russian",
+    "LOCALE_SV"                         : "Swedish",
+    "LOCALE_TR"                         : "Turkish",
+    "LOCALE_ZH_CN"                      : "Chinese, simplified",
 
     /**
      * ProjectManager
@@ -292,7 +312,6 @@ define({
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
     "INSTALL"                              : "Install",
     "ABOUT"                                : "About",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
@@ -306,7 +325,7 @@ define({
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(to use a local server, specify url)",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "To use a local server, enter a url like http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "The {0} protocol isn't supported by Live Preview&mdash;please use http: or https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
@@ -335,7 +354,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "The package has no main.js file.",
     "ALREADY_INSTALLED"                    : "An extension with the same name was already installed. The new extension is installed in your disabled extensions folder.",
-    "NO_DISABLED_DIRECTORY"                : "Cannot save extension to extensions/disabled because the folder does not exist.",
     "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
     "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
     "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",

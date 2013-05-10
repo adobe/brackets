@@ -255,7 +255,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Kapat (Kaydetme)",
     "RELAUNCH_CHROME"                      : "Chrome'u Tekrar Aç",
     "ABOUT"                                : "Hakkında",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Kapat",
     "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
     "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",

@@ -219,7 +219,6 @@ define({
     "CLOSE_DONT_SAVE" : "Lukk (ikke lagre)",
     "RELAUNCH_CHROME" : "Start Chrome på nytt",
     "ABOUT" : "About",
-    "APP_NAME" : "Brackets",
     "CLOSE" : "Lukk",
     "ABOUT_TEXT_LINE1" : "sprint {VERSION_MINOR} experimental build {VERSION}",
     "ABOUT_TEXT_LINE3" : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",

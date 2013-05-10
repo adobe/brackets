@@ -28,6 +28,10 @@
     background-color: @background-color-3;
 }
 
+.CodeMirror {
+    .code-font();
+}
+
 .platform-mac .CodeMirror {
     .code-font-mac();
 }
@@ -102,7 +106,12 @@
     
     .CodeMirror-gutters {
         background-color: @background-color-3;
-        border-right: none;
+        
+        /*
+        Maintain line gutter border-right to avoid repaint performance issues
+        See https://github.com/marijnh/CodeMirror/issues/1514
+        */
+        border-color: @background-color-3;
     }
     .CodeMirror-linenumber {
         color: @accent-comment;
