@@ -129,37 +129,16 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_DE"                         : "Deutsch",
-    "LOCALE_EN"                         : "Englisch",
-    "LOCALE_FR"                         : "Französisch",
-    "LOCALE_CS"                         : "Tschechisch",
-    "LOCALE_ES"                         : "Spanisch",
-    "LOCALE_IT"                         : "Italienisch",
-    "LOCALE_JA"                         : "Japanisch",
-    "LOCALE_NB"                         : "Norwegisch",
-    "LOCALE_PL"                         : "Polnisch",
-    "LOCALE_PT_BR"                      : "Portugiesisch, Brasilien",
-    "LOCALE_PT_PT"                      : "Portugiesisch",
-    "LOCALE_RU"                         : "Russisch",
-    "LOCALE_SV"                         : "Schwedisch",
-    "LOCALE_TR"                         : "Türkisch",
-    "LOCALE_ZH_CN"                      : "Chinesisch, vereinfacht",
 
     /**
      * ProjectManager
      */
-
     "PROJECT_LOADING" : "Lädt\u2026",
     "UNTITLED" : "Unbenannt",
 
     /**
      * Keyboard modifier names
      */
-
     "KEYBOARD_CTRL"   : "Strg",
     "KEYBOARD_SHIFT"  : "Umschalt",
     "KEYBOARD_SPACE"  : "Leer",
@@ -358,6 +337,25 @@ define({
     "LANGUAGE_SUBMIT"                           : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                           : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                                 : "Deutsch",
+    "LOCALE_EN"                                 : "Englisch",
+    "LOCALE_FR"                                 : "Französisch",
+    "LOCALE_CS"                                 : "Tschechisch",
+    "LOCALE_ES"                                 : "Spanisch",
+    "LOCALE_IT"                                 : "Italienisch",
+    "LOCALE_JA"                                 : "Japanisch",
+    "LOCALE_NB"                                 : "Norwegisch",
+    "LOCALE_PL"                                 : "Polnisch",
+    "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
+    "LOCALE_PT_PT"                              : "Portugiesisch",
+    "LOCALE_RU"                                 : "Russisch",
+    "LOCALE_SV"                                 : "Schwedisch",
+    "LOCALE_TR"                                 : "Türkisch",
+    "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",

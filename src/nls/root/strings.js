@@ -130,25 +130,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_CS"                         : "Czech",
-    "LOCALE_DE"                         : "German",
-    "LOCALE_EN"                         : "English",
-    "LOCALE_ES"                         : "Spanish",
-    "LOCALE_FR"                         : "French",
-    "LOCALE_IT"                         : "Italian",
-    "LOCALE_JA"                         : "Japanese",
-    "LOCALE_NB"                         : "Norwegian",
-    "LOCALE_PL"                         : "Polish",
-    "LOCALE_PT_BR"                      : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                      : "Portuguese",
-    "LOCALE_RU"                         : "Russian",
-    "LOCALE_SV"                         : "Swedish",
-    "LOCALE_TR"                         : "Turkish",
-    "LOCALE_ZH_CN"                      : "Chinese, simplified",
 
     /**
      * ProjectManager
@@ -160,7 +141,6 @@ define({
     /**
      * Keyboard modifier names
      */
-
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
@@ -373,6 +353,25 @@ define({
     "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_CS"                                 : "Czech",
+    "LOCALE_DE"                                 : "German",
+    "LOCALE_EN"                                 : "English",
+    "LOCALE_ES"                                 : "Spanish",
+    "LOCALE_FR"                                 : "French",
+    "LOCALE_IT"                                 : "Italian",
+    "LOCALE_JA"                                 : "Japanese",
+    "LOCALE_NB"                                 : "Norwegian",
+    "LOCALE_PL"                                 : "Polish",
+    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
+    "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RU"                                 : "Russian",
+    "LOCALE_SV"                                 : "Swedish",
+    "LOCALE_TR"                                 : "Turkish",
+    "LOCALE_ZH_CN"                              : "Chinese, simplified",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
