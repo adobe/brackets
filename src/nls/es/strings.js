@@ -285,7 +285,6 @@ define({
     "RELAUNCH_CHROME"                      : "Reiniciar Chrome",
     "INSTALL"                              : "Instalar",
     "ABOUT"                                : "Acerca de\u2026",
-    "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
