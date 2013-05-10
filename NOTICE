@@ -75,7 +75,7 @@ respective licenses below.
     Licensed under the Apache 2.0 License.
 
 
- - i18n.js - ./src/thirdparty/i18n.js
+ - i18n.js - ./src/thirdparty/i18n/i18n.js
 
     Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
     Available via the MIT or new BSD license.
@@ -144,7 +144,7 @@ respective licenses below.
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
- - Require.js - ./src/thirdparty/require.js
+ - Require.js - ./src/thirdparty/requirejs/require.js
 
     Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
     Available via the MIT or new BSD license.
@@ -158,7 +158,7 @@ respective licenses below.
     Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
 
 
- - text.js - ./src/thirdparty/text.js
+ - text.js - ./src/thirdparty/text/text.js
 
     Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
     Available via the MIT or new BSD license.
