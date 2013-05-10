@@ -395,7 +395,7 @@ define(function (require, exports, module) {
             dir     = split.dir,
             file    = split.file;
         
-        var ternPromise = getJumptoDef(dir, path, offset, document.getText());
+        var ternPromise = getJumptoDef(dir, path, offset, session.getJavascriptText());
         
         return {promise: ternPromise};
     }
@@ -530,7 +530,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} - The promise will not complete until the tern
      *      hints have completed.
      */
-    function requestHints(session, document, offset) {
+    function requestHints(session, document) {
         var path    = document.file.fullPath,
             split   = HintUtils.splitPath(path),
             dir     = split.dir,
@@ -539,12 +539,14 @@ define(function (require, exports, module) {
         var $deferredHints = $.Deferred(),
             hintPromise,
             fnTypePromise,
-            propsPromise;
+            propsPromise,
+            text = session.getJavascriptText(),
+            offset = session.getOffset();
         
-        hintPromise = getTernHints(dir, path, offset, document.getText());
+        hintPromise = getTernHints(dir, path, offset, text);
         var sessionType = session.getType();
         if (sessionType.property) {
-            propsPromise = getTernProperties(dir, path, offset, document.getText());
+            propsPromise = getTernProperties(dir, path, offset, text);
         } else {
             var $propsDeferred = $.Deferred();
             propsPromise = $propsDeferred.promise();
@@ -553,7 +555,7 @@ define(function (require, exports, module) {
 
         if (sessionType.showFunctionType) {
             // Show function sig
-            fnTypePromise = getTernFunctionType(dir, path, sessionType.functionCallPos, offset, document.getText());
+            fnTypePromise = getTernFunctionType(dir, path, sessionType.functionCallPos, offset, text);
         } else {
             var $fnTypeDeferred = $.Deferred();
             fnTypePromise = $fnTypeDeferred.promise();

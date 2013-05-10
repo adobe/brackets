@@ -21,13 +21,16 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
     var StringMatch     = brackets.getModule("utils/StringMatch"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
+        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
+        TokenUtils      = brackets.getModule("utils/TokenUtils"),
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager");
 
@@ -281,18 +284,30 @@ define(function (require, exports, module) {
      *      function being called     
      */
     Session.prototype.getType = function () {
+        function getLexicalState(token) {
+            if (token.state.lexical) {
+                // in a javascript file this is just in the state field
+                return token.state.lexical;
+            } else if (token.state.localState && token.state.localState.lexical) {
+                // inline javascript in an html file will have this in 
+                // the localState field
+                return token.state.localState.lexical;
+            }
+        }
         var propertyLookup   = false,
             inFunctionCall   = false,
             showFunctionType = false,
             context          = null,
             cursor           = this.getCursor(),
             functionCallPos,
-            token            = this.getToken(cursor);
+            token            = this.getToken(cursor),
+            lexical;
 
         if (token) {
             // if this token is part of a function call, then the tokens lexical info
             // will be annotated with "call"
-            if (token.state.lexical.info === "call") {
+            lexical = getLexicalState(token);
+            if (lexical.info === "call") {
                 inFunctionCall = true;
                 if (this.getQuery().length > 0) {
                     inFunctionCall = false;
@@ -309,7 +324,7 @@ define(function (require, exports, module) {
                     // and it will prevent us from walking back thousands of lines if something went wrong.
                     // there is nothing magical about 9 lines, and it can be adjusted if it doesn't seem to be
                     // working well
-                    var col = token.state.lexical.column,
+                    var col = lexical.column,
                         line,
                         e,
                         found;
@@ -324,7 +339,7 @@ define(function (require, exports, module) {
                     }
                 }
             }
-            if (token.className === "property") {
+            if (token.type === "property") {
                 propertyLookup = true;
             }
 
@@ -467,7 +482,12 @@ define(function (require, exports, module) {
                 cursor = sessionType.functionCallPos,
                 token = cursor ? this.getToken(cursor) : undefined,
                 varName;
-            if (token) {
+            if (token &&
+                    // only change the 'fn' when the token looks like a function
+                    // name, and isn't some other kind of expression
+                    (token.type === "variable" ||
+                     token.type === "variable-2" ||
+                     token.type === "property")) {
                 varName = token.string;
                 if (varName) {
                     fnHint = varName + fnHint.substr(2);
@@ -476,6 +496,51 @@ define(function (require, exports, module) {
             hints[0] = {value: fnHint, positions: []};
         }
         return hints;
+    };
+
+    /**
+     * Get the javascript text of the file open in the editor for this Session.
+     * For a javascript file, this is just the text of the file.  For an HTML file,
+     * this will be only the text in the <script> tags.  This is so that we can pass
+     * just the javascript text to tern, and avoid confusing it with HTML tags, since it
+     * only knows how to parse javascript.
+     * @return {string} - the "javascript" text that can be sent to Tern.
+     */
+    Session.prototype.getJavascriptText = function () {
+        if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
+            // HTML file - need to send back only the bodies of the
+            // <script> tags
+            var text = "",
+                offset = this.getOffset(),
+                cursor = this.getCursor(),
+                editor = this.editor,
+                scriptBlocks = HTMLUtils.findBlocks(editor, "javascript");
+            
+            // Add all the javascript text
+            // For non-javascript blocks we replace everything except for newlines
+            // with whitespace.  This is so that the offset and cursor positions
+            // we get from the document still work.  
+            // Alternatively we could strip the non-javascript text, and modify the offset,
+            // and/or cursor, but then we have to remember how to reverse the translation
+            // to support jump-to-definition
+            var htmlStart = {line: 0, ch: 0};
+            scriptBlocks.forEach(function (scriptBlock) {
+                var start = scriptBlock.start,
+                    end = scriptBlock.end;
+                
+                // get the preceding html text, and replace it with whitespace
+                var htmlText = editor.document.getRange(htmlStart, start);
+                htmlText = htmlText.replace(/./g, " ");
+
+                htmlStart = end;
+                text += htmlText + scriptBlock.text;
+            });
+            
+            return text;
+        } else {
+            // Javascript file, just return the text
+            return this.editor.document.getText();
+        }
     };
     
     module.exports = Session;
