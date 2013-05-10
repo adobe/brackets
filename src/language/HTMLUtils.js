@@ -491,7 +491,7 @@ define(function (require, exports, module) {
                 }
                 // Check for end of this block
                 if (tokenModeName !== modeName) {
-                    // currentStyleBlock.end is already set to pos of the last CSS token by now
+                    // currentBlock.end is already set to pos of the last token by now
                     currentBlock.text = editor.document.getRange(currentBlock.start, currentBlock.end);
                     inBlock = false;
                 } else {
