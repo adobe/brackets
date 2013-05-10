@@ -268,6 +268,9 @@ define(function (require, exports, module) {
 
             // don't autocomplete within strings or comments, etc.
             if (token && HintUtils.hintable(token)) {
+                if (session.isFunctionName()) {
+                    return false;
+                }
                 var offset = session.getOffset(),
                     type    = session.getType(),
                     query   = session.getQuery();
