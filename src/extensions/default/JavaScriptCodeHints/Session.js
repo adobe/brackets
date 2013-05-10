@@ -537,6 +537,8 @@ define(function (require, exports, module) {
      * This is so we can suppress hints when in a funtion name, as we do for variable and
      * parameter declarations, but we can tell those from the token itself rather than having
      * to look at previous tokens.
+     * 
+     * @return {boolean} - true if the current cursor position is in the name of a function decl.
      */
     Session.prototype.isFunctionName = function () {
         var cursor = this.getCursor(),
