@@ -52,7 +52,13 @@ define(function (require, exports, module) {
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
     
-    var keydownListeners = [];
+    /** 
+     * A stack of keydown event handler functions that corresponds to the
+     * current stack of modal dialogs.
+     * 
+     * @type {Array.<Function>} 
+     */
+    var _keydownListeners = [];
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -73,7 +79,9 @@ define(function (require, exports, module) {
         var inFormField = ($(e.target).filter(":input").length > 0),
             inTextArea = (e.target.tagName === "TEXTAREA");
         
-        if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
+        if (e.which === KeyEvent.DOM_VK_ESCAPE) {
+            buttonId = DIALOG_BTN_CANCEL;
+        } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
             primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
@@ -179,9 +187,9 @@ define(function (require, exports, module) {
 
             // Remove keydown event handler
             window.document.body.removeEventListener("keydown", handleKeyDown, true);
-            keydownListeners.pop();
-            if (keydownListeners.length > 0) {
-                var previousListener = keydownListeners[keydownListeners.length - 1];
+            _keydownListeners.pop();
+            if (_keydownListeners.length > 0) {
+                var previousListener = _keydownListeners[_keydownListeners.length - 1];
                 window.document.body.addEventListener("keydown", previousListener, true);
             }
             KeyBindingManager.setEnabled(true);
@@ -195,11 +203,11 @@ define(function (require, exports, module) {
 
             // Listen for dialog keyboard shortcuts
             // if there is already a listener, remove it before adding the current listener
-            if (keydownListeners.length > 0) {
-                var previousListener = keydownListeners[keydownListeners.length - 1];
+            if (_keydownListeners.length > 0) {
+                var previousListener = _keydownListeners[_keydownListeners.length - 1];
                 window.document.body.removeEventListener("keydown", previousListener, true);
             }
-            keydownListeners.push(handleKeyDown);
+            _keydownListeners.push(handleKeyDown);
             window.document.body.addEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(false);
         });
@@ -215,7 +223,7 @@ define(function (require, exports, module) {
         $dlg.modal({
             backdrop: "static",
             show: true,
-            keyboard: autoDismiss
+            keyboard: false
         });
 
         return promise;
