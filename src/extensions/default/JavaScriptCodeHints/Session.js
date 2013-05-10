@@ -532,5 +532,19 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Deterimine if the cursor is located in the name of a function declaration.
+     * This is so we can suppress hints when in a funtion name, as we do for variable and
+     * parameter declarations, but we can tell those from the token itself rather than having
+     * to look at previous tokens.
+     */
+    Session.prototype.isFunctionName = function () {
+        var cursor = this.getCursor(),
+            token  = this.getToken(cursor),
+            prevToken = this._getPreviousToken(cursor);
+        
+        return prevToken.string === "function";
+    };
+    
     module.exports = Session;
 });
