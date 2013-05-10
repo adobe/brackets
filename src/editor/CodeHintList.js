@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets */
+/*global define, $, window, brackets, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,6 +33,8 @@ define(function (require, exports, module) {
         PopUpManager    = require("widgets/PopUpManager"),
         ViewUtils       = require("utils/ViewUtils"),
         KeyEvent        = require("utils/KeyEvent");
+    
+    var CodeHintListHTML = require("text!htmlContent/code-hint-list.html");
 
     /**
      * Displays a popup list of hints for a given editor context.
@@ -142,42 +144,25 @@ define(function (require, exports, module) {
         var self            = this,
             match           = hintObj.match,
             selectInitial   = hintObj.selectInitial,
+            view            = { hints: [] },
             _addHint;
 
         this.hints = hintObj.hints;
-
-        // add a formatted hint to the hint list
-        function _addListItem(hint, formattedHint) {
-            var $spanItem = $("<span class='codehint-item'>").append(formattedHint),
-                $anchorItem = $("<a href='#'>").append($spanItem),
-                $listItem = $("<li>").append($anchorItem)
-                    .on("click", function (e) {
-                        // Don't let the click propagate upward (otherwise it will
-                        // hit the close handler in bootstrap-dropdown).
-                        e.stopPropagation();
-                        if (self.handleSelect) {
-                            self.handleSelect(hint);
-                        }
-                    });
-
-            self.$hintMenu.find("ul.dropdown-menu")
-                .append($listItem);
-        }
 
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
         if (match) {
             _addHint = function (name) {
-                var displayName = $("<span>")
-                    .append(name.replace(
-                        new RegExp(StringUtils.regexEscape(match), "i"),
-                        "<strong>$&</strong>"
-                    ));
-                _addListItem(name, displayName);
+                var displayName = name.replace(
+                    new RegExp(StringUtils.regexEscape(match), "i"),
+                    "<strong>$&</strong>"
+                );
+                
+                view.hints.push({ formattedHint: "<span>" + displayName + "</span>" });
             };
         } else {
-            _addHint = function (name) {
-                _addListItem(name, name);
+            _addHint = function (hint) {
+                view.hints.push({ formattedHint: (hint instanceof $) ? "" : hint });
             };
         }
 
@@ -195,8 +180,43 @@ define(function (require, exports, module) {
                 if (index > self.maxResults) {
                     return true;
                 }
+                
                 _addHint(item);
             });
+            
+            // render code hint list
+            var $ul = this.$hintMenu.find("ul.dropdown-menu"),
+                $parent = $ul.parent();
+            
+            // remove list temporarily to save rendering time
+            $ul.remove().append(Mustache.render(CodeHintListHTML, view));
+            
+            $ul.children("li").each(function (index, element) {
+                var hint        = self.hints[index],
+                    $element    = $(element);
+                
+                // store hint on each list item
+                $element.data("hint", hint);
+                
+                // insert jQuery hint objects after the template is rendered
+                if (hint instanceof $) {
+                    $element.find(".codehint-item").append(hint);
+                }
+            });
+            
+            // delegate list item events to the top-level ul list element
+            $ul.on("click", "li", function (e) {
+                // Don't let the click propagate upward (otherwise it will
+                // hit the close handler in bootstrap-dropdown).
+                e.stopPropagation();
+                if (self.handleSelect) {
+                    self.handleSelect($(this).data("hint"));
+                }
+            });
+            
+            // attach to DOM
+            $parent.append($ul);
+            
             this._setSelectedIndex(selectInitial ? 0 : -1);
         }
     };
@@ -308,7 +328,7 @@ define(function (require, exports, module) {
             } else if (this.selectedIndex !== -1 &&
                     (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
                 // Trigger a click handler to commmit the selected item
-                $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
+                $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
                 // only prevent default handler when the list handles the event
                 return;
