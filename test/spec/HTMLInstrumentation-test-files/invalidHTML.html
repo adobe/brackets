@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Untitled Document</title>
+    <script type="text/javascript">
+        //<![CDATA[
+        document.write("<");
+        //]]>
+    </SCRIPT>
+    <STYLE type="text/css">
+        /*<![CDATA[*/
+        body { background-image: url("marble.png?width=300&height=300") }     
+        /*]]>*/
+    </style>
+  </head>
+
+  <body>
+    <P><b>bold <i>and italic</b> text</i></P>
+    A paragraph with no opening tag</p>
+    <h2>a header with <br> a<wbr>line</wbr>break</h2>
+    <name>custom tag</name>
+    <table width="200" border="1">
+      <caption>A table with some 'tr' tags missing</caption>
+        <th>Name
+        <th>Address</th>
+        <th>Phone
+      <tr>
+        <td>Name
+        <td>Address
+        <td>Phone
+	  </tr>
+	  <tr>
+        <td>Name
+        <td>Address</td>
+        <td>Phone
+	  </tr>
+    </table>
+    <form name="form1" method="post" action="http://somesite.com/prog/adduser">
+      <input type="button" name="prev" id="prev" value="<Prev" />
+      <input type="button" name="next" id="next" value="Next>"></input>
+	  <label for="select"></label>
+	  <select name="select" id="select">
+        <option value="1">item1
+        <option value="2">item2</option>
+        <option value="3">item3
+	  </select>
+    </form>
+    <hr>
+    <a href="http:\\nowhere.com"><p>an unclosed paragraph inside a link</a>
+    <hr />
+  </body>
+</html>

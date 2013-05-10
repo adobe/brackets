@@ -38,16 +38,30 @@ define(function (require, exports, module) {
     var CONNECT_TIMEOUT = 5000;
     
     var LOCALHOST_PORT_PARSER_RE = /http:\/\/127\.0\.0\.1:(\d+)\//;
+            
+    function makeBaseUrl(serverInfo) {
+        return "http://" + serverInfo.address + ":" + serverInfo.port;
+    }
+    
+    function getUrl(serverInfo, path) {
+        return $.get(makeBaseUrl(serverInfo) + path);
+    }
     
     describe("StaticServer", function () {
         
         // Unit tests for the underlying node server.
         describe("StaticServerDomain", function () {
-            var nodeConnection;
+            var nodeConnection,
+                logs = [];
             
             beforeEach(function () {
                 runs(function () {
                     nodeConnection = new NodeConnection();
+                
+                    $(nodeConnection).on("base.log", function (event, level, timestamp, message) {
+                        logs.push({level: level, message: message});
+                    });
+
                     waitsForDone(nodeConnection.connect(false), "connecting to node server", CONNECT_TIMEOUT);
                 });
                 
@@ -74,12 +88,22 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                nodeConnection.disconnect();
-                nodeConnection = null;
+                runs(function () {
+                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(), "restore request filter timeout");
+                });
+
+                runs(function () {
+                    nodeConnection.disconnect();
+                    nodeConnection = null;
+                    logs = [];
+                });
             });
-            
-            function makeBaseUrl(serverInfo) {
-                return "http://" + serverInfo.address + ":" + serverInfo.port;
+
+            function onRequestFilter(callback) {
+                // only handle the first event
+                $(nodeConnection).one("staticServer.requestFilter", function cb(event, request) {
+                    callback(request);
+                });
             }
             
             it("should start a static server on the given folder", function () {
@@ -114,10 +138,9 @@ define(function (require, exports, module) {
                 waitsFor(function () { return serverInfo; }, "waiting for static server to start");
                 
                 runs(function () {
-                    $.get(makeBaseUrl(serverInfo) + "/index.txt")
-                        .done(function (data) {
-                            text = data;
-                        });
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        text = data;
+                    });
                 });
                 
                 waitsFor(function () { return text; }, "waiting for text from server");
@@ -174,14 +197,12 @@ define(function (require, exports, module) {
                 waitsFor(function () { return serverInfo1 && serverInfo2; }, "waiting for static servers to start");
                 
                 runs(function () {
-                    $.get(makeBaseUrl(serverInfo1) + "/index.txt")
-                        .done(function (data) {
-                            text1 = data;
-                        });
-                    $.get(makeBaseUrl(serverInfo2) + "/index.txt")
-                        .done(function (data) {
-                            text2 = data;
-                        });
+                    getUrl(serverInfo1, "/index.txt").done(function (data) {
+                        text1 = data;
+                    });
+                    getUrl(serverInfo2, "/index.txt").done(function (data) {
+                        text2 = data;
+                    });
                 });
                 
                 waitsFor(function () { return text1 && text2; }, "waiting for text from servers");
@@ -194,6 +215,316 @@ define(function (require, exports, module) {
                                  "waiting for static server 1 to close");
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path2),
                                  "waiting for static server 2 to close");
+                });
+            });
+            
+            it("should trigger an event when a file path is requested", function () {
+                var serverInfo,
+                    path = testFolder + "folder1",
+                    text,
+                    location,
+                    elapsed,
+                    timeout = 500;
+                
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+                
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                
+                runs(function () {
+                    onRequestFilter(function (request) {
+                        location = request.location;
+                        // Do not call writeFilteredResponse in order to hit timeout
+                    });
+                    
+                    // listen for /index.txt requests
+                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+
+                    // set a custom timeout
+                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(timeout));
+                });
+
+                runs(function () {
+                    // it should take longer than the StaticServerDomain timeout to get a response
+                    elapsed = new Date();
+
+                    // request /index.txt
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        elapsed = new Date() - elapsed;
+                        text = data;
+                    });
+                });
+                
+                waitsFor(function () { return location && text; }, "waiting for request event to fire");
+
+                runs(function () {
+                    expect(location.pathname).toBe("/index.txt");
+                    expect(text).toBe("This is a file in folder 1.");
+
+                    // we should hit the timeout since we filtered this path and did not respond
+                    expect(elapsed).toBeGreaterThan(timeout);
+                    
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+            
+            it("should send static file contents after canceling a filter request", function () {
+                var serverInfo,
+                    path = testFolder + "folder1",
+                    text,
+                    location;
+                
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+                
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                
+                runs(function () {
+                    // listen for request event
+                    onRequestFilter(function (request) {
+                        location = request.location;
+                        nodeConnection.domains.staticServer.writeFilteredResponse(request.root, request.pathname, null);
+
+                        // a second call to send does nothing
+                        nodeConnection.domains.staticServer.writeFilteredResponse(request.root, request.pathname, {body: "custom response"});
+                    });
+                    
+                    // listen for /index.txt requests
+                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+                });
+
+                runs(function () {
+                    // request /index.txt
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        text = data;
+                    });
+                });
+                
+                waitsFor(function () { return location && text; }, "waiting for request event to fire");
+
+                runs(function () {
+                    expect(location.pathname).toBe("/index.txt");
+                    expect(text).toBe("This is a file in folder 1.");
+                    
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+            
+            it("should override the static file server response with a new response body", function () {
+                var serverInfo,
+                    path = testFolder + "folder1",
+                    text,
+                    location;
+                
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+                
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                
+                runs(function () {
+                    // listen for request event
+                    onRequestFilter(function (request) {
+                        location = request.location;
+                        nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, {body: "custom response"});
+                    });
+                    
+                    // listen for /index.txt requests
+                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+                });
+
+                runs(function () {
+                    // request /index.txt
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        text = data;
+                    });
+                });
+                
+                waitsFor(function () { return location && text; }, "waiting for text from server");
+
+                runs(function () {
+                    expect(location.pathname).toBe("/index.txt");
+                    expect(text).toBe("custom response");
+                    
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+            
+            it("should ignore multiple responses for the same request", function () {
+                var serverInfo,
+                    path = testFolder + "folder1",
+                    text,
+                    location;
+                
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+                
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                
+                runs(function () {
+                    // listen for request event
+                    onRequestFilter(function (request) {
+                        location = request.location;
+
+                        nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, {body: "good response"});
+                        nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, {body: "bad response"});
+                    });
+                    
+                    // listen for /index.txt requests
+                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+                });
+
+                runs(function () {
+                    // request /index.txt
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        text = data;
+                    });
+                });
+                
+                waitsFor(function () { return location && text; }, "waiting for text from server");
+
+                runs(function () {
+                    expect(logs.length).toBe(1);
+                    expect(logs[0].level).toBe("warn");
+                    expect(logs[0].message.indexOf("writeFilteredResponse")).toBe(0);
+
+                    expect(location.pathname).toBe("/index.txt");
+                    expect(text).toBe("good response");
+                    
+                    // cleanup
+                    $(nodeConnection).off("base.log");
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+            
+            it("should log a warning when writing to a non-existant request", function () {
+                var serverInfo,
+                    path = testFolder + "folder1",
+                    text,
+                    location;
+                
+                spyOn(console, "warn").andCallThrough();
+                
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+                
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                
+                runs(function () {
+                    // write response before the request
+                    waitsForDone(nodeConnection.domains.staticServer.writeFilteredResponse(path, "/index.txt", {body: "custom response"}));
+                });
+
+                runs(function () {
+                    // request /index.txt
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        text = data;
+                    });
+                });
+                
+                runs(function () {
+                    // write response after the request
+                    waitsForDone(nodeConnection.domains.staticServer.writeFilteredResponse(path, "/index.txt", {body: "custom response"}));
+                });
+                
+                waitsFor(function () { return text; }, "waiting for text from server");
+
+                runs(function () {
+                    var expectedWarning = "writeFilteredResponse: Missing callback for " +
+                        path + "/index.txt. This command must only be called after a requestFilter event has fired for a path.";
+
+                    // verify console warning
+                    expect(logs.length).toBe(2);
+
+                    logs.forEach(function (log) {
+                        expect(log.level).toBe("warn");
+                        expect(log.message.indexOf("writeFilteredResponse")).toBe(0);
+                    });
+
+                    // verify original file content
+                    expect(text).toBe("This is a file in folder 1.");
+                    
+                    // cleanup
+                    $(nodeConnection).off("base.log");
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+            
+            it("should should require paths to be filtered for events to fire", function () {
+                var serverInfo,
+                    path = testFolder + "folder1",
+                    text = null,
+                    location = null,
+                    elapsed,
+                    timeout = 500;
+                
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+                
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                
+                runs(function () {
+                    onRequestFilter(function (request) {
+                        location = request.location;
+                    });
+
+                    // set a custom timeout
+                    waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(timeout));
+                });
+
+                runs(function () {
+                    // it should take less than the 500ms timeout to get a response
+                    elapsed = new Date();
+
+                    // request /index.txt
+                    getUrl(serverInfo, "/index.txt").done(function (data) {
+                        elapsed = new Date() - elapsed;
+                        text = data;
+                    });
+                });
+
+                waits(timeout);
+
+                runs(function () {
+                    // requestFilter should never fire, location is never returned
+                    expect(location).toBeNull();
+
+                    // original content 
+                    expect(text).toBe("This is a file in folder 1.");
+
+                    // server should respond with original content before the timeout lapses
+                    expect(elapsed).toBeLessThan(timeout);
+                    
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
                 });
             });
         });

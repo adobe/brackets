@@ -95,6 +95,12 @@ define(function (require, exports, module) {
      */
     var _inlineEditProviders = [];
     
+    /**
+     * Registered inline documentation widget providers. See {@link #registerInlineDocsProvider()}.
+     * @type {Array.<function(...)>}
+     */
+    var _inlineDocsProviders = [];
+    
 	/**
      * @private
      * @param {?Editor} current
@@ -134,13 +140,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Bound to Ctrl+E on outermost editors.
-     * @param {!Editor} editor the candidate host editor
+     * Finds an inline widget provider from the given list that can offer a widget for the current cursor
+     * position, and once the widget has been created inserts it into the editor.
+     * @param {!Editor} editor The host editor
+     * @param {!Array.<function(!Editor, !{line:Number, ch:Number}):?$.Promise>} providers
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
-     *      is created or rejected when no inline editors are available.
+     *      is created or rejected if no inline providers have offered one.
      */
-    function _openInlineWidget(editor) {
-        PerfUtils.markStart(PerfUtils.INLINE_EDITOR_OPEN);
+    function _openInlineWidget(editor, providers) {
+        PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
         
         // Run through inline-editor providers until one responds
         var pos = editor.getCursorPos(),
@@ -148,8 +156,8 @@ define(function (require, exports, module) {
             i,
             result = new $.Deferred();
         
-        for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
-            var provider = _inlineEditProviders[i];
+        for (i = 0; i < providers.length && !inlinePromise; i++) {
+            var provider = providers[i];
             inlinePromise = provider(editor, pos);
         }
         
@@ -157,16 +165,16 @@ define(function (require, exports, module) {
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
                 editor.addInlineWidget(pos, inlineWidget);
-                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                 result.resolve();
             }).fail(function () {
                 // terminate timer that was started above
-                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                 result.reject();
             });
         } else {
             // terminate timer that was started above
-            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
             result.reject();
         }
         
@@ -197,19 +205,27 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Registers a new inline provider. When _openInlineWidget() is called each registered inline
-     * widget is called and asked if it wants to provide an inline widget given the current cursor
-     * location and document.
-     * @param {function} provider 
-     *      Parameters: 
-     *      {!Editor} editor, {!{line:Number, ch:Number}} pos
-     *      
-     *      Returns:
-     *      {$.Promise} a promise that will be resolved with an inlineWidget
-     *      or null to indicate the provider doesn't create an editor in this case
+     * Registers a new inline editor provider. When Quick Edit is invoked each registered provider is
+     * asked if it wants to provide an inline editor given the current editor and cursor location.
+     * 
+     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
+     * to indicate the provider doesn't want to respond to this case.
      */
     function registerInlineEditProvider(provider) {
         _inlineEditProviders.push(provider);
+    }
+    
+    /**
+     * Registers a new inline docs provider. When Quick Docs is invoked each registered provider is
+     * asked if it wants to provide inline docs given the current editor and cursor location.
+     * 
+     * @param {function(!Editor, !{line:Number, ch:Number}):?$.Promise} provider
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
+     * to indicate the provider doesn't want to respond to this case.
+     */
+    function registerInlineDocsProvider(provider) {
+        _inlineDocsProviders.push(provider);
     }
     
     /**
@@ -649,12 +665,12 @@ define(function (require, exports, module) {
     
     
     /**
-     * Toggle Quick Edit command handler
-     * @return {!Promise} A promise resolved with true if an inline editor
-     *   is opened or false when closed. The promise is rejected if there
-     *   is no current editor or an inline editor is not created.
+     * Closes any focused inline widget. Else, asynchronously asks providers to create one.
+     * @return {!Promise} A promise resolved with true if an inline widget is opened or false
+     *   when closed. Rejected if there is neither an existing widget to close nor a provider
+     *   willing to create a widget (or if no editor is open).
      */
-    function _toggleQuickEdit() {
+    function _toggleInlineWidget(providers) {
         var result = new $.Deferred();
         
         if (_currentEditor) {
@@ -662,15 +678,15 @@ define(function (require, exports, module) {
             
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
-                PerfUtils.markStart(PerfUtils.INLINE_EDITOR_CLOSE);
+                PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
                 inlineWidget.close();
-                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_CLOSE);
+                PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
         
                 // return a resolved promise to CommandManager
                 result.resolve(false);
             } else {
                 // main editor has focus, so create an inline editor
-                _openInlineWidget(_currentEditor).done(function () {
+                _openInlineWidget(_currentEditor, providers).done(function () {
                     result.resolve(true);
                 }).fail(function () {
                     result.reject();
@@ -685,7 +701,12 @@ define(function (require, exports, module) {
     }
     
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, function () {
+        return _toggleInlineWidget(_inlineEditProviders);
+    });
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_DOCS, Commands.TOGGLE_QUICK_DOCS, function () {
+        return _toggleInlineWidget(_inlineDocsProviders);
+    });
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
@@ -718,6 +739,7 @@ define(function (require, exports, module) {
     exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
+    exports.registerInlineDocsProvider = registerInlineDocsProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
 });

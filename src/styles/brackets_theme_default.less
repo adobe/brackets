@@ -97,6 +97,12 @@
 @inline-color-2: #8a8a8a;
 @inline-color-3: @bc-black;
 
+/* sidebar/toolbar colors */
+@project-panel-base-color: #3C3F41;
+@project-panel-text-1: #ffffff;
+@project-panel-text-2: #8e9a9d;
+@main-toolbar-background-color: #5D5F60;
+
 /* Selection colors */
 @selection-color-focused: #d2dcf8;
 @selection-color-unfocused: #d9d9d9;
@@ -122,11 +128,9 @@
 }
 
 .code-font-win() {
-    .code-font();
 }
 
 .code-font-mac() {
-    .code-font();
     /* Use the Medium weight on the Mac to counterbalance the grayscale antialiasing. */
     font-family: 'SourceCodePro-Medium', "ＭＳ ゴシック", "MS Gothic", monospace;
 }

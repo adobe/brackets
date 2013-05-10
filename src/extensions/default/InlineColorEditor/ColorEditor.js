@@ -218,7 +218,7 @@ define(function (require, exports, module) {
             _this = this;
         handler = function (event) {
             var colorObject, newColor, newFormat;
-            newFormat = $(event.currentTarget).html().toLowerCase();
+            newFormat = $(event.currentTarget).html().toLowerCase().replace("%", "p");
             newColor = _this.getColor();
             colorObject = tinycolor(newColor);
             switch (newFormat) {
@@ -227,6 +227,9 @@ define(function (require, exports, module) {
                 break;
             case "rgba":
                 newColor = colorObject.toRgbString();
+                break;
+            case "prgba":
+                newColor = colorObject.toPercentageRgbString();
                 break;
             case "hex":
                 newColor = colorObject.toHexString();
@@ -266,10 +269,10 @@ define(function (require, exports, module) {
         }
         return color;
     };
-                    
+    
     /**
      * Normalize the given color string into the format used by tinycolor, by adding a space 
-     * after commas and converting RGB colors from percentages to integers.
+     * after commas.
      * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
      * @return {string} a normalized color string.
      */
@@ -285,7 +288,7 @@ define(function (require, exports, module) {
             normalizedColor = normalizedColor.replace(/\(\s+/, "(");
             normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        return this._convertToNormalRGB(normalizedColor.toLowerCase());
+        return normalizedColor.toLowerCase();
     };
 
     /** Handle changes in text field */
@@ -384,6 +387,9 @@ define(function (require, exports, module) {
             break;
         case "rgb":
             colorVal = newColor.toRgbString();
+            break;
+        case "prgb":
+            colorVal = newColor.toPercentageRgbString();
             break;
         case "hex":
         case "name":

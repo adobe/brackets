@@ -144,6 +144,7 @@ define(function (require, exports, module) {
     function _enableAutomatic() {
         _setAutomatic(true);
         _addListeners();
+        _currentSort.callAutomaticFn();
     }
     
     /**

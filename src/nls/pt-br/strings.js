@@ -79,8 +79,8 @@ define({
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview se conecta {APP_NAME} ao seu navegador. Ele lança uma prévia do seu arquivo HTML no navegador, em seguida atualiza a visualização de imediato, quando você editar o código.<br /><br />Nesta versão inicial de {APP_NAME}, Live Preview só funciona para as edições de <strong>arquivos CSS</strong> e apenas com <strong>Google Chrome</strong>. Nós iremos implementá-lo para HTML e JavaScript em breve!<br /><br />(Você só vai ver esta mensagem uma vez.)",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connectando...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Inicializando...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connectando\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Desconectando do Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Clique para desconectar (Salve o arquivo para atualizar)",
 
@@ -242,7 +242,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Fechar (Não Salvar)",
     "RELAUNCH_CHROME"                      : "Relançar Chrome",
     "ABOUT"                                : "Sobre",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Fechar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versão experimental {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Avisos, termos e condições de softwares de terceiros estão localizados em <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> e aqui incorporados por referência.",

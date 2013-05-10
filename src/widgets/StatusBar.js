@@ -4,7 +4,7 @@
 /**
  * A status bar with support for file information and busy and status indicators. This is a semi-generic
  * container; for the code that decides what content appears in the status bar, see client modules like
- * EditorStatusBar and JSLintUtils. (Although in practice StatusBar's HTML structure and initialization
+ * EditorStatusBar. (Although in practice StatusBar's HTML structure and initialization
  * assume it's only used for this one purpose, and all the APIs are on a singleton).
  */
 define(function (require, exports, module) {

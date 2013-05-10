@@ -271,7 +271,7 @@ define(function (require, exports, module) {
         var displayStr;
         
         if (brackets.platform === "mac") {
-            displayStr = descriptor.replace(/-/g, "");          // remove dashes
+            displayStr = descriptor.replace(/-(?!$)/g, "");     // remove dashes
             displayStr = displayStr.replace("Ctrl", "\u2303");  // Ctrl > control symbol
             displayStr = displayStr.replace("Cmd", "\u2318");   // Cmd > command symbol
             displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
             displayStr = descriptor.replace("Ctrl", Strings.KEYBOARD_CTRL);   // Ctrl
             displayStr = displayStr.replace("Shift", Strings.KEYBOARD_SHIFT); // Shift > shift symbol
             displayStr = displayStr.replace("Space", Strings.KEYBOARD_SPACE); // Alt > option symbol
-            displayStr = displayStr.replace(/-/g, "+");
+            displayStr = displayStr.replace(/-(?!$)/g, "+");
         }
 
         return displayStr;

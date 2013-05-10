@@ -122,16 +122,22 @@ define(function Inspector(require, exports, module) {
         }
 
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
-        var id, callback, args, i, params = {};
+        var id, callback, args, i, params = {}, promise;
 
         // extract the parameters, the callback function, and the message id
         args = Array.prototype.slice.call(arguments, 2);
         if (typeof args[args.length - 1] === "function") {
-            id = _messageId++;
-            _messageCallbacks[id] = args.pop();
+            callback = args.pop();
         } else {
-            id = 0;
+            var deferred = new $.Deferred();
+            promise = deferred.promise();
+            callback = function (result) {
+                deferred.resolve(result);
+            };
         }
+
+        id = _messageId++;
+        _messageCallbacks[id] = callback;
 
         // verify the parameters against the method signature
         // this also constructs the params object of type {name -> value}
@@ -141,6 +147,8 @@ define(function Inspector(require, exports, module) {
             }
         }
         _socket.send(JSON.stringify({ method: method, id: id, params: params }));
+
+        return promise;
     }
 
     /** WebSocket did close */
@@ -182,6 +190,7 @@ define(function Inspector(require, exports, module) {
         } else if (response.result) {
             if (_messageCallbacks[response.id]) {
                 _messageCallbacks[response.id](response.result);
+                delete _messageCallbacks[response.id];
             }
         } else {
             var domainAndMethod = response.method.split(".");
@@ -215,7 +224,9 @@ define(function Inspector(require, exports, module) {
         request.onerror = function onError() {
             def.reject(request.response);
         };
+
         request.send(null);
+
         return def.promise();
     }
 

@@ -53,7 +53,17 @@ define(function (require, exports, module) {
             // which we have to return true (issue #3152).
             return (eventName === Commands.FILE_CLOSE_WINDOW);
         }
-        var promise = CommandManager.execute(eventName);
+        var promise, e = new Error(), stackDepth = e.stack.split("\n").length;
+        
+        // This function should *only* be called as a top-level function. If the current
+        // stack depth is > 2, it is most likely because we are at a breakpoint. 
+        if (stackDepth < 3) {
+            promise = CommandManager.execute(eventName);
+        } else {
+            console.error("Skipping command " + eventName + " because it looks like you are " +
+                          "at a breakpoint. If you are NOT at a breakpoint, please " +
+                          "file a bug and mention this comment. Stack depth = " + stackDepth + ".");
+        }
         return (promise && promise.state() === "rejected") ? false : true;
     }
 

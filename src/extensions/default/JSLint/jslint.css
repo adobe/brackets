@@ -1,0 +1,14 @@
+.jslint-disabled {
+    font-size: 1em;
+    color: #808080;
+}
+
+.jslint-errors {
+    font-size: 1em;
+    color: #dc322f;
+}
+
+.jslint-valid {
+    font-size: 1em;
+    color: #FFC81C;
+}

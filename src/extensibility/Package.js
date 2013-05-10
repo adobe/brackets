@@ -78,14 +78,15 @@ define(function (require, exports, module) {
      * if there are errors or null if the extension did not include package.json.
      *
      * @param {string} Absolute path to the package zip file
+     * @param {{requirePackageJSON: ?boolean}} validation options
      * @return {$.Promise} A promise that is resolved with information about the package
      */
-    function validate(path) {
+    function validate(path, options) {
         var d = new $.Deferred();
         _nodeConnectionDeferred
             .done(function (nodeConnection) {
                 if (nodeConnection.connected()) {
-                    nodeConnection.domains.extensionManager.validate(path)
+                    nodeConnection.domains.extensionManager.validate(path, options)
                         .done(function (result) {
                             d.resolve({
                                 errors: result.errors,
@@ -133,10 +134,13 @@ define(function (require, exports, module) {
         _nodeConnectionDeferred
             .done(function (nodeConnection) {
                 if (nodeConnection.connected()) {
-                    var destinationDirectory = ExtensionLoader.getUserExtensionPath();
-                    var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
+                    var destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
+                        disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
+                        systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
+                    
                     nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
                         disabledDirectory: disabledDirectory,
+                        systemExtensionDirectory: systemDirectory,
                         apiVersion: brackets.metadata.apiVersion,
                         nameHint: nameHint
                     })
@@ -262,7 +266,7 @@ define(function (require, exports, module) {
      */
     function cancelDownload(downloadId) {
         // TODO: if we're still waiting on the NodeConnection, how do we cancel?
-        console.assert(_nodeConnectionDeferred.isResolved());
+        console.assert(_nodeConnectionDeferred.state() === "resolved");
         _nodeConnectionDeferred.done(function (connection) {
             connection.domains.extensionManager.abortDownload(downloadId);
         });

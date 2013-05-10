@@ -152,13 +152,16 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return a path or URL string that can be broken near path separators.
+     * Return an escaped path or URL string that can be broken near path separators.
      * @param {string} url the path or URL to format
      * @return {string} the formatted path or URL
      */
     function breakableUrl(url) {
+        // This is for displaying in UI, so always want it escaped
+        var escUrl = htmlEscape(url);
+
         // Inject zero-width space character (U+200B) near path separators (/) to allow line breaking there
-        return url.replace(
+        return escUrl.replace(
             new RegExp(regexEscape("/"), "g"),
             "/" + "&#8203;"
         );

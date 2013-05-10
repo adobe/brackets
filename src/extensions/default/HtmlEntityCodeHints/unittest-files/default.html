@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <!-- Should show hints -->
+        <p>
+            Test&
+        </p>
+
+        <!-- Should show hints -->
+        <p>
+            Test&#33; &
+        </p>
+
+        <!-- Should show hints when cursor inside Entity -->
+        <p>
+            Test&acute;
+        </p>
+
+        <!-- Shouldn't show hints inside an opening tag-->
+        <p&></p>
+
+        <!-- Shouldn't show hints inside a closing tag-->
+        <p></p&>
+
+        <!-- Should show hints when semi-colon on the same line -->
+        <p>
+            Test ;  &
+        </p>
+    
+        <!-- Should not hint for & in attribute name -->
+        <p & ></p>
+    
+        <!-- Should not hint for & in attribute value -->
+        <p title="&"></p>
+
+        <!-- Should not hint for & in url -->
+        <a href="https://github.com/adobe/brackets/issues?labels=low+priority&page=1&state=open">link</a>
+        
+        <!-- Should show multiple hints in same line -->
+        <p>This &amp; that &amp; the other</p>
+    
+        <!-- Should sort &#xxxx hints numerically not alphabetically -->
+        <p>
+            &#
+        </p>
+    </body>
+</html>

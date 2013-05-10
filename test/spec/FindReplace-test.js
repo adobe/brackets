@@ -81,7 +81,8 @@ define(function (require, exports, module) {
         }
         
         beforeEach(function () {
-            $myToolbar = $("<div id='main-toolbar'/>").appendTo(window.document.body);
+            // Dummy version of anchor that ModalBar inserts itself relative to. Must exist in DOM somewhere.
+            $myToolbar = $("<div id='editor-holder'/>").appendTo(window.document.body);
         });
         
         afterEach(function () {
