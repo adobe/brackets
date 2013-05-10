@@ -51,12 +51,15 @@ define(function (require, exports, module) {
         var mockId, mockSettings, origRegistryURL, origExtensionUrl;
         
         beforeEach(function () {
-            // Return a canned registry when requested. Individual tests can override this
-            // at any point before the request is actually made.
+            // Use fake URLs for the registry (useful if the registry isn't actually currently
+            // configured).
             origRegistryURL = brackets.config.extension_registry;
             origExtensionUrl = brackets.config.extension_url;
             brackets.config.extension_registry = "http://fake-registry.com/registry.json";
             brackets.config.extension_url = "http://fake-repository.com/{0}/{0}-{1}.zip";
+
+            // Return a canned registry when requested. Individual tests can override this
+            // at any point before the request is actually made.
             mockRegistry = JSON.parse(mockRegistryText);
             mockSettings = {
                 url: brackets.config.extension_registry,
@@ -68,6 +71,12 @@ define(function (require, exports, module) {
             };
             spyOn(mockSettings, "response").andCallThrough();
             mockId = $.mockjax(mockSettings);
+            
+            // Set a fake path for user extensions.
+            var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
+            spyOn(ExtensionLoader, "getUserExtensionPath").andCallFake(function () {
+                return mockPath + "/user";
+            });
         });
         
         afterEach(function () {
@@ -78,90 +87,42 @@ define(function (require, exports, module) {
             brackets.config.extension_url = origExtensionUrl;
         });
         
-        describe("ExtensionManager", function () {
-            function mockLoadExtensions(names) {
-                var numLoaded = 0, numStatusChanges = 0;
-                runs(function () {
-                    $(ExtensionManager).on("statusChange.mock-load", function () {
-                        numStatusChanges++;
-                    });
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    spyOn(ExtensionLoader, "getUserExtensionPath").andCallFake(function () {
-                        return mockPath + "/user";
-                    });
-                    names = names || ["default/mock-extension-1", "dev/mock-extension-2", "user/mock-legacy-extension"];
-                    names.forEach(function (name) {
-                        numLoaded++;
-                        $(ExtensionLoader).triggerHandler("load", mockPath + "/" + name);
-                    });
+        function mockLoadExtensions(names) {
+            var numStatusChanges = 0;
+            runs(function () {
+                $(ExtensionManager).on("statusChange.mock-load", function () {
+                    numStatusChanges++;
                 });
-                
-                // Make sure the ExtensionManager has finished reading all the package.jsons before continuing.
-                waitsFor(function () { return numStatusChanges === numLoaded; }, "ExtensionManager status changes");
-                
-                runs(function () {
-                    $(ExtensionManager).off(".mock-load");
+                var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
+                names = names || ["default/mock-extension-1", "dev/mock-extension-2", "user/mock-legacy-extension"];
+                names.forEach(function (name) {
+                    $(ExtensionLoader).triggerHandler("load", mockPath + "/" + name);
                 });
-            }
+            });
             
+            // Make sure the ExtensionManager has finished reading all the package.jsons before continuing.
+            waitsFor(function () { return numStatusChanges === names.length; }, "ExtensionManager status changes");
+            
+            runs(function () {
+                $(ExtensionManager).off(".mock-load");
+            });
+        }
+        
+        describe("ExtensionManager", function () {
             it("should download the extension list from the registry", function () {
                 var registry;
                 runs(function () {
-                    ExtensionManager.getRegistry()
-                        .done(function (result) {
-                            registry = result;
-                        });
+                    waitsForDone(ExtensionManager.downloadRegistry(), "fetching registry");
                 });
-                waitsFor(function () { return registry; }, "fetching registry");
     
                 runs(function () {
                     expect(mockSettings.response).toHaveBeenCalled();
-                    expect(registry).toEqual(mockRegistry);
+                    Object.keys(ExtensionManager.extensions).forEach(function (id) {
+                        expect(ExtensionManager.extensions[id].registryInfo).toEqual(mockRegistry[id]);
+                    });
                 });
             });
     
-            it("should return the registry but not re-download it if called twice without forceDownload", function () {
-                var registry;
-                runs(function () {
-                    waitsForDone(ExtensionManager.getRegistry(), "fetching registry");
-                });
-    
-                runs(function () {
-                    expect(mockSettings.response.callCount).toBe(1);
-                    ExtensionManager.getRegistry()
-                        .done(function (result) {
-                            registry = result;
-                        });
-                });
-                waitsFor(function () { return registry; }, "re-getting registry");
-                
-                runs(function () {
-                    expect(mockSettings.response.callCount).toBe(1);
-                    expect(registry).toEqual(mockRegistry);
-                });
-            });
-    
-            it("should re-download the registry if called twice with forceDownload", function () {
-                var registry;
-                runs(function () {
-                    waitsForDone(ExtensionManager.getRegistry(), "fetching registry");
-                });
-    
-                runs(function () {
-                    expect(mockSettings.response.callCount).toBe(1);
-                    ExtensionManager.getRegistry(true)
-                        .done(function (result) {
-                            registry = result;
-                        });
-                });
-                waitsFor(function () { return registry; }, "re-getting registry");
-                
-                runs(function () {
-                    expect(mockSettings.response.callCount).toBe(2);
-                    expect(registry).toEqual(mockRegistry);
-                });
-            });
-            
             it("should fail if it can't access the registry", function () {
                 var gotDone = false, gotFail = false;
                 runs(function () {
@@ -170,7 +131,7 @@ define(function (require, exports, module) {
                         url: brackets.config.extension_registry,
                         isTimeout: true
                     });
-                    ExtensionManager.getRegistry(true)
+                    ExtensionManager.downloadRegistry()
                         .done(function () {
                             gotDone = true;
                         })
@@ -190,7 +151,7 @@ define(function (require, exports, module) {
                 var gotDone = false, gotFail = false;
                 runs(function () {
                     mockRegistry = "{malformed json";
-                    ExtensionManager.getRegistry()
+                    ExtensionManager.downloadRegistry()
                         .done(function () {
                             gotDone = true;
                         })
@@ -207,12 +168,17 @@ define(function (require, exports, module) {
             });
             
             it("should correctly list which extensions are installed", function () {
+                runs(function () {
+                    waitsForDone(ExtensionManager.downloadRegistry(), "loading registry");
+                });
                 mockLoadExtensions();
                 runs(function () {
                     Object.keys(mockRegistry).forEach(function (extId) {
-                        var status = (extId === "mock-extension-1" || extId === "mock-extension-2") ?
-                                ExtensionManager.ENABLED : ExtensionManager.NOT_INSTALLED;
-                        expect(ExtensionManager.getStatus(extId)).toEqual(status);
+                        if (extId === "mock-extension-1" || extId === "mock-extension-2") {
+                            expect(ExtensionManager.extensions[extId].installInfo.status).toEqual(ExtensionManager.ENABLED);
+                        } else {
+                            expect(ExtensionManager.extensions[extId].installInfo).toBeUndefined();
+                        }
                     });
                 });
             });
@@ -220,11 +186,10 @@ define(function (require, exports, module) {
             it("should determine the location type for installed extensions", function () {
                 mockLoadExtensions();
                 runs(function () {
-                    expect(ExtensionManager.getLocationType("mock-extension-1")).toEqual(ExtensionManager.LOCATION_DEFAULT);
-                    expect(ExtensionManager.getLocationType("mock-extension-2")).toEqual(ExtensionManager.LOCATION_DEV);
+                    expect(ExtensionManager.extensions["mock-extension-1"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEFAULT);
+                    expect(ExtensionManager.extensions["mock-extension-2"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEV);
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    expect(ExtensionManager.getLocationType(mockPath + "/user/mock-legacy-extension")).toEqual(ExtensionManager.LOCATION_USER);
-                    expect(ExtensionManager.getLocationType("test-quickly")).toEqual(ExtensionManager.LOCATION_UNKNOWN);
+                    expect(ExtensionManager.extensions[mockPath + "/user/mock-legacy-extension"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_USER);
                 });
             });
             
@@ -298,6 +263,19 @@ define(function (require, exports, module) {
                         model = new ExtensionManagerViewModel();
                         waitsForDone(model.initialize(ExtensionManagerViewModel.EXTENSIONS_REGISTRY), "model initialization");
                     });
+                    runs(function () {
+                        // Mock load some extensions, so we can make sure they don't show up in the filtered model in this case.
+                        mockLoadExtensions();
+                    });
+                });
+                
+                afterEach(function () {
+                    model.dispose();
+                    model = null;
+                });
+                
+                it("should initialize itself from the extension list", function () {
+                    expect(model.extensions).toEqual(ExtensionManager.extensions);
                 });
                 
                 it("should start with the full set sorted in reverse publish date order", function () {
@@ -333,9 +311,9 @@ define(function (require, exports, module) {
                     expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
                 });
                 
-                it("should trigger filterChange when filtered", function () {
+                it("should trigger filter event when filter changes", function () {
                     var gotEvent = false;
-                    $(model).on("filterChange", function () {
+                    $(model).on("filter", function () {
                         gotEvent = true;
                     });
                     model.filter("uniq1");
@@ -348,88 +326,147 @@ define(function (require, exports, module) {
                 
                 beforeEach(function () {
                     runs(function () {
-                        origExtensions = ExtensionManager.loadedExtensions;
-                        ExtensionManager.loadedExtensions = {
+                        origExtensions = ExtensionManager.extensions;
+                        ExtensionManager._setExtensions({
                             "/path/to/extensions/user/legacy-extension": {
-                                status: ExtensionManager.ENABLED,
-                                path: "/path/to/extensions/user/legacy-extension",
-                                type: "user"
+                                installInfo: {
+                                    status: ExtensionManager.ENABLED,
+                                    path: "/path/to/extensions/user/legacy-extension",
+                                    locationType: "user"
+                                }
                             },
                             "registered-extension": {
-                                metadata: {
-                                    name: "registered-extension",
-                                    description: "An extension from the registry",
-                                    version: "1.0.0"
+                                registryInfo: {
+                                    metadata: {
+                                        name: "registered-extension",
+                                        description: "An updated extension from the registry",
+                                        version: "2.0.0"
+                                    },
+                                    owner: "github:someuser",
+                                    versions: [
+                                        {
+                                            version: "1.0.0",
+                                            published: "2013-04-10T18:26:20.553Z"
+                                        },
+                                        {
+                                            version: "2.0.0",
+                                            published: "2013-04-15T12:26:20.553Z"
+                                        }
+                                    ]
                                 },
-                                owner: "github:someuser",
-                                versions: [
-                                    {
-                                        version: "1.0.0",
-                                        published: "2013-04-10T18:26:20.553Z"
-                                    }
-                                ],
-                                status: ExtensionManager.ENABLED,
-                                path: "/path/to/extensions/user/registered-extension",
-                                type: "user"
+                                installInfo: {
+                                    metadata: {
+                                        name: "registered-extension",
+                                        description: "An extension from the registry",
+                                        version: "1.0.0"
+                                    },
+                                    status: ExtensionManager.ENABLED,
+                                    path: "/path/to/extensions/user/registered-extension",
+                                    locationType: "user"
+                                }
                             },
                             "unregistered-extension": {
-                                metadata: {
-                                    name: "registered-extension",
-                                    description: "An extension not from the registry",
-                                    version: "1.0.0"
-                                },
-                                status: ExtensionManager.ENABLED,
-                                path: "/path/to/extensions/user/unregistered-extension",
-                                type: "user"
+                                installInfo: {
+                                    metadata: {
+                                        name: "registered-extension",
+                                        description: "An extension not from the registry",
+                                        version: "1.0.0"
+                                    },
+                                    status: ExtensionManager.ENABLED,
+                                    path: "/path/to/extensions/user/unregistered-extension",
+                                    locationType: "user"
+                                }
+                            },
+                            "install-later-extension": {
+                                registryInfo: {
+                                    metadata: {
+                                        name: "install-later-extension",
+                                        description: "An extension from the registry that will be installed later",
+                                        version: "1.0.0"
+                                    },
+                                    owner: "github:someuser",
+                                    versions: [
+                                        {
+                                            version: "1.0.0",
+                                            published: "2013-04-10T18:26:20.553Z"
+                                        }
+                                    ]
+                                }
                             },
                             "default-extension": {
-                                metadata: {
-                                    name: "default-extension",
-                                    description: "An extension in the default folder",
-                                    version: "1.0.0"
-                                },
-                                status: ExtensionManager.ENABLED,
-                                path: "/path/to/extensions/default/default-extension",
-                                type: "default"
+                                installInfo: {
+                                    metadata: {
+                                        name: "default-extension",
+                                        description: "An extension in the default folder",
+                                        version: "1.0.0"
+                                    },
+                                    status: ExtensionManager.ENABLED,
+                                    path: "/path/to/extensions/default/default-extension",
+                                    locationType: "default"
+                                }
                             },
                             "dev-extension": {
-                                metadata: {
-                                    name: "dev-extension",
-                                    description: "An extension in the dev folder",
-                                    version: "1.0.0"
-                                },
-                                status: ExtensionManager.ENABLED,
-                                path: "/path/to/extensions/dev/dev-extension",
-                                type: "dev"
+                                installInfo: {
+                                    metadata: {
+                                        name: "dev-extension",
+                                        description: "An extension in the dev folder",
+                                        version: "1.0.0"
+                                    },
+                                    status: ExtensionManager.ENABLED,
+                                    path: "/path/to/extensions/dev/dev-extension",
+                                    locationType: "dev"
+                                }
                             }
-                        };
+                        });
                         model = new ExtensionManagerViewModel();
-                        waitsForDone(model.initialize(ExtensionManagerViewModel.EXTENSIONS_LOCAL));
+                        waitsForDone(model.initialize(ExtensionManagerViewModel.EXTENSIONS_INSTALLED));
                     });
                 });
                 
                 afterEach(function () {
-                    ExtensionManager.loadedExtensions = origExtensions;
+                    model.dispose();
+                    model = null;
+                    ExtensionManager._setExtensions(origExtensions);
                 });
                 
-                it("should initialize itself from the local extension list", function () {
-                    expect(model.extensions).toEqual(ExtensionManager.loadedExtensions);
+                it("should initialize itself from the extension list", function () {
+                    expect(model.extensions).toEqual(ExtensionManager.extensions);
                 });
                 
-                it("should sort alphabetically on the extension id/folder name", function () {
+                it("should only contain installed extensions, and sort alphabetically on the extension id/folder name", function () {
                     expect(model.filterSet).toEqual(["default-extension", "dev-extension", "legacy-extension", "registered-extension", "unregistered-extension"]);
+                });
+                
+                it("should include a newly-installed extension", function () {
+                    mockLoadExtensions(["user/install-later-extension"]);
+                    runs(function () {
+                        expect(model.filterSet.indexOf("install-later-extension")).not.toBe(-1);
+                    });
+                });
+                
+                it("should raise an event when an extension is installed", function () {
+                    var calledId;
+                    runs(function () {
+                        $(model).on("change", function (e, id) {
+                            calledId = id;
+                        });
+                    });
+                    mockLoadExtensions(["user/install-later-extension"]);
+                    runs(function () {
+                        expect(calledId).toBe("install-later-extension");
+                    });
                 });
             });
         });
         
         describe("ExtensionManagerView", function () {
-            var testWindow, view, fakeLoadDeferred, installerDeferred, mockInstalledExtensions;
+            var testWindow, view, fakeLoadDeferred;
             
-            // Sets up a real registry (with mock data).
-            function setupRegistryWithMockLoad() {
+            // Sets up the view using the normal (mock) ExtensionManager data.
+            function setupViewWithMockData() {
                 var rendered = false;
                 runs(function () {
-                    view = new ExtensionManagerView();
+                    view = new ExtensionManagerView(ExtensionManagerViewModel.EXTENSIONS_REGISTRY);
                     $(view).on("render", function () {
                         rendered = true;
                     });
@@ -437,20 +474,14 @@ define(function (require, exports, module) {
                 waitsFor(function () { return rendered; }, "view rendering");
             }
             
-            // Sets up a mock registry (with no data).
-            function setupRegistryWithNoLoad() {
+            // Sets up a view without actually loading any data--just for testing how we
+            // respond to the notifications.
+            function setupViewWithFakeLoad() {
                 fakeLoadDeferred = new $.Deferred();
-                spyOn(ExtensionManager, "getRegistry").andCallFake(function () {
+                spyOn(ExtensionManager, "downloadRegistry").andCallFake(function () {
                     return fakeLoadDeferred.promise();
                 });
                 view = new ExtensionManagerView();
-            }
-            
-            function mockInstallExtension(url) {
-                // Pretend that the extension was installed.
-                var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
-                mockInstalledExtensions[id] = true;
-                $(ExtensionManager).triggerHandler("statusChange", [id, ExtensionManager.ENABLED]);
             }
             
             beforeEach(function () {
@@ -463,24 +494,20 @@ define(function (require, exports, module) {
                         return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
                     }
                 });
-                installerDeferred = new $.Deferred();
-                mockInstalledExtensions = {};
                 spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
-                    mockInstallExtension(url);
-                    return installerDeferred.promise();
-                });
-                spyOn(ExtensionManager, "getStatus").andCallFake(function (id) {
-                    return (mockInstalledExtensions[id] ? ExtensionManager.ENABLED : ExtensionManager.NOT_INSTALLED);
+                    var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
+                    mockLoadExtensions(["user/" + id]);
                 });
             });
                 
             
             afterEach(function () {
+                view.dispose();
                 view = null;
             });
             
             it("should populate itself with registry entries and display their fields when created", function () {
-                setupRegistryWithMockLoad();
+                setupViewWithMockData();
                 runs(function () {
                     CollectionUtils.forEach(mockRegistry, function (item) {
                         // Should show the title if specified, otherwise the bare name.
@@ -518,7 +545,7 @@ define(function (require, exports, module) {
             });
             
             it("should show an install button for each item", function () {
-                setupRegistryWithMockLoad();
+                setupViewWithMockData();
                 runs(function () {
                     CollectionUtils.forEach(mockRegistry, function (item) {
                         var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
@@ -528,15 +555,12 @@ define(function (require, exports, module) {
             });
             
             it("should show disabled install buttons for items that are already installed", function () {
-                runs(function () {
-                    mockInstallExtension("http://fake-repository.com/mock-extension-1/mock-extension-1-1.0.0.zip");
-                    mockInstallExtension("http://fake-repository.com/mock-extension-2/mock-extension-2-1.0.0.zip");
-                    setupRegistryWithMockLoad();
-                });
+                mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4"]);
+                setupViewWithMockData();
                 runs(function () {
                     CollectionUtils.forEach(mockRegistry, function (item) {
                         var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
-                        if (item.metadata.name === "mock-extension-1" || item.metadata.name === "mock-extension-2") {
+                        if (item.metadata.name === "mock-extension-3" || item.metadata.name === "mock-extension-4") {
                             expect($button.attr("disabled")).toBeTruthy();
                         } else {
                             expect($button.attr("disabled")).toBeFalsy();
@@ -567,7 +591,7 @@ define(function (require, exports, module) {
                             ]
                         }
                     };
-                    setupRegistryWithMockLoad();
+                    setupViewWithMockData();
                 });
                 runs(function () {
                     var $button = $("button.install[data-extension-id=incompatible-extension]", view.$el);
@@ -577,73 +601,43 @@ define(function (require, exports, module) {
             
             it("should bring up the install dialog and install an item when install button is clicked", function () {
                 runs(function () {
-                    mockRegistry = {
-                        "basic-valid-extension": {
-                            "metadata": {
-                                "name": "basic-valid-extension",
-                                "title": "Basic Valid Extension",
-                                "version": "1.0.0"
-                            },
-                            "owner": "github:someuser",
-                            "versions": [
-                                {
-                                    "version": "1.0.0",
-                                    "published": "2013-04-10T18:28:20.530Z"
-                                }
-                            ]
-                        }
-                    };
-                    setupRegistryWithMockLoad();
+                    setupViewWithMockData();
                 });
                 runs(function () {
-                    var $button = $("button.install[data-extension-id=basic-valid-extension]", view.$el);
+                    var $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
                     expect($button.length).toBe(1);
                     $button.click();
                     expect(InstallExtensionDialog.installUsingDialog)
-                        .toHaveBeenCalledWith("http://fake-repository.com/basic-valid-extension/basic-valid-extension-1.0.0.zip");
+                        .toHaveBeenCalledWith("http://fake-repository.com/mock-extension-3/mock-extension-3-1.0.0.zip");
                 });
             });
             
             it("should disable the install button for an item immediately after installing it", function () {
+                var $button;
                 runs(function () {
-                    mockRegistry = {
-                        "basic-valid-extension": {
-                            "metadata": {
-                                "name": "basic-valid-extension",
-                                "title": "Basic Valid Extension",
-                                "version": "1.0.0"
-                            },
-                            "owner": "github:someuser",
-                            "versions": [
-                                {
-                                    "version": "1.0.0",
-                                    "published": "2013-04-10T18:28:20.530Z"
-                                }
-                            ]
-                        }
-                    };
-                    setupRegistryWithMockLoad();
+                    setupViewWithMockData();
                 });
                 runs(function () {
-                    var $button = $("button.install[data-extension-id=basic-valid-extension]", view.$el);
+                    $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
                     $button.click();
-                    installerDeferred.resolve();
+                });
+                runs(function () {
                     // Have to get the button again since the view may have created a new button when re-rendering.
-                    $button = $("button.install[data-extension-id=basic-valid-extension]", view.$el);
+                    $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
                     expect($button.attr("disabled")).toBeTruthy();
                 });
                
             });
                         
             it("should show the spinner before the registry appears successfully and hide it after", function () {
-                setupRegistryWithNoLoad();
+                setupViewWithFakeLoad();
                 expect($(".spinner", view.$el).length).toBe(1);
-                fakeLoadDeferred.resolve({});
+                fakeLoadDeferred.resolve();
                 expect($(".spinner", view.$el).length).toBe(0);
             });
             
             it("should show an error and remove the spinner if there is an error fetching the registry", function () {
-                setupRegistryWithNoLoad();
+                setupViewWithFakeLoad();
                 fakeLoadDeferred.reject();
                 expect($(".spinner", view.$el).length).toBe(0);
                 expect($(".error", view.$el).length).toBe(1);
@@ -667,7 +661,7 @@ define(function (require, exports, module) {
                             ]
                         }
                     };
-                    setupRegistryWithMockLoad();
+                    setupViewWithMockData();
                 });
                 runs(function () {
                     var origHref = window.location.href;

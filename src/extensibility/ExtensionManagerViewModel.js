@@ -43,11 +43,16 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * The model for the ExtensionManagerView. Keeps track of the extensions that are currently visible
-     * and manages sorting/filtering them.
+     * and manages sorting/filtering them. Must be disposed with dispose() when done.
      * Events:
-     *     filterChange - triggered whenever the filtered set changes (including on initialize).
+     *     change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     *     filter - triggered whenever the filtered set changes (including on initialize).
      */
     function ExtensionManagerViewModel() {
+        this._handleStatusChange = this._handleStatusChange.bind(this);
+        
+        // Listen for extension status changes.
+        $(ExtensionManager).on("statusChange", this._handleStatusChange);
     }
     
     /**
@@ -60,22 +65,19 @@ define(function (require, exports, module) {
      * @type {string}
      * Constant indicating that this model/view should initialize from the list of locally installed extensions.
      */
-    ExtensionManagerViewModel.EXTENSIONS_LOCAL = "local";
+    ExtensionManagerViewModel.EXTENSIONS_INSTALLED = "installed";
     
     /**
      * @type {Object}
-     * The current set of extensions managed by this model. The keys are the IDs of the 
-     * extensions, or, for legacy extensions with no ID, the full local path to the extension.
-     * Depending on whether a given extension is in the registry or not and whether it's locally 
-     * installed or not, each entry might or might not have the following contents:
-     *     metadata: the contents of the extension's package.json. Available for all installed and registry extensions.
-     *     owner: the ID of the owner who uploaded the extension. Only available for extensions that are in the registry.
-     *     versions: the history of versions of the extension. Only available for extensions that are in the registry.
-     *     status: the current status of the extension. Only available for installed extensions.
-     *     path: the full file path of the extension. Only available for installed extensions.
-     *     installType: one of "default", "dev", "user", or "unknown". Only available for installed extensions.
+     * The current set of extensions managed by this model. Same as ExtensionManager.extensions.
      */
     ExtensionManagerViewModel.prototype.extensions = null;
+    
+    /**
+     * @type {string}
+     * The current source for the model; one of the EXTENSIONS_* keys above.
+     */
+    ExtensionManagerViewModel.prototype.source = null;
     
     /**
      * @type {Array.<Object>}
@@ -97,13 +99,20 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._lastQuery = null;
     
     /**
+     * Unregisters listeners when we're done.
+     */
+    ExtensionManagerViewModel.prototype.dispose = function () {
+        $(ExtensionManager).off("statusChange", this._handleStatusChange);
+    };
+
+    /**
      * @private
      * Sets up the initial filtered set based on the sorted full set.
      */
     ExtensionManagerViewModel.prototype._setInitialFilter = function () {
         // Initial filtered list is the same as the sorted list.
         this.filterSet = this._sortedFullSet.slice(0);
-        $(this).triggerHandler("filterChange");
+        $(this).triggerHandler("filter");
     };
     
     /**
@@ -113,14 +122,18 @@ define(function (require, exports, module) {
      */
     ExtensionManagerViewModel.prototype._initializeFromRegistry = function () {
         var self = this;
-        return ExtensionManager.getRegistry(true)
-            .done(function (registry) {
-                self.extensions = registry;
+        return ExtensionManager.downloadRegistry()
+            .done(function () {
+                self.extensions = ExtensionManager.extensions;
                 
                 // Sort the registry by last published date and store the sorted list of IDs.
-                self._sortedFullSet = registry_utils.sortRegistry(registry).map(function (entry) {
-                    return entry.metadata.name;
-                });
+                self._sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
+                    .filter(function (entry) {
+                        return entry.registryInfo !== undefined;
+                    })
+                    .map(function (entry) {
+                        return entry.registryInfo.metadata.name;
+                    });
                 self._setInitialFilter();
             });
     };
@@ -128,18 +141,22 @@ define(function (require, exports, module) {
     /**
      * Initializes the model from the set of locally installed extensions, sorted
      * alphabetically by id (or name of the extension folder for legacy extensions).
-     * @return {$.Promise} a promise that's resolved with the installed extension JSON data.
+     * @return {$.Promise} a promise that's resolved when we're done initializing.
      */
     ExtensionManagerViewModel.prototype._initializeFromInstalledExtensions = function () {
-        this.extensions = ExtensionManager.loadedExtensions;
+        var self = this;
+        this.extensions = ExtensionManager.extensions;
         this._sortedFullSet = Object.keys(this.extensions)
+            .filter(function (key) {
+                return self.extensions[key].installInfo !== undefined;
+            })
             .map(function (key) {
                 var match = key.match(/\/([^\/]+)$/);
                 return (match && match[1]) || key;
             })
             .sort();
         this._setInitialFilter();
-        return new $.Deferred().resolve(this.extensions);
+        return new $.Deferred().resolve();
     };
     
     /**
@@ -147,20 +164,54 @@ define(function (require, exports, module) {
      * @param {string} source One of the EXTENSIONS_* constants above.
      */
     ExtensionManagerViewModel.prototype.initialize = function (source) {
-        return (source === ExtensionManagerViewModel.EXTENSIONS_LOCAL ?
+        this.source = source;
+        return (source === ExtensionManagerViewModel.EXTENSIONS_INSTALLED ?
                 this._initializeFromInstalledExtensions() :
                 this._initializeFromRegistry());
     };
     
     /**
      * @private
-     * Searches for the given query in the current extension list and updates the filter set,
-     * dispatching a filterChange event.
-     * @param {string} query The string to search for.
+     * Updates the initial set and filter as necessary when the status of an extension changes,
+     * and notifies listeners of the change.
+     * @param {$.Event} e The jQuery event object.
+     * @param {string} id The id of the extension whose status changed.
      */
-    ExtensionManagerViewModel.prototype.filter = function (query) {
+    ExtensionManagerViewModel.prototype._handleStatusChange = function (e, id) {
+        // If we're looking at local extensions, then we might need to add or
+        // remove this extension from the full set. If the full set has changed,
+        // then we also need to refilter.
+        if (this.source === ExtensionManagerViewModel.EXTENSIONS_INSTALLED) {
+            var index = this._sortedFullSet.indexOf(id),
+                refilter = false;
+            if (index !== -1 && !this.extensions[id].installInfo) {
+                // This was in our set, but was uninstalled. Remove it.
+                this._sortedFullSet.splice(index, 1);
+                refilter = true;
+            } else if (index === -1 && this.extensions[id].installInfo) {
+                // This was not in our set, but is now installed. Add it and resort.
+                this._sortedFullSet.push(id);
+                this._sortedFullSet.sort();
+                refilter = true;
+            }
+            if (refilter) {
+                this.filter(this._lastQuery || "", true);
+            }
+        }
+        $(this).triggerHandler("change", id);
+    };
+    
+    /**
+     * @private
+     * Searches for the given query in the current extension list and updates the filter set,
+     * dispatching a filter event.
+     * @param {string} query The string to search for.
+     * @param {boolean} force If true, always filter starting with the full set, not the last
+     *     query's filter.
+     */
+    ExtensionManagerViewModel.prototype.filter = function (query, force) {
         var self = this, initialList, newFilterSet = [];
-        if (this._lastQuery && query.indexOf(this._lastQuery) === 0) {
+        if (!force && this._lastQuery && query.indexOf(this._lastQuery) === 0) {
             // This is the old query with some new letters added, so we know we can just
             // search in the current filter set.
             initialList = this.filterSet;
@@ -172,6 +223,9 @@ define(function (require, exports, module) {
         query = query.toLowerCase();
         initialList.forEach(function (id) {
             var entry = self.extensions[id];
+            if (entry) {
+                entry = (self.source === ExtensionManagerViewModel.EXTENSIONS_INSTALLED ? entry.installInfo : entry.registryInfo);
+            }
             if (entry && self._entryMatchesQuery(entry, query)) {
                 newFilterSet.push(id);
             }
@@ -179,7 +233,7 @@ define(function (require, exports, module) {
         
         this._lastQuery = query;
         this.filterSet = newFilterSet;
-        $(this).trigger("filterChange");
+        $(this).triggerHandler("filter");
     };
     
     /**
@@ -190,25 +244,26 @@ define(function (require, exports, module) {
      * @return {boolean} Whether the query matches.
      */
     ExtensionManagerViewModel.prototype._entryMatchesQuery = function (entry, query) {
-        return _searchFields.some(function (fieldSpec) {
-            var i, cur = entry;
-            for (i = 0; i < fieldSpec.length; i++) {
-                // Recurse downward through the specified fields to the leaf value.
-                cur = cur[fieldSpec[i]];
-                if (!cur) {
-                    return false;
+        return query === "" ||
+            _searchFields.some(function (fieldSpec) {
+                var i, cur = entry;
+                for (i = 0; i < fieldSpec.length; i++) {
+                    // Recurse downward through the specified fields to the leaf value.
+                    cur = cur[fieldSpec[i]];
+                    if (!cur) {
+                        return false;
+                    }
                 }
-            }
-            // If the leaf value is an array (like keywords), search each item, otherwise
-            // just search in the string.
-            if (Array.isArray(cur)) {
-                return cur.some(function (keyword) {
-                    return keyword.toLowerCase().indexOf(query) !== -1;
-                });
-            } else if (cur.toLowerCase().indexOf(query) !== -1) {
-                return true;
-            }
-        });
+                // If the leaf value is an array (like keywords), search each item, otherwise
+                // just search in the string.
+                if (Array.isArray(cur)) {
+                    return cur.some(function (keyword) {
+                        return keyword.toLowerCase().indexOf(query) !== -1;
+                    });
+                } else if (cur.toLowerCase().indexOf(query) !== -1) {
+                    return true;
+                }
+            });
     };
     
     exports.ExtensionManagerViewModel = ExtensionManagerViewModel;

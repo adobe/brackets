@@ -29,10 +29,9 @@
  * The ExtensionManager fetches/caches the extension registry and provides
  * information about the status of installed extensions. ExtensionManager raises the 
  * following events:
- *     statusChange - indicates that the status of an extension has changed. Second 
- *          parameter is the extension's ID (or its local folder path for legacy 
- *          extensions with no package json). Third parameter is the new status, which 
- *          is one of the status constants below.
+ *     statusChange - indicates that an extension has been installed/uninstalled or
+ *         its status has otherwise changed. Second parameter is the id of the
+ *         extension.
  */
 
 define(function (require, exports, module) {
@@ -49,8 +48,7 @@ define(function (require, exports, module) {
     /**
      * Extension status constants.
      */
-    var NOT_INSTALLED = "not_installed",
-        ENABLED       = "enabled";
+    var ENABLED       = "enabled";
     
     /**
      * Extension location constants.
@@ -62,52 +60,64 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {Object}
-     * The current registry JSON downloaded from the server.
+     * @type {Object.<string, {metadata: Object, path: string, status: string}>}
+     * The set of all known extensions, both from the registry and locally installed. 
+     * The keys are either ids (for extensions that have package metadata) or local file paths (for 
+     * installed legacy extensions with no package metadata). The fields of each record are:
+     *     registryInfo: object containing the info for this id from the main registry (containing metadata, owner,
+     *         and versions). This will be null for legacy extensions.
+     *     installInfo: object containing the info for a locally-installed extension:
+     *         metadata: the package metadata loaded from the local package.json, or null if it's a legacy extension.
+     *             This will be different from registryInfo.metadata if there's a newer version in the registry.
+     *         path: the local path to the extension folder on disk
+     *         locationType: general type of installation; one of the LOCATION_* constants above
+     *         status: the current status, one of the status constants above
      */
-    var _registry = null;
+    var extensions = {};
     
     /**
      * @private
-     * @type {Object.<string, {metadata: Object, path: string, status: string}>}
-     * The set of locally loaded extensions. The keys are either ids (for extensions that have package metadata) or
-     * local file paths (for legacy extensions with no package metadata). The fields of each record are:
-     *     metadata: the package metadata loaded from the local package.json, or null if it's a legacy extension
-     *     path: the local path to the extension folder on disk
-     *     status: the current status, one of the status constants above
+     * Sets our data. For unit testing only.
      */
-    var loadedExtensions = {};
+    function _setExtensions(newExtensions) {
+        exports.extensions = extensions = newExtensions;
+    }
 
     /**
      * @private
      * Clears out our existing data. For unit testing only.
      */
     function _reset() {
-        _registry = null;
-        loadedExtensions = {};
+        exports.extensions = extensions = {};
     }
 
     /**
-     * Returns the registry of Brackets extensions and caches the result for subsequent
-     * calls.
+     * Downloads the registry of Brackets extensions and stores the information in our
+     * extension info.
      *
-     * @param {boolean} forceDownload Fetch the registry from S3 even if we have a cached copy.
      * @return {$.Promise} a promise that's resolved with the registry JSON data
      * or rejected if the server can't be reached.
      */
-    function getRegistry(forceDownload) {
-        if (!_registry || forceDownload) {
-            return $.ajax({
-                url: brackets.config.extension_registry,
-                dataType: "json",
-                cache: false
-            })
-                .done(function (data) {
-                    _registry = data;
+    function downloadRegistry() {
+        var result = new $.Deferred();
+        $.ajax({
+            url: brackets.config.extension_registry,
+            dataType: "json",
+            cache: false
+        })
+            .done(function (data) {
+                Object.keys(data).forEach(function (id) {
+                    if (!extensions[id]) {
+                        extensions[id] = {};
+                    }
+                    extensions[id].registryInfo = data[id];
                 });
-        } else {
-            return new $.Deferred().resolve(_registry).promise();
-        }
+                result.resolve();
+            })
+            .fail(function () {
+                result.reject();
+            });
+        return result.promise();
     }
     
     /**
@@ -159,7 +169,10 @@ define(function (require, exports, module) {
                     locationType = LOCATION_UNKNOWN;
                 }
             }
-            loadedExtensions[id] = {
+            if (!extensions[id]) {
+                extensions[id] = {};
+            }
+            extensions[id].installInfo = {
                 metadata: metadata,
                 path: path,
                 locationType: locationType,
@@ -179,26 +192,7 @@ define(function (require, exports, module) {
                 setData(path, null);
             });
     }
-    
-    /**
-     * Returns the status of the extension with the given id.
-     * @param {string} id The ID of the extension, or for legacy extensions, the local file path.
-     * @return {string} The extension's status; one of the constants above
-     */
-    function getStatus(id) {
-        return (loadedExtensions[id] && loadedExtensions[id].status) || NOT_INSTALLED;
-    }
-    
-    /**
-     * Returns the install location of the given extension, or LOCATION_UNKNOWN if it's not installed or installed 
-     * in a strange location.
-     * @param {string} id The ID of the extension, or for legacy extensions, the local file path.
-     * @return {string} one of the LOCATION constants
-     */
-    function getLocationType(id) {
-        return (loadedExtensions[id] && loadedExtensions[id].locationType) || LOCATION_UNKNOWN;
-    }
-    
+        
     /**
      * Returns information about whether the given entry is compatible with the given Brackets API version.
      * @param {Object} entry The registry entry to check.
@@ -246,14 +240,11 @@ define(function (require, exports, module) {
     $(ExtensionLoader).on("load", _handleExtensionLoad);
 
     // Public exports
-    exports.getRegistry = getRegistry;
-    exports.getStatus = getStatus;
-    exports.getLocationType = getLocationType;
+    exports.downloadRegistry = downloadRegistry;
     exports.getCompatibilityInfo = getCompatibilityInfo;
     exports.getExtensionURL = getExtensionURL;
-    exports.loadedExtensions = loadedExtensions;
+    exports.extensions = extensions;
     
-    exports.NOT_INSTALLED = NOT_INSTALLED;
     exports.ENABLED = ENABLED;
     
     exports.LOCATION_DEFAULT = LOCATION_DEFAULT;
@@ -263,4 +254,5 @@ define(function (require, exports, module) {
 
     // For unit testing only
     exports._reset = _reset;
+    exports._setExtensions = _setExtensions;
 });

@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
+        AppInit               = require("utils/AppInit"),
         ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView;
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
@@ -49,12 +50,14 @@ define(function (require, exports, module) {
             view = new ExtensionManagerView();
         view.$el.appendTo($(".modal-body", $dlg));
         
-        // Filter the view's model when the user types in the search field.
+        // Filter the view when the user types in the search field.
         $dlg.on("input", ".search", function (e) {
-            view.model.filter($(this).val());
+            view.filter($(this).val());
         }).on("click", ".search-clear", function (e) {
             $(".search", $dlg).val("");
-            view.model.filter("");
+            view.filter("");
+        }).one("hidden", function (e) {
+            view.dispose();
         });
         
         $(".extension-manager-dialog .install-from-url")
@@ -66,4 +69,8 @@ define(function (require, exports, module) {
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);
+
+    AppInit.appReady(function () {
+        $("#toolbar-extension-manager").click(_showDialog);
+    });
 });

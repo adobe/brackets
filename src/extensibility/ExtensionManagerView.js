@@ -38,21 +38,25 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     * Creates a view enabling the user to install and manage extensions.
+     * Creates a view enabling the user to install and manage extensions. When the view
+     * is closed, dispose() must be called.
      * Events:
      *     "render": whenever the view fully renders itself.
+     * @param {string} source Which set of extensions to view: one of the EXTENSIONS_* constants
+     *     in ExtensionsManagerViewModel.
      */
-    function ExtensionManagerView() {
+    function ExtensionManagerView(source) {
         var self = this;
         this.model = new ExtensionManagerViewModel();
         this._itemTemplate = Mustache.compile(itemTemplate);
+        this._itemViews = {};
         this.$el = $("<div class='extension-list'/>");
         this._$table = $("<table class='table'/>").appendTo(this.$el);
         
         // Show the busy spinner and access the registry.
         var $spinner = $("<div class='spinner large spin'/>")
             .appendTo(this.$el);
-        this.model.initialize(ExtensionManagerViewModel.EXTENSIONS_REGISTRY).done(function () {
+        this.model.initialize(source).done(function () {
             self._setupEventHandlers();
             self._render();
         }).fail(function () {
@@ -94,7 +98,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, jQueryObject>}
      * The individual views for each item, keyed by the extension ID.
      */
-    ExtensionManagerView.prototype._itemViews = {};
+    ExtensionManagerView.prototype._itemViews = null;
     
     /**
      * @private
@@ -103,27 +107,23 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype._setupEventHandlers = function () {
         var self = this;
         
-        // Listen for model filter changes.
-        $(this.model).on("filterChange", function () {
-            self._render();
-        });
-        
-        // Listen for extension status changes.
-        $(ExtensionManager).on("statusChange", function (e, id, status) {
-            // Re-render the extension item.
-            // TODO: should this flow through the model?
-            // FUTURE: later on, some of these views might be for installed extensions that aren't 
-            // in the registry, e.g. legacy extensions or local dev extensions.
-            var extensions = self.model.extensions;
-            if (extensions[id]) {
-                var $oldItem = self._itemViews[id],
-                    $newItem = self._renderItem(extensions[id]);
-                if ($oldItem) {
-                    $oldItem.replaceWith($newItem);
-                    self._itemViews[id] = $newItem;
+        // Listen for model data and filter changes.
+        $(this.model)
+            .on("filter", function () {
+                self._render();
+            })
+            .on("change", function (e, id) {
+                // Re-render the extension item.
+                var extensions = self.model.extensions;
+                if (extensions[id]) {
+                    var $oldItem = self._itemViews[id],
+                        $newItem = self._renderItem(extensions[id]);
+                    if ($oldItem) {
+                        $oldItem.replaceWith($newItem);
+                        self._itemViews[id] = $newItem;
+                    }
                 }
-            }
-        });
+            });
         
         // UI event handlers
         $(this.$el)
@@ -148,17 +148,23 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._renderItem = function (entry) {
         // Create a Mustache context object containing the entry data and our helper functions.
-        var context = $.extend({}, entry),
-            status = ExtensionManager.getStatus(entry.metadata.name);
+        var info, context;
+        if (this.model.source === ExtensionManagerViewModel.EXTENSIONS_INSTALLED) {
+            info = entry.installInfo;
+        } else {
+            info = entry.registryInfo;
+        }
+        context = $.extend({}, info);
         
         // Normally we would merge the strings into the context we're passing into the template,
         // but since we're instantiating the template for every item, it seems wrong to take the hit
         // of copying all the strings into the context, so we just make it a subfield.
         context.Strings = Strings;
         
-        context.isInstalled = (status === ExtensionManager.ENABLED);
+        context.isInstalled = !!entry.installInfo;
         
-        var compatInfo = ExtensionManager.getCompatibilityInfo(entry, brackets.metadata.apiVersion);
+        // TODO: calculate this in ExtensionManager and store it?
+        var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);
         context.isCompatible = compatInfo.isCompatible;
         context.requiresNewer = compatInfo.requiresNewer;
         
@@ -196,10 +202,25 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._installUsingDialog = function (id) {
         var entry = this.model.extensions[id];
-        if (entry) {
-            var url = ExtensionManager.getExtensionURL(id, entry.metadata.version);
+        if (entry && entry.registryInfo) {
+            var url = ExtensionManager.getExtensionURL(id, entry.registryInfo.metadata.version);
             InstallExtensionDialog.installUsingDialog(url);
         }
+    };
+    
+    /**
+     * Filters the contents of the view.
+     * @param {string} query The query to filter by.
+     */
+    ExtensionManagerView.prototype.filter = function (query) {
+        this.model.filter(query);
+    };
+    
+    /**
+     * Disposes the view. Must be called when the view goes away.
+     */
+    ExtensionManagerView.prototype.dispose = function () {
+        this.model.dispose();
     };
     
     exports.ExtensionManagerView = ExtensionManagerView;
