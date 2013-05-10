@@ -473,12 +473,13 @@ a, img {
     z-index: @z-index-brackets-scroller-shadow;
     
     &.top {
-        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
         background-position: 0 -5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
     
     &.bottom {
-        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        #gradient > .vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
         background-position: 0 5px;
         background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
