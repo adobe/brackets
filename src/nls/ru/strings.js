@@ -262,7 +262,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Закрыть (Не сохранять)",
     "RELAUNCH_CHROME"                      : "Перезапустить Chrome",
     "ABOUT"                                : "О программе",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Закрыть",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Внимание, правила и условия, относящиеся к стороннему программному обеспечению находятся на <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> и включены здесь в качестве ссылки.",

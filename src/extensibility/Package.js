@@ -134,10 +134,13 @@ define(function (require, exports, module) {
         _nodeConnectionDeferred
             .done(function (nodeConnection) {
                 if (nodeConnection.connected()) {
-                    var destinationDirectory = ExtensionLoader.getUserExtensionPath();
-                    var disabledDirectory = destinationDirectory.replace(/\/user$/, "/disabled");
+                    var destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
+                        disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
+                        systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
+                    
                     nodeConnection.domains.extensionManager.install(path, destinationDirectory, {
                         disabledDirectory: disabledDirectory,
+                        systemExtensionDirectory: systemDirectory,
                         apiVersion: brackets.metadata.apiVersion,
                         nameHint: nameHint
                     })
@@ -263,7 +266,7 @@ define(function (require, exports, module) {
      */
     function cancelDownload(downloadId) {
         // TODO: if we're still waiting on the NodeConnection, how do we cancel?
-        console.assert(_nodeConnectionDeferred.isResolved());
+        console.assert(_nodeConnectionDeferred.state() === "resolved");
         _nodeConnectionDeferred.done(function (connection) {
             connection.domains.extensionManager.abortDownload(downloadId);
         });
