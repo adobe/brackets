@@ -310,7 +310,6 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
-    "INSTALL"                              : "Install",
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
@@ -333,6 +332,9 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
     
     // Extension Management strings
+    "INSTALL"                              : "Install",
+    "REMOVE"                               : "Remove",
+    "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",

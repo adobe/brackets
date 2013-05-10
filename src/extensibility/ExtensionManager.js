@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, window, $, brackets, semver */
 /*unittests: ExtensionManager*/
 
@@ -188,8 +188,12 @@ define(function (require, exports, module) {
             .fail(function () {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
                 // but we don't have an official ID or metadata for it, so we just store it by its
-                // local path and record that it's enabled.
-                setData(path, null);
+                // local path and record that it's enabled. We also create a "title" for it (which is
+                // the last segment of its pathname) that we can display and sort by.
+                var match = path.match(/\/([^\/]+)$/),
+                    metadata = { title: (match && match[1]) || path };
+                console.log("setting legacy metadata for " + path + " to " + JSON.stringify(metadata));
+                setData(path, metadata);
             });
     }
         

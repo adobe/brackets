@@ -32,7 +32,8 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
         AppInit               = require("utils/AppInit"),
-        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView;
+        ExtensionManagerView  = require("extensibility/ExtensionManagerView").ExtensionManagerView,
+        ExtensionManagerViewModel  = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel;
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
 
@@ -48,24 +49,30 @@ define(function (require, exports, module) {
         // Create the view.
         var $dlg = $(".extension-manager-dialog"),
             view = new ExtensionManagerView();
-        view.$el.appendTo($(".modal-body", $dlg));
-        
-        // Filter the view when the user types in the search field.
-        $dlg.on("input", ".search", function (e) {
-            view.filter($(this).val());
-        }).on("click", ".search-clear", function (e) {
-            $(".search", $dlg).val("");
-            view.filter("");
-        }).one("hidden", function (e) {
-            view.dispose();
-        });
-        
-        $(".extension-manager-dialog .install-from-url")
-            .click(function () {
-                CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
+        view.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED)
+            .done(function () {
+                view.$el.appendTo($(".modal-body", $dlg));
+                
+                // Filter the view when the user types in the search field.
+                $dlg.on("input", ".search", function (e) {
+                    view.filter($(this).val());
+                }).on("click", ".search-clear", function (e) {
+                    $(".search", $dlg).val("");
+                    view.filter("");
+                });
+                
+                // Clean up when the dialog goes away.
+                $dlg.one("hidden", function (e) {
+                    view.dispose();
+                });
+                
+                $(".extension-manager-dialog .install-from-url")
+                    .click(function () {
+                        CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);
+                    });
+                
+                $dlg.find(".search").focus();
             });
-        
-        $dlg.find(".search").focus();
     }
     
     CommandManager.register(Strings.CMD_EXTENSION_MANAGER, Commands.FILE_EXTENSION_MANAGER, _showDialog);

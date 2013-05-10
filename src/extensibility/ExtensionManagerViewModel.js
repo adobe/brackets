@@ -59,13 +59,13 @@ define(function (require, exports, module) {
      * @type {string}
      * Constant indicating that this model/view should initialize from the main extension registry.
      */
-    ExtensionManagerViewModel.EXTENSIONS_REGISTRY = "registry";
+    ExtensionManagerViewModel.SOURCE_REGISTRY = "registry";
     
     /**
      * @type {string}
      * Constant indicating that this model/view should initialize from the list of locally installed extensions.
      */
-    ExtensionManagerViewModel.EXTENSIONS_INSTALLED = "installed";
+    ExtensionManagerViewModel.SOURCE_INSTALLED = "installed";
     
     /**
      * @type {Object}
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     
     /**
      * @type {string}
-     * The current source for the model; one of the EXTENSIONS_* keys above.
+     * The current source for the model; one of the SOURCE_* keys above.
      */
     ExtensionManagerViewModel.prototype.source = null;
     
@@ -148,24 +148,33 @@ define(function (require, exports, module) {
         this.extensions = ExtensionManager.extensions;
         this._sortedFullSet = Object.keys(this.extensions)
             .filter(function (key) {
-                return self.extensions[key].installInfo !== undefined;
+                return self.extensions[key].installInfo !== undefined &&
+                    self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
             })
-            .map(function (key) {
-                var match = key.match(/\/([^\/]+)$/);
-                return (match && match[1]) || key;
-            })
-            .sort();
+            .sort(function (key1, key2) {
+                var metadata1 = self.extensions[key1].installInfo.metadata,
+                    metadata2 = self.extensions[key2].installInfo.metadata,
+                    id1 = metadata1.title || metadata1.name,
+                    id2 = metadata2.title || metadata2.name;
+                if (id1 < id2) {
+                    return -1;
+                } else if (id1 === id2) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            });
         this._setInitialFilter();
         return new $.Deferred().resolve();
     };
     
     /**
      * Initializes the model from the given source.
-     * @param {string} source One of the EXTENSIONS_* constants above.
+     * @param {string} source One of the SOURCE_* constants above.
      */
     ExtensionManagerViewModel.prototype.initialize = function (source) {
         this.source = source;
-        return (source === ExtensionManagerViewModel.EXTENSIONS_INSTALLED ?
+        return (source === ExtensionManagerViewModel.SOURCE_INSTALLED ?
                 this._initializeFromInstalledExtensions() :
                 this._initializeFromRegistry());
     };
@@ -181,7 +190,7 @@ define(function (require, exports, module) {
         // If we're looking at local extensions, then we might need to add or
         // remove this extension from the full set. If the full set has changed,
         // then we also need to refilter.
-        if (this.source === ExtensionManagerViewModel.EXTENSIONS_INSTALLED) {
+        if (this.source === ExtensionManagerViewModel.SOURCE_INSTALLED) {
             var index = this._sortedFullSet.indexOf(id),
                 refilter = false;
             if (index !== -1 && !this.extensions[id].installInfo) {
@@ -224,7 +233,7 @@ define(function (require, exports, module) {
         initialList.forEach(function (id) {
             var entry = self.extensions[id];
             if (entry) {
-                entry = (self.source === ExtensionManagerViewModel.EXTENSIONS_INSTALLED ? entry.installInfo : entry.registryInfo);
+                entry = (self.source === ExtensionManagerViewModel.SOURCE_INSTALLED ? entry.installInfo : entry.registryInfo);
             }
             if (entry && self._entryMatchesQuery(entry, query)) {
                 newFilterSet.push(id);

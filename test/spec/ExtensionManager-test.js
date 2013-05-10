@@ -183,6 +183,14 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should set the title for a legacy extension based on its folder name", function () {
+                mockLoadExtensions();
+                runs(function () {
+                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
+                    expect(ExtensionManager.extensions[mockPath + "/user/mock-legacy-extension"].installInfo.metadata.title).toEqual("mock-legacy-extension");
+                });
+            });
+            
             it("should determine the location type for installed extensions", function () {
                 mockLoadExtensions();
                 runs(function () {
@@ -261,7 +269,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         mockRegistry = JSON.parse(mockRegistryForSearch);
                         model = new ExtensionManagerViewModel();
-                        waitsForDone(model.initialize(ExtensionManagerViewModel.EXTENSIONS_REGISTRY), "model initialization");
+                        waitsForDone(model.initialize(ExtensionManagerViewModel.SOURCE_REGISTRY), "model initialization");
                     });
                     runs(function () {
                         // Mock load some extensions, so we can make sure they don't show up in the filtered model in this case.
@@ -330,6 +338,9 @@ define(function (require, exports, module) {
                         ExtensionManager._setExtensions({
                             "/path/to/extensions/user/legacy-extension": {
                                 installInfo: {
+                                    metadata: {
+                                        title: "legacy-extension"
+                                    },
                                     status: ExtensionManager.ENABLED,
                                     path: "/path/to/extensions/user/legacy-extension",
                                     locationType: "user"
@@ -339,6 +350,7 @@ define(function (require, exports, module) {
                                 registryInfo: {
                                     metadata: {
                                         name: "registered-extension",
+                                        title: "AAA extension to sort to the beginning",
                                         description: "An updated extension from the registry",
                                         version: "2.0.0"
                                     },
@@ -357,6 +369,7 @@ define(function (require, exports, module) {
                                 installInfo: {
                                     metadata: {
                                         name: "registered-extension",
+                                        title: "AAA extension to sort to the beginning",
                                         description: "An extension from the registry",
                                         version: "1.0.0"
                                     },
@@ -419,7 +432,7 @@ define(function (require, exports, module) {
                             }
                         });
                         model = new ExtensionManagerViewModel();
-                        waitsForDone(model.initialize(ExtensionManagerViewModel.EXTENSIONS_INSTALLED));
+                        waitsForDone(model.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED));
                     });
                 });
                 
@@ -433,8 +446,8 @@ define(function (require, exports, module) {
                     expect(model.extensions).toEqual(ExtensionManager.extensions);
                 });
                 
-                it("should only contain installed extensions, and sort alphabetically on the extension id/folder name", function () {
-                    expect(model.filterSet).toEqual(["default-extension", "dev-extension", "legacy-extension", "registered-extension", "unregistered-extension"]);
+                it("should only contain dev and user extensions, sorted alphabetically on the extension title (or last segment of path name for legacy extensions)", function () {
+                    expect(model.filterSet).toEqual(["registered-extension", "dev-extension", "/path/to/extensions/user/legacy-extension", "unregistered-extension"]);
                 });
                 
                 it("should include a newly-installed extension", function () {
@@ -463,15 +476,12 @@ define(function (require, exports, module) {
             var testWindow, view, fakeLoadDeferred;
             
             // Sets up the view using the normal (mock) ExtensionManager data.
-            function setupViewWithMockData() {
+            function setupViewWithMockData(source) {
                 var rendered = false;
                 runs(function () {
-                    view = new ExtensionManagerView(ExtensionManagerViewModel.EXTENSIONS_REGISTRY);
-                    $(view).on("render", function () {
-                        rendered = true;
-                    });
+                    view = new ExtensionManagerView();
+                    waitsForDone(view.initialize(source), "view initializing");
                 });
-                waitsFor(function () { return rendered; }, "view rendering");
             }
             
             // Sets up a view without actually loading any data--just for testing how we
@@ -482,6 +492,9 @@ define(function (require, exports, module) {
                     return fakeLoadDeferred.promise();
                 });
                 view = new ExtensionManagerView();
+                // We don't wait for this to finish since the tests that use this will
+                // be manipulating the load promise.
+                view.initialize(ExtensionManagerViewModel.SOURCE_REGISTRY);
             }
             
             beforeEach(function () {
@@ -506,169 +519,210 @@ define(function (require, exports, module) {
                 view = null;
             });
             
-            it("should populate itself with registry entries and display their fields when created", function () {
-                setupViewWithMockData();
-                runs(function () {
-                    CollectionUtils.forEach(mockRegistry, function (item) {
-                        // Should show the title if specified, otherwise the bare name.
-                        if (item.metadata.title) {
-                            expect(view).toHaveText(item.metadata.title);
-                        } else {
-                            expect(view).toHaveText(item.metadata.name);
-                        }
-                        
-                        // Simple fields
-                        [item.metadata.version,
-                            item.metadata.author && item.metadata.author.name,
-                            item.metadata.description]
-                            .forEach(function (value) {
-                                if (value) {
-                                    expect(view).toHaveText(value);
+            describe("when showing registry entries", function () {
+                it("should populate itself with registry entries and display their fields when created", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    runs(function () {
+                        CollectionUtils.forEach(mockRegistry, function (item) {
+                            // Should show the title if specified, otherwise the bare name.
+                            if (item.metadata.title) {
+                                expect(view).toHaveText(item.metadata.title);
+                            } else {
+                                expect(view).toHaveText(item.metadata.name);
+                            }
+                            
+                            // Simple fields
+                            [item.metadata.version,
+                                item.metadata.author && item.metadata.author.name,
+                                item.metadata.description]
+                                .forEach(function (value) {
+                                    if (value) {
+                                        expect(view).toHaveText(value);
+                                    }
+                                });
+                            
+                            // Array-valued fields
+                            [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
+                                if (arr) {
+                                    arr.forEach(function (value) {
+                                        expect(view).toHaveText(value);
+                                    });
                                 }
                             });
-                        
-                        // Array-valued fields
-                        [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
-                            if (arr) {
-                                arr.forEach(function (value) {
-                                    expect(view).toHaveText(value);
-                                });
+                            
+                            // Owner--should show the parts, but might format them separately
+                            item.owner.split(":").forEach(function (part) {
+                                expect(view).toHaveText(part);
+                            });
+                        });
+                    });
+                });
+                
+                it("should show an install button for each item", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    runs(function () {
+                        CollectionUtils.forEach(mockRegistry, function (item) {
+                            var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
+                            expect($button.length).toBe(1);
+                        });
+                    });
+                });
+                
+                it("should show disabled install buttons for items that are already installed", function () {
+                    mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    runs(function () {
+                        CollectionUtils.forEach(mockRegistry, function (item) {
+                            var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
+                            if (item.metadata.name === "mock-extension-3" || item.metadata.name === "mock-extension-4") {
+                                expect($button.attr("disabled")).toBeTruthy();
+                            } else {
+                                expect($button.attr("disabled")).toBeFalsy();
                             }
                         });
-                        
-                        // Owner--should show the parts, but might format them separately
-                        item.owner.split(":").forEach(function (part) {
-                            expect(view).toHaveText(part);
+                    });
+                });
+    
+                it("should show disabled install buttons for items that have incompatible versions", function () {
+                    runs(function () {
+                        mockRegistry = {
+                            "incompatible-extension": {
+                                "metadata": {
+                                    "name": "incompatible-extension",
+                                    "title": "Incompatible Extension",
+                                    "version": "1.0.0",
+                                    "engines": {
+                                        "brackets": "<0.1"
+                                    }
+                                },
+                                "owner": "github:someuser",
+                                "versions": [
+                                    {
+                                        "version": "1.0.0",
+                                        "published": "2013-04-10T18:28:20.530Z",
+                                        "brackets": "<0.1"
+                                    }
+                                ]
+                            }
+                        };
+                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    });
+                    runs(function () {
+                        var $button = $("button.install[data-extension-id=incompatible-extension]", view.$el);
+                        expect($button.attr("disabled")).toBeTruthy();
+                    });
+                });
+                
+                it("should bring up the install dialog and install an item when install button is clicked", function () {
+                    runs(function () {
+                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    });
+                    runs(function () {
+                        var $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
+                        expect($button.length).toBe(1);
+                        $button.click();
+                        expect(InstallExtensionDialog.installUsingDialog)
+                            .toHaveBeenCalledWith("http://fake-repository.com/mock-extension-3/mock-extension-3-1.0.0.zip");
+                    });
+                });
+                
+                it("should disable the install button for an item immediately after installing it", function () {
+                    var $button;
+                    runs(function () {
+                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    });
+                    runs(function () {
+                        $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
+                        $button.click();
+                    });
+                    runs(function () {
+                        // Have to get the button again since the view may have created a new button when re-rendering.
+                        $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
+                        expect($button.attr("disabled")).toBeTruthy();
+                    });
+                   
+                });
+                            
+                it("should show the spinner before the registry appears successfully and hide it after", function () {
+                    setupViewWithFakeLoad();
+                    expect($(".spinner", view.$el).length).toBe(1);
+                    fakeLoadDeferred.resolve();
+                    expect($(".spinner", view.$el).length).toBe(0);
+                });
+                
+                it("should show an error and remove the spinner if there is an error fetching the registry", function () {
+                    setupViewWithFakeLoad();
+                    fakeLoadDeferred.reject();
+                    expect($(".spinner", view.$el).length).toBe(0);
+                    expect($(".error", view.$el).length).toBe(1);
+                });
+                
+                it("should open links in the native browser instead of in Brackets", function () {
+                    runs(function () {
+                        mockRegistry = {
+                            "basic-valid-extension": {
+                                "metadata": {
+                                    "name": "basic-valid-extension",
+                                    "title": "Basic Valid Extension",
+                                    "version": "1.0.0"
+                                },
+                                "owner": "github:someuser",
+                                "versions": [
+                                    {
+                                        "version": "1.0.0",
+                                        "published": "2013-04-10T18:28:20.530Z"
+                                    }
+                                ]
+                            }
+                        };
+                        setupViewWithMockData(ExtensionManagerViewModel.SOURCE_REGISTRY);
+                    });
+                    runs(function () {
+                        var origHref = window.location.href;
+                        spyOn(NativeApp, "openURLInDefaultBrowser");
+                        $("a", view.$el).first().click();
+                        expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/someuser");
+                        expect(window.location.href).toBe(origHref);
+                    });
+                });
+            });
+            
+            describe("when showing installed extensions", function () {
+                it("should show only items that are already installed and have a remove button for each", function () {
+                    mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        CollectionUtils.forEach(mockRegistry, function (item) {
+                            var $button = $("button.remove[data-extension-id=" + item.metadata.name + "]", view.$el);
+                            if (item.metadata.name === "mock-extension-3" ||
+                                    item.metadata.name === "mock-extension-4" ||
+                                    item.metadata.name === "mock-legacy-extension") {
+                                expect(view).toHaveText(item.metadata.name);
+                                expect($button.length).toBe(1);
+                            } else {
+                                expect(view).not.toHaveText(item.metadata.name);
+                                expect($button.length).toBe(0);
+                            }
                         });
                     });
                 });
-            });
-            
-            it("should show an install button for each item", function () {
-                setupViewWithMockData();
-                runs(function () {
-                    CollectionUtils.forEach(mockRegistry, function (item) {
-                        var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
+                
+                it("should not show extensions in the default folder", function () {
+                    mockLoadExtensions(["default/mock-extension-1"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect(view).not.toHaveText("mock-extension-1");
+                    });
+                });
+                
+                it("should disable the Remove button for extensions in the dev folder", function () {
+                    mockLoadExtensions(["dev/mock-extension-2"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        var $button = $("button.remove[data-extension-id=mock-extension-2]", view.$el);
                         expect($button.length).toBe(1);
+                        expect($button.attr("disabled")).toBeTruthy();
                     });
-                });
-            });
-            
-            it("should show disabled install buttons for items that are already installed", function () {
-                mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4"]);
-                setupViewWithMockData();
-                runs(function () {
-                    CollectionUtils.forEach(mockRegistry, function (item) {
-                        var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
-                        if (item.metadata.name === "mock-extension-3" || item.metadata.name === "mock-extension-4") {
-                            expect($button.attr("disabled")).toBeTruthy();
-                        } else {
-                            expect($button.attr("disabled")).toBeFalsy();
-                        }
-                    });
-                });
-            });
-
-            it("should show disabled install buttons for items that have incompatible versions", function () {
-                runs(function () {
-                    mockRegistry = {
-                        "incompatible-extension": {
-                            "metadata": {
-                                "name": "incompatible-extension",
-                                "title": "Incompatible Extension",
-                                "version": "1.0.0",
-                                "engines": {
-                                    "brackets": "<0.1"
-                                }
-                            },
-                            "owner": "github:someuser",
-                            "versions": [
-                                {
-                                    "version": "1.0.0",
-                                    "published": "2013-04-10T18:28:20.530Z",
-                                    "brackets": "<0.1"
-                                }
-                            ]
-                        }
-                    };
-                    setupViewWithMockData();
-                });
-                runs(function () {
-                    var $button = $("button.install[data-extension-id=incompatible-extension]", view.$el);
-                    expect($button.attr("disabled")).toBeTruthy();
-                });
-            });
-            
-            it("should bring up the install dialog and install an item when install button is clicked", function () {
-                runs(function () {
-                    setupViewWithMockData();
-                });
-                runs(function () {
-                    var $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
-                    expect($button.length).toBe(1);
-                    $button.click();
-                    expect(InstallExtensionDialog.installUsingDialog)
-                        .toHaveBeenCalledWith("http://fake-repository.com/mock-extension-3/mock-extension-3-1.0.0.zip");
-                });
-            });
-            
-            it("should disable the install button for an item immediately after installing it", function () {
-                var $button;
-                runs(function () {
-                    setupViewWithMockData();
-                });
-                runs(function () {
-                    $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
-                    $button.click();
-                });
-                runs(function () {
-                    // Have to get the button again since the view may have created a new button when re-rendering.
-                    $button = $("button.install[data-extension-id=mock-extension-3]", view.$el);
-                    expect($button.attr("disabled")).toBeTruthy();
-                });
-               
-            });
-                        
-            it("should show the spinner before the registry appears successfully and hide it after", function () {
-                setupViewWithFakeLoad();
-                expect($(".spinner", view.$el).length).toBe(1);
-                fakeLoadDeferred.resolve();
-                expect($(".spinner", view.$el).length).toBe(0);
-            });
-            
-            it("should show an error and remove the spinner if there is an error fetching the registry", function () {
-                setupViewWithFakeLoad();
-                fakeLoadDeferred.reject();
-                expect($(".spinner", view.$el).length).toBe(0);
-                expect($(".error", view.$el).length).toBe(1);
-            });
-            
-            it("should open links in the native browser instead of in Brackets", function () {
-                runs(function () {
-                    mockRegistry = {
-                        "basic-valid-extension": {
-                            "metadata": {
-                                "name": "basic-valid-extension",
-                                "title": "Basic Valid Extension",
-                                "version": "1.0.0"
-                            },
-                            "owner": "github:someuser",
-                            "versions": [
-                                {
-                                    "version": "1.0.0",
-                                    "published": "2013-04-10T18:28:20.530Z"
-                                }
-                            ]
-                        }
-                    };
-                    setupViewWithMockData();
-                });
-                runs(function () {
-                    var origHref = window.location.href;
-                    spyOn(NativeApp, "openURLInDefaultBrowser");
-                    $("a", view.$el).first().click();
-                    expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/someuser");
-                    expect(window.location.href).toBe(origHref);
                 });
             });
         });
