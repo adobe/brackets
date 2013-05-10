@@ -58,6 +58,12 @@ define(function (require, exports, module) {
      */
     var _indexListDirty = true;
 
+    /**
+     * Store whether the index manager has exceeded the limit so the warning dialog only
+     * appears once.
+     */
+    var _maxFileDialogDisplayed = false;
+
     /** class FileIndex
      *
      * A FileIndex contains an array of fileInfos that meet the criteria specified by
@@ -218,7 +224,12 @@ define(function (require, exports, module) {
                         if (state.fileCount > 10000) {
                             if (!state.maxFilesHit) {
                                 state.maxFilesHit = true;
-                                _showMaxFilesDialog();
+                                if (_maxFileDialogDisplayed === false) {
+                                    _showMaxFilesDialog();
+                                    _maxFileDialogDisplayed = true;
+                                } else {
+                                    console.log("Maximum files index limit exceeded " + state.fileCount);
+                                }
                             }
                             return;
                         }
@@ -231,7 +242,6 @@ define(function (require, exports, module) {
                             _scanDirectoryRecurse(entry);
                         }
                     });
-
                     _finishDirScan(dirEntry);
                 },
                 // error callback
