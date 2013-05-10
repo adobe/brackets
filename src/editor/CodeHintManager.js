@@ -229,7 +229,8 @@ define(function (require, exports, module) {
         sessionEditor   = null,
         hintList        = null,
         deferredHints   = null,
-        keyDownEditor   = null;
+        keyDownEditor   = null,
+        enabled         = true;
 
     /**
      * Comparator to sort providers based on their priority
@@ -438,6 +439,9 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
+        if (!enabled) {
+            return;
+        }
         keyDownEditor = editor;
         if (event.type === "keydown") {
             if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
@@ -482,7 +486,7 @@ define(function (require, exports, module) {
      * the lastChar.
      */
     function handleChange(editor) {
-        if (lastChar && editor === keyDownEditor) {
+        if (enabled && lastChar && editor === keyDownEditor) {
             keyDownEditor = null;
             if (_inSession(editor)) {
                 var charToRetest = lastChar;
@@ -519,6 +523,11 @@ define(function (require, exports, module) {
     }
     exports._getCodeHintList        = _getCodeHintList;
     
+    function _enable(enable) {
+        enabled = enable;
+    }
+    exports._enable                 = _enable;
+
     // Define public API
     exports.isOpen                  = isOpen;
     exports.handleKeyEvent          = handleKeyEvent;
