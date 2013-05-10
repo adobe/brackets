@@ -37,6 +37,7 @@ define(function (require, exports, module) {
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/test/file1.js",
+        testHtmlPath    = extensionPath + "/test/index.html",
         testDoc         = null,
         testEditor;
 
@@ -76,7 +77,7 @@ define(function (require, exports, module) {
             if (key === undefined) {
                 key = null;
             }
-            
+
             expect(provider.hasHints(testEditor, key)).toBe(true);
             return provider.getHints(null);
         }
@@ -324,7 +325,6 @@ define(function (require, exports, module) {
                 DocumentManager.getDocumentForPath(testPath).done(function (doc) {
                     testDoc = doc;
                 });
-                
                 waitsFor(function () {
                     return testDoc !== null;
                 }, "Unable to open test document", 10000);
@@ -779,6 +779,66 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        describe("JavaScript Code Hinting in a HTML file", function () {
+   
+            beforeEach(function () {
+                
+                DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
+                    testDoc = doc;
+                });
+                
+                waitsFor(function () {
+                    return testDoc !== null;
+                }, "Unable to open test document", 10000);
+                
+                // create Editor instance (containing a CodeMirror instance)
+                runs(function () {
+                    testEditor = createMockEditor(testDoc);
+                    JSCodeHints.initializeSession(testEditor, false);
+                });
+            });
+            
+            afterEach(function () {
+                // The following call ensures that the document is reloaded 
+                // from disk before each test
+                DocumentManager.closeAll();
+                
+                SpecRunnerUtils.destroyMockEditor(testDoc);
+                testEditor = null;
+                testDoc = null;
+            });
 
+            it("basic codehints in html file", function () {
+                var start = { line: 30, ch: 9 },
+                    end   = { line: 30, ch: 11 };
+                
+                testDoc.replaceRange("x.", start, start);
+                testEditor.setCursorPos(end);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentOrdered(hintObj, ["charAt", "charCodeAt", "concat", "indexOf"]);
+                });
+            });
+
+            it("function type hint in html file", function () {
+                var start = { line: 29, ch: 12 };
+                
+                testEditor.setCursorPos(start);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                runs(function () {
+                    hintsPresentExact(hintObj, ["foo(a: number) -> string"]);
+                });
+            });
+
+            it("jump-to-def in html file", function () {
+                var start = { line: 29, ch: 10 };
+                
+                testEditor.setCursorPos(start);
+                runs(function () {
+                    editorJumped({line: 18, ch: 20});
+                });
+            });
+        });
     });
 });
