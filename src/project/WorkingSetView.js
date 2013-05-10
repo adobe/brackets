@@ -606,6 +606,6 @@ define(function (require, exports, module) {
         _redraw();
     }
     
-    exports.create = create;
+    exports.create  = create;
     exports.refresh = refresh;
 });
