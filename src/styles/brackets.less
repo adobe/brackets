@@ -157,7 +157,7 @@ a, img {
     }
 }
 
-@-webkit-keyframes rotating {
+@-webkit-keyframes spinner-sprites {
     0% {
         background-position: 0px 0px;
     }
@@ -822,7 +822,7 @@ li.smart_autocomplete_highlight {
     visibility: hidden;
 
     &.spin {
-        -webkit-animation: rotating 1.5s steps(12) infinite;
+        -webkit-animation: spinner-sprites 1.5s steps(12) infinite;
         visibility: visible;
     }
     
@@ -834,6 +834,14 @@ li.smart_autocomplete_highlight {
         background-size: 100%;
     }
 }
+// I've included a @2x version for retina.
+@media only screen and (-webkit-min-device-pixel-ratio: 2), 
+       only screen and (min-device-pixel-ratio: 2) {
+    .spinner {
+        background-image: url("images/spinner_small_sprites12@2x.png");
+    }
+}
+
 
 /* Turn on text selection for JSLint error messages */
 #jslint-results {
