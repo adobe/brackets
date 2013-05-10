@@ -328,7 +328,7 @@ define(function (require, exports, module) {
             } else if (this.selectedIndex !== -1 &&
                     (keyCode === KeyEvent.DOM_VK_RETURN || keyCode === KeyEvent.DOM_VK_TAB)) {
                 // Trigger a click handler to commmit the selected item
-                $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
+                $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
                 // only prevent default handler when the list handles the event
                 return;
