@@ -945,7 +945,7 @@ define(function (require, exports, module) {
                     expect(testDoc.getLine(end.line).length).toEqual(7);
                 });
             });
-            
+
             it("should jump to function", function () {
                 var start = { line: 43, ch: 0 };
                 
@@ -1015,6 +1015,21 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 94, ch: 45});
+                });
+            });
+
+            it("should not hint function, variable, or param decls", function () {
+                var func = { line: 7, ch: 12 },
+                    param = { line: 7, ch: 18 },
+                    variable = { line: 10, ch: 10 };
+                
+                runs(function () {
+                    testEditor.setCursorPos(func);
+                    expectNoHints(JSCodeHints.jsHintProvider);
+                    testEditor.setCursorPos(param);
+                    expectNoHints(JSCodeHints.jsHintProvider);
+                    testEditor.setCursorPos(variable);
+                    expectNoHints(JSCodeHints.jsHintProvider);
                 });
             });
         });
