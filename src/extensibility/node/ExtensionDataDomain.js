@@ -33,38 +33,17 @@ var fs            = require("fs"),
 var DOMAIN_NAME = "extensionData",
     _emitEvent  = null;
 
-function _createFunction(obj) {
-    if (obj.options.runLocal) {
-        var localFn = new Function(obj.args, obj.body);
-        return function () {
-            var registry = ExtensionData._getCurrentRegistry();
-            localFn.apply({
-                extension: registry.extension,
-                registry: registry,
-                name: obj.__function
-            }, arguments);
-        };
-    }
-    return function () {
-        var registry = ExtensionData._getCurrentRegistry();
-        var args = ExtensionData.convertArgumentsToArray(arguments, registry._addCallback.bind(registry));
-        
-        var extension = ExtensionData._getCurrentRegistry();
-        _emitEvent(DOMAIN_NAME, "callFunction", [extension, obj.__function, args]);
-    };
-}
-
 function createWrapper(name, options) {
     return function () {
         var args = ExtensionData.convertArgumentsToArray(arguments);
         
-        var extension = ExtensionData._getCurrentRegistry();
+        var extension = this.__meta.extension.name;
         _emitEvent(DOMAIN_NAME, "callFunction", [extension, name, args]);
     };
 }
 
 function _cmdInitialize(registryID, data) {
-    ExtensionData._brackets._initialize(registryID, JSON.parse(data), _createFunction, createWrapper);
+    ExtensionData._brackets.__initialize(registryID, JSON.parse(data), createWrapper);
 }
 
 function _cmdLoadExtension(name, baseUrl, callback) {
@@ -72,7 +51,7 @@ function _cmdLoadExtension(name, baseUrl, callback) {
     if (fs.existsSync(nodeMainPath + ".js")) {
         var nodeMain = require(nodeMainPath);
         if (nodeMain.init) {
-            var promise = nodeMain.init(ExtensionData.getServiceRegistry(name));
+            var promise = nodeMain.init(ExtensionData.getServices(name));
             if (promise) {
                 promise.done(callback);
             } else {
@@ -83,17 +62,9 @@ function _cmdLoadExtension(name, baseUrl, callback) {
 }
 
 function _cmdCallFunction(extension, name, args) {
-    var services = ExtensionData.getServiceRegistry(extension);
-    var segments = name.split(".");
-    var current = services;
-    segments.forEach(function (segment) {
-        current = current[segment];
-    });
-    return current.apply({
-        extension: extension,
-        registry: services,
-        name: name
-    }, args);
+    var services = ExtensionData.getServices(extension);
+    var fn = services.getObject(name);
+    fn.apply(fn, args);
 }
 
 function init(domainManager) {

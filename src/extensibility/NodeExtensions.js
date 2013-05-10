@@ -65,7 +65,7 @@ var callNodeFunction = function (name, options) {
 
 function _callFunctionFromNode(e, extension, name, args) {
     var segments = name.split(".");
-    var services = ExtensionData.getServiceRegistry(extension);
+    var services = ExtensionData.getServices(extension);
     var current = services;
     var i;
     for (i = 0; i < segments.length; i++) {
@@ -77,7 +77,7 @@ function _callFunctionFromNode(e, extension, name, args) {
     }
     for (i = 0; i < args.length; i++) {
         if (typeof args[i] === "object" && args[i].__function) {
-            args[i] = callNodeFunction(args.__function).bind({
+            args[i] = callNodeFunction(args[i].__function).bind({
                 registry: services,
                 extension: extension,
                 name: name
@@ -109,7 +109,7 @@ AppInit.appReady(function () {
                 function () {
                     if (_nodeConnection.connected()) {
                         $(_nodeConnection).on("extensionData.callFunction", _callFunctionFromNode);
-                        var remoteConfig = ExtensionData._brackets._getRemoteRegistryConfig(callNodeFunction);
+                        var remoteConfig = ExtensionData._brackets.__getRemoteRegistryConfig(callNodeFunction);
                         _nodeConnection.domains.extensionData.initialize(remoteConfig.registryID, remoteConfig.data);
                     }
                     clearTimeout(connectionTimeout);

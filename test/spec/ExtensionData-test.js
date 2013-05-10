@@ -34,7 +34,7 @@ define(function (require, exports, module) {
             var services, services2, builtins;
             
             beforeEach(function () {
-                var root = ExtensionData.createRootObject();
+                var root = ExtensionData._createRootObject();
                 builtins = ExtensionData._getBuiltinServices(root);
                 services = ExtensionData.getServices("test", root);
                 services2 = ExtensionData.getServices("test2", root);
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
                 remoteFunctionCalled = null;
                 preInitResult = null;
                 callbackCalled = null;
-                var root = ExtensionData.createRootObject();
+                var root = ExtensionData._createRootObject();
                 builtins = ExtensionData._getBuiltinServices(root);
                 localServices = ExtensionData.getServices("test", root);
                 builtins.__initializeMaster();
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                     preInitResult = value;
                 });
                 
-                var remoteRoot = ExtensionData.createRootObject();
+                var remoteRoot = ExtensionData._createRootObject();
                 var remoteBuiltins = ExtensionData._getBuiltinServices(remoteRoot);
                 var remoteConfig = localServices.__getRemoteRegistryConfig(remoteCallbackWrapper);
                 var data = JSON.parse(remoteConfig.data);
