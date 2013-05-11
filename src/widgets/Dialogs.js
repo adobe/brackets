@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
         $(".clickable-link", dlg).off("click");
-        dlg.modal(true).hide();
+        dlg.modal("hide");
     }
     
     function _hasButton(dlg, buttonId) {

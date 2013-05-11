@@ -121,7 +121,7 @@ a, img {
     border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
     box-sizing: border-box;
     color: @bc-grey;
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     font-size: 0.9em;
     line-height: 1;
     
@@ -468,12 +468,13 @@ a, img {
     z-index: @z-index-brackets-scroller-shadow;
     
     &.top {
-        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
         background-position: 0 -5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
     
     &.bottom {
-        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        #gradient > .vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
         background-position: 0 5px;
         background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
@@ -545,7 +546,7 @@ a, img {
         padding: 10px 10px 0px 10px;
         
         .filename {
-            font-family: @fontstack-sans-serif;
+            font-family: @sansFontFamily;
             font-size: 1.1em;
             color: @inline-color-1;
             
@@ -602,7 +603,7 @@ a, img {
     float: right;
     position: relative;
     min-height: 100%;
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     width: 250px;
     max-width: 50%;
     overflow: hidden;
@@ -711,7 +712,7 @@ a, img {
 .modal-bar {
     text-align: left;
     
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     font-size: 13px;
     color: @content-color;
     background: #eee;
@@ -725,7 +726,7 @@ a, img {
 }
 
 .modal-bar input {
-    font-family: @fontstack-sans-serif;
+    font-family: @sansFontFamily;
     border: 1px solid @content-color-weaker;
     outline: none;
     background: @background-color-3;
