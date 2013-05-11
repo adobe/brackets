@@ -234,7 +234,7 @@ define(function (require, exports, module) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped condensed-table' />")
+            var $resultTable = $("<table class='table table-striped table-condensed' />")
                                 .append("<tbody>");
             
             // Count the total number of matches
