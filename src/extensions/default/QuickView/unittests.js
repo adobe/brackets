@@ -172,9 +172,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expectNoPreviewAtPos(72, 15);    // cursor on redsox
                     expectNoPreviewAtPos(73, 16);    // cursor on pinky
-                    // issue #3445
-//                    expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-chesse
-//                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
+                    expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-cheese
+                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
                 });
             });
         });
@@ -360,8 +359,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     checkImagePathAtPos("img/grabber_color-well.png", 140, 26);
                     checkImagePathAtPos("img/Color.png",              141, 26);
-                    checkImagePathAtPos("img/DancingPeaks.gif",       142, 26);
-                    checkImagePathAtPos("img/Example.svg",            143, 26);
+                    checkImagePathAtPos("img/throbber.gif",           142, 26);
+                    checkImagePathAtPos("img/update_large_icon.svg",  143, 26);
                 });
             });
             
@@ -373,17 +372,17 @@ define(function (require, exports, module) {
             
             it("Should show image preview for file path inside single or double quotes", function () {
                 runs(function () {
-                    checkImagePathAtPos("img/med_hero.jpg",       147, 26);
-                    checkImagePathAtPos("img/Gradient.png",       148, 26);
-                    checkImagePathAtPos("Lake_mapourika_NZ.jpeg", 149, 26);
+                    checkImagePathAtPos("img/med_hero.jpg",  147, 26);
+                    checkImagePathAtPos("img/Gradient.png",  148, 26);
+                    checkImagePathAtPos("img/specials.jpeg", 149, 26);
                 });
             });
             
             it("Should show image preview for subsequent images in a line", function () {
                 runs(function () {
-                    checkImagePathAtPos("img/Gradient.png",       153, 84);    // url("")
-                    checkImagePathAtPos("img/Gradient.png",       154, 84);    // url()
-                    checkImagePathAtPos("img/Gradient.png",       155, 84);    // ""
+                    checkImagePathAtPos("img/Gradient.png", 153, 80);    // url("")
+                    checkImagePathAtPos("img/Gradient.png", 154, 80);    // url()
+                    checkImagePathAtPos("img/Gradient.png", 155, 80);    // ""
                 });
                 
                 // This must be in the last spec in the suite.

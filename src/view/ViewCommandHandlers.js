@@ -58,7 +58,15 @@ define(function (require, exports, module) {
      * @type {int}
      */
     var MAX_FONT_SIZE = 72;
-
+    
+    /**
+     * @const
+     * @private
+     * The ratio of line-height to font-size when they use the same units
+     * @type {float}
+     */
+    var LINE_HEIGHT = 1.3;
+    
     /**
      * @private
      * @type {PreferenceStorage}
@@ -147,28 +155,20 @@ define(function (require, exports, module) {
         // Guaranteed to work by the validation above.
         var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length);
         var lhUnits = lhStyle.substring(lhStyle.length - 2, lhStyle.length);
-
-        var fsOld = parseFloat(fsStyle.substring(0, fsStyle.length - 2));
-        var lhOld = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
-
-        var fsDelta = (fsUnits === "px") ? adjustment : (0.1 * adjustment);
-        var lhDelta = (lhUnits === "px") ? adjustment : (0.1 * adjustment);
-
-        var fsNew = fsOld + fsDelta;
-        var lhNew = lhOld + lhDelta;
+        var delta   = (fsUnits === "px") ? 1 : 0.1;
         
-        var fsStr = fsNew + fsUnits;
-        var lhStr = lhNew + lhUnits;
-
-        // Don't let the font size get too small.
-        if ((fsUnits === "px" && fsNew < MIN_FONT_SIZE) ||
-                (fsUnits === "em" && fsNew < (MIN_FONT_SIZE * 0.1))) {
-            return false;
-        }
+        var fsOld   = parseFloat(fsStyle.substring(0, fsStyle.length - 2));
+        var lhOld   = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
         
-        // Don't let the font size get too large.
-        if ((fsUnits === "px" && fsNew > MAX_FONT_SIZE) ||
-                (fsUnits === "em" && fsNew > (MAX_FONT_SIZE * 0.1))) {
+        var fsNew   = fsOld + (delta * adjustment);
+        var lhNew   = (fsUnits === lhUnits) ? fsNew * LINE_HEIGHT : lhOld;
+        
+        var fsStr   = fsNew + fsUnits;
+        var lhStr   = lhNew + lhUnits;
+
+        // Don't let the font size get too small or too large. The minimum font size is 1px or 0.1em
+        // and the maximum font size is 72px or 7.2em depending on the unit used
+        if (fsNew < MIN_FONT_SIZE * delta || fsNew > MAX_FONT_SIZE * delta) {
             return false;
         }
         

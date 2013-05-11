@@ -118,3 +118,14 @@
     -o-transform-origin: @horizontal @vertical;
     transform-origin: @horizontal @vertical;
 }
+
+/* Change the settings for user-select and its counterparts, defaulting to none. */
+.user-select(@type: none) {
+    -webkit-user-select: @type;
+    -khtml-user-select: @type;
+    -moz-user-select: @type;
+    -ms-user-select: @type;
+    -o-user-select: @type;
+    user-select: @type;
+}
+
