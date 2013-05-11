@@ -836,14 +836,16 @@ li.smart_autocomplete_highlight {
         }
     }
 }
-// I've included a @2x version for retina.
+// Retina versions
 @media only screen and (-webkit-min-device-pixel-ratio: 2), 
        only screen and (min-device-pixel-ratio: 2) {
     .spinner {
         background-image: url("images/spinner_small_sprites12@2x.png");
+        background-size: 144px 12px;
 
         &.large {
             background: url("images/spinner_large_sprites36@2x.png") no-repeat;
+            background-size: 432px 36px;
         }
     }
 }
