@@ -119,8 +119,7 @@ define(function (require, exports, module) {
         //    the proper indentation then indent it to the proper place. Otherwise,
         //    add another tab. In either case, move the insertion point to the 
         //    beginning of the text.
-        // 2. If the selection is after the first non-space character, and is not an 
-        //    insertion point, indent the entire line(s).
+        // 2. If the selection is multi-line, indent all the lines.
         // 3. If the selection is after the first non-space character, and is an 
         //    insertion point, insert a tab character or the appropriate number 
         //    of spaces to pad to the nearest tab boundary.
@@ -144,7 +143,7 @@ define(function (require, exports, module) {
                 insertTab = true;
                 to.ch = 0;
             }
-        } else if (instance.somethingSelected()) {
+        } else if (instance.somethingSelected() && from.line !== to.line) {
             CodeMirror.commands.indentMore(instance);
         } else {
             insertTab = true;
@@ -155,7 +154,7 @@ define(function (require, exports, module) {
                 CodeMirror.commands.insertTab(instance);
             } else {
                 var i, ins = "", numSpaces = instance.getOption("indentUnit");
-                numSpaces -= to.ch % numSpaces;
+                numSpaces -= from.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
                 }

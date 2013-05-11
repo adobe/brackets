@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -135,6 +136,25 @@ define({
     "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                         : "Deutsch",
+    "LOCALE_EN"                         : "Englisch",
+    "LOCALE_FR"                         : "Französisch",
+    "LOCALE_CS"                         : "Tschechisch",
+    "LOCALE_ES"                         : "Spanisch",
+    "LOCALE_IT"                         : "Italienisch",
+    "LOCALE_JA"                         : "Japanisch",
+    "LOCALE_NB"                         : "Norwegisch",
+    "LOCALE_PL"                         : "Polnisch",
+    "LOCALE_PT_BR"                      : "Portugiesisch, Brasilien",
+    "LOCALE_PT_PT"                      : "Portugiesisch",
+    "LOCALE_RU"                         : "Russisch",
+    "LOCALE_SV"                         : "Schwedisch",
+    "LOCALE_TR"                         : "Türkisch",
+    "LOCALE_ZH_CN"                      : "Chinesisch, vereinfacht",
 
     /**
      * ProjectManager
@@ -288,7 +308,6 @@ define({
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
     "INSTALL"                              : "Installieren",
     "ABOUT"                                : "Über",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",

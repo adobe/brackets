@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -136,6 +137,25 @@ define({
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "Tchèque",
+	"LOCALE_DE": "Allemand",
+	"LOCALE_EN": "Anglais",
+	"LOCALE_ES": "Espagnol",
+	"LOCALE_FR": "Français",
+	"LOCALE_IT": "Italien",
+	"LOCALE_JA": "Japonais",
+	"LOCALE_NB": "Norvégien",
+	"LOCALE_PL": "Polonais",
+	"LOCALE_PT_BR": "[6862304] !é=Portuguese, Brazil=!",
+	"LOCALE_PT_PT": "Portuguais",
+	"LOCALE_RU": "Russe",
+	"LOCALE_SV": "Suédois",
+	"LOCALE_TR": "Turc",
+	"LOCALE_ZH_CN": "[6862309] !é=Chinese, simplified=!",
 
     /**
      * ProjectManager
@@ -292,7 +312,6 @@ define({
 	"RELAUNCH_CHROME": "Relancer Chrome",
 	"INSTALL": "Installer",
 	"ABOUT": "A propos",
-	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
@@ -306,7 +325,7 @@ define({
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "(pour utiliser un serveur local, spécifiez l’URL)",
+	"PROJECT_SETTING_BASE_URL_HINT": "[6499087] !é=To use a local server, enter a url like http://localhost:8000/=!",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",

@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -136,6 +137,25 @@ define({
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
 	"LANGUAGE_SYSTEM_DEFAULT": "デフォルトのシステム",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "チェコ語",
+	"LOCALE_DE": "ドイツ語",
+	"LOCALE_EN": "英語",
+	"LOCALE_ES": "スペイン語",
+	"LOCALE_FR": "フランス語",
+	"LOCALE_IT": "イタリア語",
+	"LOCALE_JA": "日本語",
+	"LOCALE_NB": "ノルウェー語",
+	"LOCALE_PL": "ポーランド語",
+	"LOCALE_PT_BR": "!能=[6862304] Portuguese, Brazil_=!",
+	"LOCALE_PT_PT": "ポルトガル語",
+	"LOCALE_RU": "ロシア語",
+	"LOCALE_SV": "スウェーデン語",
+	"LOCALE_TR": "トルコ語",
+	"LOCALE_ZH_CN": "!能=[6862309] Chinese, simplified_=!",
 
     /**
      * ProjectManager
@@ -292,7 +312,6 @@ define({
 	"RELAUNCH_CHROME": "Chrome を再起動",
 	"INSTALL": "インストール",
 	"ABOUT": "このソフトウェアについて",
-	"APP_NAME": "Brackets",
 	"CLOSE": "閉じる",
 	"ABOUT_TEXT_LINE1": "スプリント {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "注意 - サードパーティソフトウェアに関する契約条件は <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_jp/\">http://www.adobe.com/go/thirdparty_jp/</a> を参照してください。またリンク先の内容を本契約条件の一部と見なします。",
@@ -306,7 +325,7 @@ define({
 	"GET_IT_NOW": "すぐに入手する",
 	"PROJECT_SETTINGS_TITLE": "プロジェクト設定 : {0}",
 	"PROJECT_SETTING_BASE_URL": "ライブプレビューのベース URL",
-	"PROJECT_SETTING_BASE_URL_HINT": "(ローカルサーバーを使用するには、URL を指定してください)",
+	"PROJECT_SETTING_BASE_URL_HINT": "!能=[6499087] To use a local server, enter a url like http://localhost:8000/_=!",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "{0} プロトコルはライブプレビューではサポートされていません。http: または https: を使用してください。",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "ベース URL には、「{0}」のような検索パラメーターは使用できません。",
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",

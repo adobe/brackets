@@ -242,7 +242,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Fechar (Não Salvar)",
     "RELAUNCH_CHROME"                      : "Relançar Chrome",
     "ABOUT"                                : "Sobre",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Fechar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versão experimental {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Avisos, termos e condições de softwares de terceiros estão localizados em <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> e aqui incorporados por referência.",
