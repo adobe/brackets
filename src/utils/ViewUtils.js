@@ -156,15 +156,15 @@ define(function (require, exports, module) {
     
     /**
      * Utility function to replace jQuery.toggleClass when used with the second argument, which needs to be a true boolean for jQuery
-     * @param {!jQueryObject} $DomElement The jQueryObject to toggle the Class on
+     * @param {!jQueryObject} $domElement The jQueryObject to toggle the Class on
      * @param {!string} className Class name or names (separated by spaces) to toggle
-     * @param {!boolean} switcher A truthy value to add the class and a falsy value to remove the class
+     * @param {!boolean} addClass A truthy value to add the class and a falsy value to remove the class
      */
-    function toggleClass($DomElement, className, switcher) {
-        if (switcher) {
-            $DomElement.addClass(className);
+    function toggleClass($domElement, className, addClass) {
+        if (addClass) {
+            $domElement.addClass(className);
         } else {
-            $DomElement.removeClass(className);
+            $domElement.removeClass(className);
         }
     }
     
