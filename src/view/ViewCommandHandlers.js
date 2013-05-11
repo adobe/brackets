@@ -24,6 +24,16 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, window, $ */
 
+/**
+ * The ViewCommandHandlers object dispatches the following event(s):
+ *    - adjustFontSize -- Triggered when the font size is adjusted via the
+ *          Increase Font Size, Decrease Font Size, or Restore Font Size commands.
+ *          The 2nd arg to the listener is the amount of the adjustment. The 3rd
+ *          arg is a string containing the new font size after applying the adjustment.
+ *          The 4th arg is a string containing the new line height after applying the
+ *          adjustment.
+ */
+
 define(function (require, exports, module) {
     "use strict";
     
@@ -174,6 +184,7 @@ define(function (require, exports, module) {
         
         _setSizeAndRestoreScroll(fsStr, lhStr);
         
+        $(exports).triggerHandler("adjustFontSize", [adjustment, fsStr, lhStr]);
         return true;
     }
     
