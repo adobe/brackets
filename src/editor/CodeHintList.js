@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         /**
          * The list of hints to display
          *
-         * @type {Array<String + jQuery.Object>}
+         * @type {Array.<string|jQueryObject>}
          */
         this.hints = [];
 
@@ -357,8 +357,8 @@ define(function (require, exports, module) {
     /**
      * Displays the hint list at the current cursor position
      *
-     * @param {Object<hints: Array<String + jQuery.Object>, match: String,
-     *          selectInitial: boolean>} hintObj
+     * @param {{hints: Array.<string|jQueryObject>, match: string,
+     *          selectInitial: boolean}} hintObj
      */
     CodeHintList.prototype.open = function (hintObj) {
         Menus.closeAll();
@@ -381,8 +381,8 @@ define(function (require, exports, module) {
     /**
      * Updates the (already open) hint list window with new hints
      *
-     * @param {Object<hints: Array<String + jQuery.Object>, match: String,
-     *          selectInitial: boolean>} hintObj
+     * @param {{hints: Array.<string|jQueryObject>, match: string,
+     *          selectInitial: boolean}} hintObj
      */
     CodeHintList.prototype.update = function (hintObj) {
         this._buildListView(hintObj);
