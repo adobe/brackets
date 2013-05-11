@@ -261,7 +261,7 @@ function createRootObject() {
                     enumerable: !options.hidden
                 });
                 if (this.__registryInfo && !_noNotification) {
-                    this.channels.brackets.serviceRegistry.addFunction.publish(this.extension, name, options, this.__registryInfo.id);
+                    this.channels.brackets.serviceRegistry.addFunction.publish(this.__meta.extension.name, name, options, this.__registryInfo.id);
                 }
                 return info.container[info.name];
             },

@@ -35,9 +35,11 @@ var DOMAIN_NAME = "extensionData",
 
 function createWrapper(name, options) {
     return function () {
-        var args = ExtensionData.convertArgumentsToArray(arguments);
+        var root = this.__meta.root;
+        var args = ExtensionData.convertArgumentsToArray(arguments, root.__addCallback.bind(root));
         
         var extension = this.__meta.extension.name;
+        console.log("Phoning home from", extension, "to", name, "with", args);
         _emitEvent(DOMAIN_NAME, "callFunction", [extension, name, args]);
     };
 }
@@ -64,6 +66,7 @@ function _cmdLoadExtension(name, baseUrl, callback) {
 function _cmdCallFunction(extension, name, args) {
     var services = ExtensionData.getServices(extension);
     var fn = services.getObject(name);
+    console.log("Calling into node from", extension, "to", name, "with", args);
     fn.apply(fn, args);
 }
 
