@@ -157,14 +157,13 @@ a, img {
     }
 }
 
-@-webkit-keyframes spinner-sprites {
-    0% {
-        background-position: 0px 0px;
-    }
-    
-    100% {
-        background-position: -144px 0px;
-    }
+@-webkit-keyframes spinner-sprites-12 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -144px 0px; }
+}
+@-webkit-keyframes spinner-sprites-36 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -432px 0px; }
 }
 
 #status-indent > * {
@@ -822,7 +821,7 @@ li.smart_autocomplete_highlight {
     visibility: hidden;
 
     &.spin {
-        -webkit-animation: spinner-sprites 1.5s steps(12) infinite;
+        -webkit-animation: spinner-sprites-12 1.5s steps(12) infinite;
         visibility: visible;
     }
     
@@ -830,8 +829,11 @@ li.smart_autocomplete_highlight {
         width: 36px;
         height: 36px;
         margin-top: 0;
-        background: url("images/spinner2x.png") 50% no-repeat;
-        background-size: 100%;
+        background: url("images/spinner_large_sprites36.png") no-repeat;
+
+        &.spin {
+            -webkit-animation: spinner-sprites-36 1.5s steps(12) infinite;
+        }
     }
 }
 // I've included a @2x version for retina.
@@ -839,6 +841,10 @@ li.smart_autocomplete_highlight {
        only screen and (min-device-pixel-ratio: 2) {
     .spinner {
         background-image: url("images/spinner_small_sprites12@2x.png");
+
+        &.large {
+            background: url("images/spinner_large_sprites36@2x.png") no-repeat;
+        }
     }
 }
 
