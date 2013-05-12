@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         Package          = require("extensibility/Package"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
+        Strings          = require("strings"),
         StringUtils      = require("utils/StringUtils");
     
     // semver isn't a proper AMD module, so it will just load into the global namespace.
@@ -192,8 +193,7 @@ define(function (require, exports, module) {
                 // local path and record that it's enabled. We also create a "title" for it (which is
                 // the last segment of its pathname) that we can display and sort by.
                 var match = path.match(/\/([^\/]+)$/),
-                    metadata = { title: (match && match[1]) || path };
-                console.log("setting legacy metadata for " + path + " to " + JSON.stringify(metadata));
+                    metadata = { name: path, title: (match && match[1]) || path };
                 setData(path, metadata);
             });
     }
@@ -260,8 +260,7 @@ define(function (require, exports, module) {
                     result.reject(err);
                 });
         } else {
-            // TODO: return error key or string?
-            result.reject();
+            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
         }
         return result.promise();
     }

@@ -148,7 +148,7 @@ define(function (require, exports, module) {
         this.extensions = ExtensionManager.extensions;
         this._sortedFullSet = Object.keys(this.extensions)
             .filter(function (key) {
-                return self.extensions[key].installInfo !== undefined &&
+                return self.extensions[key].installInfo &&
                     self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
             })
             .sort(function (key1, key2) {

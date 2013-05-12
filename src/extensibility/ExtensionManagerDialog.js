@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
+/*global define, $, Mustache, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,13 +42,18 @@ define(function (require, exports, module) {
      * Show a dialog that allows the user to browse and manage extensions.
      */
     function _showDialog() {
+        var $dlg, view;
+        
+        // Open the dialog.
         Dialogs.showModalDialogUsingTemplate(
             Mustache.render(dialogTemplate, Strings)
-        );
+        ).always(function () {
+            view.dispose();
+        });
         
         // Create the view.
-        var $dlg = $(".extension-manager-dialog"),
-            view = new ExtensionManagerView();
+        $dlg = $(".extension-manager-dialog");
+        view = new ExtensionManagerView();
         view.initialize(ExtensionManagerViewModel.SOURCE_INSTALLED)
             .done(function () {
                 view.$el.appendTo($(".modal-body", $dlg));
@@ -60,12 +65,8 @@ define(function (require, exports, module) {
                     $(".search", $dlg).val("");
                     view.filter("");
                 });
-                
-                // Clean up when the dialog goes away.
-                $dlg.one("hidden", function (e) {
-                    view.dispose();
-                });
-                
+
+                // Handle the install button.                
                 $(".extension-manager-dialog .install-from-url")
                     .click(function () {
                         CommandManager.execute(Commands.FILE_INSTALL_EXTENSION);

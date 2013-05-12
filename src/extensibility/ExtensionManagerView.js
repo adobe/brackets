@@ -34,6 +34,10 @@ define(function (require, exports, module) {
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
+        Dialogs                   = require("widgets/Dialogs"),
+        StringUtils               = require("utils/StringUtils"),
+        CommandManager            = require("command/CommandManager"),
+        Commands                  = require("command/Commands"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
     
     /**
@@ -108,6 +112,13 @@ define(function (require, exports, module) {
      * The individual views for each item, keyed by the extension ID.
      */
     ExtensionManagerView.prototype._itemViews = null;
+    
+    /**
+     * @private
+     * @type {boolean}
+     * Whether the user should be prompted to quit Brackets when the view is disposed.
+     */
+    ExtensionManagerView.prototype._quitRequired = false;
     
     /**
      * @private
@@ -269,7 +280,22 @@ define(function (require, exports, module) {
      * @param {string} path Full local path to the extension to remove.
      */
     ExtensionManagerView.prototype._remove = function (id) {
-        ExtensionManager.remove(id);
+        var self = this;
+        ExtensionManager.remove(id)
+            .done(function () {
+                self._quitRequired = true;
+            })
+            .fail(function (err) {
+                var errInfo = (err instanceof Error ? err.message : err);
+                if (Strings[errInfo]) {
+                    errInfo = Strings[errInfo];
+                }
+                if (!errInfo) {
+                    errInfo = Strings.UNKNOWN_ERROR;
+                }
+                Dialogs.showModalDialog("error-dialog", Strings.EXTENSION_MANAGER_REMOVE,
+                                        StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, errInfo));
+            });
     };
     
     /**
@@ -285,6 +311,17 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype.dispose = function () {
         this.model.dispose();
+        
+        // If an extension was removed, prompt the user to quit Brackets.
+        if (this._quitRequired) {
+            Dialogs.showModalDialog("quit-brackets-after-removal", Strings.EXTENSION_MANAGER_TITLE,
+                                    Strings.QUIT_BRACKETS_AFTER_REMOVAL)
+                .done(function (buttonId) {
+                    if (buttonId === "ok") {
+                        CommandManager.execute(Commands.FILE_QUIT);
+                    }
+                });
+        }
     };
     
     exports.ExtensionManagerView = ExtensionManagerView;

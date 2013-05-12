@@ -811,22 +811,38 @@ define(function (require, exports, module) {
                     });
                 });
                 
+                it("should try to remove a legacy extension", function () {
+                    mockLoadExtensions(["user/mock-legacy-extension"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files"),
+                            $button = $("button.remove[data-extension-id=" + mockPath + "/user/mock-legacy-extension]", view.$el);
+                        $button.click();
+                        expect(removedPath).toBe(mockPath + "/user/mock-legacy-extension");
+                    });
+                });
+                
                 it("should no longer show a removed extension", function () {
-                    var removed = false;
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
                         expect(view).toHaveText("mock-extension-3");
-                        
-                        $(ExtensionManager).on("statusChange.remove-test", function () {
-                            removed = true;
-                        });
-                        ExtensionManager.remove("mock-extension-3");
+                        waitsForDone(ExtensionManager.remove("mock-extension-3"));
                     });
-                    waitsFor(function () { return removed; }, "extension removal");
                     runs(function () {
-                        $(ExtensionManager).off(".remove-test");
                         expect(view).not.toHaveText("mock-extension-3");
+                    });
+                });
+                
+                it("should note that a restart is required after removing an extension", function () {
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
+                        $button.click();
+                    });
+                    runs(function () {
+                        expect(view._quitRequired).toBeTruthy();
                     });
                 });
             });

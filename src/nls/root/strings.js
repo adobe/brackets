@@ -378,6 +378,11 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
+    "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove extension: {{0}}",
+    "QUIT_BRACKETS_AFTER_REMOVAL"          : "After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
+    "QUIT_BRACKETS"                        : "Quit Brackets",
+    "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
     
     // extensions/default/QuickView 
     "CMD_ENABLE_QUICK_VIEW"                : "Quick View on Hover",
