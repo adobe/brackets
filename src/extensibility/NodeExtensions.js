@@ -57,7 +57,7 @@ var callNodeFunction = function (name, options) {
         if (_nodeConnection && _nodeConnection.connected()) {
             var root = this.__meta.root;
             var args = ExtensionData.convertArgumentsToArray(arguments, root.__addCallback.bind(root));
-            _nodeConnection.domains.extensionData.callFunction(this.extension, name, args);
+            _nodeConnection.domains.extensionData.callFunction(this.__meta.extension.name, name, args);
         } else {
             console.error("Tried to call node function", name, "but node is not connected");
         }

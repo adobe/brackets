@@ -245,7 +245,7 @@ define(function (require, exports, module) {
     
     builtInServices.addFunction("commands.add", function (name, id, fn) {
         console.log("Added command via new API", name);
-        register(name, id, fn);
+        register(name, id, fn.bind(this));
     });
 
     // Define public API
