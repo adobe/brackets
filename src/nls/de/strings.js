@@ -384,20 +384,6 @@ define({
     // extensions/default/QuickView 
     "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
 
-    "EXTENSION_AUTHOR"                     : "Autor",
-    "EXTENSION_DATE"                       : "Datum",
-    "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
-    "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
-    "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
-    "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
-    "EXTENSION_INSTALLED"                  : "Installiert",
-    "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
-    "EXTENSION_MORE_INFO_LINK"             : "Mehr",
-    "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
-    
-    // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
-
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "JSLint-Fehler",
     "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
