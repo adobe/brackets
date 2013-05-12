@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         ExtensionManagerView      = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel").ExtensionManagerViewModel,
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
+        Package                   = require("extensibility/Package"),
         ExtensionLoader           = require("utils/ExtensionLoader"),
         NativeFileSystem          = require("file/NativeFileSystem").NativeFileSystem,
         NativeFileError           = require("file/NativeFileError"),
@@ -48,7 +49,7 @@ define(function (require, exports, module) {
         mockRegistry;
     
     describe("ExtensionManager", function () {
-        var mockId, mockSettings, origRegistryURL, origExtensionUrl;
+        var mockId, mockSettings, origRegistryURL, origExtensionUrl, removedPath;
         
         beforeEach(function () {
             // Use fake URLs for the registry (useful if the registry isn't actually currently
@@ -76,6 +77,13 @@ define(function (require, exports, module) {
             var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
             spyOn(ExtensionLoader, "getUserExtensionPath").andCallFake(function () {
                 return mockPath + "/user";
+            });
+
+            // Fake package removal.
+            removedPath = null;
+            spyOn(Package, "remove").andCallFake(function (path) {
+                removedPath = path;
+                return new $.Deferred().resolve().promise();
             });
         });
         
@@ -208,7 +216,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["default/mock-extension-1"]);
                 });
                 runs(function () {
-                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-extension-1", ExtensionManager.ENABLED);
+                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-extension-1");
                 });
             });
             
@@ -220,8 +228,40 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
-                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), mockPath + "/user/mock-legacy-extension", ExtensionManager.ENABLED);
+                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), mockPath + "/user/mock-legacy-extension");
                 });
+            });
+            
+            it("should remove an extension and raise a statusChange event", function () {
+                var spy = jasmine.createSpy();
+                runs(function () {
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                });
+                runs(function () {
+                    $(ExtensionManager).on("statusChange.unit-test", spy);
+                    waitsForDone(ExtensionManager.remove("mock-extension-3"));
+                });
+                runs(function () {
+                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
+                    expect(removedPath).toBe(mockPath + "/user/mock-extension-3");
+                    expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-extension-3");
+                    expect(ExtensionManager.extensions["mock-extension-3"].installInfo).toBeFalsy();
+                });
+            });
+            
+            it("should fail when trying to remove an extension that's not installed", function () {
+                var finished = false;
+                runs(function () {
+                    ExtensionManager.remove("mock-extension-3")
+                        .done(function () {
+                            finished = true;
+                            expect("tried to remove a nonexistent extension").toBe(false);
+                        })
+                        .fail(function () {
+                            finished = true;
+                        });
+                });
+                waitsFor(function () { return finished; }, "finish removal");
             });
             
             it("should calculate compatibility info correctly", function () {
@@ -469,6 +509,30 @@ define(function (require, exports, module) {
                         expect(calledId).toBe("install-later-extension");
                     });
                 });
+                
+                it("should not include a removed extension", function () {
+                    mockLoadExtensions(["user/install-later-extension"]);
+                    runs(function () {
+                        waitsForDone(ExtensionManager.remove("install-later-extension"));
+                    });
+                    runs(function () {
+                        expect(model.filterSet.indexOf("install-later-extension")).toBe(-1);
+                    });
+                });
+
+                it("should raise an event when an extension is removed", function () {
+                    var calledId;
+                    mockLoadExtensions(["user/install-later-extension"]);
+                    runs(function () {
+                        $(model).on("change", function (e, id) {
+                            calledId = id;
+                        });
+                        waitsForDone(ExtensionManager.remove("install-later-extension"));
+                    });
+                    runs(function () {
+                        expect(calledId).toBe("install-later-extension");
+                    });
+                });
             });
         });
         
@@ -707,6 +771,17 @@ define(function (require, exports, module) {
                     });
                 });
                 
+                it("should show a newly installed extension", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect(view).not.toHaveText("mock-extension-3");
+                        mockLoadExtensions(["user/mock-extension-3"]);
+                    });
+                    runs(function () {
+                        expect(view).toHaveText("mock-extension-3");
+                    });
+                });
+                
                 it("should not show extensions in the default folder", function () {
                     mockLoadExtensions(["default/mock-extension-1"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
@@ -722,6 +797,36 @@ define(function (require, exports, module) {
                         var $button = $("button.remove[data-extension-id=mock-extension-2]", view.$el);
                         expect($button.length).toBe(1);
                         expect($button.attr("disabled")).toBeTruthy();
+                    });
+                });
+                
+                it("should try to remove the given extension", function () {
+                    mockLoadExtensions(["user/mock-extension-3"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        var $button = $("button.remove[data-extension-id=mock-extension-3]", view.$el);
+                        $button.click();
+                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
+                        expect(removedPath).toBe(mockPath + "/user/mock-extension-3");
+                    });
+                });
+                
+                it("should no longer show a removed extension", function () {
+                    var removed = false;
+                    mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
+                    setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
+                    runs(function () {
+                        expect(view).toHaveText("mock-extension-3");
+                        
+                        $(ExtensionManager).on("statusChange.remove-test", function () {
+                            removed = true;
+                        });
+                        ExtensionManager.remove("mock-extension-3");
+                    });
+                    waitsFor(function () { return removed; }, "extension removal");
+                    runs(function () {
+                        $(ExtensionManager).off(".remove-test");
+                        expect(view).not.toHaveText("mock-extension-3");
                     });
                 });
             });

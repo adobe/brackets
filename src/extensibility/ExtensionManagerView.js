@@ -122,11 +122,18 @@ define(function (require, exports, module) {
                 self._render();
             })
             .on("change", function (e, id) {
-                // Re-render the extension item.
-                var extensions = self.model.extensions;
-                if (extensions[id]) {
-                    var $oldItem = self._itemViews[id],
-                        $newItem = self._renderItem(extensions[id]);
+                var extensions = self.model.extensions,
+                    $oldItem = self._itemViews[id];
+                if (self.model.filterSet.indexOf(id) === -1) {
+                    // This extension is not in the filter set. Remove it from the view if we
+                    // were rendering it previously.
+                    if ($oldItem) {
+                        $oldItem.remove();
+                        delete self._itemViews[id];
+                    }
+                } else {
+                    // Render the item, replacing the old item if we had previously rendered it.
+                    var $newItem = self._renderItem(extensions[id]);
                     if ($oldItem) {
                         $oldItem.replaceWith($newItem);
                         self._itemViews[id] = $newItem;
@@ -146,6 +153,11 @@ define(function (require, exports, module) {
             .on("click", "button.install", function (e) {
                 // "this" is correct here (it's the button)
                 self._installUsingDialog($(this).attr("data-extension-id"));
+            })
+            // Handle remove button clicks
+            .on("click", "button.remove", function (e) {
+                // "this" is correct here (it's the button)
+                self._remove($(this).attr("data-extension-id"));
             });
     };
     
@@ -157,6 +169,9 @@ define(function (require, exports, module) {
      */
     ExtensionManagerView.prototype._renderItem = function (entry) {
         // Create a Mustache context object containing the entry data and our helper functions.
+        
+        // Start with the basic info from the given entry, either the installation info or the
+        // registry info depending on what we're listing.
         var info, context;
         if (this.model.source === ExtensionManagerViewModel.SOURCE_INSTALLED) {
             info = entry.installInfo;
@@ -175,6 +190,8 @@ define(function (require, exports, module) {
         // of copying all the strings into the context, so we just make it a subfield.
         context.Strings = Strings;
         
+        // Calculate various bools, since Mustache doesn't let you use expressions and interprets
+        // arrays as iteration contexts.
         context.isInstalled = !!entry.installInfo;
         context.hasVersionInfo = !!info.versions;
                 
@@ -188,10 +205,12 @@ define(function (require, exports, module) {
         
         context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         
+        // Copy over helper functions.
         ["lastVersionDate", "ownerLink", "formatUserId"].forEach(function (helper) {
             context[helper] = registry_utils[helper];
         });
         
+        // TODO: should probably just move this into registry_utils
         context.authorInfo = function () {
             var result = "",
                 ownerLink = context.ownerLink.call(this),
@@ -236,11 +255,21 @@ define(function (require, exports, module) {
      * @param {string} id ID of the extension to install.
      */
     ExtensionManagerView.prototype._installUsingDialog = function (id) {
+        // TODO: do this through ExtensionManager
         var entry = this.model.extensions[id];
         if (entry && entry.registryInfo) {
             var url = ExtensionManager.getExtensionURL(id, entry.registryInfo.metadata.version);
             InstallExtensionDialog.installUsingDialog(url);
         }
+    };
+    
+    /**
+     * @private
+     * Remove the extension at the given path.
+     * @param {string} path Full local path to the extension to remove.
+     */
+    ExtensionManagerView.prototype._remove = function (id) {
+        ExtensionManager.remove(id);
     };
     
     /**

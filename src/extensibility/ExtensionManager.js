@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     
     var FileUtils        = require("file/FileUtils"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
+        Package          = require("extensibility/Package"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
         StringUtils      = require("utils/StringUtils");
     
@@ -178,7 +179,7 @@ define(function (require, exports, module) {
                 locationType: locationType,
                 status: ENABLED
             };
-            $(exports).triggerHandler("statusChange", [id, ENABLED]);
+            $(exports).triggerHandler("statusChange", [id]);
         }
         
         _loadPackageJson(path)
@@ -240,6 +241,31 @@ define(function (require, exports, module) {
         return StringUtils.format(brackets.config.extension_url, id, version);
     }
     
+    /**
+     * Removes the installed extension with the given id.
+     * @param {string} id The id of the extension to remove.
+     * @return {$.Promise} A promise that's resolved when the extension is removed or
+     *     rejected with an error if there's a problem with the removal.
+     */
+    function remove(id) {
+        var result = new $.Deferred();
+        if (extensions[id] && extensions[id].installInfo) {
+            Package.remove(extensions[id].installInfo.path)
+                .done(function () {
+                    extensions[id].installInfo = null;
+                    result.resolve();
+                    $(exports).triggerHandler("statusChange", [id]);
+                })
+                .fail(function (err) {
+                    result.reject(err);
+                });
+        } else {
+            // TODO: return error key or string?
+            result.reject();
+        }
+        return result.promise();
+    }
+    
     // Listen to extension load events
     $(ExtensionLoader).on("load", _handleExtensionLoad);
 
@@ -247,6 +273,7 @@ define(function (require, exports, module) {
     exports.downloadRegistry = downloadRegistry;
     exports.getCompatibilityInfo = getCompatibilityInfo;
     exports.getExtensionURL = getExtensionURL;
+    exports.remove = remove;
     exports.extensions = extensions;
     
     exports.ENABLED = ENABLED;
