@@ -206,7 +206,6 @@ define(function (require, exports, module) {
         context.isInstalled = !!entry.installInfo;
         context.hasVersionInfo = !!info.versions;
                 
-        // TODO: calculate this in ExtensionManager and store it?
         var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);
         context.isCompatible = compatInfo.isCompatible;
         context.requiresNewer = compatInfo.requiresNewer;
@@ -216,28 +215,11 @@ define(function (require, exports, module) {
         
         context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         
-        // Copy over helper functions.
-        ["lastVersionDate", "ownerLink", "formatUserId"].forEach(function (helper) {
+        // Copy over helper functions that we share with the registry app.
+        ["lastVersionDate", "authorInfo"].forEach(function (helper) {
             context[helper] = registry_utils[helper];
         });
         
-        // TODO: should probably just move this into registry_utils
-        context.authorInfo = function () {
-            var result = "",
-                ownerLink = context.ownerLink.call(this),
-                userId = context.formatUserId.call(this);
-            if (this.metadata && this.metadata.author && this.metadata.author.name) {
-                result += this.metadata.author.name;
-            }
-            if (userId) {
-                if (result !== "") {
-                    result += " / ";
-                }
-                result += "<a href='" + ownerLink + "'>" + userId + "</a>";
-            }
-            return result;
-        };
-
         return $(this._itemTemplate(context));
     };
     
@@ -266,7 +248,6 @@ define(function (require, exports, module) {
      * @param {string} id ID of the extension to install.
      */
     ExtensionManagerView.prototype._installUsingDialog = function (id) {
-        // TODO: do this through ExtensionManager
         var entry = this.model.extensions[id];
         if (entry && entry.registryInfo) {
             var url = ExtensionManager.getExtensionURL(id, entry.registryInfo.metadata.version);

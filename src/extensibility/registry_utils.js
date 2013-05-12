@@ -85,7 +85,27 @@ define(function (require, exports, module) {
         }
         return url;
     };
-    
+
+    /**
+     * Given a registry item, formats the author information, including a link to the owner's
+     * github page (if available) and the author's name from the metadata.
+     */
+    exports.authorInfo = function () {
+        var result = "",
+            ownerLink = exports.ownerLink.call(this),
+            userId = exports.formatUserId.call(this);
+        if (this.metadata && this.metadata.author && this.metadata.author.name) {
+            result += this.metadata.author.name;
+        }
+        if (userId) {
+            if (result !== "") {
+                result += " / ";
+            }
+            result += "<a href='" + ownerLink + "'>" + userId + "</a>";
+        }
+        return result;
+    };
+
     /**
      * Returns an array of current registry entries, sorted by the publish date of the latest version of each entry.
      * @param {object} registry The unsorted registry.
