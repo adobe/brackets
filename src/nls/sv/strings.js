@@ -255,7 +255,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Stäng (Spara inte)",
     "RELAUNCH_CHROME"                      : "Starta om Chrome",
     "ABOUT"                                : "Om",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Stäng",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Meddelanden och villkor som gäller program från tredje part finns på <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> och införlivas häri som referens.",
