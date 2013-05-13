@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
-        testHtmlPath    = extensionPath + "/test/index.html",
+        testHtmlPath    = extensionPath + "/unittest-files/basic-test-files/index.html",
         testDoc         = null,
         testEditor;
 
@@ -1045,30 +1045,11 @@ define(function (require, exports, module) {
         describe("JavaScript Code Hinting in a HTML file", function () {
    
             beforeEach(function () {
-                
-                DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
-                    testDoc = doc;
-                });
-                
-                waitsFor(function () {
-                    return testDoc !== null;
-                }, "Unable to open test document", 10000);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                runs(function () {
-                    testEditor = createMockEditor(testDoc);
-                    JSCodeHints.initializeSession(testEditor, false);
-                });
+                setupTest(testHtmlPath, false);
             });
             
             afterEach(function () {
-                // The following call ensures that the document is reloaded 
-                // from disk before each test
-                DocumentManager.closeAll();
-                
-                SpecRunnerUtils.destroyMockEditor(testDoc);
-                testEditor = null;
-                testDoc = null;
+                tearDownTest();
             });
 
             it("basic codehints in html file", function () {
