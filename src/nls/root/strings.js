@@ -334,7 +334,12 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
-    
+
+    /**
+     * Unit names
+     */
+
+    "UNIT_PIXELS"                          : "pixels",    
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
