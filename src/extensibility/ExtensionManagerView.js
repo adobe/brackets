@@ -153,19 +153,17 @@ define(function (require, exports, module) {
             });
         
         // UI event handlers
-        $(this.$el)
-            // Intercept clicks on external links to open in the native browser.
+        this.$el
             .on("click", "a", function (e) {
+                // Intercept clicks on external links to open in the native browser.
                 e.stopImmediatePropagation();
                 e.preventDefault();
                 NativeApp.openURLInDefaultBrowser($(e.target).attr("href"));
             })
-            // Handle install button clicks
             .on("click", "button.install", function (e) {
                 // "this" is correct here (it's the button)
                 self._installUsingDialog($(this).attr("data-extension-id"));
             })
-            // Handle remove button clicks
             .on("click", "button.remove", function (e) {
                 // "this" is correct here (it's the button)
                 self._remove($(this).attr("data-extension-id"));
@@ -225,7 +223,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Renders the extension entries in the model's current filter list.
+     * Renders the extension entry table based on the model's current filter set. Will create
+     * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
     ExtensionManagerView.prototype._render = function () {
         var self = this,

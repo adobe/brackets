@@ -154,8 +154,8 @@ define(function (require, exports, module) {
             .sort(function (key1, key2) {
                 var metadata1 = self.extensions[key1].installInfo.metadata,
                     metadata2 = self.extensions[key2].installInfo.metadata,
-                    id1 = metadata1.title || metadata1.name,
-                    id2 = metadata2.title || metadata2.name;
+                    id1 = (metadata1.title || metadata1.name).toLowerCase(),
+                    id2 = (metadata2.title || metadata2.name).toLowerCase();
                 if (id1 < id2) {
                     return -1;
                 } else if (id1 === id2) {

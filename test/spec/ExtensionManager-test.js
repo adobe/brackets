@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils           = require("spec/SpecRunnerUtils"),
         CollectionUtils           = require("utils/CollectionUtils"),
         NativeApp                 = require("utils/NativeApp"),
+        Dialogs                   = require("widgets/Dialogs"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockRegistry;
@@ -418,6 +419,32 @@ define(function (require, exports, module) {
                                     locationType: "user"
                                 }
                             },
+                            "Z-capital-extension": {
+                                registryInfo: {
+                                    metadata: {
+                                        name: "Z-capital-extension",
+                                        description: "An extension that should sort after lowercase extensions",
+                                        version: "1.0.0"
+                                    },
+                                    owner: "github:someuser",
+                                    versions: [
+                                        {
+                                            version: "1.0.0",
+                                            published: "2013-04-10T18:26:20.553Z"
+                                        }
+                                    ]
+                                },
+                                installInfo: {
+                                    metadata: {
+                                        name: "Z-capital-extension",
+                                        description: "An extension that should sort after lowercase extensions",
+                                        version: "1.0.0"
+                                    },
+                                    status: ExtensionManager.ENABLED,
+                                    path: "/path/to/extensions/user/Z-capital-extension",
+                                    locationType: "user"
+                                }
+                            },
                             "unregistered-extension": {
                                 installInfo: {
                                     metadata: {
@@ -486,8 +513,8 @@ define(function (require, exports, module) {
                     expect(model.extensions).toEqual(ExtensionManager.extensions);
                 });
                 
-                it("should only contain dev and user extensions, sorted alphabetically on the extension title (or last segment of path name for legacy extensions)", function () {
-                    expect(model.filterSet).toEqual(["registered-extension", "dev-extension", "/path/to/extensions/user/legacy-extension", "unregistered-extension"]);
+                it("should only contain dev and user extensions, sorted case-insensitively on the extension title or name (or last segment of path name for legacy extensions)", function () {
+                    expect(model.filterSet).toEqual(["registered-extension", "dev-extension", "/path/to/extensions/user/legacy-extension", "unregistered-extension", "Z-capital-extension"]);
                 });
                 
                 it("should include a newly-installed extension", function () {
@@ -561,6 +588,13 @@ define(function (require, exports, module) {
                 view.initialize(ExtensionManagerViewModel.SOURCE_REGISTRY);
             }
             
+            function cleanupView() {
+                if (view) {
+                    view.dispose();
+                    view = null;
+                }
+            }
+            
             beforeEach(function () {
                 this.addMatchers({
                     toHaveText: function (expected) {
@@ -579,8 +613,7 @@ define(function (require, exports, module) {
                 
             
             afterEach(function () {
-                view.dispose();
-                view = null;
+                cleanupView();
             });
             
             describe("when showing registry entries", function () {
@@ -752,6 +785,17 @@ define(function (require, exports, module) {
             });
             
             describe("when showing installed extensions", function () {
+                var dialogClassShown;
+                
+                beforeEach(function () {
+                    dialogClassShown = null;
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message) {
+                        dialogClassShown = dlgClass;
+                        // Don't resolve the promise so no action will be taken.
+                        return new $.Deferred().promise();
+                    });
+                });
+                           
                 it("should show only items that are already installed and have a remove button for each", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
@@ -834,7 +878,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should note that a restart is required after removing an extension", function () {
+                it("should show a restart dialog after removing an extension", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
                     setupViewWithMockData(ExtensionManagerViewModel.SOURCE_INSTALLED);
                     runs(function () {
@@ -842,7 +886,8 @@ define(function (require, exports, module) {
                         $button.click();
                     });
                     runs(function () {
-                        expect(view._quitRequired).toBeTruthy();
+                        cleanupView();
+                        expect(dialogClassShown).toBe("quit-brackets-after-removal");
                     });
                 });
             });

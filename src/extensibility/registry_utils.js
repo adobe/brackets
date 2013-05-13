@@ -35,6 +35,16 @@
 define(function (require, exports, module) {
     "use strict";
     
+    // From Brackets StringUtils
+    function htmlEscape(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+    
     /**
      * Gets the last version from the given object and returns the short form of its date.
      * Assumes "this" is the current template context.
@@ -94,14 +104,15 @@ define(function (require, exports, module) {
         var result = "",
             ownerLink = exports.ownerLink.call(this),
             userId = exports.formatUserId.call(this);
-        if (this.metadata && this.metadata.author && this.metadata.author.name) {
-            result += this.metadata.author.name;
+        if (this.metadata && this.metadata.author) {
+            // author can be either a string or an object with a "name" field
+            result += htmlEscape(this.metadata.author.name || this.metadata.author);
         }
         if (userId) {
             if (result !== "") {
                 result += " / ";
             }
-            result += "<a href='" + ownerLink + "'>" + userId + "</a>";
+            result += "<a href='" + htmlEscape(ownerLink) + "'>" + htmlEscape(userId) + "</a>";
         }
         return result;
     };
