@@ -39,8 +39,14 @@ define(function (require, exports, module) {
         
         var testEditorAndDoc,
             hintProvider = new HTMLEntityHints();
-        
-        testEditorAndDoc = SpecRunnerUtils.createMockEditor(defaultContent, "html");
+
+        beforeEach(function () {
+            testEditorAndDoc = SpecRunnerUtils.createMockEditor(defaultContent, "html");
+        });
+
+        afterEach(function () {
+            SpecRunnerUtils.destroyMockEditor(testEditorAndDoc.doc);
+        });
         
         // Ask provider for hints at current cursor position; expect it to return some
         function expectHints(provider) {
