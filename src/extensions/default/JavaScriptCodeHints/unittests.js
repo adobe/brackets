@@ -607,12 +607,7 @@ define(function (require, exports, module) {
                 var start   = { line: 6, ch: 0 },
                     middle  = { line: 6, ch: 3 },
                     end     = { line: 6, ch: 8 };
-//                console.log("before waits: " + new Date().getMilliseconds());
-//                waits(1000);
-//
-//                runs(function () {
-//                    console.log("in runs waits: " + new Date().getMilliseconds());
-//                });
+
                 testDoc.replaceRange("A1.", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -854,7 +849,7 @@ define(function (require, exports, module) {
             });
         });
 
-       describe("JavaScript Code Hinting without modules", function () {
+        describe("JavaScript Code Hinting without modules", function () {
             var testPath = extensionPath + "/unittest-files/non-module-test-files/app.js";
 
             beforeEach(function () {
