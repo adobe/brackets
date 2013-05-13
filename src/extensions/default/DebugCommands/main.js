@@ -154,11 +154,20 @@ define(function (require, exports, module) {
                     $submit.attr("disabled", false);
                 }
                 
+                // returns the localized label for the given locale
+                // or the locale, if nothing found
+                function getLocalizedLabel(locale) {
+                    var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
+                        i18n = Strings[key];
+                    
+                    return i18n === undefined ? locale : i18n;
+                }
+
                 // add system default
                 languages.push({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
                 
                 // add english
-                languages.push({label: "en",  language: "en"});
+                languages.push({label: getLocalizedLabel("en"),  language: "en"});
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
@@ -173,7 +182,7 @@ define(function (require, exports, module) {
                                 label += match[2].toUpperCase();
                             }
                             
-                            languages.push({label: label, language: language});
+                            languages.push({label: getLocalizedLabel(label), language: language});
                         }
                     }
                 });

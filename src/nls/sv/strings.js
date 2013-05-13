@@ -121,12 +121,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fel vid hämtning av uppdatering info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Det gick inte att få information från servern. Kolla din internetuppkoppling och försök igen.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Byt språk",
-    "LANGUAGE_MESSAGE"                  : "Välj önskat språk i listan nedan:",
-    "LANGUAGE_SUBMIT"                   : "Uppdatera {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Avbryt",
 
     /**
      * ProjectManager
@@ -217,20 +211,10 @@ define({
     "CMD_PREV_DOC"                        : "Föregående dokument",
     "CMD_SHOW_IN_TREE"                    : "Visa i Fil-träd",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Ladda om {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Visa Utvecklarverktyg",
-    "CMD_RUN_UNIT_TESTS"                  : "Kör tester",
-    "CMD_JSLINT"                          : "Aktivera JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Visa prestandadata",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nytt {APP_NAME} Fönster",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Visa Tilläggs mappen",
-    "CMD_SWITCH_LANGUAGE"                 : "Byt Språk",
-    "CMD_CHECK_FOR_UPDATE"                : "Sök efter uppdateringar",
-
     // Help menu commands
     "HELP_MENU"                           : "Hjälp",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Visa Tilläggs mappen",
+    "CMD_CHECK_FOR_UPDATE"                : "Sök efter uppdateringar",
     "CMD_ABOUT"                           : "Om {APP_TITLE}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
 
@@ -240,11 +224,6 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
-    "JSLINT_ERRORS"                        : "JSLint Felmeddelanden",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Fel",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Fel",
-    "JSLINT_NO_ERRORS"                     : "Inga JSLint fel - Bra jobbat!",
-    "JSLINT_DISABLED"                      : "JSLint inaktiverat eller inte kompatibelt med denna fil",
     "SEARCH_RESULTS"                       : "Sökresultat",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Spara Inte",
@@ -255,7 +234,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Stäng (Spara inte)",
     "RELAUNCH_CHROME"                      : "Starta om Chrome",
     "ABOUT"                                : "Om",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Stäng",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Meddelanden och villkor som gäller program från tredje part finns på <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> och införlivas häri som referens.",
@@ -272,5 +250,28 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Adressen kan inte innehålla sökparametrar som \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adressen kan inte innehålla hashar som \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Specialtecken som '{0}' måste vara %-kodade.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Okänt fel!"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Okänt fel!",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                           : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                   : "Visa Utvecklarverktyg",
+    "CMD_REFRESH_WINDOW"                   : "Ladda om {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"              : "Nytt {APP_NAME} Fönster",
+    "CMD_SWITCH_LANGUAGE"                  : "Byt Språk",
+    "CMD_RUN_UNIT_TESTS"                   : "Kör tester",
+    "CMD_SHOW_PERF_DATA"                   : "Visa prestandadata",
+    
+    "LANGUAGE_TITLE"                       : "Byt språk",
+    "LANGUAGE_MESSAGE"                     : "Välj önskat språk i listan nedan:",
+    "LANGUAGE_SUBMIT"                      : "Uppdatera {APP_NAME}",
+    "LANGUAGE_CANCEL"                      : "Avbryt",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                           : "Aktivera JSLint",
+    "JSLINT_ERRORS"                        : "JSLint Felmeddelanden",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Fel",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Fel",
+    "JSLINT_NO_ERRORS"                     : "Inga JSLint fel - Bra jobbat!",
+    "JSLINT_DISABLED"                      : "JSLint inaktiverat eller inte kompatibelt med denna fil"
 });

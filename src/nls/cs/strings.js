@@ -124,12 +124,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Změnit jazyk",
-    "LANGUAGE_MESSAGE"                  : "Prosím, vyberte jazyk ze seznamu:",
-    "LANGUAGE_SUBMIT"                   : "Restartovat {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Zrušit",
 
     /**
      * ProjectManager
@@ -180,7 +174,7 @@ define({
     "CMD_INSTALL_EXTENSION"               : "Instalovat doplňky\u2026",
     "CMD_QUIT"                            : "Konec",
     // Used in native File menu on Windows
-    "CMD_EXIT"                            : "Konec",   
+    "CMD_EXIT"                            : "Konec",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Úpravy",
@@ -205,7 +199,7 @@ define({
     "CMD_BLOCK_COMMENT"                   : "Blokový komentář",
     "CMD_LINE_UP"                         : "Posunout řádek nahoru",
     "CMD_LINE_DOWN"                       : "Posunout řádek dolů",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",    
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzavírat závorky",
      
     // View menu commands
     "VIEW_MENU"                           : "Zobrazit",
@@ -229,7 +223,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Rychle otevřít",
     "CMD_GOTO_LINE"                       : "Přejít na řádek",
     "CMD_GOTO_DEFINITION"                 : "Přejít na funkci",
-    "CMD_JSLINT_FIRST_ERROR"              : "Přejít na první JSLint chybu",
     "CMD_TOGGLE_QUICK_EDIT"               : "Rychlá úprava",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Další shoda",
@@ -237,20 +230,6 @@ define({
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Nástroje",
-    "CMD_REFRESH_WINDOW"                  : "Restartovat {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Zobrazit nástroje pro vývojáře",
-    "CMD_RUN_UNIT_TESTS"                  : "Spustit testy",
-    "CMD_JSLINT"                          : "Povolit JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Zobrazit údaje o výkonnosti",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nové okno {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
-    "CMD_SWITCH_LANGUAGE"                 : "Změnit jazyk",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Povolit Node Debugger",
-    "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
-    "CMD_RESTART_NODE"                    : "Restartovat Node",
-
     // Help menu commands
     "HELP_MENU"                           : "Nápověda",
     "CMD_CHECK_FOR_UPDATE"                : "Zkontrolovat aktualizace",
@@ -258,6 +237,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME} fórum",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
     "CMD_REPORT_AN_ISSUE"                 : "Nahlásit problém",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
 
@@ -269,11 +249,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
-    "JSLINT_ERRORS"                        : "JSLint chyby",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint chyba",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint chyb",
-    "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
-    "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
     "SEARCH_RESULTS"                       : "Výsledky hledání",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Neukládat",
@@ -285,13 +260,12 @@ define({
     "RELAUNCH_CHROME"                      : "Restartovat Chrome",
     "INSTALL"                              : "Install",
     "ABOUT"                                : "O aplikaci",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Zavřít",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Oznámení, podmínky týkající se software třetích stran jsou umístěny na <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> a začleněny prostřednictvím odkazu zde.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentace a zdrojový kód na <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
     "ABOUT_TEXT_LINE5"                     : "Vytvořeno s \u2764 a pomocí JavaScript těmito lidmi:",
-    "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",    
+    "ABOUT_TEXT_LINE6"                     : "Mnoho lidí (ale momentálně máme problém s načítáním dat).",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Je dostupná nová verze {APP_NAME} ! Klikněte zde pro více informací.",
     "UPDATE_AVAILABLE_TITLE"               : "Dostupná aktualizace",
     "UPDATE_MESSAGE"                       : "Nová verze {APP_NAME} je dostupná. Seznam některých vylepšení:",
@@ -325,7 +299,6 @@ define({
     "API_NOT_COMPATIBLE"                   : "Doplněk není kompatibilní s touto verzi Brackets. Naleznete jej ve složce disabled extensions.",
     "MISSING_MAIN"                         : "Balíček neobsahuje soubor main.js.",
     "ALREADY_INSTALLED"                    : "Doplněk s tímto jménem je již nainstalován. Nový doplněk je nainstalován ve složce disabled extensions.",
-    "NO_DISABLED_DIRECTORY"                : "Nelze uložit doplněk do extensions/disabled protože složka neexistuje.",
     "DOWNLOAD_ID_IN_USE"                   : "Interní chyba: ID stahování se již používá.",
     "NO_SERVER_RESPONSE"                   : "Nelze se přípojit na server.",
     "BAD_HTTP_STATUS"                      : "Soubor nebyl nalezen (HTTP {0}).",
@@ -335,7 +308,25 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "URL adresa musí být http nebo https.",
     "UNKNOWN_ERROR"                        : "Neznámá chyba.",
     // For NOT_FOUND_ERR, see generic strings above
-   
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Nástroje",
+    "CMD_SHOW_DEV_TOOLS"                        : "Zobrazit nástroje pro vývojáře",
+    "CMD_REFRESH_WINDOW"                        : "Restartovat {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nové okno {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Změnit jazyk",
+    "CMD_RUN_UNIT_TESTS"                        : "Spustit testy",
+    "CMD_SHOW_PERF_DATA"                        : "Zobrazit údaje o výkonnosti",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Povolit Node Debugger",
+    "CMD_LOG_NODE_STATE"                        : "Uložit stav Node do konzole",
+    "CMD_RESTART_NODE"                          : "Restartovat Node",
+    
+    "LANGUAGE_TITLE"                            : "Změnit jazyk",
+    "LANGUAGE_MESSAGE"                          : "Prosím, vyberte jazyk ze seznamu:",
+    "LANGUAGE_SUBMIT"                           : "Restartovat {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Zrušit",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",
@@ -343,5 +334,14 @@ define({
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex formát",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa formát",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (použito {1} krát)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)"
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Povolit JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Přejít na první JSLint chybu",
+    "JSLINT_ERRORS"                             : "JSLint chyby",
+    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint chyba",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint chyb",
+    "JSLINT_NO_ERRORS"                          : "Žádné JSLint chyby - výborně!",
+    "JSLINT_DISABLED"                           : "JSLint je vypnut nebo nefunguje s tímto souborem."
 });
