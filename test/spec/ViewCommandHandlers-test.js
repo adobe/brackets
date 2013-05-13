@@ -84,9 +84,16 @@ define(function (require, exports, module) {
         describe("Adjust the Font Size", function () {
             it("should increase the font size in both editor and inline editor", function () {
                 runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() + 2;
+                    var editors = getEditors();
                     
+                    // Editor.getTextHeight() returns line-height which has already been
+                    // rounded off, which means we can't be exact here, so increment text
+                    // size by a number near a whole number (3 * 1.3 = 3.9 ~= 4).
+                    var expectedSize = editors.editor.getTextHeight() + 4;
+                    
+                    // Incrementing adds 1px to font-size and 1.3px to line-height.
+                    // Note this only works when font-size and line-height are specified in px.
+                    CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     
@@ -97,9 +104,16 @@ define(function (require, exports, module) {
             
             it("should decrease the font size in both editor and inline editor", function () {
                 runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() - 2;
+                    var editors = getEditors();
                     
+                    // Editor.getTextHeight() returns line-height which has already been
+                    // rounded off, which means we can't be exact here, so decrement text
+                    // size by a number near a whole number (3 * 1.3 = 3.9 ~= 4).
+                    var expectedSize = editors.editor.getTextHeight() - 4;
+                    
+                    // Decrementing subtracts 1px from font-size and 1.3px from line-height.
+                    // Note this only works when font-size and line-height are specified in px.
+                    CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
                     CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
                     CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
                     
