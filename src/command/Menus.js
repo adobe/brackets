@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         KeyBindingManager   = require("command/KeyBindingManager"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
-        PopUpManager        = require("widgets/PopUpManager");
+        PopUpManager        = require("widgets/PopUpManager"),
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * Brackets Application Menu Constants
@@ -694,13 +695,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            // Note, checked can also be undefined, so we explicitly check
-            // for truthiness and don't use toggleClass().
-            if (checked) {
-                $(_getHTMLMenuItem(this.id)).addClass("checked");
-            } else {
-                $(_getHTMLMenuItem(this.id)).removeClass("checked");
-            }
+            ViewUtils.toggleClass($(_getHTMLMenuItem(this.id)), "checked", checked);
         }
     };
 
@@ -717,7 +712,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+            ViewUtils.toggleClass($(_getHTMLMenuItem(this.id)), "disabled", !this._command.getEnabled());
         }
     };
 
