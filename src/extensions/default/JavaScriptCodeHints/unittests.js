@@ -36,8 +36,8 @@ define(function (require, exports, module) {
         JSCodeHints         = require("main");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
-        testPath        = extensionPath + "/test/file1.js",
-        testHtmlPath    = extensionPath + "/test/index.html",
+        testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
+        testHtmlPath    = extensionPath + "/unittest-files/basic-test-files/index.html",
         testDoc         = null,
         testEditor;
 
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0));
-        
+
         return editor;
     }
 
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
             if (key === undefined) {
                 key = null;
             }
-            
+
             expect(provider.hasHints(testEditor, key)).toBe(false);
         }
 
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
                     hintList = obj.hints;
                 });
             }
-            
+
             waitsFor(function () {
                 return complete;
             }, "Expected hints did not resolve", 3000);
@@ -317,33 +317,41 @@ define(function (require, exports, module) {
             });
             
         }
-        
-        describe("JavaScript Code Hinting", function () {
-   
+
+        function setupTest(path, primePump) {
+            DocumentManager.getDocumentForPath(path).done(function (doc) {
+                testDoc = doc;
+            });
+
+            waitsFor(function () {
+                return testDoc !== null;
+            }, "Unable to open test document", 10000);
+
+            // create Editor instance (containing a CodeMirror instance)
+            runs(function () {
+                testEditor = createMockEditor(testDoc);
+                JSCodeHints.initializeSession(testEditor, primePump);
+            });
+        }
+
+        function tearDownTest() {
+            // The following call ensures that the document is reloaded
+            // from disk before each test
+            DocumentManager.closeAll();
+
+            SpecRunnerUtils.destroyMockEditor(testDoc);
+            testEditor = null;
+            testDoc = null;
+        }
+
+        describe("JavaScript Code Hinting Basic", function () {
+
             beforeEach(function () {
-                
-                DocumentManager.getDocumentForPath(testPath).done(function (doc) {
-                    testDoc = doc;
-                });
-                waitsFor(function () {
-                    return testDoc !== null;
-                }, "Unable to open test document", 10000);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                runs(function () {
-                    testEditor = createMockEditor(testDoc);
-                    JSCodeHints.initializeSession(testEditor, false);
-                });
+                setupTest(testPath, false);
             });
             
             afterEach(function () {
-                // The following call ensures that the document is reloaded 
-                // from disk before each test
-                DocumentManager.closeAll();
-                
-                SpecRunnerUtils.destroyMockEditor(testDoc);
-                testEditor = null;
-                testDoc = null;
+                tearDownTest();
             });
             
             it("should list declared variable and function names in outer scope", function () {
@@ -1037,30 +1045,11 @@ define(function (require, exports, module) {
         describe("JavaScript Code Hinting in a HTML file", function () {
    
             beforeEach(function () {
-                
-                DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
-                    testDoc = doc;
-                });
-                
-                waitsFor(function () {
-                    return testDoc !== null;
-                }, "Unable to open test document", 10000);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                runs(function () {
-                    testEditor = createMockEditor(testDoc);
-                    JSCodeHints.initializeSession(testEditor, false);
-                });
+                setupTest(testHtmlPath, false);
             });
             
             afterEach(function () {
-                // The following call ensures that the document is reloaded 
-                // from disk before each test
-                DocumentManager.closeAll();
-                
-                SpecRunnerUtils.destroyMockEditor(testDoc);
-                testEditor = null;
-                testDoc = null;
+                tearDownTest();
             });
 
             it("basic codehints in html file", function () {
@@ -1094,5 +1083,31 @@ define(function (require, exports, module) {
                 });
             });
         });
+
+        describe("JavaScript Code Hinting without modules", function () {
+            var testPath = extensionPath + "/unittest-files/non-module-test-files/app.js";
+
+            beforeEach(function () {
+                setupTest(testPath, true);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            // Test reading multiple files and subdirectories
+            it("should handle reading all files when modules not used", function () {
+                var start = { line: 8, ch: 8 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    runs(function () {
+                        hintsPresentExact(hintObj, ["a", "b", "b1", "c", "d"]);
+                    });
+                });
+            });
+        });
+ 
     });
 });
