@@ -349,9 +349,15 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
+
+    /**
+     *  Unit names
+     */
     
+    "UNIT_PIXELS"                       : "píxeles",
+
     // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Vista rápida con cursor",
+    "CMD_ENABLE_QUICK_VIEW"                : "Vista rápida con cursor",   
     
     // extensions/default/JSLint
     "JSLINT_ERRORS"                        : "Errores de JSLint",
@@ -371,4 +377,5 @@ define({
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Más"
+
 });
