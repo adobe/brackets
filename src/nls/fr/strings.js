@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -87,6 +88,11 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Aperçu en direct : cliquez ici pour déconnecter (enregistrez le fichier pour lancer la mise à jour).",
+
+	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "Aperçu en direct a été annulé car les outils de développeur du navigateur étaient ouverts",
+	"LIVE_DEV_DETACHED_TARGET_CLOSED": "Aperçu en direct a été annulé car la page était fermée dans le navigateur",
+	"LIVE_DEV_NAVIGATED_AWAY": "Aperçu en direct a été annulé car le navigateur a accédé à une page qui ne fait pas partie du projet actuel",
+	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "Aperçu en direct a été annulé pour une raison inconnue ({0})",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
@@ -131,6 +137,25 @@ define({
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "Tchèque",
+	"LOCALE_DE": "Allemand",
+	"LOCALE_EN": "Anglais",
+	"LOCALE_ES": "Espagnol",
+	"LOCALE_FR": "Français",
+	"LOCALE_IT": "Italien",
+	"LOCALE_JA": "Japonais",
+	"LOCALE_NB": "Norvégien",
+	"LOCALE_PL": "Polonais",
+	"LOCALE_PT_BR": "[6862304] !é=Portuguese, Brazil=!",
+	"LOCALE_PT_PT": "Portuguais",
+	"LOCALE_RU": "Russe",
+	"LOCALE_SV": "Suédois",
+	"LOCALE_TR": "Turc",
+	"LOCALE_ZH_CN": "[6862309] !é=Chinese, simplified=!",
 
     /**
      * ProjectManager
@@ -157,7 +182,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT": "{0} lignes",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
+	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
 
     /**
      * Command Name Constants
@@ -227,13 +253,12 @@ define({
 	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
 	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
-	"CMD_ENABLE_QUICK_VIEW": "Activer l’aperçu au survol",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
-	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
 	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
@@ -287,20 +312,20 @@ define({
 	"RELAUNCH_CHROME": "Relancer Chrome",
 	"INSTALL": "Installer",
 	"ABOUT": "A propos",
-	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo graphique Web Platform sont mis à disposition sous licence Creative Commons Attribution, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported.</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "(pour utiliser un serveur local, spécifiez l’URL)",
+	"PROJECT_SETTING_BASE_URL_HINT": "[6499087] !é=To use a local server, enter a url like http://localhost:8000/=!",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
@@ -329,7 +354,6 @@ define({
 	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
-	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
 	"DOWNLOAD_ID_IN_USE": "Erreur interne : l’ID de téléchargement est déjà utilisé.",
 	"NO_SERVER_RESPONSE": "Impossible de se connecter au serveur.",
 	"BAD_HTTP_STATUS": "Fichier introuvable sur le serveur (HTTP {0}).",
@@ -351,8 +375,11 @@ define({
 	"EXTENSION_INSTALLED": "Installée",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
-	"BROWSE_EXTENSIONS": "[6781118] !é=Browse Extensions=!",
+	"BROWSE_EXTENSIONS": "Parcourir les extensions",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
 	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",

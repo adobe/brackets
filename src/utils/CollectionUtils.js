@@ -95,7 +95,7 @@ define(function (require, exports, module) {
      * @return {boolean} True if the object contains the property
      */
     function hasProperty(object, property) {
-        return Object.prototype.hasOwnProperty.apply(object, [property]);
+        return Object.prototype.hasOwnProperty.call(object, property);
     }
     
     // Define public API

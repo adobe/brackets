@@ -30,12 +30,13 @@ define(function (require, exports, module) {
     var LANGUAGE_ID                 = "javascript",
         SINGLE_QUOTE                = "'",
         DOUBLE_QUOTE                = "\"",
+        TERN_ADD_FILES_MSG          = "AddFiles",
         TERN_INIT_MSG               = "Init",
         TERN_JUMPTODEF_MSG          = "JumptoDef",
         TERN_COMPLETIONS_MSG        = "Completions",
         TERN_GET_FILE_MSG           = "GetFile",
-        TERN_GET_PROPERTIES_MSG     = "Properties",
-        TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType";
+        TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
+        TERN_PRIME_PUMP_MSG         = "PrimePump";
 
     /**
      * Create a hint token with name value that occurs at the given list of
@@ -72,10 +73,12 @@ define(function (require, exports, module) {
      * @return {boolean} - could the token be hintable?
      */
     function hintable(token) {
-        switch (token.className) {
+        switch (token.type) {
         case "comment":
         case "number":
         case "regexp":
+        // exclude variable & param decls
+        case "def":
             return false;
         default:
             return true;
@@ -184,22 +187,23 @@ define(function (require, exports, module) {
         }),
         LITERALS        = annotateLiterals(LITERAL_TOKENS);
 
-    exports.makeToken               = makeToken;
-    exports.hintable                = hintable;
-    exports.hintableKey             = hintableKey;
-    exports.maybeIdentifier         = maybeIdentifier;
-    exports.splitPath               = splitPath;
-    exports.eventName               = eventName;
-    exports.annotateLiterals        = annotateLiterals;
-    exports.KEYWORDS                = KEYWORDS;
-    exports.LITERALS                = LITERALS;
-    exports.LANGUAGE_ID             = LANGUAGE_ID;
-    exports.SINGLE_QUOTE            = SINGLE_QUOTE;
-    exports.DOUBLE_QUOTE            = DOUBLE_QUOTE;
-    exports.TERN_JUMPTODEF_MSG      = TERN_JUMPTODEF_MSG;
-    exports.TERN_COMPLETIONS_MSG    = TERN_COMPLETIONS_MSG;
-    exports.TERN_INIT_MSG           = TERN_INIT_MSG;
-    exports.TERN_GET_FILE_MSG       = TERN_GET_FILE_MSG;
-    exports.TERN_GET_PROPERTIES_MSG = TERN_GET_PROPERTIES_MSG;
+    exports.makeToken                   = makeToken;
+    exports.hintable                    = hintable;
+    exports.hintableKey                 = hintableKey;
+    exports.maybeIdentifier             = maybeIdentifier;
+    exports.splitPath                   = splitPath;
+    exports.eventName                   = eventName;
+    exports.annotateLiterals            = annotateLiterals;
+    exports.KEYWORDS                    = KEYWORDS;
+    exports.LITERALS                    = LITERALS;
+    exports.LANGUAGE_ID                 = LANGUAGE_ID;
+    exports.SINGLE_QUOTE                = SINGLE_QUOTE;
+    exports.DOUBLE_QUOTE                = DOUBLE_QUOTE;
+    exports.TERN_ADD_FILES_MSG          = TERN_ADD_FILES_MSG;
+    exports.TERN_JUMPTODEF_MSG          = TERN_JUMPTODEF_MSG;
+    exports.TERN_COMPLETIONS_MSG        = TERN_COMPLETIONS_MSG;
+    exports.TERN_INIT_MSG               = TERN_INIT_MSG;
+    exports.TERN_GET_FILE_MSG           = TERN_GET_FILE_MSG;
     exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
+    exports.TERN_PRIME_PUMP_MSG         = TERN_PRIME_PUMP_MSG;
 });

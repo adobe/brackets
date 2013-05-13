@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var strings         = require("i18n!nls/strings"),
+        stringsApp      = require("i18n!nls/strings-app"),
         Global          = require("utils/Global"),
         CollectionUtils = require("utils/CollectionUtils"),
         StringUtils     = require("utils/StringUtils");
@@ -57,6 +58,14 @@ define(function (require, exports, module) {
         CollectionUtils.forEach(additionalGlobals, function (item, name) {
             strings[key] = strings[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
         });
+    });
+    
+    // Append or overlay additional, product-specific strings
+    CollectionUtils.forEach(stringsApp, function (value, key) {
+        CollectionUtils.forEach(additionalGlobals, function (item, name) {
+            stringsApp[key] = stringsApp[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
+        });
+        strings[key] = stringsApp[key];
     });
 
     module.exports = strings;
