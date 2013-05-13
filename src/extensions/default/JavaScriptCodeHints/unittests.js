@@ -27,7 +27,9 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Editor              = brackets.getModule("editor/Editor").Editor,
+    var Commands            = brackets.getModule("command/Commands"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
+        Editor              = brackets.getModule("editor/Editor").Editor,
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
@@ -41,6 +43,12 @@ define(function (require, exports, module) {
         testDoc         = null,
         testEditor;
 
+    CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
+        // Register a command for FILE_OPEN, which the jump to def code will call
+        return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
+            DocumentManager.setCurrentDocument(doc);
+        });
+    });
     /**
      * Returns an Editor suitable for use in isolation, given a Document. (Unlike
      * SpecRunnerUtils.createMockEditor(), which is given text and creates the Document
@@ -58,6 +66,8 @@ define(function (require, exports, module) {
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0));
 
+        EditorManager._notifyActiveEditorChanged(editor);
+        
         return editor;
     }
 
@@ -289,21 +299,24 @@ define(function (require, exports, module) {
          * @param {Function} callback - the callback to apply once the editor has changed position
          */
         function _waitForJump(oldLocation, callback) {
+            var cursor = null;
             waitsFor(function () {
-                var cursor = testEditor.getCursorPos();
+                var activeEditor = EditorManager.getActiveEditor();
+                cursor = activeEditor.getCursorPos();
                 return (cursor.line !== oldLocation.line) ||
                         (cursor.ch !== oldLocation.ch);
             }, "Expected jump did not occur", 3000);
 
-            runs(function () { callback(testEditor.getCursorPos()); });
+            runs(function () { callback(cursor); });
         }
         
         /**
          * Trigger a jump to definition, and verify that the editor jumped to 
          * the expected location.
          *
-         * @param {{line:number, ch:number}} expectedLocation - the location the editor should
-         *      jump to.
+         * @param {{line:number, ch:number, file:string}} expectedLocation - the 
+         *  line, column, and optionally the new file the editor should jump to.  If the
+         *  editor is expected to stay in the same file, then file may be omitted.  
          */
         function editorJumped(expectedLocation) {
             var oldLocation = testEditor.getCursorPos();
@@ -314,6 +327,10 @@ define(function (require, exports, module) {
             _waitForJump(oldLocation, function (newCursor) {
                 expect(newCursor.line).toBe(expectedLocation.line);
                 expect(newCursor.ch).toBe(expectedLocation.ch);
+                if (expectedLocation.file) {
+                    var activeEditor = EditorManager.getActiveEditor();
+                    expect(activeEditor.document.file.name).toBe(expectedLocation.file);
+                }
             });
             
         }
@@ -980,13 +997,12 @@ define(function (require, exports, module) {
                 });
             });
             
-            // bug: the issue: timeout due to file.open command not found
-            xit("should jump to the definition in new module file", function () {
-                var start = { line: 38, ch: 21 };
+            it("should jump to the definition in new module file", function () {
+                var start = { line: 40, ch: 22 };
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    editorJumped({line: 4, ch: 34}); //jump to another file
+                    editorJumped({line: 4, ch: 34, file: "MyModule.js"}); //jump to another file
                 });
             });
             
