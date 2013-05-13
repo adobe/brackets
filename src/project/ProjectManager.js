@@ -1281,7 +1281,7 @@ define(function (require, exports, module) {
 
                 result.resolve();
             } else {
-                // Show and error alert
+                // Show an error alert
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_RENAMING_FILE_TITLE,
@@ -1384,14 +1384,14 @@ define(function (require, exports, module) {
             _redraw(true);
             result.promise();
         }, function (err) {
-            // Show and error alert
+            // Show an error alert
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_ERROR,
                 Strings.ERROR_DELETING_FILE_TITLE,
                 StringUtils.format(
                     Strings.ERROR_DELETING_FILE,
                     StringUtils.htmlEscape(entry.fullPath),
-                    err === brackets.fs.ERR_FILE_EXISTS ? Strings.FILE_EXISTS_ERR : FileUtils.getFileErrorString(err)
+                    FileUtils.getFileErrorString(err)
                 )
             );
 

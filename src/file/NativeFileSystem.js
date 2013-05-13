@@ -365,12 +365,13 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Deletes a file or directory
+     * Deletes a file or directory by moving to the trash/recycle bin.
      * @param {function()} successCallback Callback function for successful operations
      * @param {function(DOMError)=} errorCallback Callback function for error operations
      */
     NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
-        brackets.fs.moveToTrash(this.fullPath, function (err) {
+        var deleteFunc = brackets.fs.moveToTrash || brackets.fs.unlink;
+        deleteFunc(this.fullPath, function (err) {
             if (err === brackets.fs.NO_ERROR) {
                 successCallback();
             } else {
