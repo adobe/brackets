@@ -716,14 +716,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Called each time a new editor becomes active. Refreshes the outer scopes
-     * of the given file as well as of the other files in the given directory.
+     *  Do the work to initialize a code hinting session.
      *
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
      * @param {boolean} shouldPrimePump - true if the pump should be primed.
      */
-    function handleEditorChange(session, document, shouldPrimePump) {
+    function doEditorChange(session, document, shouldPrimePump) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
@@ -783,6 +782,23 @@ define(function (require, exports, module) {
             }
 
         });
+    }
+
+    /**
+     * Called each time a new editor becomes active.
+     *
+     * @param {Session} session - the active hinting session
+     * @param {Document} document - the document of the editor that has changed
+     * @param {boolean} shouldPrimePump - true if the pump should be primed.
+     */
+    function handleEditorChange(session, document, shouldPrimePump) {
+        if (addFilesPromise === null) {
+            doEditorChange(session, document, shouldPrimePump);
+        } else {
+            addFilesPromise.done(function () {
+                doEditorChange(session, document, shouldPrimePump);
+            });
+        }
     }
 
     /*
