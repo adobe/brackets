@@ -52,14 +52,11 @@ define(function (require, exports, module) {
         projectRoot         = null,
         ternPromise         = null,
         addFilesPromise     = null,
-        numDirectoriesLeft  = 0,        // number of directories to process
         resolvedFiles       = {},       // file -> resolved file
-        initialFiles        = [],
+        numInitialFiles     = 0,
         numResolvedFiles    = 0,
         numAddedFiles       = 0,
         stopAddingFiles     = false,
-        allowSkipTernInit   = false,
-        excludedFilesRegEx  = [/require\.js$/, /jquery-[\d]\.[\d]\.js$/, /\.min\.js$/],
         _ternWorker         = (function () {
             var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
             return new Worker(path);
@@ -67,7 +64,7 @@ define(function (require, exports, module) {
 
     var MAX_TEXT_LENGTH     = 1000000, // about 1MB
         MAX_FILES_IN_DIR    = 100,
-        MAX_FILES_IN_PROJECT = 2;
+        MAX_FILES_IN_PROJECT = 100;
 
     /**
      * Create a new tern server.
@@ -76,6 +73,7 @@ define(function (require, exports, module) {
         numResolvedFiles = 0;
         numAddedFiles = 0;
         stopAddingFiles = false;
+        numInitialFiles = files.length;
 
         _ternWorker.postMessage({
             type        : HintUtils.TERN_INIT_MSG,
@@ -84,7 +82,6 @@ define(function (require, exports, module) {
             env         : ternEnvironment
         });
         rootTernDir = dir + "/";
-        initialFiles = files;
     }
 
     /**
@@ -105,9 +102,6 @@ define(function (require, exports, module) {
             }
 
             numAddedFiles += files.length;
-
-            console.log("addFilesToTern: " + files);
-
             _ternWorker.postMessage({
                 type        : HintUtils.TERN_ADD_FILES_MSG,
                 files       : files
@@ -123,7 +117,7 @@ define(function (require, exports, module) {
     /**
      *  An array of library names that contain JavaScript builtins definitions.
      *
-     * @returns {Array} - array of library  names.
+     * @returns {Array.<string>} - array of library  names.
      */
     function getBuiltins() {
         return builtinLibraryNames;
@@ -167,7 +161,6 @@ define(function (require, exports, module) {
     /**
      * Send a message to the tern worker - this is only for messages that
      * need to be sent before and while the addFilesPromise is being resolved.
-     *
      */
     function _postMessageByPass(msg) {
         ternPromise.done(function (ternWorker) {
@@ -233,7 +226,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     *  Get a list of files in a given directory.
+     *  Get a list of javascript files in a given directory.
      *
      * @param {string} dir - directory to list of files of.
      * @param {function(Array.<string>)} successCallback - callback with
@@ -267,98 +260,91 @@ define(function (require, exports, module) {
      *
      * @param {string} dir - the directory to add
      * be included.
-     * @param {function()} successCallback - callback when
-     * done processing files.
-     */
-    function addAllFilesRecursively(dir, successCallback) {
-
-        var files = [],
-            dirs = [];
-
-        console.log("addFiles: dir = " + dir + " numDirectoriesLeft = " + numDirectoriesLeft);
-
-        function doneCallback() {
-            numDirectoriesLeft--;
-            console.log("doneCallback: dir = " + dir + " numDirectoriesLeft = " + numDirectoriesLeft);
-
-            if (!stopAddingFiles && files.length > 0 &&
-                    dir !== rootTernDir) {
-                addFilesToTern(files);
-            }
-
-            if (!stopAddingFiles) {
-                dirs.forEach(function (path) {
-                    var dir = HintUtils.splitPath(path).dir;
-                    if (!stopAddingFiles) {
-                        numDirectoriesLeft++;
-                        addAllFilesRecursively(dir, successCallback);
-                    }
-                });
-            }
-
-            if (numDirectoriesLeft === 0) {
-                successCallback();
-            }
-        }
-
-        /**
-         *  Add files to global list.
-         *
-         * @param path - full path of file.
-         */
-        function fileCallback(path) {
-            var includeFile = excludedFilesRegEx.every(function (regEx) {
-                    return path.search(regEx) === -1;
-                });
-
-            if (includeFile) {
-                files.push(path);
-            } else {
-                console.log("excluded " + path);
-            }
-        }
-
-        /**
-         *  For each directory, add all the files in its subdirectory.
-         *
-         * @param path
-         */
-        function directoryCallback(path) {
-            if (path !== rootTernDir) {
-                dirs.push(path);
-            }
-        }
-
-        forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback);
-    }
-
-    /**
-     *  Add the files in the directory and subdirectories of a given directory
-     *  to tern.
-     *
-     * @param {string} dir - the directory to add
-     * be included.
      * @param {function ()} doneCallback - called when all files have been
      * added to tern.
      */
     function addAllFilesAndSubdirectories(dir, doneCallback) {
 
-        numDirectoriesLeft = 1;
+        var numDirectoriesLeft = 1,        // number of directories to process
+            excludedFilesString = "require\\.js$|jquery-[\\d]\\.[\\d]\\.js$|\\.min\\.js$",
+            excludedFilesRegEx  = new RegExp(excludedFilesString);
+
+        /**
+         *  Add the files in the directory and subdirectories of a given directory
+         *  to tern, excluding the rootTernDir).
+         *
+         * @param {string} dir - the directory to add
+         * be included.
+         * @param {function()} successCallback - callback when
+         * done processing files.
+         */
+        function addAllFilesRecursively(dir, successCallback) {
+
+            var files = [],
+                dirs = [];
+
+            function doneCallback() {
+                numDirectoriesLeft--;
+
+                if (!stopAddingFiles && files.length > 0 &&
+                        (dir + "/") !== rootTernDir) {
+                    addFilesToTern(files);
+                }
+
+                if (!stopAddingFiles) {
+                    dirs.forEach(function (path) {
+                        var dir = HintUtils.splitPath(path).dir;
+                        if (!stopAddingFiles) {
+                            numDirectoriesLeft++;
+                            addAllFilesRecursively(dir, successCallback);
+                        }
+                    });
+                }
+
+                if (numDirectoriesLeft === 0) {
+                    successCallback();
+                }
+            }
+
+            /**
+             *  Add files to global list.
+             *
+             * @param path - full path of file.
+             */
+            function fileCallback(path) {
+                if (!excludedFilesRegEx.test(path)) {
+                    files.push(path);
+                }
+            }
+
+            /**
+             *  For each directory, add all the files in its subdirectory.
+             *
+             * @param path
+             */
+            function directoryCallback(path) {
+                if (path !== rootTernDir) {
+                    dirs.push(path);
+                }
+            }
+
+            forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback);
+        }
+
         addAllFilesRecursively(dir, function () {
             doneCallback();
         });
     }
 
-
     /**
      *  Determine whether the current set of files are using modules to pull in
-     *  other additional files.
+     *  additional files.
      *
      * @returns {boolean} - true if more files than the current directory have
      * been read in.
      */
     function usingModules() {
-        return initialFiles.length !== numResolvedFiles;
+        return numInitialFiles !== numResolvedFiles;
     }
 
     /**
@@ -451,42 +437,22 @@ define(function (require, exports, module) {
      * @param {string} file - the name of the file
      * @param {number} offset - the offset in the file the hints should be calculate at
      * @param {string} text - the text of the file
+     * @param {boolean} isProperty - true if getting a property hint,
+     * otherwise getting an identifier hint.
      * @return {jQuery.Promise} - a promise that will resolve to an array of completions when
      *      it is done
      */
-    function getTernHints(dir, file, offset, text) {
+    function getTernHints(dir, file, offset, text, isProperty) {
         postMessage({
             type: HintUtils.TERN_COMPLETIONS_MSG,
             dir: dir,
             file: file,
             offset: offset,
-            text: text
+            text: text,
+            isProperty: isProperty
         });
         
         return addPendingRequest(file, offset, HintUtils.TERN_COMPLETIONS_MSG);
-    }
-
-    /**
-     * Get a Promise for all of the known properties from TernJS, for the directory and file.
-     * The properties will be used as guesses in tern.
-     * @param {string} dir - the directory the file is in
-     * @param {string} file - the name of the file
-     * @param {number} offset - the offset in the file the hints should be calculate at
-     * @param {string} text - the text of the file
-     * @return {jQuery.Promise} - a promise that will resolve to an array of properties when
-     *      it is done
-     */
-    function getTernProperties(dir, file, offset, text) {
-
-        postMessage({
-            type: HintUtils.TERN_GET_PROPERTIES_MSG,
-            dir: dir,
-            file: file,
-            offset: offset,
-            text: text
-        });
-
-        return addPendingRequest(file, offset, HintUtils.TERN_GET_PROPERTIES_MSG);
     }
 
     /**
@@ -539,19 +505,11 @@ define(function (require, exports, module) {
         var $deferredHints = $.Deferred(),
             hintPromise,
             fnTypePromise,
-            propsPromise,
             text = session.getJavascriptText(),
             offset = session.getOffset();
-        
-        hintPromise = getTernHints(dir, path, offset, text);
+
         var sessionType = session.getType();
-        if (sessionType.property) {
-            propsPromise = getTernProperties(dir, path, offset, text);
-        } else {
-            var $propsDeferred = $.Deferred();
-            propsPromise = $propsDeferred.promise();
-            $propsDeferred.resolveWith(null);
-        }
+        hintPromise = getTernHints(dir, path, offset, text, sessionType.property);
 
         if (sessionType.showFunctionType) {
             // Show function sig
@@ -562,12 +520,10 @@ define(function (require, exports, module) {
             $fnTypeDeferred.resolveWith(null);
         }
 
-        $.when(hintPromise, fnTypePromise, propsPromise).done(
-            function (completions, fnType, properties) {
+        $.when(hintPromise, fnTypePromise).done(
+            function (completions, fnType) {
                 session.setTernHints(completions);
                 session.setFnType(fnType);
-                session.setTernProperties(properties);
-
                 $deferredHints.resolveWith(null);
             }
         );
@@ -588,7 +544,6 @@ define(function (require, exports, module) {
                 requestType = requests[type];
 
             delete pendingTernRequests[key][type];
-
 
             if (!Object.keys(requests).length) {
                 delete pendingTernRequests[key];
@@ -642,11 +597,6 @@ define(function (require, exports, module) {
     function handleTernGetFile(request) {
 
         function replyWith(name, txt) {
-
-            if (txt === "") {
-                console.log("file not found " + name);
-            }
-
             _postMessageByPass({
                 type: HintUtils.TERN_GET_FILE_MSG,
                 file: name,
@@ -654,14 +604,7 @@ define(function (require, exports, module) {
             });
         }
 
-        var name = request.file,
-            bangName = name;
-
-//        if (name.search(/^(i18n|text)!/) === 0) {
-//            bangName = name.substring(name.indexOf("!") + 1);
-//        }
-
-        console.log("handleTernGetFile: " + name);
+        var name = request.file;
 
         /**
          * Helper function to get the text of a given document and send it to tern.
@@ -689,7 +632,7 @@ define(function (require, exports, module) {
          */
         function findNameInProject() {
             // check for any files in project that end with the right path.
-            var fileName = HintUtils.splitPath(bangName).file;
+            var fileName = HintUtils.splitPath(name).file;
             FileIndexManager.getFilenameMatches("all", fileName)
                 .done(function (files) {
                     var file;
@@ -715,10 +658,10 @@ define(function (require, exports, module) {
                 });
         }
 
-        getDocText(bangName).fail(function () {
-            getDocText(rootTernDir + bangName).fail(function () {
+        getDocText(name).fail(function () {
+            getDocText(rootTernDir + name).fail(function () {
                 // check relative to project root
-                getDocText(projectRoot + bangName)
+                getDocText(projectRoot + name)
                     // last look for any files that end with the right path
                     // in the project
                     .fail(findNameInProject);
@@ -745,15 +688,15 @@ define(function (require, exports, module) {
 
     /**
      * Handle the response from the tern web worker when
-     * it responds.
+     * it responds to the prime pump message.
      *
      * @param {{path:string, type: string}} response - the response from the worker
      */
     function handlePrimePumpCompletion(response) {
 
-        var file = response.path,
+        var path = response.path,
             type = response.type,
-            $deferredHints = getPendingRequest(file, 0, type);
+            $deferredHints = getPendingRequest(path, 0, type);
 
         if ($deferredHints) {
             $deferredHints.resolve();
@@ -761,47 +704,15 @@ define(function (require, exports, module) {
     }
 
     /**
-     *  We can skip tern initialization if we are opening a file in the same
-     *  project as before and we have read all the directories of that project.
-     *  If we haven't read all the directories then we reinitialize tern in
-     *  case we haven't read the new directory (we could track all the track all the
-     *  processed directories or go through the list of resolved files if we
-     *  really need to but it seems like an edge case at this point).
+     *  We can skip tern initialization if we are opening a file that has
+     *  already been added to tern.
      *
-     *  We also re-initialize tern if we are reading a file that is outside of
-     *  the project and is not the current tern root.
-     *
-     * @param {string} dir - directory of file to open
-     * @param {string} oldProjectRoot - path of project root before opening the
-     * current file.
-     * @returns {boolean|null|boolean|Number}
+     * @param {string} newFile - full path of new file being opened in the editor.
+     * @returns {boolean} - true if tern initialization should be skipped,
+     * false otherwise.
      */
-    function canSkipTernInitialization(dir, oldProjectRoot) {
-
-        if (!allowSkipTernInit) {
-            return false;
-        }
-
-        var pr  = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
-            
-        dir = dir + "/";
-
-        if (!rootTernDir || !pr) {
-            return false;
-        } else if (stopAddingFiles) {
-            return false;
-        } else if (pr !== oldProjectRoot) {
-            // re-init if the project root has changed
-            return false;
-        } else if (dir.indexOf(rootTernDir) === 0 ||
-                (dir.indexOf(pr) === 0  && rootTernDir.indexOf(pr) === 0)) {
-            // current directory is a subdirectory of the tern root or
-            // the current directory is a subdirectory of the project
-            // root and the tern root is as well.
-            return true;
-        }
-
-        return false;
+    function canSkipTernInitialization(newFile) {
+        return resolvedFiles[newFile] !== undefined;
     }
 
     /**
@@ -822,12 +733,9 @@ define(function (require, exports, module) {
 
         pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
 
-        // if we hit our limit of file last time and we are opening a file
-        // in a different directory, then re-initialize tern with those
-        // files, unless we have already read that directory.
-        if (canSkipTernInitialization(dir, projectRoot)) {
+        // avoid re-initializing tern if possible.
+        if (canSkipTernInitialization(path)) {
             // skipping initializing tern
-            console.log("skipping tern init");
             return;
         }
 
@@ -848,27 +756,25 @@ define(function (require, exports, module) {
                 var hintsPromise = primePump(path, document.getText());
                 hintsPromise.done(function () {
                     if (!usingModules()) {
-                        // if changing to a directory outside of the project
-                        // root then read the subdirs of dir, not the project root.
-                        var targetDir;
+                        // Read the subdirectories of the new file's directory.
+                        // Read them first in case there are too many files to
+                        // read in the project.
+                        addAllFilesAndSubdirectories(dir, function () {
+                            // If the file is in the project root, then read
+                            // all the files under the project root.
+                            if (projectRoot && (dir + "/").indexOf(projectRoot) === 0) {
+                                addAllFilesAndSubdirectories(projectRoot, function () {
+                                    // prime the pump again but this time don't wait
+                                    // for completion.
+                                    primePump(path, document.getText());
 
-                        if (!projectRoot || (dir + "/").indexOf(projectRoot) !== 0) {
-                            targetDir = dir;
-                        } else {
-                            targetDir = projectRoot;
-                        }
-                        console.log("dir = " + dir);
-                        console.log("projectRoot = " + projectRoot);
-                        console.log("targetDir = " + targetDir);
-                        addAllFilesAndSubdirectories(targetDir, function () {
-                            addFilesDeferred.resolveWith(null, [_ternWorker]);
-
-                            // prime the pump again but this time don't wait
-                            // for completion.
-                            primePump(path, document.getText());
+                                    addFilesDeferred.resolveWith(null, [_ternWorker]);
+                                });
+                            } else {
+                                addFilesDeferred.resolveWith(null, [_ternWorker]);
+                            }
                         });
                     } else {
-                        console.log("using modules");
                         addFilesDeferred.resolveWith(null, [_ternWorker]);
                     }
                 });
@@ -893,8 +799,7 @@ define(function (require, exports, module) {
             type = response.type;
 
         if (type === HintUtils.TERN_COMPLETIONS_MSG ||
-                type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG ||
-                type === HintUtils.TERN_GET_PROPERTIES_MSG) {
+                type === HintUtils.TERN_CALLED_FUNC_TYPE_MSG) {
             // handle any completions the worker calculated
             handleTernCompletions(response);
         } else if (type === HintUtils.TERN_GET_FILE_MSG) {
@@ -912,7 +817,6 @@ define(function (require, exports, module) {
     exports.getBuiltins = getBuiltins;
     exports.getResolvedPath = getResolvedPath;
     exports.getTernHints = getTernHints;
-    exports.usingModules = usingModules;
     exports.handleEditorChange = handleEditorChange;
     exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;

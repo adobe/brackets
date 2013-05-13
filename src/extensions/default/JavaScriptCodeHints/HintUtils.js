@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         TERN_JUMPTODEF_MSG          = "JumptoDef",
         TERN_COMPLETIONS_MSG        = "Completions",
         TERN_GET_FILE_MSG           = "GetFile",
-        TERN_GET_PROPERTIES_MSG     = "Properties",
         TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
         TERN_PRIME_PUMP_MSG         = "PrimePump";
 
@@ -203,7 +202,6 @@ define(function (require, exports, module) {
     exports.TERN_COMPLETIONS_MSG        = TERN_COMPLETIONS_MSG;
     exports.TERN_INIT_MSG               = TERN_INIT_MSG;
     exports.TERN_GET_FILE_MSG           = TERN_GET_FILE_MSG;
-    exports.TERN_GET_PROPERTIES_MSG     = TERN_GET_PROPERTIES_MSG;
     exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
     exports.TERN_PRIME_PUMP_MSG         = TERN_PRIME_PUMP_MSG;
 });

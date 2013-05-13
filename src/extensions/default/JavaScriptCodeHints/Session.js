@@ -45,11 +45,16 @@ define(function (require, exports, module) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
         this.ternHints = [];
-        this.ternProperties = [];
         this.fnType = null;
         this.builtins = null;
     }
 
+    /**
+     *  Get the builtin libraries tern is using.
+     *
+     * @returns {Array.<string>} - array of library names.
+     * @private
+     */
     Session.prototype._getBuiltins = function () {
         if (!this.builtins) {
             this.builtins = ScopeManager.getBuiltins();
@@ -435,12 +440,6 @@ define(function (require, exports, module) {
         if (type.property) {
             hints = this.ternHints || [];
             hints = filterWithQueryAndMatcher(hints, matcher);
-
-            // If there are no hints then switch over to guesses.
-            if (hints.length === 0) {
-                hints = filterWithQueryAndMatcher(this.ternProperties, matcher);
-            }
-
             StringMatch.multiFieldSort(hints, { matchGoodness: 0, value: 1 });
         } else if (type.showFunctionType) {
             hints = this.getFunctionTypeHint();
@@ -462,9 +461,7 @@ define(function (require, exports, module) {
     Session.prototype.setTernHints = function (newHints) {
         this.ternHints = newHints;
     };
-    Session.prototype.setTernProperties = function (newProperties) {
-        this.ternProperties = newProperties;
-    };
+
     Session.prototype.setFnType = function (newFnType) {
         this.fnType = newFnType;
     };

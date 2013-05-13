@@ -160,16 +160,52 @@ importScripts("thirdparty/requirejs/require.js");
                              });
         });
     }
-    
-    
+
+    /**
+     * Get all the known properties for guessing.
+     *
+     * @param {string} dir      - the directory
+     * @param {string} file     - the file name
+     * @param {number} offset   - the offset into the file where we want completions for
+     * @param {string} text     - the text of the file
+     */
+    function getTernProperties(dir, file, offset, text) {
+
+        var request = buildRequest(dir, file, "properties", undefined, text),
+            i;
+        //_log("request " + request.type + dir + " " + file);
+        ternServer.request(request, function (error, data) {
+            var properties = [];
+            if (error) {
+                _log("Error returned from Tern 'properties' request: " + error);
+            } else {
+                //_log("completions = " + data.completions.length);
+                for (i = 0; i < data.completions.length; ++i) {
+                    var property = data.completions[i];
+                    properties.push({value: property, guess: true});
+                }
+            }
+
+            // Post a message back to the main thread with the completions
+            self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
+                              dir: dir,
+                              file: file,
+                              offset: offset,
+                              properties: properties
+                });
+        });
+    }
+        
     /**
      * Get the completions for the given offset
      * @param {string} dir      - the directory
      * @param {string} file     - the file name
      * @param {number} offset   - the offset into the file where we want completions for
      * @param {string} text     - the text of the file
+     * @param {boolean} isProperty - true if getting a property hint,
+     * otherwise getting an identifier hint.
      */
-    function getTernHints(dir, file, offset, text) {
+    function getTernHints(dir, file, offset, text, isProperty) {
         
         var request = buildRequest(dir, file, "completions", offset, text),
             i;
@@ -180,7 +216,7 @@ importScripts("thirdparty/requirejs/require.js");
             if (error) {
                 _log("Error returned from Tern 'completions' request: " + error);
             } else {
-                _log("found " + data.completions.length + " for " + file + "@" + offset);
+                //_log("found " + data.completions.length + " for " + file + "@" + offset);
                 for (i = 0; i < data.completions.length; ++i) {
                     var completion = data.completions[i];
                     completions.push({value: completion.name, type: completion.type, depth: completion.depth,
@@ -188,49 +224,19 @@ importScripts("thirdparty/requirejs/require.js");
                 }
             }
 
-            // Post a message back to the main thread with the completions
-            self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
-                              dir: dir,
-                              file: file,
-                              offset: offset,
-                              completions: completions
-                             });
+            if (completions.length > 0 || !isProperty) {
+                // Post a message back to the main thread with the completions
+                self.postMessage({type: HintUtils.TERN_COMPLETIONS_MSG,
+                    dir: dir,
+                    file: file,
+                    offset: offset,
+                    completions: completions
+                    });
+            } else {
+                // if there are no completions, then get all the properties
+                getTernProperties(dir, file, offset, text);
+            }
         });
-    }
-
-    /**
-     * Get all the known properties for guessing.
-     *
-     * @param {string} dir      - the directory
-     * @param {string} file     - the file name
-     * @param {number} offset   - the offset into the file where we want completions for
-     * @param {string} text     - the text of the file
-     */
-    function handleGetProperties(dir, file, offset, text) {
-
-//        var request = buildRequest(dir, file, "properties", undefined, text),
-//            i;
-//        //_log("request " + request.type + dir + " " + file);
-//        ternServer.request(request, function (error, data) {
-//            var properties = [];
-//            if (error) {
-//                _log("Error returned from Tern 'properties' request: " + error);
-//            } else {
-//                //_log("completions = " + data.completions.length);
-//                for (i = 0; i < data.completions.length; ++i) {
-//                    var property = data.completions[i];
-//                    properties.push({value: property, guess: true});
-//                }
-//            }
-
-            // Post a message back to the main thread with the completions
-            self.postMessage({type: HintUtils.TERN_GET_PROPERTIES_MSG,
-                              dir: dir,
-                              file: file,
-                              offset: offset,
-                              properties: []  //properties
-                });
-//        });
     }
 
     /**
@@ -305,19 +311,12 @@ importScripts("thirdparty/requirejs/require.js");
             var env     = request.env,
                 files   = request.files;
             initTernServer(env, dir, files);
-            
         } else if (type === HintUtils.TERN_COMPLETIONS_MSG) {
             dir = request.dir;
             file = request.file;
             text    = request.text;
             offset  = request.offset;
-            getTernHints(dir, file, offset, text);
-        } else if (type === HintUtils.TERN_GET_PROPERTIES_MSG) {
-            file    = request.file;
-            dir     = request.dir;
-            text    = request.text;
-            offset  = request.offset;
-            handleGetProperties(dir, file, offset, text);
+            getTernHints(dir, file, offset, text, request.isProperty);
         } else if (type === HintUtils.TERN_GET_FILE_MSG) {
             file = request.file;
             text = request.text;
