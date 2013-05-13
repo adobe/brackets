@@ -328,8 +328,13 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
     "EXTENSION_MORE_INFO_LINK"             : "Más",
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
-    
-    
+
+    /**
+     * Unit names
+     */
+
+    "UNIT_PIXELS"                          : "píxeles",
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Desarrollo",
     "CMD_SHOW_DEV_TOOLS"                        : "Mostrar herramientas para desarrolladores",
