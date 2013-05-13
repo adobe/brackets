@@ -268,7 +268,6 @@ define({
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
-    "INSTALL"                              : "Install",
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
@@ -291,6 +290,9 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unknown error parsing Base URL",
     
     // Extension Management strings
+    "INSTALL"                              : "Install",
+    "REMOVE"                               : "Remove",
+    "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
     "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
@@ -334,7 +336,12 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
     "EXTENSION_MORE_INFO_LINK"             : "More",
     "BROWSE_EXTENSIONS"                    : "Browse Extensions",
-
+    "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove extension: {{0}}",
+    "QUIT_BRACKETS_AFTER_REMOVAL"          : "After removing extensions, you need to quit and restart Brackets. You'll be prompted to save unsaved changes.",
+    "QUIT_BRACKETS"                        : "Quit Brackets",
+    "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
+    
     /**
      * Unit names
      */

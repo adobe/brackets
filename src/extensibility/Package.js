@@ -367,7 +367,29 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Removes the extension at the given path.
+     *
+     * @param {string} path The absolute path to the extension to remove.
+     * @return {$.Promise} A promise that's resolved when the extension is removed, or
+     *     rejected if there was an error.
+     */
     
+    function remove(path) {
+        var d = new $.Deferred();
+        _nodeConnectionDeferred
+            .done(function (connection) {
+                if (connection.connected()) {
+                    connection.domains.extensionManager.remove(path)
+                        .pipe(d.resolve, d.reject);
+                }
+            })
+            .fail(function (err) {
+                d.reject(err);
+            });
+        return d.promise();
+    }
+        
     /**
      * Allows access to the deferred that manages the node connection. This
      * is *only* for unit tests. Messing with this not in testing will
@@ -417,5 +439,6 @@ define(function (require, exports, module) {
     exports.installFromURL = installFromURL;
     exports.validate = validate;
     exports.install = install;
+    exports.remove = remove;
     exports.formatError = formatError;
 });
