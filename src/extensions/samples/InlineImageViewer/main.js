@@ -51,16 +51,16 @@ define(function (require, exports, module) {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1});
         }
         
-        if (token.className === "string") {
+        if (token.type === "string") {
             var string = token.string;
             
             // Strip quotes
-            var char = string[0];
-            if (char === "\"" || char === "'") {
+            var ch = string[0];
+            if (ch === "\"" || ch === "'") {
                 string = string.substr(1);
             }
-            char = string[string.length - 1];
-            if (char === "\"" || char === "'") {
+            ch = string[string.length - 1];
+            if (ch === "\"" || ch === "'") {
                 string = string.substr(0, string.length - 1);
             }
             

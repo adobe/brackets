@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         this.fullPath = fullPath;
         InlineWidget.call(this);
     }
-    InlineImageViewer.prototype = new InlineWidget();
+    InlineImageViewer.prototype = Object.create(InlineWidget.prototype);
     InlineImageViewer.prototype.constructor = InlineImageViewer;
     InlineImageViewer.prototype.parentClass = InlineWidget.prototype;
     
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     InlineImageViewer.prototype.$image = null;
     
     InlineImageViewer.prototype.load = function (hostEditor) {
-        this.parentClass.load.call(this, hostEditor);
+        InlineImageViewer.prototype.parentClass.load.apply(this, arguments);
         
         this.$wrapperDiv = $(inlineEditorTemplate);
         
@@ -65,15 +65,13 @@ define(function (require, exports, module) {
         this.$htmlContent.click(this.close.bind(this));
     };
 
-    InlineImageViewer.prototype.close = function () {
-        this.hostEditor.removeInlineWidget(this);
-    };
-    
     InlineImageViewer.prototype.onAdded = function () {
+        InlineImageViewer.prototype.parentClass.onAdded.apply(this, arguments);
         window.setTimeout(this._sizeEditorToContent.bind(this));
     };
     
     InlineImageViewer.prototype._sizeEditorToContent = function () {
+        // TODO: image might not be loaded yet--need to listen for load event and update then.
         this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.height() + 20, true);
         this.$image.css("opacity", 1);
     };

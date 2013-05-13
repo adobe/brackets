@@ -10,12 +10,12 @@ if [[ ${1} == "" ]]; then
   exit;
 fi
 
-if [ ! -d ${1} ]; then
+if [ ! -d "${1}" ]; then
   echo "$1 not found."
   exit;
 fi
 
-if [ -d "${1}/Contents/dev" ]; then
+if [[ -d "${1}/Contents/dev" || -n $(find -L "${1}/Contents/dev" -type l) ]]; then
   rm "${1}/Contents/dev"
   echo "$1 has been restored to the installed configuration."
 fi

@@ -85,28 +85,17 @@ define(function (require, exports, module) {
         });
         
         it("should throw errors for invalid values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {});
+            var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
             var error = null;
             
-            try {
-                // function data is not valid JSON
-                store.setValue("foo", function () {});
-            } catch (err1) {
-                error = err1;
-            }
-            
-            expect(error).not.toBeNull();
-            expect(error.message).toBe("Value 'function () {}' for key 'foo' must be a valid JSON value");
-            
-            try {
-                // number key is not valid JSON
-                store.setValue(42, "bar");
-            } catch (err2) {
-                error = err2;
-            }
-            
-            expect(error).not.toBeNull();
-            expect(error.message).toBe("Preference key '42' must be a string");
+            expect(store.getValue("foo")).toBe(42);
+            // function data is not valid JSON
+            store.setValue("foo", function () {});
+            expect(store.getValue("foo")).toBe(42);
+                        
+            // number key is not valid JSON
+            store.setValue(42, "bar");
+            expect(store.getValue(42)).toBe(undefined);
         });
         
     });

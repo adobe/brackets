@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils */
+/*global define, $, PathUtils, Mustache */
 
 /**
  * PreferencesDialogs
@@ -34,11 +34,12 @@ define(function (require, exports, module) {
     
     require("thirdparty/path-utils/path-utils.min");
 
-    var Dialogs             = require("widgets/Dialogs"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
-        ProjectManager      = require("project/ProjectManager"),
-        StringUtils         = require("utils/StringUtils"),
-        Strings             = require("strings");
+    var Dialogs                = require("widgets/Dialogs"),
+        PreferencesManager     = require("preferences/PreferencesManager"),
+        ProjectManager         = require("project/ProjectManager"),
+        StringUtils            = require("utils/StringUtils"),
+        Strings                = require("strings"),
+        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html");
 
     /**
      * Validate that text string is a valid base url which should map to a server folder
@@ -55,8 +56,8 @@ define(function (require, exports, module) {
         var obj = PathUtils.parseUrl(url);
         if (!obj) {
             result = Strings.BASEURL_ERROR_UNKOWN_ERROR;
-        } else if (obj.protocol !== "http:"  && obj.protocol !== "https:") {
-            result = StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, obj.protocol);
+        } else if (obj.href.search(/^(http|https):\/\//i) !== 0) {
+            result = StringUtils.format(Strings.BASEURL_ERROR_INVALID_PROTOCOL, obj.href.substring(0, obj.href.indexOf("//")));
         } else if (obj.search !== "") {
             result = StringUtils.format(Strings.BASEURL_ERROR_SEARCH_DISALLOWED, obj.search);
         } else if (obj.hash !== "") {
@@ -85,7 +86,7 @@ define(function (require, exports, module) {
             $baseUrlControl,
             promise;
 
-        promise = Dialogs.showModalDialog(Dialogs.DIALOG_ID_PROJECT_SETTINGS)
+        promise = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, Strings))
             .done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     var baseUrlValue = $baseUrlControl.val();
@@ -114,14 +115,14 @@ define(function (require, exports, module) {
         $title.text(title);
 
         // Base URL
-        $baseUrlControl = $dlg.find(".base-url");
+        $baseUrlControl = $dlg.find(".url");
         if (baseUrl) {
             $baseUrlControl.val(baseUrl);
         }
 
         // Error message
         if (errorMessage) {
-            $dlg.find(".settings-list").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
+            $dlg.find(".field-container").append("<div class='alert-message' style='margin-bottom: 0'>" + errorMessage + "</div>");
         }
 
         // Give focus to first control

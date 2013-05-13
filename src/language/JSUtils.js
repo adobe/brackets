@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
 
@@ -57,7 +58,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Return an Array with names and offsets for all functions in the specified text
+     * Return an object mapping function name to offset info for all functions in the specified text.
+     * Offset info is an array, since multiple functions of the same name can exist.
      * @param {!string} text Document text
      * @return {Object.<string, Array.<{offsetStart: number, offsetEnd: number}>}
      */
@@ -257,13 +259,14 @@ define(function (require, exports, module) {
         // Filter for documents that contain the named function
         var result              = new $.Deferred(),
             matchedDocuments    = [],
-            rangeResults        = [],
-            functionsInDocument;
+            rangeResults        = [];
         
         docEntries.forEach(function (docEntry) {
-            functionsInDocument = docEntry.functions[functionName];
-            
-            if (functionsInDocument) {
+            // Need to call CollectionUtils.hasProperty here since docEntry.functions could
+            // have an entry for "hasOwnProperty", which results in an error if trying to
+            // invoke docEntry.functions.hasOwnProperty().
+            if (CollectionUtils.hasProperty(docEntry.functions, functionName)) {
+                var functionsInDocument = docEntry.functions[functionName];
                 matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
             }
         });
@@ -358,7 +361,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return all functions that have the specified name.
+     * Return all functions that have the specified name, searching across all the given files.
      *
      * @param {!String} functionName The name to match.
      * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
@@ -388,25 +391,25 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Finds all instances of the specified functionName in "text".
+     * Finds all instances of the specified searchName in "text".
      * Returns an Array of Objects with start and end properties.
      *
      * @param text {!String} JS text to search
-     * @param functionName {!String} function name to search for
+     * @param searchName {!String} function name to search for
      * @return {Array.<{offset:number, functionName:string}>}
      *      Array of objects containing the start offset for each matched function name.
      */
-    function findAllMatchingFunctionsInText(text, functionName) {
+    function findAllMatchingFunctionsInText(text, searchName) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
         var lines = text.split("\n");
         
-        $.each(allFunctions, function (index, functions) {
-            if (index === functionName || functionName === "*") {
+        CollectionUtils.forEach(allFunctions, function (functions, functionName) {
+            if (functionName === searchName || searchName === "*") {
                 functions.forEach(function (funcEntry) {
                     var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);
                     result.push({
-                        name: index,
+                        name: functionName,
                         lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offsetStart),
                         lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
                     });

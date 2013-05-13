@@ -1,0 +1,96 @@
+.simple-props {{{4}}
+{{5}}  {{29}}  {{6}}wid{{7}}th{{8}}:{{9}} {{10}}10{{11}}0%{{12}};{{13}}
+{{17}}  {{30}}  {{18}}font{{19}}-{{20}}size{{21}}: 12px;
+{{14}}}
+
+.empty-rule {{{22}}}
+
+.empty-rule-with-newline {{{23}}
+{{24}}}
+
+.empty-rule-with-blank-line {{{25}}
+{{26}}  {{31}}  {{27}}
+{{28}}}
+
+.multi-value {
+    font-family:{{45}} {{32}}"{{33}}Helvetica{{34}} Neue"{{35}},{{36}} {{37}}Ar{{38}}ial{{39}},{{40}} {{41}}sans{{42}}-{{43}}serif{{44}};
+}
+
+.multi-value-multi-line {
+    font-family:{{91}}
+{{92}}        {{93}}"Helvetica{{94}} Neue"{{95}},{{96}}
+{{97}}        {{98}}Ari{{99}}al{{100}},{{101}}
+{{102}}        {{103}}sans-{{104}}serif{{105}};{{106}}
+}
+
+.one-liner {{{81}} {{82}}wi{{83}}dth{{84}}:{{85}} {{86}}10{{87}}0%{{88}};{{89}} {{90}}}
+
+.incomplete-1 {
+    font-family: Arial,{{46}}
+}
+.incomplete-2 {
+    font-family: Arial,{{47}};
+}
+.incomplete-3 {
+    font-family: Arial, {{48}}
+}
+.incomplete-4 {
+    font-family: Arial, {{49}};
+}
+
+.unfinished-props-1 {
+    width:{{70}}
+}
+.unfinished-props-2 {
+    width: {{71}}
+}
+.unfinished-props-3 {
+    width:{{72}};
+}
+.unfinished-props-4 {
+    width: {{73}};
+}
+
+.commas-in-single-value {
+    color: {{75}}rgba(50, {{76}}100, 200, 0.3);
+}
+
+.single-quotes {
+    font-family: {{50}}'{{51}}Helvetica {{52}}Neue{{53}}'{{54}}, Arial;
+}
+
+.special-chars-in-quotes {
+    font-family: "my:fo{{55}}nt";
+    font-family: "my,fo{{56}}nt";
+    font-family: "my, f{{57}}ont";
+    font-family: "my'fo{{58}}nt";
+    font-family: 'my"fo{{59}}nt';
+    font-family: "my;fo{{60}}nt";
+    font-family: "my{fo{{61}}nt";
+    font-family: "my}fo{{62}}nt";
+}
+
+/* Contexts not yet supported */
+{{63}}.class-{{64}}sel{{65}} {{66}}{
+    height: 100%;
+}{{67}}
+{{68}}
+
+.invalid-contexts {
+    clear {{77}}: both;
+    clear b{{78}}oth;
+    font-family: Arial {{79}}, Helvetica;
+}
+
+/*
+.rule-in-comment {
+    width: {{69}}
+}
+*/
+
+.comment-in-rule {
+    font-family: serif /*, sans{{80}}-serif*/;
+}
+
+.rule-at-eof {
+    width:{{74}}

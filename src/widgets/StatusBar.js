@@ -2,7 +2,10 @@
 /*global define, $, brackets, window, document, Mustache */
 
 /**
- * A status bar with support for file information and busy and status indicators.
+ * A status bar with support for file information and busy and status indicators. This is a semi-generic
+ * container; for the code that decides what content appears in the status bar, see client modules like
+ * EditorStatusBar. (Although in practice StatusBar's HTML structure and initialization
+ * assume it's only used for this one purpose, and all the APIs are on a singleton).
  */
 define(function (require, exports, module) {
     'use strict';
@@ -33,6 +36,7 @@ define(function (require, exports, module) {
      */
     function showBusyIndicator(updateCursor) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -49,6 +53,7 @@ define(function (require, exports, module) {
      */
     function hideBusyIndicator() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -74,6 +79,7 @@ define(function (require, exports, module) {
      */
     function addIndicator(id, indicator, visible, style, tooltip, command) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -106,6 +112,7 @@ define(function (require, exports, module) {
      */
     function updateIndicator(id, visible, style, tooltip, command) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
         
@@ -138,6 +145,7 @@ define(function (require, exports, module) {
      */
     function hide() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
         
@@ -152,6 +160,7 @@ define(function (require, exports, module) {
      */
     function show() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -160,85 +169,26 @@ define(function (require, exports, module) {
             EditorManager.resizeEditor();  // changes available ht for editor area
         }
     }
-
-    function init($parent) {
-        // check if status bar already exists
-        if (_init) {
-            return;
-        }
-
-        $parent = $parent || $("body");
+    
+    AppInit.htmlReady(function () {
+        var $parent = $(".main-view .content");
         $parent.append(Mustache.render(StatusBarHTML, Strings));
 
         // Initialize items dependent on HTML DOM
         $statusBar          = $("#status-bar");
         $indicators         = $("#status-indicators");
-        $busyIndicator      = $("#busy-indicator");
+        $busyIndicator      = $("#status-bar .spinner");
 
         _init = true;
 
         // hide on init
         hide();
-    }
+    });
 
-    function getModeDisplayString(mode) {
-        // mode is either a string or an object with a name property string
-        var s = (typeof mode === "string") ? mode : mode.name,
-            slash,
-            result;
-
-        s = s.toLowerCase();
-
-        // Handle special cases (in order of likely occurrance)
-        if (s === "javascript") {
-            return "JavaScript";
-        } else if (s === "html" || s === "htmlmixed") {
-            return "HTML";
-        } else if (s === "css") {
-            return "CSS";
-        } else if (s === "less") {
-            return "LESS";
-        } else if (s === "text/plain") {
-            return "Text";
-        } else if (s === "php") {
-            return "PHP";
-        } else if (s === "xml") {
-            return "XML";
-        } else if (s === "yaml") {
-            return "YAML";
-        } else if (s === "coffeescript") {
-            return "CoffeeScript";
-        } else if (s === "mysql") {
-            return "SQL";
-        }
-
-        // Generic case
-
-        // Strip "text/" or "application/" from beginning
-        s = s.replace(/^(text\/|application\/)/, "");
-
-        // Strip "x-" from beginning
-        s = s.replace(/^x-/, "");
-
-        // Strip any remaining "/" sections from end
-        slash = s.indexOf("/");
-        if (slash !== -1) {
-            s = s.substr(0, slash);
-        }
-
-        // Uppercase first char and rest is (already) lowercase
-        result = s[0].toUpperCase();
-        result += s.substr(1);
-
-        return result;
-    }
-    
-    exports.init = init;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.addIndicator = addIndicator;
     exports.updateIndicator = updateIndicator;
-    exports.getModeDisplayString = getModeDisplayString;
     exports.hide = hide;
     exports.show = show;
 });

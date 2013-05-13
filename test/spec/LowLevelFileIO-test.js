@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, brackets: false */
+/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, waitsForDone: false, runs: false, brackets: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -38,60 +38,32 @@ define(function (require, exports, module) {
     // you have the latest brackets-app before running.
 
     describe("LowLevelFileIO", function () {
+    
+        var baseDir = SpecRunnerUtils.getTempDirectory();
+    
+        beforeEach(function () {
+            runs(function () {
+                var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");
+                waitsForDone(SpecRunnerUtils.copyPath(testFiles, baseDir));
+            });
+
+            runs(function () {
+                // Pre-test setup - set permissions on special directories 
+                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "222"));
+                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_write_here", "444"));
+            });
+        });
+
+        afterEach(function () {
+            // Restore directory permissions
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_read_here", "777"));
+                waitsForDone(SpecRunnerUtils.chmod(baseDir + "/cant_write_here", "777"));
+            });
+        });
 
         it("should have a brackets.fs namespace", function () {
             expect(brackets.fs).toBeTruthy();
-        });
-    
-        // Get window.location and remove the initial "file://" or "http://"
-        var baseDir = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files/");
-
-        beforeEach(function () {
-            // Pre-test setup - set permissions on special directories 
-            var set_no_read = false,
-                set_no_write = false;
-            
-            runs(function () {
-                // Set read-only mode
-                brackets.fs.chmod(baseDir + "cant_read_here", parseInt("222", 8), function (err) {
-                    set_no_read = (err === brackets.fs.NO_ERROR);
-                });
-    
-                // Set write-only mode
-                brackets.fs.chmod(baseDir + "cant_write_here", parseInt("444", 8), function (err) {
-                    set_no_write = (err === brackets.fs.NO_ERROR);
-                });
-            });
-            
-            waitsFor(function () { return set_no_read && set_no_write; }, 1000);
-        });
-    
-        afterEach(function () {
-            // Restore directory permissions
-            var readModeSet = false, readModeErr = false, writeModeSet = false, writeModeErr = false;
-            
-            runs(function () {
-                // Set read-only mode
-                brackets.fs.chmod(baseDir + "cant_read_here", parseInt("777", 8), function (err) {
-                    readModeSet = true;
-                    readModeErr = err;
-                });
-
-                // Set write-only mode
-                brackets.fs.chmod(baseDir + "cant_write_here", parseInt("777", 8), function (err) {
-                    writeModeSet = true;
-                    writeModeErr = err;
-                });
-            });
-            
-            waitsFor(function () { return readModeSet && writeModeSet; }, 1000);
-                
-            runs(function () {
-                expect(readModeSet).toBe(true);
-                expect(readModeErr).toBeFalsy();
-                expect(writeModeSet).toBe(true);
-                expect(writeModeErr).toBeFalsy();
-            });
         });
     
         describe("readdir", function () {
@@ -102,10 +74,12 @@ define(function (require, exports, module) {
             });
         
             it("should read a directory from disk", function () {
-                brackets.fs.readdir(baseDir, function (err, contents) {
-                    error = err;
-                    content = contents;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readdir(baseDir, function (err, contents) {
+                        error = err;
+                        content = contents;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -125,9 +99,11 @@ define(function (require, exports, module) {
             });
 		
             it("should return an error if the directory doesn't exist", function () {
-                brackets.fs.readdir("/This/directory/doesnt/exist", function (err, contents) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readdir("/This/directory/doesnt/exist", function (err, contents) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -139,9 +115,11 @@ define(function (require, exports, module) {
 
             it("should return an error if the directory can't be read (Mac only)", function () {
                 if (brackets.platform === "mac") {
-                    brackets.fs.readdir(baseDir + "cant_read_here", function (err, contents) {
-                        error = err;
-                        complete = true;
+                    runs(function () {
+                        brackets.fs.readdir(baseDir + "/cant_read_here", function (err, contents) {
+                            error = err;
+                            complete = true;
+                        });
                     });
                 
                     waitsFor(function () { return complete; }, 1000);
@@ -154,9 +132,11 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if invalid parameters are passed", function () {
-                brackets.fs.readdir(42, function (err, contents) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readdir(42, function (err, contents) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -175,10 +155,12 @@ define(function (require, exports, module) {
             });
         
             it("should return correct information for a directory", function () {
-                brackets.fs.stat(baseDir, function (err, _stat) {
-                    error = err;
-                    stat = _stat;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.stat(baseDir, function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -191,10 +173,12 @@ define(function (require, exports, module) {
             });
         
             it("should return correct information for a file", function () {
-                brackets.fs.stat(baseDir + "file_one.txt", function (err, _stat) {
-                    error = err;
-                    stat = _stat;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.stat(baseDir + "/file_one.txt", function (err, _stat) {
+                        error = err;
+                        stat = _stat;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -207,9 +191,11 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if the file/directory doesn't exist", function () {
-                brackets.fs.stat("/This/directory/doesnt/exist", function (err, _stat) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.stat("/This/directory/doesnt/exist", function (err, _stat) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -220,9 +206,11 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if incorrect parameters are passed", function () {
-                brackets.fs.stat(42, function (err, _stat) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.stat(42, function (err, _stat) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -242,10 +230,12 @@ define(function (require, exports, module) {
             });
         
             it("should read a text file", function () {
-                brackets.fs.readFile(baseDir + "file_one.txt", _FSEncodings.UTF8, function (err, contents) {
-                    error = err;
-                    content = contents;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/file_one.txt", _FSEncodings.UTF8, function (err, contents) {
+                        error = err;
+                        content = contents;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -257,10 +247,12 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a non-existent file", function () {
-                brackets.fs.readFile("/This/file/doesnt/exist.txt", _FSEncodings.UTF8, function (err, contents) {
-                    error = err;
-                    content = contents;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readFile("/This/file/doesnt/exist.txt", _FSEncodings.UTF8, function (err, contents) {
+                        error = err;
+                        content = contents;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -271,10 +263,12 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to use an unsppported encoding", function () {
-                brackets.fs.readFile(baseDir + "file_one.txt", _FSEncodings.UTF16, function (err, contents) {
-                    error = err;
-                    content = contents;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/file_one.txt", _FSEncodings.UTF16, function (err, contents) {
+                        error = err;
+                        content = contents;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -285,10 +279,12 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if called with invalid parameters", function () {
-                brackets.fs.readFile(42, [], function (err, contents) {
-                    error = err;
-                    content = contents;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readFile(42, [], function (err, contents) {
+                        error = err;
+                        content = contents;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -299,10 +295,12 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a directory", function () {
-                brackets.fs.readFile(baseDir, _FSEncodings.UTF8, function (err, contents) {
-                    error = err;
-                    content = contents;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.readFile(baseDir, _FSEncodings.UTF8, function (err, contents) {
+                        error = err;
+                        content = contents;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -321,9 +319,11 @@ define(function (require, exports, module) {
             });
         
             it("should write the entire contents of a file", function () {
-                brackets.fs.writeFile(baseDir + "write_test.txt", contents, _FSEncodings.UTF8, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.writeFile(baseDir + "/write_test.txt", contents, _FSEncodings.UTF8, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -335,7 +335,7 @@ define(function (require, exports, module) {
                 // Read contents to verify
                 runs(function () {
                     complete = false;
-                    brackets.fs.readFile(baseDir + "write_test.txt", _FSEncodings.UTF8, function (err, data) {
+                    brackets.fs.readFile(baseDir + "/write_test.txt", _FSEncodings.UTF8, function (err, data) {
                         error = err;
                         content = data;
                         complete = true;
@@ -352,9 +352,11 @@ define(function (require, exports, module) {
         
             it("should return an error if the file can't be written (Mac only)", function () {
                 if (brackets.platform === "mac") {
-                    brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, _FSEncodings.UTF8, function (err) {
-                        error = err;
-                        complete = true;
+                    runs(function () {
+                        brackets.fs.writeFile(baseDir + "/cant_write_here/write_test.txt", contents, _FSEncodings.UTF8, function (err) {
+                            error = err;
+                            complete = true;
+                        });
                     });
                 
                     waitsFor(function () { return complete; }, 1000);
@@ -367,9 +369,11 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if called with invalid parameters", function () {
-                brackets.fs.writeFile(42, contents, 2, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.writeFile(42, contents, 2, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -380,9 +384,11 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if trying to write a directory", function () {
-                brackets.fs.writeFile(baseDir, contents, _FSEncodings.UTF8, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.writeFile(baseDir, contents, _FSEncodings.UTF8, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -402,11 +408,13 @@ define(function (require, exports, module) {
             });
         
             it("should remove a file", function () {
-                var filename = baseDir + "remove_me.txt";
+                var filename = baseDir + "/remove_me.txt";
             
-                brackets.fs.writeFile(filename, contents, _FSEncodings.UTF8, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.writeFile(filename, contents, _FSEncodings.UTF8, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -465,9 +473,11 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if the file doesn't exist", function () {
-                brackets.fs.unlink("/This/file/doesnt/exist.txt", function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.unlink("/This/file/doesnt/exist.txt", function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -478,9 +488,11 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if the a directory is specified", function () {
-                brackets.fs.unlink(baseDir, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.unlink(baseDir, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -491,9 +503,11 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if called with invalid parameters", function () {
-                brackets.fs.unlink(42, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.unlink(42, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
             
                 waitsFor(function () { return complete; }, 1000);
@@ -515,14 +529,16 @@ define(function (require, exports, module) {
             var error, complete;
             
             it("should rename a file", function () {
-                var oldName = baseDir + "file_one.txt",
-                    newName = baseDir + "file_one_renamed.txt";
+                var oldName = baseDir + "/file_one.txt",
+                    newName = baseDir + "/file_one_renamed.txt";
                 
                 complete = false;
                 
-                brackets.fs.rename(oldName, newName, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.rename(oldName, newName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
                 
                 waitsFor(function () { return complete; }, 1000);
@@ -577,14 +593,16 @@ define(function (require, exports, module) {
                     
             });
             it("should rename a folder", function () {
-                var oldName = baseDir + "rename_me",
-                    newName = baseDir + "renamed_folder";
+                var oldName = baseDir + "/rename_me",
+                    newName = baseDir + "/renamed_folder";
                 
                 complete = false;
                 
-                brackets.fs.rename(oldName, newName, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.rename(oldName, newName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
                 
                 waitsFor(function () { return complete; }, 1000);
@@ -638,14 +656,16 @@ define(function (require, exports, module) {
                 });
             });
             it("should return an error if the new name already exists", function () {
-                var oldName = baseDir + "file_one.txt",
-                    newName = baseDir + "file_two.txt";
+                var oldName = baseDir + "/file_one.txt",
+                    newName = baseDir + "/file_two.txt";
                 
                 complete = false;
                 
-                brackets.fs.rename(oldName, newName, function (err) {
-                    error = err;
-                    complete = true;
+                runs(function () {
+                    brackets.fs.rename(oldName, newName, function (err) {
+                        error = err;
+                        complete = true;
+                    });
                 });
                 
                 waitsFor(function () { return complete; }, 1000);
@@ -656,14 +676,16 @@ define(function (require, exports, module) {
             });
             it("should return an error if the parent folder is read only (Mac only)", function () {
                 if (brackets.platform === "mac") {
-                    var oldName = baseDir + "cant_write_here/readme.txt",
-                        newName = baseDir + "cant_write_here/readme_renamed.txt";
+                    var oldName = baseDir + "/cant_write_here/readme.txt",
+                        newName = baseDir + "/cant_write_here/readme_renamed.txt";
                     
                     complete = false;
                     
-                    brackets.fs.rename(oldName, newName, function (err) {
-                        error = err;
-                        complete = true;
+                    runs(function () {
+                        brackets.fs.rename(oldName, newName, function (err) {
+                            error = err;
+                            complete = true;
+                        });
                     });
                     
                     waitsFor(function () { return complete; }, 1000);

@@ -65,21 +65,21 @@ define(function (require, exports, module) {
         this._originalColor = color;
         this._redoColor = null;
         
-        this.$colorValue = this.$element.find(".color_value");
+        this.$colorValue = this.$element.find(".color-value");
         this.$buttonList = this.$element.find("ul.button-bar");
         this.$rgbaButton = this.$element.find(".rgba");
         this.$hexButton = this.$element.find(".hex");
         this.$hslButton = this.$element.find(".hsla");
-        this.$currentColor = this.$element.find(".current_color");
-        this.$originalColor = this.$element.find(".original_color");
-        this.$selection = this.$element.find(".color_selection_field");
-        this.$selectionBase = this.$element.find(".color_selection_field .selector_base");
-        this.$hueBase = this.$element.find(".hue_slider .selector_base");
-        this.$opacityGradient = this.$element.find(".opacity_gradient");
-        this.$hueSlider = this.$element.find(".hue_slider");
-        this.$hueSelector = this.$element.find(".hue_slider .selector_base");
-        this.$opacitySlider = this.$element.find(".opacity_slider");
-        this.$opacitySelector = this.$element.find(".opacity_slider .selector_base");
+        this.$currentColor = this.$element.find(".current-color");
+        this.$originalColor = this.$element.find(".original-color");
+        this.$selection = this.$element.find(".color-selection-field");
+        this.$selectionBase = this.$element.find(".color-selection-field .selector-base");
+        this.$hueBase = this.$element.find(".hue-slider .selector-base");
+        this.$opacityGradient = this.$element.find(".opacity-gradient");
+        this.$hueSlider = this.$element.find(".hue-slider");
+        this.$hueSelector = this.$element.find(".hue-slider .selector-base");
+        this.$opacitySlider = this.$element.find(".opacity-slider");
+        this.$opacitySelector = this.$element.find(".opacity-slider .selector-base");
         this.$swatches = this.$element.find(".swatches");
         
         // Create quick-access color swatches
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
             _this = this;
         handler = function (event) {
             var colorObject, newColor, newFormat;
-            newFormat = $(event.currentTarget).html().toLowerCase();
+            newFormat = $(event.currentTarget).html().toLowerCase().replace("%", "p");
             newColor = _this.getColor();
             colorObject = tinycolor(newColor);
             switch (newFormat) {
@@ -227,6 +227,9 @@ define(function (require, exports, module) {
                 break;
             case "rgba":
                 newColor = colorObject.toRgbString();
+                break;
+            case "prgba":
+                newColor = colorObject.toPercentageRgbString();
                 break;
             case "hex":
                 newColor = colorObject.toHexString();
@@ -266,10 +269,10 @@ define(function (require, exports, module) {
         }
         return color;
     };
-                    
+    
     /**
      * Normalize the given color string into the format used by tinycolor, by adding a space 
-     * after commas and converting RGB colors from percentages to integers.
+     * after commas.
      * @param {string} color The color to be corrected if it looks like an RGB or HSL color.
      * @return {string} a normalized color string.
      */
@@ -285,7 +288,7 @@ define(function (require, exports, module) {
             normalizedColor = normalizedColor.replace(/\(\s+/, "(");
             normalizedColor = normalizedColor.replace(/\s+\)/, ")");
         }
-        return this._convertToNormalRGB(normalizedColor);
+        return normalizedColor.toLowerCase();
     };
 
     /** Handle changes in text field */
@@ -339,7 +342,7 @@ define(function (require, exports, module) {
         swatches.forEach(function (swatch) {
             var stringFormat = (swatch.count > 1) ? Strings.COLOR_EDITOR_USED_COLOR_TIP_PLURAL : Strings.COLOR_EDITOR_USED_COLOR_TIP_SINGULAR,
                 usedColorTip = StringUtils.format(stringFormat, swatch.value, swatch.count);
-            _this.$swatches.append("<li tabindex='0'><div class='swatch_bg'><div class='swatch' style='background-color: " +
+            _this.$swatches.append("<li tabindex='0'><div class='swatch-bg'><div class='swatch' style='background-color: " +
                     swatch.value + ";' title='" + usedColorTip + "'></div></div> <span class='value'" + " title='" +
                     usedColorTip + "'>" + swatch.value + "</span></li>");
         });
@@ -384,6 +387,9 @@ define(function (require, exports, module) {
             break;
         case "rgb":
             colorVal = newColor.toRgbString();
+            break;
+        case "prgb":
+            colorVal = newColor.toPercentageRgbString();
             break;
         case "hex":
         case "name":
@@ -442,8 +448,8 @@ define(function (require, exports, module) {
         hsv.s = xOffset / width;
         hsv.v = 1 - yOffset / height;
         this.setColorAsHsv(hsv, false);
-        if (!this.$selection.find(".selector_base").is(":focus")) {
-            this.$selection.find(".selector_base").focus();
+        if (!this.$selection.find(".selector-base").is(":focus")) {
+            this.$selection.find(".selector-base").focus();
         }
     };
 
@@ -455,8 +461,8 @@ define(function (require, exports, module) {
         hsv = {};
         hsv.h = (1 - offset / height) * 360;
         this.setColorAsHsv(hsv, false);
-        if (!this.$hueSlider.find(".selector_base").is(":focus")) {
-            this.$hueSlider.find(".selector_base").focus();
+        if (!this.$hueSlider.find(".selector-base").is(":focus")) {
+            this.$hueSlider.find(".selector-base").focus();
         }
     };
 
@@ -468,8 +474,8 @@ define(function (require, exports, module) {
         hsv = {};
         hsv.a = 1 - offset / height;
         this.setColorAsHsv(hsv, false);
-        if (!this.$opacitySlider.find(".selector_base").is(":focus")) {
-            this.$opacitySlider.find(".selector_base").focus();
+        if (!this.$opacitySlider.find(".selector-base").is(":focus")) {
+            this.$opacitySlider.find(".selector-base").focus();
         }
     };
 
@@ -530,11 +536,10 @@ define(function (require, exports, module) {
                 return false;
             }
         } else {
-            switch (event.keyCode) {
-            case KeyEvent.DOM_VK_LEFT:
-            case KeyEvent.DOM_VK_RIGHT:
-            case KeyEvent.DOM_VK_UP:
-            case KeyEvent.DOM_VK_DOWN:
+            if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
+                    event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                    event.keyCode === KeyEvent.DOM_VK_UP ||
+                    event.keyCode === KeyEvent.DOM_VK_DOWN) {
                 // Prevent arrow keys that weren't handled by a child control 
                 // from being handled by a parent, either through bubbling or 
                 // through default native behavior. There isn't a good general
@@ -564,14 +569,12 @@ define(function (require, exports, module) {
                     event.stopPropagation();
                     return false; // equivalent to event.preventDefault()
                 }
-                break;
             }
         }
     };
 
     ColorEditor.prototype._handleHslKeydown = function (event) {
-        switch (event.keyCode) {
-        case KeyEvent.DOM_VK_TAB:
+        if (event.keyCode === KeyEvent.DOM_VK_TAB) {
             // If we're the last focusable element (no color swatches), Tab wraps around to color square
             if (!event.shiftKey) {
                 if (this.$swatches.children().length === 0) {
@@ -579,7 +582,6 @@ define(function (require, exports, module) {
                     return false;
                 }
             }
-            break;
         }
     };
 
@@ -673,7 +675,7 @@ define(function (require, exports, module) {
     };
 
     // Prevent clicks on some UI elements (color selection field, slider and large swatch) from taking focus
-    $(window.document).on("mousedown", ".color_selection_field, .slider, .large_swatch", function (e) {
+    $(window.document).on("mousedown", ".color-selection-field, .slider, .large-swatch", function (e) {
         e.preventDefault();
     });
 

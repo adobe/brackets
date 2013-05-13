@@ -66,6 +66,10 @@ define(function (require, exports, module) {
         
         $projectTitle.html(displayName);
         $projectTitle.attr("title", fullPath);
+        
+        // Trigger a scroll on the project files container to 
+        // reposition the scroller shadows and avoid issue #2255
+        $projectFilesContainer.trigger("scroll");
     }
     
     /**
@@ -108,6 +112,7 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelExpanded", function (evt, width) {
+            WorkingSetView.refresh();
             $sidebar.find(".sidebar-selection").width(width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
