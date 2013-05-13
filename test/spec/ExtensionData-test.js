@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, evil: true */
 /*global define, describe, it, spyOn, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror */
+/*unittests: Extension Data*/
 
 define(function (require, exports, module) {
     'use strict';
@@ -235,6 +236,24 @@ define(function (require, exports, module) {
                 expect(givenName).toEqual("testing");
                 remoteServices.testing();
                 expect(testingCalled).toBe(true);
+            });
+        });
+        
+        describe("Code Hinting", function () {
+            var root, services;
+            
+            beforeEach(function () {
+                root = ExtensionData._createRootObject();
+                services = ExtensionData._getBuiltinServices(root);
+                services.__initializeMaster();
+            });
+            
+            it("should include the built-in features", function () {
+                var hints = ExtensionData.getHints(root);
+                expect(hints["!name"]).toEqual("services");
+                expect(hints.ServiceRegistry.channels).toBeDefined();
+                var channels = hints.ServiceRegistry.channels;
+                expect(channels.brackets).toBeDefined();
             });
         });
     });

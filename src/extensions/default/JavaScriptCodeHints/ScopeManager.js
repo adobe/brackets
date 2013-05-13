@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         FileIndexManager    = brackets.getModule("project/FileIndexManager"),
+        ExtensionData       = brackets.getModule("extensibility/ExtensionData"),
         HintUtils           = require("HintUtils");
     
     var ternEnvironment     = [],
@@ -103,6 +104,7 @@ define(function (require, exports, module) {
                 console.log("failed to read tern config file " + i);
             });
         });
+        ternEnvironment.push(ExtensionData.getHints());
     }
 
     initTernEnv();

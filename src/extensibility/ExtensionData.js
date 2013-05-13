@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true */
 /*global window*/
+/*unittests: Extension Data*/
 
 "use strict";
 
@@ -468,10 +469,37 @@ function createRootObject() {
     return root;
 }
 
+function getHints(root) {
+    if (!root) {
+        root = registryRoot;
+    }
+    
+    var hints = {
+        "!name": "services",
+        "ServiceRegistry": {
+        }
+    };
+    var defs = {};
+    var generateHints = function (hintLevel, registryLevel) {
+        if (typeof registryLevel === "function") {
+            hintLevel["!type"] = "fn()";
+        } else if (registryLevel) {
+            Object.keys(registryLevel).forEach(function (key) {
+                hintLevel[key] = {};
+                generateHints(hintLevel[key], Object.getPrototypeOf(registryLevel[key]));
+            });
+        }
+    };
+    
+    generateHints(hints.ServiceRegistry, root);
+    return hints;
+}
+
 registryRoot = createRootObject();
 exports._brackets = getBuiltinServices();
 exports._createRootObject = createRootObject;
 exports._getBuiltinServices = getBuiltinServices;
 
 exports.getServices = getServices;
+exports.getHints = getHints;
 exports.convertArgumentsToArray = convertArgumentsToArray;
