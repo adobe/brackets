@@ -154,7 +154,7 @@ define(function (require, exports, module) {
                 CodeMirror.commands.insertTab(instance);
             } else {
                 var i, ins = "", numSpaces = instance.getOption("indentUnit");
-                numSpaces -= to.ch % numSpaces;
+                numSpaces -= from.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
                 }

@@ -130,32 +130,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Switch Language",
-    "LANGUAGE_MESSAGE"                  : "Language:",
-    "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancel",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "System Default",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_CS"                         : "Czech",
-    "LOCALE_DE"                         : "German",
-    "LOCALE_EN"                         : "English",
-    "LOCALE_ES"                         : "Spanish",
-    "LOCALE_FR"                         : "French",
-    "LOCALE_IT"                         : "Italian",
-    "LOCALE_JA"                         : "Japanese",
-    "LOCALE_NB"                         : "Norwegian",
-    "LOCALE_PL"                         : "Polish",
-    "LOCALE_PT_BR"                      : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                      : "Portuguese",
-    "LOCALE_RU"                         : "Russian",
-    "LOCALE_SV"                         : "Swedish",
-    "LOCALE_TR"                         : "Turkish",
-    "LOCALE_ZH_CN"                      : "Chinese, simplified",
 
     /**
      * ProjectManager
@@ -167,7 +141,6 @@ define({
     /**
      * Keyboard modifier names
      */
-
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
@@ -259,8 +232,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
-    "CMD_JUMPTO_DEFINITION"               : "Jump to Definition",
-    "CMD_JSLINT_FIRST_ERROR"              : "Go to First JSLint Error",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
@@ -269,20 +240,6 @@ define({
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Reload {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Show Developer Tools",
-    "CMD_RUN_UNIT_TESTS"                  : "Run Tests",
-    "CMD_JSLINT"                          : "Enable JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Show Performance Data",
-    "CMD_NEW_BRACKETS_WINDOW"             : "New {APP_NAME} Window",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
-    "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Enable Node Debugger",
-    "CMD_LOG_NODE_STATE"                  : "Log Node State to Console",
-    "CMD_RESTART_NODE"                    : "Restart Node",
-
     // Help menu commands
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
@@ -290,6 +247,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
 
@@ -313,11 +271,11 @@ define({
     "ABOUT"                                : "About",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
@@ -384,15 +342,48 @@ define({
     "QUIT_BRACKETS"                        : "Quit Brackets",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {{0}} because it wasn't installed.",
     
-    // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Quick View on Hover",
+    /**
+     * Unit names
+     */
 
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "JSLint Errors",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
-    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
-    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
+    "UNIT_PIXELS"                          : "pixels",    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
+    "CMD_REFRESH_WINDOW"                        : "Reload {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
+    "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
+    "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
+    "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
+    "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
+    "CMD_RESTART_NODE"                          : "Restart Node",
+    
+    "LANGUAGE_TITLE"                            : "Switch Language",
+    "LANGUAGE_MESSAGE"                          : "Language:",
+    "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Cancel",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_CS"                                 : "Czech",
+    "LOCALE_DE"                                 : "German",
+    "LOCALE_EN"                                 : "English",
+    "LOCALE_ES"                                 : "Spanish",
+    "LOCALE_FR"                                 : "French",
+    "LOCALE_IT"                                 : "Italian",
+    "LOCALE_JA"                                 : "Japanese",
+    "LOCALE_NB"                                 : "Norwegian",
+    "LOCALE_PL"                                 : "Polish",
+    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
+    "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RU"                                 : "Russian",
+    "LOCALE_SV"                                 : "Swedish",
+    "LOCALE_TR"                                 : "Turkish",
+    "LOCALE_ZH_CN"                              : "Chinese, simplified",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
@@ -402,6 +393,21 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "Enable JSLint",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Go to First JSLint Error",
+    "JSLINT_ERRORS"                             : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint Errors",
+    "JSLINT_NO_ERRORS"                          : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                           : "JSLint disabled or not working for the current file",
+    
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
     
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Read more"
