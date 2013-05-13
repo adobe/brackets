@@ -687,8 +687,8 @@ define(function (require, exports, module) {
     
     /*
      * Match str against the query using the QuickOpen algorithm provided by
-     * the functions above. The general idea is to prefer matches in the last
-     * segment (the filename) and matches of "special" characters. stringMatch
+     * the functions above. The general idea is to prefer matches of "special" characters and,
+     * optionally, matches that occur in the "last segment" (generally, the filename). stringMatch
      * will try to provide the best match and produces a "matchGoodness" score
      * to allow for relative ranking.
      *
@@ -701,10 +701,11 @@ define(function (require, exports, module) {
      * 
      * @param {string} str  The string to search
      * @param {string} query  The query string to find in string
-     * @param {{preferPrefixMatches:?boolean, singleSegmentSearch:?boolean}} options to control search behavior.
+     * @param {{preferPrefixMatches:?boolean, segmentedSearch:?boolean}} options to control search behavior.
      *                  preferPrefixMatches puts an exact case-insensitive prefix match ahead of all other matches,
-     *                  even short-circuiting the match logic. This option implies singleSegmentSearch.
-     *                  singleSegmentSearch does not treat segments of the string specially.
+     *                  even short-circuiting the match logic. This option implies segmentedSearch=false.
+     *                  When segmentedSearch is true, the string is broken into segments by "/" characters
+     *                  and the last segment is searched first and matches there are scored higher.
      * @param {?Object} special (optional) the specials data from findSpecialCharacters, if already known
      *                  This is generally just used by StringMatcher for optimization.
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
@@ -735,7 +736,7 @@ define(function (require, exports, module) {
         var compareStr = str.toLowerCase();
         
         if (options.preferPrefixMatches) {
-            options.singleSegmentSearch = true;
+            options.segmentedSearch = false;
         }
         
         if (options.preferPrefixMatches && compareStr.substr(0, query.length) === query) {
@@ -751,14 +752,14 @@ define(function (require, exports, module) {
         
         // For strings that are not broken into multiple segments, we can potentially
         // avoid some extra work
-        if (options.singleSegmentSearch) {
-            lastSegmentStart = 0;
-            matchList = _generateMatchList(query, compareStr, special.specials,
-                                           0);
-        } else {
+        if (options.segmentedSearch) {
             lastSegmentStart = special.specials[special.lastSegmentSpecialsIndex];
             matchList = _wholeStringSearch(query, compareStr, special.specials,
                               special.lastSegmentSpecialsIndex);
+        } else {
+            lastSegmentStart = 0;
+            matchList = _generateMatchList(query, compareStr, special.specials,
+                                           0);
         }
         
         // If we get a match, turn this into a SearchResult as expected by the consumers
@@ -833,10 +834,10 @@ define(function (require, exports, module) {
      * You are free to store other data on this object to assist in higher-level caching.
      * (This object's caches are all stored in "_" prefixed properties.)
      *
-     * @param {{preferPrefixMatches:?boolean, singleSegmentSearch:?boolean}} options to control search behavior.
+     * @param {{preferPrefixMatches:?boolean, segmentedSearch:?boolean}} options to control search behavior.
      *                  preferPrefixMatches puts an exact case-insensitive prefix match ahead of all other matches,
-     *                  even short-circuiting the match logic. This option implies singleSegmentSearch.
-     *                  singleSegmentSearch does not treat segments of the string specially.
+     *                  even short-circuiting the match logic. This option implies segmentedSearch=false.
+     *                  segmentedSearch treats segments of the string specially.
      */
     function StringMatcher(options) {
         this.options = options;

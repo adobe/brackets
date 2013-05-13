@@ -184,7 +184,9 @@ define(function (require, exports, module) {
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
         
         // StringMatchers that cache in-progress query data.
-        this._filenameMatcher           = new StringMatch.StringMatcher();
+        this._filenameMatcher           = new StringMatch.StringMatcher({
+            segmentedSearch: true
+        });
         this._matchers                  = {};
     }
     

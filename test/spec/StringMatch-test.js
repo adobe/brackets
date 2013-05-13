@@ -419,7 +419,7 @@ define(function (require, exports, module) {
                 ranges = result.stringRanges;
                 expect(ranges.length).toBe(3);
                 
-                expect(stringMatch("src/search/QuickOpen.js", "qo")).toEqual({
+                expect(stringMatch("src/search/QuickOpen.js", "qo", { segmentedSearch: true })).toEqual({
                     matchGoodness: jasmine.any(Number),
                     label: "src/search/QuickOpen.js",
                     stringRanges: [
@@ -443,7 +443,7 @@ define(function (require, exports, module) {
             });
             
             it("should prefer special characters", function () {
-                expect(stringMatch("src/document/DocumentCommandHandler.js", "dch")).toEqual({
+                expect(stringMatch("src/document/DocumentCommandHandler.js", "dch", { segmentedSearch: true })).toEqual({
                     matchGoodness: jasmine.any(Number),
                     label: "src/document/DocumentCommandHandler.js",
                     stringRanges: [
@@ -502,31 +502,52 @@ define(function (require, exports, module) {
                         { text: "/foo/bar/src.js", matched: false, includesLastSegment: true }
                     ]
                 });
+                
+                var result = stringMatch("src/foo/bar/src.js", "fbs", {
+                    preferPrefixMatches: true
+                });
+                
+                expect(result).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "src/foo/bar/src.js",
+                    stringRanges: [
+                        { text: "src/", matched: false, includesLastSegment: true },
+                        { text: "f", matched: true, includesLastSegment: true },
+                        { text: "oo/", matched: false, includesLastSegment: true },
+                        { text: "b", matched: true, includesLastSegment: true },
+                        { text: "ar/", matched: false, includesLastSegment: true },
+                        { text: "s", matched: true, includesLastSegment: true },
+                        { text: "rc.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(result.matchGoodness).toBeGreaterThan(-Number.MAX_VALUE);
+
                 expect(stringMatch("long", "longerQuery", {
                     preferPrefixMatches: true
                 })).toEqual(null);
             });
             
-            it("should optionally allow single segment matches", function () {
-                expect(stringMatch("brackets/utils/brackets.js", "brackut", {
-                    singleSegmentSearch: true
-                })).toEqual({
+            it("should default to single segment matches", function () {
+                var expectedResult = {
                     matchGoodness: jasmine.any(Number),
                     label: "brackets/utils/brackets.js",
                     stringRanges: [
                         { text: "brack", matched: true, includesLastSegment: true },
-                        { text: "ets/", matched: false, includesLastSegment: true },
-                        { text: "ut", matched: true, includesLastSegment: true },
-                        { text: "ils/brackets.js", matched: false, includesLastSegment: true }
+                        { text: "ets/utils/brackets.js", matched: false, includesLastSegment: true }
                     ]
-                });
+                };
+                
+                expect(stringMatch("brackets/utils/brackets.js", "brack")).toEqual(expectedResult);
+                
+                expect(stringMatch("brackets/utils/brackets.js", "brack", { segmentedSearch: false })).toEqual(expectedResult);
             });
             
             var goodRelativeOrdering = function (query, testStrings) {
                 var lastScore = -Infinity;
                 var goodOrdering = true;
                 testStrings.forEach(function (str) {
-                    var result = stringMatch(str, query);
+                    var result = stringMatch(str, query, { segmentedSearch: true });
                     
                     // note that matchGoodness is expressed in negative numbers
                     if (result.matchGoodness < lastScore) {
@@ -761,6 +782,34 @@ define(function (require, exports, module) {
                 );
             });
                     
+            it("should pass the segmentedSearch option", function () {
+                var matcher = new StringMatch.StringMatcher({
+                    segmentedSearch: false
+                });
+                
+                expect(matcher.match("brackets/utils/brackets.js", "brack")).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "brackets/utils/brackets.js",
+                    stringRanges: [
+                        { text: "brack", matched: true, includesLastSegment: true },
+                        { text: "ets/utils/brackets.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                matcher = new StringMatch.StringMatcher({
+                    segmentedSearch: true
+                });
+                
+                expect(matcher.match("brackets/utils/brackets.js", "brack")).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "brackets/utils/brackets.js",
+                    stringRanges: [
+                        { text: "brackets/utils/", matched: false, includesLastSegment: false },
+                        { text: "brack", matched: true, includesLastSegment: true },
+                        { text: "ets.js", matched: false, includesLastSegment: true }
+                    ]
+                });
+            });
         });
     });
 });
