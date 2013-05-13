@@ -36,6 +36,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("WorkingSetView", function () {
+        
+        this.category = "integration";
     
         var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
         var testWindow;

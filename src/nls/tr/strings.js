@@ -73,7 +73,7 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Canlı Önizleme Hatası",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Tarayıcıya bağlanılıyor",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Canlı önizleme özelliğini kullanabilmek için uzaktan hata ayıklayıcı ile Chrome'un tekrardan açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?", 
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Canlı önizleme özelliğini kullanabilmek için uzaktan hata ayıklayıcı ile Chrome'un tekrardan açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Canlı önizlemeyi çalıştırabilmeniz için html dosyası açmanız gerekiyor",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Canlı Önizlemeyi server-side dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir link belirtiniz.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Canlı Önizlemeye Hoşgeldiniz!",
@@ -81,8 +81,8 @@ define({
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a class=\"clickable-link\" data-href=\"{0}\">Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Canlı Önizleme",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Canlı Önizleme: Bağlanılıyor...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Canlı Önizleme: Başlıyor...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Canlı Önizleme: Bağlanılıyor\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Canlı Önizleme: Başlıyor\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Canlı Önizleme'den Çık",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Canlı Önizleme: Kapatmak için tıklayın (Yenilemek için dosyayı kaydedin)",
     
@@ -150,7 +150,7 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
-    "STATUSBAR_SPACES"                      : "Boşlık",
+    "STATUSBAR_SPACES"                      : "Boşluk",
     "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu",
     "STATUSBAR_LINE_COUNT"                  : "{0} Satır",
 
@@ -180,7 +180,7 @@ define({
     "CMD_SELECT_LINE"                     : "Satırı Seç",
     "CMD_FIND"                            : "Bul",
     "CMD_FIND_IN_FILES"                   : "Dosyalarda Bul",
-    "CMD_FIND_IN_SUBTREE"                 : "...içinde bul",
+    "CMD_FIND_IN_SUBTREE"                 : "\u2026içinde bul",
     "CMD_FIND_NEXT"                       : "Sonrakini Bul",
     "CMD_FIND_PREVIOUS"                   : "Öncekini Bul",
     "CMD_REPLACE"                         : "Değiştir",
@@ -255,7 +255,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Kapat (Kaydetme)",
     "RELAUNCH_CHROME"                      : "Chrome'u Tekrar Aç",
     "ABOUT"                                : "Hakkında",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Kapat",
     "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
     "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
@@ -264,7 +263,6 @@ define({
     "UPDATE_AVAILABLE_TITLE"               : "Yeni versiyon hazır",
     "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} programının yeni versiyonu hazır. İşte bazı yeni özellikler:",
     "GET_IT_NOW"                           : "Şimdi Yükle!",
-    "PROJECT_SETTINGS_TOOLTIP"             : "Proje Ayarları",
     "PROJECT_SETTINGS_TITLE"               : "{0} için Proje Ayarları",
     "PROJECT_SETTING_BASE_URL"             : "Ana URL'den Canlı Önizleme",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(dosya urlsi için boş bırakın)",

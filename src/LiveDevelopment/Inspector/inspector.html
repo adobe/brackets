@@ -65,7 +65,9 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Debugger'>Debugger</a></li>
 <li><a href='#FileSystem'>FileSystem</a></li>
 <li><a href='#IndexedDB'>IndexedDB</a></li>
+<li><a href='#Input'>Input</a></li>
 <li><a href='#Inspector'>Inspector</a></li>
+<li><a href='#LayerTree'>LayerTree</a></li>
 <li><a href='#Memory'>Memory</a></li>
 <li><a href='#Network'>Network</a></li>
 <li><a href='#Page'>Page</a></li>
@@ -160,8 +162,12 @@ footer p {text-align: center; margin: 0;}
 <h3><a href="#Canvas">Canvas</a></h3>
 <span class='label'>Type</span>
 <ul>
-<li><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a>: Unique object identifier.</li>
+<li><a href='#Canvas.ResourceId'>Canvas.ResourceId</a>: Unique resource identifier.</li>
+<li><a href='#Canvas.ResourceInfo'>Canvas.ResourceInfo</a></li>
+<li><a href='#Canvas.ResourceState'>Canvas.ResourceState</a></li>
+<li><a href='#Canvas.CallArgument'>Canvas.CallArgument</a></li>
 <li><a href='#Canvas.Call'>Canvas.Call</a></li>
+<li><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a>: Unique trace log identifier.</li>
 <li><a href='#Canvas.TraceLog'>Canvas.TraceLog</a></li>
 </ul>
 <span class='label label-success'>Command</span>
@@ -169,9 +175,19 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Canvas.enable'>Canvas.enable</a>: Enables Canvas inspection.</li>
 <li><a href='#Canvas.disable'>Canvas.disable</a>: Disables Canvas inspection.</li>
 <li><a href='#Canvas.dropTraceLog'>Canvas.dropTraceLog</a></li>
-<li><a href='#Canvas.captureFrame'>Canvas.captureFrame</a></li>
+<li><a href='#Canvas.hasUninstrumentedCanvases'>Canvas.hasUninstrumentedCanvases</a>: Checks if there is any uninstrumented canvas in the inspected page.</li>
+<li><a href='#Canvas.captureFrame'>Canvas.captureFrame</a>: Starts (or continues) a canvas frame capturing which will be stopped automatically after the next frame is prepared.</li>
+<li><a href='#Canvas.startCapturing'>Canvas.startCapturing</a>: Starts (or continues) consecutive canvas frames capturing. The capturing is stopped by the corresponding stopCapturing command.</li>
+<li><a href='#Canvas.stopCapturing'>Canvas.stopCapturing</a></li>
 <li><a href='#Canvas.getTraceLog'>Canvas.getTraceLog</a></li>
 <li><a href='#Canvas.replayTraceLog'>Canvas.replayTraceLog</a></li>
+<li><a href='#Canvas.getResourceInfo'>Canvas.getResourceInfo</a></li>
+<li><a href='#Canvas.getResourceState'>Canvas.getResourceState</a></li>
+</ul>
+<span class='label label-info'>Event</span>
+<ul>
+<li><a href='#Canvas.contextCreated'>Canvas.contextCreated</a>: Fired when a canvas context has been created in the given frame. The context may not be instrumented (see hasUninstrumentedCanvases command).</li>
+<li><a href='#Canvas.traceLogsRemoved'>Canvas.traceLogsRemoved</a>: Fired when a set of trace logs were removed from the backend. If no parameters are given, all trace logs were removed.</li>
 </ul>
 <h3><a href="#Console">Console</a></h3>
 <span class='label'>Type</span>
@@ -207,7 +223,7 @@ footer p {text-align: center; margin: 0;}
 <span class='label label-success'>Command</span>
 <ul>
 <li><a href='#DOM.getDocument'>DOM.getDocument</a>: Returns the root DOM node to the caller.</li>
-<li><a href='#DOM.requestChildNodes'>DOM.requestChildNodes</a>: Requests that children of the node with given id are returned to the caller in form of setChildNodes events.</li>
+<li><a href='#DOM.requestChildNodes'>DOM.requestChildNodes</a>: Requests that children of the node with given id are returned to the caller in form of setChildNodes events where not only immediate children are retrieved, but all children down to the specified depth.</li>
 <li><a href='#DOM.querySelector'>DOM.querySelector</a>: Executes querySelector on a given node.</li>
 <li><a href='#DOM.querySelectorAll'>DOM.querySelectorAll</a>: Executes querySelectorAll on a given node.</li>
 <li><a href='#DOM.setNodeName'>DOM.setNodeName</a>: Sets node name for a node with given id.</li>
@@ -225,7 +241,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#DOM.requestNode'>DOM.requestNode</a>: Requests that the node is sent to the caller given the JavaScript node object reference. All nodes that form the path from the node to the root are also sent to the client as a series of setChildNodes notifications.</li>
 <li><a href='#DOM.setInspectModeEnabled'>DOM.setInspectModeEnabled</a>: Enters the 'inspect' mode. In this mode, elements that user is hovering over are highlighted. Backend then generates 'inspect' command upon element selection.</li>
 <li><a href='#DOM.highlightRect'>DOM.highlightRect</a>: Highlights given rectangle. Coordinates are absolute with respect to the main frame viewport.</li>
-<li><a href='#DOM.highlightNode'>DOM.highlightNode</a>: Highlights DOM node with given id.</li>
+<li><a href='#DOM.highlightNode'>DOM.highlightNode</a>: Highlights DOM node with given id or with the given JavaScript object wrapper. Either nodeId or objectId must be specified.</li>
 <li><a href='#DOM.hideHighlight'>DOM.hideHighlight</a>: Hides DOM node highlight.</li>
 <li><a href='#DOM.highlightFrame'>DOM.highlightFrame</a>: Highlights owner element of the frame with given id.</li>
 <li><a href='#DOM.pushNodeByPathToFrontend'>DOM.pushNodeByPathToFrontend</a>: Requests that the node is sent to the caller given its path. // FIXME, use XPath</li>
@@ -235,6 +251,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#DOM.undo'>DOM.undo</a>: Undoes the last performed action.</li>
 <li><a href='#DOM.redo'>DOM.redo</a>: Re-does the last undone action.</li>
 <li><a href='#DOM.markUndoableState'>DOM.markUndoableState</a>: Marks last undoable state.</li>
+<li><a href='#DOM.focus'>DOM.focus</a>: Focuses the given element.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -284,7 +301,10 @@ footer p {text-align: center; margin: 0;}
 <span class='label label-info'>Event</span>
 <ul>
 <li><a href='#DOMStorage.addDOMStorage'>DOMStorage.addDOMStorage</a></li>
-<li><a href='#DOMStorage.domStorageUpdated'>DOMStorage.domStorageUpdated</a></li>
+<li><a href='#DOMStorage.domStorageItemsCleared'>DOMStorage.domStorageItemsCleared</a></li>
+<li><a href='#DOMStorage.domStorageItemRemoved'>DOMStorage.domStorageItemRemoved</a></li>
+<li><a href='#DOMStorage.domStorageItemAdded'>DOMStorage.domStorageItemAdded</a></li>
+<li><a href='#DOMStorage.domStorageItemUpdated'>DOMStorage.domStorageItemUpdated</a></li>
 </ul>
 <h3><a href="#Database">Database</a></h3>
 <span class='label'>Type</span>
@@ -342,6 +362,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Debugger.compileScript'>Debugger.compileScript</a>: Compiles expression.</li>
 <li><a href='#Debugger.runScript'>Debugger.runScript</a>: Runs script with given id in a given context.</li>
 <li><a href='#Debugger.setOverlayMessage'>Debugger.setOverlayMessage</a>: Sets overlay message.</li>
+<li><a href='#Debugger.setVariableValue'>Debugger.setVariableValue</a>: Changes value of variable in a callframe or a closure. Either callframe or function must be specified. Object-based scopes are not supported and must be mutated manually.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -388,6 +409,12 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#IndexedDB.requestDatabase'>IndexedDB.requestDatabase</a>: Requests database with given name in given frame.</li>
 <li><a href='#IndexedDB.requestData'>IndexedDB.requestData</a>: Requests data from object store or index.</li>
 </ul>
+<h3><a href="#Input">Input</a></h3>
+<span class='label label-success'>Command</span>
+<ul>
+<li><a href='#Input.dispatchKeyEvent'>Input.dispatchKeyEvent</a>: Dispatches a key event to the page.</li>
+<li><a href='#Input.dispatchMouseEvent'>Input.dispatchMouseEvent</a>: Dispatches a mouse event to the page.</li>
+</ul>
 <h3><a href="#Inspector">Inspector</a></h3>
 <span class='label label-success'>Command</span>
 <ul>
@@ -400,6 +427,24 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Inspector.inspect'>Inspector.inspect</a></li>
 <li><a href='#Inspector.detached'>Inspector.detached</a>: Fired when remote debugging connection is about to be terminated. Contains detach reason.</li>
 </ul>
+<h3><a href="#LayerTree">LayerTree</a></h3>
+<span class='label'>Type</span>
+<ul>
+<li><a href='#LayerTree.LayerId'>LayerTree.LayerId</a>: Unique RenderLayer identifier.</li>
+<li><a href='#LayerTree.IntRect'>LayerTree.IntRect</a>: A rectangle.</li>
+<li><a href='#LayerTree.Layer'>LayerTree.Layer</a>: Information about a compositing layer.</li>
+</ul>
+<span class='label label-success'>Command</span>
+<ul>
+<li><a href='#LayerTree.enable'>LayerTree.enable</a>: Enables compositing tree inspection.</li>
+<li><a href='#LayerTree.disable'>LayerTree.disable</a>: Disables compositing tree inspection.</li>
+<li><a href='#LayerTree.getLayerTree'>LayerTree.getLayerTree</a>: Returns the layer tree structure of the current page.</li>
+<li><a href='#LayerTree.nodeIdForLayerId'>LayerTree.nodeIdForLayerId</a>: Returns the node id for a given layer id.</li>
+</ul>
+<span class='label label-info'>Event</span>
+<ul>
+<li><a href='#LayerTree.layerTreeDidChange'>LayerTree.layerTreeDidChange</a></li>
+</ul>
 <h3><a href="#Memory">Memory</a></h3>
 <span class='label'>Type</span>
 <ul>
@@ -408,11 +453,17 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Memory.StringStatistics'>Memory.StringStatistics</a>: Character data statistics for the page.</li>
 <li><a href='#Memory.DOMGroup'>Memory.DOMGroup</a></li>
 <li><a href='#Memory.MemoryBlock'>Memory.MemoryBlock</a></li>
+<li><a href='#Memory.HeapSnapshotChunk'>Memory.HeapSnapshotChunk</a></li>
 </ul>
 <span class='label label-success'>Command</span>
 <ul>
 <li><a href='#Memory.getDOMNodeCount'>Memory.getDOMNodeCount</a></li>
+<li><a href='#Memory.getDOMCounters'>Memory.getDOMCounters</a></li>
 <li><a href='#Memory.getProcessMemoryDistribution'>Memory.getProcessMemoryDistribution</a></li>
+</ul>
+<span class='label label-info'>Event</span>
+<ul>
+<li><a href='#Memory.addNativeSnapshotChunk'>Memory.addNativeSnapshotChunk</a></li>
 </ul>
 <h3><a href="#Network">Network</a></h3>
 <span class='label'>Type</span>
@@ -482,7 +533,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Page.reload'>Page.reload</a>: Reloads given page optionally ignoring the cache.</li>
 <li><a href='#Page.navigate'>Page.navigate</a>: Navigates current page to the given URL.</li>
 <li><a href='#Page.getCookies'>Page.getCookies</a>: Returns all browser cookies. Depending on the backend support, will either return detailed cookie information in the cookie field or string cookie representation using cookieString.</li>
-<li><a href='#Page.deleteCookie'>Page.deleteCookie</a>: Deletes browser cookie with given name for the given domain.</li>
+<li><a href='#Page.deleteCookie'>Page.deleteCookie</a>: Deletes browser cookie with given name, domain and path.</li>
 <li><a href='#Page.getResourceTree'>Page.getResourceTree</a>: Returns present frame / resource tree structure.</li>
 <li><a href='#Page.getResourceContent'>Page.getResourceContent</a>: Returns content of the given resource.</li>
 <li><a href='#Page.searchInResource'>Page.searchInResource</a>: Searches for given string in resource content.</li>
@@ -491,6 +542,12 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Page.canOverrideDeviceMetrics'>Page.canOverrideDeviceMetrics</a>: Checks whether setDeviceMetricsOverride can be invoked.</li>
 <li><a href='#Page.setDeviceMetricsOverride'>Page.setDeviceMetricsOverride</a>: Overrides the values of device screen dimensions (window.screen.width, window.screen.height, window.innerWidth, window.innerHeight, and "device-width"/"device-height"-related CSS media query results) and the font scale factor.</li>
 <li><a href='#Page.setShowPaintRects'>Page.setShowPaintRects</a>: Requests that backend shows paint rectangles</li>
+<li><a href='#Page.canShowDebugBorders'>Page.canShowDebugBorders</a>: Tells if backend supports debug borders on layers</li>
+<li><a href='#Page.setShowDebugBorders'>Page.setShowDebugBorders</a>: Requests that backend shows debug borders on layers</li>
+<li><a href='#Page.canShowFPSCounter'>Page.canShowFPSCounter</a>: Tells if backend supports a FPS counter display</li>
+<li><a href='#Page.setShowFPSCounter'>Page.setShowFPSCounter</a>: Requests that backend shows the FPS counter</li>
+<li><a href='#Page.canContinuouslyPaint'>Page.canContinuouslyPaint</a>: Tells if backend supports continuous painting</li>
+<li><a href='#Page.setContinuousPaintingEnabled'>Page.setContinuousPaintingEnabled</a>: Requests that backend enables continuous painting</li>
 <li><a href='#Page.getScriptExecutionStatus'>Page.getScriptExecutionStatus</a>: Determines if scripts can be executed in the page.</li>
 <li><a href='#Page.setScriptExecutionDisabled'>Page.setScriptExecutionDisabled</a>: Switches script execution in the page.</li>
 <li><a href='#Page.setGeolocationOverride'>Page.setGeolocationOverride</a>: Overrides the Geolocation Position or Error.</li>
@@ -500,8 +557,11 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Page.clearDeviceOrientationOverride'>Page.clearDeviceOrientationOverride</a>: Clears the overridden Device Orientation.</li>
 <li><a href='#Page.canOverrideDeviceOrientation'>Page.canOverrideDeviceOrientation</a>: Check the backend if Web Inspector can override the device orientation.</li>
 <li><a href='#Page.setTouchEmulationEnabled'>Page.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
+<li><a href='#Page.setEmulatedMedia'>Page.setEmulatedMedia</a>: Emulates the given media for CSS media queries.</li>
 <li><a href='#Page.getCompositingBordersVisible'>Page.getCompositingBordersVisible</a>: Indicates the visibility of compositing borders.</li>
 <li><a href='#Page.setCompositingBordersVisible'>Page.setCompositingBordersVisible</a>: Controls the visibility of compositing borders.</li>
+<li><a href='#Page.captureScreenshot'>Page.captureScreenshot</a>: Capture page screenshot.</li>
+<li><a href='#Page.handleJavaScriptDialog'>Page.handleJavaScriptDialog</a>: Accepts or dismisses a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload).</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -509,12 +569,19 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Page.loadEventFired'>Page.loadEventFired</a></li>
 <li><a href='#Page.frameNavigated'>Page.frameNavigated</a>: Fired once navigation of the frame has completed. Frame is now associated with the new loader.</li>
 <li><a href='#Page.frameDetached'>Page.frameDetached</a>: Fired when frame has been detached from its parent.</li>
+<li><a href='#Page.frameStartedLoading'>Page.frameStartedLoading</a>: Fired when frame has started loading.</li>
+<li><a href='#Page.frameStoppedLoading'>Page.frameStoppedLoading</a>: Fired when frame has stopped loading.</li>
+<li><a href='#Page.frameScheduledNavigation'>Page.frameScheduledNavigation</a>: Fired when frame schedules a potential navigation.</li>
+<li><a href='#Page.frameClearedScheduledNavigation'>Page.frameClearedScheduledNavigation</a>: Fired when frame no longer has a scheduled navigation.</li>
+<li><a href='#Page.javascriptDialogOpening'>Page.javascriptDialogOpening</a>: Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) is about to open.</li>
+<li><a href='#Page.javascriptDialogClosed'>Page.javascriptDialogClosed</a>: Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) has been closed.</li>
 </ul>
 <h3><a href="#Profiler">Profiler</a></h3>
 <span class='label'>Type</span>
 <ul>
 <li><a href='#Profiler.ProfileHeader'>Profiler.ProfileHeader</a>: Profile header.</li>
-<li><a href='#Profiler.Profile'>Profiler.Profile</a>: Profile.</li>
+<li><a href='#Profiler.CPUProfileNode'>Profiler.CPUProfileNode</a>: CPU Profile node. Holds callsite information, execution statistics and child nodes.</li>
+<li><a href='#Profiler.CPUProfile'>Profiler.CPUProfile</a>: Profile.</li>
 <li><a href='#Profiler.HeapSnapshotObjectId'>Profiler.HeapSnapshotObjectId</a>: Heap snashot object id.</li>
 </ul>
 <span class='label label-success'>Command</span>
@@ -527,7 +594,8 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Profiler.start'>Profiler.start</a></li>
 <li><a href='#Profiler.stop'>Profiler.stop</a></li>
 <li><a href='#Profiler.getProfileHeaders'>Profiler.getProfileHeaders</a></li>
-<li><a href='#Profiler.getProfile'>Profiler.getProfile</a></li>
+<li><a href='#Profiler.getCPUProfile'>Profiler.getCPUProfile</a></li>
+<li><a href='#Profiler.getHeapSnapshot'>Profiler.getHeapSnapshot</a></li>
 <li><a href='#Profiler.removeProfile'>Profiler.removeProfile</a></li>
 <li><a href='#Profiler.clearProfiles'>Profiler.clearProfiles</a></li>
 <li><a href='#Profiler.takeHeapSnapshot'>Profiler.takeHeapSnapshot</a></li>
@@ -1511,8 +1579,12 @@ function onRegionLayoutUpdated(res) {
 <p></p>
 <span class='label'>Type</span>
 <ul>
-<li><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a>: Unique object identifier.</li>
+<li><a href='#Canvas.ResourceId'>Canvas.ResourceId</a>: Unique resource identifier.</li>
+<li><a href='#Canvas.ResourceInfo'>Canvas.ResourceInfo</a></li>
+<li><a href='#Canvas.ResourceState'>Canvas.ResourceState</a></li>
+<li><a href='#Canvas.CallArgument'>Canvas.CallArgument</a></li>
 <li><a href='#Canvas.Call'>Canvas.Call</a></li>
+<li><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a>: Unique trace log identifier.</li>
 <li><a href='#Canvas.TraceLog'>Canvas.TraceLog</a></li>
 </ul>
 <span class='label label-success'>Command</span>
@@ -1520,36 +1592,84 @@ function onRegionLayoutUpdated(res) {
 <li><a href='#Canvas.enable'>Canvas.enable</a>: Enables Canvas inspection.</li>
 <li><a href='#Canvas.disable'>Canvas.disable</a>: Disables Canvas inspection.</li>
 <li><a href='#Canvas.dropTraceLog'>Canvas.dropTraceLog</a></li>
-<li><a href='#Canvas.captureFrame'>Canvas.captureFrame</a></li>
+<li><a href='#Canvas.hasUninstrumentedCanvases'>Canvas.hasUninstrumentedCanvases</a>: Checks if there is any uninstrumented canvas in the inspected page.</li>
+<li><a href='#Canvas.captureFrame'>Canvas.captureFrame</a>: Starts (or continues) a canvas frame capturing which will be stopped automatically after the next frame is prepared.</li>
+<li><a href='#Canvas.startCapturing'>Canvas.startCapturing</a>: Starts (or continues) consecutive canvas frames capturing. The capturing is stopped by the corresponding stopCapturing command.</li>
+<li><a href='#Canvas.stopCapturing'>Canvas.stopCapturing</a></li>
 <li><a href='#Canvas.getTraceLog'>Canvas.getTraceLog</a></li>
 <li><a href='#Canvas.replayTraceLog'>Canvas.replayTraceLog</a></li>
+<li><a href='#Canvas.getResourceInfo'>Canvas.getResourceInfo</a></li>
+<li><a href='#Canvas.getResourceState'>Canvas.getResourceState</a></li>
 </ul>
-<div id='Canvas_TraceLogId' class='type'>
-<h3>Canvas.TraceLogId <span class='label'>Type</span></h3>
-<p>Unique object identifier.</p>
+<span class='label label-info'>Event</span>
+<ul>
+<li><a href='#Canvas.contextCreated'>Canvas.contextCreated</a>: Fired when a canvas context has been created in the given frame. The context may not be instrumented (see hasUninstrumentedCanvases command).</li>
+<li><a href='#Canvas.traceLogsRemoved'>Canvas.traceLogsRemoved</a>: Fired when a set of trace logs were removed from the backend. If no parameters are given, all trace logs were removed.</li>
+</ul>
+<div id='Canvas_ResourceId' class='type'>
+<h3>Canvas.ResourceId <span class='label'>Type</span></h3>
+<p>Unique resource identifier.</p>
 <dl>
+<dd>String</dd>
+</dl>
+</div>
+<div id='Canvas_ResourceInfo' class='type'>
+<h3>Canvas.ResourceInfo <span class='label'>Type</span></h3>
+<dl>
+<dt>id</dt>
+<dd><a href='#Canvas.ResourceId'>Canvas.ResourceId</a></dd>
+<dt>description</dt>
+<dd>String</dd>
+</dl>
+</div>
+<div id='Canvas_ResourceState' class='type'>
+<h3>Canvas.ResourceState <span class='label'>Type</span></h3>
+<dl>
+<dt>id</dt>
+<dd><a href='#Canvas.ResourceId'>Canvas.ResourceId</a></dd>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+<dt>imageURL (optional)</dt>
+<dd>String <span class='text'>Screenshot image data URL.</span></dd>
+</dl>
+</div>
+<div id='Canvas_CallArgument' class='type'>
+<h3>Canvas.CallArgument <span class='label'>Type</span></h3>
+<dl>
+<dt>description</dt>
 <dd>String</dd>
 </dl>
 </div>
 <div id='Canvas_Call' class='type'>
 <h3>Canvas.Call <span class='label'>Type</span></h3>
 <dl>
+<dt>contextId</dt>
+<dd><a href='#Canvas.ResourceId'>Canvas.ResourceId</a></dd>
 <dt>functionName (optional)</dt>
 <dd>String</dd>
 <dt>arguments (optional)</dt>
-<dd>[String]</dd>
+<dd>[<a href='#Canvas.CallArgument'>Canvas.CallArgument</a>]</dd>
+<dt>result (optional)</dt>
+<dd><a href='#Canvas.CallArgument'>Canvas.CallArgument</a></dd>
+<dt>isDrawingCall (optional)</dt>
+<dd>Boolean</dd>
 <dt>property (optional)</dt>
 <dd>String</dd>
 <dt>value (optional)</dt>
-<dd>String</dd>
-<dt>result (optional)</dt>
-<dd>String</dd>
+<dd><a href='#Canvas.CallArgument'>Canvas.CallArgument</a></dd>
 <dt>sourceURL (optional)</dt>
 <dd>String</dd>
 <dt>lineNumber (optional)</dt>
 <dd>Integer</dd>
 <dt>columnNumber (optional)</dt>
 <dd>Integer</dd>
+</dl>
+</div>
+<div id='Canvas_TraceLogId' class='type'>
+<h3>Canvas.TraceLogId <span class='label'>Type</span></h3>
+<p>Unique trace log identifier.</p>
+<dl>
+<dd>String</dd>
 </dl>
 </div>
 <div id='Canvas_TraceLog' class='type'>
@@ -1559,6 +1679,12 @@ function onRegionLayoutUpdated(res) {
 <dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
 <dt>calls</dt>
 <dd>[<a href='#Canvas.Call'>Canvas.Call</a>]</dd>
+<dt>startOffset</dt>
+<dd>Integer</dd>
+<dt>alive</dt>
+<dd>Boolean</dd>
+<dt>totalAvailableCalls</dt>
+<dd>Number</dd>
 </dl>
 </div>
 <div id='Canvas_enable' class='command'>
@@ -1591,19 +1717,72 @@ Canvas.disable();
 Canvas.dropTraceLog(traceLogId);
 </pre>
 </div>
+<div id='Canvas_hasUninstrumentedCanvases' class='command'>
+<h3>Canvas.hasUninstrumentedCanvases <span class='label label-success'>Command</span></h3>
+<p>Checks if there is any uninstrumented canvas in the inspected page.</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>result</dt>
+<dd>Boolean</dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.hasUninstrumentedCanvases
+Canvas.hasUninstrumentedCanvases(function callback(res) {
+	// res = {result}
+});
+</pre>
+</div>
 <div id='Canvas_captureFrame' class='command'>
 <h3>Canvas.captureFrame <span class='label label-success'>Command</span></h3>
+<p>Starts (or continues) a canvas frame capturing which will be stopped automatically after the next frame is prepared.</p>
+<dl>
+<dt>frameId (optional)</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Identifier of the frame containing document whose canvases are to be captured. If omitted, main frame is assumed.</span></dd>
+</dl>
 <h4>Callback Parameters:</h4>
+<dl>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a> <span class='text'>Identifier of the trace log containing captured canvas calls.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.captureFrame
+Canvas.captureFrame(frameId, function callback(res) {
+	// res = {traceLogId}
+});
+</pre>
+</div>
+<div id='Canvas_startCapturing' class='command'>
+<h3>Canvas.startCapturing <span class='label label-success'>Command</span></h3>
+<p>Starts (or continues) consecutive canvas frames capturing. The capturing is stopped by the corresponding stopCapturing command.</p>
+<dl>
+<dt>frameId (optional)</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Identifier of the frame containing document whose canvases are to be captured. If omitted, main frame is assumed.</span></dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a> <span class='text'>Identifier of the trace log containing captured canvas calls.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.startCapturing
+Canvas.startCapturing(frameId, function callback(res) {
+	// res = {traceLogId}
+});
+</pre>
+</div>
+<div id='Canvas_stopCapturing' class='command'>
+<h3>Canvas.stopCapturing <span class='label label-success'>Command</span></h3>
 <dl>
 <dt>traceLogId</dt>
 <dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Command: Canvas.captureFrame
-Canvas.captureFrame(function callback(res) {
-	// res = {traceLogId}
-});
+// WebInspector Command: Canvas.stopCapturing
+Canvas.stopCapturing(traceLogId);
 </pre>
 </div>
 <div id='Canvas_getTraceLog' class='command'>
@@ -1611,6 +1790,10 @@ Canvas.captureFrame(function callback(res) {
 <dl>
 <dt>traceLogId</dt>
 <dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+<dt>startOffset (optional)</dt>
+<dd>Integer</dd>
+<dt>maxLength (optional)</dt>
+<dd>Integer</dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
@@ -1620,7 +1803,7 @@ Canvas.captureFrame(function callback(res) {
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Canvas.getTraceLog
-Canvas.getTraceLog(traceLogId, function callback(res) {
+Canvas.getTraceLog(traceLogId, startOffset, maxLength, function callback(res) {
 	// res = {traceLog}
 });
 </pre>
@@ -1635,15 +1818,87 @@ Canvas.getTraceLog(traceLogId, function callback(res) {
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
-<dt>screenshotDataUrl</dt>
-<dd>String</dd>
+<dt>resourceState</dt>
+<dd><a href='#Canvas.ResourceState'>Canvas.ResourceState</a></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Canvas.replayTraceLog
 Canvas.replayTraceLog(traceLogId, stepNo, function callback(res) {
-	// res = {screenshotDataUrl}
+	// res = {resourceState}
 });
+</pre>
+</div>
+<div id='Canvas_getResourceInfo' class='command'>
+<h3>Canvas.getResourceInfo <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>resourceId</dt>
+<dd><a href='#Canvas.ResourceId'>Canvas.ResourceId</a></dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>resourceInfo</dt>
+<dd><a href='#Canvas.ResourceInfo'>Canvas.ResourceInfo</a></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.getResourceInfo
+Canvas.getResourceInfo(resourceId, function callback(res) {
+	// res = {resourceInfo}
+});
+</pre>
+</div>
+<div id='Canvas_getResourceState' class='command'>
+<h3>Canvas.getResourceState <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>traceLogId</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a></dd>
+<dt>resourceId</dt>
+<dd><a href='#Canvas.ResourceId'>Canvas.ResourceId</a></dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>resourceState</dt>
+<dd><a href='#Canvas.ResourceState'>Canvas.ResourceState</a></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Canvas.getResourceState
+Canvas.getResourceState(traceLogId, resourceId, function callback(res) {
+	// res = {resourceState}
+});
+</pre>
+</div>
+<div id='Canvas_contextCreated' class='command'>
+<h3>Canvas.contextCreated <span class='label label-info'>Event</span></h3>
+<p>Fired when a canvas context has been created in the given frame. The context may not be instrumented (see hasUninstrumentedCanvases command).</p>
+<dl>
+<dt>frameId</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Identifier of the frame containing a canvas with a context.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Canvas.contextCreated
+function onContextCreated(res) {
+	// res = {frameId}
+}
+</pre>
+</div>
+<div id='Canvas_traceLogsRemoved' class='command'>
+<h3>Canvas.traceLogsRemoved <span class='label label-info'>Event</span></h3>
+<p>Fired when a set of trace logs were removed from the backend. If no parameters are given, all trace logs were removed.</p>
+<dl>
+<dt>frameId (optional)</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>If given, trace logs from the given frame were removed.</span></dd>
+<dt>traceLogId (optional)</dt>
+<dd><a href='#Canvas.TraceLogId'>Canvas.TraceLogId</a> <span class='text'>If given, trace log with the given ID was removed.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Canvas.traceLogsRemoved
+function onTraceLogsRemoved(res) {
+	// res = {frameId, traceLogId}
+}
 </pre>
 </div>
 </section>
@@ -1682,7 +1937,7 @@ Canvas.replayTraceLog(traceLogId, stepNo, function callback(res) {
 <dt>text</dt>
 <dd>String <span class='text'>Message text.</span></dd>
 <dt>type (optional)</dt>
-<dd>( log | dir | dirxml | trace | startGroup | startGroupCollapsed | endGroup | assert ) <span class='text'>Console message type.</span></dd>
+<dd>( log | dir | dirxml | trace | clear | startGroup | startGroupCollapsed | endGroup | assert | timing ) <span class='text'>Console message type.</span></dd>
 <dt>url (optional)</dt>
 <dd>String <span class='text'>URL of the message origin.</span></dd>
 <dt>line (optional)</dt>
@@ -1839,7 +2094,7 @@ function onMessagesCleared(res) {
 <span class='label label-success'>Command</span>
 <ul>
 <li><a href='#DOM.getDocument'>DOM.getDocument</a>: Returns the root DOM node to the caller.</li>
-<li><a href='#DOM.requestChildNodes'>DOM.requestChildNodes</a>: Requests that children of the node with given id are returned to the caller in form of setChildNodes events.</li>
+<li><a href='#DOM.requestChildNodes'>DOM.requestChildNodes</a>: Requests that children of the node with given id are returned to the caller in form of setChildNodes events where not only immediate children are retrieved, but all children down to the specified depth.</li>
 <li><a href='#DOM.querySelector'>DOM.querySelector</a>: Executes querySelector on a given node.</li>
 <li><a href='#DOM.querySelectorAll'>DOM.querySelectorAll</a>: Executes querySelectorAll on a given node.</li>
 <li><a href='#DOM.setNodeName'>DOM.setNodeName</a>: Sets node name for a node with given id.</li>
@@ -1857,7 +2112,7 @@ function onMessagesCleared(res) {
 <li><a href='#DOM.requestNode'>DOM.requestNode</a>: Requests that the node is sent to the caller given the JavaScript node object reference. All nodes that form the path from the node to the root are also sent to the client as a series of setChildNodes notifications.</li>
 <li><a href='#DOM.setInspectModeEnabled'>DOM.setInspectModeEnabled</a>: Enters the 'inspect' mode. In this mode, elements that user is hovering over are highlighted. Backend then generates 'inspect' command upon element selection.</li>
 <li><a href='#DOM.highlightRect'>DOM.highlightRect</a>: Highlights given rectangle. Coordinates are absolute with respect to the main frame viewport.</li>
-<li><a href='#DOM.highlightNode'>DOM.highlightNode</a>: Highlights DOM node with given id.</li>
+<li><a href='#DOM.highlightNode'>DOM.highlightNode</a>: Highlights DOM node with given id or with the given JavaScript object wrapper. Either nodeId or objectId must be specified.</li>
 <li><a href='#DOM.hideHighlight'>DOM.hideHighlight</a>: Hides DOM node highlight.</li>
 <li><a href='#DOM.highlightFrame'>DOM.highlightFrame</a>: Highlights owner element of the frame with given id.</li>
 <li><a href='#DOM.pushNodeByPathToFrontend'>DOM.pushNodeByPathToFrontend</a>: Requests that the node is sent to the caller given its path. // FIXME, use XPath</li>
@@ -1867,6 +2122,7 @@ function onMessagesCleared(res) {
 <li><a href='#DOM.undo'>DOM.undo</a>: Undoes the last performed action.</li>
 <li><a href='#DOM.redo'>DOM.redo</a>: Re-does the last undone action.</li>
 <li><a href='#DOM.markUndoableState'>DOM.markUndoableState</a>: Marks last undoable state.</li>
+<li><a href='#DOM.focus'>DOM.focus</a>: Focuses the given element.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -1925,10 +2181,14 @@ function onMessagesCleared(res) {
 <dd>String <span class='text'><code>Attr</code>'s name.</span></dd>
 <dt>value (optional)</dt>
 <dd>String <span class='text'><code>Attr</code>'s value.</span></dd>
+<dt>frameId (optional)</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Frame ID for frame owner elements.</span></dd>
 <dt>contentDocument (optional)</dt>
 <dd><a href='#DOM.Node'>DOM.Node</a> <span class='text'>Content document for frame owner elements.</span></dd>
 <dt>shadowRoots (optional)</dt>
 <dd>[<a href='#DOM.Node'>DOM.Node</a>] <span class='text'>Shadow root list for given element host.</span></dd>
+<dt>templateContent (optional)</dt>
+<dd><a href='#DOM.Node'>DOM.Node</a> <span class='text'>Content document fragment for template elements</span></dd>
 </dl>
 </div>
 <div id='DOM_EventListener' class='type'>
@@ -1999,15 +2259,17 @@ DOM.getDocument(function callback(res) {
 </div>
 <div id='DOM_requestChildNodes' class='command'>
 <h3>DOM.requestChildNodes <span class='label label-success'>Command</span></h3>
-<p>Requests that children of the node with given id are returned to the caller in form of <code>setChildNodes</code> events.</p>
+<p>Requests that children of the node with given id are returned to the caller in form of <code>setChildNodes</code> events where not only immediate children are retrieved, but all children down to the specified depth.</p>
 <dl>
 <dt>nodeId</dt>
 <dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>Id of the node to get children for.</span></dd>
+<dt>depth (optional)</dt>
+<dd>Integer <span class='text'>The maximum depth at which children should be retrieved, defaults to 1. Use -1 for the entire subtree or provide an integer larger than 0.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: DOM.requestChildNodes
-DOM.requestChildNodes(nodeId);
+DOM.requestChildNodes(nodeId, depth);
 </pre>
 </div>
 <div id='DOM_querySelector' class='command'>
@@ -2327,17 +2589,19 @@ DOM.highlightRect(x, y, width, height, color, outlineColor);
 </div>
 <div id='DOM_highlightNode' class='command'>
 <h3>DOM.highlightNode <span class='label label-success'>Command</span></h3>
-<p>Highlights DOM node with given id.</p>
+<p>Highlights DOM node with given id or with the given JavaScript object wrapper. Either nodeId or objectId must be specified.</p>
 <dl>
-<dt>nodeId</dt>
-<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>Identifier of the node to highlight.</span></dd>
 <dt>highlightConfig</dt>
 <dd><a href='#DOM.HighlightConfig'>DOM.HighlightConfig</a> <span class='text'>A descriptor for the highlight appearance.</span></dd>
+<dt>nodeId (optional)</dt>
+<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>Identifier of the node to highlight.</span></dd>
+<dt>objectId (optional)</dt>
+<dd><a href='#Runtime.RemoteObjectId'>Runtime.RemoteObjectId</a> <span class='text'>JavaScript object id of the node to be highlighted.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: DOM.highlightNode
-DOM.highlightNode(nodeId, highlightConfig);
+DOM.highlightNode(highlightConfig, nodeId, objectId);
 </pre>
 </div>
 <div id='DOM_hideHighlight' class='command'>
@@ -2477,6 +2741,19 @@ DOM.redo();
 <pre>
 // WebInspector Command: DOM.markUndoableState
 DOM.markUndoableState();
+</pre>
+</div>
+<div id='DOM_focus' class='command'>
+<h3>DOM.focus <span class='label label-success'>Command</span></h3>
+<p>Focuses the given element.</p>
+<dl>
+<dt>nodeId</dt>
+<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>Id of the node to focus.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: DOM.focus
+DOM.focus(nodeId);
 </pre>
 </div>
 <div id='DOM_documentUpdated' class='command'>
@@ -2817,7 +3094,10 @@ DOMDebugger.removeXHRBreakpoint(url);
 <span class='label label-info'>Event</span>
 <ul>
 <li><a href='#DOMStorage.addDOMStorage'>DOMStorage.addDOMStorage</a></li>
-<li><a href='#DOMStorage.domStorageUpdated'>DOMStorage.domStorageUpdated</a></li>
+<li><a href='#DOMStorage.domStorageItemsCleared'>DOMStorage.domStorageItemsCleared</a></li>
+<li><a href='#DOMStorage.domStorageItemRemoved'>DOMStorage.domStorageItemRemoved</a></li>
+<li><a href='#DOMStorage.domStorageItemAdded'>DOMStorage.domStorageItemAdded</a></li>
+<li><a href='#DOMStorage.domStorageItemUpdated'>DOMStorage.domStorageItemUpdated</a></li>
 </ul>
 <div id='DOMStorage_StorageId' class='type'>
 <h3>DOMStorage.StorageId <span class='label'>Type</span></h3>
@@ -2940,17 +3220,71 @@ function onAddDOMStorage(res) {
 }
 </pre>
 </div>
-<div id='DOMStorage_domStorageUpdated' class='command'>
-<h3>DOMStorage.domStorageUpdated <span class='label label-info'>Event</span></h3>
+<div id='DOMStorage_domStorageItemsCleared' class='command'>
+<h3>DOMStorage.domStorageItemsCleared <span class='label label-info'>Event</span></h3>
 <dl>
 <dt>storageId</dt>
 <dd><a href='#DOMStorage.StorageId'>DOMStorage.StorageId</a></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Event: DOMStorage.domStorageUpdated
-function onDomStorageUpdated(res) {
+// WebInspector Event: DOMStorage.domStorageItemsCleared
+function onDomStorageItemsCleared(res) {
 	// res = {storageId}
+}
+</pre>
+</div>
+<div id='DOMStorage_domStorageItemRemoved' class='command'>
+<h3>DOMStorage.domStorageItemRemoved <span class='label label-info'>Event</span></h3>
+<dl>
+<dt>storageId</dt>
+<dd><a href='#DOMStorage.StorageId'>DOMStorage.StorageId</a></dd>
+<dt>key</dt>
+<dd>String</dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: DOMStorage.domStorageItemRemoved
+function onDomStorageItemRemoved(res) {
+	// res = {storageId, key}
+}
+</pre>
+</div>
+<div id='DOMStorage_domStorageItemAdded' class='command'>
+<h3>DOMStorage.domStorageItemAdded <span class='label label-info'>Event</span></h3>
+<dl>
+<dt>storageId</dt>
+<dd><a href='#DOMStorage.StorageId'>DOMStorage.StorageId</a></dd>
+<dt>key</dt>
+<dd>String</dd>
+<dt>newValue</dt>
+<dd>String</dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: DOMStorage.domStorageItemAdded
+function onDomStorageItemAdded(res) {
+	// res = {storageId, key, newValue}
+}
+</pre>
+</div>
+<div id='DOMStorage_domStorageItemUpdated' class='command'>
+<h3>DOMStorage.domStorageItemUpdated <span class='label label-info'>Event</span></h3>
+<dl>
+<dt>storageId</dt>
+<dd><a href='#DOMStorage.StorageId'>DOMStorage.StorageId</a></dd>
+<dt>key</dt>
+<dd>String</dd>
+<dt>oldValue</dt>
+<dd>String</dd>
+<dt>newValue</dt>
+<dd>String</dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: DOMStorage.domStorageItemUpdated
+function onDomStorageItemUpdated(res) {
+	// res = {storageId, key, oldValue, newValue}
 }
 </pre>
 </div>
@@ -3123,6 +3457,7 @@ function onAddDatabase(res) {
 <li><a href='#Debugger.compileScript'>Debugger.compileScript</a>: Compiles expression.</li>
 <li><a href='#Debugger.runScript'>Debugger.runScript</a>: Runs script with given id in a given context.</li>
 <li><a href='#Debugger.setOverlayMessage'>Debugger.setOverlayMessage</a>: Sets overlay message.</li>
+<li><a href='#Debugger.setVariableValue'>Debugger.setVariableValue</a>: Changes value of variable in a callframe or a closure. Either callframe or function must be specified. Object-based scopes are not supported and must be mutated manually.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -3638,6 +3973,27 @@ Debugger.runScript(scriptId, contextId, objectGroup, doNotPauseOnExceptionsAndMu
 Debugger.setOverlayMessage(message);
 </pre>
 </div>
+<div id='Debugger_setVariableValue' class='command'>
+<h3>Debugger.setVariableValue <span class='label label-success'>Command</span></h3>
+<p>Changes value of variable in a callframe or a closure. Either callframe or function must be specified. Object-based scopes are not supported and must be mutated manually.</p>
+<dl>
+<dt>callFrameId (optional)</dt>
+<dd><a href='#Debugger.CallFrameId'>Debugger.CallFrameId</a> <span class='text'>Id of callframe that holds variable.</span></dd>
+<dt>functionObjectId (optional)</dt>
+<dd><a href='#Runtime.RemoteObjectId'>Runtime.RemoteObjectId</a> <span class='text'>Object id of closure (function) that holds variable.</span></dd>
+<dt>scopeNumber</dt>
+<dd>Integer <span class='text'>0-based number of scope as was listed in scope chain. Only 'local', 'closure' and 'catch' scope types are allowed. Other scopes could be manipulated manually.</span></dd>
+<dt>variableName</dt>
+<dd>String <span class='text'>Variable name.</span></dd>
+<dt>newValue</dt>
+<dd><a href='#Runtime.CallArgument'>Runtime.CallArgument</a> <span class='text'>New variable value.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Debugger.setVariableValue
+Debugger.setVariableValue(callFrameId, functionObjectId, scopeNumber, variableName, newValue);
+</pre>
+</div>
 <div id='Debugger_globalObjectCleared' class='command'>
 <h3>Debugger.globalObjectCleared <span class='label label-info'>Event</span></h3>
 <p>Called when global has been cleared and debugger client should reset its state. Happens upon navigation or reload.</p>
@@ -4045,9 +4401,9 @@ FileSystem.deleteEntry(url, function callback(res) {
 <p>Data entry.</p>
 <dl>
 <dt>key</dt>
-<dd><a href='#IndexedDB.Key'>IndexedDB.Key</a> <span class='text'>Key.</span></dd>
+<dd><a href='#Runtime.RemoteObject'>Runtime.RemoteObject</a> <span class='text'>Key.</span></dd>
 <dt>primaryKey</dt>
-<dd><a href='#IndexedDB.Key'>IndexedDB.Key</a> <span class='text'>Primary key.</span></dd>
+<dd><a href='#Runtime.RemoteObject'>Runtime.RemoteObject</a> <span class='text'>Primary key.</span></dd>
 <dt>value</dt>
 <dd><a href='#Runtime.RemoteObject'>Runtime.RemoteObject</a> <span class='text'>Value.</span></dd>
 </dl>
@@ -4159,6 +4515,75 @@ IndexedDB.requestData(frameId, databaseName, objectStoreName, indexName, skipCou
 </pre>
 </div>
 </section>
+<section id='Input' class='domain'>
+<h1>Input</h1>
+<p></p>
+<span class='label label-success'>Command</span>
+<ul>
+<li><a href='#Input.dispatchKeyEvent'>Input.dispatchKeyEvent</a>: Dispatches a key event to the page.</li>
+<li><a href='#Input.dispatchMouseEvent'>Input.dispatchMouseEvent</a>: Dispatches a mouse event to the page.</li>
+</ul>
+<div id='Input_dispatchKeyEvent' class='command'>
+<h3>Input.dispatchKeyEvent <span class='label label-success'>Command</span></h3>
+<p>Dispatches a key event to the page.</p>
+<dl>
+<dt>type</dt>
+<dd>( keyDown | keyUp | rawKeyDown | char ) <span class='text'>Type of the key event.</span></dd>
+<dt>modifiers (optional)</dt>
+<dd>Integer <span class='text'>Bit field representing pressed modifier keys. Alt=1, Ctrl=2, Meta/Command=4, Shift=8 (default: 0).</span></dd>
+<dt>timestamp (optional)</dt>
+<dd>Number <span class='text'>Time at which the event occurred. Measured in UTC time in seconds since January 1, 1970 (default: current time).</span></dd>
+<dt>text (optional)</dt>
+<dd>String <span class='text'>Text as generated by processing a virtual key code with a keyboard layout. Not needed for for <code>keyUp</code> and <code>rawKeyDown</code> events (default: "")</span></dd>
+<dt>unmodifiedText (optional)</dt>
+<dd>String <span class='text'>Text that would have been generated by the keyboard if no modifiers were pressed (except for shift). Useful for shortcut (accelerator) key handling (default: "").</span></dd>
+<dt>keyIdentifier (optional)</dt>
+<dd>String <span class='text'>Unique key identifier (e.g., 'U+0041') (default: "").</span></dd>
+<dt>windowsVirtualKeyCode (optional)</dt>
+<dd>Integer <span class='text'>Windows virtual key code (default: 0).</span></dd>
+<dt>nativeVirtualKeyCode (optional)</dt>
+<dd>Integer <span class='text'>Native virtual key code (default: 0).</span></dd>
+<dt>macCharCode (optional)</dt>
+<dd>Integer <span class='text'>Mac character code (default: 0).</span></dd>
+<dt>autoRepeat (optional)</dt>
+<dd>Boolean <span class='text'>Whether the event was generated from auto repeat (default: false).</span></dd>
+<dt>isKeypad (optional)</dt>
+<dd>Boolean <span class='text'>Whether the event was generated from the keypad (default: false).</span></dd>
+<dt>isSystemKey (optional)</dt>
+<dd>Boolean <span class='text'>Whether the event was a system key event (default: false).</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Input.dispatchKeyEvent
+Input.dispatchKeyEvent(type, modifiers, timestamp, text, unmodifiedText, keyIdentifier, windowsVirtualKeyCode, nativeVirtualKeyCode, macCharCode, autoRepeat, isKeypad, isSystemKey);
+</pre>
+</div>
+<div id='Input_dispatchMouseEvent' class='command'>
+<h3>Input.dispatchMouseEvent <span class='label label-success'>Command</span></h3>
+<p>Dispatches a mouse event to the page.</p>
+<dl>
+<dt>type</dt>
+<dd>( mousePressed | mouseReleased | mouseMoved ) <span class='text'>Type of the mouse event.</span></dd>
+<dt>x</dt>
+<dd>Integer <span class='text'>X coordinate of the event relative to the main frame's viewport.</span></dd>
+<dt>y</dt>
+<dd>Integer <span class='text'>Y coordinate of the event relative to the main frame's viewport. 0 refers to the top of the viewport and Y increases as it proceeds towards the bottom of the viewport.</span></dd>
+<dt>modifiers (optional)</dt>
+<dd>Integer <span class='text'>Bit field representing pressed modifier keys. Alt=1, Ctrl=2, Meta/Command=4, Shift=8 (default: 0).</span></dd>
+<dt>timestamp (optional)</dt>
+<dd>Number <span class='text'>Time at which the event occurred. Measured in UTC time in seconds since January 1, 1970 (default: current time).</span></dd>
+<dt>button (optional)</dt>
+<dd>( none | left | middle | right ) <span class='text'>Mouse button (default: "none").</span></dd>
+<dt>clickCount (optional)</dt>
+<dd>Integer <span class='text'>Number of times the mouse button was clicked (default: 0).</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Input.dispatchMouseEvent
+Input.dispatchMouseEvent(type, x, y, modifiers, timestamp, button, clickCount);
+</pre>
+</div>
+</section>
 <section id='Inspector' class='domain'>
 <h1>Inspector</h1>
 <p></p>
@@ -4239,6 +4664,132 @@ function onDetached(res) {
 </pre>
 </div>
 </section>
+<section id='LayerTree' class='domain'>
+<h1>LayerTree</h1>
+<p></p>
+<span class='label'>Type</span>
+<ul>
+<li><a href='#LayerTree.LayerId'>LayerTree.LayerId</a>: Unique RenderLayer identifier.</li>
+<li><a href='#LayerTree.IntRect'>LayerTree.IntRect</a>: A rectangle.</li>
+<li><a href='#LayerTree.Layer'>LayerTree.Layer</a>: Information about a compositing layer.</li>
+</ul>
+<span class='label label-success'>Command</span>
+<ul>
+<li><a href='#LayerTree.enable'>LayerTree.enable</a>: Enables compositing tree inspection.</li>
+<li><a href='#LayerTree.disable'>LayerTree.disable</a>: Disables compositing tree inspection.</li>
+<li><a href='#LayerTree.getLayerTree'>LayerTree.getLayerTree</a>: Returns the layer tree structure of the current page.</li>
+<li><a href='#LayerTree.nodeIdForLayerId'>LayerTree.nodeIdForLayerId</a>: Returns the node id for a given layer id.</li>
+</ul>
+<span class='label label-info'>Event</span>
+<ul>
+<li><a href='#LayerTree.layerTreeDidChange'>LayerTree.layerTreeDidChange</a></li>
+</ul>
+<div id='LayerTree_LayerId' class='type'>
+<h3>LayerTree.LayerId <span class='label'>Type</span></h3>
+<p>Unique RenderLayer identifier.</p>
+<dl>
+<dd>String</dd>
+</dl>
+</div>
+<div id='LayerTree_IntRect' class='type'>
+<h3>LayerTree.IntRect <span class='label'>Type</span></h3>
+<p>A rectangle.</p>
+<dl>
+<dt>x</dt>
+<dd>Integer <span class='text'>The x position.</span></dd>
+<dt>y</dt>
+<dd>Integer <span class='text'>The y position.</span></dd>
+<dt>width</dt>
+<dd>Integer <span class='text'>The width metric.</span></dd>
+<dt>height</dt>
+<dd>Integer <span class='text'>The height metric.</span></dd>
+</dl>
+</div>
+<div id='LayerTree_Layer' class='type'>
+<h3>LayerTree.Layer <span class='label'>Type</span></h3>
+<p>Information about a compositing layer.</p>
+<dl>
+<dt>layerId</dt>
+<dd><a href='#LayerTree.LayerId'>LayerTree.LayerId</a> <span class='text'>The unique id for this layer.</span></dd>
+<dt>bounds</dt>
+<dd><a href='#LayerTree.IntRect'>LayerTree.IntRect</a> <span class='text'>Bounds of the layer.</span></dd>
+<dt>isComposited</dt>
+<dd>Boolean <span class='text'>Indicates whether this layer is composited.</span></dd>
+<dt>paintCount (optional)</dt>
+<dd>Integer <span class='text'>Indicates how many time this layer has painted.</span></dd>
+<dt>memory (optional)</dt>
+<dd>Integer <span class='text'>Estimated memory used by this layer.</span></dd>
+<dt>compositedBounds (optional)</dt>
+<dd><a href='#LayerTree.IntRect'>LayerTree.IntRect</a> <span class='text'>The bounds of the composited layer.</span></dd>
+<dt>childLayers (optional)</dt>
+<dd>[<a href='#LayerTree.Layer'>LayerTree.Layer</a>] <span class='text'>Child layers.</span></dd>
+</dl>
+</div>
+<div id='LayerTree_enable' class='command'>
+<h3>LayerTree.enable <span class='label label-success'>Command</span></h3>
+<p>Enables compositing tree inspection.</p>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: LayerTree.enable
+LayerTree.enable();
+</pre>
+</div>
+<div id='LayerTree_disable' class='command'>
+<h3>LayerTree.disable <span class='label label-success'>Command</span></h3>
+<p>Disables compositing tree inspection.</p>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: LayerTree.disable
+LayerTree.disable();
+</pre>
+</div>
+<div id='LayerTree_getLayerTree' class='command'>
+<h3>LayerTree.getLayerTree <span class='label label-success'>Command</span></h3>
+<p>Returns the layer tree structure of the current page.</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>layerTree</dt>
+<dd><a href='#LayerTree.Layer'>LayerTree.Layer</a> <span class='text'>Layer tree structure of the current page.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: LayerTree.getLayerTree
+LayerTree.getLayerTree(function callback(res) {
+	// res = {layerTree}
+});
+</pre>
+</div>
+<div id='LayerTree_nodeIdForLayerId' class='command'>
+<h3>LayerTree.nodeIdForLayerId <span class='label label-success'>Command</span></h3>
+<p>Returns the node id for a given layer id.</p>
+<dl>
+<dt>layerId</dt>
+<dd><a href='#LayerTree.LayerId'>LayerTree.LayerId</a></dd>
+</dl>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>nodeId</dt>
+<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The node id for the given layer id.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: LayerTree.nodeIdForLayerId
+LayerTree.nodeIdForLayerId(layerId, function callback(res) {
+	// res = {nodeId}
+});
+</pre>
+</div>
+<div id='LayerTree_layerTreeDidChange' class='command'>
+<h3>LayerTree.layerTreeDidChange <span class='label label-info'>Event</span></h3>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: LayerTree.layerTreeDidChange
+function onLayerTreeDidChange(res) {
+	// res = {}
+}
+</pre>
+</div>
+</section>
 <section id='Memory' class='domain'>
 <h1>Memory</h1>
 <p></p>
@@ -4249,11 +4800,17 @@ function onDetached(res) {
 <li><a href='#Memory.StringStatistics'>Memory.StringStatistics</a>: Character data statistics for the page.</li>
 <li><a href='#Memory.DOMGroup'>Memory.DOMGroup</a></li>
 <li><a href='#Memory.MemoryBlock'>Memory.MemoryBlock</a></li>
+<li><a href='#Memory.HeapSnapshotChunk'>Memory.HeapSnapshotChunk</a></li>
 </ul>
 <span class='label label-success'>Command</span>
 <ul>
 <li><a href='#Memory.getDOMNodeCount'>Memory.getDOMNodeCount</a></li>
+<li><a href='#Memory.getDOMCounters'>Memory.getDOMCounters</a></li>
 <li><a href='#Memory.getProcessMemoryDistribution'>Memory.getProcessMemoryDistribution</a></li>
+</ul>
+<span class='label label-info'>Event</span>
+<ul>
+<li><a href='#Memory.addNativeSnapshotChunk'>Memory.addNativeSnapshotChunk</a></li>
 </ul>
 <div id='Memory_NodeCount' class='type'>
 <h3>Memory.NodeCount <span class='label'>Type</span></h3>
@@ -4313,6 +4870,19 @@ function onDetached(res) {
 <dd>[<a href='#Memory.MemoryBlock'>Memory.MemoryBlock</a>]</dd>
 </dl>
 </div>
+<div id='Memory_HeapSnapshotChunk' class='type'>
+<h3>Memory.HeapSnapshotChunk <span class='label'>Type</span></h3>
+<dl>
+<dt>strings</dt>
+<dd>[String] <span class='text'>An array of strings that were found since last update.</span></dd>
+<dt>nodes</dt>
+<dd>[Integer] <span class='text'>An array of nodes that were found since last update.</span></dd>
+<dt>edges</dt>
+<dd>[Integer] <span class='text'>An array of edges that were found since last update.</span></dd>
+<dt>baseToRealNodeId</dt>
+<dd>[Integer] <span class='text'>An array of integers for nodeId remapping. Even nodeId has to be mapped to the following odd nodeId.</span></dd>
+</dl>
+</div>
 <div id='Memory_getDOMNodeCount' class='command'>
 <h3>Memory.getDOMNodeCount <span class='label label-success'>Command</span></h3>
 <h4>Callback Parameters:</h4>
@@ -4330,8 +4900,31 @@ Memory.getDOMNodeCount(function callback(res) {
 });
 </pre>
 </div>
+<div id='Memory_getDOMCounters' class='command'>
+<h3>Memory.getDOMCounters <span class='label label-success'>Command</span></h3>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>documents</dt>
+<dd>Integer</dd>
+<dt>nodes</dt>
+<dd>Integer</dd>
+<dt>jsEventListeners</dt>
+<dd>Integer</dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Memory.getDOMCounters
+Memory.getDOMCounters(function callback(res) {
+	// res = {documents, nodes, jsEventListeners}
+});
+</pre>
+</div>
 <div id='Memory_getProcessMemoryDistribution' class='command'>
 <h3>Memory.getProcessMemoryDistribution <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>reportGraph (optional)</dt>
+<dd>Boolean <span class='text'>Whether native memory graph should be reported in addition to aggregated statistics.</span></dd>
+</dl>
 <h4>Callback Parameters:</h4>
 <dl>
 <dt>distribution</dt>
@@ -4340,9 +4933,23 @@ Memory.getDOMNodeCount(function callback(res) {
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Memory.getProcessMemoryDistribution
-Memory.getProcessMemoryDistribution(function callback(res) {
+Memory.getProcessMemoryDistribution(reportGraph, function callback(res) {
 	// res = {distribution}
 });
+</pre>
+</div>
+<div id='Memory_addNativeSnapshotChunk' class='command'>
+<h3>Memory.addNativeSnapshotChunk <span class='label label-info'>Event</span></h3>
+<dl>
+<dt>chunk</dt>
+<dd><a href='#Memory.HeapSnapshotChunk'>Memory.HeapSnapshotChunk</a> <span class='text'>A chunk of the serialized the snapshot.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Memory.addNativeSnapshotChunk
+function onAddNativeSnapshotChunk(res) {
+	// res = {chunk}
+}
 </pre>
 </div>
 </section>
@@ -4477,7 +5084,7 @@ Memory.getProcessMemoryDistribution(function callback(res) {
 <p>HTTP response data.</p>
 <dl>
 <dt>url</dt>
-<dd>String <span class='text'>Response URL.</span></dd>
+<dd>String <span class='text'>Response URL. This URL can be different from CachedResource.url in case of redirect.</span></dd>
 <dt>status</dt>
 <dd>Number <span class='text'>HTTP response status code.</span></dd>
 <dt>statusText</dt>
@@ -4506,8 +5113,6 @@ Memory.getProcessMemoryDistribution(function callback(res) {
 <h3>Network.WebSocketRequest <span class='label'>Type</span></h3>
 <p>WebSocket request data.</p>
 <dl>
-<dt>requestKey3</dt>
-<dd>String <span class='text'>HTTP response status text.</span></dd>
 <dt>headers</dt>
 <dd><a href='#Network.Headers'>Network.Headers</a> <span class='text'>HTTP response headers.</span></dd>
 </dl>
@@ -4522,8 +5127,6 @@ Memory.getProcessMemoryDistribution(function callback(res) {
 <dd>String <span class='text'>HTTP response status text.</span></dd>
 <dt>headers</dt>
 <dd><a href='#Network.Headers'>Network.Headers</a> <span class='text'>HTTP response headers.</span></dd>
-<dt>challengeResponse</dt>
-<dd>String <span class='text'>Challenge response.</span></dd>
 </dl>
 </div>
 <div id='Network_WebSocketFrame' class='type'>
@@ -4543,7 +5146,7 @@ Memory.getProcessMemoryDistribution(function callback(res) {
 <p>Information about the cached resource.</p>
 <dl>
 <dt>url</dt>
-<dd>String <span class='text'>Resource URL.</span></dd>
+<dd>String <span class='text'>Resource URL. This is the url of the original network request.</span></dd>
 <dt>type</dt>
 <dd><a href='#Page.ResourceType'>Page.ResourceType</a> <span class='text'>Type of this resource.</span></dd>
 <dt>response (optional)</dt>
@@ -5015,7 +5618,7 @@ function onWebSocketFrameSent(res) {
 <li><a href='#Page.reload'>Page.reload</a>: Reloads given page optionally ignoring the cache.</li>
 <li><a href='#Page.navigate'>Page.navigate</a>: Navigates current page to the given URL.</li>
 <li><a href='#Page.getCookies'>Page.getCookies</a>: Returns all browser cookies. Depending on the backend support, will either return detailed cookie information in the cookie field or string cookie representation using cookieString.</li>
-<li><a href='#Page.deleteCookie'>Page.deleteCookie</a>: Deletes browser cookie with given name for the given domain.</li>
+<li><a href='#Page.deleteCookie'>Page.deleteCookie</a>: Deletes browser cookie with given name, domain and path.</li>
 <li><a href='#Page.getResourceTree'>Page.getResourceTree</a>: Returns present frame / resource tree structure.</li>
 <li><a href='#Page.getResourceContent'>Page.getResourceContent</a>: Returns content of the given resource.</li>
 <li><a href='#Page.searchInResource'>Page.searchInResource</a>: Searches for given string in resource content.</li>
@@ -5024,6 +5627,12 @@ function onWebSocketFrameSent(res) {
 <li><a href='#Page.canOverrideDeviceMetrics'>Page.canOverrideDeviceMetrics</a>: Checks whether setDeviceMetricsOverride can be invoked.</li>
 <li><a href='#Page.setDeviceMetricsOverride'>Page.setDeviceMetricsOverride</a>: Overrides the values of device screen dimensions (window.screen.width, window.screen.height, window.innerWidth, window.innerHeight, and "device-width"/"device-height"-related CSS media query results) and the font scale factor.</li>
 <li><a href='#Page.setShowPaintRects'>Page.setShowPaintRects</a>: Requests that backend shows paint rectangles</li>
+<li><a href='#Page.canShowDebugBorders'>Page.canShowDebugBorders</a>: Tells if backend supports debug borders on layers</li>
+<li><a href='#Page.setShowDebugBorders'>Page.setShowDebugBorders</a>: Requests that backend shows debug borders on layers</li>
+<li><a href='#Page.canShowFPSCounter'>Page.canShowFPSCounter</a>: Tells if backend supports a FPS counter display</li>
+<li><a href='#Page.setShowFPSCounter'>Page.setShowFPSCounter</a>: Requests that backend shows the FPS counter</li>
+<li><a href='#Page.canContinuouslyPaint'>Page.canContinuouslyPaint</a>: Tells if backend supports continuous painting</li>
+<li><a href='#Page.setContinuousPaintingEnabled'>Page.setContinuousPaintingEnabled</a>: Requests that backend enables continuous painting</li>
 <li><a href='#Page.getScriptExecutionStatus'>Page.getScriptExecutionStatus</a>: Determines if scripts can be executed in the page.</li>
 <li><a href='#Page.setScriptExecutionDisabled'>Page.setScriptExecutionDisabled</a>: Switches script execution in the page.</li>
 <li><a href='#Page.setGeolocationOverride'>Page.setGeolocationOverride</a>: Overrides the Geolocation Position or Error.</li>
@@ -5033,8 +5642,11 @@ function onWebSocketFrameSent(res) {
 <li><a href='#Page.clearDeviceOrientationOverride'>Page.clearDeviceOrientationOverride</a>: Clears the overridden Device Orientation.</li>
 <li><a href='#Page.canOverrideDeviceOrientation'>Page.canOverrideDeviceOrientation</a>: Check the backend if Web Inspector can override the device orientation.</li>
 <li><a href='#Page.setTouchEmulationEnabled'>Page.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
+<li><a href='#Page.setEmulatedMedia'>Page.setEmulatedMedia</a>: Emulates the given media for CSS media queries.</li>
 <li><a href='#Page.getCompositingBordersVisible'>Page.getCompositingBordersVisible</a>: Indicates the visibility of compositing borders.</li>
 <li><a href='#Page.setCompositingBordersVisible'>Page.setCompositingBordersVisible</a>: Controls the visibility of compositing borders.</li>
+<li><a href='#Page.captureScreenshot'>Page.captureScreenshot</a>: Capture page screenshot.</li>
+<li><a href='#Page.handleJavaScriptDialog'>Page.handleJavaScriptDialog</a>: Accepts or dismisses a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload).</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -5042,6 +5654,12 @@ function onWebSocketFrameSent(res) {
 <li><a href='#Page.loadEventFired'>Page.loadEventFired</a></li>
 <li><a href='#Page.frameNavigated'>Page.frameNavigated</a>: Fired once navigation of the frame has completed. Frame is now associated with the new loader.</li>
 <li><a href='#Page.frameDetached'>Page.frameDetached</a>: Fired when frame has been detached from its parent.</li>
+<li><a href='#Page.frameStartedLoading'>Page.frameStartedLoading</a>: Fired when frame has started loading.</li>
+<li><a href='#Page.frameStoppedLoading'>Page.frameStoppedLoading</a>: Fired when frame has stopped loading.</li>
+<li><a href='#Page.frameScheduledNavigation'>Page.frameScheduledNavigation</a>: Fired when frame schedules a potential navigation.</li>
+<li><a href='#Page.frameClearedScheduledNavigation'>Page.frameClearedScheduledNavigation</a>: Fired when frame no longer has a scheduled navigation.</li>
+<li><a href='#Page.javascriptDialogOpening'>Page.javascriptDialogOpening</a>: Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) is about to open.</li>
+<li><a href='#Page.javascriptDialogClosed'>Page.javascriptDialogClosed</a>: Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) has been closed.</li>
 </ul>
 <div id='Page_ResourceType' class='type'>
 <h3>Page.ResourceType <span class='label'>Type</span></h3>
@@ -5192,11 +5810,13 @@ Page.removeScriptToEvaluateOnLoad(identifier);
 <dd>Boolean <span class='text'>If true, browser cache is ignored (as if the user pressed Shift+refresh).</span></dd>
 <dt>scriptToEvaluateOnLoad (optional)</dt>
 <dd>String <span class='text'>If set, the script will be injected into all frames of the inspected page after reload.</span></dd>
+<dt>scriptPreprocessor (optional)</dt>
+<dd>String <span class='text'>Script body that should evaluate to function that will preprocess all the scripts before their compilation.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Page.reload
-Page.reload(ignoreCache, scriptToEvaluateOnLoad);
+Page.reload(ignoreCache, scriptToEvaluateOnLoad, scriptPreprocessor);
 </pre>
 </div>
 <div id='Page_navigate' class='command'>
@@ -5232,17 +5852,17 @@ Page.getCookies(function callback(res) {
 </div>
 <div id='Page_deleteCookie' class='command'>
 <h3>Page.deleteCookie <span class='label label-success'>Command</span></h3>
-<p>Deletes browser cookie with given name for the given domain.</p>
+<p>Deletes browser cookie with given name, domain and path.</p>
 <dl>
 <dt>cookieName</dt>
 <dd>String <span class='text'>Name of the cookie to remove.</span></dd>
-<dt>domain</dt>
-<dd>String <span class='text'>Domain of the cookie to remove.</span></dd>
+<dt>url</dt>
+<dd>String <span class='text'>URL to match cooke domain and path.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Page.deleteCookie
-Page.deleteCookie(cookieName, domain);
+Page.deleteCookie(cookieName, url);
 </pre>
 </div>
 <div id='Page_getResourceTree' class='command'>
@@ -5400,6 +6020,93 @@ Page.setDeviceMetricsOverride(width, height, fontScaleFactor, fitWindow);
 Page.setShowPaintRects(result);
 </pre>
 </div>
+<div id='Page_canShowDebugBorders' class='command'>
+<h3>Page.canShowDebugBorders <span class='label label-success'>Command</span></h3>
+<p>Tells if backend supports debug borders on layers</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>show</dt>
+<dd>Boolean <span class='text'>True if the debug borders can be shown</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.canShowDebugBorders
+Page.canShowDebugBorders(function callback(res) {
+	// res = {show}
+});
+</pre>
+</div>
+<div id='Page_setShowDebugBorders' class='command'>
+<h3>Page.setShowDebugBorders <span class='label label-success'>Command</span></h3>
+<p>Requests that backend shows debug borders on layers</p>
+<dl>
+<dt>show</dt>
+<dd>Boolean <span class='text'>True for showing debug borders</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.setShowDebugBorders
+Page.setShowDebugBorders(show);
+</pre>
+</div>
+<div id='Page_canShowFPSCounter' class='command'>
+<h3>Page.canShowFPSCounter <span class='label label-success'>Command</span></h3>
+<p>Tells if backend supports a FPS counter display</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>show</dt>
+<dd>Boolean <span class='text'>True if the FPS count can be shown</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.canShowFPSCounter
+Page.canShowFPSCounter(function callback(res) {
+	// res = {show}
+});
+</pre>
+</div>
+<div id='Page_setShowFPSCounter' class='command'>
+<h3>Page.setShowFPSCounter <span class='label label-success'>Command</span></h3>
+<p>Requests that backend shows the FPS counter</p>
+<dl>
+<dt>show</dt>
+<dd>Boolean <span class='text'>True for showing the FPS counter</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.setShowFPSCounter
+Page.setShowFPSCounter(show);
+</pre>
+</div>
+<div id='Page_canContinuouslyPaint' class='command'>
+<h3>Page.canContinuouslyPaint <span class='label label-success'>Command</span></h3>
+<p>Tells if backend supports continuous painting</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>value</dt>
+<dd>Boolean <span class='text'>True if continuous painting is available</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.canContinuouslyPaint
+Page.canContinuouslyPaint(function callback(res) {
+	// res = {value}
+});
+</pre>
+</div>
+<div id='Page_setContinuousPaintingEnabled' class='command'>
+<h3>Page.setContinuousPaintingEnabled <span class='label label-success'>Command</span></h3>
+<p>Requests that backend enables continuous painting</p>
+<dl>
+<dt>enabled</dt>
+<dd>Boolean <span class='text'>True for enabling cointinuous painting</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.setContinuousPaintingEnabled
+Page.setContinuousPaintingEnabled(enabled);
+</pre>
+</div>
 <div id='Page_getScriptExecutionStatus' class='command'>
 <h3>Page.getScriptExecutionStatus <span class='label label-success'>Command</span></h3>
 <p>Determines if scripts can be executed in the page.</p>
@@ -5526,6 +6233,19 @@ Page.canOverrideDeviceOrientation(function callback(res) {
 Page.setTouchEmulationEnabled(enabled);
 </pre>
 </div>
+<div id='Page_setEmulatedMedia' class='command'>
+<h3>Page.setEmulatedMedia <span class='label label-success'>Command</span></h3>
+<p>Emulates the given media for CSS media queries.</p>
+<dl>
+<dt>media</dt>
+<dd>String <span class='text'>Media type to emulate. Empty string disables the override.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.setEmulatedMedia
+Page.setEmulatedMedia(media);
+</pre>
+</div>
 <div id='Page_getCompositingBordersVisible' class='command'>
 <h3>Page.getCompositingBordersVisible <span class='label label-success'>Command</span></h3>
 <p>Indicates the visibility of compositing borders.</p>
@@ -5553,6 +6273,35 @@ Page.getCompositingBordersVisible(function callback(res) {
 <pre>
 // WebInspector Command: Page.setCompositingBordersVisible
 Page.setCompositingBordersVisible(visible);
+</pre>
+</div>
+<div id='Page_captureScreenshot' class='command'>
+<h3>Page.captureScreenshot <span class='label label-success'>Command</span></h3>
+<p>Capture page screenshot.</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>data</dt>
+<dd>String <span class='text'>Base64-encoded image data (PNG).</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.captureScreenshot
+Page.captureScreenshot(function callback(res) {
+	// res = {data}
+});
+</pre>
+</div>
+<div id='Page_handleJavaScriptDialog' class='command'>
+<h3>Page.handleJavaScriptDialog <span class='label label-success'>Command</span></h3>
+<p>Accepts or dismisses a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload).</p>
+<dl>
+<dt>accept</dt>
+<dd>Boolean <span class='text'>Whether to accept or dismiss the dialog.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.handleJavaScriptDialog
+Page.handleJavaScriptDialog(accept);
 </pre>
 </div>
 <div id='Page_domContentEventFired' class='command'>
@@ -5613,6 +6362,94 @@ function onFrameDetached(res) {
 }
 </pre>
 </div>
+<div id='Page_frameStartedLoading' class='command'>
+<h3>Page.frameStartedLoading <span class='label label-info'>Event</span></h3>
+<p>Fired when frame has started loading.</p>
+<dl>
+<dt>frameId</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Id of the frame that has started loading.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Page.frameStartedLoading
+function onFrameStartedLoading(res) {
+	// res = {frameId}
+}
+</pre>
+</div>
+<div id='Page_frameStoppedLoading' class='command'>
+<h3>Page.frameStoppedLoading <span class='label label-info'>Event</span></h3>
+<p>Fired when frame has stopped loading.</p>
+<dl>
+<dt>frameId</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Id of the frame that has stopped loading.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Page.frameStoppedLoading
+function onFrameStoppedLoading(res) {
+	// res = {frameId}
+}
+</pre>
+</div>
+<div id='Page_frameScheduledNavigation' class='command'>
+<h3>Page.frameScheduledNavigation <span class='label label-info'>Event</span></h3>
+<p>Fired when frame schedules a potential navigation.</p>
+<dl>
+<dt>frameId</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Id of the frame that has scheduled a navigation.</span></dd>
+<dt>delay</dt>
+<dd>Number <span class='text'>Delay (in seconds) until the navigation is scheduled to begin. The navigation is not guaranteed to start.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Page.frameScheduledNavigation
+function onFrameScheduledNavigation(res) {
+	// res = {frameId, delay}
+}
+</pre>
+</div>
+<div id='Page_frameClearedScheduledNavigation' class='command'>
+<h3>Page.frameClearedScheduledNavigation <span class='label label-info'>Event</span></h3>
+<p>Fired when frame no longer has a scheduled navigation.</p>
+<dl>
+<dt>frameId</dt>
+<dd><a href='#Network.FrameId'>Network.FrameId</a> <span class='text'>Id of the frame that has cleared its scheduled navigation.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Page.frameClearedScheduledNavigation
+function onFrameClearedScheduledNavigation(res) {
+	// res = {frameId}
+}
+</pre>
+</div>
+<div id='Page_javascriptDialogOpening' class='command'>
+<h3>Page.javascriptDialogOpening <span class='label label-info'>Event</span></h3>
+<p>Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) is about to open.</p>
+<dl>
+<dt>message</dt>
+<dd>String <span class='text'>Message that will be displayed by the dialog.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Page.javascriptDialogOpening
+function onJavascriptDialogOpening(res) {
+	// res = {message}
+}
+</pre>
+</div>
+<div id='Page_javascriptDialogClosed' class='command'>
+<h3>Page.javascriptDialogClosed <span class='label label-info'>Event</span></h3>
+<p>Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) has been closed.</p>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: Page.javascriptDialogClosed
+function onJavascriptDialogClosed(res) {
+	// res = {}
+}
+</pre>
+</div>
 </section>
 <section id='Profiler' class='domain'>
 <h1>Profiler</h1>
@@ -5620,7 +6457,8 @@ function onFrameDetached(res) {
 <span class='label'>Type</span>
 <ul>
 <li><a href='#Profiler.ProfileHeader'>Profiler.ProfileHeader</a>: Profile header.</li>
-<li><a href='#Profiler.Profile'>Profiler.Profile</a>: Profile.</li>
+<li><a href='#Profiler.CPUProfileNode'>Profiler.CPUProfileNode</a>: CPU Profile node. Holds callsite information, execution statistics and child nodes.</li>
+<li><a href='#Profiler.CPUProfile'>Profiler.CPUProfile</a>: Profile.</li>
 <li><a href='#Profiler.HeapSnapshotObjectId'>Profiler.HeapSnapshotObjectId</a>: Heap snashot object id.</li>
 </ul>
 <span class='label label-success'>Command</span>
@@ -5633,7 +6471,8 @@ function onFrameDetached(res) {
 <li><a href='#Profiler.start'>Profiler.start</a></li>
 <li><a href='#Profiler.stop'>Profiler.stop</a></li>
 <li><a href='#Profiler.getProfileHeaders'>Profiler.getProfileHeaders</a></li>
-<li><a href='#Profiler.getProfile'>Profiler.getProfile</a></li>
+<li><a href='#Profiler.getCPUProfile'>Profiler.getCPUProfile</a></li>
+<li><a href='#Profiler.getHeapSnapshot'>Profiler.getHeapSnapshot</a></li>
 <li><a href='#Profiler.removeProfile'>Profiler.removeProfile</a></li>
 <li><a href='#Profiler.clearProfiles'>Profiler.clearProfiles</a></li>
 <li><a href='#Profiler.takeHeapSnapshot'>Profiler.takeHeapSnapshot</a></li>
@@ -5664,14 +6503,40 @@ function onFrameDetached(res) {
 <dd>Integer <span class='text'>Last seen JS object Id.</span></dd>
 </dl>
 </div>
-<div id='Profiler_Profile' class='type'>
-<h3>Profiler.Profile <span class='label'>Type</span></h3>
+<div id='Profiler_CPUProfileNode' class='type'>
+<h3>Profiler.CPUProfileNode <span class='label'>Type</span></h3>
+<p>CPU Profile node. Holds callsite information, execution statistics and child nodes.</p>
+<dl>
+<dt>functionName</dt>
+<dd>String <span class='text'>Function name.</span></dd>
+<dt>url</dt>
+<dd>String <span class='text'>URL.</span></dd>
+<dt>lineNumber</dt>
+<dd>Integer <span class='text'>Line number.</span></dd>
+<dt>totalTime</dt>
+<dd>Number <span class='text'>Total execution time.</span></dd>
+<dt>selfTime</dt>
+<dd>Number <span class='text'>Self time.</span></dd>
+<dt>numberOfCalls</dt>
+<dd>Integer <span class='text'>Number of calls.</span></dd>
+<dt>visible</dt>
+<dd>Boolean <span class='text'>Visibility.</span></dd>
+<dt>callUID</dt>
+<dd>Number <span class='text'>Call UID.</span></dd>
+<dt>children</dt>
+<dd>[<a href='#Profiler.CPUProfileNode'>Profiler.CPUProfileNode</a>] <span class='text'>Child nodes.</span></dd>
+</dl>
+</div>
+<div id='Profiler_CPUProfile' class='type'>
+<h3>Profiler.CPUProfile <span class='label'>Type</span></h3>
 <p>Profile.</p>
 <dl>
 <dt>head (optional)</dt>
-<dd>Object</dd>
+<dd><a href='#Profiler.CPUProfileNode'>Profiler.CPUProfileNode</a></dd>
 <dt>bottomUpHead (optional)</dt>
-<dd>Object</dd>
+<dd><a href='#Profiler.CPUProfileNode'>Profiler.CPUProfileNode</a></dd>
+<dt>idleTime (optional)</dt>
+<dd>Number</dd>
 </dl>
 </div>
 <div id='Profiler_HeapSnapshotObjectId' class='type'>
@@ -5773,25 +6638,35 @@ Profiler.getProfileHeaders(function callback(res) {
 });
 </pre>
 </div>
-<div id='Profiler_getProfile' class='command'>
-<h3>Profiler.getProfile <span class='label label-success'>Command</span></h3>
+<div id='Profiler_getCPUProfile' class='command'>
+<h3>Profiler.getCPUProfile <span class='label label-success'>Command</span></h3>
 <dl>
-<dt>type</dt>
-<dd>String</dd>
 <dt>uid</dt>
 <dd>Integer</dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
 <dt>profile</dt>
-<dd><a href='#Profiler.Profile'>Profiler.Profile</a></dd>
+<dd><a href='#Profiler.CPUProfile'>Profiler.CPUProfile</a></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Command: Profiler.getProfile
-Profiler.getProfile(type, uid, function callback(res) {
+// WebInspector Command: Profiler.getCPUProfile
+Profiler.getCPUProfile(uid, function callback(res) {
 	// res = {profile}
 });
+</pre>
+</div>
+<div id='Profiler_getHeapSnapshot' class='command'>
+<h3>Profiler.getHeapSnapshot <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>uid</dt>
+<dd>Integer</dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Profiler.getHeapSnapshot
+Profiler.getHeapSnapshot(uid);
 </pre>
 </div>
 <div id='Profiler_removeProfile' class='command'>
@@ -5818,10 +6693,14 @@ Profiler.clearProfiles();
 </div>
 <div id='Profiler_takeHeapSnapshot' class='command'>
 <h3>Profiler.takeHeapSnapshot <span class='label label-success'>Command</span></h3>
+<dl>
+<dt>reportProgress (optional)</dt>
+<dd>Boolean <span class='text'>If true 'reportHeapSnapshotProgress' events will be generated while snapshot is being taken.</span></dd>
+</dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: Profiler.takeHeapSnapshot
-Profiler.takeHeapSnapshot();
+Profiler.takeHeapSnapshot(reportProgress);
 </pre>
 </div>
 <div id='Profiler_collectGarbage' class='command'>
@@ -6523,7 +7402,7 @@ function onDisconnectedFromWorker(res) {
 </section>
 </div>
 <footer>
-<p>Generated from Inspector.json v1.0 on 2012-11-05 17:50:14+0100</p>
+<p>Generated from Inspector.json v1.0 on 2013-02-08 10:10:22+0100</p>
 <p>Implementation by <a href='mailto:jdiehl@adobe.com'>Jonathan Diehl</a></p>
 </footer>
 </body>

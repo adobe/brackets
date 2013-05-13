@@ -26,7 +26,7 @@ fi;
 root_dir=${full_path%/*/*}
 
 # Remove existing "dev" symlink, if present
-if [ -d "${1}/Contents/dev" ]; then
+if [[ -d "${1}/Contents/dev" || -n $(find -L "${1}/Contents/dev" -type l) ]]; then
   rm "${1}/Contents/dev"
 fi
 

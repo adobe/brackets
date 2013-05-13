@@ -74,11 +74,12 @@ define(function ConsoleAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        Inspector.Console.enable();
-        $(Inspector.Console)
-            .on("messageAdded.ConsoleAgent", _onMessageAdded)
-            .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
-            .on("messagesCleared.ConsoleAgent", _onMessagesCleared);
+        return Inspector.Console.enable().done(function () {
+            $(Inspector.Console)
+                .on("messageAdded.ConsoleAgent", _onMessageAdded)
+                .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
+                .on("messagesCleared.ConsoleAgent", _onMessagesCleared);
+        });
     }
 
     /** Clean up */

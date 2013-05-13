@@ -31,9 +31,10 @@ localization (src/nls/fr/urls.js) for an example.
 
 ## Adobe contributed translations
 
-As of sprint 17, Adobe provides translations for the following languages:
+As of sprint 21, Adobe provides translations for the following languages:
 
 * French (fr)
+* Japanese (ja)
 
 For all Adobe translations, Adobe asks that you do not submit pull requests
 that directly modify these files. Instead, there are 2 ways to contribute
@@ -50,16 +51,18 @@ moderators.
 
 ## Community contributed translations
 
-As of sprint 17, the following languages have been contributed by the Brackets
+As of sprint 21, the following languages have been contributed by the Brackets
 community:
 
 * German (de)
 * Spanish (es)
 * Italian (it)
-* Japanese (ja)
 * Norwegian Bokmål (nb)
 * Brazilian Portuguese (pt-br)
+* Portuguese (pt-pt)
 * Turkish (tr)
+* Russian (ru)
+* Swedish (sv)
 
 These translations _can be directly modified_ through our normal pull request
 process.

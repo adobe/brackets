@@ -31,3 +31,11 @@ pre {
         font-size: 11px;
     }
 }
+
+.link-to-source {
+    /* Behavioral style - indicates that clicking opens a file in the parent Brackets window */
+}
+/* De-emphasize source links to Jasmine framework code (vs. links to test spec & Brackets core code) */
+.testframework-link {
+    opacity: 0.45;
+}

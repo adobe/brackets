@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     
     
     describe("DocumentCommandHandlers", function () {
+        this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow;
@@ -76,7 +77,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
+                    expect(testWindow.document.title).toBe(brackets.config.app_title);
                 });
             });
 
@@ -92,7 +93,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
+                    expect(testWindow.document.title).toBe(brackets.config.app_title);
                 });
             });
         });
@@ -207,11 +208,11 @@ define(function (require, exports, module) {
                 
                 // clean up
                 runs(function () {
-                    promise = SpecRunnerUtils.deleteFile(crlfPath);
+                    promise = SpecRunnerUtils.deletePath(crlfPath);
                     waitsForDone(promise, "Remove CRLF test file");
                 });
                 runs(function () {
-                    promise = SpecRunnerUtils.deleteFile(lfPath);
+                    promise = SpecRunnerUtils.deletePath(lfPath);
                     waitsForDone(promise, "Remove LF test file");
                 });
             });
@@ -221,6 +222,8 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 var promise;
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
@@ -230,7 +233,12 @@ define(function (require, exports, module) {
 
             it("should report clean immediately after opening a file", function () {
                 runs(function () {
+                    // verify Document dirty status
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
+                    
+                    // verify no dot in titlebar
+                    var expectedTitle = (brackets.platform === "mac" ? ("test.js — " + brackets.config.app_title) : ("test.js - " + brackets.config.app_title));
+                    expect(testWindow.document.title).toBe(expectedTitle);
                 });
             });
             
@@ -243,6 +251,10 @@ define(function (require, exports, module) {
                     
                     // verify Document dirty status
                     expect(doc.isDirty).toBe(true);
+                    
+                    // verify dot in titlebar
+                    var expectedTitle = (brackets.platform === "mac" ? ("• test.js — " + brackets.config.app_title) : ("• test.js - " + brackets.config.app_title));
+                    expect(testWindow.document.title).toBe(expectedTitle);
                 });
             });
 
@@ -307,13 +319,7 @@ define(function (require, exports, module) {
                     editor.redo();
                     expect(doc.isDirty).toBe(false);
                     expect(doc.getText()).toBe(TEST_JS_NEW_CONTENT);
-                });
-                
-                // Wait > 400ms, else setText() below gets merged with earlier setText() despite intervening undo/redo
-                // TODO (#1994): remove this once we're using CodeMirror v3
-                waits(500);
-                
-                runs(function () {
+                    
                     // Add another change
                     doc.setText(TEST_JS_SECOND_NEW_CONTENT);
                     expect(doc.getText()).toBe(TEST_JS_SECOND_NEW_CONTENT);

@@ -79,6 +79,24 @@
     height: @height;
 }
 
+/* Like .sprite-icon, but for retina. Note that the x-offset/y-offset/width/height are non-retina
+ * sizes. The background-width/background-height are the *total* non-retina size of the
+ * spritesheet. .sprite-swap() works as usual (again with non-retina sizes). So, for example, if you have
+ * a non-retina "spritesheet.png" at 48x24 (with two icons that are 24x24 each) and a retina version
+ * "spritesheet@2x.png" at 96x48, you would call:
+ *     .sprite-icon-retina(0, 0, 24px, 24px, "spritesheet.png", 48px, 24px, "spritesheet@2x.png");
+ *     &:hover { .sprite-swap(-24px, 0); }
+ */
+.sprite-icon-retina(@x-offset, @y-offset, @width, @height, @sprite-sheet, @background-width, @background-height, @sprite-sheet-2x) {
+    content: "";
+    .sprite-icon(@x-offset, @y-offset, @width, @height, @sprite-sheet);
+    background-size: @background-width @background-height;
+    @media only screen and (-webkit-min-device-pixel-ratio: 2),
+        only screen and (min-device-pixel-ratio: 2) {
+            background-image: url("@{sprite-sheet-2x}");
+        }
+}
+
 /* Changes an element that's already showing one area of a spritesheet to show a different area of the same size.
    Should be used with an element whose base styling includes .sprite() or .sprite-icon() */
 .sprite-swap(@x-offset, @y-offset) {
@@ -100,3 +118,14 @@
     -o-transform-origin: @horizontal @vertical;
     transform-origin: @horizontal @vertical;
 }
+
+/* Change the settings for user-select and its counterparts, defaulting to none. */
+.user-select(@type: none) {
+    -webkit-user-select: @type;
+    -khtml-user-select: @type;
+    -moz-user-select: @type;
+    -ms-user-select: @type;
+    -o-user-select: @type;
+    user-select: @type;
+}
+

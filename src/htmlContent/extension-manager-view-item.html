@@ -1,0 +1,42 @@
+<tr>
+    <td>
+        <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
+        <span class="muted ext-version">{{metadata.version}}</span><br/>
+        <span class="muted ext-author">
+            {{Strings.EXTENSION_AUTHOR}}:
+            {{#metadata.author.name}}
+                {{metadata.author.name}} /
+            {{/metadata.author.name}}
+            <a href="{{ownerLink}}">{{formatUserId}}</a>
+        </span><br/>
+        <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
+    </td>
+    <td class="ext-desc">
+        {{^isCompatible}}
+            <div class="alert-message warning">
+                {{#requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
+                {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
+            </div>
+        {{/isCompatible}}
+        {{#metadata.description}}
+            {{metadata.description}}
+        {{/metadata.description}}
+        {{^metadata.description}}
+            <span class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></span>
+        {{/metadata.description}}
+        {{#metadata.keywords.length}}
+            <br/>
+            <span class="ext-keywords">{{Strings.EXTENSION_KEYWORDS}}:
+            {{#metadata.keywords}}
+                {{.}}
+            {{/metadata.keywords}}
+            </span>
+        {{/metadata.keywords.length}}
+    </td>
+    <td>
+        <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+            {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
+            {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
+        </button>
+    </td>
+</tr>

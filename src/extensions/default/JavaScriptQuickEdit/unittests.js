@@ -41,33 +41,24 @@ define(function (require, exports, module) {
 
     var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
         testPath = extensionPath + "/unittest-files/syntax",
+        tempPath = SpecRunnerUtils.getTempDirectory(),
         testWindow,
         initInlineTest;
 
     function rewriteProject(spec) {
-        var result = new $.Deferred();
-    
-        FileIndexManager.getFileInfoList("all").done(function (allFiles) {
-            // convert fileInfos to fullPaths
-            allFiles = allFiles.map(function (fileInfo) {
-                return fileInfo.fullPath;
-            });
-            
-            // parse offsets and save
-            SpecRunnerUtils.saveFilesWithoutOffsets(allFiles).done(function (offsetInfos) {
-                spec.infos = offsetInfos;
+        var result = new $.Deferred(),
+            infos = {},
+            options = {
+                parseOffsets    : true,
+                infos           : infos,
+                removePrefix    : true
+            };
         
-                // install after function to restore file content
-                spec.after(function () {
-                    runs(function () {
-                        waitsForDone(SpecRunnerUtils.saveFilesWithOffsets(spec.infos), "saveFilesWithOffsets");
-                    });
-                });
-                
-                result.resolve();
-            }).fail(function () {
-                result.reject();
-            });
+        SpecRunnerUtils.copyPath(testPath, tempPath, options).done(function () {
+            spec.infos = infos;
+            result.resolve();
+        }).fail(function () {
+            result.reject();
         });
         
         return result.promise();
@@ -92,11 +83,11 @@ define(function (require, exports, module) {
         workingSet = workingSet || [];
         expectInline = (expectInline !== undefined) ? expectInline : true;
         
-        SpecRunnerUtils.loadProjectInTestWindow(testPath);
-        
         runs(function () {
             waitsForDone(rewriteProject(spec), "rewriteProject");
         });
+        
+        SpecRunnerUtils.loadProjectInTestWindow(tempPath);
         
         runs(function () {
             workingSet.push(openFile);
@@ -162,8 +153,8 @@ define(function (require, exports, module) {
                             }
                         }
                         
-                        visibleRangeCheck = (editor._visibleRange.startLine === startLine)
-                            && (editor._visibleRange.endLine === endLine);
+                        visibleRangeCheck = (editor._visibleRange.startLine === startLine) &&
+                            (editor._visibleRange.endLine === endLine);
                         
                         this.message = function () {
                             var msg = "";
@@ -177,18 +168,18 @@ define(function (require, exports, module) {
                             }
                             
                             if (!visibleRangeCheck) {
-                                msg += "Editor._visibleRange ["
-                                    + editor._visibleRange.startLine + ","
-                                    + editor._visibleRange.endLine + "] should be ["
-                                    + startLine + "," + endLine + "].";
+                                msg += "Editor._visibleRange [" +
+                                    editor._visibleRange.startLine + "," +
+                                    editor._visibleRange.endLine + "] should be [" +
+                                    startLine + "," + endLine + "].";
                             }
                             
                             return msg;
                         };
                         
-                        return (shouldHide.length === 0)
-                            && (shouldShow.length === 0)
-                            && visibleRangeCheck;
+                        return (shouldHide.length === 0) &&
+                            (shouldShow.length === 0) &&
+                            visibleRangeCheck;
                     }
                 });
             });
