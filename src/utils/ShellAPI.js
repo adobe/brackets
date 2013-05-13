@@ -52,7 +52,6 @@ define(function (require, exports, module) {
             if (window.isBracketsTestWindow) {
                 return false;
             }
-            console.log("SKIPPING COMMAND");
             // Return false for all commands except file.close_window command for 
             // which we have to return true (issue #3152).
             return (eventName === Commands.FILE_CLOSE_WINDOW);
