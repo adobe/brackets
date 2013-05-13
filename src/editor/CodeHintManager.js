@@ -102,12 +102,12 @@
  * param {Editor} editor 
  * A non-null editor object for the active window.
  *
- * param {String} implicitChar 
+ * param {string} implicitChar 
  * Either null, if the hinting request was explicit, or a single character
  * that represents the last insertion and that indicates an implicit
  * hinting request.
  *
- * return {Boolean} 
+ * return {boolean} 
  * Determines whether the current provider is able to provide hints for
  * the given editor context and, in case implicitChar is non- null,
  * whether it is appropriate to do so.
@@ -164,14 +164,14 @@
  * assume that the document will not be changed outside of the editor
  * during a session.
  *
- * param {String} implicitChar
+ * param {string} implicitChar
  * Either null, if the request to update the hint list was a result of
  * navigation, or a single character that represents the last insertion.
  *
- * return {(Object + jQuery.Deferred)<
- *      hints: Array<(String + jQuery.Obj)>,
- *      match: String,
- *      selectInitial: Boolean>}
+ * return {jQuery.Deferred|{
+ *      hints: Array.<string|jQueryObject>,
+ *      match: string,
+ *      selectInitial: boolean}}
  * 
  * Null if the provider wishes to end the hinting session. Otherwise, a
  * response object, possibly deferred, that provides 1. a sorted array
@@ -182,7 +182,7 @@
  * by default in the hint list window. If match is non-null, then the
  * hints should be strings. 
  * 
- * TODO - NOT YET IMPLEMENTED: If the match is null, the manager will not 
+ * If the match is null, the manager will not 
  * attempt to emphasize any parts of the hints when rendering the hint 
  * list; instead the provider may return strings or jQuery objects for 
  * which emphasis is self-contained. For example, the strings may contain
@@ -204,10 +204,10 @@
  * explicit hinting request, which may result in a new hinting session
  * being opened with some provider, but not necessarily the current one.
  *
- * param {String} hint 
+ * param {string} hint 
  * The hint to be inserted into the editor context for the current session.
  * 
- * return {Boolean} 
+ * return {boolean} 
  * Indicates whether the manager should follow hint insertion with an
  * explicit hint request.
  */
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
         keyDownEditor   = null;
 
     /**
-     * Comparator to sort providers based on their priority
+     * Comparator to sort providers from high to low priority
      */
     function _providerSort(a, b) {
         return b.priority - a.priority;
@@ -242,62 +242,42 @@ define(function (require, exports, module) {
      * The method by which a CodeHintProvider registers its willingness to
      * providing hints for editors in a given language.
      *
-     * @param {CodeHintProvider} provider
+     * @param {!CodeHintProvider} provider
      * The hint provider to be registered, described below. 
      *
-     * @param {Array[(string|Object<name: string>)]} languageIDs
+     * @param {!Array.<string>} languageIds
      * The set of language ids for which the provider is capable of
      * providing hints. If the special language id name "all" is included then
-     * the provider may be called upon to provide hints for any language.
+     * the provider may be called for any language.
      *
-     * @param {Integer} priority
-     * A non-negative number used to break ties among hint providers for a
-     * particular language. Providers that register with a higher priority
-     * will have the opportunity to provide hints at a given language before
-     * those with a lower priority. Brackets default providers have
-     * priority zero.
+     * @param {?number} priority
+     * Used to break ties among hint providers for a particular language.
+     * Providers with a higher number will be asked for hints before those
+     * with a lower priority value. Defaults to zero.
      */
-    function registerHintProvider(providerInfo, languageIDs, priority) {
+    function registerHintProvider(providerInfo, languageIds, priority) {
         var providerObj = { provider: providerInfo,
                             priority: priority || 0 };
-                
-        if (languageIDs) {
-            var languageIdNames = [], registerForAllLanguages = false;
-            var i, currentLanguageID;
-            for (i = 0; i < languageIDs.length; i++) {
-                currentLanguageID = languageIDs[i];
-                if (currentLanguageID) {
-                    if (currentLanguageID === "all") {
-                        registerForAllLanguages = true;
-                        break;
-                    } else {
-                        languageIdNames.push(currentLanguageID);
-                    }
+        
+        if (languageIds.indexOf("all") !== -1) {
+            // Ignore anything else in languageIds and just register for every language. This includes
+            // the special "all" language since its key is in the hintProviders map from the beginning.
+            var languageId;
+            for (languageId in hintProviders) {
+                if (hintProviders.hasOwnProperty(languageId)) {
+                    hintProviders[languageId].push(providerObj);
+                    hintProviders[languageId].sort(_providerSort);
                 }
             }
-
-            if (registerForAllLanguages) {
-                // if we're registering in all, then we ignore the languageIdNames array
-                // so that we avoid registering a provider twice
-                var languageId;
-                for (languageId in hintProviders) {
-                    if (hintProviders.hasOwnProperty(languageId)) {
-                        hintProviders[languageId].push(providerObj);
-                        hintProviders[languageId].sort(_providerSort);
-                    }
+        } else {
+            languageIds.forEach(function (languageId) {
+                if (!hintProviders[languageId]) {
+                    // Initialize provider list with any existing all-language providers
+                    hintProviders[languageId] = Array.prototype.concat(hintProviders.all);
                 }
-            } else {
-                languageIdNames.forEach(function (languageId) {
-                    if (languageId) {
-                        if (!hintProviders[languageId]) {
-                            // initialize a new language id with all providers
-                            hintProviders[languageId] = Array.prototype.concat(hintProviders.all);
-                        }
-                        hintProviders[languageId].push(providerObj);
-                        hintProviders[languageId].sort(_providerSort);
-                    }
-                });
-            }
+                hintProviders[languageId].push(providerObj);
+                hintProviders[languageId].sort(_providerSort);
+            });
         }
     }
 
@@ -305,11 +285,11 @@ define(function (require, exports, module) {
      *  Return the array of hint providers for the given language id.
      *  This gets called (potentially) on every keypress. So, it should be fast.
      *
-     * @param {(string|Object<name: string>)} languageID
-     * @return {Array.<{provider: Object, languageIDs: Array.<string>, priority: number}>}
+     * @param {!string} languageId
+     * @return {?Array.<{provider: Object, priority: number}>}
      */
-    function _getProvidersForLanguageID(languageID) {
-        return hintProviders[languageID] || hintProviders.all;
+    function _getProvidersForLanguageId(languageId) {
+        return hintProviders[languageId] || hintProviders.all;
     }
 
     /**
@@ -340,7 +320,7 @@ define(function (require, exports, module) {
         if (sessionEditor) {
             if (sessionEditor === editor &&
                     (hintList.isOpen() ||
-                     (deferredHints && !deferredHints.isResolved() && !deferredHints.isRejected()))) {
+                     (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
             } else {
                 // the editor has changed
@@ -395,7 +375,7 @@ define(function (require, exports, module) {
     function _beginSession(editor) {
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
-            enabledProviders = _getProvidersForLanguageID(language.getId());
+            enabledProviders = _getProvidersForLanguageId(language.getId());
         
         enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {

@@ -172,9 +172,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expectNoPreviewAtPos(72, 15);    // cursor on redsox
                     expectNoPreviewAtPos(73, 16);    // cursor on pinky
-                    // issue #3445
-//                    expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-chesse
-//                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
+                    expectNoPreviewAtPos(74, 16);    // cursor on blue in hyphenated word blue-cheese
+                    expectNoPreviewAtPos(75, 18);    // cursor on white in hyphenated word @bc-white
                 });
             });
         });

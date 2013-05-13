@@ -272,7 +272,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Chiudi (non salvare)",
     "RELAUNCH_CHROME"                      : "Riavvia Chrome",
     "ABOUT"                                : "About",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Chiudi",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} build sperimentale {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> e incorporati per riferimento in questo documento.",
