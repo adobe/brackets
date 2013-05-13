@@ -140,9 +140,6 @@ define(function (require, exports, module) {
         });
         
         describe("Inserting Tests", function () {
-            beforeEach(function () {
-                testEditorAndDoc = SpecRunnerUtils.createMockEditor(defaultContent, "html");
-            });
             
             it("should replace entity with hint if inside entity", function () {
                 testEditorAndDoc.editor.setCursorPos({line: 17, ch: 19});
