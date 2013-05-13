@@ -35,6 +35,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var Commands = require("command/Commands");
+
     /**
      * Map of all registered global commands
      * @type Object.<commandID: string, Command>
@@ -232,7 +234,13 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
     function execute(id) {
-        var command = _commands[id];
+        var command = _commands[id],
+            closeHintsCommand = _commands[Commands.CLOSE_CODE_HINTS];
+
+        if (id !== Commands.SHOW_CODE_HINTS && closeHintsCommand) {
+            closeHintsCommand.execute.call(closeHintsCommand);
+        }
+        
         if (command) {
             return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
         } else {

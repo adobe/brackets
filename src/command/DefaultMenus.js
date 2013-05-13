@@ -99,6 +99,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_BLOCK_COMMENT);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
+        menu.addMenuItem(Commands.SHOW_CODE_HINTS);
 
         /*
          * View menu

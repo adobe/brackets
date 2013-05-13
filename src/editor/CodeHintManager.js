@@ -220,7 +220,11 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var KeyEvent        = require("utils/KeyEvent"),
+    var Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        EditorManager   = require("editor/EditorManager"),
+        Strings         = require("strings"),
+        KeyEvent        = require("utils/KeyEvent"),
         CodeHintList    = require("editor/CodeHintList").CodeHintList;
 
     var hintProviders   = { "all" : [] },
@@ -296,6 +300,9 @@ define(function (require, exports, module) {
      * End the current hinting session
      */
     function _endSession() {
+        if (!hintList) {
+            return;
+        }
         hintList.close();
         hintList = null;
         keyDownEditor = null;
@@ -406,6 +413,26 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Explicitly start a new session. If we have an existing session, 
+     * then close the current one and restart a new one.
+     * @param {Editor} editor
+     */
+    function _startNewSession(editor) {
+        if (!editor) {
+            editor = EditorManager.getFocusedEditor();
+        }
+        
+        if (editor) {
+            lastChar = null;
+            if (_inSession(editor)) {
+                _endSession();
+            }
+            // Begin a new explicit session
+            _beginSession(editor);
+        }
+    }
+    
+    /**
      * Handles keys related to displaying, searching, and navigating the hint list. 
      * This gets called before handleChange.
      *
@@ -422,12 +449,7 @@ define(function (require, exports, module) {
         if (event.type === "keydown") {
             if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
                 event.preventDefault();
-                lastChar = null;
-                if (_inSession(editor)) {
-                    _endSession();
-                }
-                // Begin a new explicit session
-                _beginSession(editor);
+                _startNewSession(editor);
             } else if (_inSession(editor) && hintList.isOpen()) {
                 // Pass event to the hint list, if it's open
                 hintList.handleKeyEvent(event);
@@ -497,6 +519,11 @@ define(function (require, exports, module) {
     function _getCodeHintList() {
         return hintList;
     }
+
+    CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
+    // This is only for internal use. So we're not localizing the string and it's not exposed in any menu.
+    CommandManager.register("Close Code Hints", Commands.CLOSE_CODE_HINTS, _endSession);
+
     exports._getCodeHintList        = _getCodeHintList;
     
     // Define public API

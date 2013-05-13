@@ -236,6 +236,7 @@ define({
     "CMD_OPEN_LINE_ABOVE"                 : "Open Line Above",
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
+    "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
