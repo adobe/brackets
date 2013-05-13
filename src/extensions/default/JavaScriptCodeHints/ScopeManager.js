@@ -785,15 +785,6 @@ define(function (require, exports, module) {
         });
     }
 
-    /*
-     * Called each time the file associated with the active editor changes.
-     * Marks the file as being dirty and refresh its outer scope.
-     * 
-     * @param {Document} document - the document that has changed
-     */
-    function handleFileChange(document) {
-    }
-
     _ternWorker.addEventListener("message", function (e) {
         var response = e.data,
             type = response.type;
@@ -818,7 +809,6 @@ define(function (require, exports, module) {
     exports.getResolvedPath = getResolvedPath;
     exports.getTernHints = getTernHints;
     exports.handleEditorChange = handleEditorChange;
-    exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
 });
