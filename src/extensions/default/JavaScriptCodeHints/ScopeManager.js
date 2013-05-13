@@ -228,7 +228,7 @@ define(function (require, exports, module) {
     /**
      *  Get a list of javascript files in a given directory.
      *
-     * @param {string} dir - directory to list of files of.
+     * @param {string} dir - directory to list the files of.
      * @param {function(Array.<string>)} successCallback - callback with
      * array of file path names.
      */
