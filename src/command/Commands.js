@@ -77,7 +77,6 @@ define(function (require, exports, module) {
     exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";
     exports.SHOW_CODE_HINTS             = "edit.showCodeHints";
-    exports.CLOSE_CODE_HINTS            = "edit.closeCodeHints";
 
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";

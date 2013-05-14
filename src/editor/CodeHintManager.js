@@ -447,10 +447,7 @@ define(function (require, exports, module) {
     function handleKeyEvent(editor, event) {
         keyDownEditor = editor;
         if (event.type === "keydown") {
-            if (event.keyCode === 32 && event.ctrlKey) { // User pressed Ctrl+Space
-                event.preventDefault();
-                _startNewSession(editor);
-            } else if (_inSession(editor) && hintList.isOpen()) {
+            if (_inSession(editor) && hintList.isOpen()) {
                 // Pass event to the hint list, if it's open
                 hintList.handleKeyEvent(event);
             }
@@ -520,9 +517,9 @@ define(function (require, exports, module) {
         return hintList;
     }
 
+    $(CommandManager).on("beforeExecuteCommand", _endSession);
+
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
-    // This is only for internal use. So we're not localizing the string and it's not exposed in any menu.
-    CommandManager.register("Close Code Hints", Commands.CLOSE_CODE_HINTS, _endSession);
 
     exports._getCodeHintList        = _getCodeHintList;
     
