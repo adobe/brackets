@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
+        Async            = require("utils/Async"),
         registry_utils   = require("extensibility/registry_utils");
 
     /**
@@ -50,6 +51,7 @@ define(function (require, exports, module) {
      */
     function ExtensionManagerViewModel() {
         this._handleStatusChange = this._handleStatusChange.bind(this);
+        this._idsToRemove = {};
         
         // Listen for extension status changes.
         $(ExtensionManager).on("statusChange", this._handleStatusChange);
@@ -98,6 +100,13 @@ define(function (require, exports, module) {
      */
     ExtensionManagerViewModel.prototype._lastQuery = null;
     
+    /**
+     * @private
+     * @type {Object.<string, boolean>}
+     * Map of extensions marked for removal when the view is closed.
+     */
+    ExtensionManagerViewModel.prototype._idsToRemove = null;
+        
     /**
      * Unregisters listeners when we're done.
      */
@@ -273,6 +282,53 @@ define(function (require, exports, module) {
                     return true;
                 }
             });
+    };
+    
+    /**
+     * Marks an extension for later removal, or unmarks an extension previously marked.
+     * @param {string} id The id of the extension to mark for removal.
+     * @param {boolean} mark Whether to mark or unmark it.
+     */
+    ExtensionManagerViewModel.prototype.markForRemoval = function (id, mark) {
+        if (mark) {
+            this._idsToRemove[id] = true;
+        } else {
+            delete this._idsToRemove[id];
+        }
+        $(this).triggerHandler("change", [id]);
+    };
+    
+    /**
+     * Returns true if an extension is marked for removal.
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been marked for removal, false otherwise.
+     */
+    ExtensionManagerViewModel.prototype.isMarkedForRemoval = function (id) {
+        return !!(this._idsToRemove[id]);
+    };
+    
+    /**
+     * Returns true if there are any extensions marked for removal.
+     * @return {boolean} true if there are extensions to remove
+     */
+    ExtensionManagerViewModel.prototype.hasExtensionsToRemove = function () {
+        return Object.keys(this._idsToRemove).length > 0;
+    };
+    
+    /**
+     * Removes extensions previously marked for removal.
+     * @return {$.Promise} A promise that's resolved when all extensions are removed, or rejected
+     *     if one or more extensions can't be removed. When rejected, the argument will be an
+     *     array of error objects, each of which contains an "item" property with the id of the
+     *     failed extension and an "error" property with the actual error.
+     */
+    ExtensionManagerViewModel.prototype.removeMarkedExtensions = function () {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(this._idsToRemove),
+            function (id) {
+                return ExtensionManager.remove(id);
+            }
+        );
     };
     
     exports.ExtensionManagerViewModel = ExtensionManagerViewModel;
