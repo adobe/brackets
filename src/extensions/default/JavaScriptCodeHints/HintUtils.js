@@ -28,6 +28,8 @@ define(function (require, exports, module) {
     "use strict";
 
     var LANGUAGE_ID                 = "javascript",
+        HTML_LANGUAGE_ID            = "html",
+        SUPPORTED_LANGUAGES         = [LANGUAGE_ID, HTML_LANGUAGE_ID],
         SINGLE_QUOTE                = "'",
         DOUBLE_QUOTE                = "\"",
         TERN_ADD_FILES_MSG          = "AddFiles",
@@ -168,6 +170,9 @@ define(function (require, exports, module) {
         });
     }
 
+    function isSupportedLanguage(languageId) {
+        return SUPPORTED_LANGUAGES.indexOf(languageId) !== -1;
+    }
     var KEYWORD_NAMES   = [
         "break", "case", "catch", "continue", "debugger", "default", "delete",
         "do", "else", "finally", "for", "function", "if", "in", "instanceof",
@@ -194,6 +199,7 @@ define(function (require, exports, module) {
     exports.splitPath                   = splitPath;
     exports.eventName                   = eventName;
     exports.annotateLiterals            = annotateLiterals;
+    exports.isSupportedLanguage         = isSupportedLanguage;
     exports.KEYWORDS                    = KEYWORDS;
     exports.LITERALS                    = LITERALS;
     exports.LANGUAGE_ID                 = LANGUAGE_ID;
@@ -206,4 +212,5 @@ define(function (require, exports, module) {
     exports.TERN_GET_FILE_MSG           = TERN_GET_FILE_MSG;
     exports.TERN_CALLED_FUNC_TYPE_MSG   = TERN_CALLED_FUNC_TYPE_MSG;
     exports.TERN_PRIME_PUMP_MSG         = TERN_PRIME_PUMP_MSG;
+    exports.SUPPORTED_LANGUAGES         = SUPPORTED_LANGUAGES;
 });
