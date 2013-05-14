@@ -58,7 +58,9 @@ define(function (require, exports, module) {
         numAddedFiles       = 0,
         stopAddingFiles     = false,
         // exclude require and jquery since we have special knowledge of those
-        excludedFilesRegEx  = /require\.js$|jquery-[\d]\.[\d]\.js$/,
+        // temporarily exclude less*min.js because it is causing instability in tern.
+        excludedFilesRegEx  = /require\.js$|jquery[\w.\-]*\.js$|less[\w.\-]*\.min\.js$/,
+        isDocumentDirty     = false,
         _ternWorker         = (function () {
             var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
             return new Worker(path);
@@ -233,6 +235,8 @@ define(function (require, exports, module) {
      * @param {string} dir - directory to list the files of.
      * @param {function(Array.<string>)} successCallback - callback with
      * array of file path names.
+     * @param {function(Array.<string>)} errorCallback - callback for
+     * when an error occurs.
      */
     function getFilesInDirectory(dir, successCallback, errorCallback) {
         var files = []; // file names without paths.
@@ -763,6 +767,41 @@ define(function (require, exports, module) {
     }
 
     /**
+     *  Update tern with the new contents of a given file.
+     *
+     * @param {Document} document - the document to update
+     * @return {jQuery.Promise} - the promise for the request
+     */
+    function updateTernFile(document) {
+        var path  = document.file.fullPath;
+
+        _postMessageByPass({
+            type       : HintUtils.TERN_UPDATE_FILE_MSG,
+            path       : path,
+            text       : document.getText()
+        });
+
+        return addPendingRequest(path, 0, HintUtils.TERN_UPDATE_FILE_MSG);
+    }
+
+    /**
+     * Handle the response from the tern web worker when
+     * it responds to the update file message.
+     *
+     * @param {{path:string, type: string}} response - the response from the worker
+     */
+    function handleUpdateFile(response) {
+
+        var path = response.path,
+            type = response.type,
+            $deferredHints = getPendingRequest(path, 0, type);
+
+        if ($deferredHints) {
+            $deferredHints.resolve();
+        }
+    }
+
+    /**
      *  We can skip tern initialization if we are opening a file that has
      *  already been added to tern.
      *
@@ -779,10 +818,11 @@ define(function (require, exports, module) {
      *  Do the work to initialize a code hinting session.
      *
      * @param {Session} session - the active hinting session
-     * @param {Document} document - the document of the editor that has changed
+     * @param {Document} document - the document the editor has changed to
+     * @param {Document} previousDocument - the document the editor has changed from
      * @param {boolean} shouldPrimePump - true if the pump should be primed.
      */
-    function doEditorChange(session, document, shouldPrimePump) {
+    function doEditorChange(session, document, previousDocument, shouldPrimePump) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
@@ -790,19 +830,34 @@ define(function (require, exports, module) {
             file        = split.file,
             pr;
 
-        pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
-
-        // avoid re-initializing tern if possible.
-        if (canSkipTernInitialization(path)) {
-            // skipping initializing tern
-            return;
-        }
-
         var ternDeferred     = $.Deferred(),
             addFilesDeferred = $.Deferred();
 
         ternPromise = ternDeferred.promise();
         addFilesPromise = addFilesDeferred.promise();
+        pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
+
+        // avoid re-initializing tern if possible.
+        if (canSkipTernInitialization(path)) {
+            // skipping initializing tern
+            ternDeferred.resolveWith(null, [_ternWorker]);
+
+            // update the previous document in tern to prevent stale files.
+            if (isDocumentDirty && previousDocument) {
+                var updateFilePromise = updateTernFile(previousDocument);
+                updateFilePromise.done(function () {
+                    primePump(path, document.getText());
+                    addFilesDeferred.resolveWith(null, [_ternWorker]);
+                });
+            } else {
+                addFilesDeferred.resolveWith(null, [_ternWorker]);
+            }
+
+            isDocumentDirty = false;
+            return;
+        }
+
+        isDocumentDirty = false;
         pendingTernRequests = [];
         resolvedFiles = {};
 
@@ -851,16 +906,27 @@ define(function (require, exports, module) {
      *
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
+     * @param {Document} previousDocument - the document of the editor is changing from
      * @param {boolean} shouldPrimePump - true if the pump should be primed.
      */
-    function handleEditorChange(session, document, shouldPrimePump) {
+    function handleEditorChange(session, document, previousDocument, shouldPrimePump) {
         if (addFilesPromise === null) {
-            doEditorChange(session, document, shouldPrimePump);
+            doEditorChange(session, document, previousDocument, shouldPrimePump);
         } else {
             addFilesPromise.done(function () {
-                doEditorChange(session, document, shouldPrimePump);
+                doEditorChange(session, document, previousDocument, shouldPrimePump);
             });
         }
+    }
+
+    /*
+     * Called each time the file associated with the active editor changes.
+     * Marks the file as being dirty and refresh its outer scope.
+     *
+     * @param {Document} document - the document that has changed
+     */
+    function handleFileChange(document) {
+        isDocumentDirty = true;
     }
 
     _ternWorker.addEventListener("message", function (e) {
@@ -880,6 +946,8 @@ define(function (require, exports, module) {
             handlePrimePumpCompletion(response);
         } else if (type === HintUtils.TERN_GET_GUESSES_MSG) {
             handleGetGuesses(response);
+        } else if (type === HintUtils.TERN_UPDATE_FILE_MSG) {
+            handleUpdateFile(response);
         } else {
             console.log("Worker: " + (response.log || response));
         }
@@ -890,6 +958,7 @@ define(function (require, exports, module) {
     exports.getTernHints = getTernHints;
     exports.handleEditorChange = handleEditorChange;
     exports.requestGuesses = requestGuesses;
+    exports.handleFileChange = handleFileChange;
     exports.requestHints = requestHints;
     exports.requestJumptoDef = requestJumptoDef;
 });
