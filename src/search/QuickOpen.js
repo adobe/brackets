@@ -99,7 +99,7 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter) {
+    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions) {
         this.name = name;
         this.languageIds = languageIds;
         this.done = done;
@@ -108,6 +108,7 @@ define(function (require, exports, module) {
         this.itemFocus = itemFocus;
         this.itemSelect = itemSelect;
         this.resultsFormatter = resultsFormatter;
+        this.matcherOptions = matcherOptions;
     }
     
     /**
@@ -121,6 +122,7 @@ define(function (require, exports, module) {
      *          itemFocus: function(?SearchResult|string),
      *          itemSelect: funciton(?SearchResult|string),
      *          resultsFormatter: ?function(SearchResult|string, string):string
+     *          matcherOptions: Object
      *        } pluginDef
      *
      * Parameter Documentation:
@@ -138,6 +140,8 @@ define(function (require, exports, module) {
      *      The selected search result item (as returned by search()) is passed as an argument.
      * resultFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
+     *          for available options)
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
      * cancels Quick Open (via Esc), those changes are automatically reverted.
@@ -160,7 +164,8 @@ define(function (require, exports, module) {
             pluginDef.match,
             pluginDef.itemFocus,
             pluginDef.itemSelect,
-            pluginDef.resultsFormatter
+            pluginDef.resultsFormatter,
+            pluginDef.matcherOptions
         ));
     }
 
@@ -185,7 +190,9 @@ define(function (require, exports, module) {
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
         
         // StringMatchers that cache in-progress query data.
-        this._filenameMatcher           = new StringMatch.StringMatcher();
+        this._filenameMatcher           = new StringMatch.StringMatcher({
+            segmentedSearch: true
+        });
         this._matchers                  = {};
     }
     
@@ -554,7 +561,7 @@ define(function (require, exports, module) {
                     // Look up the StringMatcher for this plugin.
                     var matcher = this._matchers[currentPlugin.name];
                     if (!matcher) {
-                        matcher = new StringMatch.StringMatcher();
+                        matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
                         this._matchers[currentPlugin.name] = matcher;
                     }
                     return plugin.search(query, matcher);
