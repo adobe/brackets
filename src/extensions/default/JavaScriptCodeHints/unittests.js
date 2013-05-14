@@ -685,24 +685,6 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should replace property hints but not following delimiters", function () {
-                var start   = { line: 6, ch: 0 },
-                    middle  = { line: 6, ch: 4 },
-                    end     = { line: 6, ch: 9 },
-                    endplus = { line: 6, ch: 10 };
-
-                testDoc.replaceRange("(A1.prop)", start, start);
-                testEditor.setCursorPos(middle);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
-                
-                runs(function () {
-                    expect(testEditor.getCursorPos()).toEqual(end);
-                    expect(testDoc.getRange(start, endplus)).toEqual("(A1.propA)");
-                    expect(testDoc.getLine(endplus.line).length).toEqual(10);
-                });
-            });
-            
             it("should list hints for string, as string assigned to 's', 's' assigned to 'r' and 'r' assigned to 't'", function () {
                 var start = { line: 26, ch: 0 },
                     middle = { line: 26, ch: 2 };
@@ -896,7 +878,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentExact(hintObj, ["funFunc2Arg(f: fn(s: string, n: number) -> string) -> string"]);
+                    hintsPresentExact(hintObj, ["funFunc2Arg(f: fn(s: string, n: number) -> string)"]);
                 });
             });
 
@@ -979,6 +961,24 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should replace property hints but not following delimiters", function () {
+                var start   = { line: 6, ch: 0 },
+                    middle  = { line: 6, ch: 4 },
+                    end     = { line: 6, ch: 9 },
+                    endplus = { line: 6, ch: 10 };
+
+                testDoc.replaceRange("(A1.prop)", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
+                
+                runs(function () {
+                    expect(testEditor.getCursorPos()).toEqual(end);
+                    expect(testDoc.getRange(start, endplus)).toEqual("(A1.propA)");
+                    expect(testDoc.getLine(endplus.line).length).toEqual(10);
+                });
+            });
+            
             it("should jump to var", function () {
                 var start = { line: 44, ch: 10 };
                 
@@ -1001,7 +1001,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    editorJumped({line: 4, ch: 34, file: "MyModule.js"}); //jump to another file
+                    editorJumped({line: 4, ch: 13, file: "MyModule.js"}); //jump to another file
                 });
             });
             
@@ -1010,7 +1010,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    editorJumped({line: 56, ch: 1}); //jump to prototype.calc
+                    editorJumped({line: 53, ch: 21}); //jump to prototype.calc
                 });
             });
 
@@ -1037,7 +1037,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    editorJumped({line: 94, ch: 45});
+                    editorJumped({line: 94, ch: 17});
                 });
             });
 
@@ -1117,9 +1117,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     testEditor.setCursorPos(start);
                     var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    runs(function () {
-                        hintsPresentExact(hintObj, ["a", "b", "b1", "c", "d"]);
-                    });
+                    hintsPresentExact(hintObj, ["a", "b", "b1", "c", "d"]);
                 });
             });
         });
