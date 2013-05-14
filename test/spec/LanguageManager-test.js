@@ -414,11 +414,38 @@ define(function (require, exports, module) {
                         waitsForDone(promise, "Defining a language with a name should succeed");
                     });
                 });
+
+                it("make the inheritance chain comprehensible", function () {
+                    // isLanguage
                     
+                    // Same language: true
+                    expect(child.isLanguage(child)).toBe(true);
+                    expect(parent.isLanguage(parent)).toBe(true);
+                    // Different language: false
+                    expect(child.isLanguage(parent)).toBe(false);
+                    expect(parent.isLanguage(child)).toBe(false);
+                    
+                    // isBasedOnLanguage
+                    
+                    // Same language: false
+                    expect(child.isBasedOnLanguage(child)).toBe(false);
+                    expect(parent.isBasedOnLanguage(parent)).toBe(false);
+                    // Child based on parent: true, parent based on child: false
+                    expect(child.isBasedOnLanguage(parent)).toBe(true);
+                    expect(parent.isBasedOnLanguage(child)).toBe(false);
+                    
+                    // isInstanceOfLanguage
+                    
+                    // Same language: true
+                    expect(child.isInstanceOfLanguage(child)).toBe(true);
+                    expect(parent.isInstanceOfLanguage(parent)).toBe(true);
+                    // Child instance of parent: true, parent instance of child: false
+                    expect(child.isInstanceOfLanguage(parent)).toBe(true);
+                    expect(parent.isInstanceOfLanguage(child)).toBe(false);
+                });
+                
                 it("inherit only mode and comment syntax", function () {
                     runs(function () {
-                        expect(child.hasAncestor(parent)).toBe(true);
-                        
                         // Own
                         expect(child.getId()).toBe(id);
                         expect(child.getName()).toBe(name);

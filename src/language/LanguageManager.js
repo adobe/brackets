@@ -94,6 +94,11 @@
  *
  * If a mode is not shipped with our CodeMirror distribution, you need to first load it yourself.
  * If the mode is part of our CodeMirror distribution, it gets loaded automatically.
+ *
+ * To compare languages, use the following methods:
+ * - isLanguage (if this language should be the same as the passed one)
+ * - isBasedOnLanguage (if this language should be a child of the passed one)
+ * - isInstanceOfLanguage (if this language should be the passed one or a child of it)
  */
 define(function (require, exports, module) {
     "use strict";
@@ -162,7 +167,7 @@ define(function (require, exports, module) {
      */
     function _setLanguageForMode(mode, language) {
         var mappedLanguage = _modeToLanguageMap[mode];
-        if (mappedLanguage && !language.hasAncestor(mappedLanguage)) {
+        if (mappedLanguage && !language.isBasedOnLanguage(mappedLanguage)) {
             console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + mappedLanguage.getName() + ", won't register for " + language.getName());
             return;
         }
@@ -368,18 +373,40 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Determines whether the language is this language's parent, or the parent's parent, etc.
-     * @param {Language} The language to test
-     * @return {boolean} True if language is an ancestor of this language, false otherwise
+     * Determines whether the language is this language
+     * @param {Language|string} The language (or its ID) to test
+     * @return {boolean} True if this language has the same ID as language, false otherwise
      **/
-    Language.prototype.hasAncestor = function (language) {
+    Language.prototype.isLanguage = function (language) {
+        if (language.getId) {
+            language = language.getId();
+        }
+        
+        return this.getId() === language;
+    };
+
+    /**
+     * Determines whether the language is this language's parent, or the parent's parent, etc.
+     * @param {Language} The language (or its ID) to test
+     * @return {boolean} True if this language is a child of language, false otherwise
+     **/
+    Language.prototype.isBasedOnLanguage = function (language) {
         if (!this._parent) {
             return false;
         }
         if (this._parent === language) {
             return true;
         }
-        return this._parent.hasAncestor(language);
+        return this._parent.isBasedOnLanguage(language);
+    };
+
+    /**
+     * Determines whether the language is this language or based on this language
+     * @param {Language} The language (or its ID) to test
+     * @return {boolean} True if this language is an instance of language, false otherwise
+     **/
+    Language.prototype.isInstanceOfLanguage = function (language) {
+        return this.isLanguage(language) || this.isBasedOnLanguage(language);
     };
 
     /**
@@ -510,7 +537,7 @@ define(function (require, exports, module) {
             this._fileExtensions.push(extension);
             
             var language = _fileExtensionToLanguageMap[extension];
-            if (language && !this.hasAncestor(language)) {
+            if (language && !this.isBasedOnLanguage(language)) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
@@ -537,7 +564,7 @@ define(function (require, exports, module) {
             this._fileNames.push(name);
             
             var language = _fileNameToLanguageMap[name];
-            if (language && !this.hasAncestor(language)) {
+            if (language && !this.isBasedOnLanguage(language)) {
                 console.warn("Cannot register file name \"" + name + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileNameToLanguageMap[name] = this;
