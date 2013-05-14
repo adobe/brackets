@@ -470,12 +470,8 @@ define(function (require, exports, module) {
             cachedHints = null;
             cachedType = null;
 
-            if (editor && editor.getLanguageForSelection().getId() === HintUtils.LANGUAGE_ID) {
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, true);
-                $(editor)
-                    .on(HintUtils.eventName("change"), function () {
-                        ScopeManager.handleFileChange(editor.document);
-                    });
             } else {
                 session = null;
             }
@@ -556,7 +552,7 @@ define(function (require, exports, module) {
         installEditorListeners(EditorManager.getActiveEditor());
 
         var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, [HintUtils.LANGUAGE_ID, "html"], 0);
+        CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
 
         // for unit testing
         exports.getSession = getSession;
