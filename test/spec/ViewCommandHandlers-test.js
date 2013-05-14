@@ -84,27 +84,25 @@ define(function (require, exports, module) {
         describe("Adjust the Font Size", function () {
             it("should increase the font size in both editor and inline editor", function () {
                 runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() + 2;
+                    var editors      = getEditors(),
+                        originalSize = editors.editor.getTextHeight();
                     
                     CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
-                    CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
                     
-                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
-                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                    expect(editors.editor.getTextHeight()).toBeGreaterThan(originalSize);
+                    expect(editors.inline.getTextHeight()).toBeGreaterThan(originalSize);
                 });
             });
             
             it("should decrease the font size in both editor and inline editor", function () {
                 runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight() - 2;
+                    var editors      = getEditors(),
+                        originalSize = editors.editor.getTextHeight();
                     
                     CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
-                    CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
                     
-                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
-                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
+                    expect(editors.editor.getTextHeight()).toBeLessThan(originalSize);
+                    expect(editors.inline.getTextHeight()).toBeLessThan(originalSize);
                 });
             });
             

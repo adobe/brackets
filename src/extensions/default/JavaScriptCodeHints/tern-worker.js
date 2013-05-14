@@ -34,7 +34,7 @@ importScripts("thirdparty/requirejs/require.js");
     require(["./HintUtils"], function (hintUtils) {
         HintUtils = hintUtils;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/plugin/requirejs"], function (tern, requirejs) {
+        ternRequire(["tern/lib/tern", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, requirejs, docComment) {
             Tern = tern;
         });
     });
@@ -87,7 +87,7 @@ importScripts("thirdparty/requirejs/require.js");
             defs: env,
             async: true,
             getFile: getFile,
-            plugins: {requirejs: {}}
+            plugins: {requirejs: {}, doc_comment: true}
         };
         ternServer = new Tern.Server(ternOptions);
         
