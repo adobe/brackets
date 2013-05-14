@@ -159,11 +159,11 @@ a, img {
 
 @-webkit-keyframes spinner-sprites-12 {
       0% { background-position:    0px 0px; }
-    100% { background-position: -144px 0px; }
+    100% { background-position: -120px 0px; }
 }
 @-webkit-keyframes spinner-sprites-36 {
       0% { background-position:    0px 0px; }
-    100% { background-position: -432px 0px; }
+    100% { background-position: -360px 0px; }
 }
 
 #status-indent > * {
@@ -821,7 +821,7 @@ li.smart_autocomplete_highlight {
     visibility: hidden;
 
     &.spin {
-        -webkit-animation: spinner-sprites-12 1.5s steps(12) infinite;
+        -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
         visibility: visible;
     }
     
@@ -832,7 +832,7 @@ li.smart_autocomplete_highlight {
         background: url("images/spinner_large_sprites36.png") no-repeat;
 
         &.spin {
-            -webkit-animation: spinner-sprites-36 1.5s steps(12) infinite;
+            -webkit-animation: spinner-sprites-36 1.2s steps(10) infinite;
         }
     }
 }
@@ -841,11 +841,11 @@ li.smart_autocomplete_highlight {
        only screen and (min-device-pixel-ratio: 2) {
     .spinner {
         background-image: url("images/spinner_small_sprites12@2x.png");
-        background-size: 144px 12px;
+        background-size: 120px 12px;
 
         &.large {
             background: url("images/spinner_large_sprites36@2x.png") no-repeat;
-            background-size: 432px 36px;
+            background-size: 360px 36px;
         }
     }
 }
