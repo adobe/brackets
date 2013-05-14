@@ -347,6 +347,56 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Add a pending request waiting for the tern-worker to complete.
+     *
+     * @param {string} file - the name of the file
+     * @param {number} offset - the offset into the file the request is for
+     * @param {string} type - the type of request
+     * @return {jQuery.Promise} - the promise for the request  
+     */
+    function addPendingRequest(file, offset, type) {
+        var requests,
+            key = file + "@" + offset,
+            $deferredRequest;
+        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
+            requests = pendingTernRequests[key];
+        } else {
+            requests = {};
+            pendingTernRequests[key] = requests;
+        }
+
+        if (CollectionUtils.hasProperty(requests, type)) {
+            $deferredRequest = requests[type];
+        } else {
+            requests[type] = $deferredRequest = $.Deferred();
+        }
+        return $deferredRequest.promise();
+    }
+
+    /**
+     * Get any pending $.Deferred object waiting on the specified file and request type
+     * @param {string} file - the file
+     * @param {number} offset - the offset in the file the request was at
+     * @param {string} type - the type of request
+     * @return {jQuery.Deferred} - the $.Deferred for the request     
+     */
+    function getPendingRequest(file, offset, type) {
+        var key = file + "@" + offset;
+        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
+            var requests = pendingTernRequests[key],
+                requestType = requests[type];
+
+            delete pendingTernRequests[key][type];
+
+            if (!Object.keys(requests).length) {
+                delete pendingTernRequests[key];
+            }
+
+            return requestType;
+        }
+    }
+    
+    /**
      * Get a Promise for the definition from TernJS, for the file & offset passed in.
      * @return {jQuery.Promise} - a promise that will resolve to definition when
      *      it is done
@@ -360,9 +410,7 @@ define(function (require, exports, module) {
             text: text
         });
 
-        var $deferredJump = $.Deferred();
-        pendingTernRequests[file] = $deferredJump;
-        return $deferredJump.promise();
+        return addPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
     }
 
     /**
@@ -393,43 +441,18 @@ define(function (require, exports, module) {
      */
     function handleJumptoDef(response) {
         
-        var file = response.file;
-        var $deferredJump = pendingTernRequests[file];
+        var file = response.file,
+            offset = response.offset;
         
-        pendingTernRequests[file] = null;
+        var $deferredJump = getPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
+        
+//        pendingTernRequests[file] = null;
         
         if ($deferredJump) {
             $deferredJump.resolveWith(null, [response]);
         }
     }
 
-    /**
-     * Add a pending request waiting for the tern-worker to complete.
-     *
-     * @param {string} file - the name of the file
-     * @param {number} offset - the offset into the file the request is for
-     * @param {string} type - the type of request
-     * @return {jQuery.Promise} - the promise for the request  
-     */
-    function addPendingRequest(file, offset, type) {
-        var requests,
-            key = file + "@" + offset,
-            $deferredRequest;
-        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
-            requests = pendingTernRequests[key];
-        } else {
-            requests = {};
-            pendingTernRequests[key] = requests;
-        }
-
-        if (CollectionUtils.hasProperty(requests, type)) {
-            $deferredRequest = requests[type];
-        } else {
-            requests[type] = $deferredRequest = $.Deferred();
-        }
-        return $deferredRequest.promise();
-    }
-    
     /**
      * Get a Promise for the completions from TernJS, for the file & offset passed in.
      * @param {string} dir - the directory the file is in
@@ -529,29 +552,6 @@ define(function (require, exports, module) {
         return {promise: $deferredHints.promise()};
     }
 
-    /**
-     * Get any pending $.Deferred object waiting on the specified file and request type
-     * @param {string} file - the file
-     * @param {number} offset - the offset in the file the request was at
-     * @param {string} type - the type of request
-     * @return {jQuery.Deferred} - the $.Deferred for the request     
-     */
-    function getPendingRequest(file, offset, type) {
-        var key = file + "@" + offset;
-        if (CollectionUtils.hasProperty(pendingTernRequests, key)) {
-            var requests = pendingTernRequests[key],
-                requestType = requests[type];
-
-            delete pendingTernRequests[key][type];
-
-            if (!Object.keys(requests).length) {
-                delete pendingTernRequests[key];
-            }
-
-            return requestType;
-        }
-    }
-    
     /**
      * Handle the response from the tern web worker when
      * it responds with the list of completions
@@ -713,6 +713,7 @@ define(function (require, exports, module) {
     function canSkipTernInitialization(newFile) {
         return resolvedFiles[newFile] !== undefined;
     }
+
 
     /**
      *  Do the work to initialize a code hinting session.
