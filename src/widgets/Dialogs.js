@@ -187,12 +187,22 @@ define(function (require, exports, module) {
 
             // Remove keydown event handler
             window.document.body.removeEventListener("keydown", handleKeyDown, true);
-            _keydownListeners.pop();
+            
+            // Remove this dialog's listener from the stack of listeners. (It 
+            // might not be on the top of the stack if the dialogs are somehow
+            // dismissed out of order.)
+            _keydownListeners = _keydownListeners.filter(function (listener) {
+                return listener !== handleKeyDown;
+            });
+            
+            // Restore the previous listener if there was one; otherwise return
+            // control to the KeyBindingManager.
             if (_keydownListeners.length > 0) {
                 var previousListener = _keydownListeners[_keydownListeners.length - 1];
                 window.document.body.addEventListener("keydown", previousListener, true);
+            } else {
+                KeyBindingManager.setEnabled(true);
             }
-            KeyBindingManager.setEnabled(true);
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
@@ -201,15 +211,18 @@ define(function (require, exports, module) {
                 primaryBtn.focus();
             }
 
-            // Listen for dialog keyboard shortcuts
-            // if there is already a listener, remove it before adding the current listener
+            // If this is the only dialog then also disable the KeyBindingManager;
+            // otherwise, remove and the previous dialog's listener before installing the new one.
             if (_keydownListeners.length > 0) {
                 var previousListener = _keydownListeners[_keydownListeners.length - 1];
                 window.document.body.removeEventListener("keydown", previousListener, true);
+            } else {
+                KeyBindingManager.setEnabled(false);
             }
             _keydownListeners.push(handleKeyDown);
+            
+            // Handle this dialog's keyboard events with the current listener
             window.document.body.addEventListener("keydown", handleKeyDown, true);
-            KeyBindingManager.setEnabled(false);
         });
         
         // Click handler for buttons
@@ -223,7 +236,7 @@ define(function (require, exports, module) {
         $dlg.modal({
             backdrop: "static",
             show: true,
-            keyboard: false
+            keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
         });
 
         return promise;
