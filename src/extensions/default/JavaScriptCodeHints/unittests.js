@@ -1040,6 +1040,12 @@ define(function (require, exports, module) {
                     expectNoHints(JSCodeHints.jsHintProvider);
                 });
             });
+            
+            it("should sort underscore names to the bottom", function () {
+                testEditor.setCursorPos({ line: 146, ch: 0 });
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                hintsPresentOrdered(hintObj, ["A1", "A2", "A3", "funB", "_A1"]);
+            });
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {

@@ -706,6 +706,75 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("multiFieldSort", function () {
+            var items = [
+                { value: 105, name: "Strawberry" },
+                { value: 51, name: "Grapefruit" },
+                { value: 200, name: "Apple" },
+                { value: 200, name: "_Rutabega" },
+                { value: 199, name: "Apple" },
+                { value: 200, name: "Banana" }
+            ];
+            
+            it("should accept old-style key: priority", function () {
+                // start with a copy of the array
+                var result = items.slice(0);
+                StringMatch.multiFieldSort(result, {
+                    value: 0,
+                    name: 1
+                });
+                expect(result).toEqual([
+                    { value: 51, name: "Grapefruit" },
+                    { value: 105, name: "Strawberry" },
+                    { value: 199, name: "Apple" },
+                    { value: 200, name: "_Rutabega" },
+                    { value: 200, name: "Apple" },
+                    { value: 200, name: "Banana" }
+                ]);
+            });
+            
+            it("should accept array of keys", function () {
+                var result = items.slice(0);
+                StringMatch.multiFieldSort(result, ["value", "name"]);
+                expect(result).toEqual([
+                    { value: 51, name: "Grapefruit" },
+                    { value: 105, name: "Strawberry" },
+                    { value: 199, name: "Apple" },
+                    { value: 200, name: "_Rutabega" },
+                    { value: 200, name: "Apple" },
+                    { value: 200, name: "Banana" }
+                ]);
+            });
+            
+            it("should accept a comparison function", function () {
+                var result = items.slice(0);
+                StringMatch.multiFieldSort(result, ["value", function (a, b) {
+                    var aName = a.name.toLowerCase(), bName = b.name.toLowerCase();
+                    // this sort function will cause _ to sort lower than lower case
+                    // alphabetical letters
+                    if (aName[0] === "_" && bName[0] !== "_") {
+                        return 1;
+                    } else if (bName[0] === "_" && aName[0] !== "_") {
+                        return -1;
+                    }
+                    if (aName < bName) {
+                        return -1;
+                    } else if (aName > bName) {
+                        return 1;
+                    }
+                    return 0;
+                }]);
+                expect(result).toEqual([
+                    { value: 51, name: "Grapefruit" },
+                    { value: 105, name: "Strawberry" },
+                    { value: 199, name: "Apple" },
+                    { value: 200, name: "Apple" },
+                    { value: 200, name: "Banana" },
+                    { value: 200, name: "_Rutabega" }
+                ]);
+            });
+        });
+        
         describe("StringMatcher", function () {
             beforeEach(function () {
                 this.addMatchers({
