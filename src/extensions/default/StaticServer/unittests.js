@@ -382,7 +382,10 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return location && text; }, "waiting for text from server");
+                waitsFor(
+                    function () { return location && text && (logs.length > 0); },
+                    "waiting for text from server and warning in log"
+                );
 
                 runs(function () {
                     expect(logs.length).toBe(1);
