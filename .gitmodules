@@ -25,3 +25,6 @@
 [submodule "src/thirdparty/i18n"]
 	path = src/thirdparty/i18n
 	url = https://github.com/requirejs/i18n.git
+[submodule "src/thirdparty/jstree"]
+	path = src/thirdparty/jstree
+	url = https://github.com:vakata/jstree.git

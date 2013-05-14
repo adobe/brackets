@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     // Load dependent non-module scripts
-    require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
+    require("thirdparty/jstree/jquery.jstree");
 
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
