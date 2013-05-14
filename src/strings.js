@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, window */
+/*global $, define, brackets, window */
 
 /**
  * This file provides the interface to user visible strings in Brackets. Code that needs
@@ -34,11 +34,14 @@ define(function (require, exports, module) {
     "use strict";
     
     var strings         = require("i18n!nls/strings"),
+        urls            = require("i18n!nls/urls"),
+        stringsApp      = require("i18n!nls/strings-app"),
         Global          = require("utils/Global"),
         CollectionUtils = require("utils/CollectionUtils"),
         StringUtils     = require("utils/StringUtils");
 
-    var additionalGlobals = {},
+    // Add URLs as additional globals
+    var additionalGlobals = $.extend({}, urls),
         parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version);
     
     additionalGlobals.APP_NAME      = brackets.metadata.name || strings.APP_NAME;
@@ -57,6 +60,14 @@ define(function (require, exports, module) {
         CollectionUtils.forEach(additionalGlobals, function (item, name) {
             strings[key] = strings[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
         });
+    });
+    
+    // Append or overlay additional, product-specific strings
+    CollectionUtils.forEach(stringsApp, function (value, key) {
+        CollectionUtils.forEach(additionalGlobals, function (item, name) {
+            stringsApp[key] = stringsApp[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
+        });
+        strings[key] = stringsApp[key];
     });
 
     module.exports = strings;

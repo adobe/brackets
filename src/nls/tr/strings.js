@@ -122,12 +122,6 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Versiyon bilgisi alınırken hata",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Sunucudan yeni versiyon bilgisi alınırken hata oluştu. Lütfen internete bağlı olduğunuzdan emin olun ve tekrar deneyin.",
     
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Dili değiştir",
-    "LANGUAGE_MESSAGE"                  : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
-    "LANGUAGE_SUBMIT"                   : "{APP_NAME} Yenile",
-    "LANGUAGE_CANCEL"                   : "İptal",
-
     /**
      * ProjectManager
      */
@@ -217,20 +211,10 @@ define({
     "CMD_PREV_DOC"                        : "Önceki Dosya",
     "CMD_SHOW_IN_TREE"                    : "Dosya Listesinde Göster",
     
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Ayıkla",
-    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} Ekranını Yenile",
-    "CMD_SHOW_DEV_TOOLS"                  : "Geliştirici Araçlarını Göster",
-    "CMD_RUN_UNIT_TESTS"                  : "Testleri Çalıştır",
-    "CMD_JSLINT"                          : "JSLint Aç",
-    "CMD_SHOW_PERF_DATA"                  : "Performans Bilgisini Göster",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Yeni {APP_NAME} Ekranı",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
-    "CMD_SWITCH_LANGUAGE"                 : "Dili Değiştir",
-    "CMD_CHECK_FOR_UPDATE"                : "Yeni Versiyon Kontrol Et",
-
     // Help menu commands
     "HELP_MENU"                           : "Yardım",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
+    "CMD_CHECK_FOR_UPDATE"                : "Yeni Versiyon Kontrol Et",
     "CMD_ABOUT"                           : "{APP_TITLE} Hakkında",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
 
@@ -240,11 +224,6 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
-    "JSLINT_ERRORS"                        : "JSLint Hataları",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Hatası",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Hatası",
-    "JSLINT_NO_ERRORS"                     : "JSLint hatası bulunamadı - Mükemmel!",
-    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor",
     "SEARCH_RESULTS"                       : "Arama sonuçları",
     "OK"                                   : "Tamam",
     "DONT_SAVE"                            : "Kaydetme",
@@ -255,7 +234,6 @@ define({
     "CLOSE_DONT_SAVE"                      : "Kapat (Kaydetme)",
     "RELAUNCH_CHROME"                      : "Chrome'u Tekrar Aç",
     "ABOUT"                                : "Hakkında",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Kapat",
     "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
     "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
@@ -271,5 +249,28 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Ana URL \"{0}\" gibi arama karakterleri bulunduramaz.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Ana URL \"{0}\" gibi karakterler bulunduramaz.",
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Ana URL'yi işlerken bilinmeyen hata"
+    "BASEURL_ERROR_UNKOWN_ERROR"           : "Ana URL'yi işlerken bilinmeyen hata",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                           : "Ayıkla",
+    "CMD_SHOW_DEV_TOOLS"                   : "Geliştirici Araçlarını Göster",
+    "CMD_REFRESH_WINDOW"                   : "{APP_NAME} Ekranını Yenile",
+    "CMD_NEW_BRACKETS_WINDOW"              : "Yeni {APP_NAME} Ekranı",
+    "CMD_SWITCH_LANGUAGE"                  : "Dili Değiştir",
+    "CMD_RUN_UNIT_TESTS"                   : "Testleri Çalıştır",
+    "CMD_SHOW_PERF_DATA"                   : "Performans Bilgisini Göster",
+    
+    "LANGUAGE_TITLE"                       : "Dili değiştir",
+    "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
+    "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
+    "LANGUAGE_CANCEL"                      : "İptal",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                           : "JSLint Aç",
+    "JSLINT_ERRORS"                        : "JSLint Hataları",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Hatası",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Hatası",
+    "JSLINT_NO_ERRORS"                     : "JSLint hatası bulunamadı - Mükemmel!",
+    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor"
 });

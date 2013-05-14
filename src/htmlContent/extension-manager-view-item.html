@@ -1,0 +1,49 @@
+<tr>
+    <td>
+        <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
+        <span class="muted ext-version">{{metadata.version}}</span><br/>
+        {{#authorInfo}}
+            <span class="muted ext-author">
+                    {{Strings.EXTENSION_AUTHOR}}: {{{authorInfo}}}
+            </span><br/>
+        {{/authorInfo}}
+        {{#hasVersionInfo}}
+            <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
+        {{/hasVersionInfo}}
+    </td>
+    <td class="ext-desc">
+        {{^isCompatible}}
+            <div class="alert-message warning">
+                {{#requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
+                {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
+            </div>
+        {{/isCompatible}}
+        {{#metadata.description}}
+            {{metadata.description}}
+        {{/metadata.description}}
+        {{^metadata.description}}
+            <span class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></span>
+        {{/metadata.description}}
+        {{#metadata.keywords.length}}
+            <br/>
+            <span class="ext-keywords">{{Strings.EXTENSION_KEYWORDS}}:
+            {{#metadata.keywords}}
+                {{.}}
+            {{/metadata.keywords}}
+            </span>
+        {{/metadata.keywords.length}}
+    </td>
+    <td>
+        {{#showInstallButton}}
+            <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+                {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
+                {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
+            </button>
+        {{/showInstallButton}}
+        {{#isInstalled}}
+            <button class="btn remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                {{Strings.REMOVE}}
+            </button>
+        {{/isInstalled}}
+    </td>
+</tr>

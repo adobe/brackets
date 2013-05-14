@@ -154,12 +154,26 @@ define(function (require, exports, module) {
         $displayElement.off("contentChanged.scroller-shadow");
     }
     
+    /**
+     * Utility function to replace jQuery.toggleClass when used with the second argument, which needs to be a true boolean for jQuery
+     * @param {!jQueryObject} $domElement The jQueryObject to toggle the Class on
+     * @param {!string} className Class name or names (separated by spaces) to toggle
+     * @param {!boolean} addClass A truthy value to add the class and a falsy value to remove the class
+     */
+    function toggleClass($domElement, className, addClass) {
+        if (addClass) {
+            $domElement.addClass(className);
+        } else {
+            $domElement.removeClass(className);
+        }
+    }
+    
     /** 
      * Within a scrolling DOMElement, creates and positions a styled selection
      * div to align a single selected list item from a ul list element.
      *
      * Assumptions:
-     * - scrollElement is a child of the #file-section div
+     * - scrollerElement is a child of the #sidebar div
      * - ul list element fires a "selectionChanged" event after the
      *   selectedClassName is assigned to a new list item
      * 
@@ -202,8 +216,8 @@ define(function (require, exports, module) {
             
             $selectionTriangle.css("top", triangleTop);
             $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
-            $selectionTriangle.toggleClass("triangle-visible", showTriangle);
-            
+            toggleClass($selectionTriangle, "triangle-visible", showTriangle);
+                
             var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
                 triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
             
@@ -325,6 +339,22 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * HTML formats a file entry name  for display in the sidebar.
+     * @param {!FileEntry} entry File entry to display
+     * @return {string} HTML formatted string
+     */
+    function getFileEntryDisplay(entry) {
+        var name = entry.name,
+            i = name.lastIndexOf(".");
+        
+        if (i >= 0) {
+            name = name.substring(0, i) + "<span class='extension'>" + name.substring(i) + "</span>";
+        }
+        
+        return name;
+    }
+    
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
 
@@ -334,4 +364,6 @@ define(function (require, exports, module) {
     exports.removeScrollerShadow    = removeScrollerShadow;
     exports.sidebarList             = sidebarList;
     exports.scrollElementIntoView   = scrollElementIntoView;
+    exports.getFileEntryDisplay     = getFileEntryDisplay;
+    exports.toggleClass             = toggleClass;
 });

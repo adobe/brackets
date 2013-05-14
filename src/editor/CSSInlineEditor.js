@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         var tagInfo = HTMLUtils.getTagInfo(editor, pos),
             selectorName = "";
         
-        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME || tagInfo.position.tokenType === HTMLUtils.CLOSING_TAG) {
             // Type selector
             selectorName = tagInfo.tagName;
         } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME ||
@@ -95,14 +95,14 @@ define(function (require, exports, module) {
         }
         
         // Only provide CSS editor if the selection is within a single line
-        var sel = hostEditor.getSelection(false);
+        var sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
             return null;
         }
         
         // Always use the selection start for determining selector name. The pos
-        // parameter is usually the selection end.        
-        var selectorName = _getSelectorName(hostEditor, hostEditor.getSelection(false).start);
+        // parameter is usually the selection end.
+        var selectorName = _getSelectorName(hostEditor, sel.start);
         if (selectorName === "") {
             return null;
         }

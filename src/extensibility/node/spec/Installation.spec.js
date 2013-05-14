@@ -43,7 +43,8 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
                                     "extension-test-files"),
     installParent      = path.join(path.dirname(module.filename), "extensions"),
     installDirectory   = path.join(installParent, "good"),
-    disabledDirectory  = path.join(installParent, "disabled");
+    disabledDirectory  = path.join(installParent, "disabled"),
+    systemExtensionDirectory = path.join(installParent, "system");
 
 var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.zip"),
     basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
@@ -57,6 +58,7 @@ describe("Package Installation", function () {
     
     var standardOptions = {
         disabledDirectory: disabledDirectory,
+        systemExtensionDirectory: systemExtensionDirectory,
         apiVersion: "0.22.0"
     };
     
@@ -230,6 +232,18 @@ describe("Package Installation", function () {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(1);
             done();
+        });
+    });
+    
+    it("should remove an installed package", function (done) {
+        ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
+            expect(err).toBeNull();
+            expect(fs.existsSync(result.installedTo)).toBe(true);
+            ExtensionsDomain._cmdRemove(result.installedTo, function (err) {
+                expect(err).toBeNull();
+                expect(fs.existsSync(result.installedTo)).toBe(false);
+                done();
+            });
         });
     });
 });

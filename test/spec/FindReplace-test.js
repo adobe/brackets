@@ -81,7 +81,8 @@ define(function (require, exports, module) {
         }
         
         beforeEach(function () {
-            $myToolbar = $("<div id='main-toolbar'/>").appendTo(window.document.body);
+            // Dummy version of anchor that ModalBar inserts itself relative to. Must exist in DOM somewhere.
+            $myToolbar = $("<div id='editor-holder'/>").appendTo(window.document.body);
         });
         
         afterEach(function () {
@@ -118,7 +119,7 @@ define(function (require, exports, module) {
             
             // Verify that editor UI doesn't have extra ranges left highlighted from earlier
             // (note: this only works for text that's short enough to not get virtualized)
-            var lineDiv = $(".CodeMirror-lines > div").children()[2];
+            var lineDiv = $(".CodeMirror-lines > div", myEditor.getRootElement()).children()[2];
             var actualHighlights = $(".CodeMirror-searching", lineDiv);
             if (expectedDOMHighlightCount === undefined) {
                 expectedDOMHighlightCount = selections.length;

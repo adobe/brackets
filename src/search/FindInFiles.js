@@ -63,6 +63,9 @@ define(function (require, exports, module) {
         currentQuery = "",
         currentScope;
     
+    // Div holding the search results. Initialized in htmlReady().
+    var $searchResultsDiv;
+    
     function _getQueryRegExp(query) {
         // Clear any pending RegEx error message
         $(".modal-bar .message").css("display", "inline-block");
@@ -101,8 +104,12 @@ define(function (require, exports, module) {
     function _labelForScope(scope) {
         var projName = ProjectManager.getProjectRoot().name;
         if (scope) {
-            var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(scope.fullPath));
-            return StringUtils.format(Strings.FIND_IN_FILES_SCOPED, displayPath);
+            return StringUtils.format(
+                Strings.FIND_IN_FILES_SCOPED,
+                StringUtils.breakableUrl(
+                    ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
+                )
+            );
         } else {
             return Strings.FIND_IN_FILES_NO_SCOPE;
         }
@@ -183,7 +190,13 @@ define(function (require, exports, module) {
         
         return this.result.promise();
     };
-
+    
+    function _hideSearchResults() {
+        if ($searchResultsDiv.is(":visible")) {
+            $searchResultsDiv.hide();
+            EditorManager.resizeEditor();
+        }
+    }
 
     function _getSearchMatches(contents, queryExpr) {
         // Quick exit if not found
@@ -227,8 +240,6 @@ define(function (require, exports, module) {
     }
         
     function _showSearchResults(searchResults, query, scope) {
-        var $searchResultsDiv = $("#search-results");
-        
         if (searchResults && searchResults.length) {
             var $resultTable = $("<table class='zebra-striped condensed-table' />")
                                 .append("<tbody>");
@@ -278,8 +289,11 @@ define(function (require, exports, module) {
                     };
                     
                     // Add row for file name
-                    var displayFileName = StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH,
-                                                             StringUtils.breakableUrl(esc(item.fullPath)));
+                    var displayFileName = StringUtils.format(
+                        Strings.FIND_IN_FILES_FILE_PATH,
+                        StringUtils.breakableUrl(item.fullPath)
+                    );
+
                     $("<tr class='file-section' />")
                         .append("<td colspan='3'><span class='disclosure-triangle expanded'></span>" + displayFileName + "</td>")
                         .click(function () {
@@ -322,13 +336,12 @@ define(function (require, exports, module) {
             
             $("#search-results .close")
                 .one("click", function () {
-                    $searchResultsDiv.hide();
-                    EditorManager.resizeEditor();
+                    _hideSearchResults();
                 });
             
             $searchResultsDiv.show();
         } else {
-            $searchResultsDiv.hide();
+            _hideSearchResults();
         }
         
         EditorManager.resizeEditor();
@@ -434,15 +447,13 @@ define(function (require, exports, module) {
         doFindInFiles(selectedEntry);
     }
     
-    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var $searchResults  = $("#search-results"),
-            $searchContent  = $("#search-results .table-container");
+        $searchResultsDiv  = $("#search-results");
     });
 
     function _fileNameChangeHandler(event, oldName, newName) {
-        if ($("#search-results").is(":visible")) {
+        if ($searchResultsDiv.is(":visible")) {
             // Update the search results
             searchResults.forEach(function (item) {
                 item.fullPath = item.fullPath.replace(oldName, newName);
@@ -452,6 +463,7 @@ define(function (require, exports, module) {
     }
     
     $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
+    $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, doFindInSubtree);
