@@ -104,7 +104,8 @@ a, img {
 }
 
 #titlebar, .modal-bar {
-    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    border-bottom: 1px solid @tc-gray-panel-border;
+    box-shadow: @tc-small-shadow-bottom;
     
     // Make sure the bottom box-shadow goes above the editor (position: relative needed to start a new stacking group)
     position: relative;
@@ -324,7 +325,7 @@ a, img {
     }
 }
 
-#toolbar-add-extension {
+#toolbar-extension-manager {
     .sprite-icon-retina(-2px, 0, 20px, 12px, "images/add_extension_sprites.png", 38px, 12px, "images/add_extension_sprites@2x.png");
     margin-left: 1px !important;
     &:hover {
@@ -454,10 +455,6 @@ a, img {
     ul {
         padding-left: 8px;
     }
-}
-
-#editor-holder .scroller-shadow {
-    width: 100%;
 }
 
 .scroller-shadow {
@@ -713,8 +710,8 @@ a, img {
     
     font-family: @fontstack-sans-serif;
     font-size: 13px;
-    color: @content-color;
-    background: #eee;
+    color: @tc-text;
+    background: @tc-gray-panel;
     padding: 5px 4px 4px 14px;
     overflow: hidden;
     
@@ -726,14 +723,12 @@ a, img {
 
 .modal-bar input {
     font-family: @fontstack-sans-serif;
-    border: 1px solid @content-color-weaker;
     outline: none;
-    background: @background-color-3;
     width: 20em;
     margin: .3em .3em;
-    color: inherit;
     &.no-results {
-        background-color: mix(@background-color-3, #FF0000, 70%);
+        border: 1px solid #bc0023;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);        
     }
 }
 
@@ -774,39 +769,51 @@ a, img {
 
 .smart_autocomplete_container {
     
-    border: 1px solid #999;
-    background-color: #FFFFFF;
+    // the borders show up even if the container is empty, must set height to zero using JS.
+    border: 1px solid @tc-gray-panel-border;
+    
+    background-color: @tc-gray-panel;
+    border-radius: 0 0 4px 4px;
+    box-shadow: @tc-normal-shadow-bottom;
+    
+    // so that border won't show when height is 0.
+    box-sizing: border-box; 
+    
+    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
+    width: 400px !important;  
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
-    padding: 0px 8px 0px 0px;
-    margin: 9px 0px 0px 0px;
+    padding: 0px;
+    margin: 9px 0 0;
 
     .quick-open-path {
+        color: #666;
         font-size: 11px;
-        color: gray;
+        letter-spacing: 0.04em;
+        line-height: 11px;
     }
 
     li {
-        color: black;
-        border-bottom: 1px solid;
+        color: #222;
+        line-height: 15px;
         list-style: none;
         cursor: default;
-        padding: 0px 2px 0px 4px;
+        padding: 6px 10px;
+    }
+    
+    li:nth-child(odd) {
+        background-color: #e6e9e9;
+    }
+    
+    li.smart_autocomplete_highlight {
+        background-color: @tc-highlight;
     }
 }
 
-li.smart_autocomplete_highlight {
-    background-color: #e0f0fa;
-}
-
-.quicksearch-pathmatch {
-    font-weight: bold;
-    color: #555;
-}
-
+.quicksearch-pathmatch,
 .quicksearch-namematch {
-    font-weight: bold;
+    font-weight: @font-weight-semibold;
 }
 
 

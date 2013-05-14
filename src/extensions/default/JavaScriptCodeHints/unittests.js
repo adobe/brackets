@@ -27,7 +27,9 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Editor              = brackets.getModule("editor/Editor").Editor,
+    var Commands            = brackets.getModule("command/Commands"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
+        Editor              = brackets.getModule("editor/Editor").Editor,
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
@@ -36,11 +38,17 @@ define(function (require, exports, module) {
         JSCodeHints         = require("main");
 
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
-        testPath        = extensionPath + "/test/file1.js",
-        testHtmlPath    = extensionPath + "/test/index.html",
+        testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
+        testHtmlPath    = extensionPath + "/unittest-files/basic-test-files/index.html",
         testDoc         = null,
         testEditor;
 
+    CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
+        // Register a command for FILE_OPEN, which the jump to def code will call
+        return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
+            DocumentManager.setCurrentDocument(doc);
+        });
+    });
     /**
      * Returns an Editor suitable for use in isolation, given a Document. (Unlike
      * SpecRunnerUtils.createMockEditor(), which is given text and creates the Document
@@ -57,6 +65,8 @@ define(function (require, exports, module) {
         
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0));
+
+        EditorManager._notifyActiveEditorChanged(editor);
         
         return editor;
     }
@@ -95,7 +105,7 @@ define(function (require, exports, module) {
             if (key === undefined) {
                 key = null;
             }
-            
+
             expect(provider.hasHints(testEditor, key)).toBe(false);
         }
 
@@ -142,7 +152,7 @@ define(function (require, exports, module) {
                     hintList = obj.hints;
                 });
             }
-            
+
             waitsFor(function () {
                 return complete;
             }, "Expected hints did not resolve", 3000);
@@ -289,21 +299,24 @@ define(function (require, exports, module) {
          * @param {Function} callback - the callback to apply once the editor has changed position
          */
         function _waitForJump(oldLocation, callback) {
+            var cursor = null;
             waitsFor(function () {
-                var cursor = testEditor.getCursorPos();
+                var activeEditor = EditorManager.getActiveEditor();
+                cursor = activeEditor.getCursorPos();
                 return (cursor.line !== oldLocation.line) ||
                         (cursor.ch !== oldLocation.ch);
             }, "Expected jump did not occur", 3000);
 
-            runs(function () { callback(testEditor.getCursorPos()); });
+            runs(function () { callback(cursor); });
         }
         
         /**
          * Trigger a jump to definition, and verify that the editor jumped to 
          * the expected location.
          *
-         * @param {{line:number, ch:number}} expectedLocation - the location the editor should
-         *      jump to.
+         * @param {{line:number, ch:number, file:string}} expectedLocation - the 
+         *  line, column, and optionally the new file the editor should jump to.  If the
+         *  editor is expected to stay in the same file, then file may be omitted.  
          */
         function editorJumped(expectedLocation) {
             var oldLocation = testEditor.getCursorPos();
@@ -314,36 +327,48 @@ define(function (require, exports, module) {
             _waitForJump(oldLocation, function (newCursor) {
                 expect(newCursor.line).toBe(expectedLocation.line);
                 expect(newCursor.ch).toBe(expectedLocation.ch);
+                if (expectedLocation.file) {
+                    var activeEditor = EditorManager.getActiveEditor();
+                    expect(activeEditor.document.file.name).toBe(expectedLocation.file);
+                }
             });
             
         }
-        
-        describe("JavaScript Code Hinting", function () {
-   
+
+        function setupTest(path, primePump) {
+            DocumentManager.getDocumentForPath(path).done(function (doc) {
+                testDoc = doc;
+            });
+
+            waitsFor(function () {
+                return testDoc !== null;
+            }, "Unable to open test document", 10000);
+
+            // create Editor instance (containing a CodeMirror instance)
+            runs(function () {
+                testEditor = createMockEditor(testDoc);
+                JSCodeHints.initializeSession(testEditor, primePump);
+            });
+        }
+
+        function tearDownTest() {
+            // The following call ensures that the document is reloaded
+            // from disk before each test
+            DocumentManager.closeAll();
+
+            SpecRunnerUtils.destroyMockEditor(testDoc);
+            testEditor = null;
+            testDoc = null;
+        }
+
+        describe("JavaScript Code Hinting Basic", function () {
+
             beforeEach(function () {
-                
-                DocumentManager.getDocumentForPath(testPath).done(function (doc) {
-                    testDoc = doc;
-                });
-                waitsFor(function () {
-                    return testDoc !== null;
-                }, "Unable to open test document", 10000);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                runs(function () {
-                    testEditor = createMockEditor(testDoc);
-                    JSCodeHints.initializeSession(testEditor, false);
-                });
+                setupTest(testPath, false);
             });
             
             afterEach(function () {
-                // The following call ensures that the document is reloaded 
-                // from disk before each test
-                DocumentManager.closeAll();
-                
-                SpecRunnerUtils.destroyMockEditor(testDoc);
-                testEditor = null;
-                testDoc = null;
+                tearDownTest();
             });
             
             it("should list declared variable and function names in outer scope", function () {
@@ -972,13 +997,12 @@ define(function (require, exports, module) {
                 });
             });
             
-            // bug: the issue: timeout due to file.open command not found
-            xit("should jump to the definition in new module file", function () {
-                var start = { line: 38, ch: 21 };
+            it("should jump to the definition in new module file", function () {
+                var start = { line: 40, ch: 22 };
                 
                 testEditor.setCursorPos(start);
                 runs(function () {
-                    editorJumped({line: 4, ch: 34}); //jump to another file
+                    editorJumped({line: 4, ch: 34, file: "MyModule.js"}); //jump to another file
                 });
             });
             
@@ -1037,30 +1061,11 @@ define(function (require, exports, module) {
         describe("JavaScript Code Hinting in a HTML file", function () {
    
             beforeEach(function () {
-                
-                DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
-                    testDoc = doc;
-                });
-                
-                waitsFor(function () {
-                    return testDoc !== null;
-                }, "Unable to open test document", 10000);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                runs(function () {
-                    testEditor = createMockEditor(testDoc);
-                    JSCodeHints.initializeSession(testEditor, false);
-                });
+                setupTest(testHtmlPath, false);
             });
             
             afterEach(function () {
-                // The following call ensures that the document is reloaded 
-                // from disk before each test
-                DocumentManager.closeAll();
-                
-                SpecRunnerUtils.destroyMockEditor(testDoc);
-                testEditor = null;
-                testDoc = null;
+                tearDownTest();
             });
 
             it("basic codehints in html file", function () {
@@ -1094,5 +1099,31 @@ define(function (require, exports, module) {
                 });
             });
         });
+
+        describe("JavaScript Code Hinting without modules", function () {
+            var testPath = extensionPath + "/unittest-files/non-module-test-files/app.js";
+
+            beforeEach(function () {
+                setupTest(testPath, true);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            // Test reading multiple files and subdirectories
+            it("should handle reading all files when modules not used", function () {
+                var start = { line: 8, ch: 8 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    runs(function () {
+                        hintsPresentExact(hintObj, ["a", "b", "b1", "c", "d"]);
+                    });
+                });
+            });
+        });
+ 
     });
 });
