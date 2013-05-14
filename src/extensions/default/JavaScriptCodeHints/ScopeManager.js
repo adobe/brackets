@@ -57,6 +57,8 @@ define(function (require, exports, module) {
         numResolvedFiles    = 0,
         numAddedFiles       = 0,
         stopAddingFiles     = false,
+        excludedFilesString = "require\\.js$|jquery-[\\d]\\.[\\d]\\.js$|\\.min\\.js$",
+        excludedFilesRegEx  = new RegExp(excludedFilesString),
         _ternWorker         = (function () {
             var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
             return new Worker(path);
@@ -248,8 +250,11 @@ define(function (require, exports, module) {
          * @param path - full path of file.
          */
         function fileCallback(path) {
-            files.push(path);
+            if (!excludedFilesRegEx.test(path)) {
+                files.push(path);
+            }
         }
+
         forEachFileInDirectory(dir, doneCallback, fileCallback, null, errorCallback);
     }
 
@@ -264,9 +269,7 @@ define(function (require, exports, module) {
      */
     function addAllFilesAndSubdirectories(dir, doneCallback) {
 
-        var numDirectoriesLeft = 1,        // number of directories to process
-            excludedFilesString = "require\\.js$|jquery-[\\d]\\.[\\d]\\.js$|\\.min\\.js$",
-            excludedFilesRegEx  = new RegExp(excludedFilesString);
+        var numDirectoriesLeft = 1;        // number of directories to process
 
         /**
          *  Add the files in the directory and subdirectories of a given directory
