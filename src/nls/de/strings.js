@@ -134,45 +134,17 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
-    
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Sprache wechseln",
-    "LANGUAGE_MESSAGE"                  : "Sprache:",
-    "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
-    "LANGUAGE_CANCEL"                   : "Abbrechen",
-    "LANGUAGE_SYSTEM_DEFAULT"           : "Systemstandard",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_DE"                         : "Deutsch",
-    "LOCALE_EN"                         : "Englisch",
-    "LOCALE_FR"                         : "Französisch",
-    "LOCALE_CS"                         : "Tschechisch",
-    "LOCALE_ES"                         : "Spanisch",
-    "LOCALE_IT"                         : "Italienisch",
-    "LOCALE_JA"                         : "Japanisch",
-    "LOCALE_NB"                         : "Norwegisch",
-    "LOCALE_PL"                         : "Polnisch",
-    "LOCALE_PT_BR"                      : "Portugiesisch, Brasilien",
-    "LOCALE_PT_PT"                      : "Portugiesisch",
-    "LOCALE_RU"                         : "Russisch",
-    "LOCALE_SV"                         : "Schwedisch",
-    "LOCALE_TR"                         : "Türkisch",
-    "LOCALE_ZH_CN"                      : "Chinesisch, vereinfacht",
 
     /**
      * ProjectManager
      */
-
-    "PROJECT_LOADING"   : "Lädt\u2026",
-    "UNTITLED"          : "Unbenannt",
-    "WORKING_FILES"     : "Offene Dateien",
+    "PROJECT_LOADING"  : "Lädt\u2026",
+    "UNTITLED"         : "Unbenannt",
+    "WORKING_FILES"    : "Offene Dateien",
 
     /**
      * Keyboard modifier names
      */
-
     "KEYBOARD_CTRL"   : "Strg",
     "KEYBOARD_SHIFT"  : "Umschalt",
     "KEYBOARD_SPACE"  : "Leer",
@@ -264,8 +236,6 @@ define({
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Definition schnell finden",
-    "CMD_JUMPTO_DEFINITION"               : "Springe zur Definition",
-    "CMD_JSLINT_FIRST_ERROR"              : "Gehe zu erstem JSLint-Fehler",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
@@ -273,20 +243,6 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
-    
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} neu laden",
-    "CMD_SHOW_DEV_TOOLS"                  : "Entwicklungswerkzeuge zeigen",
-    "CMD_RUN_UNIT_TESTS"                  : "Tests durchführen",
-    "CMD_JSLINT"                          : "JSLint aktivieren",
-    "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
-    "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Node-Debugger aktivieren",
-    "CMD_LOG_NODE_STATE"                  : "Node-Status in Konsole anzeigen",
-    "CMD_RESTART_NODE"                    : "Node neu starten",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
@@ -295,6 +251,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
     "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
 
@@ -318,11 +275,11 @@ define({
     "ABOUT"                                : "Über",
     "CLOSE"                                : "Schließen",
     "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
+    "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"{ADOBE_THIRD_PARTY}\">{ADOBE_THIRD_PARTY}</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Gemacht mit \u2764 und JavaScript von:",
     "ABOUT_TEXT_LINE6"                     : "…vielen Leuten (…leider haben wir aber gerade Probleme, diese Daten zu laden).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform-Dokumente und das grafische Logo von Web Platform sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform-Dokumente und das grafische Logo von Web Platform sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a class=\"clickable-link\" data-href=\"{WEB_PLATFORM_DOCS_LICENSE}\">CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
@@ -337,6 +294,9 @@ define({
     "BASEURL_ERROR_UNKOWN_ERROR"           : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
 
     // Extension Management strings
+    "INSTALL"                              : "Installieren",
+    "REMOVE"                               : "Entfernen",
+    "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
     "INSTALL_EXTENSION_HINT"               : "URL der Erweiterungs-ZIP-Datei oder GitHub-Repo",
@@ -368,7 +328,7 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut probieren.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut versuchen.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
@@ -380,17 +340,55 @@ define({
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
     "EXTENSION_MORE_INFO_LINK"             : "Mehr",
     "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
+    "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {{0}}",
+    "QUIT_BRACKETS_AFTER_REMOVAL"          : "Nach dem Entfernen von Erweiterungen müssen Sie {APP_NAME} beenden und neu starten. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
+    "QUIT_BRACKETS"                        : "Brackets beenden",
+    "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {{0}} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     
-    // extensions/default/QuickView 
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
+    /**
+     * Unit names
+     */
 
-    // extensions/default/JSLint
-    "JSLINT_ERRORS"                        : "JSLint-Fehler",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint-Fehler",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint-Fehler",
-    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
-    "JSLINT_DISABLED"                      : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
-
+    "UNIT_PIXELS"                          : "Pixel",
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                                : "Debug",
+    "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
+    "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
+    "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
+    "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
+    "CMD_SHOW_PERF_DATA"                        : "Performance-Analyse",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
+    "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
+    "CMD_RESTART_NODE"                          : "Node neu starten",
+    
+    "LANGUAGE_TITLE"                            : "Sprache wechseln",
+    "LANGUAGE_MESSAGE"                          : "Sprache:",
+    "LANGUAGE_SUBMIT"                           : "{APP_NAME} neu starten",
+    "LANGUAGE_CANCEL"                           : "Abbrechen",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                                 : "Deutsch",
+    "LOCALE_EN"                                 : "Englisch",
+    "LOCALE_FR"                                 : "Französisch",
+    "LOCALE_CS"                                 : "Tschechisch",
+    "LOCALE_ES"                                 : "Spanisch",
+    "LOCALE_IT"                                 : "Italienisch",
+    "LOCALE_JA"                                 : "Japanisch",
+    "LOCALE_NB"                                 : "Norwegisch",
+    "LOCALE_PL"                                 : "Polnisch",
+    "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
+    "LOCALE_PT_PT"                              : "Portugiesisch",
+    "LOCALE_RU"                                 : "Russisch",
+    "LOCALE_SV"                                 : "Schwedisch",
+    "LOCALE_TR"                                 : "Türkisch",
+    "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
+    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original-Farbe",
@@ -399,7 +397,22 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} Mal verwendet)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} Mal verwendet)",
+    
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                                : "JSLint aktivieren",
+    "CMD_JSLINT_FIRST_ERROR"                    : "Gehe zu erstem JSLint-Fehler",
+    "JSLINT_ERRORS"                             : "JSLint-Fehler",
+    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint-Fehler",
+    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                          : "Keine JSLint-Fehler – gute Arbeit!",
+    "JSLINT_DISABLED"                           : "JSLint ist deaktiviert oder funktioniert nicht für die aktuelle Datei",
 
+    // extensions/default/QuickView 
+    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
+    
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
