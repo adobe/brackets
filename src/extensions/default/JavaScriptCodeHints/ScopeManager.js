@@ -232,7 +232,7 @@ define(function (require, exports, module) {
      * @param {function(Array.<string>)} successCallback - callback with
      * array of file path names.
      */
-    function getFilesInDirectory(dir, successCallback) {
+    function getFilesInDirectory(dir, successCallback, errorCallback) {
         var files = []; // file names without paths.
 
         /**
@@ -250,8 +250,7 @@ define(function (require, exports, module) {
         function fileCallback(path) {
             files.push(path);
         }
-
-        forEachFileInDirectory(dir, doneCallback, fileCallback);
+        forEachFileInDirectory(dir, doneCallback, fileCallback, null, errorCallback);
     }
 
     /**
@@ -781,6 +780,8 @@ define(function (require, exports, module) {
                 addFilesDeferred.resolveWith(null, [_ternWorker]);
             }
 
+        }, function () {
+            addFilesDeferred.resolveWith(null);
         });
     }
 
