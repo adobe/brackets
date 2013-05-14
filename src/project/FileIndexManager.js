@@ -61,6 +61,7 @@ define(function (require, exports, module) {
     /**
      * Store whether the index manager has exceeded the limit so the warning dialog only
      * appears once.
+     * @type {boolean}
      */
     var _maxFileDialogDisplayed = false;
 
@@ -224,11 +225,12 @@ define(function (require, exports, module) {
                         if (state.fileCount > 10000) {
                             if (!state.maxFilesHit) {
                                 state.maxFilesHit = true;
-                                if (_maxFileDialogDisplayed === false) {
+                                if (!_maxFileDialogDisplayed) {
                                     _showMaxFilesDialog();
                                     _maxFileDialogDisplayed = true;
                                 } else {
-                                    console.log("Maximum files index limit exceeded " + state.fileCount);
+                                    console.warn("The maximum number of files have been indexed. Actions " +
+                                                 "that lookup files in the index may function incorrectly.");
                                 }
                             }
                             return;
@@ -407,11 +409,20 @@ define(function (require, exports, module) {
             return PathUtils.filenameExtension(filename) === ".css";
         }
     );
-    
-    $(ProjectManager).on("projectOpen projectFilesChange", function (event, projectRoot) {
+
+    /**
+     * When a new project is opened set the flag for index exceeding maximum
+     * warning back to false. 
+     */
+    $(ProjectManager).on("projectOpen", function (event, projectRoot) {
+        _maxFileDialogDisplayed = false;
         markDirty();
     });
     
+    $(ProjectManager).on("projectFilesChange", function (event, projectRoot) {
+        markDirty();
+    });
+
     PerfUtils.createPerfMeasurement("FILE_INDEX_MANAGER_SYNC", "syncFileIndex");
 
     exports.markDirty = markDirty;
