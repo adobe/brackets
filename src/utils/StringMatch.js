@@ -324,26 +324,75 @@ define(function (require, exports, module) {
             return false;
         }
         
+        var contiguousCount = 0;
+        
+        // This function peeks back through the results to see how many contiguous
+        // characters the user has typed. It's possbile that those characters will
+        // cross the SpecialMatch/NormalMatch boundaries. In other words, it's
+        // possible that we jumped ahead to the next special character to find a match
+        // when in reality that was the next character.
+        function _computeContiguousCount() {
+            var count = 1;
+            if (result.length === 1) {
+                if (strCounter - 1 !== result[0].index) {
+                    count = 0;
+                }
+                return count;
+            }
+            
+            var i = result.length - 1;
+            var lastMatch = result[i].index;
+            for (--i; i >= 0; i--) {
+                if (result[i].index !== lastMatch - 1) {
+                    break;
+                }
+                count++;
+            }
+            return count;
+        }
+        
         while (true) {
             
             // keep looping until we've either exhausted the query or the string
             while (queryCounter < query.length && strCounter < str.length && strCounter <= deadBranches[queryCounter]) {
-                if (state === SPECIALS_MATCH) {
-                    if (!findMatchingSpecial()) {
-                        state = ANY_MATCH;
+                
+                // If the user has already typed two characters in a row that match,
+                // try to keep it going.
+                if (contiguousCount > 1) {
+                    if (query[queryCounter] === str[strCounter]) {
+                        contiguousCount++;
+                        queryCounter++;
+                        if (specials.indexOf(strCounter) > -1) {
+                            result.push(new SpecialMatch(strCounter++));
+                        } else {
+                            result.push(new NormalMatch(strCounter++));
+                        }
+                    } else {
+                        contiguousCount = 0;
                     }
                 }
                 
-                if (state === ANY_MATCH) {
-                    // we look character by character for matches
-                    if (query[queryCounter] === str[strCounter]) {
-                        // got a match! record it, and switch back to searching specials
-                        queryCounter++;
-                        result.push(new NormalMatch(strCounter++));
-                        state = SPECIALS_MATCH;
-                    } else {
-                        // no match, keep looking
-                        strCounter++;
+                if (contiguousCount < 2) {
+                    if (state === SPECIALS_MATCH) {
+                        if (!findMatchingSpecial()) {
+                            state = ANY_MATCH;
+                        } else {
+                            contiguousCount = _computeContiguousCount();
+                        }
+                    }
+                    
+                    if (state === ANY_MATCH) {
+                        // we look character by character for matches
+                        if (query[queryCounter] === str[strCounter]) {
+                            // got a match! record it, and switch back to searching specials
+                            queryCounter++;
+                            result.push(new NormalMatch(strCounter++));
+                            state = SPECIALS_MATCH;
+                            contiguousCount = _computeContiguousCount();
+                        } else {
+                            // no match, keep looking
+                            strCounter++;
+                        }
                     }
                 }
             }

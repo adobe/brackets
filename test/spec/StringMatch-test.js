@@ -93,10 +93,10 @@ define(function (require, exports, module) {
                 expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14)]);
                 
                 result = generateMatchList("doc", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
-                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new SpecialMatch(21)]);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new NormalMatch(15)]);
                 
                 result = generateMatchList("doch", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
-                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new SpecialMatch(21), new SpecialMatch(28)]);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new NormalMatch(15), new SpecialMatch(28)]);
             });
             
             it("should handle contiguous matches that stand alone", function () {
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
                 expect(result).toEqual([new SpecialMatch(0), new NormalMatch(11)]);
                 
                 result = generateMatchList("mamo", btpath, btspecials.specials, 0);
-                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new SpecialMatch(4), new NormalMatch(9)]);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new NormalMatch(2), new NormalMatch(3)]);
                 
                 btpath = "AbcdefzBcdefCdefDefEfF";
                 btspecials = fSC(btpath);
@@ -154,7 +154,19 @@ define(function (require, exports, module) {
                     new NormalMatch(12), new NormalMatch(13), new SpecialMatch(14)
                 ]);
             });
+            
+            it("should prefer contiguous matches after a point", function () {
+                var str = "MultiRangeInlineEditor.js";
+                var strSpecials = fSC(str);
+                str = str.toLowerCase();
+                var result = generateMatchList("multir", str, strSpecials.specials, 0);
                 
+                str = "MultiRangeInlineEditor-test.js";
+                strSpecials = fSC(str);
+                str = str.toLowerCase();
+                var result2 = generateMatchList("multir", str, strSpecials.specials, 0);
+                expect(result).toEqual(result2);
+            });
         });
         
         describe("_computeRangesAndScore", function () {
@@ -224,7 +236,7 @@ define(function (require, exports, module) {
                     matchList: [
                         new SpecialMatch(13),
                         new NormalMatch(14),
-                        new SpecialMatch(21)
+                        new NormalMatch(15)
                     ]
                 });
                 
@@ -291,7 +303,7 @@ define(function (require, exports, module) {
                     matchList: [
                         new SpecialMatch(13),
                         new NormalMatch(14),
-                        new SpecialMatch(21)
+                        new NormalMatch(15)
                     ]
                 });
             });
@@ -319,13 +331,13 @@ define(function (require, exports, module) {
                     new SpecialMatch(0),
                     new SpecialMatch(13),
                     new NormalMatch(14),
-                    new SpecialMatch(21)
+                    new NormalMatch(15)
                 ]);
                 
                 expect(wholeStringSearch("doc", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(13),
                     new NormalMatch(14),
-                    new SpecialMatch(21)
+                    new NormalMatch(15)
                 ]);
                 
                 expect(wholeStringSearch("z", comparePath, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual(null);
@@ -336,7 +348,7 @@ define(function (require, exports, module) {
                     new NormalMatch(6),
                     new SpecialMatch(13),
                     new NormalMatch(14),
-                    new SpecialMatch(21)
+                    new NormalMatch(15)
                 ]);
                 
                 // test for a suspected bug where specials are matched out of order.
