@@ -42,11 +42,28 @@ define(function (require, exports, module) {
             TEST_MENU_ID = "test",
             TEST_MENU_ITEM = "Item 1",
             TEST_MENU_ITEM_ID = "item1";
+
+        var PLACEHOLDER_MENU_ID = "placeholder";
         
         it("should have a brackets.app namespace", function () {
+            var complete = false,
+                error = 0;
+            
             expect(brackets.app).toBeTruthy();
+            
+            // Add an empty native menu so the menu bar doesn't keep flashing
+            runs(function () {
+                brackets.app.addMenu("MENU", PLACEHOLDER_MENU_ID, "", "", function (err) {
+                    complete = true;
+                    error = err;
+                });
+            });
+            
+            waitsFor(function () { return complete; });
+            
+            expect(error).toBe(0);
         });
-    
+
         describe("addMenu", function () {
         
             it("should add a menu", function () {
@@ -1623,5 +1640,20 @@ define(function (require, exports, module) {
             });
         });
         
+        it("should remove placeholder menu", function () {
+            var complete = false,
+                error = 0;
+            
+            runs(function () {
+                brackets.app.removeMenu(PLACEHOLDER_MENU_ID, function (err) {
+                    complete = true;
+                    error = err;
+                });
+            });
+            
+            waitsFor(function () { return complete; });
+            
+            expect(error).toBe(0);
+        });
     }); // describe("Native Menus")
 });
