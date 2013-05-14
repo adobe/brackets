@@ -347,7 +347,6 @@ define(function (require, exports, module) {
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
                 testEditor = createMockEditor(testDoc);
-                JSCodeHints.initializeSession(testEditor, primePump);
             });
         }
 
