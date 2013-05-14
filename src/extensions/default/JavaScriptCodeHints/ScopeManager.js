@@ -232,7 +232,7 @@ define(function (require, exports, module) {
      * @param {function(Array.<string>)} successCallback - callback with
      * array of file path names.
      */
-    function getFilesInDirectory(dir, successCallback) {
+    function getFilesInDirectory(dir, successCallback, errorCallback) {
         var files = []; // file names without paths.
 
         /**
@@ -250,8 +250,7 @@ define(function (require, exports, module) {
         function fileCallback(path) {
             files.push(path);
         }
-
-        forEachFileInDirectory(dir, doneCallback, fileCallback);
+        forEachFileInDirectory(dir, doneCallback, fileCallback, null, errorCallback);
     }
 
     /**
@@ -716,14 +715,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Called each time a new editor becomes active. Refreshes the outer scopes
-     * of the given file as well as of the other files in the given directory.
+     *  Do the work to initialize a code hinting session.
      *
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
      * @param {boolean} shouldPrimePump - true if the pump should be primed.
      */
-    function handleEditorChange(session, document, shouldPrimePump) {
+    function doEditorChange(session, document, shouldPrimePump) {
         var path        = document.file.fullPath,
             split       = HintUtils.splitPath(path),
             dir         = split.dir,
@@ -782,7 +780,26 @@ define(function (require, exports, module) {
                 addFilesDeferred.resolveWith(null, [_ternWorker]);
             }
 
+        }, function () {
+            addFilesDeferred.resolveWith(null);
         });
+    }
+
+    /**
+     * Called each time a new editor becomes active.
+     *
+     * @param {Session} session - the active hinting session
+     * @param {Document} document - the document of the editor that has changed
+     * @param {boolean} shouldPrimePump - true if the pump should be primed.
+     */
+    function handleEditorChange(session, document, shouldPrimePump) {
+        if (addFilesPromise === null) {
+            doEditorChange(session, document, shouldPrimePump);
+        } else {
+            addFilesPromise.done(function () {
+                doEditorChange(session, document, shouldPrimePump);
+            });
+        }
     }
 
     _ternWorker.addEventListener("message", function (e) {

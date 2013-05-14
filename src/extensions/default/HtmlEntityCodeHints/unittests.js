@@ -39,8 +39,14 @@ define(function (require, exports, module) {
         
         var testEditorAndDoc,
             hintProvider = new HTMLEntityHints();
-        
-        testEditorAndDoc = SpecRunnerUtils.createMockEditor(defaultContent, "html");
+
+        beforeEach(function () {
+            testEditorAndDoc = SpecRunnerUtils.createMockEditor(defaultContent, "html");
+        });
+
+        afterEach(function () {
+            SpecRunnerUtils.destroyMockEditor(testEditorAndDoc.doc);
+        });
         
         // Ask provider for hints at current cursor position; expect it to return some
         function expectHints(provider) {
@@ -134,9 +140,6 @@ define(function (require, exports, module) {
         });
         
         describe("Inserting Tests", function () {
-            beforeEach(function () {
-                testEditorAndDoc = SpecRunnerUtils.createMockEditor(defaultContent, "html");
-            });
             
             it("should replace entity with hint if inside entity", function () {
                 testEditorAndDoc.editor.setCursorPos({line: 17, ch: 19});

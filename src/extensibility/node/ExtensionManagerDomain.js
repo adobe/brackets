@@ -338,6 +338,18 @@ function _cmdAbortDownload(downloadId) {
     }
 }
 
+/**
+ * Implements the remove extension command.
+ */
+function _cmdRemove(extensionDir, callback) {
+    fs.remove(extensionDir, function (err) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(null);
+        }
+    });
+}
 
 /**
  * Initialize the "extensions" domain.
@@ -415,6 +427,19 @@ function init(domainManager) {
     );
     domainManager.registerCommand(
         "extensionManager",
+        "remove",
+        _cmdRemove,
+        true,
+        "Removes the Brackets extension at the given path.",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the installed extension folder"
+        }],
+        {}
+    );
+    domainManager.registerCommand(
+        "extensionManager",
         "downloadFile",
         _cmdDownloadFile,
         true,
@@ -454,6 +479,7 @@ function init(domainManager) {
 // used in unit tests
 exports._cmdValidate = validate;
 exports._cmdInstall = _cmdInstall;
+exports._cmdRemove = _cmdRemove;
 
 // used to load the domain
 exports.init = init;

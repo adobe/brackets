@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         KeyEvent               = require("utils/KeyEvent"),
         Package                = require("extensibility/Package"),
         NativeApp              = require("utils/NativeApp"),
-        AppInit                = require("utils/AppInit"),
         InstallDialogTemplate  = require("text!htmlContent/install-extension-dialog.html");
 
     var STATE_CLOSED            = 0,
@@ -372,10 +371,6 @@ define(function (require, exports, module) {
     }
     
     CommandManager.register(Strings.CMD_INSTALL_EXTENSION, Commands.FILE_INSTALL_EXTENSION, showDialog);
-    
-    AppInit.appReady(function () {
-        $("#toolbar-add-extension").click(showDialog);
-    });
     
     exports.showDialog = showDialog;
     exports.installUsingDialog = installUsingDialog;
