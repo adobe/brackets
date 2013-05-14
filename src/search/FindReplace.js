@@ -325,6 +325,8 @@ define(function (require, exports, module) {
                             match = cursor.findNext();
                             if (!match ||
                                     (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
+                                // No more matches, so destroy modalBar
+                                modalBar = null;
                                 return;
                             }
                         }
