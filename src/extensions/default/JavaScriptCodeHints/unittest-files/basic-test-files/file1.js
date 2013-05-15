@@ -143,3 +143,9 @@ var funArr = [];
 funArr.index1 = testRef1;
 funArr.index2 = testRef2;
 
+var _A1 = A1;
+
+var s = "", // string type
+    help;   // unknown type
+
+

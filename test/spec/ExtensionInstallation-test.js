@@ -184,5 +184,26 @@ define(function (require, exports, module) {
                 
             });
         });
+        
+        it("should remove an installed extension", function () {
+            var installPath, checkComplete = false;
+            installPackage(basicValid);
+            runs(function () {
+                installPath = lastExtensionLoad.config.baseUrl;
+                handlePackage(installPath, Package.remove);
+            });
+            runs(function () {
+                NativeFileSystem.resolveNativeFileSystemPath(installPath,
+                    function () {
+                        checkComplete = true;
+                        expect("installation path was removed").toEqual(true);
+                    },
+                    function () {
+                        checkComplete = true;
+                    });
+
+                waitsFor(function () { return checkComplete; }, 1000, "checking for extension folder removal");
+            });
+        });
     });
 });

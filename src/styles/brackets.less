@@ -158,14 +158,13 @@ a, img {
     }
 }
 
-@-webkit-keyframes rotating {
-    0% {
-        -webkit-transform: rotate(0deg);
-    }
-    
-    100% {
-        -webkit-transform: rotate(360deg);
-    }
+@-webkit-keyframes spinner-sprites-12 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -120px 0px; }
+}
+@-webkit-keyframes spinner-sprites-36 {
+      0% { background-position:    0px 0px; }
+    100% { background-position: -360px 0px; }
 }
 
 #status-indent > * {
@@ -332,7 +331,7 @@ a, img {
     }
 }
 
-#toolbar-add-extension {
+#toolbar-extension-manager {
     .sprite-icon-retina(-2px, 0, 20px, 12px, "images/add_extension_sprites.png", 38px, 12px, "images/add_extension_sprites@2x.png");
     margin-left: 1px !important;
     &:hover {
@@ -833,11 +832,11 @@ a, img {
     margin-top: -2px;
     width: 12px;
     height: 12px;
-    background: url("images/small_spinner.svg") no-repeat;
+    background: url("images/spinner_small_sprites12.png") no-repeat;
     visibility: hidden;
 
     &.spin {
-        -webkit-animation: rotating 1.5s linear infinite;
+        -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
         visibility: visible;
     }
     
@@ -845,10 +844,27 @@ a, img {
         width: 36px;
         height: 36px;
         margin-top: 0;
-        background: url("images/spinner2x.png") 50% no-repeat;
-        background-size: 100%;
+        background: url("images/spinner_large_sprites36.png") no-repeat;
+
+        &.spin {
+            -webkit-animation: spinner-sprites-36 1.2s steps(10) infinite;
+        }
     }
 }
+// Retina versions
+@media only screen and (-webkit-min-device-pixel-ratio: 2), 
+       only screen and (min-device-pixel-ratio: 2) {
+    .spinner {
+        background-image: url("images/spinner_small_sprites12@2x.png");
+        background-size: 120px 12px;
+
+        &.large {
+            background: url("images/spinner_large_sprites36@2x.png") no-repeat;
+            background-size: 360px 36px;
+        }
+    }
+}
+
 
 /* Turn on text selection for JSLint error messages */
 #jslint-results {

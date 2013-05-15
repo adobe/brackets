@@ -71,6 +71,34 @@
       }
     ]
   },
+  "mock-extension-3": {
+    "metadata": {
+      "name": "mock-extension-3",
+      "description": "Third mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
+  "mock-extension-4": {
+    "metadata": {
+      "name": "mock-extension-4",
+      "description": "Fourth mock extension",
+      "version": "1.0.0"
+    },
+    "owner": "github:mockuser",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "published": "2013-04-11T18:26:20.553Z"
+      }
+    ]
+  },
   "malicious-script-extension": {
     "metadata": {
       "name": "malicious-script-extension",
