@@ -1,5 +1,5 @@
 <tr>
-    <td>
+    <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
         <span class="muted ext-version">{{metadata.version}}</span><br/>
         {{#authorInfo}}
@@ -33,7 +33,7 @@
             </span>
         {{/metadata.keywords.length}}
     </td>
-    <td>
+    <td class="ext-action">
         {{#showInstallButton}}
             <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
                 {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
