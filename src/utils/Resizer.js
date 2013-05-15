@@ -107,6 +107,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the visibility state of a resizable element.
+     * @param {DOMNode} element Html element to toggle
+     * @return {boolean} true if element is visible, false if it is not visible
+     */
+    function visible(element) {
+        return $(element).is(":visible");
+    }
+    
+    /**
      * Adds resizing capabilities to a given html element.
      *
      * Resizing can be configured in two directions:
@@ -428,10 +437,11 @@ define(function (require, exports, module) {
         });
     });
     
-    exports.makeResizable        = makeResizable;
-    exports.toggle               = toggle;
-    exports.show                 = show;
-    exports.hide                 = hide;
+    exports.makeResizable   = makeResizable;
+    exports.toggle          = toggle;
+    exports.show            = show;
+    exports.hide            = hide;
+    exports.visible         = visible;
     
     //Resizer Constants
     exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;
