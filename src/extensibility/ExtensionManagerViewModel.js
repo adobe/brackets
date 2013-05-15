@@ -148,19 +148,16 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Initializes the model from the set of locally installed extensions, sorted
-     * alphabetically by id (or name of the extension folder for legacy extensions).
-     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     * @private
+     * Re-sorts the current full set based on the source we're viewing.
      */
-    ExtensionManagerViewModel.prototype._initializeFromInstalledExtensions = function () {
+    ExtensionManagerViewModel.prototype._sortFullSet = function () {
         var self = this;
-        this.extensions = ExtensionManager.extensions;
-        this._sortedFullSet = Object.keys(this.extensions)
-            .filter(function (key) {
-                return self.extensions[key].installInfo &&
-                    self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
-            })
-            .sort(function (key1, key2) {
+        
+        // Currently, we never need to re-sort the registry view since it's always sorted when we
+        // grab it, and items are never added to the view. That might change in the future.
+        if (this.source === ExtensionManagerViewModel.SOURCE_INSTALLED) {
+            this._sortedFullSet = this._sortedFullSet.sort(function (key1, key2) {
                 var metadata1 = self.extensions[key1].installInfo.metadata,
                     metadata2 = self.extensions[key2].installInfo.metadata,
                     id1 = (metadata1.title || metadata1.name).toLowerCase(),
@@ -173,6 +170,23 @@ define(function (require, exports, module) {
                     return 1;
                 }
             });
+        }
+    };
+    
+    /**
+     * Initializes the model from the set of locally installed extensions, sorted
+     * alphabetically by id (or name of the extension folder for legacy extensions).
+     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     */
+    ExtensionManagerViewModel.prototype._initializeFromInstalledExtensions = function () {
+        var self = this;
+        this.extensions = ExtensionManager.extensions;
+        this._sortedFullSet = Object.keys(this.extensions)
+            .filter(function (key) {
+                return self.extensions[key].installInfo &&
+                    self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
+            });
+        this._sortFullSet();
         this._setInitialFilter();
         return new $.Deferred().resolve();
     };
@@ -209,7 +223,7 @@ define(function (require, exports, module) {
             } else if (index === -1 && this.extensions[id].installInfo) {
                 // This was not in our set, but is now installed. Add it and resort.
                 this._sortedFullSet.push(id);
-                this._sortedFullSet.sort();
+                this._sortFullSet();
                 refilter = true;
             }
             if (refilter) {
