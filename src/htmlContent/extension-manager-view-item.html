@@ -1,14 +1,14 @@
 <tr>
     <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
-        <span class="muted ext-version">{{metadata.version}}</span><br/>
+        <span class="muted ext-version">{{metadata.version}}</span> 
         {{#authorInfo}}
-            <span class="muted ext-author">
+            &mdash; <span class="muted ext-author">
                     {{Strings.EXTENSION_AUTHOR}}: {{{authorInfo}}}
-            </span><br/>
+            </span>
         {{/authorInfo}}
         {{#hasVersionInfo}}
-            <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
+            &mdash; <span class="muted ext-date">{{Strings.EXTENSION_DATE}}: {{lastVersionDate}}</span>
         {{/hasVersionInfo}}
     </td>
     <td class="ext-desc">
@@ -35,7 +35,7 @@
     </td>
     <td class="ext-action">
         {{#showInstallButton}}
-            <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+            <button class="btn btn-mini install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
                 {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
                 {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
             </button>

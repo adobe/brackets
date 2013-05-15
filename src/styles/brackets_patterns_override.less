@@ -490,18 +490,23 @@
         .search {
             background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
-            margin-top: 8px;
+            margin-top: 6px;
             text-indent: 23px;
         }
         .search-clear {
             position: relative;
             display: block;
             float: right;
-            margin: 15px 15px 0 -20px;
-            background: url("images/close_btn.svg") no-repeat;
+            left: -5px;
+            margin: 13px 0 0 -20px;
+            opacity: 0.7;
+            background: url("images/topcoat-cancel-15.svg") no-repeat;
             width: 15px;
             height: 16px;
             z-index: 1;
+        }
+        .search-clear:active {
+            opacity: 0.5;
         }
     }
     .modal-body {
@@ -514,29 +519,31 @@
         .extension-list {
             .ext-info {
                 padding-left: 15px;
+                width: 220px;
             }
             .ext-name {
                 color: #000;
+                display: block;
                 font-size: 15px;
                 font-weight: @font-weight-light;
             }
             .ext-desc {
                 font-weight: @font-weight-light;
-                width: 50%;
+                width: auto;
             }
-            .ext-desc .muted,
-            .muted.ext-version {
+            .muted {
                 color: #888;
             }
             .ext-version,
             .ext-date,
             .ext-author {
-                font-size: 11px;
+                font-size: 10px;
             }
             .ext-action {
                 font-size: 12px;
-                padding-right: 20px;
+                padding-right: 15px;
                 text-align: right;
+                vertical-align: middle;
                 width: 200px;
             }            
             .spinner {
@@ -727,15 +734,19 @@ table {
     }
 }
 
-.zebra-striped {
-    tbody {
-        tr:nth-child(odd) td,
-        tr:nth-child(odd) th {
-            background-color: #e6e9e9; // TopCoat palette
-        }
-        tr:hover td,
-        tr:hover th {
-            background-color: @tc-highlight; // TopCoat palette
-        }
+.zebra-striped tbody {
+    tr:nth-child(odd) td,
+    tr:nth-child(odd) th {
+        background-color: #e6e9e9; // TopCoat palette
+    }
+    tr:nth-child(even) td,
+    tr:nth-child(even) th {
+        background-color: @tc-gray-panel; // turn off bootstrap hover highlight 
+    }
+}    
+.row-highlight tbody {
+    tr:hover td,
+    tr:hover th {
+        background-color: @tc-highlight; // TopCoat palette
     }
 }
