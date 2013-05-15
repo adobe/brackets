@@ -170,8 +170,8 @@ define(function (require, exports, module) {
         });
     }
 
-    function isSupportedLanguage(languageId) {
-        return SUPPORTED_LANGUAGES.indexOf(languageId) !== -1;
+    function isSupportedLanguage(language) {
+        return language.isInstanceOfLanguageInArray(SUPPORTED_LANGUAGES);
     }
     var KEYWORD_NAMES   = [
         "break", "case", "catch", "continue", "debugger", "default", "delete",

@@ -387,28 +387,62 @@ define(function (require, exports, module) {
 
     /**
      * Determines whether the language is this language's parent, or the parent's parent, etc.
-     * @param {Language} The language (or its ID) to test
+     * @param {Language|string} The language (or its ID) to test
      * @return {boolean} True if this language is a child of language, false otherwise
      **/
     Language.prototype.isBasedOnLanguage = function (language) {
         if (!this._parent) {
             return false;
         }
-        if (this._parent === language) {
-            return true;
-        }
-        return this._parent.isBasedOnLanguage(language);
+        return this._parent.isInstanceOfLanguage(language);
     };
 
     /**
-     * Determines whether the language is this language or based on this language
-     * @param {Language} The language (or its ID) to test
+     * Determines whether the language is this language or one of its ancestors
+     * @param {Language|string} The language (or its ID) to test
      * @return {boolean} True if this language is an instance of language, false otherwise
      **/
     Language.prototype.isInstanceOfLanguage = function (language) {
+        if (language.getId) {
+            language = language.getId();
+        }
+        
         return this.isLanguage(language) || this.isBasedOnLanguage(language);
     };
-
+    
+    /**
+     * Determines whether one of the languages is this language or one of its ancestors
+     * @param {Array.<Language|string>} The languages (or their IDs) to test
+     * @return {boolean} True if this language is an instance of one of languages, false otherwise
+     **/
+    Language.prototype.isInstanceOfLanguageInArray = function (languages) {
+        var i;
+        for (i = 0; i < languages.length; i++) {
+            if (this.isInstanceOfLanguage(languages[i])) {
+                return true;
+            }
+        }
+        return false;
+    };
+    
+    /**
+     * Uses the ID of this language and its ancestors as a key to an entry in the object (first match wins)
+     * @param {Object.<string, {*}>} A dictionary with language IDs as keys
+     * @return {*} The object's entry with the key closest to this language's ID
+     **/
+    Language.prototype.findEntryInObject = function (object) {
+        var entry,
+            language = this;
+        
+        while (language) {
+            entry = object[language.getId()];
+            if (entry) {
+                return entry;
+            }
+            language = language._parent;
+        }
+    };
+    
     /**
      * Sets the human-readable name of this language or prints an error to the console.
      * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")

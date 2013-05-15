@@ -420,28 +420,76 @@ define(function (require, exports, module) {
                     
                     // Same language: true
                     expect(child.isLanguage(child)).toBe(true);
+                    expect(child.isLanguage(child.getId())).toBe(true);
                     expect(parent.isLanguage(parent)).toBe(true);
+                    expect(parent.isLanguage(parent.getId())).toBe(true);
                     // Different language: false
                     expect(child.isLanguage(parent)).toBe(false);
+                    expect(child.isLanguage(parent.getId())).toBe(false);
                     expect(parent.isLanguage(child)).toBe(false);
+                    expect(parent.isLanguage(child.getId())).toBe(false);
                     
                     // isBasedOnLanguage
                     
                     // Same language: false
                     expect(child.isBasedOnLanguage(child)).toBe(false);
+                    expect(child.isBasedOnLanguage(child.getId())).toBe(false);
                     expect(parent.isBasedOnLanguage(parent)).toBe(false);
+                    expect(parent.isBasedOnLanguage(parent.getId())).toBe(false);
                     // Child based on parent: true, parent based on child: false
                     expect(child.isBasedOnLanguage(parent)).toBe(true);
+                    expect(child.isBasedOnLanguage(parent.getId())).toBe(true);
                     expect(parent.isBasedOnLanguage(child)).toBe(false);
+                    expect(parent.isBasedOnLanguage(child.getId())).toBe(false);
                     
                     // isInstanceOfLanguage
                     
                     // Same language: true
                     expect(child.isInstanceOfLanguage(child)).toBe(true);
+                    expect(child.isInstanceOfLanguage(child.getId())).toBe(true);
                     expect(parent.isInstanceOfLanguage(parent)).toBe(true);
+                    expect(parent.isInstanceOfLanguage(parent.getId())).toBe(true);
                     // Child instance of parent: true, parent instance of child: false
                     expect(child.isInstanceOfLanguage(parent)).toBe(true);
+                    expect(child.isInstanceOfLanguage(parent.getId())).toBe(true);
                     expect(parent.isInstanceOfLanguage(child)).toBe(false);
+                    expect(parent.isInstanceOfLanguage(child.getId())).toBe(false);
+                    
+                    // isInstanceOfLanguageInArray
+                    // No language: false
+                    expect(child.isInstanceOfLanguageInArray([])).toBe(false);
+                    expect(parent.isInstanceOfLanguageInArray([])).toBe(false);
+                    // Same language: true
+                    expect(child.isInstanceOfLanguageInArray([child])).toBe(true);
+                    expect(child.isInstanceOfLanguageInArray([child.getId()])).toBe(true);
+                    expect(parent.isInstanceOfLanguageInArray([parent])).toBe(true);
+                    expect(parent.isInstanceOfLanguageInArray([parent.getId()])).toBe(true);
+                    // Child instance of parent: true, parent instance of child: false
+                    expect(child.isInstanceOfLanguageInArray([parent])).toBe(true);
+                    expect(child.isInstanceOfLanguageInArray([parent.getId()])).toBe(true);
+                    expect(parent.isInstanceOfLanguageInArray([child])).toBe(false);
+                    expect(parent.isInstanceOfLanguageInArray([child.getId()])).toBe(false);
+                    // Both languages: true
+                    expect(child.isInstanceOfLanguageInArray([child, parent])).toBe(true);
+                    expect(child.isInstanceOfLanguageInArray([child.getId(), parent.getId()])).toBe(true);
+                    expect(parent.isInstanceOfLanguageInArray([child, parent])).toBe(true);
+                    expect(parent.isInstanceOfLanguageInArray([child.getId(), parent.getId()])).toBe(true);
+                    
+                    var object = {};
+                    expect(child.findEntryInObject(object)).toBeFalsy();
+                    expect(parent.findEntryInObject(object)).toBeFalsy();
+                    
+                    object[parent.getId()] = "parent";
+                    expect(child.findEntryInObject(object)).toBe("parent");
+                    expect(parent.findEntryInObject(object)).toBe("parent");
+                    
+                    object[child.getId()] = "child";
+                    expect(child.findEntryInObject(object)).toBe("child");
+                    expect(parent.findEntryInObject(object)).toBe("parent");
+                    
+                    delete object[parent.getId()];
+                    expect(child.findEntryInObject(object)).toBe("child");
+                    expect(parent.findEntryInObject(object)).toBeFalsy();
                 });
                 
                 it("inherit only mode and comment syntax", function () {

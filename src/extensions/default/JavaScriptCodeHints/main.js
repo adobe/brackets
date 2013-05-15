@@ -239,13 +239,12 @@ define(function (require, exports, module) {
     /**
      * @return {boolean} - true if the document is a html file
      */
-    function isHTMLFile(document) {
-        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
-        return languageID === "html";
+    function isHTMLFile(doc) {
+        return doc.getLanguage().isInstanceOfLanguage("html");
     }
     
     function isInlineScript(editor) {
-        return editor.getModeForSelection() === "javascript";
+        return editor.getLanguageForSelection().isInstanceOfLanguage("javascript");
     }
 
     /**
@@ -470,7 +469,7 @@ define(function (require, exports, module) {
             cachedHints = null;
             cachedType = null;
 
-            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath))) {
                 initializeSession(editor, true);
             } else {
                 session = null;

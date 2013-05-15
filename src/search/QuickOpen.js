@@ -542,13 +542,13 @@ define(function (require, exports, module) {
         // Try to invoke a search plugin
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc) {
-            var languageId = curDoc.getLanguage().getId();
+            var language = curDoc.getLanguage();
 
             var i;
             for (i = 0; i < plugins.length; i++) {
                 var plugin = plugins[i];
-                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
-                if (languageIdMatch && plugin.match && plugin.match(query)) {
+                var languageMatch = plugin.languageIds.length === 0 || language.isInstanceOfLanguageInArray(plugin.languageIds);
+                if (languageMatch && plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
                     
                     // Look up the StringMatcher for this plugin.
