@@ -143,7 +143,7 @@ importScripts("thirdparty/requirejs/require.js");
         
         var request = buildRequest(dir, file, "definition", offset, text);
         request.query.lineCharPositions = true;
-        request.query.typeOnly = true;
+        // request.query.typeOnly = true;
         ternServer.request(request, function (error, data) {
             if (error) {
                 _log("Error returned from Tern 'definition' request: " + error);

@@ -116,26 +116,22 @@ define(function (require, exports, module) {
                     var resolvedPath = jumpResp.fullPath;
                     if (resolvedPath) {
 
-                        DocumentManager.getDocumentForPath(resolvedPath)
-                        .done(function (doc) {
-                            var funcs = [];
-                            funcs.push({
-                                document: doc,
-                                name: functionName,
-                                lineStart: jumpResp.start.line,
-                                lineEnd: jumpResp.end.line
+                        // Tern doesn't always return entire function extent.
+                        // Use QuickEdit search now that we know which file to look at.
+                        var fileInfos = [];
+                        fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
+                        JSUtils.findMatchingFunctions(functionName, fileInfos)
+                            .done(function (functions) {
+                                var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                                jsInlineEditor.load(hostEditor);
+                                
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                                result.resolve(jsInlineEditor);
+                            })
+                            .fail(function () {
+                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                                result.reject();
                             });
-
-                            var jsInlineEditor = new MultiRangeInlineEditor(funcs);
-                            jsInlineEditor.load(hostEditor);
-
-                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                            result.resolve(jsInlineEditor);
-                        })
-                        .fail(function (fileError) {
-                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                            result.reject();
-                        });
 
                     } else {        // no result from Tern.  Fall back to _findInProject().
 
