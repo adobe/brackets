@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, brackets, window */
+/*global define, $, CodeMirror, brackets, window, PathUtils */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it.
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
         }
         
         if (brackets.inBrowser) {
-            var basePath = "/extensions/default/",
+            var basePath = PathUtils.directory(window.location.href) + "extensions/default/",
                 defaultExtensions = [
                     "CSSCodeHints",
                     //"DebugCommands",
