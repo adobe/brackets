@@ -525,7 +525,7 @@ define(function (require, exports, module) {
      * @return {string} - the "javascript" text that can be sent to Tern.
      */
     Session.prototype.getJavascriptText = function () {
-        if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
+        if (this.editor.document.getLanguage().isInstanceOfLanguage("html")) {
             // HTML file - need to send back only the bodies of the
             // <script> tags
             var text = "",

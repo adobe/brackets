@@ -21,7 +21,6 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror, PathUtils */
 
@@ -95,6 +94,11 @@
  *
  * If a mode is not shipped with our CodeMirror distribution, you need to first load it yourself.
  * If the mode is part of our CodeMirror distribution, it gets loaded automatically.
+ *
+ * To compare languages, use the following methods:
+ * - isLanguage (if this language should be the same as the passed one)
+ * - isBasedOnLanguage (if this language should be a child of the passed one)
+ * - isInstanceOfLanguage (if this language should be the passed one or a child of it)
  */
 define(function (require, exports, module) {
     "use strict";
@@ -162,8 +166,9 @@ define(function (require, exports, module) {
      * @param {!Language} language The language to associate with the mode
      */
     function _setLanguageForMode(mode, language) {
-        if (_modeToLanguageMap[mode]) {
-            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + ", won't register for " + language._name);
+        var mappedLanguage = _modeToLanguageMap[mode];
+        if (mappedLanguage && !language.isBasedOnLanguage(mappedLanguage)) {
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + mappedLanguage.getName() + ", won't register for " + language.getName());
             return;
         }
 
@@ -292,6 +297,9 @@ define(function (require, exports, module) {
     /** @type {string} Human-readable name of this language */
     Language.prototype._name = null;
     
+    /** @type {?Language} Parent language */
+    Language.prototype._parent = null;
+    
     /** @type {string} CodeMirror mode for this language */
     Language.prototype._mode = null;
     
@@ -304,11 +312,11 @@ define(function (require, exports, module) {
     /** @type {Array.<string>} Line comment syntax */
     Language.prototype._lineCommentSyntax = null;
     
-    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
-    Language.prototype._modeToLanguageMap = null;
-    
     /** @type {{ prefix: string, suffix: string }} Block comment syntax */
     Language.prototype._blockCommentSyntax = null;
+    
+    /** @type {Object.<string,Language>} Which language to use for what CodeMirror mode */
+    Language.prototype._modeToLanguageMap = null;
     
     /**
      * Returns the identifier for this language.
@@ -347,6 +355,95 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Set the language this language inherits from
+     * @param {string|Language} parent The parent language or its ID
+     * @return {boolean} Whether parent was valid and set or not
+     */
+    Language.prototype._setParent = function (parent) {
+        if (!(parent instanceof Language)) {
+            parent = getLanguage(parent);
+            if (!(parent instanceof Language)) {
+                console.error("Parent language must be an instance of Language or a valid language ID");
+                return false;
+            }
+        }
+        this._parent = parent;
+
+        return true;
+    };
+
+    /**
+     * Determines whether the language is this language
+     * @param {Language|string} The language (or its ID) to test
+     * @return {boolean} True if this language has the same ID as language, false otherwise
+     **/
+    Language.prototype.isLanguage = function (language) {
+        if (language.getId) {
+            language = language.getId();
+        }
+        
+        return this.getId() === language;
+    };
+
+    /**
+     * Determines whether the language is this language's parent, or the parent's parent, etc.
+     * @param {Language|string} The language (or its ID) to test
+     * @return {boolean} True if this language is a child of language, false otherwise
+     **/
+    Language.prototype.isBasedOnLanguage = function (language) {
+        if (!this._parent) {
+            return false;
+        }
+        return this._parent.isInstanceOfLanguage(language);
+    };
+
+    /**
+     * Determines whether the language is this language or one of its ancestors
+     * @param {Language|string} The language (or its ID) to test
+     * @return {boolean} True if this language is an instance of language, false otherwise
+     **/
+    Language.prototype.isInstanceOfLanguage = function (language) {
+        if (language.getId) {
+            language = language.getId();
+        }
+        
+        return this.isLanguage(language) || this.isBasedOnLanguage(language);
+    };
+    
+    /**
+     * Determines whether one of the languages is this language or one of its ancestors
+     * @param {Array.<Language|string>} The languages (or their IDs) to test
+     * @return {boolean} True if this language is an instance of one of languages, false otherwise
+     **/
+    Language.prototype.isInstanceOfLanguageInArray = function (languages) {
+        var i;
+        for (i = 0; i < languages.length; i++) {
+            if (this.isInstanceOfLanguage(languages[i])) {
+                return true;
+            }
+        }
+        return false;
+    };
+    
+    /**
+     * Uses the ID of this language and its ancestors as a key to an entry in the object (first match wins)
+     * @param {Object.<string, {*}>} A dictionary with language IDs as keys
+     * @return {*} The object's entry with the key closest to this language's ID
+     **/
+    Language.prototype.findEntryInObject = function (object) {
+        var entry,
+            language = this;
+        
+        while (language) {
+            entry = object[language.getId()];
+            if (entry) {
+                return entry;
+            }
+            language = language._parent;
+        }
+    };
+    
+    /**
      * Sets the human-readable name of this language or prints an error to the console.
      * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
      * @return {boolean} Whether the name was valid and set or not
@@ -365,7 +462,7 @@ define(function (require, exports, module) {
      * @return {string} The mode
      */
     Language.prototype.getMode = function () {
-        return this._mode;
+        return this._mode || (this._parent && this._parent.getMode());
     };
     
     /**
@@ -379,6 +476,7 @@ define(function (require, exports, module) {
     Language.prototype._loadAndSetMode = function (mode) {
         var result      = new $.Deferred(),
             self        = this,
+            definesOwnMode,
             mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
         
         if (Array.isArray(mode)) {
@@ -390,14 +488,15 @@ define(function (require, exports, module) {
             mode = mode[0];
         }
         
-        // mode must not be empty. Use "null" (the string "null") mode for plain text
-        if (!_validateNonEmptyString(mode, "mode", result)) {
-            result.reject();
+        definesOwnMode = !this._parent || mode;
+        
+        // mode must not be empty for root languages. Use "null" (the string "null") mode for plain text
+        if (definesOwnMode && !_validateNonEmptyString(mode, "mode", result)) {
             return result.promise();
         }
         
         var finish = function () {
-            if (!CodeMirror.modes[mode]) {
+            if (definesOwnMode && !CodeMirror.modes[mode]) {
                 result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
                 return;
             }
@@ -417,15 +516,17 @@ define(function (require, exports, module) {
                 }
             }
             
-            // This mode is now only about what to tell CodeMirror
-            // The base mode was only necessary to load the proper mode file
-            self._mode = mimeMode || mode;
-            self._wasModified();
+            if (definesOwnMode) {
+                // This mode is now only about what to tell CodeMirror
+                // The base mode was only necessary to load the proper mode file
+                self._mode = mimeMode || mode;
+                self._wasModified();
+            }
             
             result.resolve(self);
         };
         
-        if (CodeMirror.modes[mode]) {
+        if (!definesOwnMode || CodeMirror.modes[mode]) {
             finish();
         } else {
             require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
@@ -470,10 +571,14 @@ define(function (require, exports, module) {
             this._fileExtensions.push(extension);
             
             var language = _fileExtensionToLanguageMap[extension];
-            if (language) {
+            if (language && !this.isBasedOnLanguage(language)) {
                 console.warn("Cannot register file extension \"" + extension + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileExtensionToLanguageMap[extension] = this;
+                // Must be an ancestor
+                if (language) {
+                    language._removeFileExtension(extension);
+                }
             }
             
             this._wasModified();
@@ -493,23 +598,58 @@ define(function (require, exports, module) {
             this._fileNames.push(name);
             
             var language = _fileNameToLanguageMap[name];
-            if (language) {
+            if (language && !this.isBasedOnLanguage(language)) {
                 console.warn("Cannot register file name \"" + name + "\" for " + this._name + ", it already belongs to " + language._name);
             } else {
                 _fileNameToLanguageMap[name] = this;
+                // Must be an ancestor
+                if (language) {
+                    language._removeFileName(name);
+                }
             }
             
             this._wasModified();
         }
         return true;
     };
+    
+    /**
+     * @private
+     * Removes a file extension from this language
+     * @param {string} extension File extension to remove
+     */
+    Language.prototype._removeFileExtension = function (extension) {
+        var index = this._fileExtensions.indexOf(extension);
+        if (index === -1) {
+            return;
+        }
+        
+        this._fileExtensions.splice(index, 1);
+        this._wasModified();
+    };
 
+    /**
+     * @private
+     * Removes a file name from this language
+     * @param {string} fileName File name to remove
+     */
+    Language.prototype._removeFileName = function (fileName) {
+        var index = this._fileNames.indexOf(fileName);
+        if (index === -1) {
+            return;
+        }
+        
+        this._fileNames.splice(index, 1);
+        this._wasModified();
+    };
+    
     /**
      * Returns whether the line comment syntax is defined for this language.
      * @return {boolean} Whether line comments are supported
      */
     Language.prototype.hasLineCommentSyntax = function () {
-        return this._lineCommentSyntax.length > 0;
+        // Cast as Boolean to return false instead of null (i.e. this._parent)
+        return Boolean(this._lineCommentSyntax.length > 0 || (this._parent && this._parent.hasLineCommentSyntax()));
     };
     
     /**
@@ -517,7 +657,7 @@ define(function (require, exports, module) {
      * @return {Array.<string>} The prefixes
      */
     Language.prototype.getLineCommentPrefixes = function () {
-        return this._lineCommentSyntax;
+        return this._lineCommentSyntax.concat(this._parent ? this._parent.getLineCommentPrefixes() : []);
     };
 
     /**
@@ -550,7 +690,8 @@ define(function (require, exports, module) {
      * @return {boolean} Whether block comments are supported
      */
     Language.prototype.hasBlockCommentSyntax = function () {
-        return Boolean(this._blockCommentSyntax);
+        // Cast as Boolean to return false instead of null (i.e. this._parent)
+        return Boolean(this._blockCommentSyntax || (this._parent && this._parent.hasBlockCommentSyntax()));
     };
     
     /**
@@ -558,7 +699,7 @@ define(function (require, exports, module) {
      * @return {string} The prefix
      */
     Language.prototype.getBlockCommentPrefix = function () {
-        return this._blockCommentSyntax && this._blockCommentSyntax.prefix;
+        return (this._blockCommentSyntax && this._blockCommentSyntax.prefix) || (this._parent && this._parent.getBlockCommentPrefix());
     };
 
     /**
@@ -566,7 +707,7 @@ define(function (require, exports, module) {
      * @return {string} The suffix
      */
     Language.prototype.getBlockCommentSuffix = function () {
-        return this._blockCommentSyntax && this._blockCommentSyntax.suffix;
+        return (this._blockCommentSyntax && this._blockCommentSyntax.suffix) || (this._parent && this._parent.getBlockCommentSuffix());
     };
     
     /**
@@ -593,10 +734,10 @@ define(function (require, exports, module) {
      * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#_getLanguageForMode} returns
      */
     Language.prototype.getLanguageForMode = function (mode) {
-        if (mode === this._mode) {
+        if (mode === this.getMode()) {
             return this;
         }
-        return this._modeToLanguageMap[mode] || _getLanguageForMode(mode);
+        return this._modeToLanguageMap[mode] || (this._parent && this._parent.getLanguageForMode(mode)) || _getLanguageForMode(mode);
     };
 
     /**
@@ -608,7 +749,7 @@ define(function (require, exports, module) {
      * @private
      */
     Language.prototype._setLanguageForMode = function (mode, language) {
-        if (mode === this._mode && language !== this) {
+        if (mode === this.getMode() && language !== this) {
             console.error("A language must always map its mode to itself");
             return false;
         }
@@ -663,8 +804,9 @@ define(function (require, exports, module) {
             result.reject("Language \"" + id + "\" is already defined");
             return result.promise();
         }
-
+        
         var language       = new Language(),
+            parent         = definition.parent,
             name           = definition.name,
             fileExtensions = definition.fileExtensions,
             fileNames      = definition.fileNames,
@@ -674,8 +816,9 @@ define(function (require, exports, module) {
             l;
         
         if (!language._setId(id) || !language._setName(name) ||
+                (parent       && !language._setParent(parent)) ||
                 (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1])) ||
-                (lineComment && !language.setLineCommentSyntax(lineComment))) {
+                (lineComment  && !language.setLineCommentSyntax(lineComment))) {
             result.reject();
             return result.promise();
         }

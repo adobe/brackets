@@ -85,7 +85,7 @@ define(function (require, exports, module) {
      */
     function inlineProvider(hostEditor, pos) {
         // Only provide docs when cursor is in CSS content
-        if (hostEditor.getLanguageForSelection().getId() !== "css") {
+        if (!hostEditor.getLanguageForSelection().isInstanceOfLanguage("css")) {
             return null;
         }
         

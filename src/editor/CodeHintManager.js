@@ -285,11 +285,11 @@ define(function (require, exports, module) {
      *  Return the array of hint providers for the given language id.
      *  This gets called (potentially) on every keypress. So, it should be fast.
      *
-     * @param {!string} languageId
+     * @param {!Language} language
      * @return {?Array.<{provider: Object, priority: number}>}
      */
-    function _getProvidersForLanguageId(languageId) {
-        return hintProviders[languageId] || hintProviders.all;
+    function _getProvidersForLanguage(language) {
+        return language.findEntryInObject(hintProviders) || hintProviders.all;
     }
 
     /**
@@ -375,7 +375,7 @@ define(function (require, exports, module) {
     function _beginSession(editor) {
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
-            enabledProviders = _getProvidersForLanguageId(language.getId());
+            enabledProviders = _getProvidersForLanguage(language);
         
         enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {

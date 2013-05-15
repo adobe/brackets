@@ -200,8 +200,8 @@ define(function (require, exports, module) {
                     if (fileCallback && entry.isFile) {
 
                         if (file.indexOf(".") > 0) { // ignore .dotfiles
-                            var languageID = LanguageManager.getLanguageForPath(path).getId();
-                            if (languageID === HintUtils.LANGUAGE_ID) {
+                            var language = LanguageManager.getLanguageForPath(path);
+                            if (language.isInstanceOfLanguage(HintUtils.LANGUAGE_ID)) {
                                 fileCallback(path);
                             }
                         }

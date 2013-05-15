@@ -245,10 +245,11 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} document
      */
     function _classForDocument(doc) {
-        switch (doc.getLanguage().getId()) {
-        case "css":
+        var language = doc.getLanguage();
+        if (language.isInstanceOfLanguage("css")) {
             return CSSDocument;
-        case "javascript":
+        }
+        if (language.isInstanceOfLanguage("javascript")) {
             return exports.config.experimental ? JSDocument : null;
         }
 

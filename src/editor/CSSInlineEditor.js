@@ -90,7 +90,7 @@ define(function (require, exports, module) {
      */
     function htmlToCSSProvider(hostEditor, pos) {
         // Only provide a CSS editor when cursor is in HTML content
-        if (hostEditor.getLanguageForSelection().getId() !== "html") {
+        if (!hostEditor.getLanguageForSelection().isInstanceOfLanguage("html")) {
             return null;
         }
         

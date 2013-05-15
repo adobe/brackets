@@ -110,7 +110,7 @@ define(function (require, exports, module) {
         
         var language = currentDoc ? LanguageManager.getLanguageForPath(currentDoc.file.fullPath) : "";
         
-        if (_enabled && language && language.getId() === "javascript") {
+        if (_enabled && language && language.isInstanceOfLanguage("javascript")) {
             perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
             var text = currentDoc.getText();
             
