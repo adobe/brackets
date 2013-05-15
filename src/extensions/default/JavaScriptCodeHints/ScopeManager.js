@@ -407,7 +407,8 @@ define(function (require, exports, module) {
             dir: dir,
             file: file,
             offset: offset,
-            text: text
+            text: text,
+            typeOnly: true
         });
 
         return addPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
@@ -446,9 +447,8 @@ define(function (require, exports, module) {
         
         var $deferredJump = getPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
         
-//        pendingTernRequests[file] = null;
-        
         if ($deferredJump) {
+            response.fullPath = getResolvedPath(response.resultFile);
             $deferredJump.resolveWith(null, [response]);
         }
     }
