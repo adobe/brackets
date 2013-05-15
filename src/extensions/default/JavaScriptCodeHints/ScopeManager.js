@@ -57,8 +57,8 @@ define(function (require, exports, module) {
         numResolvedFiles    = 0,
         numAddedFiles       = 0,
         stopAddingFiles     = false,
-        excludedFilesString = "require\\.js$|jquery-[\\d]\\.[\\d]\\.js$|\\.min\\.js$",
-        excludedFilesRegEx  = new RegExp(excludedFilesString),
+        // exclude require and jquery since we have special knowledge of those
+        excludedFilesRegEx  = /require\.js$|jquery-[\d]\.[\d]\.js$/,
         _ternWorker         = (function () {
             var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
             return new Worker(path);
