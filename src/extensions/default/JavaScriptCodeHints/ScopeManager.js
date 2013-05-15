@@ -410,8 +410,7 @@ define(function (require, exports, module) {
             dir: dir,
             file: file,
             offset: offset,
-            text: text,
-            typeOnly: true
+            text: text
         });
 
         return addPendingRequest(file, offset, HintUtils.TERN_JUMPTODEF_MSG);
