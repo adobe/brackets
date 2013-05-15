@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global expect, describe, it, beforeEach, afterEach */
+/*global expect, describe, it, xit, beforeEach, afterEach */
 
 "use strict";
 
@@ -46,13 +46,13 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
     disabledDirectory  = path.join(installParent, "disabled"),
     systemExtensionDirectory = path.join(installParent, "system");
 
-var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.zip"),
-    basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
-    missingMain          = path.join(testFilesDirectory, "missing-main.zip"),
-    oneLevelDown         = path.join(testFilesDirectory, "one-level-extension-master.zip"),
-    incompatibleVersion  = path.join(testFilesDirectory, "incompatible-version.zip"),
-    invalidZip           = path.join(testFilesDirectory, "invalid-zip-file.zip"),
-    missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.zip");
+var basicValidExtension  = path.join(testFilesDirectory, "basic-valid-extension.tgz"),
+    basicValidExtension2 = path.join(testFilesDirectory, "basic-valid-extension-2.0.tgz"),
+    missingMain          = path.join(testFilesDirectory, "missing-main.tgz"),
+    oneLevelDown         = path.join(testFilesDirectory, "one-level-extension-master.tgz"),
+    incompatibleVersion  = path.join(testFilesDirectory, "incompatible-version.tgz"),
+    invalidTar           = path.join(testFilesDirectory, "invalid-tar-file.tgz"),
+    missingPackageJSON   = path.join(testFilesDirectory, "missing-package-json.tgz");
 
 describe("Package Installation", function () {
     
@@ -189,7 +189,7 @@ describe("Package Installation", function () {
         });
     });
     
-    it("should derive the name from the zip if there's no package.json", function (done) {
+    it("should derive the name from the package name if there's no package.json", function (done) {
         ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.disabledReason).toBeNull();
@@ -227,8 +227,8 @@ describe("Package Installation", function () {
         });
     });
     
-    it("should not have trouble with invalid zip files", function (done) {
-        ExtensionsDomain._cmdInstall(invalidZip, installDirectory, standardOptions, function (err, result) {
+    it("should not have trouble with invalid tar files", function (done) {
+        ExtensionsDomain._cmdInstall(invalidTar, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
             expect(result.errors.length).toEqual(1);
             done();

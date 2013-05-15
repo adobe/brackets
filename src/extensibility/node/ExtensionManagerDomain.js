@@ -27,7 +27,8 @@ indent: 4, maxerr: 50 */
 
 "use strict";
 
-var unzip    = require("unzip"),
+var tar      = require("tar"),
+    zlib     = require("zlib"),
     semver   = require("semver"),
     path     = require("path"),
     http     = require("http"),
@@ -57,12 +58,12 @@ var pendingDownloads = {};
 
 
 /**
- * Private function to unzip to the correct directory.
+ * Private function to uncompress to the correct directory.
  *
- * @param {string} Absolute path to the package zip file
- * @param {string} Absolute path to the destination directory for unzipping
+ * @param {string} Absolute path to the package file
+ * @param {string} Absolute path to the destination directory for uncompressing
  * @param {Object} the return value with the useful information for the client
- * @param {Function} callback function that is called at the end of the unzipping
+ * @param {Function} callback function that is called at the end of the uncompression
  */
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
@@ -74,52 +75,33 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             callback(err);
             return;
         }
-        var readStream = fs.createReadStream(packagePath);
-        var extractStream = unzip.Parse();
-        var prefixlength = validationResult.commonPrefix ? validationResult.commonPrefix.length : 0;
         
-        readStream.pipe(extractStream)
-            .on("error", function (exc) {
-                if (!callbackCalled) {
-                    callback(exc);
-                    callbackCalled = true;
-                    readStream.destroy();
-                }
-            })
-            .on("entry", function (entry) {
-                var installpath = entry.path;
-                if (prefixlength) {
-                    installpath = installpath.substring(prefixlength + 1);
-                }
-                
-                if (entry.type === "Directory") {
-                    if (installpath === "") {
-                        return;
-                    }
-                    extractStream.pause();
-                    fs.mkdirs(installDirectory + "/" + installpath, function (err) {
-                        if (err) {
-                            if (!callbackCalled) {
-                                callback(err);
-                                callbackCalled = true;
-                            }
-                            extractStream.close();
-                            return;
-                        }
-                        extractStream.resume();
-                    });
-                } else {
-                    entry.pipe(fs.createWriteStream(installDirectory + "/" + installpath))
-                        .on("error", function (err) {
-                            if (!callbackCalled) {
-                                callback(err);
-                                callbackCalled = true;
-                                readStream.destroy();
-                            }
-                        });
-                }
-                
-            })
+        var strip;
+        if (validationResult.commonPrefix) {
+            strip = validationResult.commonPrefix.split("/").length;
+        } else {
+            strip = 0;
+        }
+        
+        var readStream = fs.createReadStream(packagePath);
+        var gunzipStream = zlib.createGunzip();
+        var untarStream = tar.Extract({
+            path: installDirectory,
+            strip: strip
+        });
+        
+        function errorHandler(exc) {
+            if (!callbackCalled) {
+                callback(exc);
+                callbackCalled = true;
+                readStream.destroy();
+            }
+        }
+        
+        readStream.pipe(gunzipStream)
+            .on("error", errorHandler)
+            .pipe(untarStream)
+            .on("error", errorHandler)
             .on("end", function () {
                 if (!callbackCalled) {
                     callback(null, validationResult);
@@ -132,10 +114,10 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
 /**
  * Private function to remove the target directory and then install.
  * 
- * @param {string} Absolute path to the package zip file
- * @param {string} Absolute path to the destination directory for unzipping
+ * @param {string} Absolute path to the package file
+ * @param {string} Absolute path to the destination directory for uncompression
  * @param {Object} the return value with the useful information for the client
- * @param {Function} callback function that is called at the end of the unzipping
+ * @param {Function} callback function that is called at the end of the uncompression
  */
 function _removeAndInstall(packagePath, installDirectory, validationResult, callback) {
     // If this extension was previously installed but disabled, we will overwrite the
@@ -148,6 +130,8 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
         _performInstall(packagePath, installDirectory, validationResult, callback);
     });
 }
+
+var basenameRegexp = /(\.tgz|\.tar\.gz)$/;
 
 /**
  * Implements the "install" command in the "extensions" domain.
@@ -162,13 +146,13 @@ function _removeAndInstall(packagePath, installDirectory, validationResult, call
  * As we expand out the extension manager, there will likely be additional
  * options added.)
  *
- * The extension is unzipped into a directory in destinationDirectory with
+ * The extension is uncompressed into a directory in destinationDirectory with
  * the name of the extension (the name is derived either from package.json
- * or the name of the zip file).
+ * or the name of the package file).
  *
  * The destinationDirectory will be created if it does not exist.
  * 
- * @param {string} Absolute path to the package zip file
+ * @param {string} Absolute path to the package file
  * @param {string} the destination directory
  * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, 
  *      systemExtensionDirectory: !string}} additional settings to control the installation
@@ -187,15 +171,15 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
             return;
         }
         
-        // Prefers the package.json name field, but will take the zip
+        // Prefers the package.json name field, but will take the package
         // file's name if that's all that's available.
         var extensionName;
         if (validationResult.metadata) {
             extensionName = validationResult.metadata.name;
         } else if (options.nameHint) {
-            extensionName = path.basename(options.nameHint, ".zip");
+            extensionName = path.basename(options.nameHint).replace(basenameRegexp, "");
         } else {
-            extensionName = path.basename(packagePath, ".zip");
+            extensionName = path.basename(packagePath).replace(basenameRegexp, "");
         }
         validationResult.name = extensionName;
         var installDirectory = path.join(destinationDirectory, extensionName),
@@ -214,7 +198,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback) {
         }
         
         // If the extension is already there, at this point we will not overwrite
-        // a running extension. Instead, we unzip into the disabled directory.
+        // a running extension. Instead, we uncompress into the disabled directory.
         if (fs.existsSync(installDirectory) || fs.existsSync(systemInstallDirectory)) {
             validationResult.disabledReason  = Errors.ALREADY_INSTALLED;
             installDirectory = path.join(options.disabledDirectory, extensionName);
@@ -364,7 +348,7 @@ function init(domainManager) {
         "validate",
         validate,
         true,
-        "Verifies that the contents of the given ZIP file are a valid Brackets extension package",
+        "Verifies that the contents of the given package file are a valid Brackets extension package",
         [{
             name: "path",
             type: "string",
@@ -422,7 +406,7 @@ function init(domainManager) {
         }, {
             name: "commonPrefix",
             type: "string",
-            description: "top level directory in the package zip which contains all of the files"
+            description: "top level directory in the package file which contains all of the files"
         }]
     );
     domainManager.registerCommand(

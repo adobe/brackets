@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global expect, describe, it */
+/*global expect, describe, it, xit */
 
 "use strict";
 
@@ -41,19 +41,19 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
                                     "spec",
                                     "extension-test-files");
 
-var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extension.zip"),
-    basicValidExtension2   = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
-    missingPackageJSON     = path.join(testFilesDirectory, "missing-package-json.zip"),
-    invalidJSON            = path.join(testFilesDirectory, "invalid-json.zip"),
-    invalidZip             = path.join(testFilesDirectory, "invalid-zip-file.zip"),
-    missingNameVersion     = path.join(testFilesDirectory, "missing-name-version.zip"),
-    missingMain            = path.join(testFilesDirectory, "missing-main.zip"),
-    oneLevelDown           = path.join(testFilesDirectory, "one-level-extension-master.zip"),
-    bogusTopDir            = path.join(testFilesDirectory, "bogus-top-dir.zip"),
-    badname                = path.join(testFilesDirectory, "badname.zip"),
-    mainInDirectory        = path.join(testFilesDirectory, "main-in-directory.zip"),
-    invalidVersion         = path.join(testFilesDirectory, "invalid-version.zip"),
-    invalidBracketsVersion = path.join(testFilesDirectory, "invalid-brackets-version.zip");
+var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extension.tgz"),
+    basicValidExtension2   = path.join(testFilesDirectory, "basic-valid-extension-2.0.tgz"),
+    missingPackageJSON     = path.join(testFilesDirectory, "missing-package-json.tgz"),
+    invalidJSON            = path.join(testFilesDirectory, "invalid-json.tgz"),
+    invalidTar             = path.join(testFilesDirectory, "invalid-tar-file.tgz"),
+    missingNameVersion     = path.join(testFilesDirectory, "missing-name-version.tgz"),
+    missingMain            = path.join(testFilesDirectory, "missing-main.tgz"),
+    oneLevelDown           = path.join(testFilesDirectory, "one-level-extension-master.tgz"),
+    bogusTopDir            = path.join(testFilesDirectory, "bogus-top-dir.tgz"),
+    badname                = path.join(testFilesDirectory, "badname.tgz"),
+    mainInDirectory        = path.join(testFilesDirectory, "main-in-directory.tgz"),
+    invalidVersion         = path.join(testFilesDirectory, "invalid-version.tgz"),
+    invalidBracketsVersion = path.join(testFilesDirectory, "invalid-brackets-version.tgz");
 
 describe("Package Validation", function () {
     it("should handle a good package", function (done) {
@@ -117,8 +117,8 @@ describe("Package Validation", function () {
         });
     });
     
-    it("should complain about an invalid zip file", function (done) {
-        packageValidator.validate(invalidZip, {}, function (err, result) {
+    it("should complain about an invalid package file", function (done) {
+        packageValidator.validate(invalidTar, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
@@ -149,7 +149,7 @@ describe("Package Validation", function () {
         });
     });
     
-    it("should require a main.js in the zip file", function (done) {
+    it("should require a main.js in the package file", function (done) {
         packageValidator.validate(missingMain, {}, function (err, result) {
             expect(err).toBeNull();
             var errors = result.errors;
