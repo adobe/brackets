@@ -178,8 +178,9 @@ define(function (require, exports, module) {
     
     /**
      * Special case handling to make the common case of downloading from GitHub easier; modifies 'urlInfo' as
-     * needed. Converts a bare GitHub repo URL to the corresponding master ZIP URL; or if given a direct
-     * master ZIP URL already, sets a nicer download filename (both cases use the repo name).
+     * needed. Converts a bare GitHub repo URL to the corresponding master tar.gz URL; or if given a direct
+     * master tar.gz URL already, sets a nicer download filename (both cases use the repo name).
+     * This will also switch from .zip URLs to tar.gz URLs.
      * 
      * @param {{url:string, parsed:Array.<string>, filenameHint:string}} urlInfo
      */
@@ -191,14 +192,17 @@ define(function (require, exports, module) {
                 if (!match[2]) {
                     urlInfo.url += "/";
                 }
-                urlInfo.url += "archive/master.zip";
-                urlInfo.filenameHint = match[1] + ".zip";
+                urlInfo.url += "archive/master.tar.gz";
+                urlInfo.filenameHint = match[1] + ".tar.gz";
                 
             } else {
-                // Is it a URL directly to the repo's 'master.zip'? (/user/repo/archive/master.zip)
-                match = /^\/[^\/?]+\/([^\/?]+)\/archive\/master.zip$/.exec(urlInfo.parsed.pathname);
+                // Is it a URL directly to the repo's 'master.zip' or 'master.tar.gz'? (/user/repo/archive/master.tar.gz)
+                match = /^\/[^\/?]+\/([^\/?]+)\/archive\/master\.(zip|tar\.gz)$/.exec(urlInfo.parsed.pathname);
                 if (match) {
-                    urlInfo.filenameHint = match[1] + ".zip";
+                    urlInfo.filenameHint = match[1] + ".tar.gz";
+                    if (match[2] === "zip") {
+                        urlInfo.url = urlInfo.url.replace(/zip$/, "tar.gz");
+                    }
                 }
             }
         }

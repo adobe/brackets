@@ -39,7 +39,7 @@ var tar     = require("tar"),
 
 var Errors = {
     NOT_FOUND_ERR: "NOT_FOUND_ERR",                       // {0} is path where package file was expected
-    INVALID_ZIP_FILE: "INVALID_ZIP_FILE",                 // {0} is path to ZIP file
+    INVALID_PACKAGE_FILE: "INVALID_PACKAGE_FILE",                 // {0} is path to ZIP file
     INVALID_PACKAGE_JSON: "INVALID_PACKAGE_JSON",         // {0} is JSON parse error, {1} is path to package file
     MISSING_PACKAGE_NAME: "MISSING_PACKAGE_NAME",         // {0} is path to package file
     BAD_PACKAGE_NAME: "BAD_PACKAGE_NAME",                 // {0} is the name
@@ -184,7 +184,7 @@ function validate(path, options, callback) {
             .pipe(gunzip)
             .on("error", function (exception) {
                 // General error to report for problems reading the file
-                errors.push([Errors.INVALID_ZIP_FILE, path]);
+                errors.push([Errors.INVALID_PACKAGE_FILE, path]);
                 callback(null, {
                     errors: errors
                 });
@@ -194,7 +194,7 @@ function validate(path, options, callback) {
             .pipe(tar.Parse())
             .on("error", function (exception) {
                 // General error to report for problems reading the file
-                errors.push([Errors.INVALID_ZIP_FILE, path]);
+                errors.push([Errors.INVALID_PACKAGE_FILE, path]);
                 callback(null, {
                     errors: errors
                 });

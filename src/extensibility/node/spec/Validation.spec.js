@@ -122,7 +122,7 @@ describe("Package Validation", function () {
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(1);
-            expect(errors[0][0]).toEqual("INVALID_ZIP_FILE");
+            expect(errors[0][0]).toEqual("INVALID_PACKAGE_FILE");
             done();
         });
     });
