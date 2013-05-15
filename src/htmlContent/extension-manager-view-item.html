@@ -1,5 +1,5 @@
 <tr>
-    <td>
+    <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
         <span class="muted ext-version">{{metadata.version}}</span><br/>
         {{#authorInfo}}
@@ -33,7 +33,7 @@
             </span>
         {{/metadata.keywords.length}}
     </td>
-    <td>
+    <td class="ext-action">
         {{#showInstallButton}}
             <button class="btn install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
                 {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
@@ -45,7 +45,7 @@
                 {{Strings.MARKED_FOR_REMOVAL}} (<a class="undo-remove" data-extension-id="{{metadata.name}}">{{Strings.UNDO_REMOVE}}</a>)
             {{/isMarkedForRemoval}}
             {{^isMarkedForRemoval}}
-                <button class="btn remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
                     {{Strings.REMOVE}}
                 </button>
             {{/isMarkedForRemoval}}

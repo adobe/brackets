@@ -333,11 +333,16 @@
 /* Dialog-related styles */
 
 .modal {
+    background-color: @tc-gray-panel;
     width: auto;
 }
 
 .modal .close {
     cursor: default;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0,0,0,0.09);
 }
 
 .modal-body, .modal-header {
@@ -348,8 +353,8 @@
 }
 
 .modal-footer {
-    background-color: #dfe2e2;
-    border-top: 1px solid rgba(0,0,0,0.15);
+    background-color: @tc-gray-panel;
+    border-top: 1px solid rgba(0,0,0,0.09);
     box-shadow: none;
     white-space: nowrap;
 }
@@ -483,8 +488,10 @@
         width: 700px;
         
         .search {
+            background: #fff url("images/topcoat-search-20.svg") 3px 4px no-repeat;
             float: right;
             margin-top: 8px;
+            text-indent: 23px;
         }
         .search-clear {
             position: relative;
@@ -498,23 +505,40 @@
         }
     }
     .modal-body {
-        width: 700px;
+        width: 730px;
         height: 500px;
         text-align: center;
         overflow-y: scroll;
+        padding: 0;
         
         .extension-list {
+            .ext-info {
+                padding-left: 15px;
+            }
             .ext-name {
-                font-weight: bold;
+                color: #000;
+                font-size: 15px;
+                font-weight: @font-weight-light;
             }
             .ext-desc {
-                width: 60%;
+                font-weight: @font-weight-light;
+                width: 50%;
+            }
+            .ext-desc .muted,
+            .muted.ext-version {
+                color: #888;
             }
             .ext-version,
             .ext-date,
             .ext-author {
-                font-size: 0.8em;
+                font-size: 11px;
             }
+            .ext-action {
+                font-size: 12px;
+                padding-right: 20px;
+                text-align: right;
+                width: 200px;
+            }            
             .spinner {
                 position: absolute;
                 top: 50%;
@@ -682,8 +706,14 @@ input {
     }
 }
 
-// BASELINE STYLES
-// ---------------
+.btn-mini {
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: normal;
+  line-height: 14px;
+}
+
+/* Tables */
 
 table {
     th {
@@ -696,10 +726,6 @@ table {
         border-top: 1px solid transparent);
     }
 }
-
-
-// ZEBRA-STRIPING
-// --------------
 
 .zebra-striped {
     tbody {
