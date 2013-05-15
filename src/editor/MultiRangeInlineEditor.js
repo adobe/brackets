@@ -126,13 +126,13 @@ define(function (require, exports, module) {
         this.$editorsDiv.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
         });
-        
+
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(window.document.createElement("div")).addClass("related-container");
         
         // List "selection" highlight
         this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
-        
+
         // Inner container
         this.$related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
@@ -165,8 +165,11 @@ define(function (require, exports, module) {
         // select the first range
         self.setSelectedIndex(0);
         
-        // attach to main container
-        this.$htmlContent.append(this.$relatedContainer).append(this.$editorsDiv);
+        if (this._ranges.length > 1) {      // attach to main container
+            this.$htmlContent.append(this.$relatedContainer).append(this.$editorsDiv);
+        } else {                            // no need to show ranges found if there's only one
+            this.$htmlContent.append(this.$editorsDiv);
+        }
                 
         // Listen for clicks directly on us, so we can set focus back to the editor
         var clickHandler = this._onClick.bind(this);

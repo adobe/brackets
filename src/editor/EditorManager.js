@@ -95,6 +95,12 @@ define(function (require, exports, module) {
     var _inlineEditProviders = [];
     
     /**
+     * QuickEdit helper function.
+     * @type {function}
+     */
+    var _quickEditHelper = null;
+    
+    /**
      * Registered inline documentation widget providers. See {@link #registerInlineDocsProvider()}.
      * @type {Array.<function(...)>}
      */
@@ -214,7 +220,23 @@ define(function (require, exports, module) {
     function registerInlineEditProvider(provider) {
         _inlineEditProviders.push(provider);
     }
-    
+
+    /**
+     * Registers a helper for QuickEdit to provide a hook into Tern's jump-to-defintion.
+     * 
+     * @param {function}
+     */
+    function registerQuickEditHelper(helper) {
+        _quickEditHelper = helper;
+    }
+
+    /**
+     * Return QuickEdit helper.
+     */
+    function getQuickEditHelper() {
+        return _quickEditHelper;
+    }
+
     /**
      * Registers a new inline docs provider. When Quick Docs is invoked each registered provider is
      * asked if it wants to provide inline docs given the current editor and cursor location.
@@ -732,6 +754,8 @@ define(function (require, exports, module) {
     exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
+    exports.registerQuickEditHelper = registerQuickEditHelper;
+    exports.getQuickEditHelper = getQuickEditHelper;
     exports.registerInlineDocsProvider = registerInlineDocsProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
